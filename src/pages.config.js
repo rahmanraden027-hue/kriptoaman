@@ -47,8 +47,14 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import Wallet from './pages/Wallet';
 
-export const pagesConfig = {
-	Pages: {}
+
+export const PAGES = {
+    "Wallet": Wallet,
 }
 
+export const pagesConfig = {
+    mainPage: "Wallet",
+    Pages: PAGES,
+};
