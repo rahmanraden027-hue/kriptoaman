@@ -34,18 +34,23 @@ export default function CreateWallet({ onWalletCreated }) {
     setTimeout(() => setCopiedMnemonic(false), 2000);
   };
 
-  const handleFinish = () => {
-    const encryptedPrivateKey = encryptData(wallet.privateKey, password);
+  const handleFinish = async () => {
+    setLoading(true);
     const encryptedMnemonic = encryptData(wallet.mnemonic, password);
+    // Derive all coin addresses from the same mnemonic
+    const allAddresses = await deriveAllAddresses(wallet.mnemonic).catch(() => null);
     const walletData = {
+      // BTC primary address (legacy field)
       address: wallet.address,
       publicKey: wallet.publicKey,
-      encryptedPrivateKey,
+      // Multi-coin addresses
+      addresses: allAddresses || { BTC: { address: wallet.address, publicKey: wallet.publicKey } },
       encryptedMnemonic,
       passwordHash: hashPassword(password),
       createdAt: new Date().toISOString(),
     };
     saveWallet(walletData);
+    setLoading(false);
     onWalletCreated(walletData);
   };
 
