@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { generateWallet, encryptData, hashPassword, saveWallet } from './walletUtils';
+import { deriveAllAddresses } from './multiCoinWallet';
 import { Shield, Eye, EyeOff, Copy, Check, AlertTriangle } from 'lucide-react';
 
 export default function CreateWallet({ onWalletCreated }) {
