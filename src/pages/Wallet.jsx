@@ -5,14 +5,22 @@ import UnlockWallet from '../components/wallet/UnlockWallet';
 import Dashboard from '../components/wallet/Dashboard';
 import ReceiveModal from '../components/wallet/ReceiveModal';
 import SendModal from '../components/wallet/SendModal';
+import TradeModal from '../components/wallet/TradeModal';
 import TransactionList from '../components/wallet/TransactionList';
+import NotificationCenter, { useNotifications } from '../components/wallet/NotificationCenter';
 
 export default function Wallet() {
   const [walletData, setWalletData] = useState(null);
   const [sessionPassword, setSessionPassword] = useState(null);
   const [showReceive, setShowReceive] = useState(false);
   const [showSend, setShowSend] = useState(false);
+  const [showTrade, setShowTrade] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [balance, setBalance] = useState(0);
+
+  const { notifications, unread, markAllRead, dismiss, addNotif } = useNotifications(
+    walletData?.address
+  );
 
   useEffect(() => {
     const stored = loadWallet();
@@ -21,16 +29,9 @@ export default function Wallet() {
 
   const isLocked = walletData && !sessionPassword;
   const isCreating = !walletData;
-  const isUnlocked = walletData && sessionPassword;
 
   if (isCreating) {
-    return (
-      <CreateWallet
-        onWalletCreated={(w) => {
-          setWalletData(w);
-        }}
-      />
-    );
+    return <CreateWallet onWalletCreated={(w) => setWalletData(w)} />;
   }
 
   if (isLocked) {
@@ -54,9 +55,17 @@ export default function Wallet() {
             </div>
             <span className="text-white font-semibold">Bitcoin Wallet</span>
           </div>
-          <div className="flex items-center gap-1.5 bg-green-500/20 border border-green-500/30 rounded-full px-2.5 py-1">
-            <div className="w-1.5 h-1.5 bg-green-400 rounded-full" />
-            <span className="text-green-400 text-xs">Mainnet</span>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 bg-green-500/20 border border-green-500/30 rounded-full px-2.5 py-1">
+              <div className="w-1.5 h-1.5 bg-green-400 rounded-full" />
+              <span className="text-green-400 text-xs">Mainnet</span>
+            </div>
+            <NotificationCenter
+              notifications={notifications}
+              unread={unread}
+              onMarkRead={markAllRead}
+              onDismiss={dismiss}
+            />
           </div>
         </div>
 
@@ -64,6 +73,7 @@ export default function Wallet() {
           wallet={walletData}
           onSend={() => setShowSend(true)}
           onReceive={() => setShowReceive(true)}
+          onTrade={() => setShowTrade(true)}
           onLogout={() => setSessionPassword(null)}
         />
 
@@ -81,7 +91,25 @@ export default function Wallet() {
           onClose={() => setShowSend(false)}
           onSuccess={() => {
             setShowSend(false);
+            addNotif({ type: 'sent', icon: 'out', title: 'Transaksi terkirim', body: 'Bitcoin Anda sedang disiarkan ke jaringan' });
             setTimeout(() => setRefreshKey(k => k + 1), 2000);
+          }}
+        />
+      )}
+
+      {showTrade && (
+        <TradeModal
+          wallet={walletData}
+          balanceSatoshi={balance}
+          onClose={() => setShowTrade(false)}
+          onTradeComplete={(trade) => {
+            setShowTrade(false);
+            addNotif({
+              type: 'trade',
+              icon: 'trade',
+              title: `Order ${trade.type === 'buy' ? 'beli' : 'jual'} berhasil`,
+              body: `${trade.btc.toFixed(6)} BTC ≈ $${trade.usd.toFixed(2)}`,
+            });
           }}
         />
       )}
