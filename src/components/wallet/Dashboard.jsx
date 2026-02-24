@@ -81,7 +81,7 @@ export default function Dashboard({ wallet, onSend, onReceive, onLogout, onTrade
       </div>
 
       {/* Action Buttons */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <Button onClick={onReceive} variant="outline" className="h-14 flex-col gap-1 bg-slate-800 border-slate-700 text-white hover:bg-slate-700 hover:text-white">
           <ArrowDownLeft className="w-5 h-5 text-green-400" />
           <span className="text-sm">Terima</span>
@@ -89,6 +89,10 @@ export default function Dashboard({ wallet, onSend, onReceive, onLogout, onTrade
         <Button onClick={onSend} className="h-14 flex-col gap-1 bg-orange-500 hover:bg-orange-600 text-white">
           <ArrowUpRight className="w-5 h-5" />
           <span className="text-sm">Kirim</span>
+        </Button>
+        <Button onClick={onTrade} variant="outline" className="h-14 flex-col gap-1 bg-slate-800 border-slate-700 text-white hover:bg-slate-700 hover:text-white">
+          <BarChart2 className="w-5 h-5 text-blue-400" />
+          <span className="text-sm">Trade</span>
         </Button>
       </div>
 
