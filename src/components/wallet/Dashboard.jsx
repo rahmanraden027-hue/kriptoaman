@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { getAddressInfo, getBtcPrice } from './bitcoinApi';
 import { satoshiToBtc, truncateAddress } from './walletUtils';
-import { ArrowUpRight, ArrowDownLeft, RefreshCw, Copy, Check, LogOut } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, RefreshCw, Copy, Check, LogOut, BarChart2 } from 'lucide-react';
 
 export default function Dashboard({ wallet, onSend, onReceive, onLogout }) {
   const [balance, setBalance] = useState(null);
