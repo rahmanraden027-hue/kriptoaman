@@ -1,34 +1,51 @@
 import React, { useState, useEffect } from 'react';
-import { loadWallet } from '../components/wallet/walletUtils';
+import { loadWallet, decryptData } from '../components/wallet/walletUtils';
+import { deriveAllAddresses } from '../components/wallet/multiCoinWallet';
 import CreateWallet from '../components/wallet/CreateWallet';
 import UnlockWallet from '../components/wallet/UnlockWallet';
-import Dashboard from '../components/wallet/Dashboard';
+import MultiCoinDashboard from '../components/wallet/MultiCoinDashboard';
+import MultiCoinTxList from '../components/wallet/MultiCoinTxList';
 import ReceiveModal from '../components/wallet/ReceiveModal';
 import SendModal from '../components/wallet/SendModal';
 import TradeModal from '../components/wallet/TradeModal';
-import TransactionList from '../components/wallet/TransactionList';
 import NotificationCenter, { useNotifications } from '../components/wallet/NotificationCenter';
 
 export default function Wallet() {
   const [walletData, setWalletData] = useState(null);
   const [sessionPassword, setSessionPassword] = useState(null);
+  const [addresses, setAddresses] = useState(null); // { BTC, ETH, LTC }
+  const [activeCoin, setActiveCoin] = useState('BTC');
   const [showReceive, setShowReceive] = useState(false);
   const [showSend, setShowSend] = useState(false);
   const [showTrade, setShowTrade] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [balance, setBalance] = useState(0);
 
-  const { notifications, unread, markAllRead, dismiss, addNotif } = useNotifications(
-    walletData?.address
-  );
+  const btcAddress = addresses?.BTC?.address || walletData?.address;
+  const { notifications, unread, markAllRead, dismiss, addNotif } = useNotifications(btcAddress);
 
   useEffect(() => {
     const stored = loadWallet();
     setWalletData(stored);
   }, []);
 
+  // When unlocked, derive multi-coin addresses if not already stored
+  useEffect(() => {
+    if (!walletData || !sessionPassword) return;
+    if (walletData.addresses) {
+      setAddresses(walletData.addresses);
+      return;
+    }
+    // Legacy wallet: derive addresses from mnemonic
+    const mnemonic = decryptData(walletData.encryptedMnemonic, sessionPassword);
+    if (!mnemonic) return;
+    deriveAllAddresses(mnemonic)
+      .then(addrs => setAddresses(addrs))
+      .catch(() => setAddresses({ BTC: { address: walletData.address, publicKey: walletData.publicKey } }));
+  }, [walletData, sessionPassword]);
+
   const isLocked = walletData && !sessionPassword;
   const isCreating = !walletData;
+  const activeAddress = addresses?.[activeCoin]?.address || '';
 
   if (isCreating) {
     return <CreateWallet onWalletCreated={(w) => setWalletData(w)} />;
@@ -53,7 +70,7 @@ export default function Wallet() {
             <div className="w-8 h-8 rounded-xl bg-orange-500 flex items-center justify-center">
               <span className="text-white font-bold text-sm">₿</span>
             </div>
-            <span className="text-white font-semibold">Bitcoin Wallet</span>
+            <span className="text-white font-semibold">Crypto Wallet</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 bg-green-500/20 border border-green-500/30 rounded-full px-2.5 py-1">
@@ -69,38 +86,51 @@ export default function Wallet() {
           </div>
         </div>
 
-        <Dashboard
-          wallet={walletData}
+        <MultiCoinDashboard
+          addresses={addresses || { BTC: { address: walletData?.address } }}
+          activeCoin={activeCoin}
+          onCoinChange={setActiveCoin}
           onSend={() => setShowSend(true)}
           onReceive={() => setShowReceive(true)}
           onTrade={() => setShowTrade(true)}
           onLogout={() => setSessionPassword(null)}
         />
 
-        <TransactionList key={refreshKey} address={walletData.address} />
+        <MultiCoinTxList key={`${activeCoin}-${refreshKey}`} coinId={activeCoin} address={activeAddress} />
       </div>
 
-      {showReceive && (
-        <ReceiveModal address={walletData.address} onClose={() => setShowReceive(false)} />
+      {showReceive && activeAddress && (
+        <ReceiveModal address={activeAddress} onClose={() => setShowReceive(false)} />
       )}
 
-      {showSend && (
+      {showSend && activeCoin === 'BTC' && (
         <SendModal
           wallet={walletData}
           sessionPassword={sessionPassword}
           onClose={() => setShowSend(false)}
           onSuccess={() => {
             setShowSend(false);
-            addNotif({ type: 'sent', icon: 'out', title: 'Transaksi terkirim', body: 'Bitcoin Anda sedang disiarkan ke jaringan' });
+            addNotif({ type: 'sent', icon: 'out', title: 'Transaksi BTC terkirim', body: 'Sedang disiarkan ke jaringan Bitcoin' });
             setTimeout(() => setRefreshKey(k => k + 1), 2000);
           }}
         />
       )}
 
+      {showSend && activeCoin !== 'BTC' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setShowSend(false)}>
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-sm w-full text-center space-y-3" onClick={e => e.stopPropagation()}>
+            <div className="text-4xl">🚧</div>
+            <h3 className="text-white font-semibold">Segera Hadir</h3>
+            <p className="text-slate-400 text-sm">Pengiriman {activeCoin} sedang dalam pengembangan. BTC sudah sepenuhnya didukung.</p>
+            <button onClick={() => setShowSend(false)} className="mt-2 text-orange-400 text-sm hover:underline">Tutup</button>
+          </div>
+        </div>
+      )}
+
       {showTrade && (
         <TradeModal
           wallet={walletData}
-          balanceSatoshi={balance}
+          balanceSatoshi={0}
           onClose={() => setShowTrade(false)}
           onTradeComplete={(trade) => {
             setShowTrade(false);
