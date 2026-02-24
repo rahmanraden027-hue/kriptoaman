@@ -4,7 +4,7 @@ import { getAddressInfo, getBtcPrice } from './bitcoinApi';
 import { satoshiToBtc, truncateAddress } from './walletUtils';
 import { ArrowUpRight, ArrowDownLeft, RefreshCw, Copy, Check, LogOut, BarChart2 } from 'lucide-react';
 
-export default function Dashboard({ wallet, onSend, onReceive, onLogout }) {
+export default function Dashboard({ wallet, onSend, onReceive, onLogout, onTrade }) {
   const [balance, setBalance] = useState(null);
   const [btcPrice, setBtcPrice] = useState(null);
   const [loading, setLoading] = useState(true);
