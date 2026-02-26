@@ -146,6 +146,43 @@ export default function DexSwapModal({ activeCoin, onClose, onSwapComplete }) {
         </div>
 
         <div className="p-5 space-y-4">
+          {/* Slippage Settings Panel */}
+          {showSlippage && step === 'form' && (
+            <div className="bg-slate-800/70 border border-violet-500/30 rounded-xl p-3 space-y-2">
+              <p className="text-slate-300 text-xs font-medium">Toleransi Slippage</p>
+              <div className="flex gap-2">
+                {['0.1', '0.5', '1.0'].map(v => (
+                  <button
+                    key={v}
+                    onClick={() => setSlippage(v)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                      slippage === v
+                        ? 'bg-violet-500/20 border-violet-500/50 text-violet-300'
+                        : 'bg-slate-700 border-slate-600 text-slate-400 hover:border-slate-500'
+                    }`}
+                  >
+                    {v}%
+                  </button>
+                ))}
+                <div className="flex-1 flex items-center gap-1 bg-slate-700 border border-slate-600 rounded-lg px-2">
+                  <input
+                    type="number"
+                    value={slippage}
+                    onChange={e => setSlippage(e.target.value)}
+                    className="w-full bg-transparent text-white text-xs outline-none"
+                    min="0.01" max="50" step="0.1"
+                  />
+                  <span className="text-slate-400 text-xs">%</span>
+                </div>
+              </div>
+              {parseFloat(slippage) > 5 && (
+                <p className="text-orange-400 text-xs flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" /> Slippage tinggi — risiko sandwich attack meningkat
+                </p>
+              )}
+            </div>
+          )}
+
           {step === 'form' && (
             <>
               {/* Protocol Selector */}
