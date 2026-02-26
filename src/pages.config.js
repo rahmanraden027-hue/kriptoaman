@@ -48,10 +48,12 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import Wallet from './pages/Wallet';
+import TransactionHistory from './pages/TransactionHistory';
 
 
 export const PAGES = {
     "Wallet": Wallet,
+    "TransactionHistory": TransactionHistory,
 }
 
 export const pagesConfig = {
