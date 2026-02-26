@@ -61,7 +61,10 @@ export default function DexSwapModal({ activeCoin, onClose, onSwapComplete }) {
   const [selectedProtocol, setSelectedProtocol] = useState(activeCoin === 'ETH' ? 'uniswap' : 'thorchain');
   const [loading, setLoading] = useState(false);
   const [gasLoading, setGasLoading] = useState(false);
-  const [step, setStep] = useState('form'); // form | confirm | done
+  const [step, setStep] = useState('form'); // form | confirm | executing | done
+  const [slippage, setSlippage] = useState('0.5');
+  const [showSlippage, setShowSlippage] = useState(false);
+  const [txStatus, setTxStatus] = useState(null); // null | waiting | submitted | confirmed
 
   // Load gas fees
   useEffect(() => {
