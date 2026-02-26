@@ -10,7 +10,7 @@ import SendModal from '../components/wallet/SendModal';
 import TradeModal from '../components/wallet/TradeModal';
 import NotificationCenter, { useNotifications } from '../components/wallet/NotificationCenter';
 import DexSwapModal from '../components/wallet/DexSwapModal';
-import DexHistory from '../components/wallet/DexHistory';
+import DexTradeHistory from '../components/wallet/DexTradeHistory';
 
 export default function Wallet() {
   const [walletData, setWalletData] = useState(null);
@@ -21,8 +21,7 @@ export default function Wallet() {
   const [showSend, setShowSend] = useState(false);
   const [showTrade, setShowTrade] = useState(false);
   const [showDex, setShowDex] = useState(false);
-  const [dexRefresh, setDexRefresh] = useState(0);
-  const [activeTab, setActiveTab] = useState('wallet'); // wallet | dex
+  const [dexRefreshKey, setDexRefreshKey] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const btcAddress = addresses?.BTC?.address || walletData?.address;
@@ -91,63 +90,27 @@ export default function Wallet() {
           </div>
         </div>
 
-        {/* Tab Switch */}
-        <div className="flex gap-1 bg-slate-800/60 border border-slate-700/50 p-1 rounded-xl">
-          <button
-            onClick={() => setActiveTab('wallet')}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'wallet' ? 'bg-slate-700 text-white shadow' : 'text-slate-400 hover:text-slate-300'}`}
-          >
-            💼 Wallet
-          </button>
-          <button
-            onClick={() => setActiveTab('dex')}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'dex' ? 'bg-purple-600 text-white shadow' : 'text-slate-400 hover:text-slate-300'}`}
-          >
-            ⚡ DEX Swap
-          </button>
-        </div>
+        <MultiCoinDashboard
+          addresses={addresses || { BTC: { address: walletData?.address } }}
+          activeCoin={activeCoin}
+          onCoinChange={setActiveCoin}
+          onSend={() => setShowSend(true)}
+          onReceive={() => setShowReceive(true)}
+          onTrade={() => setShowTrade(true)}
+          onLogout={() => setSessionPassword(null)}
+        />
 
-        {activeTab === 'wallet' && (
-          <>
-            <MultiCoinDashboard
-              addresses={addresses || { BTC: { address: walletData?.address } }}
-              activeCoin={activeCoin}
-              onCoinChange={setActiveCoin}
-              onSend={() => setShowSend(true)}
-              onReceive={() => setShowReceive(true)}
-              onTrade={() => setShowTrade(true)}
-              onLogout={() => setSessionPassword(null)}
-            />
-            <MultiCoinTxList key={`${activeCoin}-${refreshKey}`} coinId={activeCoin} address={activeAddress} />
-          </>
-        )}
+        {/* DEX Swap Button */}
+        <button
+          onClick={() => setShowDex(true)}
+          className="w-full py-3 rounded-xl bg-violet-600/20 border border-violet-500/40 text-violet-300 hover:bg-violet-600/30 hover:text-violet-200 transition-all text-sm font-medium flex items-center justify-center gap-2"
+        >
+          <span>🔀</span> DEX Swap — Uniswap · THORChain · 1inch
+        </button>
 
-        {activeTab === 'dex' && (
-          <div className="space-y-4">
-            <button
-              onClick={() => setShowDex(true)}
-              className="w-full bg-purple-600 hover:bg-purple-700 transition-colors rounded-2xl p-5 text-left border border-purple-500/30"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white font-semibold">Swap Crypto</p>
-                  <p className="text-purple-200 text-sm mt-0.5">ETH tokens via Uniswap v3 · Cross-chain via THORChain</p>
-                </div>
-                <div className="text-3xl">⚡</div>
-              </div>
-              <div className="flex gap-2 mt-3">
-                {['ETH→USDC', 'BTC→ETH', 'ETH→WBTC', 'LTC→ETH'].map(pair => (
-                  <span key={pair} className="text-xs bg-purple-500/20 text-purple-200 px-2 py-1 rounded-lg">{pair}</span>
-                ))}
-              </div>
-            </button>
+        <DexTradeHistory key={dexRefreshKey} />
 
-            <div>
-              <h3 className="text-slate-400 text-sm font-medium mb-3">Riwayat Swap DEX</h3>
-              <DexHistory refreshTrigger={dexRefresh} />
-            </div>
-          </div>
-        )}
+        <MultiCoinTxList key={`${activeCoin}-${refreshKey}`} coinId={activeCoin} address={activeAddress} />
       </div>
 
       {showReceive && activeAddress && (
@@ -176,23 +139,6 @@ export default function Wallet() {
             <button onClick={() => setShowSend(false)} className="mt-2 text-orange-400 text-sm hover:underline">Tutup</button>
           </div>
         </div>
-      )}
-
-      {showDex && (
-        <DexSwapModal
-          onClose={() => setShowDex(false)}
-          onSwapComplete={(swap) => {
-            setShowDex(false);
-            setDexRefresh(d => d + 1);
-            setActiveTab('dex');
-            addNotif({
-              type: 'trade',
-              icon: 'trade',
-              title: `Swap ${swap.fromSymbol} → ${swap.toSymbol} berhasil`,
-              body: `${swap.fromAmount} ${swap.fromSymbol} = ${swap.toAmount?.toFixed(4)} ${swap.toSymbol}`,
-            });
-          }}
-        />
       )}
 
       {showTrade && (
