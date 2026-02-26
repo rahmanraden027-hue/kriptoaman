@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
 import { loadWallet, decryptData } from '../components/wallet/walletUtils';
 import { deriveAllAddresses } from '../components/wallet/multiCoinWallet';
 import CreateWallet from '../components/wallet/CreateWallet';
@@ -11,9 +9,6 @@ import ReceiveModal from '../components/wallet/ReceiveModal';
 import SendModal from '../components/wallet/SendModal';
 import TradeModal from '../components/wallet/TradeModal';
 import NotificationCenter, { useNotifications } from '../components/wallet/NotificationCenter';
-import DexSwapModal from '../components/wallet/DexSwapModal';
-import DexTradeHistory from '../components/wallet/DexTradeHistory';
-import DefiToastContainer from '../components/wallet/DefiToast';
 
 export default function Wallet() {
   const [walletData, setWalletData] = useState(null);
@@ -23,8 +18,6 @@ export default function Wallet() {
   const [showReceive, setShowReceive] = useState(false);
   const [showSend, setShowSend] = useState(false);
   const [showTrade, setShowTrade] = useState(false);
-  const [showDex, setShowDex] = useState(false);
-  const [dexRefreshKey, setDexRefreshKey] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const btcAddress = addresses?.BTC?.address || walletData?.address;
@@ -103,23 +96,6 @@ export default function Wallet() {
           onLogout={() => setSessionPassword(null)}
         />
 
-        {/* DEX Swap Button */}
-        <button
-          onClick={() => setShowDex(true)}
-          className="w-full py-3 rounded-xl bg-violet-600/20 border border-violet-500/40 text-violet-300 hover:bg-violet-600/30 hover:text-violet-200 transition-all text-sm font-medium flex items-center justify-center gap-2"
-        >
-          <span>🔀</span> DEX Swap — Uniswap · THORChain · 1inch
-        </button>
-
-        <DexTradeHistory key={dexRefreshKey} />
-
-        {/* View full history link */}
-        <Link to={createPageUrl('TransactionHistory')}>
-          <button className="w-full py-2.5 rounded-xl border border-slate-700/50 text-slate-400 hover:text-white hover:border-slate-600 transition-all text-xs font-medium flex items-center justify-center gap-2">
-            📋 Lihat Riwayat Transaksi Lengkap
-          </button>
-        </Link>
-
         <MultiCoinTxList key={`${activeCoin}-${refreshKey}`} coinId={activeCoin} address={activeAddress} />
       </div>
 
@@ -150,17 +126,6 @@ export default function Wallet() {
           </div>
         </div>
       )}
-
-      {showDex && (
-        <DexSwapModal
-          activeCoin={activeCoin}
-          onClose={() => setShowDex(false)}
-          onSwapComplete={() => setDexRefreshKey(k => k + 1)}
-          onAddNotif={addNotif}
-        />
-      )}
-
-      <DefiToastContainer />
 
       {showTrade && (
         <TradeModal
