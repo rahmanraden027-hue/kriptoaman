@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { getSwapQuote, estimateGasFee, getDexLink, saveTradeToHistory, SWAP_TOKENS } from './dexApi';
 import { X, ArrowDownUp, Loader2, ExternalLink, ChevronDown, Zap, Info, Settings, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import DexPriceChart from './DexPriceChart';
+import { emitDefiNotif } from './DefiToast';
 
 const PROTOCOLS = {
   uniswap:  { name: 'Uniswap V3',  logo: '🦄', chains: ['ETH'] },

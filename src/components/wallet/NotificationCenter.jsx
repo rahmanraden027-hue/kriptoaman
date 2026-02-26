@@ -107,6 +107,12 @@ const ICONS = {
   out: <ArrowUpRight className="w-4 h-4 text-red-400" />,
   pending: <CheckCircle2 className="w-4 h-4 text-yellow-400" />,
   trade: <CheckCircle2 className="w-4 h-4 text-orange-400" />,
+  swap_pending: <CheckCircle2 className="w-4 h-4 text-yellow-400" />,
+  swap_submitted: <CheckCircle2 className="w-4 h-4 text-violet-400" />,
+  swap_confirmed: <CheckCircle2 className="w-4 h-4 text-green-400" />,
+  swap_failed: <CheckCircle2 className="w-4 h-4 text-red-400" />,
+  stake_pending: <CheckCircle2 className="w-4 h-4 text-yellow-400" />,
+  stake_confirmed: <CheckCircle2 className="w-4 h-4 text-orange-400" />,
 };
 
 const BG = {
@@ -115,6 +121,12 @@ const BG = {
   sent: 'border-red-500/30 bg-red-500/10',
   pending: 'border-yellow-500/30 bg-yellow-500/10',
   trade: 'border-orange-500/30 bg-orange-500/10',
+  swap_pending: 'border-yellow-500/30 bg-yellow-500/10',
+  swap_submitted: 'border-violet-500/30 bg-violet-500/10',
+  swap_confirmed: 'border-green-500/30 bg-green-500/10',
+  swap_failed: 'border-red-500/30 bg-red-500/10',
+  stake_pending: 'border-yellow-500/30 bg-yellow-500/10',
+  stake_confirmed: 'border-orange-500/30 bg-orange-500/10',
 };
 
 export default function NotificationCenter({ notifications, unread, onMarkRead, onDismiss }) {
