@@ -106,8 +106,18 @@ export default function DexSwapModal({ activeCoin, onClose, onSwapComplete, onAd
     window.open(dexUrl, '_blank');
     setStep('executing');
     setTxStatus('waiting');
-    // Simulate transaction status progression
-    setTimeout(() => setTxStatus('submitted'), 3000);
+
+    // Emit pending notification
+    const pairLabel = `${fromToken.symbol} → ${toToken.symbol}`;
+    emitDefiNotif({ type: 'swap_pending', title: 'Swap Pending', body: `Menunggu konfirmasi wallet untuk ${pairLabel}`, duration: 6000 });
+    onAddNotif?.({ type: 'swap_pending', icon: 'swap_pending', title: 'Swap Pending', body: `Menunggu konfirmasi wallet untuk ${pairLabel}` });
+
+    setTimeout(() => {
+      setTxStatus('submitted');
+      emitDefiNotif({ type: 'swap_submitted', title: 'Swap Terkirim', body: `${pairLabel} masuk ke mempool, menunggu konfirmasi miner`, duration: 6000 });
+      onAddNotif?.({ type: 'swap_submitted', icon: 'swap_submitted', title: 'Swap Terkirim', body: `${pairLabel} sedang diproses di jaringan` });
+    }, 3000);
+
     setTimeout(() => {
       setTxStatus('confirmed');
       saveTradeToHistory({
@@ -122,6 +132,8 @@ export default function DexSwapModal({ activeCoin, onClose, onSwapComplete, onAd
         slippage,
         status: 'completed',
       });
+      emitDefiNotif({ type: 'swap_confirmed', title: 'Swap Berhasil! ✅', body: `${parseFloat(fromAmount).toFixed(6)} ${fromToken.symbol} → ${quote.toAmount.toFixed(6)} ${toToken.symbol}`, duration: 8000 });
+      onAddNotif?.({ type: 'swap_confirmed', icon: 'swap_confirmed', title: 'Swap Berhasil!', body: `${parseFloat(fromAmount).toFixed(6)} ${fromToken.symbol} → ${quote.toAmount.toFixed(6)} ${toToken.symbol}` });
       setTimeout(() => setStep('done'), 1500);
     }, 8000);
   };
