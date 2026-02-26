@@ -156,8 +156,11 @@ export default function Wallet() {
           activeCoin={activeCoin}
           onClose={() => setShowDex(false)}
           onSwapComplete={() => setDexRefreshKey(k => k + 1)}
+          onAddNotif={addNotif}
         />
       )}
+
+      <DefiToastContainer />
 
       {showTrade && (
         <TradeModal
