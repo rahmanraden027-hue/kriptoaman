@@ -244,6 +244,9 @@ export default function DexSwapModal({ activeCoin, onClose, onSwapComplete }) {
                 </div>
               </div>
 
+              {/* Price Chart */}
+              <DexPriceChart fromToken={fromToken} toToken={toToken} />
+
               {/* Quote Details */}
               {quote && (
                 <div className="bg-slate-800/50 rounded-xl p-3 space-y-2 text-sm">
@@ -252,8 +255,12 @@ export default function DexSwapModal({ activeCoin, onClose, onSwapComplete }) {
                     <span className="text-white">1 {fromToken.symbol} = {quote.exchangeRate.toFixed(6)} {toToken.symbol}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Slippage</span>
-                    <span className="text-yellow-400">{quote.slippage}%</span>
+                    <span className="text-slate-400">Toleransi Slippage</span>
+                    <span className="text-yellow-400">{slippage}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Min. Diterima</span>
+                    <span className="text-white">{(quote.toAmount * (1 - parseFloat(slippage) / 100)).toFixed(6)} {toToken.symbol}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">Price Impact</span>
