@@ -102,18 +102,27 @@ export default function DexSwapModal({ activeCoin, onClose, onSwapComplete }) {
 
   const handleConfirm = () => {
     if (!quote) return;
-    saveTradeToHistory({
-      protocol: selectedProtocol,
-      fromToken: fromToken.symbol,
-      toToken: toToken.symbol,
-      fromAmount: parseFloat(fromAmount),
-      toAmount: quote.toAmount,
-      fromUSD: quote.fromUSD,
-      toUSD: quote.toUSD,
-      gasFee: gas?.usd || '0',
-      status: 'completed',
-    });
-    setStep('done');
+    window.open(dexUrl, '_blank');
+    setStep('executing');
+    setTxStatus('waiting');
+    // Simulate transaction status progression
+    setTimeout(() => setTxStatus('submitted'), 3000);
+    setTimeout(() => {
+      setTxStatus('confirmed');
+      saveTradeToHistory({
+        protocol: selectedProtocol,
+        fromToken: fromToken.symbol,
+        toToken: toToken.symbol,
+        fromAmount: parseFloat(fromAmount),
+        toAmount: quote.toAmount,
+        fromUSD: quote.fromUSD,
+        toUSD: quote.toUSD,
+        gasFee: gas?.usd || '0',
+        slippage,
+        status: 'completed',
+      });
+      setTimeout(() => setStep('done'), 1500);
+    }, 8000);
   };
 
   return (
