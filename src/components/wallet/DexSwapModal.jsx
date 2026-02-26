@@ -51,7 +51,7 @@ function TokenSelect({ tokens, value, onChange, label }) {
   );
 }
 
-export default function DexSwapModal({ activeCoin, onClose, onSwapComplete }) {
+export default function DexSwapModal({ activeCoin, onClose, onSwapComplete, onAddNotif }) {
   const tokens = SWAP_TOKENS[activeCoin] || SWAP_TOKENS.ETH;
   const [fromToken, setFromToken] = useState(tokens[0]);
   const [toToken, setToToken] = useState(tokens[1]);
