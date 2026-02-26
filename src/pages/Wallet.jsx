@@ -13,6 +13,7 @@ import TradeModal from '../components/wallet/TradeModal';
 import NotificationCenter, { useNotifications } from '../components/wallet/NotificationCenter';
 import DexSwapModal from '../components/wallet/DexSwapModal';
 import DexTradeHistory from '../components/wallet/DexTradeHistory';
+import DefiToastContainer from '../components/wallet/DefiToast';
 
 export default function Wallet() {
   const [walletData, setWalletData] = useState(null);
