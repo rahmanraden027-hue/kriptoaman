@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { loadSwapHistory } from './dexApi';
-import { ArrowUpDown, ExternalLink, RefreshCw, Zap } from 'lucide-react';
-import { TOKENS } from './dexApi';
+import { loadSwapHistory, TOKENS } from './dexApi.js';
+import { ArrowUpDown, Zap } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function DexHistory({ refreshTrigger }) {
