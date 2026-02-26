@@ -10,7 +10,7 @@ import SendModal from '../components/wallet/SendModal';
 import TradeModal from '../components/wallet/TradeModal';
 import NotificationCenter, { useNotifications } from '../components/wallet/NotificationCenter';
 import DexSwapModal from '../components/wallet/DexSwapModal';
-import DexHistory from '../components/wallet/DexHistory';
+import DexTradeHistory from '../components/wallet/DexTradeHistory';
 
 export default function Wallet() {
   const [walletData, setWalletData] = useState(null);
@@ -20,9 +20,6 @@ export default function Wallet() {
   const [showReceive, setShowReceive] = useState(false);
   const [showSend, setShowSend] = useState(false);
   const [showTrade, setShowTrade] = useState(false);
-  const [showDex, setShowDex] = useState(false);
-  const [dexRefresh, setDexRefresh] = useState(0);
-  const [activeTab, setActiveTab] = useState('wallet'); // wallet | dex
   const [refreshKey, setRefreshKey] = useState(0);
 
   const btcAddress = addresses?.BTC?.address || walletData?.address;
