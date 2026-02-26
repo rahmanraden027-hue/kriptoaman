@@ -362,13 +362,47 @@ export default function DexSwapModal({ activeCoin, onClose, onSwapComplete }) {
               <div className="flex gap-2">
                 <Button variant="outline" onClick={() => setStep('form')} className="flex-1 border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800">Kembali</Button>
                 <Button
-                  onClick={() => { window.open(dexUrl, '_blank'); handleConfirm(); }}
+                  onClick={handleConfirm}
                   className="flex-1 bg-violet-600 hover:bg-violet-700 text-white gap-1.5"
                 >
                   <ExternalLink className="w-4 h-4" />
                   Eksekusi di DEX
                 </Button>
               </div>
+            </div>
+          )}
+
+          {step === 'executing' && (
+            <div className="space-y-4 py-2">
+              <h3 className="text-white font-medium text-sm text-center">Status Transaksi</h3>
+              <div className="space-y-3">
+                {[
+                  { key: 'waiting', label: 'Menunggu konfirmasi wallet', desc: 'Setujui transaksi di DEX tab' },
+                  { key: 'submitted', label: 'Transaksi terkirim ke mempool', desc: 'Menunggu validasi miner' },
+                  { key: 'confirmed', label: 'Transaksi dikonfirmasi', desc: 'Swap berhasil diselesaikan!' },
+                ].map(({ key, label, desc }, i) => {
+                  const statuses = ['waiting', 'submitted', 'confirmed'];
+                  const currentIdx = statuses.indexOf(txStatus);
+                  const stepIdx = statuses.indexOf(key);
+                  const isActive = txStatus === key;
+                  const isDone = currentIdx > stepIdx;
+                  const isPending = currentIdx < stepIdx;
+                  return (
+                    <div key={key} className={`flex items-start gap-3 p-3 rounded-xl border transition-all ${isActive ? 'bg-violet-500/10 border-violet-500/40' : isDone ? 'bg-green-500/10 border-green-500/30' : 'bg-slate-800/40 border-slate-700/30'}`}>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${isDone ? 'bg-green-500/20' : isActive ? 'bg-violet-500/20' : 'bg-slate-700'}`}>
+                        {isDone ? <CheckCircle2 className="w-3.5 h-3.5 text-green-400" /> : isActive ? <Loader2 className="w-3.5 h-3.5 text-violet-400 animate-spin" /> : <Clock className="w-3.5 h-3.5 text-slate-500" />}
+                      </div>
+                      <div>
+                        <p className={`text-sm font-medium ${isDone ? 'text-green-300' : isActive ? 'text-white' : 'text-slate-500'}`}>{label}</p>
+                        <p className={`text-xs mt-0.5 ${isDone ? 'text-green-500/70' : isActive ? 'text-slate-400' : 'text-slate-600'}`}>{desc}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-slate-500 text-xs text-center">
+                {fromToken.symbol} → {toToken.symbol} via {PROTOCOLS[selectedProtocol]?.name}
+              </p>
             </div>
           )}
 
