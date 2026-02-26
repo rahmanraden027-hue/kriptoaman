@@ -112,6 +112,13 @@ export default function Wallet() {
 
         <DexTradeHistory key={dexRefreshKey} />
 
+        {/* View full history link */}
+        <Link to={createPageUrl('TransactionHistory')}>
+          <button className="w-full py-2.5 rounded-xl border border-slate-700/50 text-slate-400 hover:text-white hover:border-slate-600 transition-all text-xs font-medium flex items-center justify-center gap-2">
+            📋 Lihat Riwayat Transaksi Lengkap
+          </button>
+        </Link>
+
         <MultiCoinTxList key={`${activeCoin}-${refreshKey}`} coinId={activeCoin} address={activeAddress} />
       </div>
 
