@@ -137,7 +137,12 @@ export default function DexSwapModal({ activeCoin, onClose, onSwapComplete }) {
             <h2 className="text-white font-semibold">DEX Swap</h2>
             <p className="text-slate-400 text-xs">Tukar aset via protokol terdesentralisasi</p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setShowSlippage(s => !s)} className={`p-1.5 rounded-lg transition-colors ${showSlippage ? 'bg-violet-500/20 text-violet-400' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}>
+              <Settings className="w-4 h-4" />
+            </button>
+            <button onClick={onClose} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
+          </div>
         </div>
 
         <div className="p-5 space-y-4">
