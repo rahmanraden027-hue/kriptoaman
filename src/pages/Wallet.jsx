@@ -20,6 +20,9 @@ export default function Wallet() {
   const [showReceive, setShowReceive] = useState(false);
   const [showSend, setShowSend] = useState(false);
   const [showTrade, setShowTrade] = useState(false);
+  const [showDex, setShowDex] = useState(false);
+  const [dexRefresh, setDexRefresh] = useState(0);
+  const [activeTab, setActiveTab] = useState('wallet'); // wallet | dex
   const [refreshKey, setRefreshKey] = useState(0);
 
   const btcAddress = addresses?.BTC?.address || walletData?.address;
