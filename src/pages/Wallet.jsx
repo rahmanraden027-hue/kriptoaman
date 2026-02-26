@@ -141,6 +141,14 @@ export default function Wallet() {
         </div>
       )}
 
+      {showDex && (
+        <DexSwapModal
+          activeCoin={activeCoin}
+          onClose={() => setShowDex(false)}
+          onSwapComplete={() => setDexRefreshKey(k => k + 1)}
+        />
+      )}
+
       {showTrade && (
         <TradeModal
           wallet={walletData}
