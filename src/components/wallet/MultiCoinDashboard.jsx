@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { getBalance, getPrices, formatAmount, COINS } from './multiCoinApi';
 import { truncateAddress } from './walletUtils';
-import { ArrowUpRight, ArrowDownLeft, RefreshCw, Copy, Check, LogOut, BarChart2, TrendingUp, TrendingDown } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, RefreshCw, Copy, Check, LogOut, BarChart2, TrendingUp, TrendingDown, ArrowLeftRight } from 'lucide-react';
 import CoinSelector from './CoinSelector';
 
 const COIN_ICONS = { BTC: '₿', ETH: 'Ξ', LTC: 'Ł' };

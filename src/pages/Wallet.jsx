@@ -8,6 +8,7 @@ import MultiCoinTxList from '../components/wallet/MultiCoinTxList';
 import ReceiveModal from '../components/wallet/ReceiveModal';
 import SendModal from '../components/wallet/SendModal';
 import TradeModal from '../components/wallet/TradeModal';
+import SwapModal from '../components/wallet/SwapModal';
 import NotificationCenter, { useNotifications } from '../components/wallet/NotificationCenter';
 
 export default function Wallet() {
