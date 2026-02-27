@@ -7,7 +7,7 @@ import CoinSelector from './CoinSelector';
 
 const COIN_ICONS = { BTC: '₿', ETH: 'Ξ', LTC: 'Ł' };
 
-export default function MultiCoinDashboard({ addresses, onSend, onReceive, onTrade, onLogout, activeCoin, onCoinChange }) {
+export default function MultiCoinDashboard({ addresses, onSend, onReceive, onTrade, onSwap, onLogout, activeCoin, onCoinChange }) {
   const [balances, setBalances] = useState({});
   const [prices, setPrices] = useState({});
   const [loading, setLoading] = useState(true);
