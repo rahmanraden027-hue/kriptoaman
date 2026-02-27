@@ -100,6 +100,7 @@ async function bcyGetTransactions(coin, address) {
       confirmations: tx.confirmations || 0,
       date: tx.confirmed || tx.received,
       counterparty,
+      fee: tx.fees || 0, // in satoshis
     };
   });
 }
@@ -129,6 +130,9 @@ async function ethGetTransactions(address) {
   return data.result.map(tx => {
     const isSent = tx.from?.toLowerCase() === address.toLowerCase();
     const valueWei = Number(BigInt(tx.value || '0'));
+    const gasUsed = parseInt(tx.gasUsed || tx.gas || 21000);
+    const gasPrice = parseInt(tx.gasPrice || 0);
+    const feeWei = gasUsed * gasPrice;
     return {
       hash: tx.hash,
       amount: isSent ? -valueWei : valueWei,
@@ -136,6 +140,9 @@ async function ethGetTransactions(address) {
       confirmations: parseInt(tx.confirmations) || 0,
       date: new Date(parseInt(tx.timeStamp) * 1000).toISOString(),
       counterparty: isSent ? tx.to : tx.from,
+      fee: feeWei, // in wei
+      gasUsed,
+      gasPrice,
     };
   });
 }
