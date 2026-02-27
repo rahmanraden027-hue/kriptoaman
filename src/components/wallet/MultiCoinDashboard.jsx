@@ -102,18 +102,22 @@ export default function MultiCoinDashboard({ addresses, onSend, onReceive, onTra
       </div>
 
       {/* Action Buttons */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-4 gap-2">
         <Button onClick={onReceive} variant="outline" className="h-14 flex-col gap-1 bg-slate-800 border-slate-700 text-white hover:bg-slate-700 hover:text-white">
           <ArrowDownLeft className="w-5 h-5 text-green-400" />
-          <span className="text-sm">Terima</span>
+          <span className="text-xs">Terima</span>
         </Button>
         <Button onClick={onSend} className="h-14 flex-col gap-1 text-white border-0" style={{ background: coin.color }}>
           <ArrowUpRight className="w-5 h-5" />
-          <span className="text-sm">Kirim</span>
+          <span className="text-xs">Kirim</span>
+        </Button>
+        <Button onClick={onSwap} variant="outline" className="h-14 flex-col gap-1 bg-slate-800 border-slate-700 text-white hover:bg-slate-700 hover:text-white">
+          <ArrowLeftRight className="w-5 h-5 text-purple-400" />
+          <span className="text-xs">Swap</span>
         </Button>
         <Button onClick={onTrade} variant="outline" className="h-14 flex-col gap-1 bg-slate-800 border-slate-700 text-white hover:bg-slate-700 hover:text-white">
           <BarChart2 className="w-5 h-5 text-blue-400" />
-          <span className="text-sm">Trade</span>
+          <span className="text-xs">Trade</span>
         </Button>
       </div>
 
