@@ -103,6 +103,8 @@ export default function Wallet() {
 
         <MultiCoinTxList key={`${activeCoin}-${refreshKey}`} coinId={activeCoin} address={activeAddress} />
 
+        <CryptoPriceChart />
+
         <CryptoNewsFeed />
       </div>
 
