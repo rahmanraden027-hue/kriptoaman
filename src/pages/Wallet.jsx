@@ -95,6 +95,7 @@ export default function Wallet() {
           onSend={() => setShowSend(true)}
           onReceive={() => setShowReceive(true)}
           onTrade={() => setShowTrade(true)}
+          onSwap={() => setShowSwap(true)}
           onLogout={() => setSessionPassword(null)}
         />
 
@@ -127,6 +128,10 @@ export default function Wallet() {
             <button onClick={() => setShowSend(false)} className="mt-2 text-orange-400 text-sm hover:underline">Tutup</button>
           </div>
         </div>
+      )}
+
+      {showSwap && (
+        <SwapModal addresses={addresses} onClose={() => setShowSwap(false)} />
       )}
 
       {showTrade && (
