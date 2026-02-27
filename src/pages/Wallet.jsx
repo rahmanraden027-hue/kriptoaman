@@ -10,6 +10,7 @@ import SendModal from '../components/wallet/SendModal';
 import TradeModal from '../components/wallet/TradeModal';
 import SwapModal from '../components/wallet/SwapModal';
 import NotificationCenter, { useNotifications } from '../components/wallet/NotificationCenter';
+import CryptoNewsFeed from '../components/wallet/CryptoNewsFeed';
 
 export default function Wallet() {
   const [walletData, setWalletData] = useState(null);
