@@ -11,6 +11,7 @@ import TradeModal from '../components/wallet/TradeModal';
 import SwapModal from '../components/wallet/SwapModal';
 import NotificationCenter, { useNotifications } from '../components/wallet/NotificationCenter';
 import CryptoNewsFeed from '../components/wallet/CryptoNewsFeed';
+import CryptoPriceChart from '../components/wallet/CryptoPriceChart';
 
 export default function Wallet() {
   const [walletData, setWalletData] = useState(null);
