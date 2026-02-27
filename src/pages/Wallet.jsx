@@ -101,6 +101,8 @@ export default function Wallet() {
         />
 
         <MultiCoinTxList key={`${activeCoin}-${refreshKey}`} coinId={activeCoin} address={activeAddress} />
+
+        <CryptoNewsFeed />
       </div>
 
       {showReceive && activeAddress && (
