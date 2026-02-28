@@ -101,8 +101,13 @@ async function executeOrderMonitor() {
     // 2. Process each order
     for (const order of pendingOrders) {
       try {
-        // Get current market price
-        const currentPrice = getMarketPrice(order.fromTokenSymbol);
+        // Get current market price from CoinGecko
+        const currentPrice = await getMarketPrice(order.fromTokenSymbol);
+        
+        if (!currentPrice) {
+          console.warn(`Skipping order ${order.id}: unable to fetch price for ${order.fromTokenSymbol}`);
+          continue;
+        }
         
         // Check if trigger price is hit
         const isTriggered = order.orderType === 'take-profit'
