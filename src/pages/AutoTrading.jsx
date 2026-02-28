@@ -129,44 +129,61 @@ export default function AutoTrading() {
 
         {/* Strategy Detail */}
         {selectedStrategy && activeTab === 'list' && (
-          <div className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-white">{selectedStrategy.name}</h2>
-                <p className="text-slate-400 text-sm mt-2">
-                  {selectedStrategy.pair} • {selectedStrategy.chain} • {selectedStrategy.analysisInterval} menit
-                </p>
+          <div className="space-y-6">
+            <div className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">{selectedStrategy.name}</h2>
+                  <p className="text-slate-400 text-sm mt-2">
+                    {selectedStrategy.pair} • {selectedStrategy.chain} • {selectedStrategy.analysisInterval} menit
+                  </p>
+                </div>
+                <Button
+                  onClick={() => setSelectedStrategy(null)}
+                  variant="outline"
+                  className="border-slate-700"
+                >
+                  Kembali
+                </Button>
               </div>
-              <Button
-                onClick={() => setSelectedStrategy(null)}
-                variant="outline"
-                className="border-slate-700"
-              >
-                Kembali
-              </Button>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="bg-slate-900/40 rounded-lg p-3 border border-slate-700/40">
+                  <p className="text-xs text-slate-400">Status</p>
+                  <p className="text-lg font-bold text-white mt-1">
+                    {selectedStrategy.isActive ? '✓ Aktif' : 'Inaktif'}
+                  </p>
+                </div>
+                <div className="bg-slate-900/40 rounded-lg p-3 border border-slate-700/40">
+                  <p className="text-xs text-slate-400">Total Trades</p>
+                  <p className="text-lg font-bold text-white mt-1">{selectedStrategy.stats?.totalTrades || 0}</p>
+                </div>
+                <div className="bg-slate-900/40 rounded-lg p-3 border border-slate-700/40">
+                  <p className="text-xs text-slate-400">Win Rate</p>
+                  <p className="text-lg font-bold text-white mt-1">{(selectedStrategy.stats?.winRate || 0).toFixed(1)}%</p>
+                </div>
+                <div className="bg-slate-900/40 rounded-lg p-3 border border-slate-700/40">
+                  <p className="text-xs text-slate-400">Total P/L</p>
+                  <p className={`text-lg font-bold mt-1 ${(selectedStrategy.stats?.totalPL || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    ${(selectedStrategy.stats?.totalPL || 0).toFixed(2)}
+                  </p>
+                </div>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-              <div className="bg-slate-900/40 rounded-lg p-3 border border-slate-700/40">
-                <p className="text-xs text-slate-400">Status</p>
-                <p className="text-lg font-bold text-white mt-1">
-                  {selectedStrategy.isActive ? '✓ Aktif' : 'Inaktif'}
-                </p>
-              </div>
-              <div className="bg-slate-900/40 rounded-lg p-3 border border-slate-700/40">
-                <p className="text-xs text-slate-400">Total Trades</p>
-                <p className="text-lg font-bold text-white mt-1">{selectedStrategy.stats?.totalTrades || 0}</p>
-              </div>
-              <div className="bg-slate-900/40 rounded-lg p-3 border border-slate-700/40">
-                <p className="text-xs text-slate-400">Win Rate</p>
-                <p className="text-lg font-bold text-white mt-1">{(selectedStrategy.stats?.winRate || 0).toFixed(1)}%</p>
-              </div>
-              <div className="bg-slate-900/40 rounded-lg p-3 border border-slate-700/40">
-                <p className="text-xs text-slate-400">Total P/L</p>
-                <p className={`text-lg font-bold mt-1 ${(selectedStrategy.stats?.totalPL || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  ${(selectedStrategy.stats?.totalPL || 0).toFixed(2)}
-                </p>
-              </div>
+            {/* Real-Time Market Panel */}
+            <div>
+              <h3 className="text-lg font-bold text-white mb-4">Kondisi Pasar Real-Time</h3>
+              <RealTimeMarketPanel
+                pair={selectedStrategy.pair}
+                symbol={selectedStrategy.pair.split('/')[0]}
+              />
+            </div>
+
+            {/* Performance Dashboard */}
+            <div>
+              <h3 className="text-lg font-bold text-white mb-4">Performa Strategi</h3>
+              <StrategyPerformanceDashboard strategy={selectedStrategy} />
             </div>
           </div>
         )}
