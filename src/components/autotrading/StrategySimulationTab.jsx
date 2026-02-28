@@ -67,22 +67,31 @@ export default function StrategySimulationTab({ strategy }) {
         showAdvanced={showAdvanced}
       />
 
-      {/* Selected Simulation Results */}
+      {/* Selected Simulation Results & Market News */}
       {selectedSimulation && (
-        <div className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-xl font-bold text-white">{selectedSimulation.simulationName}</h2>
-              <p className="text-sm text-slate-400 mt-1">
-                {new Date(selectedSimulation.created_date).toLocaleDateString('id-ID', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </p>
+        <div className="space-y-6">
+          <div className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-white">{selectedSimulation.simulationName}</h2>
+                <p className="text-sm text-slate-400 mt-1">
+                  {new Date(selectedSimulation.created_date).toLocaleDateString('id-ID', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </p>
+              </div>
             </div>
+            <SimulationResults simulation={selectedSimulation} />
           </div>
-          <SimulationResults simulation={selectedSimulation} />
+          
+          <div className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-6">
+            <MarketNewsFeed 
+              pair={strategy.pair}
+              symbol={strategy.pair.split('/')[0]}
+            />
+          </div>
         </div>
       )}
 
