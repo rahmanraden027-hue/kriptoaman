@@ -277,6 +277,7 @@ export default function PriceTracker() {
   });
   const [showStarred, setShowStarred] = useState(false);
   const [detail, setDetail] = useState(null);
+  const [showCompare, setShowCompare] = useState(false);
   const [ticker, setTicker] = useState(true);
   const priceRef = useRef({});
   const intervalRef = useRef(null);
