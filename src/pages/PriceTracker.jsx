@@ -47,6 +47,7 @@ const BASE_PRICES = {
 
 const CATEGORIES = ['Semua', 'L1', 'L2', 'DeFi', 'Meme', 'Oracle'];
 const HISTORY_KEY = 'pt_price_history';
+const STARRED_KEY = 'pt_starred_coins';
 
 function loadHistory() { try { return JSON.parse(sessionStorage.getItem(HISTORY_KEY)) || {}; } catch { return {}; } }
 function saveHistory(h) { try { sessionStorage.setItem(HISTORY_KEY, JSON.stringify(h)); } catch {} }
