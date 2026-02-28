@@ -1,11 +1,12 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Wallet, Activity, ArrowLeftRight } from 'lucide-react';
+import { Wallet, Activity, ArrowLeftRight, Coins } from 'lucide-react';
 
 const NAV = [
   { label: 'Wallet', page: 'Wallet', icon: Wallet },
-  { label: 'Price Tracker', page: 'PriceTracker', icon: Activity },
+  { label: 'DEX & Savings', page: 'DEXSavings', icon: Coins },
+  { label: 'Harga', page: 'PriceTracker', icon: Activity },
 ];
 
 export default function Layout({ children, currentPageName }) {

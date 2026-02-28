@@ -49,12 +49,14 @@
  */
 import Wallet from './pages/Wallet';
 import PriceTracker from './pages/PriceTracker';
+import DEXSavings from './pages/DEXSavings';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Wallet": Wallet,
     "PriceTracker": PriceTracker,
+    "DEXSavings": DEXSavings,
 }
 
 export const pagesConfig = {
