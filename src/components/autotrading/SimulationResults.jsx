@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { TrendingUp, TrendingDown, Target, AlertCircle, Zap, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import MarketNewsFeed from './MarketNewsFeed';
 
 export default function SimulationResults({ simulation }) {
   const [chartType, setChartType] = useState('equity');
