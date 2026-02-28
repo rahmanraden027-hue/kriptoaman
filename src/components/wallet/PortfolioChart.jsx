@@ -86,18 +86,40 @@ export default function PortfolioChart({ addresses = {} }) {
   const [cexTotal, setCexTotal] = useState(0);
   const [cexConnCount, setCexConnCount] = useState(0);
   const grandTotal = (totalWallet || 0) + cexTotal;
+  const realtimePrices = useRealtimePrices();
+
+  // Update coinValues whenever realtime prices change (without re-fetching balances)
+  const balancesRef = React.useRef({});
+  useEffect(() => {
+    if (Object.keys(balancesRef.current).length === 0) return;
+    const vals = {};
+    let total = 0;
+    WALLET_COINS.forEach(coinId => {
+      const amt = balancesRef.current[coinId] || 0;
+      const p = realtimePrices[coinId]?.price || 0;
+      const change24h = realtimePrices[coinId]?.change24h;
+      vals[coinId] = { usd: amt * p, amount: amt, price: p, change24h };
+      total += amt * p;
+    });
+    setCoinValues(vals);
+    setTotalWallet(total);
+    if (total > 0) {
+      const w = WALLET_COINS.reduce((s, c) => s + (vals[c].usd / total) * (vals[c].change24h || 0), 0);
+      setTotalChange(w);
+    }
+  }, [realtimePrices]);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const [prices, ...balResults] = await Promise.all([
-        getPrices(),
-        ...WALLET_COINS.map(coin =>
+      const prices = realtimePrices;
+      const balResults = await Promise.all(
+        WALLET_COINS.map(coin =>
           addresses[coin]?.address
             ? getBalance(coin, addresses[coin].address).catch(() => null).then(b => ({ coin, b }))
             : Promise.resolve({ coin, b: null })
-        ),
-      ]);
+        )
+      );
 
       const balMap = {};
       balResults.forEach(({ coin, b }) => { balMap[coin] = b; });
