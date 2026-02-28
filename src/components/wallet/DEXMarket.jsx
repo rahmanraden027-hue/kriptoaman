@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import DEXPriceChart from './DEXPriceChart';
 import DEXOrderBook from './DEXOrderBook';
 import DEXTradeHistory from './DEXTradeHistory';
+import TxApprovalModal from './TxApprovalModal';
 
 // ── Chains ────────────────────────────────────────────────────────────────────
 const CHAINS = {
