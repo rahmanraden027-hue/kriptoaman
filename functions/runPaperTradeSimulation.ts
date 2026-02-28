@@ -17,11 +17,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Strategy not found' }, { status: 404 });
     }
 
-    // Fetch historical price data using LLM
+    // Fetch historical price data using LLM (asset-class aware)
+    const assetClassName = {
+      crypto: 'cryptocurrency',
+      forex: 'forex pair',
+      indices: 'stock index',
+      commodities: 'commodity'
+    }[strategy.assetClass] || 'trading pair';
+
     const marketData = await base44.integrations.Core.InvokeLLM({
-      prompt: `Generate realistic historical OHLCV (Open, High, Low, Close, Volume) data for ${strategy.pair} over the last ${simulationDays} days. 
+      prompt: `Generate realistic historical OHLCV (Open, High, Low, Close, Volume) data for ${strategy.pair} (${assetClassName}) over the last ${simulationDays} days. 
       Return as JSON array with objects containing: { date: "YYYY-MM-DD", open: number, high: number, low: number, close: number, volume: number }.
-      Use realistic price movements for ${strategy.pair}.`,
+      Use realistic price movements and volatility appropriate for ${strategy.assetClass} markets.`,
       add_context_from_internet: false,
       response_json_schema: {
         type: "object",
