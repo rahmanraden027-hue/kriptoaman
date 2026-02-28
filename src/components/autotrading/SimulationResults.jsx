@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { TrendingUp, TrendingDown, Target, AlertCircle, Zap, Download } from 'lucide-react';
+import { TrendingUp, TrendingDown, Target, AlertCircle, Zap, Download, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import MarketNewsFeed from './MarketNewsFeed';
+import AnalyticsDashboard from './AnalyticsDashboard';
 
 export default function SimulationResults({ simulation }) {
   const [chartType, setChartType] = useState('equity');
+  const [showAnalytics, setShowAnalytics] = useState(false);
   const stats = simulation.statistics;
   const trades = simulation.trades || [];
 
@@ -127,6 +129,23 @@ Trade ${i + 1}:
           <p className="text-xs text-slate-500 mt-1">From ${simulation.startingCapital.toLocaleString()}</p>
         </div>
       </div>
+
+      {/* Toggle Analytics */}
+      <div>
+        <Button
+          onClick={() => setShowAnalytics(!showAnalytics)}
+          variant="outline"
+          className="gap-2 border-slate-700/40 text-slate-300 hover:text-slate-100"
+        >
+          <BarChart3 className="w-4 h-4" />
+          {showAnalytics ? 'Hide' : 'Show'} Advanced Analytics
+        </Button>
+      </div>
+
+      {/* Analytics Dashboard */}
+      {showAnalytics && (
+        <AnalyticsDashboard simulation={simulation} />
+      )}
 
       {/* Charts */}
       <div className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-4">
