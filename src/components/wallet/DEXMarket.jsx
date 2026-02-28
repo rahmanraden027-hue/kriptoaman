@@ -662,6 +662,34 @@ export default function DEXMarket({ addresses = {} }) {
             toSymbol={toTok?.symbol}
           />
         )}
+        {marketTab === 'orders' && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-white font-semibold text-sm">Automated Orders</h3>
+              <Button
+                onClick={() => setShowOrderForm(!showOrderForm)}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-8 px-3"
+              >
+                <Plus className="w-3 h-3 mr-1.5" />
+                Order Baru
+              </Button>
+            </div>
+            {showOrderForm && (
+              <DEXOrderForm
+                fromToken={fromTok}
+                toToken={toTok}
+                chain={chain}
+                onOrderCreated={() => setShowOrderForm(false)}
+                onCancel={() => setShowOrderForm(false)}
+              />
+            )}
+            <DEXOrderManager
+              fromToken={fromTok}
+              toToken={toTok}
+              chain={chain}
+            />
+          </div>
+        )}
       </div>
 
       {/* Disclaimer */}
