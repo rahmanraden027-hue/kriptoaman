@@ -34,24 +34,31 @@ export default function CoinSelector({ activeCoin, onChange }) {
                   <button
                     key={id}
                     onClick={() => onChange(id)}
-                    className={`flex items-center gap-1.5 py-1.5 px-2.5 rounded-xl text-xs font-medium transition-all shrink-0 border ${
+                    className={`flex flex-col items-start py-1.5 px-2.5 rounded-xl text-xs font-medium transition-all shrink-0 border ${
                       isActive
                         ? 'border-transparent text-white shadow'
                         : 'border-slate-700/50 text-slate-400 hover:text-slate-300 bg-slate-800/60'
                     }`}
                     style={isActive ? { backgroundColor: coin.color + 'cc' } : {}}
                   >
-                    <span
-                      className="w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold shrink-0 text-white"
-                      style={{ background: isActive ? 'rgba(255,255,255,0.25)' : coin.color }}
-                    >
-                      {COIN_ICONS[id] || id[0]}
-                    </span>
-                    <span>{coin.symbol}</span>
-                    {coin.badge && (
-                      <span className="text-[9px] px-1 py-0.5 rounded font-bold leading-none"
-                        style={{ background: coin.color + '33', color: coin.color }}>
-                        {coin.badge}
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className="w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold shrink-0 text-white"
+                        style={{ background: isActive ? 'rgba(255,255,255,0.25)' : coin.color }}
+                      >
+                        {COIN_ICONS[id] || id[0]}
+                      </span>
+                      <span>{coin.symbol}</span>
+                      {coin.badge && (
+                        <span className="text-[9px] px-1 py-0.5 rounded font-bold leading-none"
+                          style={{ background: isActive ? 'rgba(255,255,255,0.2)' : coin.color + '33', color: isActive ? 'white' : coin.color }}>
+                          {coin.badge}
+                        </span>
+                      )}
+                    </div>
+                    {coin.platform && (
+                      <span className={`text-[9px] leading-tight mt-0.5 ${isActive ? 'text-white/60' : 'text-slate-600'}`}>
+                        {coin.platform}
                       </span>
                     )}
                   </button>
