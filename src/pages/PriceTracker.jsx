@@ -271,7 +271,9 @@ export default function PriceTracker() {
   const [sparklines, setSparklines] = useState({});
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('Semua');
-  const [starred, setStarred] = useState(['BTC', 'ETH', 'SOL']);
+  const [starred, setStarred] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(STARRED_KEY)) || ['BTC', 'ETH', 'SOL']; } catch { return ['BTC', 'ETH', 'SOL']; }
+  });
   const [showStarred, setShowStarred] = useState(false);
   const [detail, setDetail] = useState(null);
   const [ticker, setTicker] = useState(true);
