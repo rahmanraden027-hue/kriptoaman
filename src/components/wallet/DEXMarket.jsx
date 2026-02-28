@@ -626,18 +626,19 @@ export default function DEXMarket({ addresses = {} }) {
 
       {/* Market Data Tabs */}
       <div className="space-y-2">
-        <div className="flex bg-slate-800/60 border border-slate-700/40 rounded-xl p-1 gap-1">
-          {[
-            { key: 'chart', label: 'Grafik', icon: LineChart },
-            { key: 'orderbook', label: 'Order Book', icon: BookOpen },
-            { key: 'trades', label: 'Riwayat', icon: History },
-          ].map(({ key, label, icon: Icon }) => (
-            <button key={key} onClick={() => setMarketTab(key)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${marketTab === key ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-slate-300'}`}>
-              <Icon className="w-3.5 h-3.5" />{label}
-            </button>
-          ))}
-        </div>
+       <div className="flex bg-slate-800/60 border border-slate-700/40 rounded-xl p-1 gap-1">
+         {[
+           { key: 'chart', label: 'Grafik', icon: LineChart },
+           { key: 'orderbook', label: 'Order Book', icon: BookOpen },
+           { key: 'trades', label: 'Riwayat', icon: History },
+           { key: 'orders', label: 'Orders', icon: Flame },
+         ].map(({ key, label, icon: Icon }) => (
+           <button key={key} onClick={() => setMarketTab(key)}
+             className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${marketTab === key ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-slate-300'}`}>
+             <Icon className="w-3.5 h-3.5" />{label}
+           </button>
+         ))}
+       </div>
 
         {marketTab === 'chart' && (
           <DEXPriceChart
