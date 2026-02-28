@@ -175,14 +175,41 @@ export default function DEXOrderManager({ fromToken, toToken, chain }) {
               {order.status === 'executed' && order.executionPrice && (
                 <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-2">
                   <div className="text-xs text-green-400">
-                    Executed at ${order.executionPrice.toFixed(4)}
+                    ✓ Executed at ${order.executionPrice.toFixed(4)}
+                  </div>
+                  {order.txHash && (
+                    <div className="text-xs text-slate-400 mt-1 truncate">
+                      TX: {order.txHash}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Failed info */}
+              {order.status === 'failed' && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-2">
+                  <div className="text-xs text-red-400 font-medium">
+                    ✗ Execution Failed (Retry {order.retryCount || 0}/3)
+                  </div>
+                  {order.lastError && (
+                    <div className="text-xs text-slate-400 mt-1">
+                      {order.lastError}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Triggered/Executing info */}
+              {order.status === 'triggered' && (
+                <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-2">
+                  <div className="text-xs text-orange-400 font-medium flex items-center gap-1">
+                    <RefreshCw className="w-3 h-3 animate-spin" />
+                    Executing (Retry {order.retryCount || 1}/3)
                   </div>
                 </div>
               )}
             </div>
-          ))}
-        </div>
-      )}
+            
     </div>
   );
 }
