@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Zap, Plus } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Zap, Plus, Microscope } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import StrategySetupForm from '../components/autotrading/StrategySetupForm';
 import StrategyList from '../components/autotrading/StrategyList';
+import StrategySimulationTab from '../components/autotrading/StrategySimulationTab';
 
 export default function AutoTrading() {
   const [showSetupForm, setShowSetupForm] = useState(false);
