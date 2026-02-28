@@ -108,6 +108,8 @@ export default function Wallet() {
 
         <MultiCoinTxList key={`${activeCoin}-${refreshKey}`} coinId={activeCoin} address={activeAddress} />
 
+        <StakingPanel addresses={addresses || {}} />
+
         <DEXMarket addresses={addresses || { BTC: { address: walletData?.address } }} />
 
         <CryptoPriceChart />
