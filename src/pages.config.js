@@ -49,6 +49,7 @@
  */
 import Wallet from './pages/Wallet';
 import PriceTracker from './pages/PriceTracker';
+import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
@@ -59,4 +60,5 @@ export const PAGES = {
 export const pagesConfig = {
     mainPage: "Wallet",
     Pages: PAGES,
+    Layout: __Layout,
 };
