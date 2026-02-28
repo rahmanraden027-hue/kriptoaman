@@ -10,23 +10,22 @@ import SendModal from '../components/wallet/SendModal';
 import TradeModal from '../components/wallet/TradeModal';
 import SwapModal from '../components/wallet/SwapModal';
 import NotificationCenter, { useNotifications } from '../components/wallet/NotificationCenter';
-import CryptoNewsFeed from '../components/wallet/CryptoNewsFeed';
-import NetworkMap from '../components/wallet/NetworkMap';
-import DEXMarket from '../components/wallet/DEXMarket';
-import StakingPanel from '../components/wallet/StakingPanel';
-import CryptoPriceChart from '../components/wallet/CryptoPriceChart';
 import PortfolioChart from '../components/wallet/PortfolioChart';
-import CrossChainSwapButton from '../components/wallet/CrossChainSwapButton';
+import OnboardingGuide from '../components/wallet/OnboardingGuide';
+import { HelpCircle, Zap } from 'lucide-react';
+
+const ONBOARDING_KEY = 'dex_onboarding_done';
 
 export default function Wallet() {
   const [walletData, setWalletData] = useState(null);
   const [sessionPassword, setSessionPassword] = useState(null);
-  const [addresses, setAddresses] = useState(null); // { BTC, ETH, BNB, SOL, DOGE, MATIC, LTC }
+  const [addresses, setAddresses] = useState(null);
   const [activeCoin, setActiveCoin] = useState('BTC');
   const [showReceive, setShowReceive] = useState(false);
   const [showSend, setShowSend] = useState(false);
   const [showTrade, setShowTrade] = useState(false);
   const [showSwap, setShowSwap] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const btcAddress = addresses?.BTC?.address || walletData?.address;
@@ -37,14 +36,17 @@ export default function Wallet() {
     setWalletData(stored);
   }, []);
 
-  // When unlocked, derive multi-coin addresses if not already stored
   useEffect(() => {
     if (!walletData || !sessionPassword) return;
+    // Show onboarding for new users
+    if (!localStorage.getItem(ONBOARDING_KEY)) {
+      setShowOnboarding(true);
+      localStorage.setItem(ONBOARDING_KEY, '1');
+    }
     if (walletData.addresses) {
       setAddresses(walletData.addresses);
       return;
     }
-    // Legacy wallet: derive addresses from mnemonic
     const mnemonic = decryptData(walletData.encryptedMnemonic, sessionPassword);
     if (!mnemonic) return;
     deriveAllAddresses(mnemonic)
@@ -72,20 +74,27 @@ export default function Wallet() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      <div className="max-w-md mx-auto p-4 pb-8 space-y-6">
+      <div className="max-w-md mx-auto p-4 pb-8 space-y-5">
+
         {/* Header */}
         <div className="pt-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-orange-500 flex items-center justify-center">
-              <span className="text-white font-bold text-sm">₿</span>
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
+              <Zap className="w-4 h-4 text-white" />
             </div>
-            <span className="text-white font-semibold">Exchange</span>
+            <div>
+              <span className="text-white font-bold text-base">DEX Wallet</span>
+              <div className="flex items-center gap-1">
+                <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                <span className="text-green-400 text-[10px] font-medium">Mainnet · Live</span>
+              </div>
+            </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 bg-green-500/20 border border-green-500/30 rounded-full px-2.5 py-1">
-              <div className="w-1.5 h-1.5 bg-green-400 rounded-full" />
-              <span className="text-green-400 text-xs">Mainnet</span>
-            </div>
+            <button onClick={() => setShowOnboarding(true)}
+              className="p-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-white transition-colors" title="Panduan">
+              <HelpCircle className="w-4 h-4" />
+            </button>
             <NotificationCenter
               notifications={notifications}
               unread={unread}
@@ -97,6 +106,13 @@ export default function Wallet() {
           </div>
         </div>
 
+        {/* Quick tip banner for new sessions */}
+        <div className="flex items-center gap-2 px-3 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+          <span className="text-blue-400 text-xs">💡</span>
+          <span className="text-blue-300 text-xs">Tap koin untuk ganti aset aktif · Swap = tukar antar koin · Trade = simulasi order</span>
+        </div>
+
+        {/* Multi-Coin Dashboard */}
         <MultiCoinDashboard
           addresses={addresses || { BTC: { address: walletData?.address } }}
           activeCoin={activeCoin}
@@ -108,22 +124,18 @@ export default function Wallet() {
           onLogout={() => setSessionPassword(null)}
         />
 
+        {/* Portfolio Chart */}
         <PortfolioChart addresses={addresses || { BTC: { address: walletData?.address } }} />
 
-        <CrossChainSwapButton onClick={() => setShowSwap(true)} />
+        {/* Transaction History */}
+        <div className="bg-slate-800/30 border border-slate-700/30 rounded-2xl p-4">
+          <MultiCoinTxList key={`${activeCoin}-${refreshKey}`} coinId={activeCoin} address={activeAddress} />
+        </div>
 
-        <MultiCoinTxList key={`${activeCoin}-${refreshKey}`} coinId={activeCoin} address={activeAddress} />
-
-        <StakingPanel addresses={addresses || {}} />
-
-        <DEXMarket addresses={addresses || { BTC: { address: walletData?.address } }} />
-
-        <CryptoPriceChart />
-
-        <NetworkMap />
-
-        <CryptoNewsFeed />
       </div>
+
+      {/* Modals */}
+      {showOnboarding && <OnboardingGuide onClose={() => setShowOnboarding(false)} />}
 
       {showReceive && activeAddress && (
         <ReceiveModal address={activeAddress} onClose={() => setShowReceive(false)} />

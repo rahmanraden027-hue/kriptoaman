@@ -47,16 +47,16 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import Wallet from './pages/Wallet';
-import PriceTracker from './pages/PriceTracker';
 import DEXSavings from './pages/DEXSavings';
+import PriceTracker from './pages/PriceTracker';
+import Wallet from './pages/Wallet';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Wallet": Wallet,
-    "PriceTracker": PriceTracker,
     "DEXSavings": DEXSavings,
+    "PriceTracker": PriceTracker,
+    "Wallet": Wallet,
 }
 
 export const pagesConfig = {
