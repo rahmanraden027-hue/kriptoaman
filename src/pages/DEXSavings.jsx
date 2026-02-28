@@ -317,12 +317,17 @@ export default function DEXSavings() {
     const updated = [...positions, { ...data, id: Date.now() }];
     setPositions(updated);
     savePositions(updated);
+    addTransaction({ type: 'deposit', protocol: data.protocol.name, amount: data.amount, token: 'USDT', network: data.protocol.network, apy: data.protocol.apy });
   };
 
   const handleWithdraw = (pos) => {
+    const proto = SAVINGS_PROTOCOLS.find(p => p.id === pos.protocol.id) || pos.protocol;
+    const days = Math.max(1, Math.floor((Date.now() - new Date(pos.date).getTime()) / 86400000));
+    const earned = (pos.amount * proto.apy / 100 / 365 * days).toFixed(4);
     const updated = positions.filter(p => p.id !== pos.id);
     setPositions(updated);
     savePositions(updated);
+    addTransaction({ type: 'withdraw', protocol: proto.name, amount: pos.amount, token: 'USDT', network: proto.network, earned: parseFloat(earned) });
   };
 
   const totalSaved = positions.reduce((s, p) => s + p.amount, 0);
