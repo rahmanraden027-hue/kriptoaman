@@ -235,6 +235,12 @@ Trade ${i + 1}:
         </div>
       )}
 
+      {/* Market News Feed */}
+      <MarketNewsFeed 
+        pair={simulation.strategyName.includes('/') ? simulation.strategyName : 'BTC/USDT'}
+        symbol={simulation.strategyName.split('/')[0] || 'BTC'}
+      />
+
       {/* Export Button */}
       <Button
         onClick={handleExportReport}
