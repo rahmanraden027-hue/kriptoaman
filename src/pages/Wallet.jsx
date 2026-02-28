@@ -12,6 +12,7 @@ import SwapModal from '../components/wallet/SwapModal';
 import NotificationCenter, { useNotifications } from '../components/wallet/NotificationCenter';
 import PortfolioChart from '../components/wallet/PortfolioChart';
 import OnboardingGuide from '../components/wallet/OnboardingGuide';
+import WalletConnectPanel from '../components/wallet/WalletConnectPanel';
 import { HelpCircle, Zap } from 'lucide-react';
 
 const ONBOARDING_KEY = 'dex_onboarding_done';
