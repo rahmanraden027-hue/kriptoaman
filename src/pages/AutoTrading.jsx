@@ -9,7 +9,8 @@ import StrategySimulationTab from '../components/autotrading/StrategySimulationT
 
 export default function AutoTrading() {
   const [showSetupForm, setShowSetupForm] = useState(false);
-  const queryClient = useQueryClient();
+  const [selectedStrategy, setSelectedStrategy] = useState(null);
+  const [activeTab, setActiveTab] = useState('list');
 
   const { data: strategies = [], isLoading, refetch } = useQuery({
     queryKey: ['autoTradingStrategies'],
