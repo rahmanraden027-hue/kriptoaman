@@ -7,6 +7,7 @@ import SimulationRunner from './SimulationRunner';
 import SimulationResults from './SimulationResults';
 import MetricsBuilder from './MetricsBuilder';
 import StrategyComparisonDashboard from './StrategyComparisonDashboard';
+import MarketNewsFeed from './MarketNewsFeed';
 
 export default function StrategySimulationTab({ strategy }) {
   const [selectedSimulation, setSelectedSimulation] = useState(null);
