@@ -352,6 +352,9 @@ export default function DEXSavings() {
           </div>
         </div>
 
+        {/* WalletConnect */}
+        <WalletConnectPanel />
+
         {/* Info Banner */}
         <div className="flex items-start gap-2.5 px-3 py-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl">
           <span className="text-blue-400 text-sm shrink-0">💡</span>
