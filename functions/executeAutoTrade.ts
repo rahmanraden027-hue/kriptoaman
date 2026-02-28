@@ -183,8 +183,10 @@ Deno.serve(async (req) => {
       tradePerformanceId: tradePerformance.id,
       quantity,
       entryPrice: opportunity.entryPrice,
-      stopLoss: opportunity.stopLoss,
-      takeProfit: opportunity.takeProfit
+      stopLoss: finalStopLoss,
+      takeProfit: finalTakeProfit,
+      dynamicSlTP: slTP ? true : false,
+      marketConditions: slTP?.marketConditions
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
