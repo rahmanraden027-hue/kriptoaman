@@ -668,6 +668,16 @@ export default function DEXMarket({ addresses = {} }) {
 
       {/* Success Modal */}
       {success && <SwapSuccessModal {...success} onClose={() => setSuccess(null)} />}
+
+      {/* Tx Approval Modal */}
+      {txApproval && (
+        <TxApprovalModal
+          tx={txApproval}
+          onApprove={handleTxApproved}
+          onReject={handleTxRejected}
+          onClose={() => setTxApproval(null)}
+        />
+      )}
     </div>
   );
 }
