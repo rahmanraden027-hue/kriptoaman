@@ -48,6 +48,8 @@ export default function SimulationRunner({ strategy, onSimulationComplete, showA
           />
         </div>
 
+        {showAdvanced && <BacktestDateRangePicker onRangeSelect={setDateRange} />}
+
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="text-sm text-slate-300 block mb-2">Modal Awal (USD)</label>
