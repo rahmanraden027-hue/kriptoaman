@@ -89,6 +89,8 @@ export default function Wallet() {
               unread={unread}
               onMarkRead={markAllRead}
               onDismiss={dismiss}
+              pushEnabled={pushEnabled}
+              onEnablePush={enablePush}
             />
           </div>
         </div>
