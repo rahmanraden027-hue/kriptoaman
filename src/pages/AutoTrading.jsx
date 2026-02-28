@@ -1,18 +1,23 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Zap, Plus, Microscope } from 'lucide-react';
+import { Zap, Plus, Microscope, Radio } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import StrategySetupForm from '../components/autotrading/StrategySetupForm';
 import StrategyList from '../components/autotrading/StrategyList';
 import StrategySimulationTab from '../components/autotrading/StrategySimulationTab';
 import RealTimeMarketPanel from '../components/autotrading/RealTimeMarketPanel';
 import StrategyPerformanceDashboard from '../components/autotrading/StrategyPerformanceDashboard';
+import RealtimePriceMonitor from '../components/autotrading/RealtimePriceMonitor';
+import LiveTradePanel from '../components/autotrading/LiveTradePanel';
+import TradeExecutionPanel from '../components/autotrading/TradeExecutionPanel';
+import LivePerformanceDashboard from '../components/autotrading/LivePerformanceDashboard';
 
 export default function AutoTrading() {
   const [showSetupForm, setShowSetupForm] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState(null);
   const [activeTab, setActiveTab] = useState('list');
+  const [currentPrice, setCurrentPrice] = useState(null);
 
   const { data: strategies = [], isLoading, refetch } = useQuery({
     queryKey: ['autoTradingStrategies'],
@@ -78,7 +83,7 @@ export default function AutoTrading() {
         </div>
 
         {/* Tabs */}
-        {selectedStrategy && (
+         {selectedStrategy && (
           <div className="mb-6 flex gap-2 border-b border-slate-700/40">
             <button
               onClick={() => setActiveTab('list')}
@@ -99,7 +104,18 @@ export default function AutoTrading() {
               }`}
             >
               <Microscope className="w-4 h-4" />
-              Paper Trading
+              Backtest
+            </button>
+            <button
+              onClick={() => setActiveTab('live')}
+              className={`px-4 py-3 font-semibold text-sm transition border-b-2 flex items-center gap-2 ${
+                activeTab === 'live'
+                  ? 'text-blue-400 border-blue-400'
+                  : 'text-slate-400 border-transparent hover:text-slate-300'
+              }`}
+            >
+              <Radio className="w-4 h-4 animate-pulse" />
+              Live Trading
             </button>
           </div>
         )}
@@ -122,9 +138,33 @@ export default function AutoTrading() {
           </>
         )}
 
-        {/* Simulation Tab */}
-        {selectedStrategy && activeTab === 'simulation' && (
+        {/* Simulation/Backtest Tab */}
+         {selectedStrategy && activeTab === 'simulation' && (
           <StrategySimulationTab strategy={selectedStrategy} />
+        )}
+
+        {/* Live Trading Tab */}
+        {selectedStrategy && activeTab === 'live' && (
+          <div className="space-y-6">
+            <RealtimePriceMonitor
+              pair={selectedStrategy.pair}
+              assetClass={selectedStrategy.assetClass}
+              onPriceUpdate={setCurrentPrice}
+            />
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <TradeExecutionPanel
+                strategy={selectedStrategy}
+                currentPrice={currentPrice}
+              />
+
+              <div className="space-y-6">
+                <LiveTradePanel strategy={selectedStrategy} />
+              </div>
+            </div>
+
+            <LivePerformanceDashboard strategy={selectedStrategy} />
+          </div>
         )}
 
         {/* Strategy Detail */}
