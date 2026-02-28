@@ -209,7 +209,6 @@ export default function DEXOrderManager({ fromToken, toToken, chain }) {
                 </div>
               )}
             </div>
-            
-    </div>
-  );
-}
+          ))}
+        </div>
+      )}
