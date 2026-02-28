@@ -367,10 +367,16 @@ export default function PriceTracker() {
               </div>
             </div>
           </div>
-          <button onClick={() => setTicker(v => !v)}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-medium transition-all ${ticker ? 'bg-green-500/20 border-green-500/30 text-green-400' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>
-            <Zap className="w-3 h-3" />{ticker ? 'Live' : 'Pause'}
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setShowCompare(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-purple-500/30 bg-purple-500/10 text-purple-400 text-xs font-medium hover:bg-purple-500/20 transition-all">
+              <GitCompare className="w-3 h-3" /> Bandingkan
+            </button>
+            <button onClick={() => setTicker(v => !v)}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-medium transition-all ${ticker ? 'bg-green-500/20 border-green-500/30 text-green-400' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>
+              <Zap className="w-3 h-3" />{ticker ? 'Live' : 'Pause'}
+            </button>
+          </div>
         </div>
 
         {/* Top Movers */}
