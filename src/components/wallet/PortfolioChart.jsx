@@ -271,7 +271,7 @@ export default function PortfolioChart({ addresses = {} }) {
       color: COINS[coinId].color,
       pct: grandTotal > 0 ? ((coinValues[coinId]?.usd || 0) / grandTotal) * 100 : 0,
     })),
-    ...(totalCEX > 0 ? [{ name: 'CEX', value: parseFloat(totalCEX.toFixed(2)), color: '#64748b', pct: grandTotal > 0 ? (totalCEX / grandTotal) * 100 : 0 }] : []),
+    ...(cexTotal > 0 ? [{ name: 'CEX', value: parseFloat(cexTotal.toFixed(2)), color: '#64748b', pct: grandTotal > 0 ? (cexTotal / grandTotal) * 100 : 0 }] : []),
   ].filter(d => d.value > 0);
 
   const isPositive = (totalChange || 0) >= 0;
