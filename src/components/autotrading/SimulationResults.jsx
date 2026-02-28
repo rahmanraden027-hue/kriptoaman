@@ -4,6 +4,7 @@ import { TrendingUp, TrendingDown, Target, AlertCircle, Zap, Download, BarChart3
 import { Button } from '@/components/ui/button';
 import MarketNewsFeed from './MarketNewsFeed';
 import AnalyticsDashboard from './AnalyticsDashboard';
+import MonteCarloAnalytics from './MonteCarloAnalytics';
 
 export default function SimulationResults({ simulation }) {
   const [chartType, setChartType] = useState('equity');
@@ -144,7 +145,12 @@ Trade ${i + 1}:
 
       {/* Analytics Dashboard */}
       {showAnalytics && (
-        <AnalyticsDashboard simulation={simulation} />
+        <>
+          <AnalyticsDashboard simulation={simulation} />
+          {simulation.monteCarloStats && (
+            <MonteCarloAnalytics monteCarloStats={simulation.monteCarloStats} />
+          )}
+        </>
       )}
 
       {/* Charts */}
