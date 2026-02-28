@@ -117,6 +117,8 @@ export default function Wallet() {
 
         <CryptoPriceChart />
 
+        <NetworkMap />
+
         <CryptoNewsFeed />
       </div>
 
