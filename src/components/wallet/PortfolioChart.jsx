@@ -6,8 +6,8 @@ import {
 import { TrendingUp, TrendingDown, RefreshCw, PieChart as PieIcon, BarChart2 } from 'lucide-react';
 import { COINS, getPrices, getBalance, formatAmount } from './multiCoinApi';
 
-const COIN_LIST = ['BTC', 'ETH', 'LTC'];
-const COIN_ICONS = { BTC: '₿', ETH: 'Ξ', LTC: 'Ł' };
+const COIN_LIST = ['BTC', 'ETH', 'BNB', 'SOL', 'DOGE', 'MATIC', 'LTC'];
+const COIN_ICONS = { BTC: '₿', ETH: 'Ξ', LTC: 'Ł', BNB: 'B', SOL: '◎', DOGE: 'Ð', MATIC: 'M' };
 const RANGE_OPTIONS = [
   { label: '7H', days: 7 },
   { label: '1B', days: 30 },
