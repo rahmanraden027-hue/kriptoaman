@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ChevronDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import SimulationRunner from './SimulationRunner';
 import SimulationResults from './SimulationResults';
+import MetricsBuilder from './MetricsBuilder';
+import StrategyComparisonDashboard from './StrategyComparisonDashboard';
 
 export default function StrategySimulationTab({ strategy }) {
   const [selectedSimulation, setSelectedSimulation] = useState(null);
+  const [selectedForComparison, setSelectedForComparison] = useState([]);
+  const [selectedMetrics, setSelectedMetrics] = useState([]);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showComparison, setShowComparison] = useState(false);
 
   const { data: simulations = [], isLoading, refetch } = useQuery({
     queryKey: ['paperTrades', strategy.id],
