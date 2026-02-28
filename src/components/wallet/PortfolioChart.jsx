@@ -388,10 +388,7 @@ export default function PortfolioChart({ addresses = {} }) {
 
       {viewMode === 'cex' && (
         <CEXPanel
-          cexAssets={cexAssets}
-          onAdd={() => { setEditingCEX(null); setShowCEXForm(true); }}
-          onEdit={a => { setEditingCEX(a); setShowCEXForm(true); }}
-          onRemove={handleCEXRemove}
+          onTotalChange={(total, conns) => { setCexTotal(total); setCexConnCount(conns.length); }}
         />
       )}
 
