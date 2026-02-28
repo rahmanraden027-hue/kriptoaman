@@ -158,7 +158,7 @@ export default function PortfolioChart({ addresses = {} }) {
       {/* Header — Grand Total */}
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-slate-400 text-xs mb-0.5">Total Portofolio {totalCEX > 0 ? '(Wallet + CEX)' : ''}</div>
+          <div className="text-slate-400 text-xs mb-0.5">Total Portofolio {cexTotal > 0 ? '(Wallet + CEX)' : ''}</div>
           {loading ? (
             <div className="h-7 w-36 bg-slate-700/50 rounded animate-pulse" />
           ) : (
