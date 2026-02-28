@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
@@ -6,9 +6,9 @@ import {
 import {
   TrendingUp, TrendingDown, RefreshCw,
   PieChart as PieIcon, BarChart2, Building2,
-  Plus, X, Check, Pencil, ChevronRight
 } from 'lucide-react';
 import { COINS, getPrices, getBalance, formatAmount } from './multiCoinApi';
+import CEXPanel from './CEXPanel';
 
 const WALLET_COINS = ['BTC', 'ETH', 'BNB', 'SOL', 'DOGE', 'MATIC', 'LTC'];
 const COIN_ICONS   = { BTC: '₿', ETH: 'Ξ', LTC: 'Ł', BNB: 'B', SOL: '◎', DOGE: 'Ð', MATIC: 'M' };
