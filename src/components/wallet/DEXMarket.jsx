@@ -424,6 +424,8 @@ export default function DEXMarket({ addresses = {} }) {
   };
 
   const alreadyFav = favPairs.some(f => f.fromAddr === fromToken && f.toAddr === toToken && f.chainKey === selectedChain);
+  const midPrice = fromP && toP ? fromP / toP : 1;
+  const [marketTab, setMarketTab] = useState('chart'); // chart | orderbook | trades
 
   return (
     <div className="space-y-3">
