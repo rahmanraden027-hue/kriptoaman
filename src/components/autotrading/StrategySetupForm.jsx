@@ -101,6 +101,22 @@ export default function StrategySetupForm({ onStrategyCreated, onCancel }) {
           />
         </div>
 
+        <div>
+          <label className="text-sm text-slate-300 block mb-2">Kelas Aset</label>
+          <Select value={assetClass} onValueChange={setAssetClass}>
+            <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ASSET_CLASSES.map((ac) => (
+                <SelectItem key={ac.value} value={ac.value}>
+                  {ac.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-sm text-slate-300 block mb-2">Trading Pair</label>
@@ -109,7 +125,7 @@ export default function StrategySetupForm({ onStrategyCreated, onCancel }) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {TRADING_PAIRS.map((p) => (
+                {availablePairs.map((p) => (
                   <SelectItem key={p} value={p}>
                     {p}
                   </SelectItem>
@@ -118,21 +134,23 @@ export default function StrategySetupForm({ onStrategyCreated, onCancel }) {
             </Select>
           </div>
 
-          <div>
-            <label className="text-sm text-slate-300 block mb-2">Blockchain</label>
-            <Select value={chain} onValueChange={setChain}>
-              <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {CHAINS.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {assetClass === 'crypto' && (
+            <div>
+              <label className="text-sm text-slate-300 block mb-2">Blockchain</label>
+              <Select value={chain} onValueChange={setChain}>
+                <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CHAINS.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
 
         <div>
