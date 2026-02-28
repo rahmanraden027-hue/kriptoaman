@@ -1,28 +1,60 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-// Mock price data (dalam production, fetch dari real API)
-const MOCK_PRICES = {
-  ETH: 3400,
-  BNB: 580,
-  USDT: 1,
-  USDC: 1,
-  WBTC: 95000,
-  POL: 0.45,
-  MATIC: 0.45,
-  UNI: 8.2,
-  LINK: 14.5,
-  AVAX: 38,
-  FTM: 0.55,
-  ARB: 1.1,
-  OP: 1.8,
+// CoinGecko API mapping for token symbols to IDs
+const COINGECKO_IDS = {
+  ETH: 'ethereum',
+  BTC: 'bitcoin',
+  BNB: 'binancecoin',
+  USDT: 'tether',
+  USDC: 'usd-coin',
+  WBTC: 'wrapped-bitcoin',
+  POL: 'polygon',
+  MATIC: 'polygon',
+  UNI: 'uniswap',
+  LINK: 'chainlink',
+  AVAX: 'avalanche-2',
+  FTM: 'fantom',
+  ARB: 'arbitrum',
+  OP: 'optimism',
+  CAKE: 'pancakeswap-token',
 };
 
-// Utility: Generate random price variation
-function getMarketPrice(symbol) {
-  const base = MOCK_PRICES[symbol] || 1;
-  // Simulate small market fluctuation (±0.5%)
-  const variation = 1 + (Math.random() - 0.5) * 0.005;
-  return base * variation;
+// Cache for prices (TTL: 30 seconds)
+const priceCache = new Map();
+const cacheExpiry = new Map();
+const CACHE_TTL = 30000; // 30 seconds
+
+// Utility: Fetch real market price from CoinGecko
+async function getMarketPrice(symbol) {
+  const coinId = COINGECKO_IDS[symbol];
+  if (!coinId) {
+    console.warn(`No CoinGecko ID for symbol: ${symbol}`);
+    return null;
+  }
+
+  // Check cache
+  const now = Date.now();
+  if (priceCache.has(symbol) && cacheExpiry.get(symbol) > now) {
+    return priceCache.get(symbol);
+  }
+
+  try {
+    const response = await fetch(
+      `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_market_cap=false&include_24hr_vol=false`
+    );
+    const data = await response.json();
+    const price = data[coinId]?.usd;
+    
+    if (price) {
+      priceCache.set(symbol, price);
+      cacheExpiry.set(symbol, now + CACHE_TTL);
+      return price;
+    }
+  } catch (error) {
+    console.error(`Failed to fetch price for ${symbol}:`, error.message);
+  }
+  
+  return null;
 }
 
 // Utility: Send notification to user
