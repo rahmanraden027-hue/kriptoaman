@@ -6,7 +6,7 @@ import { Wallet, Activity, Coins, Clock } from 'lucide-react';
 const NAV = [
   { label: 'Wallet', page: 'Wallet', icon: Wallet },
   { label: 'DEX & Savings', page: 'DEXSavings', icon: Coins },
-  { label: 'Harga', page: 'PriceTracker', icon: Activity },
+  { label: 'Analytics', page: 'TradingAnalytics', icon: Activity },
   { label: 'Riwayat', page: 'TxHistory', icon: Clock },
 ];
 
