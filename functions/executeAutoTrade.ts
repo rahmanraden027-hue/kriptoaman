@@ -78,6 +78,19 @@ Deno.serve(async (req) => {
     const tradeSize = strategy.riskManagement?.tradeSize || 100;
     const quantity = (tradeSize / opportunity.entryPrice).toFixed(8);
 
+    // Get real-time market data and calculate dynamic SL/TP
+    const slTP = await getDynamicSLTP(
+      fromToken,
+      strategy.pair,
+      opportunity.entryPrice,
+      tradeSize * 10, // Estimated account balance
+      strategy.riskManagement
+    );
+
+    // Use dynamic SL/TP if available, otherwise fall back to opportunity values
+    const finalStopLoss = slTP?.stopLoss ? parseFloat(slTP.stopLoss) : opportunity.stopLoss;
+    const finalTakeProfit = slTP?.takeProfit ? parseFloat(slTP.takeProfit) : opportunity.takeProfit;
+
     // Create take-profit order
     const tpOrder = await base44.entities.DEXOrder.create({
       orderType: 'take-profit',
@@ -88,9 +101,9 @@ Deno.serve(async (req) => {
       toTokenSymbol: toToken,
       toTokenAddress: '0x0000000000000000000000000000000000000000',
       amount: quantity,
-      triggerPrice: opportunity.takeProfit,
+      triggerPrice: finalTakeProfit,
       status: 'pending',
-      notes: `Auto-trade TP for strategy: ${strategy.name}`
+      notes: `Auto-trade TP for strategy: ${strategy.name} (Dynamic: ${slTP ? 'Yes' : 'No'})`
     });
 
     // Create stop-loss order
@@ -103,9 +116,9 @@ Deno.serve(async (req) => {
       toTokenSymbol: toToken,
       toTokenAddress: '0x0000000000000000000000000000000000000000',
       amount: quantity,
-      triggerPrice: opportunity.stopLoss,
+      triggerPrice: finalStopLoss,
       status: 'pending',
-      notes: `Auto-trade SL for strategy: ${strategy.name}`
+      notes: `Auto-trade SL for strategy: ${strategy.name} (Dynamic: ${slTP ? 'Yes' : 'No'})`
     });
 
     // Create trade performance record
