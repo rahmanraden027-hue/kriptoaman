@@ -31,12 +31,39 @@ export default function StrategySimulationTab({ strategy }) {
     refetch();
   };
 
+  const handleToggleComparison = (simId) => {
+    setSelectedForComparison(prev =>
+      prev.includes(simId) ? prev.filter(id => id !== simId) : [...prev, simId]
+    );
+  };
+
+  const comparableSimulations = simulations.filter(sim => selectedForComparison.includes(sim.id));
+
   return (
     <div className="space-y-6">
+      {/* Advanced Features Toggle */}
+      <Button
+        onClick={() => setShowAdvanced(!showAdvanced)}
+        variant="outline"
+        className="bg-slate-900/40 border-slate-700/40 text-slate-300 h-9"
+      >
+        <ChevronDown className={`w-4 h-4 mr-2 transition ${showAdvanced ? 'rotate-180' : ''}`} />
+        Advanced Backtesting
+      </Button>
+
+      {/* Metrics Builder (Advanced) */}
+      {showAdvanced && (
+        <MetricsBuilder 
+          onMetricsChange={setSelectedMetrics} 
+          defaultMetrics={selectedMetrics}
+        />
+      )}
+
       {/* Simulation Runner */}
       <SimulationRunner
         strategy={strategy}
         onSimulationComplete={handleSimulationComplete}
+        showAdvanced={showAdvanced}
       />
 
       {/* Selected Simulation Results */}
