@@ -129,6 +129,9 @@ export default function Wallet() {
           onLogout={() => setSessionPassword(null)}
         />
 
+        {/* Portfolio Analytics Dashboard */}
+        <PortfolioAnalytics />
+
         {/* Portfolio Chart */}
         <PortfolioChart addresses={addresses || { BTC: { address: walletData?.address } }} />
 
