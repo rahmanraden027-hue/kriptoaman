@@ -248,8 +248,13 @@ export default function WalletConnectPanel({ onConnectionChange }) {
               ))}
             </div>
 
+            {/* Blockchain Tx History */}
+            <div className="border-t border-slate-700/40 pt-3">
+              <WalletTxHistory address={connected.address} chainId={connected.chainId} />
+            </div>
+
             {/* Chain + disconnect */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between pt-3 border-t border-slate-700/40">
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-700/50 border border-slate-600/40">
                 <div className="w-2 h-2 rounded-full bg-green-400" />
                 <span className="text-slate-300 text-xs">{connected.chain} · Chain {connected.chainId}</span>
