@@ -296,10 +296,10 @@ export default function PortfolioChart({ addresses = {} }) {
               )}
             </div>
           )}
-          {totalCEX > 0 && !loading && (
+          {cexTotal > 0 && !loading && (
             <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
               <span>Wallet: <span className="text-slate-300 font-medium">{formatUSD(totalWallet)}</span></span>
-              <span>CEX: <span className="text-slate-300 font-medium">{formatUSD(totalCEX)}</span></span>
+              <span>CEX: <span className="text-slate-300 font-medium">{formatUSD(cexTotal)}</span></span>
             </div>
           )}
         </div>
