@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Wallet, Unplug, Copy, Check, ChevronDown, ExternalLink, RefreshCw, X, Zap } from 'lucide-react';
+import WalletTxHistory from './WalletTxHistory';
 
 // Supported wallets list (visual only — simulates WalletConnect modal)
 const WALLETS = [
