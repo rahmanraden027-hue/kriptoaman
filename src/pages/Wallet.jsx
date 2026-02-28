@@ -107,6 +107,9 @@ export default function Wallet() {
           </div>
         </div>
 
+        {/* WalletConnect */}
+        <WalletConnectPanel />
+
         {/* Quick tip banner for new sessions */}
         <div className="flex items-center gap-2 px-3 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl">
           <span className="text-blue-400 text-xs">💡</span>
