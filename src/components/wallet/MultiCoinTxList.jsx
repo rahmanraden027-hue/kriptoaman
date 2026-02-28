@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { getTransactionsByCoin, formatAmount, COINS } from './multiCoinApi';
-import { ArrowDownLeft, ArrowUpRight, ExternalLink, RefreshCw, Clock, ChevronDown, ChevronUp } from 'lucide-react';
-import { format } from 'date-fns';
+import { ArrowDownLeft, ArrowUpRight, ExternalLink, RefreshCw, Clock, ChevronDown, ChevronUp, Filter, X } from 'lucide-react';
+import { format, isAfter, isBefore, startOfDay, endOfDay, subDays } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 
 const REQUIRED_CONFIRMATIONS = { BTC: 6, ETH: 12, LTC: 6 };
