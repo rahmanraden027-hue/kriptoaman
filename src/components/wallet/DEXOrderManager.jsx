@@ -51,9 +51,11 @@ export default function DEXOrderManager({ fromToken, toToken, chain }) {
       case 'pending':
         return <Clock className="w-4 h-4 text-yellow-400" />;
       case 'triggered':
-        return <AlertTriangle className="w-4 h-4 text-orange-400" />;
+        return <RefreshCw className="w-4 h-4 text-orange-400 animate-spin" />;
       case 'executed':
         return <CheckCircle2 className="w-4 h-4 text-green-400" />;
+      case 'failed':
+        return <AlertTriangle className="w-4 h-4 text-red-400" />;
       case 'cancelled':
         return <Trash2 className="w-4 h-4 text-red-400" />;
       default:
