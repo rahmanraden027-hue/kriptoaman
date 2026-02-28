@@ -11,6 +11,8 @@ import DEXPriceChart from './DEXPriceChart';
 import DEXOrderBook from './DEXOrderBook';
 import DEXTradeHistory from './DEXTradeHistory';
 import TxApprovalModal from './TxApprovalModal';
+import DEXOrderForm from './DEXOrderForm';
+import DEXOrderManager from './DEXOrderManager';
 
 // ── Chains ────────────────────────────────────────────────────────────────────
 const CHAINS = {
