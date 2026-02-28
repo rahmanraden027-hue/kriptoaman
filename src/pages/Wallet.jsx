@@ -12,6 +12,7 @@ import SwapModal from '../components/wallet/SwapModal';
 import NotificationCenter, { useNotifications } from '../components/wallet/NotificationCenter';
 import CryptoNewsFeed from '../components/wallet/CryptoNewsFeed';
 import DEXMarket from '../components/wallet/DEXMarket';
+import StakingPanel from '../components/wallet/StakingPanel';
 import CryptoPriceChart from '../components/wallet/CryptoPriceChart';
 import PortfolioChart from '../components/wallet/PortfolioChart';
 
