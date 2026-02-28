@@ -2,6 +2,57 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 const MAX_RETRIES = 3;
 
+// CoinGecko API mapping
+const COINGECKO_IDS = {
+  ETH: 'ethereum',
+  BTC: 'bitcoin',
+  BNB: 'binancecoin',
+  USDT: 'tether',
+  USDC: 'usd-coin',
+  WBTC: 'wrapped-bitcoin',
+  POL: 'polygon',
+  MATIC: 'polygon',
+  UNI: 'uniswap',
+  LINK: 'chainlink',
+  AVAX: 'avalanche-2',
+  FTM: 'fantom',
+  ARB: 'arbitrum',
+  OP: 'optimism',
+};
+
+// Cache for prices (TTL: 30 seconds)
+const priceCache = new Map();
+const cacheExpiry = new Map();
+const CACHE_TTL = 30000;
+
+async function getRealtimePrice(symbol) {
+  const coinId = COINGECKO_IDS[symbol];
+  if (!coinId) return null;
+
+  const now = Date.now();
+  if (priceCache.has(symbol) && cacheExpiry.get(symbol) > now) {
+    return priceCache.get(symbol);
+  }
+
+  try {
+    const response = await fetch(
+      `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd`
+    );
+    const data = await response.json();
+    const price = data[coinId]?.usd;
+    
+    if (price) {
+      priceCache.set(symbol, price);
+      cacheExpiry.set(symbol, now + CACHE_TTL);
+      return price;
+    }
+  } catch (error) {
+    console.error(`Failed to fetch price for ${symbol}:`, error.message);
+  }
+  
+  return null;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
