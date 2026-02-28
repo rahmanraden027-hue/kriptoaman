@@ -75,14 +75,20 @@ export async function deriveAllAddresses(mnemonic) {
 
   const ethAddr = pubkeyToEthAddress(ethChild.publicKey);
 
+  const evmEntry = { address: ethAddr, publicKey: bytesToHex(ethChild.publicKey) };
   return {
-    BTC:  { address: pubkeyToP2PKH(btcChild.publicKey),   publicKey: bytesToHex(btcChild.publicKey) },
-    ETH:  { address: ethAddr,                               publicKey: bytesToHex(ethChild.publicKey) },
-    BNB:  { address: ethAddr,                               publicKey: bytesToHex(ethChild.publicKey) }, // same EVM address
-    MATIC:{ address: ethAddr,                               publicKey: bytesToHex(ethChild.publicKey) }, // same EVM address
-    LTC:  { address: pubkeyToLTCAddress(ltcChild.publicKey), publicKey: bytesToHex(ltcChild.publicKey) },
+    BTC:  { address: pubkeyToP2PKH(btcChild.publicKey),     publicKey: bytesToHex(btcChild.publicKey) },
+    ETH:  evmEntry,
+    BNB:  evmEntry,  // same EVM address
+    MATIC:evmEntry,  // same EVM address
+    ARB:  evmEntry,  // Arbitrum — same EVM address
+    OP:   evmEntry,  // Optimism  — same EVM address
+    BASE: evmEntry,  // Base      — same EVM address
+    AVAX: evmEntry,  // Avalanche C-Chain — same EVM address
+    FTM:  evmEntry,  // Fantom    — same EVM address
+    LTC:  { address: pubkeyToLTCAddress(ltcChild.publicKey),  publicKey: bytesToHex(ltcChild.publicKey) },
     DOGE: { address: pubkeyToDOGEAddress(dogeChild.publicKey), publicKey: bytesToHex(dogeChild.publicKey) },
-    SOL:  { address: base58EncodeRaw(solChild.publicKey),  publicKey: bytesToHex(solChild.publicKey) },
+    SOL:  { address: base58EncodeRaw(solChild.publicKey),    publicKey: bytesToHex(solChild.publicKey) },
   };
 }
 
