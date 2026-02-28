@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2, PlayCircle } from 'lucide-react';
 import BacktestDateRangePicker from './BacktestDateRangePicker';
+import AdvancedBacktestingOptions from './AdvancedBacktestingOptions';
 
 export default function SimulationRunner({ strategy, onSimulationComplete, showAdvanced = false }) {
   const [loading, setLoading] = useState(false);
@@ -11,6 +12,13 @@ export default function SimulationRunner({ strategy, onSimulationComplete, showA
   const [startingCapital, setStartingCapital] = useState('10000');
   const [simulationDays, setSimulationDays] = useState('30');
   const [dateRange, setDateRange] = useState(null);
+  const [advancedOptions, setAdvancedOptions] = useState({
+    slippage: 0.1,
+    commission: 0.05,
+    walkForward: { enabled: false, periodDays: 7 },
+    monteCarlo: { enabled: false, simulations: 1000 },
+    marketRegime: 'mixed'
+  });
 
   const handleRunSimulation = async () => {
     if (!startingCapital || !simulationDays) {
@@ -25,7 +33,8 @@ export default function SimulationRunner({ strategy, onSimulationComplete, showA
       startingCapital: parseFloat(startingCapital),
       simulationDays: parseInt(simulationDays),
       simulationName: simulationName || `${strategy.name} Simulation`,
-      dateRange: dateRange
+      dateRange: dateRange,
+      advancedOptions: advancedOptions
     });
 
     setLoading(false);
@@ -48,7 +57,12 @@ export default function SimulationRunner({ strategy, onSimulationComplete, showA
           />
         </div>
 
-        {showAdvanced && <BacktestDateRangePicker onRangeSelect={setDateRange} />}
+        {showAdvanced && (
+          <>
+            <BacktestDateRangePicker onRangeSelect={setDateRange} />
+            <AdvancedBacktestingOptions onOptionsChange={setAdvancedOptions} />
+          </>
+        )}
 
         <div className="grid grid-cols-2 gap-3">
           <div>
