@@ -424,6 +424,28 @@ export default function PriceTracker() {
           ))}
         </div>
 
+        {/* Favorite Quick Access */}
+        {starred.length > 0 && !showStarred && !search && category === 'Semua' && (
+          <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-2xl overflow-hidden">
+            <div className="flex items-center gap-2 px-3 py-2 border-b border-yellow-500/10">
+              <Star className="w-3.5 h-3.5 text-yellow-400" fill="currentColor" />
+              <span className="text-yellow-400 text-xs font-semibold">Favorit Saya ({starred.length})</span>
+            </div>
+            {ALL_COINS.filter(c => starred.includes(c.id)).map((coin, i) => (
+              <CoinRow
+                key={coin.id}
+                coin={coin}
+                liveData={livePrices[coin.id]}
+                sparkline={sparklines[coin.id]}
+                rank={i + 1}
+                starred={true}
+                onStar={toggleStar}
+                onClick={() => setDetail(coin)}
+              />
+            ))}
+          </div>
+        )}
+
         {/* Coin list */}
         <div className="bg-slate-900/60 border border-slate-700/30 rounded-2xl overflow-hidden">
           {/* Table header */}
@@ -437,7 +459,10 @@ export default function PriceTracker() {
           </div>
 
           {filtered.length === 0 ? (
-            <div className="py-10 text-center text-slate-500 text-sm">Tidak ada koin ditemukan</div>
+            <div className="py-10 text-center space-y-2">
+              <Star className="w-8 h-8 text-yellow-500/30 mx-auto" />
+              <p className="text-slate-500 text-sm">{showStarred ? 'Belum ada favorit. Tap ⭐ di samping koin.' : 'Tidak ada koin ditemukan'}</p>
+            </div>
           ) : (
             filtered.map((coin, i) => (
               <CoinRow
