@@ -110,6 +110,8 @@ export default function Wallet() {
 
         <PortfolioChart addresses={addresses || { BTC: { address: walletData?.address } }} />
 
+        <CrossChainSwapButton onClick={() => setShowSwap(true)} />
+
         <MultiCoinTxList key={`${activeCoin}-${refreshKey}`} coinId={activeCoin} address={activeAddress} />
 
         <StakingPanel addresses={addresses || {}} />
