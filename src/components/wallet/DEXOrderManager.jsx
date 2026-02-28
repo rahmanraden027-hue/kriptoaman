@@ -66,8 +66,9 @@ export default function DEXOrderManager({ fromToken, toToken, chain }) {
   const getStatusLabel = (status) => {
     const labels = {
       pending: 'Pending',
-      triggered: 'Triggered',
+      triggered: 'Executing...',
       executed: 'Executed',
+      failed: 'Failed',
       cancelled: 'Cancelled',
     };
     return labels[status] || status;
