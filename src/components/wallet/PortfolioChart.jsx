@@ -208,7 +208,7 @@ export default function PortfolioChart({ addresses = {} }) {
   const [viewMode, setViewMode] = useState('area'); // area | pie | cex
   const [cexTotal, setCexTotal] = useState(0);
   const [cexConnCount, setCexConnCount] = useState(0);
-  const grandTotal = (totalWallet || 0) + totalCEX;
+  const grandTotal = (totalWallet || 0) + cexTotal;
 
   useEffect(() => {
     async function load() {
