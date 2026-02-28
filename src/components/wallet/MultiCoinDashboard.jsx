@@ -10,22 +10,20 @@ const COIN_ICONS = { BTC: '₿', ETH: 'Ξ', LTC: 'Ł', BNB: 'B', SOL: '◎', DOG
 
 export default function MultiCoinDashboard({ addresses, onSend, onReceive, onTrade, onSwap, onLogout, activeCoin, onCoinChange }) {
   const [balances, setBalances] = useState({});
-  const [prices, setPrices] = useState({});
+  const prices = useRealtimePrices();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const fetchAll = useCallback(async () => {
     setRefreshing(true);
-    const [priceData, ...balanceResults] = await Promise.all([
-      getPrices(),
-      ...Object.keys(COINS).map(coin =>
+    const balanceResults = await Promise.all(
+      Object.keys(COINS).map(coin =>
         addresses[coin]
           ? getBalance(coin, addresses[coin].address).catch(() => null).then(b => ({ coin, b }))
           : Promise.resolve({ coin, b: null })
-      ),
-    ]);
-    setPrices(priceData);
+      )
+    );
     const bals = {};
     balanceResults.forEach(({ coin, b }) => { bals[coin] = b; });
     setBalances(bals);
