@@ -17,7 +17,7 @@ import PortfolioChart from '../components/wallet/PortfolioChart';
 export default function Wallet() {
   const [walletData, setWalletData] = useState(null);
   const [sessionPassword, setSessionPassword] = useState(null);
-  const [addresses, setAddresses] = useState(null); // { BTC, ETH, LTC }
+  const [addresses, setAddresses] = useState(null); // { BTC, ETH, BNB, SOL, DOGE, MATIC, LTC }
   const [activeCoin, setActiveCoin] = useState('BTC');
   const [showReceive, setShowReceive] = useState(false);
   const [showSend, setShowSend] = useState(false);
