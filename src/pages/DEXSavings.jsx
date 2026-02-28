@@ -126,7 +126,7 @@ const SAVINGS_PROTOCOLS = [
 
 const RISK_COLOR = { low: 'text-green-400', medium: 'text-yellow-400', high: 'text-red-400' };
 const RISK_BG = { low: 'bg-green-500/10 border-green-500/20', medium: 'bg-yellow-500/10 border-yellow-500/20', high: 'bg-red-500/10 border-red-500/20' };
-const APY_TYPE_LABEL = { variable: 'Variable APY', stable: 'Stable APY', optimized: 'Optimized', 'auto-compound': 'Auto-Compound' };
+const APY_TYPE_LABEL = { variable: 'Variable APY', stable: 'Stable APY', optimized: 'Optimized', 'auto-compound': 'Auto-Compound', 'liquid-staking': 'Liquid Staking', 'concentrated-lp': 'Concentrated LP' };
 const SAVINGS_KEY = 'usdt_savings_positions';
 
 function loadPositions() { try { return JSON.parse(localStorage.getItem(SAVINGS_KEY)) || []; } catch { return []; } }
