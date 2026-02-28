@@ -28,7 +28,7 @@ export default function Wallet() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const btcAddress = addresses?.BTC?.address || walletData?.address;
-  const { notifications, unread, markAllRead, dismiss, addNotif } = useNotifications(btcAddress);
+  const { notifications, unread, markAllRead, dismiss, addNotif, pushEnabled, enablePush } = useNotifications(btcAddress);
 
   useEffect(() => {
     const stored = loadWallet();
