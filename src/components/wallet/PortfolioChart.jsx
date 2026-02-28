@@ -18,24 +18,7 @@ const RANGE_OPTIONS = [
   { label: '3B', days: 90 },
 ];
 
-// CEX assets stored in localStorage
-const CEX_KEY = 'cex_assets_v2';
-function loadCEX()   { try { return JSON.parse(localStorage.getItem(CEX_KEY)) || []; } catch { return []; } }
-function saveCEX(d)  { localStorage.setItem(CEX_KEY, JSON.stringify(d)); }
 
-const CEX_LIST = [
-  { id: 'binance',  name: 'Binance',   logo: '🟡', color: '#F0B90B' },
-  { id: 'coinbase', name: 'Coinbase',  logo: '🔵', color: '#0052FF' },
-  { id: 'kraken',   name: 'Kraken',    logo: '🟣', color: '#5741D9' },
-  { id: 'okx',      name: 'OKX',       logo: '⚫', color: '#333' },
-  { id: 'bybit',    name: 'Bybit',     logo: '🟠', color: '#F7A600' },
-  { id: 'kucoin',   name: 'KuCoin',    logo: '🟢', color: '#23AF91' },
-];
-
-const PRICE_MAP = {
-  BTC: 95200, ETH: 3420, BNB: 582, SOL: 172, USDT: 1, USDC: 1,
-  DOGE: 0.124, MATIC: 0.46, XRP: 0.57, ADA: 0.48, LTC: 86, AVAX: 38.5, ARB: 1.12,
-};
 
 async function fetchCoinHistory(coingeckoId, days) {
   const res = await fetch(
