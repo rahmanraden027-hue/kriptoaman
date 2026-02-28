@@ -102,6 +102,8 @@ export default function Wallet() {
           onLogout={() => setSessionPassword(null)}
         />
 
+        <PortfolioChart addresses={addresses || { BTC: { address: walletData?.address } }} />
+
         <MultiCoinTxList key={`${activeCoin}-${refreshKey}`} coinId={activeCoin} address={activeAddress} />
 
         <CryptoPriceChart />
