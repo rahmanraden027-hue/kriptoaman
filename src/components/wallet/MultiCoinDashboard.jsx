@@ -5,7 +5,7 @@ import { truncateAddress } from './walletUtils';
 import { ArrowUpRight, ArrowDownLeft, RefreshCw, Copy, Check, LogOut, BarChart2, TrendingUp, TrendingDown, ArrowLeftRight } from 'lucide-react';
 import CoinSelector from './CoinSelector';
 
-const COIN_ICONS = { BTC: '₿', ETH: 'Ξ', LTC: 'Ł' };
+const COIN_ICONS = { BTC: '₿', ETH: 'Ξ', LTC: 'Ł', BNB: 'B', SOL: '◎', DOGE: 'Ð', MATIC: 'M' };
 
 export default function MultiCoinDashboard({ addresses, onSend, onReceive, onTrade, onSwap, onLogout, activeCoin, onCoinChange }) {
   const [balances, setBalances] = useState({});
