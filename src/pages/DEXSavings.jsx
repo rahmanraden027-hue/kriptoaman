@@ -464,7 +464,15 @@ export default function DEXSavings() {
         )}
 
         {tab === 'dex' && (
-          <DEXMarket addresses={{}} />
+          <>
+            <div className="flex items-start gap-2.5 px-3 py-2.5 bg-purple-500/10 border border-purple-500/20 rounded-xl">
+              <span className="text-purple-400 text-sm shrink-0">🔄</span>
+              <p className="text-purple-300 text-xs leading-relaxed">
+                Pilih chain, masukkan jumlah, dan swap koin langsung via 1inch agregator. Tidak perlu login atau KYC.
+              </p>
+            </div>
+            <DEXMarket addresses={{}} />
+          </>
         )}
       </div>
 
