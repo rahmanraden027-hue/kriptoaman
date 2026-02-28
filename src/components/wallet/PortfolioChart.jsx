@@ -264,18 +264,6 @@ export default function PortfolioChart({ addresses = {} }) {
     load();
   }, [range, refreshKey, JSON.stringify(addresses)]);
 
-  const handleCEXSave = (asset) => {
-    const updated = editingCEX
-      ? cexAssets.map(a => a.id === asset.id ? asset : a)
-      : [...cexAssets, asset];
-    setCexAssets(updated); saveCEX(updated);
-    setEditingCEX(null);
-  };
-  const handleCEXRemove = (id) => {
-    const updated = cexAssets.filter(a => a.id !== id);
-    setCexAssets(updated); saveCEX(updated);
-  };
-
   const pieData = [
     ...WALLET_COINS.map(coinId => ({
       name: COINS[coinId].symbol,
