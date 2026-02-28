@@ -79,7 +79,7 @@ export default function Wallet() {
             <div className="w-8 h-8 rounded-xl bg-orange-500 flex items-center justify-center">
               <span className="text-white font-bold text-sm">₿</span>
             </div>
-            <span className="text-white font-semibold">Crypto Wallet</span>
+            <span className="text-white font-semibold">Exchange</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 bg-green-500/20 border border-green-500/30 rounded-full px-2.5 py-1">
