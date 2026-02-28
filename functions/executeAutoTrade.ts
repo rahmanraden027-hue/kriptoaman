@@ -1,5 +1,41 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// Fetch real-time market data
+async function getMarketData(symbol, pair) {
+  try {
+    const response = await fetch(`http://localhost:3000/api/functions/getRealtimeMarketData`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ symbol, pair }),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching market data:', error);
+    return null;
+  }
+}
+
+// Get dynamic SL/TP based on real-time data
+async function getDynamicSLTP(symbol, pair, entryPrice, accountBalance, riskManagement) {
+  try {
+    const response = await fetch(`http://localhost:3000/api/functions/analyzeDynamicSLTP`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        symbol,
+        pair,
+        entryPrice,
+        accountBalance,
+        riskManagement,
+      }),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error('Error calculating dynamic SL/TP:', error);
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
