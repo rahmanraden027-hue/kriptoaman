@@ -342,6 +342,7 @@ export default function DEXMarket({ addresses = {} }) {
   const [livePrices, setLivePrices] = useState({});
   const [favPairs, setFavPairs]   = useState(loadFavs);
   const [success, setSuccess]     = useState(null);
+  const [txApproval, setTxApproval] = useState(null);
   const priceTimer = useRef(null);
 
   // Reset tokens on chain change
