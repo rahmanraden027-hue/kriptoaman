@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { strategyId, startingCapital, simulationDays, simulationName } = await req.json();
+    const { strategyId, startingCapital, simulationDays, simulationName, advancedOptions = {} } = await req.json();
 
     // Fetch strategy
     const strategy = await base44.entities.AutoTradingStrategy.read(strategyId);
@@ -53,121 +53,155 @@ Deno.serve(async (req) => {
 
     const historicalData = marketData.data || [];
 
+    // Extract advanced options
+    const slippage = (advancedOptions.slippage || 0.1) / 100;
+    const commission = (advancedOptions.commission || 0.05) / 100;
+    const walkForward = advancedOptions.walkForward || { enabled: false };
+    const monteCarlo = advancedOptions.monteCarlo || { enabled: false, simulations: 1000 };
+    const marketRegime = advancedOptions.marketRegime || 'mixed';
+
     // Parse strategy conditions
     const entryCondition = JSON.parse(strategy.entryCondition || '{}');
     const riskMgmt = strategy.riskManagement || {};
 
-    // Simulate trading
-    const trades = [];
-    let balance = startingCapital;
-    let equity = startingCapital;
-    let equityData = [{ date: historicalData[0]?.date, balance, equity }];
-    let position = null;
-
-    for (let i = 0; i < historicalData.length; i++) {
-      const candle = historicalData[i];
-      const prevCandle = i > 0 ? historicalData[i - 1] : null;
-      const nextCandle = i < historicalData.length - 1 ? historicalData[i + 1] : null;
-
-      // Entry signal based on template
-      let shouldEntry = false;
-      if (entryCondition.template === 'rsi') {
-        // Simulated RSI logic: entry if price crosses above previous close
-        shouldEntry = !position && prevCandle && candle.close > prevCandle.close;
-      } else if (entryCondition.template === 'macd') {
-        shouldEntry = !position && Math.random() > 0.7; // 30% probability
-      } else if (entryCondition.template === 'bollinger') {
-        shouldEntry = !position && candle.close > candle.high * 0.95;
+    // Market regime adjustment function
+    const applyMarketRegime = (candle, prev) => {
+      if (marketRegime === 'bullish') {
+        candle.close += candle.close * 0.005;
+        candle.high += candle.high * 0.005;
+      } else if (marketRegime === 'bearish') {
+        candle.close -= candle.close * 0.005;
+        candle.low -= candle.low * 0.005;
+      } else if (marketRegime === 'sideways') {
+        const range = candle.high - candle.low;
+        candle.close = candle.low + range * 0.5;
+      } else if (marketRegime === 'volatile') {
+        const range = candle.high - candle.low;
+        candle.high += range * 0.2;
+        candle.low -= range * 0.2;
       }
+      return candle;
+    };
 
-      // Entry
-      if (shouldEntry && balance > 0) {
-        const tradeSize = riskMgmt.tradeSize || 100;
-        const quantity = tradeSize / candle.close;
-        
-        position = {
-          entryPrice: candle.close,
-          quantity,
-          entryTime: candle.date,
-          entryBalance: balance
-        };
-      }
+    // Main simulation function
+    const runSimulation = (data) => {
+      const trades = [];
+      let balance = startingCapital;
+      let equity = startingCapital;
+      let equityData = [{ date: data[0]?.date, balance, equity }];
+      let position = null;
 
-      // Exit signal
-      if (position && nextCandle) {
-        const atrMultiplier = riskMgmt.atrMultiplier || 2;
-        const tpMultiplier = riskMgmt.tpMultiplier || 3;
-        const stopLoss = position.entryPrice * (1 - atrMultiplier * 0.02);
-        const takeProfit = position.entryPrice * (1 + tpMultiplier * 0.02);
+      for (let i = 0; i < data.length; i++) {
+        let candle = { ...data[i] };
+        const prevCandle = i > 0 ? data[i - 1] : null;
+        const nextCandle = i < data.length - 1 ? data[i + 1] : null;
 
-        let shouldExit = false;
-        let exitPrice = null;
-
-        // Stop loss hit
-        if (candle.low <= stopLoss) {
-          shouldExit = true;
-          exitPrice = stopLoss;
-        }
-        // Take profit hit
-        else if (candle.high >= takeProfit) {
-          shouldExit = true;
-          exitPrice = takeProfit;
-        }
-        // Exit by time (every 20 candles)
-        else if (trades.length % 20 === 0 && trades.length > 0) {
-          shouldExit = true;
-          exitPrice = candle.close;
+        // Apply market regime
+        if (marketRegime !== 'mixed') {
+          candle = applyMarketRegime(candle, prevCandle);
         }
 
-        if (shouldExit && exitPrice) {
-          const profitLoss = (exitPrice - position.entryPrice) * position.quantity;
-          const profitLossPercent = ((exitPrice - position.entryPrice) / position.entryPrice) * 100;
+        // Entry signal based on template
+        let shouldEntry = false;
+        if (entryCondition.template === 'rsi') {
+          shouldEntry = !position && prevCandle && candle.close > prevCandle.close;
+        } else if (entryCondition.template === 'macd') {
+          shouldEntry = !position && Math.random() > 0.7;
+        } else if (entryCondition.template === 'bollinger') {
+          shouldEntry = !position && candle.close > candle.high * 0.95;
+        }
+
+        // Entry with slippage and commission
+        if (shouldEntry && balance > 0) {
+          const tradeSize = riskMgmt.tradeSize || 100;
+          let entryPrice = candle.close * (1 + slippage);
+          const quantity = (tradeSize / entryPrice) * (1 - commission);
           
-          balance += profitLoss;
-          equity = balance;
-
-          trades.push({
-            entryPrice: position.entryPrice,
-            exitPrice,
-            quantity: position.quantity.toFixed(4),
-            profitLoss: parseFloat(profitLoss.toFixed(2)),
-            profitLossPercent: parseFloat(profitLossPercent.toFixed(2)),
-            entryTime: position.entryTime,
-            exitTime: candle.date,
-            type: profitLoss >= 0 ? 'win' : 'loss'
-          });
-
-          position = null;
+          position = {
+            entryPrice,
+            quantity,
+            entryTime: candle.date,
+            entryBalance: balance
+          };
         }
+
+        // Exit signal
+        if (position && nextCandle) {
+          const atrMultiplier = riskMgmt.atrMultiplier || 2;
+          const tpMultiplier = riskMgmt.tpMultiplier || 3;
+          const stopLoss = position.entryPrice * (1 - atrMultiplier * 0.02);
+          const takeProfit = position.entryPrice * (1 + tpMultiplier * 0.02);
+
+          let shouldExit = false;
+          let exitPrice = null;
+
+          if (candle.low <= stopLoss) {
+            shouldExit = true;
+            exitPrice = stopLoss * (1 - slippage);
+          } else if (candle.high >= takeProfit) {
+            shouldExit = true;
+            exitPrice = takeProfit * (1 - slippage);
+          } else if (trades.length % 20 === 0 && trades.length > 0) {
+            shouldExit = true;
+            exitPrice = candle.close * (1 - slippage);
+          }
+
+          if (shouldExit && exitPrice) {
+            let profitLoss = (exitPrice - position.entryPrice) * position.quantity;
+            profitLoss *= (1 - commission);
+            const profitLossPercent = ((exitPrice - position.entryPrice) / position.entryPrice) * 100;
+            
+            balance += profitLoss;
+            equity = balance;
+
+            trades.push({
+              entryPrice: position.entryPrice,
+              exitPrice,
+              quantity: position.quantity.toFixed(4),
+              profitLoss: parseFloat(profitLoss.toFixed(2)),
+              profitLossPercent: parseFloat(profitLossPercent.toFixed(2)),
+              entryTime: position.entryTime,
+              exitTime: candle.date,
+              type: profitLoss >= 0 ? 'win' : 'loss'
+            });
+
+            position = null;
+          }
+        }
+
+        equityData.push({
+          date: candle.date,
+          balance: parseFloat(balance.toFixed(2)),
+          equity: parseFloat(equity.toFixed(2))
+        });
       }
 
-      // Record equity
-      equityData.push({
-        date: candle.date,
-        balance: parseFloat(balance.toFixed(2)),
-        equity: parseFloat(equity.toFixed(2))
-      });
-    }
+      if (position && data.length > 0) {
+        const lastCandle = data[data.length - 1];
+        let exitPrice = lastCandle.close * (1 - slippage);
+        let profitLoss = (exitPrice - position.entryPrice) * position.quantity;
+        profitLoss *= (1 - commission);
+        const profitLossPercent = ((exitPrice - position.entryPrice) / position.entryPrice) * 100;
+        
+        balance += profitLoss;
+        
+        trades.push({
+          entryPrice: position.entryPrice,
+          exitPrice,
+          quantity: position.quantity.toFixed(4),
+          profitLoss: parseFloat(profitLoss.toFixed(2)),
+          profitLossPercent: parseFloat(profitLossPercent.toFixed(2)),
+          entryTime: position.entryTime,
+          exitTime: lastCandle.date,
+          type: profitLoss >= 0 ? 'win' : 'loss'
+        });
+      }
 
-    // Close remaining position
-    if (position && historicalData.length > 0) {
-      const lastCandle = historicalData[historicalData.length - 1];
-      const profitLoss = (lastCandle.close - position.entryPrice) * position.quantity;
-      const profitLossPercent = ((lastCandle.close - position.entryPrice) / position.entryPrice) * 100;
-      
-      balance += profitLoss;
-      
-      trades.push({
-        entryPrice: position.entryPrice,
-        exitPrice: lastCandle.close,
-        quantity: position.quantity.toFixed(4),
-        profitLoss: parseFloat(profitLoss.toFixed(2)),
-        profitLossPercent: parseFloat(profitLossPercent.toFixed(2)),
-        entryTime: position.entryTime,
-        exitTime: lastCandle.date,
-        type: profitLoss >= 0 ? 'win' : 'loss'
-      });
-    }
+      return { trades, balance, equityData };
+    };
+
+    // Run base simulation
+    const { trades, balance: finalBalance, equityData } = runSimulation(historicalData);
 
     // Calculate statistics
     const winningTrades = trades.filter(t => t.type === 'win').length;
@@ -202,6 +236,30 @@ Deno.serve(async (req) => {
       : 0;
     const sharpeRatio = stdDev > 0 ? (avgReturn * 252) / stdDev : 0;
 
+    // Monte Carlo simulation if enabled
+    let monteCarloStats = null;
+    if (monteCarlo.enabled && monteCarlo.simulations > 0) {
+      const monteCarloResults = [];
+      for (let sim = 0; sim < Math.min(monteCarlo.simulations, 1000); sim++) {
+        const shuffledData = [...historicalData].sort(() => Math.random() - 0.5);
+        const { balance: mcBalance, trades: mcTrades } = runSimulation(shuffledData);
+        monteCarloResults.push({
+          finalBalance: mcBalance,
+          totalTrades: mcTrades.length,
+          winRate: mcTrades.length > 0 ? (mcTrades.filter(t => t.profitLoss > 0).length / mcTrades.length) * 100 : 0
+        });
+      }
+      const balances = monteCarloResults.map(r => r.finalBalance).sort((a, b) => a - b);
+      monteCarloStats = {
+        simulations: monteCarloResults.length,
+        avgFinalBalance: balances.reduce((a, b) => a + b, 0) / balances.length,
+        percentile95: balances[Math.floor(balances.length * 0.95)],
+        percentile5: balances[Math.floor(balances.length * 0.05)],
+        worstCase: balances[0],
+        bestCase: balances[balances.length - 1]
+      };
+    }
+
     // Create simulation record
     const paperTrade = await base44.entities.PaperTrade.create({
       strategyId,
@@ -224,9 +282,17 @@ Deno.serve(async (req) => {
         avgLoss: parseFloat(avgLoss.toFixed(2)),
         profitFactor: parseFloat(profitFactor.toFixed(2)),
         sharpeRatio: parseFloat(sharpeRatio.toFixed(4)),
-        finalBalance: parseFloat(balance.toFixed(2))
+        finalBalance: parseFloat(finalBalance.toFixed(2))
       },
-      equityData: equityData.slice(0, Math.min(equityData.length, 200)), // Limit data points
+      equityData: equityData.slice(0, Math.min(equityData.length, 200)),
+      monteCarloStats,
+      advancedOptions: {
+        slippage,
+        commission,
+        walkForward,
+        monteCarlo,
+        marketRegime
+      },
       completedAt: new Date().toISOString()
     });
 
