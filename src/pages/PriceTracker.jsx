@@ -497,6 +497,14 @@ export default function PriceTracker() {
           onClose={() => setDetail(null)}
         />
       )}
+
+      {showCompare && (
+        <CoinCompare
+          allCoins={ALL_COINS}
+          livePrices={livePrices}
+          onClose={() => setShowCompare(false)}
+        />
+      )}
     </div>
   );
 }
