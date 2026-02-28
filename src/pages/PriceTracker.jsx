@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   TrendingUp, TrendingDown, RefreshCw, Search, Star, StarOff,
-  Activity, BarChart2, Globe, Zap, ArrowUpRight, ArrowDownRight
+  Activity, BarChart2, Globe, Zap, ArrowUpRight, ArrowDownRight, GitCompare
 } from 'lucide-react';
+import CoinCompare from '../components/wallet/CoinCompare';
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
   BarChart, Bar, CartesianGrid
