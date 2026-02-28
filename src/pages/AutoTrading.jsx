@@ -12,6 +12,9 @@ import RealtimePriceMonitor from '../components/autotrading/RealtimePriceMonitor
 import LiveTradePanel from '../components/autotrading/LiveTradePanel';
 import TradeExecutionPanel from '../components/autotrading/TradeExecutionPanel';
 import LivePerformanceDashboard from '../components/autotrading/LivePerformanceDashboard';
+import NewsSentimentImpact from '../components/autotrading/NewsSentimentImpact';
+import AITradeRecommendations from '../components/autotrading/AITradeRecommendations';
+import AlertsConfiguration from '../components/autotrading/AlertsConfiguration';
 
 export default function AutoTrading() {
   const [showSetupForm, setShowSetupForm] = useState(false);
@@ -152,11 +155,30 @@ export default function AutoTrading() {
               onPriceUpdate={setCurrentPrice}
             />
 
+            {/* AI & Intelligence Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <TradeExecutionPanel
+              <AITradeRecommendations
                 strategy={selectedStrategy}
                 currentPrice={currentPrice}
               />
+              <NewsSentimentImpact
+                pair={selectedStrategy.pair}
+                symbol={selectedStrategy.pair.split('/')[0]}
+              />
+            </div>
+
+            {/* Trading Execution & Performance */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-6">
+                <TradeExecutionPanel
+                  strategy={selectedStrategy}
+                  currentPrice={currentPrice}
+                />
+                <AlertsConfiguration
+                  strategy={selectedStrategy}
+                  onAlertsChange={(alerts) => {}}
+                />
+              </div>
 
               <div className="space-y-6">
                 <LiveTradePanel strategy={selectedStrategy} />
