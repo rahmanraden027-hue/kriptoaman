@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import StrategySetupForm from '../components/autotrading/StrategySetupForm';
 import StrategyList from '../components/autotrading/StrategyList';
 import StrategySimulationTab from '../components/autotrading/StrategySimulationTab';
+import RealTimeMarketPanel from '../components/autotrading/RealTimeMarketPanel';
+import StrategyPerformanceDashboard from '../components/autotrading/StrategyPerformanceDashboard';
 
 export default function AutoTrading() {
   const [showSetupForm, setShowSetupForm] = useState(false);
