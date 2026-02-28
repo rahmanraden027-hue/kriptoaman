@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Wallet, Activity, Coins, Clock, Zap } from 'lucide-react';
+import { Wallet, Activity, Coins, Clock, Zap, Settings } from 'lucide-react';
 
 const NAV = [
   { label: 'Wallet', page: 'Wallet', icon: Wallet },
@@ -9,6 +9,7 @@ const NAV = [
   { label: 'Auto-Trade', page: 'AutoTrading', icon: Zap },
   { label: 'Analytics', page: 'TradingAnalytics', icon: Activity },
   { label: 'Riwayat', page: 'TxHistory', icon: Clock },
+  { label: 'Settings', page: 'Settings', icon: Settings },
 ];
 
 export default function Layout({ children, currentPageName }) {
