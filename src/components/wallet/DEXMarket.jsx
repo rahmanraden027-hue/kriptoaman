@@ -3,7 +3,7 @@ import {
   ArrowLeftRight, RefreshCw, TrendingUp, ChevronDown,
   Info, Zap, Shield, AlertTriangle, CheckCircle2, Search,
   Star, StarOff, X, Flame, Clock, Fuel, Percent, BarChart2,
-  ArrowDown, BookOpen, History, LineChart
+  ArrowDown, BookOpen, History, LineChart, Plus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
