@@ -3,10 +3,13 @@ import {
   ArrowLeftRight, RefreshCw, TrendingUp, ChevronDown,
   Info, Zap, Shield, AlertTriangle, CheckCircle2, Search,
   Star, StarOff, X, Flame, Clock, Fuel, Percent, BarChart2,
-  ArrowDown
+  ArrowDown, BookOpen, History, LineChart
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import DEXPriceChart from './DEXPriceChart';
+import DEXOrderBook from './DEXOrderBook';
+import DEXTradeHistory from './DEXTradeHistory';
 
 // ── Chains ────────────────────────────────────────────────────────────────────
 const CHAINS = {
