@@ -109,10 +109,6 @@ export default function DEXOrderManager({ fromToken, toToken, chain }) {
             <div key={order.id}
               className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-4 space-y-3"
             >
-            <div
-              key={order.id}
-              className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-4 space-y-3"
-            >
               {/* Header */}
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3">
