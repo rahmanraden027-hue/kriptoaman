@@ -114,6 +114,7 @@ export default function AutoTrading() {
                 strategies={strategies}
                 onStrategyUpdate={handleStrategyUpdate}
                 onStrategyDelete={handleStrategyDelete}
+                onSelectStrategy={setSelectedStrategy}
               />
             )}
           </>
