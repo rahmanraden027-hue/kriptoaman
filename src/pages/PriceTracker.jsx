@@ -328,7 +328,11 @@ export default function PriceTracker() {
   }, [ticker]);
 
   const toggleStar = useCallback((id) => {
-    setStarred(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]);
+    setStarred(prev => {
+      const next = prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id];
+      try { localStorage.setItem(STARRED_KEY, JSON.stringify(next)); } catch {}
+      return next;
+    });
   }, []);
 
   // Filter coins
