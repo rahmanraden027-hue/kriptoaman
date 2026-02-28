@@ -7,6 +7,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import DEXMarket from '../components/wallet/DEXMarket';
+import WalletConnectPanel from '../components/wallet/WalletConnectPanel';
 
 // ── USDT Savings Protocols ────────────────────────────────────────────────────
 const SAVINGS_PROTOCOLS = [
