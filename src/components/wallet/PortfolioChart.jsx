@@ -317,7 +317,7 @@ export default function PortfolioChart({ addresses = {} }) {
             <button onClick={() => setViewMode('cex')}
               className={`p-1.5 rounded-md transition-colors relative ${viewMode === 'cex' ? 'bg-slate-600 text-white' : 'text-slate-500 hover:text-slate-300'}`} title="CEX">
               <Building2 className="w-3.5 h-3.5" />
-              {cexAssets.length > 0 && <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-blue-500 rounded-full" />}
+              {cexConnCount > 0 && <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-blue-500 rounded-full" />}
             </button>
           </div>
           <button onClick={() => setRefreshKey(k => k + 1)}
