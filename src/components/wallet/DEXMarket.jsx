@@ -396,12 +396,32 @@ export default function DEXMarket({ addresses = {} }) {
 
   const handleSwap = async () => {
     if (!quote) return;
+    // Show approval modal instead of swapping directly
+    const txData = {
+      type: 'swap',
+      hash: '0x' + Math.random().toString(16).slice(2, 66),
+      fromToken: fromTok?.symbol,
+      toToken: toTok?.symbol,
+      amount: amount,
+      toAmount: dstAmount,
+      network: chain.name,
+      gasLimit: '150000',
+      gasPrice: 'Standard',
+    };
+    setTxApproval(txData);
+  };
+
+  const handleTxApproved = async () => {
     setSwapping(true);
     await new Promise(r => setTimeout(r, 1500));
     setSwapping(false);
     setSuccess({ fromTok, toTok, amount, dstAmount, chain });
     setQuote(null);
     setAmount('1');
+  };
+
+  const handleTxRejected = () => {
+    setTxApproval(null);
   };
 
   const swapDir = () => { setFromToken(toToken); setToToken(fromToken); setQuote(null); };
