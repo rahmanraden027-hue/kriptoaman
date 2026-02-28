@@ -112,7 +112,6 @@ export default function PortfolioChart({ addresses = {} }) {
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const prices = realtimePrices;
       const balResults = await Promise.all(
         WALLET_COINS.map(coin =>
           addresses[coin]?.address
@@ -121,25 +120,11 @@ export default function PortfolioChart({ addresses = {} }) {
         )
       );
 
-      const balMap = {};
-      balResults.forEach(({ coin, b }) => { balMap[coin] = b; });
-
-      const vals = {};
-      let total = 0;
-      WALLET_COINS.forEach(coinId => {
-        const bal = balMap[coinId];
-        const p   = prices[coinId]?.price || 0;
-        const amt = bal ? parseFloat(formatAmount(coinId, bal.balance || 0)) : 0;
-        vals[coinId] = { usd: amt * p, amount: amt, price: p, change24h: prices[coinId]?.change24h };
-        total += amt * p;
+      const amtMap = {};
+      balResults.forEach(({ coin, b }) => {
+        amtMap[coin] = b ? parseFloat(formatAmount(coin, b.balance || 0)) : 0;
       });
-      setCoinValues(vals);
-      setTotalWallet(total);
-
-      if (total > 0) {
-        const w = WALLET_COINS.reduce((s, c) => s + (vals[c].usd / total) * (vals[c].change24h || 0), 0);
-        setTotalChange(w);
-      }
+      balancesRef.current = amtMap;
 
       const histories = await Promise.all(
         WALLET_COINS.map(coinId => fetchCoinHistory(COINS[coinId].coingeckoId, range).catch(() => []))
@@ -149,7 +134,7 @@ export default function PortfolioChart({ addresses = {} }) {
       WALLET_COINS.forEach((coinId, idx) => {
         histories[idx].forEach(({ date, price }) => {
           if (!dateMap[date]) dateMap[date] = { date };
-          dateMap[date][coinId] = parseFloat(((vals[coinId].amount) * price).toFixed(2));
+          dateMap[date][coinId] = parseFloat(((amtMap[coinId] || 0) * price).toFixed(2));
         });
       });
 
