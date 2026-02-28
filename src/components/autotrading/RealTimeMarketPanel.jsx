@@ -167,7 +167,7 @@ export default function RealTimeMarketPanel({ pair, symbol }) {
             <div
               className="h-full bg-gradient-to-r from-blue-500 to-red-500"
               style={{
-                width: `${((marketData.currentPrice - indicators.support) / (indicators.resistance - indicators.support)) * 100)}%`,
+                width: ((marketData.currentPrice - indicators.support) / (indicators.resistance - indicators.support)) * 100 + '%'
               }}
             />
           </div>
