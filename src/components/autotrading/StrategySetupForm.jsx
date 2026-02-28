@@ -7,7 +7,13 @@ import { Loader2, Save } from 'lucide-react';
 import StrategyTemplates from './StrategyTemplates';
 import RiskManagementPanel from './RiskManagementPanel';
 
-const TRADING_PAIRS = ['ETH/USDT', 'BTC/USDT', 'SOL/USDT', 'MATIC/USDT'];
+const ASSET_CLASSES = [
+  { value: 'crypto', label: 'Cryptocurrency', pairs: ['ETH/USDT', 'BTC/USDT', 'SOL/USDT', 'MATIC/USDT'] },
+  { value: 'forex', label: 'Forex', pairs: ['EUR/USD', 'GBP/USD', 'USD/JPY', 'AUD/USD'] },
+  { value: 'indices', label: 'Indices', pairs: ['SPX500', 'DAX', 'FTSE', 'NIKKEI'] },
+  { value: 'commodities', label: 'Commodities', pairs: ['GOLD', 'OIL', 'SILVER', 'COPPER'] }
+];
+
 const CHAINS = ['Ethereum', 'BNB Chain', 'Polygon', 'Solana'];
 const INTERVALS = [
   { value: 5, label: '5 menit' },
@@ -19,6 +25,7 @@ const INTERVALS = [
 export default function StrategySetupForm({ onStrategyCreated, onCancel }) {
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
+  const [assetClass, setAssetClass] = useState('crypto');
   const [pair, setPair] = useState('ETH/USDT');
   const [chain, setChain] = useState('Ethereum');
   const [selectedTemplate, setSelectedTemplate] = useState('rsi');
@@ -31,6 +38,9 @@ export default function StrategySetupForm({ onStrategyCreated, onCancel }) {
     tradeSize: 100
   });
 
+  const currentAssetClass = ASSET_CLASSES.find(ac => ac.value === assetClass);
+  const availablePairs = currentAssetClass?.pairs || [];
+
   const handleSubmit = async () => {
     if (!name.trim()) {
       alert('Nama strategi tidak boleh kosong');
@@ -41,8 +51,9 @@ export default function StrategySetupForm({ onStrategyCreated, onCancel }) {
 
     const strategyData = {
       name,
+      assetClass,
       pair,
-      chain,
+      chain: assetClass === 'crypto' ? chain : undefined,
       strategyType: selectedTemplate === 'custom' ? 'custom' : 'template',
       templateName: selectedTemplate,
       analysisInterval: parseInt(interval),
@@ -67,6 +78,7 @@ export default function StrategySetupForm({ onStrategyCreated, onCancel }) {
 
     // Reset form
     setName('');
+    setAssetClass('crypto');
     setPair('ETH/USDT');
     setChain('Ethereum');
     setSelectedTemplate('rsi');
