@@ -145,10 +145,17 @@ Deno.serve(async (req) => {
         
         Pair: ${strategy.pair}
         Entry Price: $${opportunity.entryPrice.toFixed(4)}
-        Stop Loss: $${opportunity.stopLoss.toFixed(4)}
-        Take Profit: $${opportunity.takeProfit.toFixed(4)}
-        Risk/Reward: ${opportunity.riskReward.toFixed(2)}
+        Stop Loss: $${finalStopLoss.toFixed(4)} (Dynamic: ${slTP ? 'Yes' : 'No'})
+        Take Profit: $${finalTakeProfit.toFixed(4)} (Dynamic: ${slTP ? 'Yes' : 'No'})
+        Risk/Reward: ${((finalTakeProfit - opportunity.entryPrice) / (opportunity.entryPrice - finalStopLoss)).toFixed(2)}
         Confidence: ${opportunity.confidence}%
+        
+        Market Conditions:
+        - Trend: ${slTP?.marketConditions?.trend || 'N/A'}
+        - RSI: ${slTP?.marketConditions?.rsi || 'N/A'}
+        - ATR: ${slTP?.marketConditions?.atr || 'N/A'}
+        - Support: $${slTP?.marketConditions?.support || 'N/A'}
+        - Resistance: $${slTP?.marketConditions?.resistance || 'N/A'}
         
         Trade Size: ${quantity} ${fromToken}
       `
