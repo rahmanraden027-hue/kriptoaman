@@ -16,6 +16,7 @@ import DEXMarket from '../components/wallet/DEXMarket';
 import StakingPanel from '../components/wallet/StakingPanel';
 import CryptoPriceChart from '../components/wallet/CryptoPriceChart';
 import PortfolioChart from '../components/wallet/PortfolioChart';
+import CrossChainSwapButton from '../components/wallet/CrossChainSwapButton';
 
 export default function Wallet() {
   const [walletData, setWalletData] = useState(null);
