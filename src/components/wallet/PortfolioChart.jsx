@@ -7,7 +7,8 @@ import {
   TrendingUp, TrendingDown, RefreshCw,
   PieChart as PieIcon, BarChart2, Building2,
 } from 'lucide-react';
-import { COINS, getPrices, getBalance, formatAmount } from './multiCoinApi';
+import { COINS, getBalance, formatAmount } from './multiCoinApi';
+import useRealtimePrices from './useRealtimePrices';
 import CEXPanel from './CEXPanel';
 
 const WALLET_COINS = ['BTC', 'ETH', 'BNB', 'SOL', 'DOGE', 'MATIC', 'LTC'];

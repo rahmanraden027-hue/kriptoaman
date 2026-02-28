@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { getBalance, getPrices, formatAmount, COINS } from './multiCoinApi';
+import { getBalance, formatAmount, COINS } from './multiCoinApi';
+import useRealtimePrices from './useRealtimePrices';
 import { truncateAddress } from './walletUtils';
 import { ArrowUpRight, ArrowDownLeft, RefreshCw, Copy, Check, LogOut, BarChart2, TrendingUp, TrendingDown, ArrowLeftRight } from 'lucide-react';
 import CoinSelector from './CoinSelector';
