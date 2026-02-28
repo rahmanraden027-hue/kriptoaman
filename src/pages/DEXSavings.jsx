@@ -337,7 +337,7 @@ export default function DEXSavings() {
         {/* Header */}
         <div className="pt-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center shadow-lg shadow-green-500/30">
               <Coins className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -349,6 +349,14 @@ export default function DEXSavings() {
             <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
             <span className="text-green-400 text-xs">Live</span>
           </div>
+        </div>
+
+        {/* Info Banner */}
+        <div className="flex items-start gap-2.5 px-3 py-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+          <span className="text-blue-400 text-sm shrink-0">💡</span>
+          <p className="text-blue-300 text-xs leading-relaxed">
+            <strong>Savings</strong> = Simpan USDT untuk dapat bunga otomatis. <strong>DEX</strong> = Swap koin langsung tanpa CEX. Semua non-custodial.
+          </p>
         </div>
 
         {/* Tab Switcher */}
