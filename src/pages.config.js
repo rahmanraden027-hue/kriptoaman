@@ -50,6 +50,7 @@
 import DEXSavings from './pages/DEXSavings';
 import PriceTracker from './pages/PriceTracker';
 import Wallet from './pages/Wallet';
+import TxHistory from './pages/TxHistory';
 import __Layout from './Layout.jsx';
 
 
@@ -57,6 +58,7 @@ export const PAGES = {
     "DEXSavings": DEXSavings,
     "PriceTracker": PriceTracker,
     "Wallet": Wallet,
+    "TxHistory": TxHistory,
 }
 
 export const pagesConfig = {
