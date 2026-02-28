@@ -407,11 +407,11 @@ export default function PortfolioChart({ addresses = {} }) {
               </div>
             );
           })}
-          {totalCEX > 0 && (
+          {cexTotal > 0 && (
             <div className="text-center">
               <div className="text-base font-bold text-slate-400">🏦</div>
-              <div className="text-slate-300 text-xs font-medium">{formatUSD(totalCEX)}</div>
-              <div className="text-slate-600 text-xs">{grandTotal > 0 ? ((totalCEX / grandTotal) * 100).toFixed(1) : 0}%</div>
+              <div className="text-slate-300 text-xs font-medium">{formatUSD(cexTotal)}</div>
+              <div className="text-slate-600 text-xs">{grandTotal > 0 ? ((cexTotal / grandTotal) * 100).toFixed(1) : 0}%</div>
             </div>
           )}
         </div>
