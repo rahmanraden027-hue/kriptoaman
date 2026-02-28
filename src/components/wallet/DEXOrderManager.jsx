@@ -106,6 +106,7 @@ export default function DEXOrderManager({ fromToken, toToken, chain }) {
       ) : (
         <div className="space-y-2">
           {filteredOrders.map(order => (
+            <div key={order.id}>
             <div
               key={order.id}
               className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-4 space-y-3"
