@@ -417,14 +417,7 @@ export default function PortfolioChart({ addresses = {} }) {
         </div>
       )}
 
-      {/* CEX Form Modal */}
-      {showCEXForm && (
-        <CEXForm
-          editing={editingCEX}
-          onSave={handleCEXSave}
-          onClose={() => { setShowCEXForm(false); setEditingCEX(null); }}
-        />
-      )}
+
     </div>
   );
 }
