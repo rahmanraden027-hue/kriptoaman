@@ -49,16 +49,18 @@
  */
 import DEXSavings from './pages/DEXSavings';
 import PriceTracker from './pages/PriceTracker';
-import Wallet from './pages/Wallet';
 import TxHistory from './pages/TxHistory';
+import Wallet from './pages/Wallet';
+import TradingAnalytics from './pages/TradingAnalytics';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "DEXSavings": DEXSavings,
     "PriceTracker": PriceTracker,
-    "Wallet": Wallet,
     "TxHistory": TxHistory,
+    "Wallet": Wallet,
+    "TradingAnalytics": TradingAnalytics,
 }
 
 export const pagesConfig = {
