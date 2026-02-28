@@ -78,7 +78,7 @@ export default function DEXOrderManager({ fromToken, toToken, chain }) {
     <div className="space-y-4">
       {/* Filter Tabs */}
       <div className="flex gap-2 flex-wrap">
-        {['all', 'pending', 'executed', 'cancelled'].map(f => (
+        {['all', 'pending', 'executed', 'cancelled', 'failed'].map(f => (
           <button
             key={f}
             onClick={() => setFilter(f)}
@@ -106,7 +106,9 @@ export default function DEXOrderManager({ fromToken, toToken, chain }) {
       ) : (
         <div className="space-y-2">
           {filteredOrders.map(order => (
-            <div key={order.id}>
+            <div key={order.id}
+              className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-4 space-y-3"
+            >
             <div
               key={order.id}
               className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-4 space-y-3"
