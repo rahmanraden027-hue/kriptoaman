@@ -3,12 +3,14 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2, PlayCircle } from 'lucide-react';
+import BacktestDateRangePicker from './BacktestDateRangePicker';
 
-export default function SimulationRunner({ strategy, onSimulationComplete }) {
+export default function SimulationRunner({ strategy, onSimulationComplete, showAdvanced = false }) {
   const [loading, setLoading] = useState(false);
   const [simulationName, setSimulationName] = useState('');
   const [startingCapital, setStartingCapital] = useState('10000');
   const [simulationDays, setSimulationDays] = useState('30');
+  const [dateRange, setDateRange] = useState(null);
 
   const handleRunSimulation = async () => {
     if (!startingCapital || !simulationDays) {
@@ -22,7 +24,8 @@ export default function SimulationRunner({ strategy, onSimulationComplete }) {
       strategyId: strategy.id,
       startingCapital: parseFloat(startingCapital),
       simulationDays: parseInt(simulationDays),
-      simulationName: simulationName || `${strategy.name} Simulation`
+      simulationName: simulationName || `${strategy.name} Simulation`,
+      dateRange: dateRange
     });
 
     setLoading(false);
