@@ -39,7 +39,8 @@ export default function StrategyList({ strategies, onStrategyUpdate, onStrategyD
       {strategies.map((strategy) => (
         <div
           key={strategy.id}
-          className="bg-slate-800/60 border border-slate-700/40 rounded-lg p-4 space-y-3"
+          onClick={() => onSelectStrategy?.(strategy)}
+          className="bg-slate-800/60 border border-slate-700/40 rounded-lg p-4 space-y-3 cursor-pointer hover:border-slate-600/40 transition"
         >
           {/* Header */}
           <div className="flex items-start justify-between">
