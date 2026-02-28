@@ -1,5 +1,5 @@
 // Multi-coin blockchain API integration
-// BTC/LTC/DOGE: BlockCypher | ETH/BNB/MATIC: EVM RPC/Etherscan-compatible | SOL: Solana RPC
+// BTC/LTC/DOGE: BlockCypher | ETH/BNB/MATIC/ARB/OP/AVAX/FTM/BASE: EVM RPC/Etherscan-compatible | SOL: Solana RPC
 
 export const COINS = {
   BTC: {
@@ -15,14 +15,16 @@ export const COINS = {
     explorerTx: 'https://etherscan.io/tx/',
     explorerAddr: 'https://etherscan.io/address/',
     derivationPath: "m/44'/60'/0'/0/0",
+    layer: 'L1',
   },
   BNB: {
-    id: 'BNB', name: 'BNB', symbol: 'BNB', color: '#F0B90B', decimals: 18,
+    id: 'BNB', name: 'BNB Chain', symbol: 'BNB', color: '#F0B90B', decimals: 18,
     coingeckoId: 'binancecoin',
     explorerTx: 'https://bscscan.com/tx/',
     explorerAddr: 'https://bscscan.com/address/',
-    derivationPath: "m/44'/60'/0'/0/0", // BNB uses same path as ETH (EVM)
+    derivationPath: "m/44'/60'/0'/0/0",
     evmChain: 'bsc',
+    layer: 'L1',
   },
   SOL: {
     id: 'SOL', name: 'Solana', symbol: 'SOL', color: '#9945FF', decimals: 9,
@@ -30,6 +32,7 @@ export const COINS = {
     explorerTx: 'https://solscan.io/tx/',
     explorerAddr: 'https://solscan.io/account/',
     derivationPath: "m/44'/501'/0'/0'",
+    layer: 'L1',
   },
   DOGE: {
     id: 'DOGE', name: 'Dogecoin', symbol: 'DOGE', color: '#C2A633', decimals: 8,
@@ -44,8 +47,9 @@ export const COINS = {
     coingeckoId: 'matic-network',
     explorerTx: 'https://polygonscan.com/tx/',
     explorerAddr: 'https://polygonscan.com/address/',
-    derivationPath: "m/44'/60'/0'/0/0", // EVM
+    derivationPath: "m/44'/60'/0'/0/0",
     evmChain: 'polygon',
+    layer: 'L1',
   },
   LTC: {
     id: 'LTC', name: 'Litecoin', symbol: 'LTC', color: '#A0A0A0', decimals: 8,
@@ -54,14 +58,77 @@ export const COINS = {
     explorerAddr: 'https://blockchair.com/litecoin/address/',
     derivationPath: "m/44'/2'/0'/0/0",
   },
+  ARB: {
+    id: 'ARB', name: 'Arbitrum', symbol: 'ETH', color: '#28A0F0', decimals: 18,
+    coingeckoId: 'ethereum',
+    explorerTx: 'https://arbiscan.io/tx/',
+    explorerAddr: 'https://arbiscan.io/address/',
+    derivationPath: "m/44'/60'/0'/0/0",
+    evmChain: 'arbitrum',
+    layer: 'L2',
+    parentChain: 'ETH',
+    badge: 'L2',
+    bridgeUrl: 'https://bridge.arbitrum.io',
+    nativeToken: 'ETH',
+  },
+  OP: {
+    id: 'OP', name: 'Optimism', symbol: 'ETH', color: '#FF0420', decimals: 18,
+    coingeckoId: 'ethereum',
+    explorerTx: 'https://optimistic.etherscan.io/tx/',
+    explorerAddr: 'https://optimistic.etherscan.io/address/',
+    derivationPath: "m/44'/60'/0'/0/0",
+    evmChain: 'optimism',
+    layer: 'L2',
+    parentChain: 'ETH',
+    badge: 'L2',
+    bridgeUrl: 'https://app.optimism.io/bridge',
+    nativeToken: 'ETH',
+  },
+  BASE: {
+    id: 'BASE', name: 'Base', symbol: 'ETH', color: '#0052FF', decimals: 18,
+    coingeckoId: 'ethereum',
+    explorerTx: 'https://basescan.org/tx/',
+    explorerAddr: 'https://basescan.org/address/',
+    derivationPath: "m/44'/60'/0'/0/0",
+    evmChain: 'base',
+    layer: 'L2',
+    parentChain: 'ETH',
+    badge: 'L2',
+    bridgeUrl: 'https://bridge.base.org',
+    nativeToken: 'ETH',
+  },
+  AVAX: {
+    id: 'AVAX', name: 'Avalanche', symbol: 'AVAX', color: '#E84142', decimals: 18,
+    coingeckoId: 'avalanche-2',
+    explorerTx: 'https://snowtrace.io/tx/',
+    explorerAddr: 'https://snowtrace.io/address/',
+    derivationPath: "m/44'/60'/0'/0/0",
+    evmChain: 'avalanche',
+    layer: 'L1',
+    nativeToken: 'AVAX',
+  },
+  FTM: {
+    id: 'FTM', name: 'Fantom', symbol: 'FTM', color: '#1969FF', decimals: 18,
+    coingeckoId: 'fantom',
+    explorerTx: 'https://ftmscan.com/tx/',
+    explorerAddr: 'https://ftmscan.com/address/',
+    derivationPath: "m/44'/60'/0'/0/0",
+    evmChain: 'fantom',
+    layer: 'L1',
+    nativeToken: 'FTM',
+  },
 };
 
 // ─── Price API (CoinGecko) ─────────────────────────────────
-const COINGECKO_IDS = 'bitcoin,ethereum,binancecoin,solana,dogecoin,matic-network,litecoin';
+const COINGECKO_IDS = 'bitcoin,ethereum,binancecoin,solana,dogecoin,matic-network,litecoin,avalanche-2,fantom';
 const COIN_ID_MAP = {
   bitcoin: 'BTC', ethereum: 'ETH', binancecoin: 'BNB',
   solana: 'SOL', dogecoin: 'DOGE', 'matic-network': 'MATIC', litecoin: 'LTC',
+  'avalanche-2': 'AVAX', fantom: 'FTM',
 };
+
+// Coins with separate price tokens (L2s use ETH price)
+const PRICE_ALIASES = { ARB: 'ETH', OP: 'ETH', BASE: 'ETH' };
 
 export async function getPrices() {
   try {
@@ -75,6 +142,10 @@ export async function getPrices() {
       if (data[geckoId]) {
         result[coinId] = { price: data[geckoId].usd, change24h: data[geckoId].usd_24h_change };
       }
+    });
+    // Propagate prices to L2 aliases
+    Object.entries(PRICE_ALIASES).forEach(([coinId, sourceId]) => {
+      if (result[sourceId]) result[coinId] = result[sourceId];
     });
     return result;
   } catch {
@@ -114,11 +185,16 @@ async function bcyGetTransactions(coin, address) {
   });
 }
 
-// ─── EVM chains (ETH, BNB, MATIC) ─────────────────────────
+// ─── EVM chains ─────────────────────────────────────────────
 const EVM_API = {
-  ETH:  { url: 'https://api.etherscan.io/api',       key: '' },
-  BNB:  { url: 'https://api.bscscan.com/api',        key: '' },
-  MATIC:{ url: 'https://api.polygonscan.com/api',    key: '' },
+  ETH:   { url: 'https://api.etherscan.io/api',               key: '' },
+  BNB:   { url: 'https://api.bscscan.com/api',                key: '' },
+  MATIC: { url: 'https://api.polygonscan.com/api',            key: '' },
+  ARB:   { url: 'https://api.arbiscan.io/api',                key: '' },
+  OP:    { url: 'https://api-optimistic.etherscan.io/api',    key: '' },
+  BASE:  { url: 'https://api.basescan.org/api',               key: '' },
+  AVAX:  { url: 'https://api.snowtrace.io/api',               key: '' },
+  FTM:   { url: 'https://api.ftmscan.com/api',                key: '' },
 };
 
 async function evmGetBalance(coin, address) {
@@ -171,7 +247,6 @@ async function solGetBalance(address) {
 }
 
 async function solGetTransactions(address) {
-  // Get recent signatures
   const sigRes = await fetch(SOL_RPC, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -192,20 +267,22 @@ async function solGetTransactions(address) {
 }
 
 // ─── Unified API ───────────────────────────────────────────
+const EVM_COINS = ['ETH', 'BNB', 'MATIC', 'ARB', 'OP', 'BASE', 'AVAX', 'FTM'];
+
 export async function getBalance(coinId, address) {
-  if (['ETH', 'BNB', 'MATIC'].includes(coinId)) return evmGetBalance(coinId, address);
+  if (EVM_COINS.includes(coinId)) return evmGetBalance(coinId, address);
   if (coinId === 'SOL') return solGetBalance(address);
-  return bcyGetBalance(coinId, address); // BTC, LTC, DOGE
+  return bcyGetBalance(coinId, address);
 }
 
 export async function getTransactionsByCoin(coinId, address) {
-  if (['ETH', 'BNB', 'MATIC'].includes(coinId)) return evmGetTransactions(coinId, address);
+  if (EVM_COINS.includes(coinId)) return evmGetTransactions(coinId, address);
   if (coinId === 'SOL') return solGetTransactions(address);
   return bcyGetTransactions(coinId, address);
 }
 
 export async function getRecommendedFeesByCoin(coinId) {
-  if (['ETH', 'BNB', 'MATIC'].includes(coinId)) {
+  if (EVM_COINS.includes(coinId)) {
     return { low: 21000 * 10e9, medium: 21000 * 30e9, high: 21000 * 60e9 };
   }
   if (coinId === 'SOL') return { low: 5000, medium: 5000, high: 5000 };
