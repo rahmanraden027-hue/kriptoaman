@@ -71,6 +71,21 @@ export default function DEXOrderManager({ fromToken, toToken, chain }) {
     return labels[status] || status;
   };
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'pending':
+        return 'text-yellow-400';
+      case 'triggered':
+        return 'text-orange-400';
+      case 'executed':
+        return 'text-green-400';
+      case 'cancelled':
+        return 'text-red-400';
+      default:
+        return 'text-slate-400';
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Filter Tabs */}
@@ -172,6 +187,27 @@ export default function DEXOrderManager({ fromToken, toToken, chain }) {
                 <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-2">
                   <div className="text-xs text-green-400">
                     Executed at ${order.executionPrice.toFixed(4)}
+                    {order.executionHash && (
+                      <div className="text-slate-500 text-[10px] mt-1">Tx: {order.executionHash.slice(0, 12)}...</div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Error info */}
+              {order.status === 'cancelled' && order.lastError && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-2">
+                  <div className="text-xs text-red-400">
+                    Failed: {order.lastError}
+                  </div>
+                </div>
+              )}
+
+              {/* Retry attempts */}
+              {order.retryCount > 0 && order.status !== 'executed' && (
+                <div className="bg-slate-800/40 rounded-lg p-2">
+                  <div className={`text-xs ${getStatusColor(order.status)}`}>
+                    Retry attempts: {order.retryCount}/3
                   </div>
                 </div>
               )}
