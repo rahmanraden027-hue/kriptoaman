@@ -4,10 +4,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { generateWallet, encryptData, hashPassword, saveWallet } from './walletUtils';
 import { deriveAllAddresses } from './multiCoinWallet';
-import { Shield, Eye, EyeOff, Copy, Check, AlertTriangle } from 'lucide-react';
+import { Shield, Eye, EyeOff, Copy, Check, AlertTriangle, User, AtSign } from 'lucide-react';
+
+const USERNAME_KEY = 'coinvault_username';
 
 export default function CreateWallet({ onWalletCreated }) {
-  const [step, setStep] = useState(1); // 1: set password, 2: backup mnemonic, 3: verify
+  const [step, setStep] = useState(0); // 0: username/id, 1: set password, 2: backup mnemonic, 3: finish
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -16,6 +19,15 @@ export default function CreateWallet({ onWalletCreated }) {
   const [error, setError] = useState('');
   const [copiedMnemonic, setCopiedMnemonic] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+
+  const handleSetUsername = () => {
+    const trimmed = username.trim();
+    if (trimmed.length < 3) { setError('Nama ID minimal 3 karakter'); return; }
+    if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) { setError('Nama ID hanya boleh huruf, angka, dan underscore (_)'); return; }
+    localStorage.setItem(USERNAME_KEY, trimmed);
+    setError('');
+    setStep(1);
+  };
 
   const handleCreatePassword = async () => {
     if (password.length < 8) { setError('Password minimal 8 karakter'); return; }
