@@ -158,6 +158,7 @@ export default function Wallet() {
               title="Bantuan / Support">
               <MessageCircle className="w-4 h-4" />
             </button>
+            {/* track support open */}
             <NotificationCenter
               notifications={notifications}
               unread={unread}
