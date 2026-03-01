@@ -108,6 +108,9 @@ export default function Settings() {
           {activeTab === 'integrations' && user && (
             <IntegrationsSection user={user} />
           )}
+          {activeTab === 'security' && (
+            <SecuritySection />
+          )}
         </div>
       </div>
     </div>
