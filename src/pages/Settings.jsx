@@ -152,7 +152,7 @@ export default function Settings() {
           <ProfileSection user={user} onSave={handleSaveProfile} saving={saving} />
         )}
         {activeTab === 'preferences' && user && (
-          <PreferencesSection user={user} onSave={handleSaveProfile} saving={saving} />
+          <UserPreferencesEnhanced user={user} onSave={handleSaveProfile} saving={saving} />
         )}
         {activeTab === 'activity' && (
           <ActivityHistory />
