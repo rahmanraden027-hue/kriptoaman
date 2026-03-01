@@ -32,7 +32,7 @@ export default function UnlockWallet({ wallet, onUnlocked, onReset }) {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-orange-500/20 border border-orange-500/30 mb-4">
             <Lock className="w-8 h-8 text-orange-400" />
           </div>
-          <h1 className="text-2xl font-bold text-white">Bitcoin Wallet</h1>
+          <h1 className="text-2xl font-bold text-white">CoinVault</h1>
           <p className="text-slate-400 text-sm mt-1 font-mono truncate px-4">{wallet.address}</p>
         </div>
 

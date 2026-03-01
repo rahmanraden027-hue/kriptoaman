@@ -61,8 +61,8 @@ export default function CreateWallet({ onWalletCreated }) {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-orange-500/20 border border-orange-500/30 mb-4">
             <Shield className="w-8 h-8 text-orange-400" />
           </div>
-          <h1 className="text-2xl font-bold text-white">Bitcoin Wallet</h1>
-          <p className="text-slate-400 text-sm mt-1">Buat dompet Bitcoin baru Anda</p>
+          <h1 className="text-2xl font-bold text-white">CoinVault</h1>
+          <p className="text-slate-400 text-sm mt-1">Buat dompet CoinVault baru Anda</p>
         </div>
 
         <div className="flex gap-2 mb-6">
@@ -139,7 +139,7 @@ export default function CreateWallet({ onWalletCreated }) {
         {step === 3 && wallet && (
           <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-6 space-y-4">
             <h2 className="text-lg font-semibold text-white">Wallet Siap! 🎉</h2>
-            <p className="text-slate-400 text-sm">Wallet Bitcoin Anda berhasil dibuat. Alamat Bitcoin Anda:</p>
+            <p className="text-slate-400 text-sm">Wallet CoinVault Anda berhasil dibuat. Alamat Bitcoin Anda:</p>
             <div className="bg-slate-800 rounded-xl p-3">
               <p className="text-orange-400 font-mono text-sm break-all">{wallet.address}</p>
             </div>
