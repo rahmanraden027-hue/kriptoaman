@@ -11,7 +11,7 @@ const COIN_ICONS = { BTC: '₿', ETH: 'Ξ', LTC: 'Ł', BNB: 'B', SOL: '◎', DOG
 
 export default function MultiCoinDashboard({ addresses, onSend, onReceive, onTrade, onSwap, onLogout, activeCoin, onCoinChange }) {
   const [balances, setBalances] = useState({});
-  const prices = useRealtimePrices();
+  const { prices, wsConnected } = useRealtimePrices();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showChart, setShowChart] = useState(false);
@@ -63,6 +63,10 @@ export default function MultiCoinDashboard({ addresses, onSend, onReceive, onTra
               <span className="text-white/80 text-sm font-medium">{coin.name}</span>
             </div>
             <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-black/20">
+                <div className={`w-1.5 h-1.5 rounded-full ${wsConnected ? 'bg-green-400 animate-pulse' : 'bg-yellow-400'}`} />
+                <span className="text-[9px] text-white/60">{wsConnected ? 'Live' : 'REST'}</span>
+              </div>
               <button onClick={() => setShowChart(s => !s)} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors" title="Grafik harga">
                 <BarChart2 className="w-4 h-4" />
               </button>
