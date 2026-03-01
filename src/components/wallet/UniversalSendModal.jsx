@@ -63,6 +63,10 @@ export default function UniversalSendModal({ wallet, sessionPassword, activeCoin
         await new Promise(r => setTimeout(r, 1500));
         setTxHash(Math.random().toString(36).slice(2).repeat(3).slice(0, 64));
       }
+      
+      // Collect transaction fee
+      await collectTransactionFee('send', activeCoin, parseFloat(amount));
+      
       setStep('success');
       onSuccess && onSuccess();
     } catch (e) {
