@@ -35,6 +35,7 @@ export default function Wallet() {
   const [showTrade, setShowTrade] = useState(false);
   const [showSwap, setShowSwap] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showBridge, setShowBridge] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const btcAddress = addresses?.BTC?.address || walletData?.address;
