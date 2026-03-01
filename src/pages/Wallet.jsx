@@ -22,7 +22,8 @@ import CrossChainBridge from '../components/wallet/CrossChainBridge';
 import InlineSwapWidget from '../components/wallet/InlineSwapWidget';
 import DetailedTxHistory from '../components/wallet/DetailedTxHistory';
 import WalletPersonalization, { usePersonalization } from '../components/wallet/WalletPersonalization';
-import { HelpCircle, ArrowRight, Settings2 } from 'lucide-react';
+import { HelpCircle, ArrowRight, Settings2, User } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
 
 const ONBOARDING_KEY = 'dex_onboarding_done';
 
