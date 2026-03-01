@@ -389,7 +389,20 @@ export default function AssetManager() {
         <div className="space-y-2">
           {(showTokens && activeTab !== 'staking' && activeTab !== 'savings') && (
             <div className="space-y-1.5">
-              <p className="text-slate-600 text-[10px] font-semibold uppercase tracking-wider">Filter Chain (Token)</p>
+              <p className="text-slate-600 text-[10px] font-semibold uppercase tracking-wider">Filter Kategori Aset</p>
+              <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+                <Pill active={categoryFilter === 'all'} onClick={() => setCategoryFilter('all')}>Semua</Pill>
+                {Object.entries(ASSET_CATEGORIES).map(([key, cat]) => (
+                  <Pill key={key} active={categoryFilter === key} onClick={() => setCategoryFilter(key)}>
+                    {cat.icon} {cat.label}
+                  </Pill>
+                ))}
+              </div>
+            </div>
+          )}
+          {(showTokens && activeTab !== 'staking' && activeTab !== 'savings') && (
+            <div className="space-y-1.5">
+              <p className="text-slate-600 text-[10px] font-semibold uppercase tracking-wider">Filter Blockchain</p>
               <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
                 <Pill active={chainFilter === 'all'} onClick={() => setChainFilter('all')}>Semua</Pill>
                 {EVM_CHAINS.map(c => (
