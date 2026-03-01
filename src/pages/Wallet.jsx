@@ -70,7 +70,19 @@ export default function Wallet() {
   useEffect(() => {
     const stored = loadWallet();
     setWalletData(stored);
-  }, []);
+    }, []);
+
+    // Track wallet unlock
+    const handleWalletUnlocked = (pwd) => {
+    setSessionPassword(pwd);
+    Analytics.walletUnlocked();
+    };
+
+    // Track wallet created
+    const handleWalletCreated = (w) => {
+    setWalletData(w);
+    Analytics.walletCreated();
+    };
 
   useEffect(() => {
     if (!walletData || !sessionPassword) return;
