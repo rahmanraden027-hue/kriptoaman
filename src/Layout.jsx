@@ -23,8 +23,16 @@ export default function Layout({ children, currentPageName }) {
   );
 
   useEffect(() => {
-    base44.auth.me().then(u => setUser(u)).catch(() => {});
+    initAnalytics();
+    base44.auth.me().then(u => {
+      setUser(u);
+      identifyUser(u);
+    }).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (currentPageName) Analytics.pageViewed(currentPageName);
+  }, [currentPageName]);
 
   const initials = user?.full_name
     ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
