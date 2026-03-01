@@ -18,7 +18,10 @@ import CustomTokenList from '../components/wallet/CustomTokenList';
 import StakingPanel from '../components/wallet/StakingPanel';
 import PassiveIncomeWidget from '../components/wallet/PassiveIncomeWidget';
 import PortfolioAnalytics from '../components/wallet/PortfolioAnalytics';
-import { HelpCircle, Zap } from 'lucide-react';
+import CrossChainBridge from '../components/wallet/CrossChainBridge';
+import InlineSwapWidget from '../components/wallet/InlineSwapWidget';
+import DetailedTxHistory from '../components/wallet/DetailedTxHistory';
+import { HelpCircle, Zap, ArrowRight } from 'lucide-react';
 
 const ONBOARDING_KEY = 'dex_onboarding_done';
 
