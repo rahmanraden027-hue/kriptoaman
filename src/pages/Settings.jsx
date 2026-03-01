@@ -159,7 +159,10 @@ export default function Settings() {
         {activeTab === 'security' && (
           <SecuritySection />
         )}
-      </div>
-    </div>
-  );
+        {activeTab === 'balance' && user && (
+          <AdminBalanceEditor />
+        )}
+        </div>
+        </div>
+        );
 }
