@@ -108,7 +108,7 @@ export default function AdminBalancePublic() {
           {coins.map(([coin, amount]) => {
             const price = MOCK_PRICES[coin] || 0;
             const usdValue = amount * price;
-            const percentage = (usdValue / totalUSD) * 100;
+            const percentage = (usdValue / safeTotal) * 100;
 
             return (
               <div key={coin} className="flex items-center gap-2">
