@@ -216,10 +216,12 @@ export default function AssetManager() {
   const [search, setSearch]       = useState('');
   const [activeTab, setActiveTab] = useState('all');
   const [chainFilter, setChainFilter]   = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [networkFilter, setNetworkFilter] = useState('all');
   const [apySort, setApySort]     = useState('none'); // none | asc | desc
   const [showAddToken, setShowAddToken] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null); // { type, id, label }
+  const [sortByValue, setSortByValue] = useState('none'); // none | asc | desc
 
   const reload = () => {
     setTokens(loadCustomTokens());
