@@ -154,28 +154,19 @@ export default function Wallet() {
         <ReceiveModal address={activeAddress} onClose={() => setShowReceive(false)} />
       )}
 
-      {showSend && activeCoin === 'BTC' && (
-        <SendModal
+      {showSend && (
+        <UniversalSendModal
           wallet={walletData}
           sessionPassword={sessionPassword}
+          activeCoin={activeCoin}
+          addresses={addresses}
           onClose={() => setShowSend(false)}
           onSuccess={() => {
             setShowSend(false);
-            addNotif({ type: 'sent', icon: 'out', title: 'Transaksi BTC terkirim', body: 'Sedang disiarkan ke jaringan Bitcoin' });
+            addNotif({ type: 'sent', icon: 'out', title: `Transaksi ${activeCoin} terkirim`, body: `Sedang disiarkan ke jaringan ${activeCoin}` });
             setTimeout(() => setRefreshKey(k => k + 1), 2000);
           }}
         />
-      )}
-
-      {showSend && activeCoin !== 'BTC' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setShowSend(false)}>
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-sm w-full text-center space-y-3" onClick={e => e.stopPropagation()}>
-            <div className="text-4xl">🚧</div>
-            <h3 className="text-white font-semibold">Segera Hadir</h3>
-            <p className="text-slate-400 text-sm">Pengiriman {activeCoin} sedang dalam pengembangan. BTC sudah sepenuhnya didukung.</p>
-            <button onClick={() => setShowSend(false)} className="mt-2 text-orange-400 text-sm hover:underline">Tutup</button>
-          </div>
-        </div>
       )}
 
       {showSwap && (
