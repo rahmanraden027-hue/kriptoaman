@@ -136,14 +136,13 @@ function StakingRow({ pos, onRemove }) {
         {COIN_ICONS[pos.coin]}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 mb-1">
           <span className="text-white text-sm font-semibold">{pos.providerName}</span>
-          <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ background: color + '22', color }}>{pos.coin}</span>
+          <CategoryBadge category="defi" />
         </div>
-        <div className="flex items-center gap-2 mt-0.5">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ background: color + '22', color }}>{pos.coin}</span>
           <span className="text-slate-500 text-xs">{netApy.toFixed(2)}% net APY</span>
-          <span className="text-slate-600 text-xs">·</span>
-          <span className="text-slate-500 text-xs">{days}h aktif</span>
         </div>
       </div>
       <div className="text-right shrink-0">
