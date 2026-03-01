@@ -47,6 +47,7 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import AdminUserBalances from './pages/AdminUserBalances';
 import AssetManager from './pages/AssetManager';
 import AutoTrading from './pages/AutoTrading';
 import DEXSavings from './pages/DEXSavings';
@@ -57,11 +58,12 @@ import Settings from './pages/Settings';
 import TradingAnalytics from './pages/TradingAnalytics';
 import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
-import AdminUserBalances from './pages/AdminUserBalances';
+import AdminProfitAnalytics from './pages/AdminProfitAnalytics';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "AdminUserBalances": AdminUserBalances,
     "AssetManager": AssetManager,
     "AutoTrading": AutoTrading,
     "DEXSavings": DEXSavings,
@@ -72,7 +74,7 @@ export const PAGES = {
     "TradingAnalytics": TradingAnalytics,
     "TxHistory": TxHistory,
     "Wallet": Wallet,
-    "AdminUserBalances": AdminUserBalances,
+    "AdminProfitAnalytics": AdminProfitAnalytics,
 }
 
 export const pagesConfig = {
