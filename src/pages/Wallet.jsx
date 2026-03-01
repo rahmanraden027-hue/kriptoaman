@@ -137,6 +137,9 @@ export default function Wallet() {
           onLogout={() => setSessionPassword(null)}
         />
 
+        {/* Passive Income Summary */}
+        <PassiveIncomeWidget />
+
         {/* Portfolio Analytics Dashboard */}
         <PortfolioAnalytics />
 
