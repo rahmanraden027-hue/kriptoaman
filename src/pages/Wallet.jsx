@@ -280,6 +280,8 @@ export default function Wallet() {
 
       {showBankModal && <BankDepositWithdrawModal onClose={() => setShowBankModal(false)} />}
 
+      {showSupport && <SupportChat user={currentUser} onClose={() => setShowSupport(false)} />}
+
       {showOnboarding && <OnboardingGuide onClose={() => setShowOnboarding(false)} />}
 
       {showReceive && activeAddress && (
