@@ -57,6 +57,7 @@ import Settings from './pages/Settings';
 import TradingAnalytics from './pages/TradingAnalytics';
 import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
+import AdminUserBalances from './pages/AdminUserBalances';
 import __Layout from './Layout.jsx';
 
 
@@ -71,6 +72,7 @@ export const PAGES = {
     "TradingAnalytics": TradingAnalytics,
     "TxHistory": TxHistory,
     "Wallet": Wallet,
+    "AdminUserBalances": AdminUserBalances,
 }
 
 export const pagesConfig = {
