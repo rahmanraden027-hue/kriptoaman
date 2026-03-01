@@ -245,6 +245,8 @@ export default function AssetManager() {
   const [showAddToken, setShowAddToken] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null); // { type, id, label }
   const [sortByValue, setSortByValue] = useState('none'); // none | asc | desc
+  
+  const { prices: cryptoPrices } = useCryptoPrices();
 
   const reload = () => {
     setTokens(loadCustomTokens());
