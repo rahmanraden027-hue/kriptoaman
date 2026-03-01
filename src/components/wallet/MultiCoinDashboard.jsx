@@ -80,8 +80,13 @@ export default function MultiCoinDashboard({ addresses, onSend, onReceive, onTra
                 {displayAmount} {coin.symbol}
               </div>
               {usdValue !== null && (
-                <div className="text-white/70 text-sm">
-                  ≈ ${usdValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+                <div className="flex items-center gap-2 text-white/70 text-sm">
+                  <span>≈ ${usdValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD</span>
+                  {change24h !== undefined && (
+                    <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${change24h >= 0 ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
+                      {change24h >= 0 ? '+' : ''}{change24h.toFixed(2)}%
+                    </span>
+                  )}
                 </div>
               )}
               {bal?.unconfirmed > 0 && (
@@ -90,6 +95,14 @@ export default function MultiCoinDashboard({ addresses, onSend, onReceive, onTra
                 </div>
               )}
             </>
+          )}
+
+          {/* Mini chart toggle */}
+          {showChart && (
+            <div className="mt-3 -mx-1">
+              <p className="text-white/50 text-[10px] mb-1">Harga 7 hari terakhir</p>
+              <MiniPriceChart coinId={activeCoin} color={coin.color} />
+            </div>
           )}
 
 
