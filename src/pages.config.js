@@ -55,6 +55,7 @@ import Settings from './pages/Settings';
 import TradingAnalytics from './pages/TradingAnalytics';
 import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
+import AssetManager from './pages/AssetManager';
 import __Layout from './Layout.jsx';
 
 
@@ -67,6 +68,7 @@ export const PAGES = {
     "TradingAnalytics": TradingAnalytics,
     "TxHistory": TxHistory,
     "Wallet": Wallet,
+    "AssetManager": AssetManager,
 }
 
 export const pagesConfig = {
