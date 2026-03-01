@@ -482,6 +482,17 @@ export default function AssetManager() {
                 <Plus className="w-3 h-3" /> Tambah
               </Button>
             </div>
+            
+            {/* Token Value Summary */}
+            {filteredTokens.length > 0 && totalTokenValue > 0 && (
+              <div className="bg-gradient-to-r from-blue-900/30 to-blue-800/20 border border-blue-500/20 rounded-xl px-4 py-3 mb-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-blue-400" />
+                  <span className="text-slate-300 text-xs">Total Nilai Aset</span>
+                </div>
+                <p className="text-blue-400 font-bold text-sm">${totalTokenValue.toLocaleString('en-US', { maximumFractionDigits: 2 })}</p>
+              </div>
+            )}
 
             {filteredTokens.length === 0 ? (
               <EmptyState icon={Coins}
