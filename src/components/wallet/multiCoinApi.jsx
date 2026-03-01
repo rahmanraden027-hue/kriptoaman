@@ -99,28 +99,13 @@ export const COINS = {
     derivationPath: "m/44'/60'/0'/0/0",
     evmChain: 'fantom', layer: 'L1', nativeToken: 'FTM',
   },
-  TRX: {
-    id: 'TRX', name: 'TRON', symbol: 'TRX', color: '#FF0013', decimals: 6,
-    coingeckoId: 'tron', platform: 'TRON Network',
-    explorerTx: 'https://tronscan.org/#/transaction/',
-    explorerAddr: 'https://tronscan.org/#/address/',
-    derivationPath: "m/44'/195'/0'/0/0",
-    layer: 'L1',
-  },
+  // ── New coins ──────────────────────────────────────────────
   XRP: {
-    id: 'XRP', name: 'XRP Ledger', symbol: 'XRP', color: '#00AAE4', decimals: 6,
+    id: 'XRP', name: 'XRP', symbol: 'XRP', color: '#00AAE4', decimals: 6,
     coingeckoId: 'ripple', platform: 'XRP Ledger',
     explorerTx: 'https://xrpscan.com/tx/',
     explorerAddr: 'https://xrpscan.com/account/',
     derivationPath: "m/44'/144'/0'/0/0",
-    layer: 'L1',
-  },
-  ATOM: {
-    id: 'ATOM', name: 'Cosmos', symbol: 'ATOM', color: '#2E3148', decimals: 6,
-    coingeckoId: 'cosmos', platform: 'Cosmos Hub',
-    explorerTx: 'https://www.mintscan.io/cosmos/txs/',
-    explorerAddr: 'https://www.mintscan.io/cosmos/accounts/',
-    derivationPath: "m/44'/118'/0'/0/0",
     layer: 'L1',
   },
   ADA: {
@@ -139,54 +124,93 @@ export const COINS = {
     derivationPath: "m/44'/354'/0'/0/0",
     layer: 'L1',
   },
-  ZKSYNC: {
-    id: 'ZKSYNC', name: 'zkSync Era', symbol: 'ETH', color: '#4E529A', decimals: 18,
-    coingeckoId: 'ethereum', platform: 'zkSync Era',
-    explorerTx: 'https://explorer.zksync.io/tx/',
-    explorerAddr: 'https://explorer.zksync.io/address/',
-    derivationPath: "m/44'/60'/0'/0/0",
-    evmChain: 'zksync', layer: 'L2', parentChain: 'ETH',
-    badge: 'L2', nativeToken: 'ETH',
+  TRX: {
+    id: 'TRX', name: 'TRON', symbol: 'TRX', color: '#FF0013', decimals: 6,
+    coingeckoId: 'tron', platform: 'TRON',
+    explorerTx: 'https://tronscan.org/#/transaction/',
+    explorerAddr: 'https://tronscan.org/#/address/',
+    derivationPath: "m/44'/195'/0'/0/0",
+    layer: 'L1',
   },
-  LINEA: {
-    id: 'LINEA', name: 'Linea', symbol: 'ETH', color: '#61DFFF', decimals: 18,
-    coingeckoId: 'ethereum', platform: 'Linea',
-    explorerTx: 'https://lineascan.build/tx/',
-    explorerAddr: 'https://lineascan.build/address/',
-    derivationPath: "m/44'/60'/0'/0/0",
-    evmChain: 'linea', layer: 'L2', parentChain: 'ETH',
-    badge: 'L2', nativeToken: 'ETH',
+  ATOM: {
+    id: 'ATOM', name: 'Cosmos', symbol: 'ATOM', color: '#2E3148', decimals: 6,
+    coingeckoId: 'cosmos', platform: 'Cosmos Hub',
+    explorerTx: 'https://mintscan.io/cosmos/txs/',
+    explorerAddr: 'https://mintscan.io/cosmos/accounts/',
+    derivationPath: "m/44'/118'/0'/0/0",
+    layer: 'L1',
   },
-  SCROLL: {
-    id: 'SCROLL', name: 'Scroll', symbol: 'ETH', color: '#FFDBA0', decimals: 18,
-    coingeckoId: 'ethereum', platform: 'Scroll',
-    explorerTx: 'https://scrollscan.com/tx/',
-    explorerAddr: 'https://scrollscan.com/address/',
+  LINK: {
+    id: 'LINK', name: 'Chainlink', symbol: 'LINK', color: '#375BD2', decimals: 18,
+    coingeckoId: 'chainlink', platform: 'Ethereum',
+    explorerTx: 'https://etherscan.io/tx/',
+    explorerAddr: 'https://etherscan.io/address/',
     derivationPath: "m/44'/60'/0'/0/0",
-    evmChain: 'scroll', layer: 'L2', parentChain: 'ETH',
-    badge: 'L2', nativeToken: 'ETH',
+    evmChain: 'ethereum', layer: 'Token',
   },
-  CELO: {
-    id: 'CELO', name: 'Celo', symbol: 'CELO', color: '#35D07F', decimals: 18,
-    coingeckoId: 'celo', platform: 'Celo',
-    explorerTx: 'https://celoscan.io/tx/',
-    explorerAddr: 'https://celoscan.io/address/',
+  UNI: {
+    id: 'UNI', name: 'Uniswap', symbol: 'UNI', color: '#FF007A', decimals: 18,
+    coingeckoId: 'uniswap', platform: 'Ethereum',
+    explorerTx: 'https://etherscan.io/tx/',
+    explorerAddr: 'https://etherscan.io/address/',
     derivationPath: "m/44'/60'/0'/0/0",
-    evmChain: 'celo', layer: 'L1', nativeToken: 'CELO',
+    evmChain: 'ethereum', layer: 'Token',
+  },
+  NEAR: {
+    id: 'NEAR', name: 'NEAR Protocol', symbol: 'NEAR', color: '#00C08B', decimals: 24,
+    coingeckoId: 'near', platform: 'NEAR Protocol',
+    explorerTx: 'https://explorer.near.org/transactions/',
+    explorerAddr: 'https://explorer.near.org/accounts/',
+    derivationPath: "m/44'/397'/0'/0/0",
+    layer: 'L1',
+  },
+  APT: {
+    id: 'APT', name: 'Aptos', symbol: 'APT', color: '#00D4B4', decimals: 8,
+    coingeckoId: 'aptos', platform: 'Aptos',
+    explorerTx: 'https://explorer.aptoslabs.com/txn/',
+    explorerAddr: 'https://explorer.aptoslabs.com/account/',
+    derivationPath: "m/44'/637'/0'/0/0",
+    layer: 'L1',
+  },
+  SUI: {
+    id: 'SUI', name: 'Sui', symbol: 'SUI', color: '#4DA2FF', decimals: 9,
+    coingeckoId: 'sui', platform: 'Sui Network',
+    explorerTx: 'https://suiexplorer.com/txblock/',
+    explorerAddr: 'https://suiexplorer.com/address/',
+    derivationPath: "m/44'/784'/0'/0/0",
+    layer: 'L1',
+  },
+  OP_TOKEN: {
+    id: 'OP_TOKEN', name: 'Optimism Token', symbol: 'OP', color: '#FF0420', decimals: 18,
+    coingeckoId: 'optimism', platform: 'OP Mainnet',
+    explorerTx: 'https://optimistic.etherscan.io/tx/',
+    explorerAddr: 'https://optimistic.etherscan.io/address/',
+    derivationPath: "m/44'/60'/0'/0/0",
+    evmChain: 'optimism', layer: 'Token',
+  },
+  ARB_TOKEN: {
+    id: 'ARB_TOKEN', name: 'Arbitrum Token', symbol: 'ARB', color: '#28A0F0', decimals: 18,
+    coingeckoId: 'arbitrum', platform: 'Arbitrum One',
+    explorerTx: 'https://arbiscan.io/tx/',
+    explorerAddr: 'https://arbiscan.io/address/',
+    derivationPath: "m/44'/60'/0'/0/0",
+    evmChain: 'arbitrum', layer: 'Token',
   },
 };
 
 // ─── Price API (CoinGecko) ─────────────────────────────────
-const COINGECKO_IDS = 'bitcoin,ethereum,binancecoin,solana,dogecoin,matic-network,litecoin,avalanche-2,fantom,tron,ripple,cosmos,cardano,polkadot,celo';
+const COINGECKO_IDS = 'bitcoin,ethereum,binancecoin,solana,dogecoin,matic-network,litecoin,avalanche-2,fantom,ripple,cardano,polkadot,tron,cosmos,chainlink,uniswap,near,aptos,sui,optimism,arbitrum';
 const COIN_ID_MAP = {
   bitcoin: 'BTC', ethereum: 'ETH', binancecoin: 'BNB',
   solana: 'SOL', dogecoin: 'DOGE', 'matic-network': 'MATIC', litecoin: 'LTC',
   'avalanche-2': 'AVAX', fantom: 'FTM',
-  tron: 'TRX', ripple: 'XRP', cosmos: 'ATOM', cardano: 'ADA', polkadot: 'DOT', celo: 'CELO',
+  ripple: 'XRP', cardano: 'ADA', polkadot: 'DOT', tron: 'TRX',
+  cosmos: 'ATOM', chainlink: 'LINK', uniswap: 'UNI', near: 'NEAR',
+  aptos: 'APT', sui: 'SUI', optimism: 'OP_TOKEN', arbitrum: 'ARB_TOKEN',
 };
 
 // Coins with separate price tokens (L2s use ETH price)
-const PRICE_ALIASES = { ARB: 'ETH', OP: 'ETH', BASE: 'ETH', ZKSYNC: 'ETH', LINEA: 'ETH', SCROLL: 'ETH' };
+const PRICE_ALIASES = { ARB: 'ETH', OP: 'ETH', BASE: 'ETH' };
 
 export async function getPrices() {
   try {
@@ -245,18 +269,18 @@ async function bcyGetTransactions(coin, address) {
 
 // ─── EVM chains ─────────────────────────────────────────────
 const EVM_API = {
-  ETH:   { url: 'https://api.etherscan.io/api',               key: '' },
-  BNB:   { url: 'https://api.bscscan.com/api',                key: '' },
-  MATIC: { url: 'https://api.polygonscan.com/api',            key: '' },
-  ARB:   { url: 'https://api.arbiscan.io/api',                key: '' },
-  OP:    { url: 'https://api-optimistic.etherscan.io/api',    key: '' },
-  BASE:  { url: 'https://api.basescan.org/api',               key: '' },
-  AVAX:   { url: 'https://api.snowtrace.io/api',              key: '' },
-  FTM:    { url: 'https://api.ftmscan.com/api',               key: '' },
-  ZKSYNC: { url: 'https://block-explorer-api.mainnet.zksync.io/api', key: '' },
-  LINEA:  { url: 'https://api.lineascan.build/api',           key: '' },
-  SCROLL: { url: 'https://api.scrollscan.com/api',            key: '' },
-  CELO:   { url: 'https://api.celoscan.io/api',               key: '' },
+  ETH:       { url: 'https://api.etherscan.io/api',               key: '' },
+  BNB:       { url: 'https://api.bscscan.com/api',                key: '' },
+  MATIC:     { url: 'https://api.polygonscan.com/api',            key: '' },
+  ARB:       { url: 'https://api.arbiscan.io/api',                key: '' },
+  OP:        { url: 'https://api-optimistic.etherscan.io/api',    key: '' },
+  BASE:      { url: 'https://api.basescan.org/api',               key: '' },
+  AVAX:      { url: 'https://api.snowtrace.io/api',               key: '' },
+  FTM:       { url: 'https://api.ftmscan.com/api',                key: '' },
+  LINK:      { url: 'https://api.etherscan.io/api',               key: '' },
+  UNI:       { url: 'https://api.etherscan.io/api',               key: '' },
+  OP_TOKEN:  { url: 'https://api-optimistic.etherscan.io/api',    key: '' },
+  ARB_TOKEN: { url: 'https://api.arbiscan.io/api',                key: '' },
 };
 
 async function evmGetBalance(coin, address) {
@@ -329,17 +353,21 @@ async function solGetTransactions(address) {
 }
 
 // ─── Unified API ───────────────────────────────────────────
-const EVM_COINS = ['ETH', 'BNB', 'MATIC', 'ARB', 'OP', 'BASE', 'AVAX', 'FTM', 'ZKSYNC', 'LINEA', 'SCROLL', 'CELO'];
+const EVM_COINS = ['ETH', 'BNB', 'MATIC', 'ARB', 'OP', 'BASE', 'AVAX', 'FTM', 'LINK', 'UNI', 'OP_TOKEN', 'ARB_TOKEN'];
+// Coins that require simulated balance (no public free API available)
+const SIMULATED_COINS = ['XRP', 'ADA', 'DOT', 'TRX', 'ATOM', 'NEAR', 'APT', 'SUI'];
 
 export async function getBalance(coinId, address) {
   if (EVM_COINS.includes(coinId)) return evmGetBalance(coinId, address);
   if (coinId === 'SOL') return solGetBalance(address);
+  if (SIMULATED_COINS.includes(coinId)) return { balance: 0, unconfirmed: 0, txCount: 0 };
   return bcyGetBalance(coinId, address);
 }
 
 export async function getTransactionsByCoin(coinId, address) {
   if (EVM_COINS.includes(coinId)) return evmGetTransactions(coinId, address);
   if (coinId === 'SOL') return solGetTransactions(address);
+  if (SIMULATED_COINS.includes(coinId)) return [];
   return bcyGetTransactions(coinId, address);
 }
 
