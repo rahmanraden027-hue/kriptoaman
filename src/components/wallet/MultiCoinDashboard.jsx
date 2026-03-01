@@ -62,9 +62,14 @@ export default function MultiCoinDashboard({ addresses, onSend, onReceive, onTra
               </div>
               <span className="text-white/80 text-sm font-medium">{coin.name}</span>
             </div>
-            <button onClick={fetchAll} disabled={refreshing} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors">
-              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-            </button>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setShowChart(s => !s)} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors" title="Grafik harga">
+                <BarChart2 className="w-4 h-4" />
+              </button>
+              <button onClick={fetchAll} disabled={refreshing} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors">
+                <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
           </div>
 
           {loading ? (
