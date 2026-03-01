@@ -79,7 +79,8 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Bottom Nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur border-t border-slate-800 flex justify-around py-2 px-1 safe-area-pb">
-        {NAV.map(({ label, page, icon: Icon }) => {
+        {NAV.map(({ label, page, icon: Icon, adminOnly }) => {
+          if (adminOnly && user?.role !== 'admin') return null;
           const active = currentPageName === page;
           return (
             <Link key={page} to={createPageUrl(page)}
