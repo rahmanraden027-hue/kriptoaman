@@ -216,6 +216,20 @@ export default function Wallet() {
       </div>
 
       {/* Modals */}
+      {showPersonalize && (
+        <WalletPersonalization
+          prefs={prefs}
+          onClose={() => setShowPersonalize(false)}
+          onToggleSection={toggleSection}
+          onToggleCoin={toggleCoin}
+          onMoveSectionUp={moveSectionUp}
+          onMoveSectionDown={moveSectionDown}
+          onSortChange={(mode) => update({ coinSortMode: mode })}
+          onThemeChange={(theme) => update({ theme })}
+          onReset={reset}
+        />
+      )}
+
       {showOnboarding && <OnboardingGuide onClose={() => setShowOnboarding(false)} />}
 
       {showReceive && activeAddress && (
