@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowUpRight, ArrowDownLeft, Send, Download, RefreshCw } from 'lucide-react';
+import { useAdminNotifications } from './useAdminNotifications';
 
 const MOCK_TRANSACTIONS = [
   {
