@@ -68,6 +68,20 @@ function SectionHeader({ icon: Icon, title, count, color = 'text-slate-400' }) {
   );
 }
 
+// ── Category Badge ────────────────────────────────────────────────────────────
+function CategoryBadge({ category }) {
+  const cat = ASSET_CATEGORIES[category] || ASSET_CATEGORIES.crypto;
+  return (
+    <span className="text-[10px] px-2 py-1 rounded-full font-medium border" style={{ 
+      background: cat.color + '22', 
+      color: cat.color, 
+      borderColor: cat.color + '44' 
+    }}>
+      {cat.icon} {cat.label}
+    </span>
+  );
+}
+
 // ── Token Row ─────────────────────────────────────────────────────────────────
 function TokenRow({ token, onRemove }) {
   const CHAIN_COLORS = {
