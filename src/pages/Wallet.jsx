@@ -14,6 +14,7 @@ import NotificationCenter, { useNotifications } from '../components/wallet/Notif
 import PortfolioChart from '../components/wallet/PortfolioChart';
 import OnboardingGuide from '../components/wallet/OnboardingGuide';
 import WalletConnectPanel from '../components/wallet/WalletConnectPanel';
+import CustomTokenList from '../components/wallet/CustomTokenList';
 import PortfolioAnalytics from '../components/wallet/PortfolioAnalytics';
 import { HelpCircle, Zap } from 'lucide-react';
 
