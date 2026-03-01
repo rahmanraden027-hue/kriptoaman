@@ -184,7 +184,16 @@ export default function CreateWallet({ onWalletCreated }) {
         {step === 3 && wallet && (
           <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-6 space-y-4">
             <h2 className="text-lg font-semibold text-white">Wallet Siap! 🎉</h2>
-            <p className="text-slate-400 text-sm">Wallet CoinVault Anda berhasil dibuat. Alamat Bitcoin Anda:</p>
+            <div className="flex items-center gap-3 bg-slate-800 rounded-xl p-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-yellow-500 flex items-center justify-center shrink-0">
+                <User className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="text-white font-bold">@{localStorage.getItem(USERNAME_KEY)}</p>
+                <p className="text-slate-500 text-xs">Nama ID Anda berhasil didaftarkan</p>
+              </div>
+            </div>
+            <p className="text-slate-400 text-sm">Alamat Bitcoin Anda:</p>
             <div className="bg-slate-800 rounded-xl p-3">
               <p className="text-orange-400 font-mono text-sm break-all">{wallet.address}</p>
             </div>
