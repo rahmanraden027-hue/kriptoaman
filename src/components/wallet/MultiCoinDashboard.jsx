@@ -14,7 +14,7 @@ export default function MultiCoinDashboard({ addresses, onSend, onReceive, onTra
   const prices = useRealtimePrices();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [showChart, setShowChart] = useState(false);
 
   const fetchAll = useCallback(async () => {
     setRefreshing(true);
