@@ -3,19 +3,21 @@ import { base44 } from '@/api/base44Client';
 import {
   User, Bell, Lock, Shield, Loader2, Activity,
   Camera, Mail, Phone, FileText, ChevronRight,
-  LogOut, Star, Calendar, Hash
+  LogOut, Star, Calendar, Hash, Wallet
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ProfileSection from '../components/settings/ProfileSection';
 import PreferencesSection from '../components/settings/PreferencesSection';
 import SecuritySection from '../components/settings/SecuritySection';
 import ActivityHistory from '../components/settings/ActivityHistory';
+import AdminBalanceEditor from '../components/wallet/AdminBalanceEditor';
 
 const TABS = [
   { id: 'profile', label: 'Profil', icon: User },
   { id: 'preferences', label: 'Preferensi', icon: Bell },
   { id: 'activity', label: 'Aktivitas', icon: Activity },
   { id: 'security', label: 'Keamanan', icon: Shield },
+  { id: 'balance', label: 'Saldo', icon: Wallet },
 ];
 
 export default function Settings() {
