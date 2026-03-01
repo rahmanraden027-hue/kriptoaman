@@ -14,6 +14,14 @@ import {
 // ── Storage keys ──────────────────────────────────────────────────────────────
 const STAKING_KEY = 'wallet_staking_positions_v2';
 const SAVINGS_KEY = 'usdt_savings_positions';
+const ASSET_CATEGORIES = {
+  crypto: { label: 'Cryptocurrency', icon: '₿', color: '#3b82f6' },
+  stocks: { label: 'Saham', icon: '📈', color: '#8b5cf6' },
+  gold: { label: 'Emas', icon: '🏆', color: '#f59e0b' },
+  bonds: { label: 'Obligasi', icon: '📊', color: '#10b981' },
+  forex: { label: 'Forex', icon: '💱', color: '#06b6d4' },
+  defi: { label: 'DeFi Yield', icon: '🌾', color: '#ec4899' },
+};
 
 function loadStaking() { try { return JSON.parse(localStorage.getItem(STAKING_KEY)) || []; } catch { return []; } }
 function saveStaking(d) { localStorage.setItem(STAKING_KEY, JSON.stringify(d)); }
