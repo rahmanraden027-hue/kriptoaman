@@ -63,7 +63,7 @@ export default function PWAValidation() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-12">
-          <TabsList className="grid w-full grid-cols-3 bg-slate-800 border border-slate-700 rounded-xl p-1">
+          <TabsList className="grid w-full grid-cols-4 bg-slate-800 border border-slate-700 rounded-xl p-1">
             <TabsTrigger value="checklist" className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4" />
               <span className="hidden sm:inline">Checklist</span>
@@ -71,6 +71,10 @@ export default function PWAValidation() {
             <TabsTrigger value="setup" className="flex items-center gap-2">
               <Zap className="w-4 h-4" />
               <span className="hidden sm:inline">Setup</span>
+            </TabsTrigger>
+            <TabsTrigger value="deployment" className="flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              <span className="hidden sm:inline">Deploy</span>
             </TabsTrigger>
             <TabsTrigger value="resources" className="flex items-center gap-2">
               <BookOpen className="w-4 h-4" />
