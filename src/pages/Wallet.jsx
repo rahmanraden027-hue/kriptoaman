@@ -140,6 +140,11 @@ export default function Wallet() {
               title="Panduan">
               <HelpCircle className="w-4 h-4" />
             </button>
+            <button onClick={() => setShowSupport(true)}
+              className={`p-1.5 rounded-lg border transition-colors ${isLight ? 'bg-white border-slate-200 text-slate-500 hover:text-slate-900' : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'}`}
+              title="Bantuan / Support">
+              <MessageCircle className="w-4 h-4" />
+            </button>
             <NotificationCenter
               notifications={notifications}
               unread={unread}
