@@ -197,9 +197,17 @@ export default function SwapModal({ addresses, onClose }) {
     }
   };
 
-  const handleExecute = () => {
-    Analytics.swapConfirmed(fromCoin, toCoin, parseFloat(amount), amountUSD);
-    setStep('success');
+  const handleExecute = async () => {
+    setLoading(true);
+    try {
+      await collectTransactionFee('swap', fromCoin, parseFloat(amount));
+      Analytics.swapConfirmed(fromCoin, toCoin, parseFloat(amount), amountUSD);
+      setStep('success');
+    } catch (err) {
+      setError('Gagal memproses fee transaksi');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const memo = destAddress ? buildSwapMemo(SWAP_COINS[toCoin].asset, destAddress) : '';
