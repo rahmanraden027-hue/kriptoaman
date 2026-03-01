@@ -162,45 +162,56 @@ export default function Wallet() {
           onLogout={() => setSessionPassword(null)}
         />
 
-        {/* Passive Income Summary */}
-        <PassiveIncomeWidget />
-
-        {/* Portfolio Analytics Dashboard */}
-        <PortfolioAnalytics />
-
-        {/* Portfolio Chart */}
-        <PortfolioChart addresses={addresses || { BTC: { address: walletData?.address } }} />
-
-        {/* Inline Swap Widget (1inch) */}
-        <div className="bg-slate-800/30 border border-slate-700/30 rounded-2xl p-4">
-          <InlineSwapWidget />
-        </div>
-
-        {/* Cross-Chain Bridge button */}
-        <button onClick={() => setShowBridge(true)}
-          className="w-full flex items-center justify-between px-4 py-3 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl hover:bg-cyan-500/15 transition-colors">
-          <div className="flex items-center gap-2">
-            <ArrowRight className="w-4 h-4 text-cyan-400" />
-            <span className="text-cyan-300 text-sm font-semibold">Cross-Chain Bridge</span>
-            <span className="text-[10px] bg-cyan-500/20 text-cyan-400 border border-cyan-500/20 px-1.5 py-0.5 rounded-full">EVM</span>
-          </div>
-          <span className="text-slate-500 text-xs">ETH ↔ BNB ↔ Polygon…</span>
-        </button>
-
-        {/* Detailed Transaction History */}
-        <div className="bg-slate-800/30 border border-slate-700/30 rounded-2xl p-4">
-          <DetailedTxHistory coinId={activeCoin} address={activeAddress} key={`${activeCoin}-${refreshKey}`} />
-        </div>
-
-        {/* Staking Panel */}
-        <div className="bg-slate-800/30 border border-slate-700/30 rounded-2xl p-4">
-          <StakingPanel addresses={addresses} />
-        </div>
-
-        {/* Custom ERC-20 / BEP-20 Tokens */}
-        <div className="bg-slate-800/30 border border-slate-700/30 rounded-2xl p-4">
-          <CustomTokenList addresses={addresses} />
-        </div>
+        {/* Sections rendered in user-defined order */}
+        {prefs.sections.map(section => {
+          if (!section.visible) return null;
+          switch (section.id) {
+            case 'passive':
+              return <PassiveIncomeWidget key="passive" />;
+            case 'analytics':
+              return <PortfolioAnalytics key="analytics" />;
+            case 'chart':
+              return <PortfolioChart key="chart" addresses={addresses || { BTC: { address: walletData?.address } }} />;
+            case 'swap':
+              return (
+                <div key="swap" className={`border rounded-2xl p-4 ${cardBg}`}>
+                  <InlineSwapWidget />
+                </div>
+              );
+            case 'bridge':
+              return (
+                <button key="bridge" onClick={() => setShowBridge(true)}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl hover:bg-cyan-500/15 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <ArrowRight className="w-4 h-4 text-cyan-400" />
+                    <span className="text-cyan-300 text-sm font-semibold">Cross-Chain Bridge</span>
+                    <span className="text-[10px] bg-cyan-500/20 text-cyan-400 border border-cyan-500/20 px-1.5 py-0.5 rounded-full">EVM</span>
+                  </div>
+                  <span className="text-slate-500 text-xs">ETH ↔ BNB ↔ Polygon…</span>
+                </button>
+              );
+            case 'txhistory':
+              return (
+                <div key="txhistory" className={`border rounded-2xl p-4 ${cardBg}`}>
+                  <DetailedTxHistory coinId={activeCoin} address={activeAddress} key={`${activeCoin}-${refreshKey}`} />
+                </div>
+              );
+            case 'staking':
+              return (
+                <div key="staking" className={`border rounded-2xl p-4 ${cardBg}`}>
+                  <StakingPanel addresses={addresses} />
+                </div>
+              );
+            case 'tokens':
+              return (
+                <div key="tokens" className={`border rounded-2xl p-4 ${cardBg}`}>
+                  <CustomTokenList addresses={addresses} />
+                </div>
+              );
+            default:
+              return null;
+          }
+        })}
 
       </div>
 
