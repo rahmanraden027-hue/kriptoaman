@@ -151,6 +151,11 @@ export default function Wallet() {
           <MultiCoinTxList key={`${activeCoin}-${refreshKey}`} coinId={activeCoin} address={activeAddress} />
         </div>
 
+        {/* Staking Panel */}
+        <div className="bg-slate-800/30 border border-slate-700/30 rounded-2xl p-4">
+          <StakingPanel addresses={addresses} />
+        </div>
+
         {/* Custom ERC-20 / BEP-20 Tokens */}
         <div className="bg-slate-800/30 border border-slate-700/30 rounded-2xl p-4">
           <CustomTokenList addresses={addresses} />
