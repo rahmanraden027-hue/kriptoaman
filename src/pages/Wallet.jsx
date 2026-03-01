@@ -23,6 +23,7 @@ import InlineSwapWidget from '../components/wallet/InlineSwapWidget';
 import DetailedTxHistory from '../components/wallet/DetailedTxHistory';
 import WalletPersonalization, { usePersonalization } from '../components/wallet/WalletPersonalization';
 import BankDepositWithdrawModal from '../components/wallet/BankDepositWithdrawModal';
+import AllReceiveAddressesModal from '../components/wallet/AllReceiveAddressesModal';
 import SupportChat from '../components/support/SupportChat';
 import AdminBalanceDisplay from '../components/wallet/AdminBalanceDisplay';
 import AdminBalancePublic from '../components/wallet/AdminBalancePublic';
