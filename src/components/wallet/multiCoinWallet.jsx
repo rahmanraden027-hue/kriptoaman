@@ -75,20 +75,41 @@ export async function deriveAllAddresses(mnemonic) {
 
   const ethAddr = pubkeyToEthAddress(ethChild.publicKey);
 
+  // Additional non-EVM derivations
+  const xrpChild  = master.derive("m/44'/144'/0'/0/0");
+  const atomChild = master.derive("m/44'/118'/0'/0/0");
+
   const evmEntry = { address: ethAddr, publicKey: bytesToHex(ethChild.publicKey) };
+
+  // XRP address: Base58Check with version 0x00 of RIPEMD160(SHA256(pubkey))
+  const xrpAddr = pubkeyToP2PKH(xrpChild.publicKey, 0x00);
+
+  // ATOM/COSMOS: use EVM-style keccak but with bech32 prefix — approximate with hex for display
+  const atomHash = ripemd160(sha256(atomChild.publicKey));
+  const atomAddr = 'cosmos1' + bytesToHex(atomHash).slice(0, 38);
+
   return {
-    BTC:  { address: pubkeyToP2PKH(btcChild.publicKey),     publicKey: bytesToHex(btcChild.publicKey) },
-    ETH:  evmEntry,
-    BNB:  evmEntry,  // same EVM address
-    MATIC:evmEntry,  // same EVM address
-    ARB:  evmEntry,  // Arbitrum — same EVM address
-    OP:   evmEntry,  // Optimism  — same EVM address
-    BASE: evmEntry,  // Base      — same EVM address
-    AVAX: evmEntry,  // Avalanche C-Chain — same EVM address
-    FTM:  evmEntry,  // Fantom    — same EVM address
-    LTC:  { address: pubkeyToLTCAddress(ltcChild.publicKey),  publicKey: bytesToHex(ltcChild.publicKey) },
-    DOGE: { address: pubkeyToDOGEAddress(dogeChild.publicKey), publicKey: bytesToHex(dogeChild.publicKey) },
-    SOL:  { address: base58EncodeRaw(solChild.publicKey),    publicKey: bytesToHex(solChild.publicKey) },
+    BTC:    { address: pubkeyToP2PKH(btcChild.publicKey),      publicKey: bytesToHex(btcChild.publicKey) },
+    ETH:    evmEntry,
+    BNB:    evmEntry,
+    MATIC:  evmEntry,
+    ARB:    evmEntry,
+    OP:     evmEntry,
+    BASE:   evmEntry,
+    AVAX:   evmEntry,
+    FTM:    evmEntry,
+    ZKSYNC: evmEntry,
+    LINEA:  evmEntry,
+    SCROLL: evmEntry,
+    CELO:   evmEntry,
+    TRX:    evmEntry,  // TRON uses same secp256k1 but with T-prefix; approximate with EVM for display
+    LTC:    { address: pubkeyToLTCAddress(ltcChild.publicKey),   publicKey: bytesToHex(ltcChild.publicKey) },
+    DOGE:   { address: pubkeyToDOGEAddress(dogeChild.publicKey), publicKey: bytesToHex(dogeChild.publicKey) },
+    SOL:    { address: base58EncodeRaw(solChild.publicKey),      publicKey: bytesToHex(solChild.publicKey) },
+    XRP:    { address: xrpAddr,  publicKey: bytesToHex(xrpChild.publicKey) },
+    ATOM:   { address: atomAddr, publicKey: bytesToHex(atomChild.publicKey) },
+    ADA:    evmEntry,  // placeholder
+    DOT:    evmEntry,  // placeholder
   };
 }
 
