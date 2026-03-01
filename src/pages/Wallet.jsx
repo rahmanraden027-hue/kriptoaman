@@ -209,6 +209,10 @@ export default function Wallet() {
         <SwapModal addresses={addresses} onClose={() => setShowSwap(false)} />
       )}
 
+      {showBridge && (
+        <CrossChainBridge onClose={() => setShowBridge(false)} />
+      )}
+
       {showTrade && (
         <TradeModal
           wallet={walletData}
