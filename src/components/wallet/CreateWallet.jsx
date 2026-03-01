@@ -193,10 +193,7 @@ export default function CreateWallet({ onWalletCreated }) {
                 <p className="text-slate-500 text-xs">Nama ID Anda berhasil didaftarkan</p>
               </div>
             </div>
-            <p className="text-slate-400 text-sm">Alamat Bitcoin Anda:</p>
-            <div className="bg-slate-800 rounded-xl p-3">
-              <p className="text-orange-400 font-mono text-sm break-all">{wallet.address}</p>
-            </div>
+
             <Button onClick={handleFinish} className="w-full bg-orange-500 hover:bg-orange-600 text-white">
               Buka Wallet
             </Button>
