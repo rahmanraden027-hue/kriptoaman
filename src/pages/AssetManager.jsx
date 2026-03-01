@@ -90,6 +90,7 @@ function TokenRow({ token, onRemove }) {
     AVAX: '#E84142', FTM: '#1969FF',
   };
   const color = CHAIN_COLORS[token.chain] || '#94a3b8';
+  const category = token.category || 'crypto';
 
   return (
     <div className="flex items-center gap-3 bg-slate-800/50 border border-slate-700/40 rounded-xl p-3 group">
@@ -98,11 +99,14 @@ function TokenRow({ token, onRemove }) {
         {token.symbol?.slice(0, 2) || '??'}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 mb-1">
           <span className="text-white text-sm font-semibold truncate">{token.symbol}</span>
-          <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ background: color + '22', color }}>{token.chain}</span>
+          <CategoryBadge category={category} />
         </div>
-        <p className="text-slate-500 text-xs truncate">{token.name}</p>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ background: color + '22', color }}>{token.chain}</span>
+          <p className="text-slate-500 text-xs truncate">{token.name}</p>
+        </div>
       </div>
       <div className="text-right shrink-0">
         <p className="text-white text-sm font-bold">{(token.balance || 0).toFixed(4)}</p>
