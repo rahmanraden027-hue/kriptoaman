@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, ShieldCheck, ShieldOff, Smartphone, Monitor, Globe, Clock, Trash2, CheckCircle2, XCircle, Key, RefreshCw, AlertTriangle, Copy, Check } from 'lucide-react';
+import { Shield, ShieldCheck, ShieldOff, Smartphone, Monitor, Globe, Clock, Trash2, CheckCircle2, XCircle, Key, RefreshCw, AlertTriangle, Copy, Check, Lock, Fingerprint, Timer, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PinSetup, PIN_ENABLED_KEY, BIOMETRIC_ENABLED_KEY, PIN_STORAGE_KEY } from '../security/PinLock';
+import { createPageUrl } from '@/utils';
+import { Link } from 'react-router-dom';
 
 const STORAGE_KEY_2FA = 'cv_2fa_enabled';
 const STORAGE_KEY_DEVICES = 'cv_login_devices';
