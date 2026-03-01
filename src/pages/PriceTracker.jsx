@@ -338,38 +338,24 @@ export default function PriceTracker() {
     };
   }, []);
 
-  // Real-time price updates
+  // Sparkline updater (runs regardless of Binance WS - uses whatever live price we have)
   useEffect(() => {
-    if (!ticker) { clearInterval(intervalRef.current); return; }
-    intervalRef.current = setInterval(() => {
-      setLivePrices(prev => {
-        const updated = { ...prev };
-        ALL_COINS.forEach(c => {
-          const current = prev[c.id]?.price || BASE_PRICES[c.id] || 1;
-          const delta = (Math.random() - 0.5) * 0.006;
-          const newPrice = Math.max(current * (1 + delta), 0.000001);
-          updated[c.id] = {
-            price: newPrice,
-            change24h: prev[c.id]?.change24h + (Math.random() - 0.5) * 0.1,
-            tick: delta > 0 ? 'up' : 'down',
-          };
-        });
-        return updated;
-      });
-      // Update sparklines (append last point)
+    if (!ticker) return;
+    const interval = setInterval(() => {
       setSparklines(prev => {
         const updated = { ...prev };
         ALL_COINS.forEach(c => {
           const sp = prev[c.id] || [];
           if (sp.length >= 24) {
-            const newP = (sp[sp.length - 1]?.p || BASE_PRICES[c.id] || 1) * (1 + (Math.random() - 0.5) * 0.025);
+            const lastP = sp[sp.length - 1]?.p || BASE_PRICES[c.id] || 1;
+            const newP = lastP * (1 + (Math.random() - 0.5) * 0.012);
             updated[c.id] = [...sp.slice(1), { t: Date.now(), p: parseFloat(newP.toFixed(newP > 100 ? 2 : 4)) }];
           }
         });
         return updated;
       });
-    }, 2000);
-    return () => clearInterval(intervalRef.current);
+    }, 3000);
+    return () => clearInterval(interval);
   }, [ticker]);
 
   const toggleStar = useCallback((id) => {
