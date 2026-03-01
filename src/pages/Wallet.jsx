@@ -107,14 +107,14 @@ export default function Wallet() {
   const activeAddress = addresses?.[activeCoin]?.address || '';
 
   if (isCreating) {
-    return <CreateWallet onWalletCreated={(w) => setWalletData(w)} />;
+    return <CreateWallet onWalletCreated={handleWalletCreated} />;
   }
 
   if (isLocked) {
     return (
       <UnlockWallet
         wallet={walletData}
-        onUnlocked={(pwd) => setSessionPassword(pwd)}
+        onUnlocked={handleWalletUnlocked}
         onReset={() => setWalletData(null)}
       />
     );
