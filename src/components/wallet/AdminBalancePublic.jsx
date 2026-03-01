@@ -30,9 +30,10 @@ export default function AdminBalancePublic() {
     0
   );
 
-  const coins = Object.entries(ADMIN_BALANCES)
-    .sort(([, a], [, b]) => (b * (MOCK_PRICES[Object.keys(ADMIN_BALANCES)[Object.values(ADMIN_BALANCES).indexOf(b)] || 1) || 0) -
-                              (a * (MOCK_PRICES[Object.keys(ADMIN_BALANCES)[Object.values(ADMIN_BALANCES).indexOf(a)] || 1) || 0)));
+  const coins = Object.entries(ADMIN_BALANCES).sort(
+    ([coinA, amountA], [coinB, amountB]) =>
+      (amountB * (MOCK_PRICES[coinB] || 0)) - (amountA * (MOCK_PRICES[coinA] || 0))
+  );
 
   return (
     <div className="bg-gradient-to-br from-slate-800/60 to-slate-900/40 border border-slate-700/50 rounded-2xl p-4 space-y-4">
