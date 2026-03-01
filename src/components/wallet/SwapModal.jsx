@@ -9,6 +9,7 @@ import {
 import { getSwapQuote, getInboundAddress, buildSwapMemo, SWAP_COINS } from './swapApi';
 import { getPrices } from './multiCoinApi';
 import { Analytics } from '../analytics/mixpanel';
+import { collectTransactionFee } from './collectFeeHelper';
 
 const COIN_LIST = Object.values(SWAP_COINS);
 const QUOTE_REFRESH_INTERVAL = 30; // seconds
