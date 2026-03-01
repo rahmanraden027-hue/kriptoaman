@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import MarketNewsFeed from './MarketNewsFeed';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import MonteCarloAnalytics from './MonteCarloAnalytics';
+import WalkForwardResults from './WalkForwardResults';
 
 export default function SimulationResults({ simulation }) {
   const [chartType, setChartType] = useState('equity');
