@@ -15,6 +15,7 @@ const NAV = [
   { label: 'Auto-Trade', page: 'AutoTrading', icon: Zap },
   { label: 'Riwayat', page: 'TxHistory', icon: Clock },
   { label: 'Settings', page: 'Settings', icon: Settings },
+  { label: 'Admin Profit', page: 'AdminProfitAnalytics', icon: BarChart3, adminOnly: true },
 ];
 
 export default function Layout({ children, currentPageName }) {
