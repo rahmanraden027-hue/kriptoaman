@@ -282,7 +282,7 @@ export default function PriceTracker() {
   const priceRef = useRef({});
   const intervalRef = useRef(null);
 
-  // Init sparklines
+  // Init sparklines + try to load real prices from Binance WS
   useEffect(() => {
     const sp = {};
     ALL_COINS.forEach(c => { sp[c.id] = generateSparkline(BASE_PRICES[c.id] || 1); });
@@ -293,6 +293,33 @@ export default function PriceTracker() {
     });
     setLivePrices(initial);
     priceRef.current = initial;
+
+    // Connect to Binance WS for real prices
+    const streams = ALL_COINS
+      .filter(c => c.coingecko)
+      .map(c => `${c.id.toLowerCase()}usdt@ticker`)
+      .join('/');
+    try {
+      const ws = new WebSocket(`wss://stream.binance.com:9443/stream?streams=${streams}`);
+      ws.onmessage = (e) => {
+        try {
+          const msg = JSON.parse(e.data);
+          const d = msg?.data;
+          if (!d?.s) return;
+          const id = d.s.replace('USDT', '');
+          const coin = ALL_COINS.find(c => c.id === id);
+          if (!coin) return;
+          const price = parseFloat(d.c);
+          const change24h = parseFloat(d.P);
+          if (isNaN(price)) return;
+          setLivePrices(prev => ({
+            ...prev,
+            [id]: { ...prev[id], price, change24h, tick: price > (prev[id]?.price || 0) ? 'up' : 'down' },
+          }));
+        } catch {}
+      };
+      return () => ws.close();
+    } catch {}
   }, []);
 
   // Real-time price updates
