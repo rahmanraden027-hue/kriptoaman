@@ -19,6 +19,8 @@ export default function UserWalletManagement() {
   const [selectedCoin, setSelectedCoin] = useState('BTC');
   const [amount, setAmount] = useState('');
   const [expanded, setExpanded] = useState(true);
+  const [toast, setToast] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // Load assets from localStorage on mount
   useEffect(() => {
