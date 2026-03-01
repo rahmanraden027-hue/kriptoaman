@@ -23,7 +23,8 @@ import InlineSwapWidget from '../components/wallet/InlineSwapWidget';
 import DetailedTxHistory from '../components/wallet/DetailedTxHistory';
 import WalletPersonalization, { usePersonalization } from '../components/wallet/WalletPersonalization';
 import BankDepositWithdrawModal from '../components/wallet/BankDepositWithdrawModal';
-import { HelpCircle, ArrowRight, Settings2, User, Building2 } from 'lucide-react';
+import SupportChat from '../components/support/SupportChat';
+import { HelpCircle, ArrowRight, Settings2, User, Building2, MessageCircle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const ONBOARDING_KEY = 'dex_onboarding_done';
