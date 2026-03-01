@@ -81,7 +81,8 @@
     "@scure/bip32": "^1.4.0",
     "@noble/hashes": "^1.4.0",
     "@noble/curves": "^1.4.0",
-    "crypto-js": "^4.2.0"
+    "crypto-js": "^4.2.0",
+    "mixpanel-browser": "^2.54.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
