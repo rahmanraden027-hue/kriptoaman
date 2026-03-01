@@ -94,6 +94,40 @@ export default function AdminTransactionHistory() {
   const [transactions, setTransactions] = useState(MOCK_TRANSACTIONS);
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(false);
+  const { addNotification } = useAdminNotifications();
+
+  useEffect(() => {
+    // Simulate new transactions every 30 seconds
+    const interval = setInterval(() => {
+      const coins = ['BTC', 'ETH', 'SOL', 'USDT'];
+      const coin = coins[Math.floor(Math.random() * coins.length)];
+      const isReceived = Math.random() > 0.5;
+      const amounts = {
+        BTC: [0.5, 1.2, 2.5, 0.8],
+        ETH: [3.5, 5.2, 8.5, 12.3],
+        SOL: [50, 125.8, 200, 85.5],
+        USDT: [10000, 25000, 50000, 15000],
+      };
+
+      const amount = amounts[coin][Math.floor(Math.random() * amounts[coin].length)];
+      const newTx = {
+        id: Date.now(),
+        coin,
+        type: isReceived ? 'received' : 'sent',
+        amount,
+        from: isReceived ? '0x' + Math.random().toString(16).slice(2, 10) : undefined,
+        to: !isReceived ? '0x' + Math.random().toString(16).slice(2, 10) : undefined,
+        timestamp: new Date(),
+        status: 'confirmed',
+        txHash: Math.random().toString(16).slice(2, 34),
+      };
+
+      setTransactions(prev => [newTx, ...prev].slice(0, 20));
+      addNotification(newTx);
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [addNotification]);
 
   const handleRefresh = () => {
     setLoading(true);
