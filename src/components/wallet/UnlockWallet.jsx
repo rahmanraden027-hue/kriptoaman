@@ -5,13 +5,17 @@ import { Label } from '@/components/ui/label';
 import { verifyPassword, clearWallet } from './walletUtils';
 import { Lock, Eye, EyeOff, Trash2, User } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import { useEffect, useState as useStateAlias } from 'react';
 
 export default function UnlockWallet({ wallet, onUnlocked, onReset }) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [showConfirmReset, setShowConfirmReset] = useState(false);
+  const [currentUser, setCurrentUser] = React.useState(null);
+
+  React.useEffect(() => {
+    base44.auth.me().then(u => setCurrentUser(u)).catch(() => {});
+  }, []);
 
   const handleUnlock = () => {
     if (!verifyPassword(password, wallet.passwordHash)) {
