@@ -388,6 +388,21 @@ export default function SecuritySection() {
         ))}
       </div>
 
+      {/* Privacy Policy Link */}
+      <Link to={createPageUrl('PrivacyPolicy')}
+        className="flex items-center justify-between px-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-2xl hover:bg-slate-800 transition-colors">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-slate-700 flex items-center justify-center">
+            <FileText className="w-4 h-4 text-slate-400" />
+          </div>
+          <div>
+            <p className="text-white font-semibold text-sm">Kebijakan Privasi</p>
+            <p className="text-slate-500 text-xs">Cara kami melindungi data Anda</p>
+          </div>
+        </div>
+        <span className="text-slate-600 text-xs">→</span>
+      </Link>
+
     </div>
   );
 }
