@@ -231,6 +231,9 @@ export default function Wallet() {
          {/* Admin Balance Detail - pie chart & breakdown */}
          <AdminBalanceDetail />
 
+         {/* User Wallet Management - user's own test assets */}
+         <UserWalletManagement />
+
         {/* Multi-Coin Dashboard */}
         <MultiCoinDashboard
           addresses={addresses || { BTC: { address: walletData?.address } }}
