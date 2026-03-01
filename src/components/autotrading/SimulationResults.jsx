@@ -117,20 +117,46 @@ Trade ${i + 1}:
         </div>
         <div className="bg-slate-800/60 border border-slate-700/40 rounded-lg p-3">
           <p className="text-xs text-slate-400 mb-1">Profit Factor</p>
-          <p className="text-xl font-bold text-blue-400">{stats.profitFactor.toFixed(2)}</p>
+          <p className="text-xl font-bold text-blue-400">{stats.profitFactor?.toFixed(2)}</p>
           <p className="text-xs text-slate-500 mt-1">Avg Win/Loss Ratio</p>
         </div>
         <div className="bg-slate-800/60 border border-slate-700/40 rounded-lg p-3">
           <p className="text-xs text-slate-400 mb-1">Sharpe Ratio</p>
-          <p className="text-xl font-bold text-purple-400">{stats.sharpeRatio.toFixed(4)}</p>
+          <p className="text-xl font-bold text-purple-400">{stats.sharpeRatio?.toFixed(4)}</p>
           <p className="text-xs text-slate-500 mt-1">Risk-Adjusted Return</p>
         </div>
         <div className="bg-slate-800/60 border border-slate-700/40 rounded-lg p-3">
           <p className="text-xs text-slate-400 mb-1">Final Balance</p>
-          <p className="text-xl font-bold text-green-400">${stats.finalBalance.toLocaleString()}</p>
-          <p className="text-xs text-slate-500 mt-1">From ${simulation.startingCapital.toLocaleString()}</p>
+          <p className="text-xl font-bold text-green-400">${stats.finalBalance?.toLocaleString()}</p>
+          <p className="text-xs text-slate-500 mt-1">From ${simulation.startingCapital?.toLocaleString()}</p>
         </div>
       </div>
+
+      {/* Extended Metrics Row */}
+      {(stats.sortinoRatio || stats.calmarRatio || stats.maxConsecutiveWins) && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="bg-slate-800/60 border border-slate-700/40 rounded-lg p-3">
+            <p className="text-xs text-slate-400 mb-1">Sortino Ratio</p>
+            <p className="text-xl font-bold text-indigo-400">{stats.sortinoRatio?.toFixed(4) || '—'}</p>
+            <p className="text-xs text-slate-500 mt-1">Downside-adjusted</p>
+          </div>
+          <div className="bg-slate-800/60 border border-slate-700/40 rounded-lg p-3">
+            <p className="text-xs text-slate-400 mb-1">Calmar Ratio</p>
+            <p className="text-xl font-bold text-cyan-400">{stats.calmarRatio?.toFixed(4) || '—'}</p>
+            <p className="text-xs text-slate-500 mt-1">Return / Max DD</p>
+          </div>
+          <div className="bg-slate-800/60 border border-slate-700/40 rounded-lg p-3">
+            <p className="text-xs text-slate-400 mb-1">Max Consec. Wins</p>
+            <p className="text-xl font-bold text-green-400">{stats.maxConsecutiveWins || 0}</p>
+            <p className="text-xs text-slate-500 mt-1">Best streak</p>
+          </div>
+          <div className="bg-slate-800/60 border border-slate-700/40 rounded-lg p-3">
+            <p className="text-xs text-slate-400 mb-1">Max Consec. Losses</p>
+            <p className="text-xl font-bold text-red-400">{stats.maxConsecutiveLosses || 0}</p>
+            <p className="text-xs text-slate-500 mt-1">Worst streak</p>
+          </div>
+        </div>
+      )}
 
       {/* Toggle Analytics */}
       <div>
