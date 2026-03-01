@@ -227,6 +227,9 @@ export default function Wallet() {
          {/* Admin Balance Public - untuk semua pengguna */}
          <AdminBalancePublic />
 
+         {/* Admin Balance Detail - pie chart & breakdown */}
+         <AdminBalanceDetail />
+
         {/* Multi-Coin Dashboard */}
         <MultiCoinDashboard
           addresses={addresses || { BTC: { address: walletData?.address } }}
