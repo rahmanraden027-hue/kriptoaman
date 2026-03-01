@@ -91,12 +91,7 @@ export default function MultiCoinDashboard({ addresses, onSend, onReceive, onTra
             </>
           )}
 
-          <div className="flex items-center gap-2 mt-4 bg-black/20 rounded-xl px-3 py-2 w-fit">
-            <span className="text-white/70 text-sm font-mono">{truncateAddress(address, 10)}</span>
-            <button onClick={handleCopy} className="text-white/70 hover:text-white transition-colors">
-              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-            </button>
-          </div>
+
         </div>
       </div>
 
