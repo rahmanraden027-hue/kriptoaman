@@ -78,10 +78,43 @@ export default function CreateWallet({ onWalletCreated }) {
         </div>
 
         <div className="flex gap-2 mb-6">
-          {[1, 2, 3].map(s => (
+          {[0, 1, 2, 3].map(s => (
             <div key={s} className={`h-1 flex-1 rounded-full transition-all ${s <= step ? 'bg-orange-500' : 'bg-slate-700'}`} />
           ))}
         </div>
+
+        {step === 0 && (
+          <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-6 space-y-4">
+            <h2 className="text-lg font-semibold text-white">Buat Nama ID Akun</h2>
+            <p className="text-slate-400 text-sm">Nama ID unik Anda di CoinVault. Gunakan huruf, angka, atau underscore.</p>
+            <div className="space-y-2">
+              <Label className="text-slate-300">Nama ID (Username)</Label>
+              <div className="relative">
+                <AtSign className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                <Input
+                  type="text"
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                  placeholder="contoh: satoshi_21"
+                  className="bg-slate-800 border-slate-700 text-white pl-9"
+                  onKeyDown={e => e.key === 'Enter' && handleSetUsername()}
+                  maxLength={24}
+                />
+              </div>
+              <p className="text-slate-600 text-xs">Minimal 3 karakter · Hanya huruf, angka, dan _ · Maks 24 karakter</p>
+            </div>
+            {username.trim().length >= 3 && /^[a-zA-Z0-9_]+$/.test(username.trim()) && (
+              <div className="flex items-center gap-2 text-green-400 text-sm">
+                <Check className="w-4 h-4" />
+                <span>@{username.trim()} tersedia</span>
+              </div>
+            )}
+            {error && <p className="text-red-400 text-sm">{error}</p>}
+            <Button onClick={handleSetUsername} className="w-full bg-orange-500 hover:bg-orange-600 text-white">
+              Lanjut
+            </Button>
+          </div>
+        )}
 
         {step === 1 && (
           <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-6 space-y-4">
