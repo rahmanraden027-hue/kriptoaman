@@ -170,6 +170,21 @@ export default function Wallet() {
         {/* WalletConnect */}
         <WalletConnectPanel />
 
+        {/* Bank Deposit/Withdraw Banner */}
+        <button onClick={() => setShowBankModal(true)}
+          className="w-full flex items-center justify-between px-4 py-3 bg-green-500/10 border border-green-500/20 rounded-2xl hover:bg-green-500/15 transition-colors">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-green-500/20 flex items-center justify-center">
+              <Building2 className="w-4 h-4 text-green-400" />
+            </div>
+            <div className="text-left">
+              <p className="text-green-300 text-sm font-semibold">Deposit & Withdraw IDR</p>
+              <p className="text-green-600 text-[10px]">Tautkan rekening bank · Beli & jual kripto</p>
+            </div>
+          </div>
+          <ArrowRight className="w-4 h-4 text-green-500" />
+        </button>
+
         {/* Quick tip banner for new sessions */}
         <div className="flex items-center gap-2 px-3 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl">
           <span className="text-blue-400 text-xs">💡</span>
