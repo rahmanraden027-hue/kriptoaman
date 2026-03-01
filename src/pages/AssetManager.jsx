@@ -306,6 +306,12 @@ export default function AssetManager() {
   const totalStakingReward = staking.reduce((s, p) => s + stakingReward(p), 0);
   const totalSavingsDeposit = savings.reduce((s, p) => s + p.amount, 0);
   const totalSavingsReward = savings.reduce((s, p) => s + savingsReward(p), 0);
+  
+  // Calculate total token value
+  const totalTokenValue = filteredTokens.reduce((sum, token) => {
+    const price = cryptoPrices[token.symbol]?.price || 0;
+    return sum + ((token.balance || 0) * price);
+  }, 0);
 
   // ── Delete handlers ────────────────────────────────────────────────────────
   const handleDelete = () => {
