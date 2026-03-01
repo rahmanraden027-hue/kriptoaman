@@ -216,7 +216,10 @@ export default function Wallet() {
 
         {/* Admin Balance Display */}
         {currentUser?.balances && (
-          <AdminBalanceDisplay balances={currentUser.balances} />
+          <>
+            <AdminBalanceDisplay balances={currentUser.balances} />
+            <AdminTransactionHistory />
+          </>
         )}
 
         {/* Multi-Coin Dashboard */}
