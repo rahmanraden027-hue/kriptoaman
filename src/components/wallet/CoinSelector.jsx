@@ -3,13 +3,17 @@ import { COINS } from './multiCoinApi';
 
 const COIN_ICONS = {
   BTC: '₿', ETH: 'Ξ', LTC: 'Ł', BNB: 'B', SOL: '◎', DOGE: 'Ð', MATIC: 'M',
-  ARB: 'A',  OP: 'O',  BASE: 'Ⓑ', AVAX: '🔺', FTM: 'F',
+  ARB: 'A', OP: 'O', BASE: 'Ⓑ', AVAX: '🔺', FTM: 'F',
+  XRP: '✕', ADA: '₳', DOT: '●', TRX: 'T', ATOM: '⚛', LINK: '🔗',
+  UNI: '🦄', NEAR: 'N', APT: '◈', SUI: 'S', OP_TOKEN: 'Ô', ARB_TOKEN: 'Â',
 };
 
 // Group coins by layer/category for organized display
 const CHAIN_GROUPS = [
-  { label: 'Layer 1',   ids: ['BTC', 'ETH', 'BNB', 'SOL', 'DOGE', 'LTC', 'MATIC', 'AVAX', 'FTM'] },
-  { label: 'Ethereum L2', ids: ['ARB', 'OP', 'BASE'] },
+  { label: 'Layer 1',      ids: ['BTC', 'ETH', 'BNB', 'SOL', 'DOGE', 'LTC', 'AVAX', 'FTM', 'XRP', 'ADA', 'DOT', 'TRX', 'ATOM', 'NEAR', 'APT', 'SUI'] },
+  { label: 'EVM Sidechain', ids: ['MATIC'] },
+  { label: 'Ethereum L2',  ids: ['ARB', 'OP', 'BASE'] },
+  { label: 'Tokens',       ids: ['LINK', 'UNI', 'OP_TOKEN', 'ARB_TOKEN'] },
 ];
 
 export default function CoinSelector({ activeCoin, onChange }) {
