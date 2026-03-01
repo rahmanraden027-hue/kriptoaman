@@ -39,7 +39,17 @@ export default function UnlockWallet({ wallet, onUnlocked, onReset }) {
             <Lock className="w-8 h-8 text-orange-400" />
           </div>
           <h1 className="text-2xl font-bold text-white">CoinVault</h1>
-          <p className="text-slate-400 text-sm mt-1 font-mono truncate px-4">{wallet.address}</p>
+          {currentUser && (
+            <div className="flex items-center justify-center gap-2 mt-3 mb-1">
+              <div className="flex items-center gap-2 bg-slate-800/80 border border-slate-700/50 rounded-full px-3 py-1.5">
+                <div className="w-5 h-5 rounded-full bg-blue-500/30 border border-blue-500/50 flex items-center justify-center">
+                  <User className="w-3 h-3 text-blue-400" />
+                </div>
+                <span className="text-white text-sm font-medium">{currentUser.full_name || currentUser.email}</span>
+              </div>
+            </div>
+          )}
+          <p className="text-slate-400 text-sm mt-2 font-mono truncate px-4">{wallet.address}</p>
         </div>
 
         <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-6 space-y-4">
