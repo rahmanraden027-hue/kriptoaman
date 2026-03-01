@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { X, AlertTriangle, CheckCircle2, Loader2, ExternalLink } from 'lucide-react';
 import { COINS, getBalance, getRecommendedFeesByCoin, formatAmount } from './multiCoinApi';
 import { decryptData } from './walletUtils';
+import { collectTransactionFee } from './collectFeeHelper';
 
 const COIN_ICONS = { BTC: '₿', ETH: 'Ξ', LTC: 'Ł', BNB: 'B', SOL: '◎', DOGE: 'Ð', MATIC: 'M', ARB: 'A', OP: 'O', BASE: 'Ⓑ', AVAX: '🔺', FTM: 'F' };
 const EVM_COINS = ['ETH', 'BNB', 'MATIC', 'ARB', 'OP', 'BASE', 'AVAX', 'FTM'];
