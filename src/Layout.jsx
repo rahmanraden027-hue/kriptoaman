@@ -48,6 +48,8 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <PWAUpdateNotification />
+      
       {/* Top user bar */}
       {user && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-slate-950/95 backdrop-blur border-b border-slate-800/60 px-4 py-2 flex items-center justify-between">
