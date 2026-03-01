@@ -21,7 +21,8 @@ import PortfolioAnalytics from '../components/wallet/PortfolioAnalytics';
 import CrossChainBridge from '../components/wallet/CrossChainBridge';
 import InlineSwapWidget from '../components/wallet/InlineSwapWidget';
 import DetailedTxHistory from '../components/wallet/DetailedTxHistory';
-import { HelpCircle, Zap, ArrowRight } from 'lucide-react';
+import WalletPersonalization, { usePersonalization } from '../components/wallet/WalletPersonalization';
+import { HelpCircle, ArrowRight, Settings2 } from 'lucide-react';
 
 const ONBOARDING_KEY = 'dex_onboarding_done';
 
