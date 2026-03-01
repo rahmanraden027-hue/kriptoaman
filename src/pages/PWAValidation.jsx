@@ -90,6 +90,10 @@ export default function PWAValidation() {
             <PWASetupGuide />
           </TabsContent>
 
+          <TabsContent value="deployment" className="mt-6">
+            <StoreDeploymentGuide />
+          </TabsContent>
+
           <TabsContent value="resources" className="mt-6">
             <div className="max-w-3xl mx-auto space-y-6">
               <div>
