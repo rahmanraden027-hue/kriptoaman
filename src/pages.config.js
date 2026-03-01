@@ -60,6 +60,7 @@ import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
 import AdminProfitAnalytics from './pages/AdminProfitAnalytics';
 import PWAValidation from './pages/PWAValidation';
+import TermsOfService from './pages/TermsOfService';
 import __Layout from './Layout.jsx';
 
 
@@ -77,6 +78,7 @@ export const PAGES = {
     "Wallet": Wallet,
     "AdminProfitAnalytics": AdminProfitAnalytics,
     "PWAValidation": PWAValidation,
+    "TermsOfService": TermsOfService,
 }
 
 export const pagesConfig = {
