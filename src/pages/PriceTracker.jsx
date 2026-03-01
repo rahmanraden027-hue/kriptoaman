@@ -282,7 +282,7 @@ export default function PriceTracker() {
   const priceRef = useRef({});
   const intervalRef = useRef(null);
 
-  // Init sparklines + try to load real prices from Binance WS
+  // Init sparklines with base prices
   useEffect(() => {
     const sp = {};
     ALL_COINS.forEach(c => { sp[c.id] = generateSparkline(BASE_PRICES[c.id] || 1); });
@@ -293,33 +293,49 @@ export default function PriceTracker() {
     });
     setLivePrices(initial);
     priceRef.current = initial;
+  }, []);
 
-    // Connect to Binance WS for real prices
-    const streams = ALL_COINS
-      .filter(c => c.coingecko)
-      .map(c => `${c.id.toLowerCase()}usdt@ticker`)
-      .join('/');
-    try {
+  // Binance WebSocket for real-time prices
+  useEffect(() => {
+    const mountedRef = { current: true };
+    const reconnectRef = { current: null };
+
+    function connect() {
+      if (!mountedRef.current) return;
+      const streams = ALL_COINS.map(c => `${c.id.toLowerCase()}usdt@ticker`).join('/');
       const ws = new WebSocket(`wss://stream.binance.com:9443/stream?streams=${streams}`);
+
       ws.onmessage = (e) => {
         try {
           const msg = JSON.parse(e.data);
           const d = msg?.data;
           if (!d?.s) return;
           const id = d.s.replace('USDT', '');
-          const coin = ALL_COINS.find(c => c.id === id);
-          if (!coin) return;
+          if (!ALL_COINS.find(c => c.id === id)) return;
           const price = parseFloat(d.c);
           const change24h = parseFloat(d.P);
           if (isNaN(price)) return;
+          if (!mountedRef.current) return;
           setLivePrices(prev => ({
             ...prev,
-            [id]: { ...prev[id], price, change24h, tick: price > (prev[id]?.price || 0) ? 'up' : 'down' },
+            [id]: { price, change24h, tick: price > (prev[id]?.price || 0) ? 'up' : 'down' },
           }));
         } catch {}
       };
-      return () => ws.close();
-    } catch {}
+
+      ws.onclose = () => {
+        if (mountedRef.current) reconnectRef.current = setTimeout(connect, 5000);
+      };
+      ws.onerror = () => ws.close();
+      return ws;
+    }
+
+    const ws = connect();
+    return () => {
+      mountedRef.current = false;
+      clearTimeout(reconnectRef.current);
+      ws?.close();
+    };
   }, []);
 
   // Real-time price updates
