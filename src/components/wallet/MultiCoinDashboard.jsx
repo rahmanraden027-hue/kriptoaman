@@ -5,6 +5,7 @@ import useRealtimePrices from './useRealtimePrices';
 import { truncateAddress } from './walletUtils';
 import { ArrowUpRight, ArrowDownLeft, RefreshCw, Copy, Check, LogOut, BarChart2, TrendingUp, TrendingDown, ArrowLeftRight } from 'lucide-react';
 import CoinSelector from './CoinSelector';
+import MiniPriceChart from './MiniPriceChart';
 
 const COIN_ICONS = { BTC: '₿', ETH: 'Ξ', LTC: 'Ł', BNB: 'B', SOL: '◎', DOGE: 'Ð', MATIC: 'M' };
 
