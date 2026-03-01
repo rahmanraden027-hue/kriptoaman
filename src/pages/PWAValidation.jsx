@@ -3,7 +3,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PWAInstallPrompt from '../components/pwa/PWAInstallPrompt';
 import PWAReadinessChecklist from '../components/pwa/PWAReadinessChecklist';
 import PWASetupGuide from '../components/pwa/PWASetupGuide';
-import { CheckCircle2, AlertCircle, BookOpen, Zap } from 'lucide-react';
+import StoreDeploymentGuide from '../components/pwa/StoreDeploymentGuide';
+import { CheckCircle2, AlertCircle, BookOpen, Zap, Package } from 'lucide-react';
 
 export default function PWAValidation() {
   const [activeTab, setActiveTab] = useState('checklist');
