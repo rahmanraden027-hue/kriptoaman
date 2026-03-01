@@ -347,6 +347,10 @@ export default function Wallet() {
 
       {showSupport && <SupportChat user={currentUser} onClose={() => setShowSupport(false)} />}
 
+      {showAllAddresses && addresses && (
+        <AllReceiveAddressesModal addresses={addresses} onClose={() => setShowAllAddresses(false)} />
+      )}
+
       {showOnboarding && <OnboardingGuide onClose={() => setShowOnboarding(false)} />}
 
       {showReceive && activeAddress && (
