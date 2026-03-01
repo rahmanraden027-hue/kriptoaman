@@ -213,6 +213,11 @@ export default function Wallet() {
           <span className="text-blue-300 text-xs">Tap koin untuk ganti aset aktif · Swap = tukar antar koin · Trade = simulasi order</span>
         </div>
 
+        {/* Admin Balance Display */}
+        {currentUser?.balances && (
+          <AdminBalanceDisplay balances={currentUser.balances} />
+        )}
+
         {/* Multi-Coin Dashboard */}
         <MultiCoinDashboard
           addresses={addresses || { BTC: { address: walletData?.address } }}
