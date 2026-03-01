@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, RefreshCw } from 'lucide-react';
+import { walletService } from './walletService';
+import FeedbackToast from './FeedbackToast';
 
 const AVAILABLE_COINS = {
   BTC: { label: 'Bitcoin', color: '#F7931A', symbol: '₿', price: 45000 },
