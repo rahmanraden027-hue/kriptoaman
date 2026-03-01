@@ -413,8 +413,8 @@ export default function AssetManager() {
           )}
 
           {(showStaking || showSavings) && activeTab !== 'tokens' && (
-            <div className="flex items-center gap-2">
-              <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide flex-1 min-w-0">
                 {['all', 'ETH', 'SOL', 'BNB', 'Ethereum', 'Solana', 'BNB Chain', 'Multi-chain'].map(n => (
                   <Pill key={n} active={networkFilter === n} onClick={() => setNetworkFilter(n)}>
                     {n === 'all' ? 'Semua' : n}
@@ -426,6 +426,16 @@ export default function AssetManager() {
                 className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border transition-all shrink-0 ${apySort !== 'none' ? 'bg-blue-600 border-blue-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>
                 <ArrowUpDown className="w-3 h-3" />
                 APY {apySort === 'desc' ? '↓' : apySort === 'asc' ? '↑' : ''}
+              </button>
+            </div>
+          )}
+          {(showTokens && activeTab !== 'staking' && activeTab !== 'savings') && (
+            <div className="flex gap-1.5">
+              <button
+                onClick={() => setSortByValue(s => s === 'desc' ? 'asc' : s === 'asc' ? 'none' : 'desc')}
+                className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border transition-all ${sortByValue !== 'none' ? 'bg-blue-600 border-blue-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>
+                <ArrowUpDown className="w-3 h-3" />
+                Nilai {sortByValue === 'desc' ? '↓' : sortByValue === 'asc' ? '↑' : ''}
               </button>
             </div>
           )}
