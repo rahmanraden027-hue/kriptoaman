@@ -37,7 +37,21 @@ export default function Wallet() {
   const [showSwap, setShowSwap] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showBridge, setShowBridge] = useState(false);
+  const [showPersonalize, setShowPersonalize] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  const { prefs, toggleSection, toggleCoin, moveSectionUp, moveSectionDown, update, reset } = usePersonalization();
+
+  // Helper: is a section visible?
+  const sec = (id) => (prefs.sections.find(s => s.id === id)?.visible !== false);
+
+  // Light theme classes
+  const isLight = prefs.theme === 'light';
+  const bg = isLight
+    ? 'min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-100'
+    : 'min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950';
+  const cardBg = isLight ? 'bg-white/80 border-slate-200' : 'bg-slate-800/30 border-slate-700/30';
+  const textMain = isLight ? 'text-slate-900' : 'text-white';
 
   const btcAddress = addresses?.BTC?.address || walletData?.address;
   const { notifications, unread, markAllRead, dismiss, addNotif, pushEnabled, enablePush } = useNotifications(btcAddress);
