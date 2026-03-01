@@ -271,6 +271,8 @@ export default function Wallet() {
         />
       )}
 
+      {showBankModal && <BankDepositWithdrawModal onClose={() => setShowBankModal(false)} />}
+
       {showOnboarding && <OnboardingGuide onClose={() => setShowOnboarding(false)} />}
 
       {showReceive && activeAddress && (
