@@ -3,7 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { verifyPassword, clearWallet } from './walletUtils';
-import { Lock, Eye, EyeOff, Trash2 } from 'lucide-react';
+import { Lock, Eye, EyeOff, Trash2, User } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
+import { useEffect, useState as useStateAlias } from 'react';
 
 export default function UnlockWallet({ wallet, onUnlocked, onReset }) {
   const [password, setPassword] = useState('');
