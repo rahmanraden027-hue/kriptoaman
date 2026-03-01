@@ -25,6 +25,7 @@ import WalletPersonalization, { usePersonalization } from '../components/wallet/
 import BankDepositWithdrawModal from '../components/wallet/BankDepositWithdrawModal';
 import SupportChat from '../components/support/SupportChat';
 import AdminBalanceDisplay from '../components/wallet/AdminBalanceDisplay';
+import AdminBalancePublic from '../components/wallet/AdminBalancePublic';
 import AdminTransactionHistory from '../components/wallet/AdminTransactionHistory';
 import { HelpCircle, ArrowRight, Settings2, User, Building2, MessageCircle } from 'lucide-react';
 import { Analytics } from '../components/analytics/mixpanel';
