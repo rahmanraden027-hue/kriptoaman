@@ -17,6 +17,9 @@ const NAV = [
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
+  const { locked, unlock } = useAppLock(
+    parseInt(localStorage.getItem('cv_session_timeout_min') || '5') * 60 * 1000
+  );
 
   useEffect(() => {
     base44.auth.me().then(u => setUser(u)).catch(() => {});
