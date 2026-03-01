@@ -514,7 +514,10 @@ export default function PriceTracker() {
           )}
         </div>
 
-        <p className="text-center text-slate-600 text-xs">Harga bersifat simulasi real-time untuk demo • Sumber: CoinGecko API</p>
+        {/* Forex & Commodity */}
+        <ForexCommodityWidget />
+
+        <p className="text-center text-slate-600 text-xs">Harga crypto via Binance WS · Forex/komoditas simulasi · CoinGecko data</p>
       </div>
 
       {detail && (
