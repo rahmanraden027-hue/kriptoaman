@@ -40,6 +40,11 @@ export default function Wallet() {
   const [showBridge, setShowBridge] = useState(false);
   const [showPersonalize, setShowPersonalize] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(u => setCurrentUser(u)).catch(() => {});
+  }, []);
 
   const { prefs, toggleSection, toggleCoin, moveSectionUp, moveSectionDown, update, reset } = usePersonalization();
 
