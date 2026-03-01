@@ -235,13 +235,17 @@ export default function AssetManager() {
   const filteredTokens = useMemo(() => {
     let list = tokens;
     if (chainFilter !== 'all') list = list.filter(t => t.chain === chainFilter);
+    if (categoryFilter !== 'all') list = list.filter(t => (t.category || 'crypto') === categoryFilter);
     if (search) list = list.filter(t =>
       t.symbol?.toLowerCase().includes(search.toLowerCase()) ||
       t.name?.toLowerCase().includes(search.toLowerCase()) ||
       t.contract?.toLowerCase().includes(search.toLowerCase())
     );
+    if (sortByValue !== 'none') {
+      list = [...list].sort((a, b) => sortByValue === 'desc' ? (b.balance || 0) - (a.balance || 0) : (a.balance || 0) - (b.balance || 0));
+    }
     return list;
-  }, [tokens, chainFilter, search]);
+  }, [tokens, chainFilter, categoryFilter, search, sortByValue]);
 
   const filteredStaking = useMemo(() => {
     let list = staking;
