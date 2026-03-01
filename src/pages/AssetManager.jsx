@@ -485,7 +485,7 @@ export default function AssetManager() {
             ) : (
               <div className="space-y-2">
                 {filteredTokens.map(token => (
-                  <TokenRow key={token.id} token={token}
+                  <TokenRow key={token.id} token={token} cryptoPrices={cryptoPrices}
                     onRemove={id => setDeleteConfirm({ type: 'token', id, label: token.symbol })} />
                 ))}
               </div>
