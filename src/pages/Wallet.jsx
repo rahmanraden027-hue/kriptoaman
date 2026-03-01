@@ -98,7 +98,7 @@ export default function Wallet() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className={bg}>
       <div className="max-w-md mx-auto p-4 pb-8 space-y-5">
 
         {/* Header */}
@@ -112,7 +112,7 @@ export default function Wallet() {
               </svg>
             </div>
             <div>
-              <span className="text-white font-bold text-base tracking-wide">COINVAULT</span>
+              <span className={`font-bold text-base tracking-wide ${textMain}`}>COINVAULT</span>
               <div className="flex items-center gap-1">
                 <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
                 <span className="text-green-400 text-[10px] font-medium">Mainnet · Live</span>
@@ -120,8 +120,14 @@ export default function Wallet() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button onClick={() => setShowPersonalize(true)}
+              className={`p-1.5 rounded-lg border transition-colors ${isLight ? 'bg-white border-slate-200 text-slate-500 hover:text-slate-900' : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'}`}
+              title="Personalisasi">
+              <Settings2 className="w-4 h-4" />
+            </button>
             <button onClick={() => setShowOnboarding(true)}
-              className="p-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-white transition-colors" title="Panduan">
+              className={`p-1.5 rounded-lg border transition-colors ${isLight ? 'bg-white border-slate-200 text-slate-500 hover:text-slate-900' : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'}`}
+              title="Panduan">
               <HelpCircle className="w-4 h-4" />
             </button>
             <NotificationCenter
