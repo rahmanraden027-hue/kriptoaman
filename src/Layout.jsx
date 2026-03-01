@@ -24,6 +24,7 @@ export default function Layout({ children, currentPageName }) {
   const { locked, unlock } = useAppLock(
     parseInt(localStorage.getItem('cv_session_timeout_min') || '5') * 60 * 1000
   );
+  const { swReady } = usePWAInitializer();
 
   useEffect(() => {
     initAnalytics();
