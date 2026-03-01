@@ -15,8 +15,41 @@ const NAV = [
 ];
 
 export default function Layout({ children, currentPageName }) {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(u => setUser(u)).catch(() => {});
+  }, []);
+
+  const initials = user?.full_name
+    ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : user?.email?.[0]?.toUpperCase() || '';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      {/* Top user bar */}
+      {user && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-slate-950/95 backdrop-blur border-b border-slate-800/60 px-4 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="white" strokeWidth="2.5"/><path d="M9 8.5C9 8.5 9 7 11 7C13 7 14.5 8 14.5 10C14.5 12 12.5 12.5 12 13C11.5 13.5 11.5 14.5 11.5 14.5" stroke="white" strokeWidth="2" strokeLinecap="round"/><circle cx="11.5" cy="17" r="1" fill="white"/></svg>
+            </div>
+            <span className="text-white text-xs font-bold tracking-wider">COINVAULT</span>
+          </div>
+          <Link to={createPageUrl('Settings')}
+            className="flex items-center gap-2 px-2.5 py-1 bg-slate-800 border border-slate-700/50 rounded-full hover:bg-slate-700 transition-colors">
+            <div className="w-5 h-5 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-[9px] font-bold">
+              {initials}
+            </div>
+            <span className="text-white text-[11px] font-semibold max-w-[120px] truncate">{user.full_name || user.email}</span>
+            <span className="text-slate-500 text-[9px] capitalize bg-slate-700 px-1.5 py-0.5 rounded-full">{user.role || 'user'}</span>
+          </Link>
+        </div>
+      )}
+
+      {/* Push content down if top bar is visible */}
+      {user && <div className="h-10" />}
+
       {children}
 
       {/* Bottom Nav */}
