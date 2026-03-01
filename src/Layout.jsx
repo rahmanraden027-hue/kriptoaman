@@ -6,6 +6,7 @@ import { base44 } from '@/api/base44Client';
 import { PinUnlock, useAppLock } from './components/security/PinLock';
 import { initAnalytics, identifyUser, Analytics } from './components/analytics/mixpanel';
 import LiveTickerBar from './components/market/LiveTickerBar';
+import { usePWAInitializer, PWAUpdateNotification } from './components/pwa/PWAInitializer';
 
 const NAV = [
   { label: 'Portfolio', page: 'PortfolioOverview', icon: BarChart3 },
