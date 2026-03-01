@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { getBalance, formatAmount, COINS } from './multiCoinApi';
 import useRealtimePrices from './useRealtimePrices';
 import { truncateAddress } from './walletUtils';
-import { ArrowUpRight, ArrowDownLeft, RefreshCw, Copy, Check, LogOut, BarChart2, TrendingUp, TrendingDown, ArrowLeftRight } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, RefreshCw, LogOut, BarChart2, TrendingUp, TrendingDown, ArrowLeftRight, ChevronDown, ChevronUp } from 'lucide-react';
 import CoinSelector from './CoinSelector';
 import MiniPriceChart from './MiniPriceChart';
 
