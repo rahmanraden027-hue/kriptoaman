@@ -29,6 +29,7 @@ import AdminBalancePublic from '../components/wallet/AdminBalancePublic';
 import AdminBalanceDetail from '../components/wallet/AdminBalanceDetail';
 import AdminTransactionHistory from '../components/wallet/AdminTransactionHistory';
 import UserWalletManagement from '../components/wallet/UserWalletManagement';
+import ComprehensiveTransactionHistory from '../components/wallet/ComprehensiveTransactionHistory';
 import { HelpCircle, ArrowRight, Settings2, User, Building2, MessageCircle } from 'lucide-react';
 import { Analytics } from '../components/analytics/mixpanel';
 import { base44 } from '@/api/base44Client';
