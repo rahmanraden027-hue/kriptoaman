@@ -205,8 +205,80 @@ export default function SecuritySection() {
     setDisableError('');
   };
 
+  if (showPinSetup) {
+    return <PinSetup onDone={() => { setPinEnabled(true); setShowPinSetup(false); }} onCancel={() => setShowPinSetup(false)} />;
+  }
+
   return (
     <div className="space-y-6">
+
+      {/* PIN Lock Card */}
+      <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${pinEnabled ? 'bg-blue-500/20' : 'bg-slate-700'}`}>
+              <Lock className={`w-5 h-5 ${pinEnabled ? 'text-blue-400' : 'text-slate-400'}`} />
+            </div>
+            <div>
+              <p className="text-white font-semibold text-sm">Kunci PIN Aplikasi</p>
+              <p className={`text-xs font-semibold ${pinEnabled ? 'text-blue-400' : 'text-slate-500'}`}>
+                {pinEnabled ? '✓ Aktif · 6 Digit PIN' : 'Belum aktif'}
+              </p>
+            </div>
+          </div>
+          {pinEnabled
+            ? <Button size="sm" variant="outline" onClick={disablePin} className="border-red-500/40 text-red-400 hover:bg-red-500/10 text-xs">Nonaktifkan</Button>
+            : <Button size="sm" onClick={() => setShowPinSetup(true)} className="bg-blue-600 hover:bg-blue-700 text-white text-xs">Aktifkan</Button>
+          }
+        </div>
+
+        {!pinEnabled && (
+          <div className="flex items-start gap-2 bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3">
+            <AlertTriangle className="w-3.5 h-3.5 text-yellow-400 shrink-0 mt-0.5" />
+            <p className="text-yellow-300 text-xs">Aktifkan PIN untuk mencegah akses tidak sah ke aplikasi. Diperlukan untuk App Store & Play Store.</p>
+          </div>
+        )}
+
+        {pinEnabled && (
+          <>
+            {/* Biometric */}
+            <div className="flex items-center justify-between pt-2 border-t border-slate-700/30">
+              <div className="flex items-center gap-2">
+                <Fingerprint className={`w-4 h-4 ${biometricEnabled ? 'text-green-400' : 'text-slate-500'}`} />
+                <div>
+                  <p className="text-white text-sm font-medium">Biometrik (Face ID / Fingerprint)</p>
+                  <p className="text-slate-500 text-[10px]">Buka kunci dengan wajah atau sidik jari</p>
+                </div>
+              </div>
+              <button onClick={toggleBiometric}
+                className={`w-11 h-6 rounded-full transition-all relative ${biometricEnabled ? 'bg-green-500' : 'bg-slate-700'}`}>
+                <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${biometricEnabled ? 'left-5.5 translate-x-0' : 'left-0.5'}`}
+                  style={{ left: biometricEnabled ? '1.375rem' : '0.125rem' }} />
+              </button>
+            </div>
+
+            {/* Session timeout */}
+            <div className="flex items-center justify-between pt-2 border-t border-slate-700/30">
+              <div className="flex items-center gap-2">
+                <Timer className="w-4 h-4 text-slate-400" />
+                <div>
+                  <p className="text-white text-sm font-medium">Auto-Lock Setelah</p>
+                  <p className="text-slate-500 text-[10px]">Kunci otomatis saat tidak aktif</p>
+                </div>
+              </div>
+              <select
+                value={sessionTimeout}
+                onChange={e => handleSessionTimeoutChange(parseInt(e.target.value))}
+                className="bg-slate-700 border border-slate-600 text-white text-xs rounded-lg px-2 py-1.5"
+              >
+                {[1, 2, 5, 10, 15, 30].map(n => (
+                  <option key={n} value={n}>{n} menit</option>
+                ))}
+              </select>
+            </div>
+          </>
+        )}
+      </div>
 
       {/* 2FA Card */}
       <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5 space-y-4">
