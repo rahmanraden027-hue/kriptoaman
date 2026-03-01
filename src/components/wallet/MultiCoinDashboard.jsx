@@ -34,11 +34,6 @@ export default function MultiCoinDashboard({ addresses, onSend, onReceive, onTra
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  const handleCopy = () => {
-    const addr = addresses[activeCoin]?.address;
-    if (addr) { navigator.clipboard.writeText(addr); setCopied(true); setTimeout(() => setCopied(false), 2000); }
-  };
-
   const coin = COINS[activeCoin];
   const address = addresses[activeCoin]?.address || '';
   const bal = balances[activeCoin];
