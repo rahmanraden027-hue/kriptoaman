@@ -51,6 +51,7 @@ export default function Wallet() {
   const [showPersonalize, setShowPersonalize] = useState(false);
   const [showBankModal, setShowBankModal] = useState(false);
   const [showSupport, setShowSupport] = useState(false);
+  const [showAllAddresses, setShowAllAddresses] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [currentUser, setCurrentUser] = useState(null);
 
