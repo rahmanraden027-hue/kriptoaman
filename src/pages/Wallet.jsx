@@ -40,6 +40,7 @@ export default function Wallet() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showBridge, setShowBridge] = useState(false);
   const [showPersonalize, setShowPersonalize] = useState(false);
+  const [showBankModal, setShowBankModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [currentUser, setCurrentUser] = useState(null);
 
