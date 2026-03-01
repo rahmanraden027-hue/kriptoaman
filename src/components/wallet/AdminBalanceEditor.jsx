@@ -38,6 +38,7 @@ export default function AdminBalanceEditor() {
     setSaving(true);
     try {
       await base44.auth.updateMe({ balances });
+      setUser(u => ({ ...u, balances }));
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (error) {
