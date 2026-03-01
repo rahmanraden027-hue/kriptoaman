@@ -84,7 +84,7 @@ function CategoryBadge({ category }) {
 }
 
 // ── Token Row ─────────────────────────────────────────────────────────────────
-function TokenRow({ token, onRemove }) {
+function TokenRow({ token, onRemove, cryptoPrices = {} }) {
   const CHAIN_COLORS = {
     ETH: '#627EEA', BNB: '#F0B90B', MATIC: '#8247E5',
     ARB: '#28A0F0', OP: '#FF0420', BASE: '#0052FF',
@@ -92,6 +92,14 @@ function TokenRow({ token, onRemove }) {
   };
   const color = CHAIN_COLORS[token.chain] || '#94a3b8';
   const category = token.category || 'crypto';
+  
+  const { data: marketData } = useTokenMarketData(token.contract);
+  const price = marketData?.price || cryptoPrices[token.symbol]?.price || 0;
+  const change24h = marketData?.change24h || cryptoPrices[token.symbol]?.change24h || 0;
+  const marketCap = marketData?.marketCap;
+  
+  const tokenValue = (token.balance || 0) * price;
+  const isPositive = change24h >= 0;
 
   return (
     <div className="flex items-center gap-3 bg-slate-800/50 border border-slate-700/40 rounded-xl p-3 group">
@@ -104,14 +112,28 @@ function TokenRow({ token, onRemove }) {
           <span className="text-white text-sm font-semibold truncate">{token.symbol}</span>
           <CategoryBadge category={category} />
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 mb-1">
           <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ background: color + '22', color }}>{token.chain}</span>
           <p className="text-slate-500 text-xs truncate">{token.name}</p>
         </div>
+        {price > 0 && (
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <span>${price.toLocaleString('en-US', { maximumFractionDigits: 4 })}</span>
+            <div className={`flex items-center gap-0.5 ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+              {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+              <span>{Math.abs(change24h).toFixed(2)}%</span>
+            </div>
+          </div>
+        )}
       </div>
       <div className="text-right shrink-0">
         <p className="text-white text-sm font-bold">{(token.balance || 0).toFixed(4)}</p>
-        <p className="text-slate-500 text-[10px] truncate max-w-[90px]">{token.contract?.slice(0, 8)}…</p>
+        {tokenValue > 0 && (
+          <p className="text-slate-400 text-xs">${tokenValue.toLocaleString('en-US', { maximumFractionDigits: 2 })}</p>
+        )}
+        {marketCap && (
+          <p className="text-slate-600 text-[10px]">Cap: ${(marketCap / 1e9).toFixed(2)}B</p>
+        )}
       </div>
       <button onClick={() => onRemove(token.id)}
         className="ml-1 p-1.5 rounded-lg text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100">
