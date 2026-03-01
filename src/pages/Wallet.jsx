@@ -220,6 +220,29 @@ export default function Wallet() {
           <span className="text-blue-300 text-xs">Tap koin untuk ganti aset aktif · Swap = tukar antar koin · Trade = simulasi order</span>
         </div>
 
+        {/* All Receive Addresses Button */}
+        {addresses && Object.keys(addresses).length > 0 && (
+          <button
+            onClick={() => setShowAllAddresses(true)}
+            className="w-full flex items-center justify-between px-4 py-3 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl hover:bg-indigo-500/15 transition-colors"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-indigo-500/20 flex items-center justify-center">
+                <svg className="w-4 h-4 text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
+                </svg>
+              </div>
+              <div className="text-left">
+                <p className="text-indigo-300 text-sm font-semibold">Terbitkan Alamat Penerima</p>
+                <p className="text-indigo-600 text-[10px]">Lihat semua alamat terima untuk setiap koin</p>
+              </div>
+            </div>
+            <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        )}
+
         {/* Admin Balance Display - untuk admin */}
          {currentUser?.balances && (
            <>
