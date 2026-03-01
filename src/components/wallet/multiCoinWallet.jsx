@@ -89,6 +89,7 @@ export async function deriveAllAddresses(mnemonic) {
   return {
     BTC:  { address: pubkeyToP2PKH(btcChild.publicKey),      publicKey: bytesToHex(btcChild.publicKey) },
     ETH:  evmEntry,
+    USDT: evmEntry, // USDT is ERC-20 on Ethereum, uses same address
     BNB:  evmEntry,
     MATIC:evmEntry,
     ARB:  evmEntry,
