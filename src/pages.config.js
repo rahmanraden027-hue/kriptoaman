@@ -59,6 +59,7 @@ import TradingAnalytics from './pages/TradingAnalytics';
 import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
 import AdminProfitAnalytics from './pages/AdminProfitAnalytics';
+import PWAValidation from './pages/PWAValidation';
 import __Layout from './Layout.jsx';
 
 
@@ -75,6 +76,7 @@ export const PAGES = {
     "TxHistory": TxHistory,
     "Wallet": Wallet,
     "AdminProfitAnalytics": AdminProfitAnalytics,
+    "PWAValidation": PWAValidation,
 }
 
 export const pagesConfig = {
