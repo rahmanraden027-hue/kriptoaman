@@ -53,7 +53,8 @@ export default function Settings() {
   const tabs = [
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'preferences', label: 'Preferences', icon: Bell },
-    { id: 'integrations', label: 'Integrations', icon: Lock }
+    { id: 'integrations', label: 'Integrations', icon: Lock },
+    { id: 'security', label: 'Keamanan', icon: Shield },
   ];
 
   return (
