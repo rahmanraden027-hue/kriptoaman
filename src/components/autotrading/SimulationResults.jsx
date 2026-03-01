@@ -175,7 +175,10 @@ Trade ${i + 1}:
         <>
           <AnalyticsDashboard simulation={simulation} />
           {simulation.monteCarloStats && (
-            <MonteCarloAnalytics monteCarloStats={simulation.monteCarloStats} />
+            <MonteCarloAnalytics monteCarloStats={simulation.monteCarloStats} startingCapital={simulation.startingCapital} />
+          )}
+          {simulation.walkForwardResults && (
+            <WalkForwardResults walkForwardResults={simulation.walkForwardResults} />
           )}
         </>
       )}
