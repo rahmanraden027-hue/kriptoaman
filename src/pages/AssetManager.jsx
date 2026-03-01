@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
   Search, Plus, Trash2, Filter, Coins, Lock, PiggyBank,
   ExternalLink, RefreshCw, X, ChevronDown, TrendingUp,
-  AlertTriangle, CheckCircle2, ArrowUpDown
+  AlertTriangle, CheckCircle2, ArrowUpDown, TrendingDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import AddTokenModal from '../components/wallet/AddTokenModal';
 import {
   loadCustomTokens, removeCustomToken, EVM_CHAINS
 } from '../components/wallet/customTokens';
+import { useTokenMarketData, useCryptoPrices } from '../components/wallet/useMarketData';
 
 // ── Storage keys ──────────────────────────────────────────────────────────────
 const STAKING_KEY = 'wallet_staking_positions_v2';
