@@ -187,6 +187,7 @@ export default function SwapModal({ addresses, onClose }) {
     try {
       const addr = await getInboundAddress(fromCoin);
       setInboundAddr(addr || 'bc1q...thorchain-vault');
+      Analytics.swapStarted(fromCoin, toCoin);
       setStep('confirm');
     } catch {
       setError('Gagal mendapatkan vault address. Coba lagi.');
@@ -195,7 +196,10 @@ export default function SwapModal({ addresses, onClose }) {
     }
   };
 
-  const handleExecute = () => setStep('success');
+  const handleExecute = () => {
+    Analytics.swapConfirmed(fromCoin, toCoin, parseFloat(amount), amountUSD);
+    setStep('success');
+  };
 
   const memo = destAddress ? buildSwapMemo(SWAP_COINS[toCoin].asset, destAddress) : '';
   const fromPrice = prices[fromCoin]?.price || 0;
