@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, User, Bell, Lock, Loader2 } from 'lucide-react';
+import { ArrowLeft, User, Bell, Lock, Shield, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
 import ProfileSection from '../components/settings/ProfileSection';
 import PreferencesSection from '../components/settings/PreferencesSection';
 import IntegrationsSection from '../components/settings/IntegrationsSection';
+import SecuritySection from '../components/settings/SecuritySection';
 
 export default function Settings() {
   const [user, setUser] = useState(null);
