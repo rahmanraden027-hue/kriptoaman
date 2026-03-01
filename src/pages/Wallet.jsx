@@ -235,6 +235,9 @@ export default function Wallet() {
          {/* User Wallet Management - user's own test assets */}
          <UserWalletManagement />
 
+         {/* Comprehensive Transaction History */}
+         <ComprehensiveTransactionHistory />
+
         {/* Multi-Coin Dashboard */}
         <MultiCoinDashboard
           addresses={addresses || { BTC: { address: walletData?.address } }}
