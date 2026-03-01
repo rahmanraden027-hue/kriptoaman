@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Wallet, Activity, Coins, Clock, Zap, Settings, BarChart3, LayoutGrid } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { PinUnlock, useAppLock } from './components/security/PinLock';
 
 const NAV = [
   { label: 'Portfolio', page: 'PortfolioOverview', icon: BarChart3 },
