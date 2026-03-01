@@ -191,7 +191,7 @@ export default function Wallet() {
         <WalletConnectPanel />
 
         {/* Bank Deposit/Withdraw Banner */}
-        <button onClick={() => setShowBankModal(true)}
+        <button onClick={() => { setShowBankModal(true); Analytics.bankModalOpened(); }}
           className="w-full flex items-center justify-between px-4 py-3 bg-green-500/10 border border-green-500/20 rounded-2xl hover:bg-green-500/15 transition-colors">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-green-500/20 flex items-center justify-center">
