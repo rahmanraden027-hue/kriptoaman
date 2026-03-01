@@ -5,6 +5,7 @@ import { Wallet, Activity, Coins, Clock, Zap, Settings, BarChart3, LayoutGrid } 
 import { base44 } from '@/api/base44Client';
 import { PinUnlock, useAppLock } from './components/security/PinLock';
 import { initAnalytics, identifyUser, Analytics } from './components/analytics/mixpanel';
+import LiveTickerBar from './components/market/LiveTickerBar';
 
 const NAV = [
   { label: 'Portfolio', page: 'PortfolioOverview', icon: BarChart3 },
@@ -64,8 +65,14 @@ export default function Layout({ children, currentPageName }) {
         </div>
       )}
 
+      {/* Live market ticker */}
+      <div className={`fixed ${user ? 'top-10' : 'top-0'} left-0 right-0 z-40`}>
+        <LiveTickerBar />
+      </div>
+
       {/* Push content down if top bar is visible */}
       {user && <div className="h-10" />}
+      <div className="h-8" />{/* ticker bar height */}
 
       {children}
 

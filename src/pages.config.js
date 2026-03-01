@@ -52,11 +52,11 @@ import AutoTrading from './pages/AutoTrading';
 import DEXSavings from './pages/DEXSavings';
 import PortfolioOverview from './pages/PortfolioOverview';
 import PriceTracker from './pages/PriceTracker';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import Settings from './pages/Settings';
 import TradingAnalytics from './pages/TradingAnalytics';
 import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
-import PrivacyPolicy from './pages/PrivacyPolicy';
 import __Layout from './Layout.jsx';
 
 
@@ -66,11 +66,11 @@ export const PAGES = {
     "DEXSavings": DEXSavings,
     "PortfolioOverview": PortfolioOverview,
     "PriceTracker": PriceTracker,
+    "PrivacyPolicy": PrivacyPolicy,
     "Settings": Settings,
     "TradingAnalytics": TradingAnalytics,
     "TxHistory": TxHistory,
     "Wallet": Wallet,
-    "PrivacyPolicy": PrivacyPolicy,
 }
 
 export const pagesConfig = {
