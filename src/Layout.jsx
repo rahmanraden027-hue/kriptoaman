@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Wallet, Activity, Coins, Clock, Zap, Settings, BarChart3 } from 'lucide-react';
+import { Wallet, Activity, Coins, Clock, Zap, Settings, BarChart3, LayoutGrid } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const NAV = [
   { label: 'Portfolio', page: 'PortfolioOverview', icon: BarChart3 },
   { label: 'Wallet', page: 'Wallet', icon: Wallet },
   { label: 'DEX & Savings', page: 'DEXSavings', icon: Coins },
+  { label: 'Aset', page: 'AssetManager', icon: LayoutGrid },
   { label: 'Auto-Trade', page: 'AutoTrading', icon: Zap },
-  { label: 'Analytics', page: 'TradingAnalytics', icon: Activity },
   { label: 'Riwayat', page: 'TxHistory', icon: Clock },
   { label: 'Settings', page: 'Settings', icon: Settings },
 ];
@@ -53,14 +53,14 @@ export default function Layout({ children, currentPageName }) {
       {children}
 
       {/* Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur border-t border-slate-800 flex justify-around py-2 px-4 safe-area-pb">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur border-t border-slate-800 flex justify-around py-2 px-1 safe-area-pb">
         {NAV.map(({ label, page, icon: Icon }) => {
           const active = currentPageName === page;
           return (
             <Link key={page} to={createPageUrl(page)}
-              className={`flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-all ${active ? 'text-blue-400' : 'text-slate-500 hover:text-slate-300'}`}>
+              className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${active ? 'text-blue-400' : 'text-slate-500 hover:text-slate-300'}`}>
               <Icon className={`w-5 h-5 ${active ? 'text-blue-400' : ''}`} />
-              <span className={`text-[10px] font-semibold ${active ? 'text-blue-400' : ''}`}>{label}</span>
+              <span className={`text-[9px] font-semibold ${active ? 'text-blue-400' : ''}`}>{label}</span>
             </Link>
           );
         })}
