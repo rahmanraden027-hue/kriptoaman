@@ -81,11 +81,15 @@ export default function Wallet() {
         {/* Header */}
         <div className="pt-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
-              <Zap className="w-4 h-4 text-white" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="9" stroke="white" strokeWidth="2"/>
+                <path d="M9 8.5C9 8.5 9 7 11 7C13 7 14.5 8 14.5 10C14.5 12 12.5 12.5 12 13C11.5 13.5 11.5 14.5 11.5 14.5" stroke="white" strokeWidth="1.8" strokeLinecap="round"/>
+                <circle cx="11.5" cy="17" r="1" fill="white"/>
+              </svg>
             </div>
             <div>
-              <span className="text-white font-bold text-base">DEX Wallet</span>
+              <span className="text-white font-bold text-base tracking-wide">COINVAULT</span>
               <div className="flex items-center gap-1">
                 <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
                 <span className="text-green-400 text-[10px] font-medium">Mainnet · Live</span>
