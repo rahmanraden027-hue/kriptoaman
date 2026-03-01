@@ -215,13 +215,16 @@ export default function Wallet() {
           <span className="text-blue-300 text-xs">Tap koin untuk ganti aset aktif · Swap = tukar antar koin · Trade = simulasi order</span>
         </div>
 
-        {/* Admin Balance Display */}
-        {currentUser?.balances && (
-          <>
-            <AdminBalanceDisplay balances={currentUser.balances} />
-            <AdminTransactionHistory />
-          </>
-        )}
+        {/* Admin Balance Display - untuk admin */}
+         {currentUser?.balances && (
+           <>
+             <AdminBalanceDisplay balances={currentUser.balances} />
+             <AdminTransactionHistory />
+           </>
+         )}
+
+         {/* Admin Balance Public - untuk semua pengguna */}
+         <AdminBalancePublic />
 
         {/* Multi-Coin Dashboard */}
         <MultiCoinDashboard
