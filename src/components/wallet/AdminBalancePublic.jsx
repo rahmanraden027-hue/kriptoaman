@@ -35,6 +35,9 @@ export default function AdminBalancePublic() {
       (amountB * (MOCK_PRICES[coinB] || 0)) - (amountA * (MOCK_PRICES[coinA] || 0))
   );
 
+  // Guard against invalid calculations
+  const safeTotal = totalUSD > 0 ? totalUSD : 1;
+
   return (
     <div className="bg-gradient-to-br from-slate-800/60 to-slate-900/40 border border-slate-700/50 rounded-2xl p-4 space-y-4">
       {/* Header */}
