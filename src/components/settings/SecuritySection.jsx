@@ -145,6 +145,8 @@ function TwoFASetup({ secret, onDone, onCancel }) {
   );
 }
 
+const SESSION_TIMEOUT_KEY = 'cv_session_timeout_min';
+
 export default function SecuritySection() {
   const [is2FAEnabled, setIs2FAEnabled] = useState(() => localStorage.getItem(STORAGE_KEY_2FA) === 'true');
   const [setupMode, setSetupMode] = useState(false);
@@ -154,6 +156,32 @@ export default function SecuritySection() {
   const [disableConfirm, setDisableConfirm] = useState(false);
   const [disableCode, setDisableCode] = useState('');
   const [disableError, setDisableError] = useState('');
+
+  // PIN & Biometric state
+  const [pinEnabled, setPinEnabled] = useState(() => localStorage.getItem(PIN_ENABLED_KEY) === 'true');
+  const [biometricEnabled, setBiometricEnabled] = useState(() => localStorage.getItem(BIOMETRIC_ENABLED_KEY) === 'true');
+  const [showPinSetup, setShowPinSetup] = useState(false);
+  const [sessionTimeout, setSessionTimeout] = useState(() => parseInt(localStorage.getItem(SESSION_TIMEOUT_KEY) || '5'));
+
+  const disablePin = () => {
+    localStorage.setItem(PIN_ENABLED_KEY, 'false');
+    localStorage.removeItem(PIN_STORAGE_KEY);
+    setPinEnabled(false);
+    setBiometricEnabled(false);
+    localStorage.setItem(BIOMETRIC_ENABLED_KEY, 'false');
+  };
+
+  const toggleBiometric = () => {
+    if (!pinEnabled) return;
+    const next = !biometricEnabled;
+    localStorage.setItem(BIOMETRIC_ENABLED_KEY, String(next));
+    setBiometricEnabled(next);
+  };
+
+  const handleSessionTimeoutChange = (val) => {
+    setSessionTimeout(val);
+    localStorage.setItem(SESSION_TIMEOUT_KEY, String(val));
+  };
 
   const startSetup = () => {
     const s = generateSecret();
