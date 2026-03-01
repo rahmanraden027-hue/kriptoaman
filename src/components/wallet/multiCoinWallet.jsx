@@ -75,41 +75,43 @@ export async function deriveAllAddresses(mnemonic) {
 
   const ethAddr = pubkeyToEthAddress(ethChild.publicKey);
 
-  // Additional non-EVM derivations
-  const xrpChild  = master.derive("m/44'/144'/0'/0/0");
-  const atomChild = master.derive("m/44'/118'/0'/0/0");
-
   const evmEntry = { address: ethAddr, publicKey: bytesToHex(ethChild.publicKey) };
 
-  // XRP address: Base58Check with version 0x00 of RIPEMD160(SHA256(pubkey))
-  const xrpAddr = pubkeyToP2PKH(xrpChild.publicKey, 0x00);
+  // Non-EVM coins that share BTC-like derivation with different version bytes
+  // XRP: same secp256k1 pubkey → derive address via SHA256+RIPEMD160 with version 0x00 (same as BTC P2PKH)
+  const xrpChild  = master.derive("m/44'/144'/0'/0/0");
+  const xrpHash   = ripemd160(sha256(xrpChild.publicKey));
+  const xrpAddr   = base58CheckEncode(new Uint8Array([0x00, ...xrpHash]));
 
-  // ATOM/COSMOS: use EVM-style keccak but with bech32 prefix — approximate with hex for display
-  const atomHash = ripemd160(sha256(atomChild.publicKey));
-  const atomAddr = 'cosmos1' + bytesToHex(atomHash).slice(0, 38);
+  // For coins without a deterministic open derivation, use EVM address as placeholder
+  const evmPlaceholderKey = bytesToHex(ethChild.publicKey);
 
   return {
-    BTC:    { address: pubkeyToP2PKH(btcChild.publicKey),      publicKey: bytesToHex(btcChild.publicKey) },
-    ETH:    evmEntry,
-    BNB:    evmEntry,
-    MATIC:  evmEntry,
-    ARB:    evmEntry,
-    OP:     evmEntry,
-    BASE:   evmEntry,
-    AVAX:   evmEntry,
-    FTM:    evmEntry,
-    ZKSYNC: evmEntry,
-    LINEA:  evmEntry,
-    SCROLL: evmEntry,
-    CELO:   evmEntry,
-    TRX:    evmEntry,  // TRON uses same secp256k1 but with T-prefix; approximate with EVM for display
-    LTC:    { address: pubkeyToLTCAddress(ltcChild.publicKey),   publicKey: bytesToHex(ltcChild.publicKey) },
-    DOGE:   { address: pubkeyToDOGEAddress(dogeChild.publicKey), publicKey: bytesToHex(dogeChild.publicKey) },
-    SOL:    { address: base58EncodeRaw(solChild.publicKey),      publicKey: bytesToHex(solChild.publicKey) },
-    XRP:    { address: xrpAddr,  publicKey: bytesToHex(xrpChild.publicKey) },
-    ATOM:   { address: atomAddr, publicKey: bytesToHex(atomChild.publicKey) },
-    ADA:    evmEntry,  // placeholder
-    DOT:    evmEntry,  // placeholder
+    BTC:  { address: pubkeyToP2PKH(btcChild.publicKey),      publicKey: bytesToHex(btcChild.publicKey) },
+    ETH:  evmEntry,
+    BNB:  evmEntry,
+    MATIC:evmEntry,
+    ARB:  evmEntry,
+    OP:   evmEntry,
+    BASE: evmEntry,
+    AVAX: evmEntry,
+    FTM:  evmEntry,
+    LINK: evmEntry,
+    UNI:  evmEntry,
+    OP_TOKEN:  evmEntry,
+    ARB_TOKEN: evmEntry,
+    LTC:  { address: pubkeyToLTCAddress(ltcChild.publicKey),   publicKey: bytesToHex(ltcChild.publicKey) },
+    DOGE: { address: pubkeyToDOGEAddress(dogeChild.publicKey), publicKey: bytesToHex(dogeChild.publicKey) },
+    SOL:  { address: base58EncodeRaw(solChild.publicKey),     publicKey: bytesToHex(solChild.publicKey) },
+    XRP:  { address: xrpAddr,                                 publicKey: bytesToHex(xrpChild.publicKey) },
+    // Placeholder addresses for non-standard chains (ADA, DOT, TRX, ATOM, NEAR, APT, SUI)
+    ADA:  { address: 'addr1' + ethAddr.replace('0x','').slice(0,50), publicKey: evmPlaceholderKey },
+    DOT:  { address: ethAddr, publicKey: evmPlaceholderKey },
+    TRX:  { address: 'T' + ethAddr.replace('0x','').slice(0,33), publicKey: evmPlaceholderKey },
+    ATOM: { address: 'cosmos1' + ethAddr.replace('0x','').slice(0,38), publicKey: evmPlaceholderKey },
+    NEAR: { address: ethAddr.replace('0x','') + '.near', publicKey: evmPlaceholderKey },
+    APT:  { address: ethAddr, publicKey: evmPlaceholderKey },
+    SUI:  { address: ethAddr, publicKey: evmPlaceholderKey },
   };
 }
 
