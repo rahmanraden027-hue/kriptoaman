@@ -316,7 +316,7 @@ export default function DepositModal({ onClose, userEmail }) {
                   </div>
                 </div>
 
-                <Button onClick={submitCrypto} disabled={!txHash.trim() || !amountCrypto || !selectedCryptoEntry || submitting || (selectedCryptoEntry?.minDeposit > 0 && parseFloat(amountCrypto) < selectedCryptoEntry.minDeposit)}
+                <Button onClick={submitCrypto} disabled={!txHash.trim() || !amountCrypto || !selectedCryptoEntry || submitting || (selectedCryptoEntry?.minDeposit > 0 && parseFloat(amountCrypto) < selectedCryptoEntry.minDeposit) || (selectedCryptoEntry?.maxDeposit > 0 && parseFloat(amountCrypto) > selectedCryptoEntry.maxDeposit)}
                   className="w-full h-12 font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-40">
                   {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <><ArrowDownToLine className="w-4 h-4 mr-2" /> Kirim Bukti Deposit</>}
                 </Button>
