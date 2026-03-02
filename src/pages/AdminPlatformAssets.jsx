@@ -58,7 +58,7 @@ function SectionHeader({ icon: Icon, title, count, onAdd, addLabel, color = 'blu
 
 // ── Crypto Form ───────────────────────────────────────────────────────────────
 function CryptoForm({ initial, onSave, onCancel, saving }) {
-  const [form, setForm] = useState(initial || { coin: 'BTC', label: '', address: '', network: '', isActive: true, notes: '' });
+  const [form, setForm] = useState(initial || { coin: 'BTC', label: '', address: '', network: '', isActive: true, minDeposit: '', notes: '' });
   const [error, setError] = useState('');
 
   const validate = () => {
