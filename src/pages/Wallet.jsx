@@ -199,6 +199,9 @@ export default function Wallet() {
           </div>
         )}
 
+        {/* Virtual Balance */}
+        <VirtualBalanceCard userEmail={currentUser?.email} onDeposit={() => setShowDeposit(true)} />
+
         {/* WalletConnect */}
         <WalletConnectPanel />
 
