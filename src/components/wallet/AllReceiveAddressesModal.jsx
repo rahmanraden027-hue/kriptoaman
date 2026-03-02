@@ -119,13 +119,14 @@ export default function AllReceiveAddressesModal({ addresses, onClose }) {
                 )}
               </div>
 
-              {/* QR Code Placeholder */}
-              <div className="bg-slate-700/30 rounded-lg p-4 flex items-center justify-center">
-                <div className="w-24 h-24 bg-white rounded-lg flex items-center justify-center">
-                  <div className="text-center text-[10px] text-slate-400">
-                    <div>Scan untuk</div>
-                    <div>menerima {coin}</div>
-                  </div>
+              {/* QR Code */}
+              <div className="flex justify-center">
+                <div className="bg-white rounded-xl p-2">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(data.address)}&margin=4`}
+                    alt={`QR ${coin}`}
+                    className="w-40 h-40 rounded-lg"
+                  />
                 </div>
               </div>
             </div>
