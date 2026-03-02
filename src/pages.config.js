@@ -61,6 +61,7 @@ import TermsOfService from './pages/TermsOfService';
 import TradingAnalytics from './pages/TradingAnalytics';
 import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
+import AdminPlatformAssets from './pages/AdminPlatformAssets';
 import __Layout from './Layout.jsx';
 
 
@@ -79,6 +80,7 @@ export const PAGES = {
     "TradingAnalytics": TradingAnalytics,
     "TxHistory": TxHistory,
     "Wallet": Wallet,
+    "AdminPlatformAssets": AdminPlatformAssets,
 }
 
 export const pagesConfig = {
