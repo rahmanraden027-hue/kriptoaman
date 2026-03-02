@@ -297,6 +297,11 @@ export default function DepositModal({ onClose, userEmail }) {
                         ⚠ Jumlah kurang dari minimum deposit ({selectedCryptoEntry.minDeposit} {selectedCryptoEntry.coin})
                       </p>
                     )}
+                    {selectedCryptoEntry?.maxDeposit > 0 && amountCrypto && parseFloat(amountCrypto) > selectedCryptoEntry.maxDeposit && (
+                      <p className="text-red-400 text-[10px] flex items-center gap-1">
+                        ⚠ Jumlah melebihi maksimum deposit ({selectedCryptoEntry.maxDeposit} {selectedCryptoEntry.coin})
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-slate-400 text-xs font-semibold">TX HASH / TRANSACTION ID</label>
