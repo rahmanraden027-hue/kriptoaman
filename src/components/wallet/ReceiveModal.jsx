@@ -11,8 +11,7 @@ export default function ReceiveModal({ address, onClose }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Simple QR-like display using address blocks
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(address)}&bgcolor=1e293b&color=f97316&margin=10`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(address)}&margin=4`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
