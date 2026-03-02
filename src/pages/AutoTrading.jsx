@@ -60,17 +60,30 @@ export default function AutoTrading() {
             </div>
           </div>
 
-          <Button
-            onClick={() => setShowSetupForm(!showSetupForm)}
-            className="bg-blue-600 hover:bg-blue-700 gap-2"
-          >
-            <Plus className="w-5 h-5" />
-            Strategi Baru
-          </Button>
+          {mainTab === 'strategy' && (
+            <Button onClick={() => setShowSetupForm(!showSetupForm)} className="bg-blue-600 hover:bg-blue-700 gap-2">
+              <Plus className="w-5 h-5" /> Strategi Baru
+            </Button>
+          )}
         </div>
 
+        {/* Main Tabs */}
+        <div className="flex gap-1 bg-slate-800/60 border border-slate-700/40 rounded-xl p-1 mb-2">
+          <button onClick={() => setMainTab('strategy')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${mainTab === 'strategy' ? 'bg-slate-700 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
+            <Zap className="w-4 h-4" /> AI Strategi
+          </button>
+          <button onClick={() => setMainTab('grid')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${mainTab === 'grid' ? 'bg-slate-700 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
+            <Grid3X3 className="w-4 h-4" /> Grid Bot
+          </button>
+        </div>
+
+        {/* Grid Trading Panel */}
+        {mainTab === 'grid' && <GridTradingPanel />}
+
         {/* Setup Form */}
-        {showSetupForm && (
+        {mainTab === 'strategy' && showSetupForm && (
           <div className="mb-8">
             <StrategySetupForm
               onStrategyCreated={handleStrategyCreated}
