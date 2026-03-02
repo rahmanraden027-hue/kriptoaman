@@ -22,6 +22,7 @@ export default function AutoTrading() {
   const [selectedStrategy, setSelectedStrategy] = useState(null);
   const [activeTab, setActiveTab] = useState('list');
   const [currentPrice, setCurrentPrice] = useState(null);
+  const [mainTab, setMainTab] = useState('strategy'); // 'strategy' | 'grid'
 
   const { data: strategies = [], isLoading, refetch } = useQuery({
     queryKey: ['autoTradingStrategies'],
