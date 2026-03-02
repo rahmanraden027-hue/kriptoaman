@@ -444,6 +444,22 @@ export default function AdminPlatformAssets() {
           </div>
         </div>
 
+        {/* Platform SOL Balance */}
+        <div className="bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border border-purple-500/30 rounded-2xl p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center">
+                <span className="text-purple-300 font-bold text-sm">◎</span>
+              </div>
+              <div>
+                <p className="text-slate-400 text-xs font-semibold">SALDO PLATFORM</p>
+                <p className="text-white text-xl font-bold">871.280 <span className="text-purple-400 text-sm">SOL</span></p>
+              </div>
+            </div>
+            <span className="text-[10px] bg-purple-500/15 text-purple-400 border border-purple-500/30 px-2 py-1 rounded-full font-semibold">Solana</span>
+          </div>
+        </div>
+
         {/* Tab */}
         <div className="grid grid-cols-2 gap-1 bg-slate-800/60 border border-slate-700/40 rounded-2xl p-1">
           {[{ id: 'crypto', label: 'Alamat Kripto', icon: Wallet }, { id: 'bank', label: 'Rekening Bank', icon: Building2 }].map(t => {
