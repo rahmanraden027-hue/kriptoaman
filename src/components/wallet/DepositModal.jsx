@@ -240,26 +240,54 @@ export default function DepositModal({ onClose, userEmail }) {
             {/* === BANK TAB === */}
             {tab === 'bank' && (
               <div className="space-y-4">
-                {/* Rekening admin */}
-                <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-4 space-y-3">
-                  <p className="text-slate-400 text-xs font-semibold">TRANSFER KE REKENING PLATFORM</p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
-                      <Building2 className="w-5 h-5 text-green-400" />
-                    </div>
-                    <div>
-                      <p className="text-white font-bold">{ADMIN_BANK.bank}</p>
-                      <p className="text-slate-400 text-xs">A/N: {ADMIN_BANK.name}</p>
-                    </div>
+                {loadingPlatform ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-green-400" />
                   </div>
-                  <div className="bg-slate-900 rounded-lg p-3 flex items-center justify-between">
-                    <span className="text-white font-mono font-bold text-xl tracking-widest">{ADMIN_BANK.account}</span>
-                    <button onClick={() => copy(ADMIN_BANK.account, 'bank')}
-                      className="text-blue-400 hover:text-blue-300 text-xs flex items-center gap-1">
-                      {copied === 'bank' ? <><CheckCircle2 className="w-3.5 h-3.5" /> Tersalin</> : <><Copy className="w-3.5 h-3.5" /> Salin</>}
-                    </button>
+                ) : bankAccounts.length === 0 ? (
+                  <div className="text-center py-8 text-slate-500">
+                    <p className="text-sm">Belum ada rekening bank tersedia. Hubungi admin.</p>
                   </div>
-                </div>
+                ) : (
+                  <>
+                    {/* Bank selector */}
+                    {bankAccounts.length > 1 && (
+                      <div className="flex flex-wrap gap-2">
+                        {bankAccounts.map(b => (
+                          <button key={b.id} onClick={() => setSelectedBank(b)}
+                            className={`px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+                              selectedBank?.id === b.id
+                                ? 'border-green-500/60 bg-green-500/15 text-green-300'
+                                : 'border-slate-700 bg-slate-800 text-slate-400 hover:text-white'
+                            }`}>{b.bank}</button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Rekening terpilih */}
+                    {selectedBank && (
+                      <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-4 space-y-3">
+                        <p className="text-slate-400 text-xs font-semibold">TRANSFER KE REKENING PLATFORM</p>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
+                            <Building2 className="w-5 h-5 text-green-400" />
+                          </div>
+                          <div>
+                            <p className="text-white font-bold">{selectedBank.label || selectedBank.bank}</p>
+                            <p className="text-slate-400 text-xs">A/N: {selectedBank.accountName} · {selectedBank.bank}</p>
+                          </div>
+                        </div>
+                        <div className="bg-slate-900 rounded-lg p-3 flex items-center justify-between">
+                          <span className="text-white font-mono font-bold text-xl tracking-widest">{selectedBank.accountNumber}</span>
+                          <button onClick={() => copy(selectedBank.accountNumber, 'bank')}
+                            className="text-blue-400 hover:text-blue-300 text-xs flex items-center gap-1">
+                            {copied === 'bank' ? <><CheckCircle2 className="w-3.5 h-3.5" /> Tersalin</> : <><Copy className="w-3.5 h-3.5" /> Salin</>}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
 
                 <div className="flex items-start gap-2 bg-blue-500/10 border border-blue-500/20 rounded-xl p-3">
                   <Info className="w-3.5 h-3.5 text-blue-400 shrink-0 mt-0.5" />
