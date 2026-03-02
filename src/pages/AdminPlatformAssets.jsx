@@ -72,7 +72,7 @@ function CryptoForm({ initial, onSave, onCancel, saving }) {
   const handleSave = () => {
     const err = validate();
     if (err) { setError(err); return; }
-    onSave({ ...form, address: form.address.trim(), label: form.label.trim() });
+    onSave({ ...form, address: form.address.trim(), label: form.label.trim(), minDeposit: form.minDeposit ? parseFloat(form.minDeposit) : null });
   };
 
   return (
