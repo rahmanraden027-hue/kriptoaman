@@ -295,6 +295,7 @@ export default function DepositModal({ onClose, userEmail }) {
                     Transfer IDR ke rekening di atas, lalu isi formulir bukti transfer. Saldo akan dikreditkan setelah admin konfirmasi.
                   </p>
                 </div>
+                
 
                 {/* Form bukti transfer */}
                 <div className="space-y-3">
