@@ -3,8 +3,9 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Plus, Pencil, Trash2, Check, X, Building2, Wallet,
-  AlertCircle, Copy, CheckCheck, Loader2, ShieldAlert, ToggleLeft, ToggleRight
+  AlertCircle, Copy, CheckCheck, Loader2, ShieldAlert, ToggleLeft, ToggleRight, Clock
 } from 'lucide-react';
+import PendingDepositsPanel from '../components/admin/PendingDepositsPanel';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 const CRYPTO_VALIDATORS = {
