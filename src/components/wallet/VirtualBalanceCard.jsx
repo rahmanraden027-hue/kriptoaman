@@ -10,7 +10,7 @@ const COIN_INFO = {
   IDR:  { label: 'Saldo IDR', color: '#22C55E', icon: 'Rp' },
 };
 
-export default function VirtualBalanceCard({ userEmail, onDeposit }) {
+export default function VirtualBalanceCard({ userEmail, onDeposit, onWithdraw }) {
   const [balances, setBalances] = useState([]);
   const [pendingCount, setPendingCount] = useState(0);
   const [loading, setLoading] = useState(true);
