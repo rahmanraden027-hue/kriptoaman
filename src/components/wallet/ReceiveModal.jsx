@@ -26,7 +26,7 @@ export default function ReceiveModal({ address, onClose }) {
         <p className="text-slate-400 text-sm">Bagikan alamat ini untuk menerima Bitcoin.</p>
 
         <div className="flex justify-center">
-          <div className="bg-slate-800 rounded-xl p-3">
+          <div className="bg-white rounded-xl p-3">
             <img src={qrUrl} alt="QR Code" className="w-48 h-48 rounded-lg" />
           </div>
         </div>
