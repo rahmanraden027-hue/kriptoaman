@@ -356,6 +356,7 @@ export default function Wallet() {
       )}
 
       {showDeposit && <DepositModal onClose={() => setShowDeposit(false)} userEmail={currentUser?.email} />}
+      {showWithdrawal && <WithdrawalModal onClose={() => setShowWithdrawal(false)} userEmail={currentUser?.email} />}
 
       {showBankModal && <BankDepositWithdrawModal onClose={() => setShowBankModal(false)} />}
 
