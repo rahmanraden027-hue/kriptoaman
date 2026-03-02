@@ -147,50 +147,73 @@ export default function DepositModal({ onClose, userEmail }) {
             {/* === CRYPTO TAB === */}
             {tab === 'crypto' && (
               <div className="space-y-4">
-                {/* Coin selector */}
-                <div className="flex gap-2">
-                  {Object.entries(PLATFORM_ADDRESSES).map(([coin, info]) => (
-                    <button key={coin} onClick={() => setSelectedCoin(coin)}
-                      className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border transition-all ${
-                        selectedCoin === coin
-                          ? 'border-blue-500/60 bg-blue-500/15'
-                          : 'border-slate-700/50 bg-slate-800/50 hover:bg-slate-800'
-                      }`}>
-                      <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ background: info.color }}>
-                        {info.icon}
-                      </span>
-                      <span className="text-white text-sm font-semibold">{coin}</span>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Deposit address */}
-                <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-slate-400 text-xs font-semibold">ALAMAT DEPOSIT PLATFORM</p>
-                    <span className="text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full">
-                      {coinInfo.network}
-                    </span>
+                {loadingPlatform ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
                   </div>
-                  <div className="bg-slate-900 rounded-lg p-3 break-all text-white text-xs font-mono leading-relaxed">
-                    {coinInfo.address}
+                ) : cryptoAddresses.length === 0 ? (
+                  <div className="text-center py-8 text-slate-500">
+                    <p className="text-sm">Belum ada alamat deposit tersedia. Hubungi admin.</p>
                   </div>
-                  <button onClick={() => copy(coinInfo.address, 'addr')}
-                    className={`w-full py-2.5 rounded-xl border text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
-                      copied === 'addr'
-                        ? 'border-green-500/60 bg-green-500/15 text-green-400'
-                        : 'border-slate-600 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700'
-                    }`}>
-                    {copied === 'addr' ? <><CheckCircle2 className="w-4 h-4" /> Tersalin!</> : <><Copy className="w-4 h-4" /> Salin Alamat</>}
-                  </button>
-                </div>
+                ) : (
+                  <>
+                    {/* Coin selector from DB */}
+                    <div className="flex flex-wrap gap-2">
+                      {cryptoAddresses.map(c => (
+                        <button key={c.id} onClick={() => setSelectedCoin(c.coin + '_' + c.id)}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all ${
+                            selectedCoin === c.coin + '_' + c.id
+                              ? 'border-blue-500/60 bg-blue-500/15'
+                              : 'border-slate-700/50 bg-slate-800/50 hover:bg-slate-800'
+                          }`}>
+                          <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                            style={{ background: COIN_COLORS[c.coin] || '#555' }}>
+                            {COIN_ICONS[c.coin] || c.coin[0]}
+                          </span>
+                          <div className="text-left">
+                            <p className="text-white text-xs font-semibold">{c.coin}</p>
+                            {c.network && <p className="text-slate-500 text-[9px]">{c.network}</p>}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
 
-                <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/20 rounded-xl p-3">
-                  <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
-                  <p className="text-amber-300 text-xs">
-                    Minimum deposit: <strong>{coinInfo.min}</strong>. Pastikan mengirim melalui jaringan <strong>{coinInfo.network}</strong>.
-                  </p>
-                </div>
+                    {selectedCryptoEntry && (
+                      <>
+                        {/* Deposit address */}
+                        <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <p className="text-slate-400 text-xs font-semibold">ALAMAT DEPOSIT</p>
+                            {selectedCryptoEntry.network && (
+                              <span className="text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full">
+                                {selectedCryptoEntry.network}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-slate-300 text-xs font-semibold">{selectedCryptoEntry.label}</p>
+                          <div className="bg-slate-900 rounded-lg p-3 break-all text-white text-xs font-mono leading-relaxed">
+                            {selectedCryptoEntry.address}
+                          </div>
+                          <button onClick={() => copy(selectedCryptoEntry.address, 'addr')}
+                            className={`w-full py-2.5 rounded-xl border text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+                              copied === 'addr'
+                                ? 'border-green-500/60 bg-green-500/15 text-green-400'
+                                : 'border-slate-600 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700'
+                            }`}>
+                            {copied === 'addr' ? <><CheckCircle2 className="w-4 h-4" /> Tersalin!</> : <><Copy className="w-4 h-4" /> Salin Alamat</>}
+                          </button>
+                        </div>
+
+                        <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/20 rounded-xl p-3">
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                          <p className="text-amber-300 text-xs">
+                            Pastikan mengirim {selectedCryptoEntry.coin} melalui jaringan <strong>{selectedCryptoEntry.network || selectedCryptoEntry.coin}</strong> yang benar.
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
 
                 {/* Form konfirmasi */}
                 <div className="space-y-3">
