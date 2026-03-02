@@ -98,9 +98,10 @@ export default function AutoTrading() {
             💡 <span className="font-semibold">Cara Kerja:</span> Sistem akan menganalisis pasar sesuai interval yang ditentukan, 
             mengidentifikasi peluang trading menggunakan AI, dan eksekusi otomatis dengan stop-loss & take-profit dinamis berbasis ATR.
           </p>
-        </div>
+        </div>}
 
         {/* Tabs */}
+        {mainTab === 'strategy' && (
          {selectedStrategy && (
           <div className="mb-6 flex gap-2 border-b border-slate-700/40">
             <button
