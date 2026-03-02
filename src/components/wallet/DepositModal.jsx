@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Copy, CheckCircle2, Loader2, Building2, AlertTriangle, Info, ArrowDownToLine } from 'lucide-react';
+import { X, Copy, CheckCircle2, Loader2, Building2, AlertTriangle, Info, ArrowDownToLine, ShieldCheck, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { base44 } from '@/api/base44Client';
