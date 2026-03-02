@@ -7,6 +7,7 @@ import { PinUnlock, useAppLock } from './components/security/PinLock';
 import { initAnalytics, identifyUser, Analytics } from './components/analytics/mixpanel';
 import LiveTickerBar from './components/market/LiveTickerBar';
 import { usePWAInitializer, PWAUpdateNotification } from './components/pwa/PWAInitializer';
+import AdminDepositNotifier from './components/admin/AdminDepositNotifier';
 
 const NAV = [
   { label: 'Portfolio', page: 'PortfolioOverview', icon: BarChart3 },
