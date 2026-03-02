@@ -57,11 +57,11 @@ export default function SimulationRunner({ strategy, onSimulationComplete, showA
           />
         </div>
 
+        {/* Date range always visible */}
+        <BacktestDateRangePicker onRangeSelect={setDateRange} />
+
         {showAdvanced && (
-          <>
-            <BacktestDateRangePicker onRangeSelect={setDateRange} />
-            <AdvancedBacktestingOptions onOptionsChange={setAdvancedOptions} />
-          </>
+          <AdvancedBacktestingOptions onOptionsChange={setAdvancedOptions} />
         )}
 
         <div className="grid grid-cols-2 gap-3">
