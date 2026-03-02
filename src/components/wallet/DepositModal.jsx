@@ -77,7 +77,7 @@ export default function DepositModal({ onClose, userEmail }) {
   };
 
   const submitBank = async () => {
-    if (idrRaw < 50000 || !senderName.trim()) return;
+    if (idrRaw < 50000 || !senderName.trim() || !selectedBank) return;
     setSubmitting(true);
     await base44.entities.DepositRequest.create({
       userEmail,
@@ -85,7 +85,7 @@ export default function DepositModal({ onClose, userEmail }) {
       coin: 'IDR',
       amountIDR: idrRaw,
       senderName: senderName.trim(),
-      proofNote,
+      proofNote: proofNote + (selectedBank ? ` | Transfer ke ${selectedBank.bank} - ${selectedBank.accountNumber}` : ''),
       status: 'pending',
     });
     setSubmitting(false);
