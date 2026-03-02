@@ -25,6 +25,7 @@ import WalletPersonalization, { usePersonalization } from '../components/wallet/
 import BankDepositWithdrawModal from '../components/wallet/BankDepositWithdrawModal';
 import DepositModal from '../components/wallet/DepositModal';
 import VirtualBalanceCard from '../components/wallet/VirtualBalanceCard';
+import WithdrawalModal from '../components/wallet/WithdrawalModal';
 import AllReceiveAddressesModal from '../components/wallet/AllReceiveAddressesModal';
 import SupportChat from '../components/support/SupportChat';
 import AdminBalanceDisplay from '../components/wallet/AdminBalanceDisplay';
