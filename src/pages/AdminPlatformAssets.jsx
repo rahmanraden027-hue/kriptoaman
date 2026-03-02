@@ -196,8 +196,12 @@ function CryptoCard({ item, onEdit, onDelete, onToggle }) {
         </div>
       </div>
       <p className="mt-2 text-[11px] text-slate-500 font-mono break-all">{item.address}</p>
-      {item.minDeposit > 0 && (
-        <p className="mt-1 text-[11px] text-amber-500">Min. deposit: {item.minDeposit} {item.coin}</p>
+      {(item.minDeposit > 0 || item.maxDeposit > 0) && (
+        <p className="mt-1 text-[11px] text-amber-500">
+          {item.minDeposit > 0 && `Min: ${item.minDeposit} ${item.coin}`}
+          {item.minDeposit > 0 && item.maxDeposit > 0 && ' · '}
+          {item.maxDeposit > 0 && `Max: ${item.maxDeposit} ${item.coin}`}
+        </p>
       )}
       {item.notes && <p className="mt-1 text-[11px] text-slate-600 italic">{item.notes}</p>}
     </div>
