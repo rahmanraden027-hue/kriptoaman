@@ -26,21 +26,9 @@ export default function PendingDepositsPanel() {
     updateDeposit.mutate({ id: deposit.id, data: { pendingReason: reason } });
   };
 
-  const confirmDeposit = async (deposit) => {
+  const confirmDeposit = (deposit) => {
     const note = adminNotes[deposit.id] ?? '';
-    // Update balance
-    const existing = await base44.entities.UserBalance.filter({ userEmail: deposit.userEmail, coin: deposit.coin });
-    if (existing.length > 0) {
-      await base44.entities.UserBalance.update(existing[0].id, {
-        amount: (existing[0].amount || 0) + (deposit.amountCrypto || 0),
-      });
-    } else {
-      await base44.entities.UserBalance.create({
-        userEmail: deposit.userEmail,
-        coin: deposit.coin,
-        amount: deposit.amountCrypto || 0,
-      });
-    }
+    // Status update triggers automation that auto-credits balance
     updateDeposit.mutate({
       id: deposit.id,
       data: { status: 'confirmed', confirmedAt: new Date().toISOString(), adminNote: note, pendingReason: '' },
