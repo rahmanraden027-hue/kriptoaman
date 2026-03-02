@@ -1,30 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Copy, CheckCircle2, Loader2, Building2, AlertTriangle, Info, ArrowDownToLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { base44 } from '@/api/base44Client';
 
-const PLATFORM_ADDRESSES = {
-  USDT: {
-    address: '0x742d35Cc6634C0532925a3b8Bc454e4438f44e1b',
-    network: 'Ethereum (ERC-20)',
-    min: '10 USDT',
-    color: '#26A17B',
-    icon: '₮',
-  },
-  SOL: {
-    address: '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgHkv',
-    network: 'Solana',
-    min: '0.1 SOL',
-    color: '#9945FF',
-    icon: '◎',
-  },
+const COIN_COLORS = {
+  BTC: '#F7931A', ETH: '#627EEA', USDT: '#26A17B', SOL: '#9945FF',
+  BNB: '#F3BA2F', LTC: '#BFBBBB', DOGE: '#C2A633',
 };
-
-const ADMIN_BANK = {
-  bank: 'BCA',
-  account: '1234567890',
-  name: 'PT CoinVault Indonesia',
+const COIN_ICONS = {
+  BTC: '₿', ETH: 'Ξ', USDT: '₮', SOL: '◎', BNB: 'B', LTC: 'Ł', DOGE: 'Ð',
 };
 
 const formatIDR = (n) =>
