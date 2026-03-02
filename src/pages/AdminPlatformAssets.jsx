@@ -462,8 +462,8 @@ export default function AdminPlatformAssets() {
         </div>
 
         {/* Tab */}
-        <div className="grid grid-cols-2 gap-1 bg-slate-800/60 border border-slate-700/40 rounded-2xl p-1">
-          {[{ id: 'crypto', label: 'Alamat Kripto', icon: Wallet }, { id: 'bank', label: 'Rekening Bank', icon: Building2 }].map(t => {
+        <div className="grid grid-cols-3 gap-1 bg-slate-800/60 border border-slate-700/40 rounded-2xl p-1">
+          {[{ id: 'crypto', label: 'Alamat Kripto', icon: Wallet }, { id: 'bank', label: 'Rekening Bank', icon: Building2 }, { id: 'pending', label: 'Deposit Pending', icon: Clock }].map(t => {
             const Icon = t.icon;
             return (
               <button key={t.id} onClick={() => setTab(t.id)}
