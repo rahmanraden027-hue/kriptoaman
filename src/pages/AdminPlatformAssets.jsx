@@ -113,11 +113,20 @@ function CryptoForm({ initial, onSave, onCancel, saving }) {
           className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 font-mono" />
       </div>
 
-      <div>
-        <label className="text-slate-400 text-xs mb-1 block font-semibold">Catatan Admin (opsional)</label>
-        <input value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
-          placeholder="Catatan internal..."
-          className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500" />
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-slate-400 text-xs mb-1 block font-semibold">Minimum Deposit (opsional)</label>
+          <input type="number" value={form.minDeposit} onChange={e => setForm(f => ({ ...f, minDeposit: e.target.value }))}
+            placeholder={`mis. 4.7`} min="0" step="any"
+            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500" />
+          <p className="text-slate-600 text-[10px] mt-1">Dalam satuan {form.coin}</p>
+        </div>
+        <div>
+          <label className="text-slate-400 text-xs mb-1 block font-semibold">Catatan Admin (opsional)</label>
+          <input value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
+            placeholder="Catatan internal..."
+            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500" />
+        </div>
       </div>
 
       <label className="flex items-center gap-2 cursor-pointer">
