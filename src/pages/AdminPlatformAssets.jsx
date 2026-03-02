@@ -505,6 +505,17 @@ export default function AdminPlatformAssets() {
           </div>
         )}
 
+        {/* ── PENDING DEPOSITS SECTION ── */}
+        {tab === 'pending' && (
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <Clock className="w-5 h-5 text-amber-400" />
+              <h2 className="text-white font-bold text-lg">Deposit Tertunda</h2>
+            </div>
+            <PendingDepositsPanel />
+          </div>
+        )}
+
         {/* ── BANK SECTION ── */}
         {tab === 'bank' && (
           <div>
