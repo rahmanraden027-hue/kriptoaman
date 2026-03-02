@@ -285,9 +285,18 @@ export default function DepositModal({ onClose, userEmail }) {
                 {/* Form konfirmasi */}
                 <div className="space-y-3">
                   <div className="space-y-1.5">
-                    <label className="text-slate-400 text-xs font-semibold">JUMLAH DIKIRIM ({selectedCoin})</label>
+                    <label className="text-slate-400 text-xs font-semibold">JUMLAH DIKIRIM ({selectedCryptoEntry?.coin})</label>
                     <Input type="number" value={amountCrypto} onChange={e => setAmountCrypto(e.target.value)}
-                      placeholder="0.00" className="bg-slate-800 border-slate-700 text-white" />
+                      placeholder="0.00" className="bg-slate-800 border-slate-700 text-white"
+                      min={selectedCryptoEntry?.minDeposit || 0} />
+                    {selectedCryptoEntry?.minDeposit > 0 && (
+                      <p className="text-slate-500 text-[10px]">Minimum: {selectedCryptoEntry.minDeposit} {selectedCryptoEntry.coin}</p>
+                    )}
+                    {selectedCryptoEntry?.minDeposit > 0 && amountCrypto && parseFloat(amountCrypto) < selectedCryptoEntry.minDeposit && (
+                      <p className="text-red-400 text-[10px] flex items-center gap-1">
+                        ⚠ Jumlah kurang dari minimum deposit ({selectedCryptoEntry.minDeposit} {selectedCryptoEntry.coin})
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-slate-400 text-xs font-semibold">TX HASH / TRANSACTION ID</label>
