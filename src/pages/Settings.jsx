@@ -12,6 +12,7 @@ import SecuritySection from '../components/settings/SecuritySection';
 import ActivityHistory from '../components/settings/ActivityHistory';
 import AdminBalanceEditor from '../components/wallet/AdminBalanceEditor';
 import UserPreferencesEnhanced from '../components/settings/UserPreferencesEnhanced';
+import PaymentAddressBook from '../components/settings/PaymentAddressBook';
 
 const TABS = [
   { id: 'profile', label: 'Profil', icon: User },
