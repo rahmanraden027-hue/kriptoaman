@@ -17,9 +17,15 @@ const formatIDR = (n) =>
 
 export default function DepositModal({ onClose, userEmail }) {
   const [tab, setTab] = useState('crypto');
-  const [selectedCoin, setSelectedCoin] = useState('USDT');
+  const [selectedCoin, setSelectedCoin] = useState(null);
   const [copied, setCopied] = useState('');
   const [step, setStep] = useState('form');
+
+  // Platform data from DB
+  const [cryptoAddresses, setCryptoAddresses] = useState([]);
+  const [bankAccounts, setBankAccounts] = useState([]);
+  const [loadingPlatform, setLoadingPlatform] = useState(true);
+  const [selectedBank, setSelectedBank] = useState(null);
 
   // Crypto form
   const [txHash, setTxHash] = useState('');
@@ -32,7 +38,20 @@ export default function DepositModal({ onClose, userEmail }) {
 
   const [submitting, setSubmitting] = useState(false);
 
-  const coinInfo = PLATFORM_ADDRESSES[selectedCoin];
+  useEffect(() => {
+    Promise.all([
+      base44.entities.PlatformCryptoAddress.filter({ isActive: true }),
+      base44.entities.PlatformBankAccount.filter({ isActive: true }),
+    ]).then(([cryptos, banks]) => {
+      setCryptoAddresses(cryptos);
+      setBankAccounts(banks);
+      if (cryptos.length > 0) setSelectedCoin(cryptos[0].coin + '_' + cryptos[0].id);
+      if (banks.length > 0) setSelectedBank(banks[0]);
+      setLoadingPlatform(false);
+    }).catch(() => setLoadingPlatform(false));
+  }, []);
+
+  const selectedCryptoEntry = cryptoAddresses.find(c => (c.coin + '_' + c.id) === selectedCoin);
   const idrRaw = parseInt(amountIDR.replace(/\D/g, '') || '0');
 
   const copy = (text, key) => {
