@@ -17,6 +17,7 @@ const NAV = [
   { label: 'Riwayat', page: 'TxHistory', icon: Clock },
   { label: 'Settings', page: 'Settings', icon: Settings },
   { label: 'Admin Profit', page: 'AdminProfitAnalytics', icon: BarChart3, adminOnly: true },
+  { label: 'Aset Platform', page: 'AdminPlatformAssets', icon: Wallet, adminOnly: true },
 ];
 
 export default function Layout({ children, currentPageName }) {
