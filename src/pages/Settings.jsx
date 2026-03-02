@@ -19,6 +19,7 @@ const TABS = [
   { id: 'preferences', label: 'Preferensi', icon: Bell },
   { id: 'activity', label: 'Aktivitas', icon: Activity },
   { id: 'security', label: 'Keamanan', icon: Shield },
+  { id: 'addresses', label: 'Alamat', icon: BookMarked },
   { id: 'balance', label: 'Saldo', icon: Wallet },
 ];
 
