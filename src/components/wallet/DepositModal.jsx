@@ -61,13 +61,13 @@ export default function DepositModal({ onClose, userEmail }) {
   };
 
   const submitCrypto = async () => {
-    if (!txHash.trim() || !amountCrypto) return;
+    if (!txHash.trim() || !amountCrypto || !selectedCryptoEntry) return;
     setSubmitting(true);
     await base44.entities.DepositRequest.create({
       userEmail,
       type: 'crypto',
-      coin: selectedCoin,
-      network: coinInfo.network,
+      coin: selectedCryptoEntry.coin,
+      network: selectedCryptoEntry.network,
       amountCrypto: parseFloat(amountCrypto),
       txHash: txHash.trim(),
       status: 'pending',
