@@ -137,20 +137,63 @@ export default function DepositModal({ onClose, userEmail }) {
           </button>
         </div>
 
-        {/* Success */}
-        {step === 'success' ? (
-          <div className="p-6 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-8 h-8 text-green-400" />
+        {/* Verifying overlay */}
+        {verifying && (
+          <div className="p-8 text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center mx-auto">
+              <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
             </div>
             <div>
-              <h3 className="text-white font-bold text-lg">Deposit Diajukan!</h3>
-              <p className="text-slate-400 text-sm mt-1">
-                {tab === 'crypto'
-                  ? 'TX Hash diterima. Saldo akan dikreditkan setelah dikonfirmasi admin (1–24 jam).'
-                  : 'Bukti transfer dikirim. Saldo IDR akan dikreditkan setelah admin konfirmasi.'}
-              </p>
+              <h3 className="text-white font-bold text-lg">Memverifikasi TX Hash...</h3>
+              <p className="text-slate-400 text-sm mt-1">Mengecek transaksi di blockchain. Mohon tunggu.</p>
             </div>
+          </div>
+        )}
+
+        {/* Success */}
+        {!verifying && step === 'success' ? (
+          <div className="p-6 text-center space-y-4">
+            {tab === 'crypto' && verifyResult?.verified ? (
+              <>
+                <div className="w-16 h-16 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center mx-auto">
+                  <ShieldCheck className="w-8 h-8 text-green-400" />
+                </div>
+                <div>
+                  <h3 className="text-white font-bold text-lg">Deposit Terkonfirmasi Otomatis!</h3>
+                  <p className="text-green-400 text-sm mt-1">Transaksi terverifikasi di blockchain. Saldo telah dikreditkan.</p>
+                </div>
+                {verifyResult.explorerLink && (
+                  <a href={verifyResult.explorerLink} target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-blue-400 text-xs hover:underline">
+                    Lihat di Block Explorer ↗
+                  </a>
+                )}
+              </>
+            ) : tab === 'crypto' && verifyResult && !verifyResult.verified ? (
+              <>
+                <div className="w-16 h-16 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center mx-auto">
+                  <Clock className="w-8 h-8 text-amber-400" />
+                </div>
+                <div>
+                  <h3 className="text-white font-bold text-lg">Deposit Menunggu Konfirmasi</h3>
+                  <p className="text-slate-400 text-sm mt-1">
+                    {verifyResult.errorMsg || 'Verifikasi otomatis tidak berhasil. Admin akan mengkonfirmasi dalam 1–24 jam.'}
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="w-16 h-16 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-8 h-8 text-green-400" />
+                </div>
+                <div>
+                  <h3 className="text-white font-bold text-lg">Deposit Diajukan!</h3>
+                  <p className="text-slate-400 text-sm mt-1">
+                    Bukti transfer dikirim. Saldo IDR akan dikreditkan setelah admin konfirmasi.
+                  </p>
+                </div>
+              </>
+            )}
             <Button onClick={onClose}
               className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold">
               Selesai
