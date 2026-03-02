@@ -102,11 +102,18 @@ export default function VirtualBalanceCard({ userEmail, onDeposit, onWithdraw })
                     </span>
                     <span className="text-slate-300 text-sm">{info.label}</span>
                   </div>
-                  <span className="text-white font-bold text-sm">
-                    {b.amount.toLocaleString('en-US', {
-                      maximumFractionDigits: b.coin === 'USDT' || b.coin === 'IDR' ? 2 : 6,
-                    })} {b.coin}
-                  </span>
+                  <div className="text-right">
+                    <div className="text-white font-bold text-sm">
+                      {b.amount.toLocaleString('en-US', {
+                        maximumFractionDigits: b.coin === 'USDT' || b.coin === 'IDR' ? 2 : 6,
+                      })} {b.coin}
+                    </div>
+                    {prices[b.coin] && b.coin !== 'IDR' && (
+                      <div className="text-slate-500 text-[10px]">
+                        ≈ ${(b.amount * prices[b.coin]).toLocaleString('en-US', { maximumFractionDigits: 2 })}
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
