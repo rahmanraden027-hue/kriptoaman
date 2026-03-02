@@ -289,8 +289,13 @@ export default function DepositModal({ onClose, userEmail }) {
                     <Input type="number" value={amountCrypto} onChange={e => setAmountCrypto(e.target.value)}
                       placeholder="0.00" className="bg-slate-800 border-slate-700 text-white"
                       min={selectedCryptoEntry?.minDeposit || 0} />
-                    {selectedCryptoEntry?.minDeposit > 0 && (
-                      <p className="text-slate-500 text-[10px]">Minimum: {selectedCryptoEntry.minDeposit} {selectedCryptoEntry.coin}</p>
+                    {(selectedCryptoEntry?.minDeposit > 0 || selectedCryptoEntry?.maxDeposit > 0) && (
+                      <p className="text-slate-500 text-[10px]">
+                        {selectedCryptoEntry.minDeposit > 0 && `Min: ${selectedCryptoEntry.minDeposit}`}
+                        {selectedCryptoEntry.minDeposit > 0 && selectedCryptoEntry.maxDeposit > 0 && ' · '}
+                        {selectedCryptoEntry.maxDeposit > 0 && `Max: ${selectedCryptoEntry.maxDeposit}`}
+                        {' '}{selectedCryptoEntry.coin}
+                      </p>
                     )}
                     {selectedCryptoEntry?.minDeposit > 0 && amountCrypto && parseFloat(amountCrypto) < selectedCryptoEntry.minDeposit && (
                       <p className="text-red-400 text-[10px] flex items-center gap-1">
