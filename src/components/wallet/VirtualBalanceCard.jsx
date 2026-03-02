@@ -10,16 +10,39 @@ const COIN_INFO = {
   IDR:  { label: 'Saldo IDR', color: '#22C55E', icon: 'Rp' },
 };
 
+// CoinGecko IDs for price lookup
+const COINGECKO_IDS = {
+  SOL: 'solana',
+  ETH: 'ethereum',
+  BTC: 'bitcoin',
+  USDT: 'tether',
+};
+
 export default function VirtualBalanceCard({ userEmail, onDeposit, onWithdraw }) {
   const [balances, setBalances] = useState([]);
   const [pendingCount, setPendingCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [prices, setPrices] = useState({});
+
+  const loadPrices = async () => {
+    try {
+      const ids = Object.values(COINGECKO_IDS).join(',');
+      const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`);
+      const data = await res.json();
+      const p = {};
+      Object.entries(COINGECKO_IDS).forEach(([coin, id]) => {
+        if (data[id]) p[coin] = data[id].usd;
+      });
+      setPrices(p);
+    } catch (_) {}
+  };
 
   const load = async () => {
     setLoading(true);
     const [bals, reqs] = await Promise.all([
       base44.entities.UserBalance.filter({ userEmail }),
       base44.entities.DepositRequest.filter({ userEmail, status: 'pending' }),
+      loadPrices(),
     ]);
     setBalances(bals.filter(b => b.amount > 0));
     setPendingCount(reqs.length);
