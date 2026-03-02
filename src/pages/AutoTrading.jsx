@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Zap, Plus, Microscope, Radio } from 'lucide-react';
+import { Zap, Plus, Microscope, Radio, Grid3X3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import StrategySetupForm from '../components/autotrading/StrategySetupForm';
 import StrategyList from '../components/autotrading/StrategyList';
@@ -15,6 +15,7 @@ import LivePerformanceDashboard from '../components/autotrading/LivePerformanceD
 import NewsSentimentImpact from '../components/autotrading/NewsSentimentImpact';
 import AITradeRecommendations from '../components/autotrading/AITradeRecommendations';
 import AlertsConfiguration from '../components/autotrading/AlertsConfiguration';
+import GridTradingPanel from '../components/autotrading/GridTradingPanel';
 
 export default function AutoTrading() {
   const [showSetupForm, setShowSetupForm] = useState(false);
