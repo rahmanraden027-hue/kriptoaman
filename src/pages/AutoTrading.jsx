@@ -93,7 +93,7 @@ export default function AutoTrading() {
         )}
 
         {/* Info Box */}
-        <div className="mb-6 bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+        {mainTab === 'strategy' && <div className="mb-6 bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
           <p className="text-sm text-blue-300">
             💡 <span className="font-semibold">Cara Kerja:</span> Sistem akan menganalisis pasar sesuai interval yang ditentukan, 
             mengidentifikasi peluang trading menggunakan AI, dan eksekusi otomatis dengan stop-loss & take-profit dinamis berbasis ATR.
