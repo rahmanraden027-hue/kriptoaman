@@ -37,6 +37,8 @@ export default function DepositModal({ onClose, userEmail }) {
   const [proofNote, setProofNote] = useState('');
 
   const [submitting, setSubmitting] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyResult, setVerifyResult] = useState(null); // null | { verified, errorMsg, explorerLink }
 
   useEffect(() => {
     Promise.all([
