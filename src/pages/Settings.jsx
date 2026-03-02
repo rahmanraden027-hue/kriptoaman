@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import {
   User, Bell, Lock, Shield, Loader2, Activity,
   Camera, Mail, Phone, FileText, ChevronRight,
-  LogOut, Star, Calendar, Hash, Wallet
+  LogOut, Star, Calendar, Hash, Wallet, BookMarked
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ProfileSection from '../components/settings/ProfileSection';
