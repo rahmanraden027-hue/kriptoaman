@@ -170,6 +170,9 @@ export default function Settings() {
         {activeTab === 'security' && (
           <SecuritySection />
         )}
+        {activeTab === 'addresses' && (
+          <PaymentAddressBook />
+        )}
         {activeTab === 'balance' && user && (
           <AdminBalanceEditor />
         )}
