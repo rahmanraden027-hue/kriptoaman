@@ -65,7 +65,10 @@ export default function DepositModal({ onClose, userEmail }) {
   const submitCrypto = async () => {
     if (!txHash.trim() || !amountCrypto || !selectedCryptoEntry) return;
     setSubmitting(true);
-    await base44.entities.DepositRequest.create({
+    setVerifyResult(null);
+
+    // Create deposit request first (pending)
+    const deposit = await base44.entities.DepositRequest.create({
       userEmail,
       type: 'crypto',
       coin: selectedCryptoEntry.coin,
@@ -74,7 +77,26 @@ export default function DepositModal({ onClose, userEmail }) {
       txHash: txHash.trim(),
       status: 'pending',
     });
+
     setSubmitting(false);
+    setVerifying(true);
+
+    // Auto-verify via backend
+    try {
+      const res = await base44.functions.invoke('verifyTxHash', {
+        txHash: txHash.trim(),
+        coin: selectedCryptoEntry.coin,
+        network: selectedCryptoEntry.network,
+        expectedAmount: parseFloat(amountCrypto),
+        toAddress: selectedCryptoEntry.address,
+        depositRequestId: deposit.id,
+        userEmail,
+      });
+      setVerifyResult(res.data);
+    } catch (_) {
+      setVerifyResult({ verified: false, errorMsg: 'Gagal menghubungi verifikator. Admin akan konfirmasi manual.' });
+    }
+    setVerifying(false);
     setStep('success');
   };
 
