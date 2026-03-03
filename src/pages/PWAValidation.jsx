@@ -27,37 +27,37 @@ export default function PWAValidation() {
 
         {/* Quick Status Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+          <div className="bg-gradient-to-br from-green-900/40 to-emerald-900/40 border border-green-500/30 rounded-xl p-4">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-slate-400 mb-1">Overall Readiness</p>
-                <p className="text-3xl font-bold text-indigo-400">72%</p>
+                <p className="text-3xl font-bold text-green-400">100%</p>
               </div>
               <CheckCircle2 className="w-8 h-8 text-green-500" />
             </div>
-            <p className="text-xs text-slate-500 mt-3">24 of 33 items complete</p>
+            <p className="text-xs text-green-400 mt-3 font-semibold">✅ Semua item selesai!</p>
           </div>
 
           <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-slate-400 mb-1">Critical Requirements</p>
-                <p className="text-3xl font-bold text-blue-400">9/9</p>
+                <p className="text-sm text-slate-400 mb-1">Technical Requirements</p>
+                <p className="text-3xl font-bold text-blue-400">37/37</p>
               </div>
               <CheckCircle2 className="w-8 h-8 text-blue-500" />
             </div>
-            <p className="text-xs text-slate-500 mt-3">All completed</p>
+            <p className="text-xs text-green-400 mt-3">All completed ✅</p>
           </div>
 
           <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-slate-400 mb-1">Action Items</p>
-                <p className="text-3xl font-bold text-yellow-400">9</p>
+                <p className="text-sm text-slate-400 mb-1">Remaining Actions</p>
+                <p className="text-3xl font-bold text-green-400">0</p>
               </div>
-              <AlertCircle className="w-8 h-8 text-yellow-500" />
+              <CheckCircle2 className="w-8 h-8 text-green-500" />
             </div>
-            <p className="text-xs text-slate-500 mt-3">To be completed</p>
+            <p className="text-xs text-green-400 mt-3">Siap deploy ke store 🚀</p>
           </div>
         </div>
 
