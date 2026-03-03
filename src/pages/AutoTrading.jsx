@@ -64,13 +64,17 @@ export default function AutoTrading() {
         </div>
 
         {/* Main Tabs */}
-        <div className="flex gap-1 bg-slate-800/60 border border-slate-700/40 rounded-xl p-1 mb-6">
+        <div className="flex gap-1 bg-slate-800/60 border border-slate-700/40 rounded-xl p-1 mb-6 overflow-x-auto">
+          <button onClick={() => setMainTab('bot')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${mainTab === 'bot' ? 'bg-slate-700 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
+            <Bot className="w-4 h-4" /> Rule Bot
+          </button>
           <button onClick={() => setMainTab('strategy')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${mainTab === 'strategy' ? 'bg-slate-700 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${mainTab === 'strategy' ? 'bg-slate-700 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
             <Zap className="w-4 h-4" /> AI Strategi
           </button>
           <button onClick={() => setMainTab('grid')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${mainTab === 'grid' ? 'bg-slate-700 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${mainTab === 'grid' ? 'bg-slate-700 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
             <Grid3X3 className="w-4 h-4" /> Grid Bot
           </button>
         </div>
