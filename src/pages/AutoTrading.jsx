@@ -79,6 +79,9 @@ export default function AutoTrading() {
           </button>
         </div>
 
+        {/* ── RULE BOT TAB ── */}
+        {mainTab === 'bot' && <AutoTradingDashboard user={user} />}
+
         {/* ── GRID BOT TAB ── */}
         {mainTab === 'grid' && <GridTradingPanel />}
 
