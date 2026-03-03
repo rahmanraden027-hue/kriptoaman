@@ -23,7 +23,12 @@ export default function AutoTrading() {
   const [selectedStrategy, setSelectedStrategy] = useState(null);
   const [activeTab, setActiveTab] = useState('list');
   const [currentPrice, setCurrentPrice] = useState(null);
-  const [mainTab, setMainTab] = useState('strategy');
+  const [mainTab, setMainTab] = useState('bot');
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
 
   const { data: strategies = [], isLoading, refetch } = useQuery({
     queryKey: ['autoTradingStrategies'],
