@@ -50,6 +50,20 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <style>{`
+        /* PWA iOS safe area & viewport */
+        body { 
+          background: #020817;
+          overscroll-behavior: none;
+          -webkit-tap-highlight-color: transparent;
+          -webkit-touch-callout: none;
+        }
+        /* Prevent iOS bounce */
+        html { overflow: hidden; height: 100%; }
+        body { overflow: auto; height: 100%; }
+        /* CSP meta for inline - already in index.html */
+        .safe-area-pb { padding-bottom: env(safe-area-inset-bottom, 16px); }
+      `}</style>
       <PWAUpdateNotification />
       {user?.role === 'admin' && <AdminDepositNotifier />}
       
