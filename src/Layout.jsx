@@ -130,8 +130,31 @@ export default function Layout({ children, currentPageName }) {
         </div>
       </nav>
 
+      {/* Admin Quick Links — hanya untuk admin */}
+      {user?.role === 'admin' && (
+        <div className="fixed bottom-16 left-0 right-0 z-39 bg-rose-950/90 backdrop-blur border-t border-rose-800/60 px-4 py-1.5 flex items-center gap-3 overflow-x-auto">
+          <ShieldCheck className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+          <span className="text-rose-400 text-[10px] font-bold shrink-0">ADMIN:</span>
+          {NAV.filter(n => n.adminOnly).map(({ label, page, icon: Icon }) => {
+            const active = currentPageName === page;
+            return (
+              <Link key={page} to={createPageUrl(page)}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold whitespace-nowrap transition-all shrink-0 ${active ? 'bg-rose-600 text-white' : 'bg-rose-900/60 text-rose-300 hover:bg-rose-800/60'}`}>
+                <Icon className="w-3 h-3" />
+                {label}
+              </Link>
+            );
+          })}
+          <Link to={createPageUrl('AdminUserBalances')}
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold whitespace-nowrap transition-all shrink-0 ${currentPageName === 'AdminUserBalances' ? 'bg-rose-600 text-white' : 'bg-rose-900/60 text-rose-300 hover:bg-rose-800/60'}`}>
+            <User className="w-3 h-3" />
+            User Balances
+          </Link>
+        </div>
+      )}
+
       {/* Bottom padding for nav */}
-      <div className="h-16" />
+      <div className={user?.role === 'admin' ? 'h-24' : 'h-16'} />
     </div>
   );
 }
