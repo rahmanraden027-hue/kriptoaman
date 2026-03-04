@@ -292,7 +292,7 @@ function PositionCard({ pos, onWithdraw, liveApys }) {
         </div>
         <div className="bg-slate-900/60 rounded-xl p-2 text-center">
           <div className="text-slate-500">APY</div>
-          <div className="text-green-400 font-bold">{protocol.apy}%</div>
+          <div className="text-green-400 font-bold">{apy.toFixed(2)}%</div>
         </div>
         <div className="bg-slate-900/60 rounded-xl p-2 text-center">
           <div className="text-slate-500">Hari</div>
