@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   PiggyBank, TrendingUp, ArrowLeftRight, Shield, Zap,
   Plus, Minus, CheckCircle2, Info, ChevronDown, Clock,
