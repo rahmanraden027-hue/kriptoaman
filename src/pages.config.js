@@ -47,48 +47,50 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import AboutUs from './pages/AboutUs';
 import AdminPlatformAssets from './pages/AdminPlatformAssets';
 import AdminProfitAnalytics from './pages/AdminProfitAnalytics';
 import AdminUserBalances from './pages/AdminUserBalances';
 import AssetManager from './pages/AssetManager';
 import AutoTrading from './pages/AutoTrading';
+import Contact from './pages/Contact';
 import DEXSavings from './pages/DEXSavings';
 import PWAValidation from './pages/PWAValidation';
 import PortfolioOverview from './pages/PortfolioOverview';
 import PriceTracker from './pages/PriceTracker';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import Profile from './pages/Profile';
 import Settings from './pages/Settings';
+import Support from './pages/Support';
 import TermsOfService from './pages/TermsOfService';
 import TradingAnalytics from './pages/TradingAnalytics';
 import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
-import Profile from './pages/Profile';
-import Support from './pages/Support';
-import AboutUs from './pages/AboutUs';
-import Contact from './pages/Contact';
+import Disclaimer from './pages/Disclaimer';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "AboutUs": AboutUs,
     "AdminPlatformAssets": AdminPlatformAssets,
     "AdminProfitAnalytics": AdminProfitAnalytics,
     "AdminUserBalances": AdminUserBalances,
     "AssetManager": AssetManager,
     "AutoTrading": AutoTrading,
+    "Contact": Contact,
     "DEXSavings": DEXSavings,
     "PWAValidation": PWAValidation,
     "PortfolioOverview": PortfolioOverview,
     "PriceTracker": PriceTracker,
     "PrivacyPolicy": PrivacyPolicy,
+    "Profile": Profile,
     "Settings": Settings,
+    "Support": Support,
     "TermsOfService": TermsOfService,
     "TradingAnalytics": TradingAnalytics,
     "TxHistory": TxHistory,
     "Wallet": Wallet,
-    "Profile": Profile,
-    "Support": Support,
-    "AboutUs": AboutUs,
-    "Contact": Contact,
+    "Disclaimer": Disclaimer,
 }
 
 export const pagesConfig = {

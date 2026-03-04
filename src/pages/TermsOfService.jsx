@@ -1,168 +1,176 @@
+import React, { useState } from 'react';
+import KriptoAmanLogo from '../components/brand/KriptoAmanLogo';
+import { ChevronDown, ChevronUp, FileText, ArrowLeft, Shield, AlertTriangle, Scale, Gavel, UserCheck, XCircle } from 'lucide-react';
+import { createPageUrl } from '@/utils';
+import { Link } from 'react-router-dom';
+
+const sections = [
+  {
+    icon: <FileText className="w-5 h-5 text-indigo-400" />,
+    title: '1. Persetujuan Ketentuan',
+    content: (
+      <p className="text-slate-300 leading-relaxed">
+        Dengan mengakses dan menggunakan KriptoAman ("Platform"), Anda menyetujui dan terikat oleh ketentuan dan syarat perjanjian ini. Jika Anda tidak setuju, harap tidak menggunakan layanan ini.
+      </p>
+    ),
+  },
+  {
+    icon: <UserCheck className="w-5 h-5 text-indigo-400" />,
+    title: '2. Lisensi Penggunaan',
+    content: (
+      <>
+        <p className="text-slate-300 mb-3">Izin diberikan untuk penggunaan pribadi, non-komersial. Di bawah lisensi ini Anda tidak diperbolehkan:</p>
+        <ul className="space-y-2 text-slate-300">
+          <li className="flex gap-2"><span className="text-red-400 mt-1">✕</span> Memodifikasi atau menyalin materi platform</li>
+          <li className="flex gap-2"><span className="text-red-400 mt-1">✕</span> Menggunakan untuk tujuan komersial tanpa izin tertulis</li>
+          <li className="flex gap-2"><span className="text-red-400 mt-1">✕</span> Melakukan rekayasa balik (reverse engineer) pada perangkat lunak</li>
+          <li className="flex gap-2"><span className="text-red-400 mt-1">✕</span> Menggunakan bot/scraper untuk mengumpulkan data platform</li>
+          <li className="flex gap-2"><span className="text-red-400 mt-1">✕</span> Mentransfer atau "mirroring" materi ke server lain</li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    icon: <AlertTriangle className="w-5 h-5 text-yellow-400" />,
+    title: '3. Disclaimer Keuangan',
+    content: (
+      <>
+        <div className="p-4 bg-yellow-500/10 border border-yellow-500/25 rounded-xl mb-3">
+          <p className="text-yellow-300 font-semibold text-sm mb-2">⚠️ Peringatan Risiko Investasi</p>
+          <p className="text-slate-300 text-sm leading-relaxed">
+            KriptoAman disediakan untuk tujuan edukasi dan informasi. Kripto sangat fluktuatif dan berisiko tinggi. Kinerja masa lalu tidak menjamin hasil di masa depan. Anda bertanggung jawab penuh atas keputusan investasi Anda.
+          </p>
+        </div>
+        <p className="text-slate-400 text-sm">Selalu lakukan riset mandiri (DYOR) dan konsultasikan dengan penasihat keuangan sebelum bertransaksi.</p>
+      </>
+    ),
+  },
+  {
+    icon: <Shield className="w-5 h-5 text-indigo-400" />,
+    title: '4. Batasan Tanggung Jawab',
+    content: (
+      <p className="text-slate-300 leading-relaxed">
+        KriptoAman tidak bertanggung jawab atas kerugian apa pun (termasuk kehilangan data, profit, atau akibat gangguan bisnis) yang timbul dari penggunaan atau ketidakmampuan menggunakan platform, bahkan jika telah diberitahu tentang kemungkinan kerugian tersebut.
+      </p>
+    ),
+  },
+  {
+    icon: <UserCheck className="w-5 h-5 text-indigo-400" />,
+    title: '5. Tanggung Jawab Pengguna',
+    content: (
+      <ul className="space-y-2 text-slate-300">
+        <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Memberikan informasi yang akurat dan lengkap</li>
+        <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Menjaga kerahasiaan kredensial akun</li>
+        <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Mematuhi semua hukum dan regulasi yang berlaku</li>
+        <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Tidak menggunakan platform untuk kegiatan ilegal</li>
+        <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Tidak terlibat penipuan, pencucian uang, atau pendanaan terorisme</li>
+      </ul>
+    ),
+  },
+  {
+    icon: <XCircle className="w-5 h-5 text-red-400" />,
+    title: '6. Penangguhan & Penutupan Akun',
+    content: (
+      <>
+        <p className="text-slate-300 mb-3">KriptoAman berhak menangguhkan atau menutup akun Anda kapan saja jika:</p>
+        <ul className="space-y-2 text-slate-300">
+          <li className="flex gap-2"><span className="text-red-400 mt-1">▸</span> Melanggar Ketentuan Layanan ini</li>
+          <li className="flex gap-2"><span className="text-red-400 mt-1">▸</span> Dicurigai melakukan penipuan atau aktivitas ilegal</li>
+          <li className="flex gap-2"><span className="text-red-400 mt-1">▸</span> Persyaratan regulasi atau hukum</li>
+          <li className="flex gap-2"><span className="text-red-400 mt-1">▸</span> Inaktivitas dalam jangka panjang</li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    icon: <Scale className="w-5 h-5 text-indigo-400" />,
+    title: '7. Keamanan & Risiko',
+    content: (
+      <>
+        <p className="text-slate-300 mb-3">Anda mengakui risiko inheren dari transaksi kripto, termasuk:</p>
+        <ul className="space-y-2 text-slate-300">
+          <li className="flex gap-2"><span className="text-yellow-400 mt-1">▸</span> Kehilangan private key atau kompromi dompet</li>
+          <li className="flex gap-2"><span className="text-yellow-400 mt-1">▸</span> Serangan jaringan atau kegagalan teknis</li>
+          <li className="flex gap-2"><span className="text-yellow-400 mt-1">▸</span> Perubahan regulasi yang mempengaruhi kripto</li>
+          <li className="flex gap-2"><span className="text-yellow-400 mt-1">▸</span> Volatilitas pasar dan fluktuasi harga</li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    icon: <Gavel className="w-5 h-5 text-indigo-400" />,
+    title: '8. Hukum yang Berlaku',
+    content: (
+      <p className="text-slate-300 leading-relaxed">
+        Ketentuan ini diatur dan ditafsirkan sesuai dengan hukum Republik Indonesia. Anda tunduk pada yurisdiksi eksklusif pengadilan yang berlokasi di Jakarta, Indonesia.
+      </p>
+    ),
+  },
+];
+
+function AccordionItem({ item }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`border rounded-xl overflow-hidden transition-all ${open ? 'border-indigo-500/50 bg-slate-800/60' : 'border-slate-700/50 bg-slate-900/40'}`}>
+      <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between px-5 py-4 text-left">
+        <div className="flex items-center gap-3">
+          {item.icon}
+          <span className="text-white font-semibold text-sm">{item.title}</span>
+        </div>
+        {open ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+      </button>
+      {open && (
+        <div className="px-5 pb-5 border-t border-slate-700/40 pt-4">
+          {item.content}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function TermsOfService() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white p-4 pt-20">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold mb-2">Terms of Service</h1>
-        <p className="text-slate-400 mb-8">Last updated: March 1, 2026</p>
-
-        <div className="prose prose-invert max-w-none space-y-6">
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">1. Agreement to Terms</h2>
-            <p className="text-slate-300 leading-relaxed">
-              By accessing and using COINVAULT ("the Platform"), you accept and agree to be bound by the terms and provision 
-              of this agreement. If you do not agree to abide by the above, please do not use this service.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">2. Use License</h2>
-            <p className="text-slate-300 leading-relaxed">
-              Permission is granted to temporarily download one copy of the materials (information or software) on COINVAULT 
-              for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, 
-              and under this license you may not:
-            </p>
-            <ul className="list-disc list-inside space-y-2 text-slate-300 mt-3">
-              <li>Modifying or copying the materials</li>
-              <li>Using the materials for any commercial purpose or for any public display</li>
-              <li>Attempting to decompile or reverse engineer any software contained on the Platform</li>
-              <li>Removing any copyright or other proprietary notations from the materials</li>
-              <li>Transferring the materials to another person or "mirroring" the materials on any other server</li>
-              <li>Using any automated tools to access or collect data from the Platform</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">3. Disclaimer</h2>
-            <p className="text-slate-300 leading-relaxed">
-              The materials on COINVAULT are provided on an 'as is' basis. COINVAULT makes no warranties, expressed or implied, 
-              and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions 
-              of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.
-            </p>
-            <div className="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-              <p className="text-yellow-300 font-semibold">⚠️ Financial Disclaimer</p>
-              <p className="text-slate-300 text-sm mt-2">
-                COINVAULT is provided for educational and informational purposes only. Cryptocurrency is highly volatile and risky. 
-                Past performance does not guarantee future results. You are responsible for your own investment decisions. 
-                Do your own research and consult with a financial advisor before making any trades.
-              </p>
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">4. Limitations of Liability</h2>
-            <p className="text-slate-300 leading-relaxed">
-              In no event shall COINVAULT or its suppliers be liable for any damages (including, without limitation, damages for loss 
-              of data or profit, or due to business interruption) arising out of the use or inability to use the materials on COINVAULT, 
-              even if COINVAULT or an authorized representative has been notified orally or in writing of the possibility of such damage.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">5. Accuracy of Materials</h2>
-            <p className="text-slate-300 leading-relaxed">
-              The materials appearing on COINVAULT could include technical, typographical, or photographic errors. COINVAULT does not 
-              warrant that any of the materials on its Platform are accurate, complete, or current. COINVAULT may make changes to the 
-              materials contained on its Platform at any time without notice.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">6. Materials on the Platform</h2>
-            <p className="text-slate-300 leading-relaxed">
-              COINVAULT has not reviewed all of the sites linked to its Platform and is not responsible for the contents of any such 
-              linked site. The inclusion of any link does not imply endorsement by COINVAULT of the site. Use of any such linked website 
-              is at the user's own risk.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">7. Modifications to Terms</h2>
-            <p className="text-slate-300 leading-relaxed">
-              COINVAULT may revise these terms of service for its Platform at any time without notice. By using this Platform, you are 
-              agreeing to be bound by the then current version of these terms of service.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">8. Governing Law</h2>
-            <p className="text-slate-300 leading-relaxed">
-              These terms and conditions are governed by and construed in accordance with the laws of Indonesia, and you irrevocably 
-              submit to the exclusive jurisdiction of the courts located in Jakarta.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">9. User Responsibilities</h2>
-            <p className="text-slate-300 leading-relaxed">You agree to:</p>
-            <ul className="list-disc list-inside space-y-2 text-slate-300 mt-3">
-              <li>Provide accurate and complete information</li>
-              <li>Maintain the confidentiality of your account credentials</li>
-              <li>Accept responsibility for all activities under your account</li>
-              <li>Comply with all applicable laws and regulations</li>
-              <li>Not use the Platform for illegal purposes</li>
-              <li>Not engage in fraud, money laundering, or terrorism financing</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">10. Security & Risk</h2>
-            <p className="text-slate-300 leading-relaxed">
-              While we implement industry-standard security measures, we cannot guarantee the absolute security of your data or funds. 
-              You acknowledge the inherent risks of cryptocurrency transactions, including:
-            </p>
-            <ul className="list-disc list-inside space-y-2 text-slate-300 mt-3">
-              <li>Wallet compromise or loss of private keys</li>
-              <li>Network attacks or technical failures</li>
-              <li>Regulatory changes affecting cryptocurrencies</li>
-              <li>Market volatility and price fluctuations</li>
-              <li>Third-party exchange or blockchain failures</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">11. Account Termination</h2>
-            <p className="text-slate-300 leading-relaxed">
-              COINVAULT reserves the right to suspend or terminate your account at any time for:
-            </p>
-            <ul className="list-disc list-inside space-y-2 text-slate-300 mt-3">
-              <li>Violation of these Terms of Service</li>
-              <li>Suspected fraud or illegal activity</li>
-              <li>Regulatory or legal requirements</li>
-              <li>Inactivity over extended periods</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">12. Indemnification</h2>
-            <p className="text-slate-300 leading-relaxed">
-              You agree to indemnify and hold harmless COINVAULT and its officers, agents, and employees from any claim, 
-              demand, or damage incurred by third parties relating to your use of the Platform or violation of these terms.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">13. Support & Disputes</h2>
-            <p className="text-slate-300 leading-relaxed">
-              For disputes or issues with transactions, please contact our support team. While we will investigate claims in good faith, 
-              we cannot reverse most blockchain transactions due to their immutable nature.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">14. Contact Information</h2>
-            <div className="mt-4 p-4 bg-slate-800/50 border border-slate-700/50 rounded-lg">
-              <p className="text-slate-300"><strong>Support Email:</strong> support@coinvault.app</p>
-              <p className="text-slate-300 mt-2"><strong>Legal Email:</strong> legal@coinvault.app</p>
-              <p className="text-slate-300 mt-2"><strong>Response Time:</strong> Within 48 hours</p>
-            </div>
-          </section>
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white p-4 pt-6 pb-24">
+      <div className="max-w-2xl mx-auto">
+        <div className="flex items-center gap-3 mb-6">
+          <Link to={createPageUrl('Settings')} className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors">
+            <ArrowLeft className="w-4 h-4 text-slate-300" />
+          </Link>
+          <KriptoAmanLogo size={36} showText={true} textSize="text-base" />
         </div>
 
-        <div className="mt-12 py-8 border-t border-slate-700/50">
-          <p className="text-slate-500 text-sm text-center">
-            © 2026 COINVAULT. All rights reserved. | 
-            <a href="/privacy-policy" className="text-blue-400 hover:underline ml-1">Privacy Policy</a>
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 rounded-xl bg-indigo-500/20 border border-indigo-500/30">
+              <FileText className="w-5 h-5 text-indigo-400" />
+            </div>
+            <h1 className="text-2xl font-bold">Syarat & Ketentuan Layanan</h1>
+          </div>
+          <p className="text-slate-400 text-sm ml-1">Berlaku sejak: 1 Maret 2026 · Terakhir diperbarui: 4 Maret 2026</p>
+          <p className="text-slate-300 text-sm mt-3 leading-relaxed">
+            Dengan menggunakan KriptoAman, Anda menyetujui ketentuan berikut. Harap baca dengan seksama.
           </p>
+        </div>
+
+        <div className="space-y-3">
+          {sections.map((item, idx) => (
+            <AccordionItem key={idx} item={item} />
+          ))}
+        </div>
+
+        <div className="mt-8 p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
+          <p className="text-indigo-300 font-semibold text-sm mb-2">📬 Kontak Legal</p>
+          <p className="text-slate-300 text-sm">Email: <strong>legal@kriptoaman.id</strong></p>
+          <p className="text-slate-300 text-sm mt-1">Support: <strong>support@kriptoaman.id</strong></p>
+          <p className="text-slate-300 text-sm mt-1">Waktu respons: maks. 48 jam kerja</p>
+        </div>
+
+        <div className="mt-8 py-6 border-t border-slate-700/50 text-center space-y-2">
+          <p className="text-slate-500 text-xs">© 2026 KriptoAman. Hak cipta dilindungi.</p>
+          <div className="flex justify-center gap-4 text-xs">
+            <Link to={createPageUrl('PrivacyPolicy')} className="text-indigo-400 hover:underline">Kebijakan Privasi</Link>
+            <Link to={createPageUrl('Disclaimer')} className="text-indigo-400 hover:underline">Disclaimer</Link>
+          </div>
         </div>
       </div>
     </div>

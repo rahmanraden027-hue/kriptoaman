@@ -1,179 +1,181 @@
+import React, { useState } from 'react';
+import KriptoAmanLogo from '../components/brand/KriptoAmanLogo';
+import { ChevronDown, ChevronUp, Shield, Lock, Eye, Globe, Trash2, Bell, Users, ArrowLeft } from 'lucide-react';
+import { createPageUrl } from '@/utils';
+import { Link } from 'react-router-dom';
+
+const sections = [
+  {
+    icon: <Eye className="w-5 h-5 text-indigo-400" />,
+    title: '1. Informasi yang Kami Kumpulkan',
+    content: (
+      <>
+        <p className="text-slate-300 mb-3">Kami mengumpulkan informasi berikut untuk menjalankan layanan:</p>
+        <ul className="space-y-2 text-slate-300">
+          <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Data akun: nama lengkap, alamat email</li>
+          <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Alamat dompet kripto (bukan private key/seed phrase)</li>
+          <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Riwayat transaksi dan preferensi pengguna</li>
+          <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Data perangkat, IP, dan pola penggunaan (analytics)</li>
+        </ul>
+        <div className="mt-3 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-sm text-green-300">
+          ✅ Kami <strong>TIDAK</strong> menyimpan private key, seed phrase, atau kata sandi dalam bentuk tidak terenkripsi.
+        </div>
+      </>
+    ),
+  },
+  {
+    icon: <Shield className="w-5 h-5 text-indigo-400" />,
+    title: '2. Cara Kami Menggunakan Data Anda',
+    content: (
+      <ul className="space-y-2 text-slate-300">
+        <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Menyediakan dan meningkatkan layanan platform</li>
+        <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Memproses transaksi dan merespons permintaan</li>
+        <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Mendeteksi dan mencegah penipuan/aktivitas ilegal</li>
+        <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Mematuhi kewajiban hukum dan regulasi</li>
+        <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Mengirim notifikasi transaksi dan informasi layanan</li>
+      </ul>
+    ),
+  },
+  {
+    icon: <Lock className="w-5 h-5 text-indigo-400" />,
+    title: '3. Keamanan Data',
+    content: (
+      <>
+        <p className="text-slate-300 mb-3">Kami menerapkan langkah-langkah keamanan industri standar:</p>
+        <ul className="space-y-2 text-slate-300">
+          <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Enkripsi end-to-end untuk data sensitif</li>
+          <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> HTTPS/TLS untuk semua koneksi</li>
+          <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Audit keamanan berkala</li>
+          <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Dukungan autentikasi multi-faktor</li>
+        </ul>
+        <p className="text-slate-400 text-sm mt-3">Namun tidak ada metode transmisi atau penyimpanan yang 100% aman. Kami tidak dapat menjamin keamanan absolut.</p>
+      </>
+    ),
+  },
+  {
+    icon: <Users className="w-5 h-5 text-indigo-400" />,
+    title: '4. Berbagi Data',
+    content: (
+      <>
+        <p className="text-slate-300 mb-3">Kami hanya berbagi data dengan:</p>
+        <ul className="space-y-2 text-slate-300">
+          <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Penyedia layanan di bawah perjanjian kerahasiaan ketat</li>
+          <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Penegak hukum jika diwajibkan secara hukum</li>
+          <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Jaringan blockchain (data transaksi bersifat publik)</li>
+        </ul>
+        <div className="mt-3 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-300">
+          🚫 Kami <strong>TIDAK</strong> menjual informasi pribadi Anda kepada pihak ketiga.
+        </div>
+      </>
+    ),
+  },
+  {
+    icon: <Trash2 className="w-5 h-5 text-indigo-400" />,
+    title: '5. Hak Anda',
+    content: (
+      <ul className="space-y-2 text-slate-300">
+        <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Akses data pribadi Anda</li>
+        <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Koreksi informasi yang tidak akurat</li>
+        <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Penghapusan data (hak untuk dilupakan)</li>
+        <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Portabilitas data</li>
+        <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Menarik persetujuan kapan saja</li>
+        <p className="text-slate-400 text-sm mt-2 ml-5">Hubungi: <strong className="text-indigo-400">privacy@kriptoaman.id</strong></p>
+      </ul>
+    ),
+  },
+  {
+    icon: <Bell className="w-5 h-5 text-indigo-400" />,
+    title: '6. Cookie & Pelacakan',
+    content: (
+      <ul className="space-y-2 text-slate-300">
+        <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Manajemen sesi & autentikasi pengguna</li>
+        <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Analytics (Mixpanel) untuk meningkatkan UX</li>
+        <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Pencegahan penipuan</li>
+        <p className="text-slate-400 text-sm mt-2 ml-5">Anda dapat mengelola preferensi cookie di pengaturan browser.</p>
+      </ul>
+    ),
+  },
+  {
+    icon: <Globe className="w-5 h-5 text-indigo-400" />,
+    title: '7. Anak-anak & Transfer Internasional',
+    content: (
+      <>
+        <p className="text-slate-300 mb-3">Layanan kami tidak ditujukan untuk pengguna di bawah 18 tahun. Kami tidak secara sadar mengumpulkan informasi dari anak di bawah umur.</p>
+        <p className="text-slate-300">Informasi Anda mungkin ditransfer ke negara lain yang memiliki undang-undang perlindungan data berbeda. Dengan menggunakan layanan kami, Anda menyetujui transfer tersebut.</p>
+      </>
+    ),
+  },
+];
+
+function AccordionItem({ item, idx }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`border rounded-xl overflow-hidden transition-all ${open ? 'border-indigo-500/50 bg-slate-800/60' : 'border-slate-700/50 bg-slate-900/40'}`}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left"
+      >
+        <div className="flex items-center gap-3">
+          {item.icon}
+          <span className="text-white font-semibold text-sm">{item.title}</span>
+        </div>
+        {open ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+      </button>
+      {open && (
+        <div className="px-5 pb-5 border-t border-slate-700/40 pt-4">
+          {item.content}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function PrivacyPolicy() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white p-4 pt-20">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold mb-2">Privacy Policy</h1>
-        <p className="text-slate-400 mb-8">Last updated: March 1, 2026</p>
-
-        <div className="prose prose-invert max-w-none space-y-6">
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">1. Introduction</h2>
-            <p className="text-slate-300 leading-relaxed">
-              COINVAULT ("we," "us," "our," or "Company") operates a cryptocurrency wallet and trading platform. 
-              This Privacy Policy explains how we collect, use, disclose, and safeguard your information.
-            </p>
-            <p className="text-slate-300 leading-relaxed">
-              We are committed to protecting your privacy and ensuring you have a positive experience on our platform. 
-              If you have any questions about this Privacy Policy, please contact us at support@coinvault.app.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">2. Information We Collect</h2>
-            <h3 className="text-xl font-semibold text-slate-200 mb-3">2.1 Information You Provide</h3>
-            <ul className="list-disc list-inside space-y-2 text-slate-300">
-              <li>Account registration data (email, password, full name)</li>
-              <li>Wallet information (addresses, but NOT private keys)</li>
-              <li>Transaction history</li>
-              <li>User preferences and settings</li>
-              <li>Support communications</li>
-            </ul>
-
-            <h3 className="text-xl font-semibold text-slate-200 mb-3 mt-4">2.2 Automatically Collected Information</h3>
-            <ul className="list-disc list-inside space-y-2 text-slate-300">
-              <li>Device information (model, OS, browser)</li>
-              <li>IP address and location data (if permitted)</li>
-              <li>Usage patterns and analytics</li>
-              <li>Cookies and local storage data</li>
-            </ul>
-
-            <h3 className="text-xl font-semibold text-slate-200 mb-3 mt-4">2.3 What We Don't Store</h3>
-            <ul className="list-disc list-inside space-y-2 text-slate-300">
-              <li>Private keys or seed phrases</li>
-              <li>Unencrypted sensitive credentials</li>
-              <li>Full credit card numbers</li>
-              <li>Government identification documents (unless verified)</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">3. How We Use Your Information</h2>
-            <ul className="list-disc list-inside space-y-2 text-slate-300">
-              <li>Provide and improve our services</li>
-              <li>Process transactions and respond to requests</li>
-              <li>Send transactional and promotional emails</li>
-              <li>Detect and prevent fraud/illegal activity</li>
-              <li>Comply with legal obligations</li>
-              <li>Analyze usage patterns for optimization</li>
-              <li>Provide customer support</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">4. Data Security</h2>
-            <p className="text-slate-300 leading-relaxed">
-              We implement industry-standard security measures including:
-            </p>
-            <ul className="list-disc list-inside space-y-2 text-slate-300 mt-2">
-              <li>End-to-end encryption for sensitive data</li>
-              <li>HTTPS/TLS for all connections</li>
-              <li>Regular security audits</li>
-              <li>Multi-factor authentication support</li>
-              <li>Hardware security module storage (for keys)</li>
-              <li>Compliance with industry standards (SOC 2, GDPR)</li>
-            </ul>
-            <p className="text-slate-300 leading-relaxed mt-4">
-              However, no method of transmission or storage is 100% secure. While we strive to protect your data, 
-              we cannot guarantee absolute security.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">5. Data Sharing</h2>
-            <p className="text-slate-300 leading-relaxed mb-2">We share data only with:</p>
-            <ul className="list-disc list-inside space-y-2 text-slate-300">
-              <li>Service providers under strict confidentiality agreements</li>
-              <li>Law enforcement if legally required</li>
-              <li>Third parties you explicitly authorize</li>
-              <li>Blockchain networks (transaction data is public)</li>
-            </ul>
-            <p className="text-slate-300 leading-relaxed mt-4">
-              We do NOT sell your personal information to third parties.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">6. Your Rights (GDPR & CCPA)</h2>
-            <p className="text-slate-300 leading-relaxed">You have the right to:</p>
-            <ul className="list-disc list-inside space-y-2 text-slate-300 mt-2">
-              <li>Access your personal data</li>
-              <li>Correct inaccurate information</li>
-              <li>Delete your data (right to be forgotten)</li>
-              <li>Restrict processing</li>
-              <li>Data portability</li>
-              <li>Withdraw consent at any time</li>
-            </ul>
-            <p className="text-slate-300 leading-relaxed mt-4">
-              To exercise these rights, contact us at privacy@coinvault.app
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">7. Cookies & Tracking</h2>
-            <p className="text-slate-300 leading-relaxed">
-              We use cookies and similar technologies for:
-            </p>
-            <ul className="list-disc list-inside space-y-2 text-slate-300 mt-2">
-              <li>Session management</li>
-              <li>User authentication</li>
-              <li>Analytics (Mixpanel)</li>
-              <li>Fraud prevention</li>
-            </ul>
-            <p className="text-slate-300 leading-relaxed mt-4">
-              You can manage cookie preferences in your browser settings. Note that disabling cookies may affect functionality.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">8. Children's Privacy</h2>
-            <p className="text-slate-300 leading-relaxed">
-              Our service is not intended for users under 18 years old. We do not knowingly collect information from minors. 
-              If we become aware that a child has provided information, we will delete it immediately.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">9. International Transfers</h2>
-            <p className="text-slate-300 leading-relaxed">
-              Your information may be transferred to countries outside your residence, which may have different data protection laws. 
-              By using our service, you consent to such transfers.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">10. Third-Party Links</h2>
-            <p className="text-slate-300 leading-relaxed">
-              Our platform may contain links to third-party services. This Privacy Policy does not apply to external sites, 
-              and we are not responsible for their privacy practices.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">11. Changes to This Policy</h2>
-            <p className="text-slate-300 leading-relaxed">
-              We may update this Privacy Policy periodically. Material changes will be notified to you via email or 
-              through a prominent notice on our platform.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">12. Contact Us</h2>
-            <p className="text-slate-300 leading-relaxed">
-              If you have questions about this Privacy Policy or our privacy practices:
-            </p>
-            <div className="mt-4 p-4 bg-slate-800/50 border border-slate-700/50 rounded-lg">
-              <p className="text-slate-300"><strong>Email:</strong> privacy@coinvault.app</p>
-              <p className="text-slate-300 mt-2"><strong>Mail:</strong> COINVAULT Support, Address TBD</p>
-              <p className="text-slate-300 mt-2"><strong>Response Time:</strong> Within 30 days</p>
-            </div>
-          </section>
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white p-4 pt-6 pb-24">
+      <div className="max-w-2xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <Link to={createPageUrl('Settings')} className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors">
+            <ArrowLeft className="w-4 h-4 text-slate-300" />
+          </Link>
+          <KriptoAmanLogo size={36} showText={true} textSize="text-base" />
         </div>
 
-        <div className="mt-12 py-8 border-t border-slate-700/50">
-          <p className="text-slate-500 text-sm text-center">
-            © 2026 COINVAULT. All rights reserved. | 
-            <a href="/terms-of-service" className="text-blue-400 hover:underline ml-1">Terms of Service</a>
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 rounded-xl bg-indigo-500/20 border border-indigo-500/30">
+              <Lock className="w-5 h-5 text-indigo-400" />
+            </div>
+            <h1 className="text-2xl font-bold">Kebijakan Privasi</h1>
+          </div>
+          <p className="text-slate-400 text-sm ml-1">Berlaku sejak: 1 Maret 2026 · Terakhir diperbarui: 4 Maret 2026</p>
+          <p className="text-slate-300 text-sm mt-3 leading-relaxed">
+            KriptoAman berkomitmen melindungi privasi Anda. Kebijakan ini menjelaskan bagaimana kami mengumpulkan, menggunakan, dan menjaga informasi Anda.
           </p>
+        </div>
+
+        {/* Accordion sections */}
+        <div className="space-y-3">
+          {sections.map((item, idx) => (
+            <AccordionItem key={idx} item={item} idx={idx} />
+          ))}
+        </div>
+
+        {/* Contact */}
+        <div className="mt-8 p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
+          <p className="text-indigo-300 font-semibold text-sm mb-2">📬 Hubungi Kami</p>
+          <p className="text-slate-300 text-sm">Email: <strong>privacy@kriptoaman.id</strong></p>
+          <p className="text-slate-300 text-sm mt-1">Waktu respons: maks. 30 hari kerja</p>
+        </div>
+
+        {/* Footer links */}
+        <div className="mt-8 py-6 border-t border-slate-700/50 text-center space-y-2">
+          <p className="text-slate-500 text-xs">© 2026 KriptoAman. Hak cipta dilindungi.</p>
+          <div className="flex justify-center gap-4 text-xs">
+            <Link to={createPageUrl('TermsOfService')} className="text-indigo-400 hover:underline">Syarat Layanan</Link>
+            <Link to={createPageUrl('Disclaimer')} className="text-indigo-400 hover:underline">Disclaimer</Link>
+          </div>
         </div>
       </div>
     </div>
