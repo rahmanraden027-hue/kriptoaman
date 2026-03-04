@@ -27,6 +27,7 @@ export default function Market() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState('all'); // all | gainers | losers
+  const [chartCoin, setChartCoin] = useState(null);
 
   const fetchPrices = useCallback(() => {
     setLoading(true);
