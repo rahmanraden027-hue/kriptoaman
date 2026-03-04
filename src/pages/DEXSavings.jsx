@@ -424,9 +424,16 @@ export default function DEXSavings() {
               <div className="text-slate-500 text-[10px]">USDT Yield · Swap Langsung</div>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 bg-green-500/20 border border-green-500/30 rounded-full px-2.5 py-1">
-            <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-            <span className="text-green-400 text-xs">Live</span>
+          <div className="flex items-center gap-2">
+            {apyLastUpdated && (
+              <span className="text-slate-500 text-[10px]">
+                {apyLastUpdated.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              </span>
+            )}
+            <div className="flex items-center gap-1.5 bg-green-500/20 border border-green-500/30 rounded-full px-2.5 py-1">
+              <div className={`w-1.5 h-1.5 rounded-full ${apyLoading ? 'bg-yellow-400 animate-pulse' : 'bg-green-400 animate-pulse'}`} />
+              <span className="text-green-400 text-xs">{apyLoading ? 'Updating...' : 'Live'}</span>
+            </div>
           </div>
         </div>
 
