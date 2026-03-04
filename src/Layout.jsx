@@ -68,7 +68,7 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <DisclaimerGate>
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       <style>{`
         /* PWA iOS safe area & viewport */
         body { 
