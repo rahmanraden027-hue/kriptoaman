@@ -506,7 +506,8 @@ export default function DEXSavings() {
               </div>
 
               {SAVINGS_PROTOCOLS.map(proto => {
-                const liveApy = apyTick[proto.id] || proto.apy;
+                const liveApy = getApy(proto);
+                const hasLiveData = liveApys[proto.id] != null;
                 return (
                   <div key={proto.id}
                     className="bg-slate-800/50 border border-slate-700/40 rounded-2xl p-4 space-y-3 hover:border-slate-600 transition-colors">
