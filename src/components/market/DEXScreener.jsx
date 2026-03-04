@@ -452,7 +452,7 @@ export default function DEXScreener() {
       </div>
 
       {/* Mode Filter */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-1.5">
         {FILTERS.map(f => (
           <button key={f.id} onClick={() => setFilter(f.id)}
             className={`px-3 py-2.5 rounded-xl text-left border transition-all ${
