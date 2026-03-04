@@ -170,22 +170,22 @@ export default function MarketOverviewWidget() {
 
       {/* Terbesar Market Cap - Untung */}
       <SectionCard title="📈 Market Cap Terbesar — Untung" icon={TrendingUp} iconColor="bg-green-500/20 text-green-400" loading={loading}>
-        {gainers.map(c => <CoinRow key={c.id} coin={c} showMarketCap={true} showVolume={false} />)}
+        {gainers.map(c => <CoinRow key={c.id} coin={c} />)}
       </SectionCard>
 
       {/* Listing Baru */}
       <SectionCard title="⭐ Listing Baru" icon={Star} iconColor="bg-yellow-500/20 text-yellow-400" loading={loading}>
-        {newListings.map(c => <CoinRow key={c.id} coin={c} showMarketCap={true} showVolume={true} />)}
+        {newListings.map(c => <CoinRow key={c.id} coin={c} />)}
       </SectionCard>
 
       {/* Vol 24 Jam Terbesar */}
       <SectionCard title="🔥 Volume 24 Jam Tertinggi" icon={Flame} iconColor="bg-orange-500/20 text-orange-400" loading={loading}>
-        {highVol.map(c => <CoinRow key={c.id} coin={c} showMarketCap={false} showVolume={true} />)}
+        {highVol.map(c => <CoinRow key={c.id} coin={c} />)}
       </SectionCard>
 
       {/* Vol 24 Jam Merugi / Terendah */}
       <SectionCard title="📉 Volume 24 Jam Terendah — Merugi" icon={TrendingDown} iconColor="bg-red-500/20 text-red-400" loading={loading}>
-        {losers.map(c => <CoinRow key={c.id} coin={c} showMarketCap={true} showVolume={true} />)}
+        {losers.map(c => <CoinRow key={c.id} coin={c} />)}
       </SectionCard>
     </div>
   );
