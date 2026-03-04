@@ -17,6 +17,10 @@ const NAV = [
   { label: 'Auto-Trade', page: 'AutoTrading', icon: Zap },
   { label: 'Riwayat', page: 'TxHistory', icon: Clock },
   { label: 'Settings', page: 'Settings', icon: Settings },
+  { label: 'Profil', page: 'Profile', icon: Activity },
+  { label: 'Support', page: 'Support', icon: Activity },
+  { label: 'About', page: 'AboutUs', icon: Activity },
+  { label: 'Kontak', page: 'Contact', icon: Activity },
   { label: 'Admin Profit', page: 'AdminProfitAnalytics', icon: BarChart3, adminOnly: true },
   { label: 'Aset Platform', page: 'AdminPlatformAssets', icon: Wallet, adminOnly: true },
 ];
