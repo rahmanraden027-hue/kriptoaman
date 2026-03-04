@@ -5,13 +5,18 @@ import { Button } from '@/components/ui/button';
 const COIN_ICONS = {
   BTC: '₿', ETH: 'Ξ', LTC: 'Ł', BNB: 'B', SOL: '◎',
   DOGE: 'Ð', MATIC: 'M', ARB: 'A', OP: 'O', BASE: 'Ⓑ',
-  AVAX: '🔺', FTM: 'F'
+  AVAX: '🔺', FTM: 'F', USDT: '₮', XRP: '✕', ADA: '₳',
+  DOT: '●', TRX: '⚡', ATOM: '⚛', LINK: '⬡', UNI: '🦄',
+  NEAR: '★', APT: '◆', SUI: '💧', OP_TOKEN: 'O', ARB_TOKEN: 'A'
 };
 
 const COIN_COLORS = {
   BTC: '#F7931A', ETH: '#627EEA', LTC: '#345D9D', BNB: '#F0B90B',
   SOL: '#14F195', DOGE: '#BA9F33', MATIC: '#8247E5', ARB: '#28A0F0',
-  OP: '#FF0420', BASE: '#0052FF', AVAX: '#E84142', FTM: '#1969FF'
+  OP: '#FF0420', BASE: '#0052FF', AVAX: '#E84142', FTM: '#1969FF',
+  USDT: '#26A17B', XRP: '#00AAE4', ADA: '#0033AD', DOT: '#E6007A',
+  TRX: '#FF0013', ATOM: '#2E3148', LINK: '#375BD2', UNI: '#FF007A',
+  NEAR: '#00C08B', APT: '#00D4B4', SUI: '#4DA2FF', OP_TOKEN: '#FF0420', ARB_TOKEN: '#28A0F0'
 };
 
 export default function AllReceiveAddressesModal({ addresses, onClose }) {
