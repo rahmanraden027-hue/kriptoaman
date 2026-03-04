@@ -231,8 +231,9 @@ export default function MarketOverviewWidget() {
   };
 
   useEffect(() => {
+    fetchGlobalStats();
     fetchData();
-    const interval = setInterval(fetchData, 60000);
+    const interval = setInterval(() => { fetchGlobalStats(); fetchData(); }, 60000);
     return () => clearInterval(interval);
   }, []);
 
