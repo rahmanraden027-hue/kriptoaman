@@ -411,7 +411,7 @@ export default function DEXScreener() {
         </div>
         <div className="flex items-center gap-2">
           {lastUpdated && (
-            <span className="text-slate-600 text-[10px]">{lastUpdated.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+            <span className="text-slate-600 text-[10px]">{lastUpdated.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
           )}
           <button onClick={loadData} disabled={loading}
             className="p-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-white transition-colors">
