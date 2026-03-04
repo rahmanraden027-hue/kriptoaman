@@ -157,7 +157,7 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Bottom padding for nav */}
       <div className={user?.role === 'admin' ? 'h-24' : 'h-16'} />
-    </div>
+      </div>
     </DisclaimerGate>
   );
 }
