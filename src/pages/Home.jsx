@@ -50,7 +50,34 @@ export default function Home() {
             <h1 className="text-2xl font-bold text-white mt-0.5">
               {user?.full_name?.split(' ')[0] || 'Pengguna'} 👋
             </h1>
-            <p className="text-slate-400 text-xs mt-1">Platform kripto Anda yang aman & cerdas</p>
+
+            {/* App description dengan fitur utama */}
+            <div className="mt-4 space-y-2">
+              <p className="text-slate-300 text-xs font-semibold">Platform kripto terpercaya Indonesia dengan:</p>
+              <ul className="space-y-1.5 text-slate-400 text-[11px] leading-relaxed">
+                <li className="flex items-start gap-2">
+                  <span className="text-cyan-400 font-bold">•</span>
+                  <span><strong>Multi-Coin Wallet</strong> — Kelola BTC, ETH, USDT, SOL dalam satu tempat</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-cyan-400 font-bold">•</span>
+                  <span><strong>Auto-Trading Cerdas</strong> — Buat strategi otomatis dengan grid bot & paper trading</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-cyan-400 font-bold">•</span>
+                  <span><strong>Chart Realtime</strong> — Analisis teknikal dengan RSI, MACD, EMA dari Binance</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-cyan-400 font-bold">•</span>
+                  <span><strong>Keamanan Berlapis</strong> — PIN lock, OTP withdrawal, verifikasi tx hash otomatis</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-cyan-400 font-bold">•</span>
+                  <span><strong>Deposit/Withdraw IDR</strong> — Via bank lokal (BCA, Mandiri, GoPay, dll)</span>
+                </li>
+              </ul>
+            </div>
+
             <div className="flex items-center gap-2 mt-4">
               <div className="flex items-center gap-1.5 bg-green-500/15 border border-green-500/25 px-3 py-1.5 rounded-full">
                 <Shield className="w-3.5 h-3.5 text-green-400" />
