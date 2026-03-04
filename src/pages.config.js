@@ -67,6 +67,10 @@ import TradingAnalytics from './pages/TradingAnalytics';
 import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
 import Disclaimer from './pages/Disclaimer';
+import Home from './pages/Home';
+import Market from './pages/Market';
+import Alerts from './pages/Alerts';
+import Edukasi from './pages/Edukasi';
 import __Layout from './Layout.jsx';
 
 
@@ -91,6 +95,10 @@ export const PAGES = {
     "TxHistory": TxHistory,
     "Wallet": Wallet,
     "Disclaimer": Disclaimer,
+    "Home": Home,
+    "Market": Market,
+    "Alerts": Alerts,
+    "Edukasi": Edukasi,
 }
 
 export const pagesConfig = {
