@@ -294,7 +294,7 @@ function PositionCard({ pos, onWithdraw }) {
 
 // ── Main Page ──────────────────────────────────────────────────────────────────
 export default function DEXSavings() {
-  const [tab, setTab] = useState('savings'); // savings | dex
+  const [tab, setTab] = useState('savings'); // savings | dex | screener
   const [positions, setPositions] = useState(loadPositions);
   const [selectedProtocol, setSelectedProtocol] = useState(null);
   const [apyTick, setApyTick] = useState({});
