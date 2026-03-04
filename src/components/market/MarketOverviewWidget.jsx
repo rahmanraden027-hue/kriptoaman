@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { TrendingUp, TrendingDown, Flame, Star, Volume2, RefreshCw } from 'lucide-react';
+import { TrendingUp, TrendingDown, Flame, Star, RefreshCw, Globe, BarChart2, DollarSign, Activity } from 'lucide-react';
 
 const fmt = (n, dec = 2) => {
   if (n == null) return '—';
