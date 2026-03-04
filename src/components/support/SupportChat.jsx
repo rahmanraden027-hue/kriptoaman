@@ -181,7 +181,7 @@ export default function SupportChat({ user, onClose }) {
                   <Headphones className="w-3.5 h-3.5 text-white" />
                 </div>
                 <div className="max-w-[78%] px-3.5 py-2.5 rounded-2xl rounded-bl-sm bg-slate-800 border border-slate-700/50 text-slate-100 text-sm leading-relaxed">
-                  Halo{user?.full_name ? `, ${user.full_name.split(' ')[0]}` : ''}! 👋 Selamat datang di CoinVault Support. Ada yang bisa kami bantu hari ini?
+                  Halo{user?.full_name ? `, ${user.full_name.split(' ')[0]}` : ''}! 👋 Selamat datang di KriptoAman Support. Ada yang bisa kami bantu hari ini?
                 </div>
               </div>
 
