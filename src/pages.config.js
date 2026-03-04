@@ -51,10 +51,15 @@ import AboutUs from './pages/AboutUs';
 import AdminPlatformAssets from './pages/AdminPlatformAssets';
 import AdminProfitAnalytics from './pages/AdminProfitAnalytics';
 import AdminUserBalances from './pages/AdminUserBalances';
+import Alerts from './pages/Alerts';
 import AssetManager from './pages/AssetManager';
 import AutoTrading from './pages/AutoTrading';
 import Contact from './pages/Contact';
 import DEXSavings from './pages/DEXSavings';
+import Disclaimer from './pages/Disclaimer';
+import Edukasi from './pages/Edukasi';
+import Home from './pages/Home';
+import Market from './pages/Market';
 import PWAValidation from './pages/PWAValidation';
 import PortfolioOverview from './pages/PortfolioOverview';
 import PriceTracker from './pages/PriceTracker';
@@ -66,11 +71,7 @@ import TermsOfService from './pages/TermsOfService';
 import TradingAnalytics from './pages/TradingAnalytics';
 import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
-import Disclaimer from './pages/Disclaimer';
-import Home from './pages/Home';
-import Market from './pages/Market';
-import Alerts from './pages/Alerts';
-import Edukasi from './pages/Edukasi';
+import PlatformDocs from './pages/PlatformDocs';
 import __Layout from './Layout.jsx';
 
 
@@ -79,10 +80,15 @@ export const PAGES = {
     "AdminPlatformAssets": AdminPlatformAssets,
     "AdminProfitAnalytics": AdminProfitAnalytics,
     "AdminUserBalances": AdminUserBalances,
+    "Alerts": Alerts,
     "AssetManager": AssetManager,
     "AutoTrading": AutoTrading,
     "Contact": Contact,
     "DEXSavings": DEXSavings,
+    "Disclaimer": Disclaimer,
+    "Edukasi": Edukasi,
+    "Home": Home,
+    "Market": Market,
     "PWAValidation": PWAValidation,
     "PortfolioOverview": PortfolioOverview,
     "PriceTracker": PriceTracker,
@@ -94,11 +100,7 @@ export const PAGES = {
     "TradingAnalytics": TradingAnalytics,
     "TxHistory": TxHistory,
     "Wallet": Wallet,
-    "Disclaimer": Disclaimer,
-    "Home": Home,
-    "Market": Market,
-    "Alerts": Alerts,
-    "Edukasi": Edukasi,
+    "PlatformDocs": PlatformDocs,
 }
 
 export const pagesConfig = {
