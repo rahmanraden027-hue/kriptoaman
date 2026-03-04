@@ -354,14 +354,20 @@ export default function DEXScreener() {
       let results = [];
       if (searchQuery) {
         results = await fetchByChainSearch(searchQuery, chain);
-      } else if (filter === 'trending') {
-        results = await fetchGainers(chain); // fallback to gainers for trending since boost API is complex
-      } else if (filter === 'gainers') {
+      } else if (filter === 'trending' || filter === 'gainers') {
         results = await fetchGainers(chain);
+      } else if (filter === 'meme') {
+        results = await fetchTrendingMeme(chain);
       } else if (filter === 'new') {
         results = await fetchNewPairs(chain);
       } else if (filter === 'volume') {
         results = await fetchVolume(chain);
+      } else if (filter === 'lowcap') {
+        const base = await fetchGainers(chain);
+        results = base.filter(p => {
+          const fdv = p.fdv || 0;
+          return fdv > 0 && fdv < 5000000;
+        }).sort((a, b) => (b.priceChange?.h24 || 0) - (a.priceChange?.h24 || 0));
       }
       // Sort by score
       results = results.map(p => ({ ...p, _score: scorePair(p).score }))
