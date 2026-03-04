@@ -59,6 +59,7 @@ export default function Wallet() {
   const [showDeposit, setShowDeposit] = useState(false);
   const [showWithdrawal, setShowWithdrawal] = useState(false);
   const [showAllAddresses, setShowAllAddresses] = useState(false);
+  const [showPriceChart, setShowPriceChart] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [currentUser, setCurrentUser] = useState(null);
 
