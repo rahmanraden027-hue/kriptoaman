@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Zap, TrendingUp, Lock, Globe, ChevronDown, Star, Users, ArrowRight, CheckCircle, Smartphone, BarChart3, Bot, Wallet, Eye, RefreshCw, FileText, Download, Circle, CheckCircle2, Clock, Menu, X } from 'lucide-react';
+import { Shield, Zap, TrendingUp, Lock, Globe, ChevronDown, Star, Users, ArrowRight, CheckCircle, Smartphone, BarChart3, Bot, Wallet, Eye, RefreshCw, FileText, Download, Circle, CheckCircle2, Clock, Menu, X, AlertTriangle } from 'lucide-react';
 
 const FEATURES = [
   {
