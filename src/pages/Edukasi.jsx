@@ -128,6 +128,70 @@ Setiap candle menunjukkan: Open, High, Low, Close dalam periode tertentu.
 • Diversifikasi di beberapa protokol`,
   },
   {
+    id: 7, cat: 'Anti-RugPull', icon: '🚨',
+    title: 'Cara Mendeteksi Rug Pull',
+    desc: 'Panduan lengkap menghindari proyek kripto scam: ciri-ciri rug pull, red flag, dan cara melindungi aset Anda.',
+    readMin: 10, level: 'Penting',
+    content: `Rug pull adalah penipuan di mana developer proyek kabur membawa dana investor setelah memompa harga token.
+
+**⚠️ Ciri-Ciri Rug Pull:**
+• Anonymous team / tim tidak dikenal
+• Kode smart contract tidak diaudit
+• Tidak ada liquidity lock
+• Hype berlebihan di media sosial
+• Janji return tidak realistis (1000x, "pasti untung")
+• Token terkonsentrasi di sedikit wallet
+• Whitepaper samar atau copy-paste
+• Tidak ada produk nyata / roadmap jelas
+
+**🔍 Cara Verifikasi Sebelum Invest:**
+1. Cek audit di CertiK, PeckShield, Hacken
+2. Cek liquidity lock di Unicrypt atau Team.Finance
+3. Analisa distribusi token di Etherscan/BSCScan
+4. Cek umur kontrak & aktivitas developer
+5. Cari berita proyek di Google News
+6. Tanya di komunitas (Telegram, Discord) dan perhatikan respons
+
+**🛡️ Tools Wajib:**
+- **Token Sniffer** — scan smart contract otomatis
+- **RugCheck** — cek risiko token Solana
+- **DEXTools** — analisa on-chain mendalam
+- **BubbleMaps** — visualisasi distribusi wallet
+
+**💡 Aturan Emas:**
+⚠️ Jika terdengar terlalu bagus untuk jadi kenyataan, kemungkinan besar itu scam. Invest hanya yang Anda siap kehilangan 100%.`,
+  },
+  {
+    id: 8, cat: 'Anti-RugPull', icon: '🔐',
+    title: 'Keamanan Wallet & Anti-Phishing',
+    desc: 'Cara melindungi wallet kripto Anda dari phishing, fake airdrop, malicious contract, dan serangan hacker.',
+    readMin: 8, level: 'Penting',
+    content: `Lebih banyak kripto hilang karena keamanan lemah daripada karena pasar turun. Lindungi diri Anda sekarang.
+
+**🎣 Modus Phishing Umum:**
+• Link fake di iklan Google ("Metamask.io" palsu)
+• Airdrop token gratis → mint = drain wallet
+• Support palsu di Telegram/Discord
+• Email "verifikasi wallet" dari exchange palsu
+• Situs kloning exchange populer
+
+**✅ Checklist Keamanan Harian:**
+1. Selalu ketik URL manual, jangan klik link
+2. Gunakan bookmark untuk exchange penting
+3. Install MetaMask hanya dari situs resmi
+4. Jangan approve kontrak tidak dikenal
+5. Revoke izin di revoke.cash secara berkala
+6. Gunakan hardware wallet (Ledger/Trezor) untuk simpanan besar
+
+**🔑 Proteksi Seed Phrase:**
+• Tulis di kertas, simpan di brankas / tempat aman
+• JANGAN foto, screenshot, atau kirim via chat
+• JANGAN masukkan di situs manapun
+• Pertimbangkan metal backup tahan api
+
+⚠️ TIDAK ADA exchange atau wallet resmi yang pernah meminta seed phrase Anda. Siapapun yang meminta itu adalah penipu.`,
+  },
+  {
     id: 6, cat: 'Lanjutan', icon: '🤖',
     title: 'Trading Bot & Auto-Trade',
     desc: 'Cara kerja trading bot, strategi otomatis, dan bagaimana KriptoAman membantu automasi trading Anda.',
