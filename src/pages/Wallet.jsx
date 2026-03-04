@@ -276,6 +276,9 @@ export default function Wallet() {
          {/* Comprehensive Transaction History */}
          <ComprehensiveTransactionHistory />
 
+        {/* Market Overview: gainers, new listings, volume */}
+        <MarketOverviewWidget />
+
         {/* Multi-Coin Dashboard */}
         <MultiCoinDashboard
           addresses={addresses || { BTC: { address: walletData?.address } }}
