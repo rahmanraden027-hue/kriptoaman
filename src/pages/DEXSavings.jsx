@@ -529,8 +529,11 @@ export default function DEXSavings() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-green-400 font-bold text-lg">{liveApy.toFixed(2)}%</div>
-                        <div className="text-slate-500 text-[10px]">APY · TVL {proto.tvl}</div>
+                        <div className="flex items-center gap-1.5 justify-end">
+                          <div className="text-green-400 font-bold text-lg">{liveApy.toFixed(2)}%</div>
+                          {hasLiveData && <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" title="Live data" />}
+                        </div>
+                        <div className="text-slate-500 text-[10px]">{hasLiveData ? '🟢 Live APY' : 'APY (est.)'} · TVL {proto.tvl}</div>
                       </div>
                     </div>
 
