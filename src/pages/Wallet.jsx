@@ -151,7 +151,7 @@ export default function Wallet() {
               </svg>
             </div>
             <div>
-              <span className={`font-bold text-base tracking-wide ${textMain}`}>COINVAULT</span>
+              <span className={`font-bold text-base tracking-wide ${textMain}`}>KriptoAman</span>
               <div className="flex items-center gap-1">
                 <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
                 <span className="text-green-400 text-[10px] font-medium">Mainnet · Live</span>
