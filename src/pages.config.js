@@ -72,6 +72,7 @@ import TradingAnalytics from './pages/TradingAnalytics';
 import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
 import PlatformDocs from './pages/PlatformDocs';
+import LandingPage from './pages/LandingPage';
 import __Layout from './Layout.jsx';
 
 
@@ -101,6 +102,7 @@ export const PAGES = {
     "TxHistory": TxHistory,
     "Wallet": Wallet,
     "PlatformDocs": PlatformDocs,
+    "LandingPage": LandingPage,
 }
 
 export const pagesConfig = {
