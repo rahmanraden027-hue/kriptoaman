@@ -74,7 +74,7 @@ export default function Layout({ children, currentPageName }) {
             <div className="w-5 h-5 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="white" strokeWidth="2.5"/><path d="M9 8.5C9 8.5 9 7 11 7C13 7 14.5 8 14.5 10C14.5 12 12.5 12.5 12 13C11.5 13.5 11.5 14.5 11.5 14.5" stroke="white" strokeWidth="2" strokeLinecap="round"/><circle cx="11.5" cy="17" r="1" fill="white"/></svg>
             </div>
-            <span className="text-white text-xs font-bold tracking-wider">COINVAULT</span>
+            <span className="text-white text-xs font-bold tracking-wider">KriptoAman</span>
           </div>
           <Link to={createPageUrl('Settings')}
             className="flex items-center gap-2 px-2.5 py-1 bg-slate-800 border border-slate-700/50 rounded-full hover:bg-slate-700 transition-colors">
