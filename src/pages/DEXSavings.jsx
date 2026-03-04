@@ -312,22 +312,78 @@ export default function DEXSavings() {
   const [tab, setTab] = useState('savings'); // savings | dex | screener
   const [positions, setPositions] = useState(loadPositions);
   const [selectedProtocol, setSelectedProtocol] = useState(null);
-  const [apyTick, setApyTick] = useState({});
+  const [liveApys, setLiveApys] = useState({});
+  const [apyLoading, setApyLoading] = useState(false);
+  const [apyLastUpdated, setApyLastUpdated] = useState(null);
+  const [cryptoPrices, setCryptoPrices] = useState({});
+  const apyIntervalRef = useRef(null);
+  const priceIntervalRef = useRef(null);
 
-  // Simulate APY fluctuation
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setApyTick(prev => {
-        const t = {};
-        SAVINGS_PROTOCOLS.forEach(p => {
-          const delta = (Math.random() - 0.5) * 0.06;
-          t[p.id] = (prev[p.id] || p.apy) + delta;
-        });
-        return t;
+  // Fetch real APYs from DeFiLlama
+  const fetchRealApys = useCallback(async () => {
+    setApyLoading(true);
+    try {
+      const res = await fetch('https://yields.llama.fi/pools');
+      if (!res.ok) throw new Error('failed');
+      const data = await res.json();
+      const pools = data.data || [];
+      const apyMap = {};
+      // Try to match by protocol name + stablecoin
+      const protocolMap = {
+        aave: ['aave-v3', 'aave'],
+        compound: ['compound-v3', 'compound'],
+        curve: ['curve'],
+        yearn: ['yearn-finance', 'yearn'],
+        beefy: ['beefy'],
+        marinade: ['marinade'],
+        kamino: ['kamino'],
+        save: ['save', 'solend'],
+      };
+      const stableSymbols = ['USDT', 'USDC', 'DAI'];
+      SAVINGS_PROTOCOLS.forEach(proto => {
+        const aliases = protocolMap[proto.id] || [proto.id];
+        const match = pools.find(pool =>
+          aliases.some(alias => pool.project?.toLowerCase().includes(alias)) &&
+          stableSymbols.some(sym => pool.symbol?.toUpperCase().includes(sym)) &&
+          pool.apy != null && pool.apy > 0
+        );
+        if (match) apyMap[proto.id] = parseFloat(match.apy.toFixed(2));
       });
-    }, 3000);
-    return () => clearInterval(timer);
+      if (Object.keys(apyMap).length > 0) {
+        setLiveApys(apyMap);
+        setApyLastUpdated(new Date());
+      }
+    } catch {
+      // fallback — keep previous values
+    } finally {
+      setApyLoading(false);
+    }
   }, []);
+
+  // Fetch crypto prices for portfolio value context
+  const fetchPrices = useCallback(async () => {
+    try {
+      const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=tether,usd-coin,ethereum,solana&vs_currencies=usd&include_24hr_change=true');
+      if (!res.ok) return;
+      const data = await res.json();
+      setCryptoPrices(data);
+    } catch { /* silent */ }
+  }, []);
+
+  // Start polling on mount
+  useEffect(() => {
+    fetchRealApys();
+    fetchPrices();
+    apyIntervalRef.current = setInterval(fetchRealApys, 30000); // every 30s
+    priceIntervalRef.current = setInterval(fetchPrices, 20000); // every 20s
+    return () => {
+      clearInterval(apyIntervalRef.current);
+      clearInterval(priceIntervalRef.current);
+    };
+  }, [fetchRealApys, fetchPrices]);
+
+  // Merge live APY with fallback
+  const getApy = (proto) => liveApys[proto.id] ?? proto.apy;
 
   const handleDeposit = (data) => {
     const updated = [...positions, { ...data, id: Date.now() }];
