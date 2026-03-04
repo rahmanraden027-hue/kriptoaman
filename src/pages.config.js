@@ -73,6 +73,7 @@ import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
 import PlatformDocs from './pages/PlatformDocs';
 import LandingPage from './pages/LandingPage';
+import P2PLending from './pages/P2PLending';
 import __Layout from './Layout.jsx';
 
 
@@ -103,6 +104,7 @@ export const PAGES = {
     "Wallet": Wallet,
     "PlatformDocs": PlatformDocs,
     "LandingPage": LandingPage,
+    "P2PLending": P2PLending,
 }
 
 export const pagesConfig = {
