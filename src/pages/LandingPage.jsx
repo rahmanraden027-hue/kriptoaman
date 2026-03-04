@@ -334,8 +334,137 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── ROADMAP ── */}
+      <section id="roadmap" className="py-20 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <span className="text-cyan-400 text-xs font-bold tracking-widest uppercase">Roadmap</span>
+            <h2 className="text-3xl sm:text-4xl font-black mt-2">
+              Perjalanan menuju <span className="text-cyan-400">platform terbaik</span>
+            </h2>
+          </div>
+          <div className="relative">
+            {/* vertical line */}
+            <div className="absolute left-6 top-0 bottom-0 w-px bg-gradient-to-b from-cyan-500/60 via-blue-500/30 to-transparent hidden sm:block" />
+            <div className="space-y-6">
+              {ROADMAP.map((r, i) => (
+                <div key={i} className="flex gap-6 items-start">
+                  {/* dot */}
+                  <div className={`hidden sm:flex shrink-0 w-12 h-12 rounded-full items-center justify-center border-2 z-10 ${
+                    r.status === 'done' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' :
+                    r.status === 'active' ? 'bg-cyan-500/20 border-cyan-500 text-cyan-400' :
+                    'bg-slate-800 border-slate-600 text-slate-500'
+                  }`}>
+                    {r.status === 'done' ? <CheckCircle2 className="w-5 h-5" /> :
+                     r.status === 'active' ? <Clock className="w-5 h-5" /> :
+                     <Circle className="w-5 h-5" />}
+                  </div>
+                  <div className={`flex-1 border rounded-2xl p-5 sm:p-6 ${
+                    r.status === 'done' ? 'border-emerald-500/20 bg-emerald-500/5' :
+                    r.status === 'active' ? 'border-cyan-500/30 bg-cyan-500/5' :
+                    'border-slate-700/50 bg-slate-800/20'
+                  }`}>
+                    <div className="flex flex-wrap items-center gap-3 mb-3">
+                      <span className="text-white font-black text-base">{r.phase}</span>
+                      <span className="text-slate-400 font-semibold text-sm">— {r.title}</span>
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${
+                        r.status === 'done' ? 'bg-emerald-500/20 text-emerald-400' :
+                        r.status === 'active' ? 'bg-cyan-500/20 text-cyan-400 animate-pulse' :
+                        'bg-slate-700/50 text-slate-400'
+                      }`}>
+                        {r.status === 'done' ? '✅ Selesai' : r.status === 'active' ? '🔄 In Progress' : '🔮 Planned'}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                      {r.items.map((item, j) => (
+                        <div key={j} className="flex items-center gap-2 text-xs">
+                          {r.status === 'done'
+                            ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                            : r.status === 'active'
+                              ? <Clock className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                              : <Circle className="w-3.5 h-3.5 text-slate-600 shrink-0" />}
+                          <span className={r.status === 'done' ? 'text-slate-400' : 'text-slate-300'}>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── WHITEPAPER ── */}
+      <section id="whitepaper" className="py-20 px-4 bg-gradient-to-b from-transparent via-indigo-950/15 to-transparent">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <span className="text-cyan-400 text-xs font-bold tracking-widest uppercase">Whitepaper</span>
+            <h2 className="text-3xl sm:text-4xl font-black mt-2">
+              Transparansi penuh, <span className="text-cyan-400">dokumentasi lengkap</span>
+            </h2>
+            <p className="text-slate-400 text-sm mt-3 max-w-lg mx-auto">
+              Pelajari teknologi, model bisnis, dan visi jangka panjang KriptoAman secara mendalam.
+            </p>
+          </div>
+
+          {/* Whitepaper card */}
+          <div className="bg-gradient-to-br from-slate-800/70 to-slate-900/70 border border-indigo-500/20 rounded-3xl p-6 sm:p-10 mb-8">
+            <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center mb-8">
+              <div className="w-16 h-20 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-xl flex flex-col items-center justify-center gap-1 shadow-lg shadow-indigo-500/30 shrink-0">
+                <FileText className="w-7 h-7 text-white" />
+                <span className="text-white text-[9px] font-bold">PDF</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-white font-black text-xl mb-1">KriptoAman Whitepaper v1.0</h3>
+                <p className="text-slate-400 text-sm mb-3">Platform Kripto Terpercaya untuk Investor Indonesia — Arsitektur, Keamanan & Roadmap</p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="text-xs bg-slate-700 text-slate-300 px-2.5 py-1 rounded-full">Versi 1.0 • Maret 2026</span>
+                  <span className="text-xs bg-slate-700 text-slate-300 px-2.5 py-1 rounded-full">Bahasa Indonesia</span>
+                  <span className="text-xs bg-slate-700 text-slate-300 px-2.5 py-1 rounded-full">~42 halaman</span>
+                </div>
+              </div>
+              <a
+                href="#"
+                onClick={e => { e.preventDefault(); alert('Whitepaper PDF akan tersedia segera. Daftar akun untuk mendapatkan notifikasi!'); }}
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-indigo-500/30 shrink-0 text-sm">
+                <Download className="w-4 h-4" /> Download PDF
+              </a>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {WHITEPAPER_SECTIONS.map((s, i) => (
+                <div key={i} className="flex gap-3 p-3 bg-white/4 rounded-xl border border-white/5">
+                  <span className="text-indigo-400 font-black text-xs shrink-0 mt-0.5">{s.no}</span>
+                  <div>
+                    <p className="text-white font-semibold text-sm">{s.title}</p>
+                    <p className="text-slate-500 text-xs mt-0.5 leading-relaxed">{s.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Email capture */}
+          <div className="bg-white/4 border border-white/8 rounded-2xl p-6 text-center">
+            <p className="text-white font-bold mb-1">Dapatkan update whitepaper & rilis fitur terbaru</p>
+            <p className="text-slate-500 text-xs mb-4">Daftarkan email kamu untuk notifikasi eksklusif</p>
+            <div className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+              <input
+                type="email"
+                placeholder="email@kamu.com"
+                className="flex-1 bg-slate-800 border border-slate-700 text-white text-sm px-4 py-2.5 rounded-xl outline-none focus:border-cyan-500 transition-colors"
+              />
+              <button className="px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-bold rounded-xl hover:opacity-90 transition-opacity whitespace-nowrap">
+                Kirim
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── TESTIMONIALS ── */}
-      <section className="py-20 px-4 bg-gradient-to-b from-transparent via-blue-950/10 to-transparent">
+      <section id="testimoni" className="py-20 px-4 bg-gradient-to-b from-transparent via-blue-950/10 to-transparent">
         <div className="max-w-5xl mx-auto text-center">
           <span className="text-cyan-400 text-xs font-bold tracking-widest uppercase">Testimoni</span>
           <h2 className="text-3xl sm:text-4xl font-black mt-2 mb-12">
