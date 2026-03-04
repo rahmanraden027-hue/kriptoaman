@@ -100,7 +100,8 @@ export default function Market() {
             const chg = d?.usd_24h_change;
             const isUp = chg >= 0;
             return (
-              <div key={c.id} className="flex items-center justify-between bg-slate-800/50 border border-slate-700/40 rounded-2xl px-4 py-3">
+              <div key={c.id} className="flex items-center justify-between bg-slate-800/50 border border-slate-700/40 rounded-2xl px-4 py-3 cursor-pointer hover:border-indigo-500/40 transition-all active:scale-[0.99]"
+                onClick={() => setChartCoin(c)}>
                 <div className="flex items-center gap-3">
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white ${isUp ? 'bg-green-500/30' : 'bg-red-500/30'}`}>
                     {c.sym.slice(0, 2)}
