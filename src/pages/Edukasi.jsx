@@ -232,7 +232,7 @@ function ArticleModal({ article, onClose }) {
         <div className="sticky top-0 bg-slate-900 border-b border-slate-800 p-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-2xl">{article.icon}</span>
-            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${article.level === 'Pemula' ? 'bg-green-500/20 text-green-400' : article.level === 'Menengah' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'}`}>{article.level}</span>
+            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${article.level === 'Pemula' ? 'bg-green-500/20 text-green-400' : article.level === 'Menengah' ? 'bg-yellow-500/20 text-yellow-400' : article.level === 'Penting' ? 'bg-rose-500/20 text-rose-400' : 'bg-red-500/20 text-red-400'}`}>{article.level}</span>
           </div>
           <button onClick={onClose} className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700"><X className="w-4 h-4 text-slate-300" /></button>
         </div>
