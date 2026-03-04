@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { TrendingUp, TrendingDown, RefreshCw, Search, Filter, Zap, Star, Copy, ExternalLink, CheckCircle2, AlertTriangle, Flame } from 'lucide-react';
 
 const CHAINS = [
