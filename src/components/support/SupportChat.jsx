@@ -153,7 +153,7 @@ export default function SupportChat({ user, onClose }) {
               <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-slate-950" />
             </div>
             <div>
-              <p className="text-white font-bold text-sm">CoinVault Support</p>
+              <p className="text-white font-bold text-sm">KriptoAman Support</p>
               <p className="text-green-400 text-[10px]">● Online · Biasanya membalas dalam 1-2 jam</p>
             </div>
           </div>
