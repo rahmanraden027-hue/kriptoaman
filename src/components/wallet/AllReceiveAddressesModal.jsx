@@ -71,7 +71,14 @@ export default function AllReceiveAddressesModal({ addresses, onClose }) {
                 </div>
                 <div className="flex-1">
                   <p className="text-white font-semibold">{coin}</p>
-                  <p className="text-slate-500 text-xs">Alamat penerima {coin}</p>
+                  <p className="text-slate-500 text-xs">{
+                    {BTC:'Bitcoin',ETH:'Ethereum',BNB:'BNB Chain',SOL:'Solana',LTC:'Litecoin',
+                    DOGE:'Dogecoin',MATIC:'Polygon',ARB:'Arbitrum',OP:'Optimism',BASE:'Base',
+                    AVAX:'Avalanche',FTM:'Fantom',USDT:'Tether (ERC-20)',XRP:'XRP Ledger',
+                    ADA:'Cardano',DOT:'Polkadot',TRX:'TRON',ATOM:'Cosmos',LINK:'Chainlink',
+                    UNI:'Uniswap',NEAR:'NEAR Protocol',APT:'Aptos',SUI:'Sui',
+                    OP_TOKEN:'Optimism Token',ARB_TOKEN:'Arbitrum Token'}[coin] || coin
+                  }</p>
                 </div>
               </div>
 
