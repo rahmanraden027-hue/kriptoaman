@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Wallet, Coins, Clock, Zap, Settings, BarChart3, LayoutGrid, User, MessageCircle, Info, Mail, AlertTriangle } from 'lucide-react';
+import { Wallet, Coins, Clock, Zap, Settings, BarChart3, LayoutGrid, User, MessageCircle, Info, Mail, AlertTriangle, Home, TrendingUp, Bell, BookOpen } from 'lucide-react';
 import KriptoAmanLogo from './components/brand/KriptoAmanLogo';
+import { installCrashHandlers } from './components/utils/crashAnalytics';
 import { base44 } from '@/api/base44Client';
 import { PinUnlock, useAppLock } from './components/security/PinLock';
 import { initAnalytics, identifyUser, Analytics } from './components/analytics/mixpanel';
@@ -10,15 +11,24 @@ import LiveTickerBar from './components/market/LiveTickerBar';
 import { usePWAInitializer, PWAUpdateNotification } from './components/pwa/PWAInitializer';
 import AdminDepositNotifier from './components/admin/AdminDepositNotifier';
 
+// Primary bottom nav (5 tabs — shown always)
+const BOTTOM_NAV = [
+  { label: 'Home', page: 'Home', icon: Home },
+  { label: 'Market', page: 'Market', icon: TrendingUp },
+  { label: 'Wallet', page: 'Wallet', icon: Wallet },
+  { label: 'Alerts', page: 'Alerts', icon: Bell },
+  { label: 'Profil', page: 'Profile', icon: User },
+];
+
+// Secondary nav (shown in sidebar/more menu)
 const NAV = [
   { label: 'Portfolio', page: 'PortfolioOverview', icon: BarChart3 },
-  { label: 'Wallet', page: 'Wallet', icon: Wallet },
   { label: 'DEX & Savings', page: 'DEXSavings', icon: Coins },
   { label: 'Aset', page: 'AssetManager', icon: LayoutGrid },
   { label: 'Auto-Trade', page: 'AutoTrading', icon: Zap },
+  { label: 'Edukasi', page: 'Edukasi', icon: BookOpen },
   { label: 'Riwayat', page: 'TxHistory', icon: Clock },
   { label: 'Settings', page: 'Settings', icon: Settings },
-  { label: 'Profil', page: 'Profile', icon: User },
   { label: 'Support', page: 'Support', icon: MessageCircle },
   { label: 'About', page: 'AboutUs', icon: Info },
   { label: 'Kontak', page: 'Contact', icon: Mail },

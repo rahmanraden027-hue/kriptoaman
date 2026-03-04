@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, BellOff, Plus, Trash2, TrendingUp, TrendingDown, CheckCircle2, AlertTriangle } from 'lucide-react';
-import { appStorage } from '../lib/appStorage';
+import { appStorage } from '../components/utils/appStorage';
 
 const STORAGE_KEY = 'ka_price_alerts';
 
