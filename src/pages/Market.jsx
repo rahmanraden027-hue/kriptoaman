@@ -102,7 +102,7 @@ export default function Market() {
                 </div>
                 <div className="text-right">
                   <p className="text-white text-sm font-bold">
-                    {d ? `$${d.usd.toLocaleString('en-US', { maximumFractionDigits: 6 })}` : '—'}
+                    {d?.usd != null ? `$${d.usd.toLocaleString('en-US', { maximumFractionDigits: 6 })}` : '—'}
                   </p>
                   <div className={`flex items-center justify-end gap-1 text-xs font-semibold ${isUp ? 'text-green-400' : 'text-red-400'}`}>
                     {isUp ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
