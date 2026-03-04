@@ -276,6 +276,15 @@ export default function Edukasi() {
           <p className="text-slate-500 text-xs">Belajar dari dasar hingga mahir</p>
         </div>
 
+        {/* Anti-rugpull alert banner */}
+        <div className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-4 flex items-start gap-3">
+          <ShieldAlert className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-rose-300 font-bold text-sm">⚠️ Waspada Rug Pull & Scam</p>
+            <p className="text-slate-400 text-xs mt-1 leading-relaxed">Baca panduan <strong className="text-rose-300">Anti Rug Pull</strong> kami — filter "Penting" untuk panduan keamanan kripto terlengkap.</p>
+          </div>
+        </div>
+
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
