@@ -59,6 +59,34 @@ const TESTIMONIALS = [
   { name: 'Andi R.', city: 'Bandung', rating: 5, text: 'DEX + CEX dalam satu app. Sangat memudahkan manajemen portofolio saya.' },
 ];
 
+const ROADMAP = [
+  {
+    phase: 'Q1 2025', title: 'Foundation', status: 'done',
+    items: ['Multi-coin wallet (BTC, ETH, USDT, SOL, IDR)', 'Deposit & withdraw bank lokal', 'Auto-trading rules builder', 'Candlestick chart realtime', 'Grid bot & paper trading', 'DEX swap integration']
+  },
+  {
+    phase: 'Q2–Q3 2025', title: 'Security & Growth', status: 'done',
+    items: ['PIN lock & OTP withdrawal', 'CEX connection (Binance, Bybit, OKX)', 'AI market analysis', 'Edukasi anti-rugpull', 'PWA (install sebagai app)', 'Admin analytics dashboard']
+  },
+  {
+    phase: 'Q4 2025–Q1 2026', title: 'Expansion', status: 'active',
+    items: ['KYC / verifikasi identitas', '2FA Google Authenticator', 'Referral program & fee sharing', 'Push notification real (FCM)', 'Portfolio tax report (PDF/CSV)', 'Copy trading beta']
+  },
+  {
+    phase: 'Q2–Q4 2026', title: 'Scale & Ecosystem', status: 'planned',
+    items: ['AI trading advisor (GPT-based)', 'Staking real (Lido, Jito)', 'Social trading & leaderboard', 'iOS & Android app store', 'Multi-language (EN/ID)', 'White-label B2B solution']
+  },
+];
+
+const WHITEPAPER_SECTIONS = [
+  { no: '01', title: 'Executive Summary', desc: 'Visi, misi, dan proposisi nilai KriptoAman sebagai platform kripto terpercaya Indonesia.' },
+  { no: '02', title: 'Problem Statement', desc: 'Analisis masalah utama: maraknya scam, rug pull, dan minimnya edukasi kripto di Indonesia.' },
+  { no: '03', title: 'Solution & Architecture', desc: 'Arsitektur teknis platform: multi-chain wallet, auto-trading engine, DEX/CEX hybrid.' },
+  { no: '04', title: 'Security Model', desc: 'Lapisan keamanan: enkripsi, OTP, tx verification, PIN lock, dan monitoring 24/7.' },
+  { no: '05', title: 'Tokenomics & Fee Structure', desc: 'Model bisnis: fee transaksi, swap, withdrawal, dan rencana token governance.' },
+  { no: '06', title: 'Roadmap & Milestones', desc: 'Target pengembangan 2025–2027 dengan milestone terukur per kuartal.' },
+];
+
 function NavBar() {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
