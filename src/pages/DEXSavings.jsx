@@ -494,7 +494,7 @@ export default function DEXSavings() {
                   <span className="text-white font-semibold text-sm">Posisi Aktif ({positions.length})</span>
                 </div>
                 {positions.map(pos => (
-                  <PositionCard key={pos.id} pos={pos} onWithdraw={handleWithdraw} />
+                  <PositionCard key={pos.id} pos={pos} onWithdraw={handleWithdraw} liveApys={liveApys} />
                 ))}
               </div>
             )}
