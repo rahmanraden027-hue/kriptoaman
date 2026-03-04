@@ -2,12 +2,22 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { TrendingUp, TrendingDown, RefreshCw, Search, Filter, Zap, Star, Copy, ExternalLink, CheckCircle2, AlertTriangle, Flame } from 'lucide-react';
 
 const CHAINS = [
-  { id: 'all', label: 'Semua' },
-  { id: 'ethereum', label: 'ETH' },
-  { id: 'bsc', label: 'BNB' },
-  { id: 'solana', label: 'SOL' },
-  { id: 'base', label: 'Base' },
-  { id: 'arbitrum', label: 'ARB' },
+  { id: 'all', label: '🌐 Semua' },
+  { id: 'ethereum', label: '⟠ ETH' },
+  { id: 'bsc', label: '⬡ BNB' },
+  { id: 'solana', label: '◎ SOL' },
+  { id: 'base', label: '🔵 Base' },
+  { id: 'arbitrum', label: '🔷 ARB' },
+  { id: 'polygon', label: '🟣 MATIC' },
+  { id: 'avalanche', label: '🔺 AVAX' },
+  { id: 'optimism', label: '🔴 OP' },
+  { id: 'fantom', label: '👻 FTM' },
+  { id: 'cronos', label: '🟡 CRO' },
+  { id: 'sui', label: '🌊 SUI' },
+  { id: 'aptos', label: '🅰️ APT' },
+  { id: 'ton', label: '💎 TON' },
+  { id: 'near', label: '🟩 NEAR' },
+  { id: 'tron', label: '🔴 TRX' },
 ];
 
 const FILTERS = [
