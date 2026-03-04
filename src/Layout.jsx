@@ -10,6 +10,7 @@ import { initAnalytics, identifyUser, Analytics } from './components/analytics/m
 import LiveTickerBar from './components/market/LiveTickerBar';
 import { usePWAInitializer, PWAUpdateNotification } from './components/pwa/PWAInitializer';
 import AdminDepositNotifier from './components/admin/AdminDepositNotifier';
+import DisclaimerGate from './components/disclaimer/DisclaimerGate';
 
 // Primary bottom nav (5 tabs — shown always)
 const BOTTOM_NAV = [
