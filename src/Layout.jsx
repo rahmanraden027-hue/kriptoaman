@@ -46,6 +46,7 @@ export default function Layout({ children, currentPageName }) {
 
   useEffect(() => {
     initAnalytics();
+    installCrashHandlers();
     base44.auth.me().then(u => {
       setUser(u);
       identifyUser(u);
@@ -109,19 +110,24 @@ export default function Layout({ children, currentPageName }) {
 
       {children}
 
-      {/* Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur border-t border-slate-800 flex justify-around py-2 px-1 safe-area-pb">
-        {NAV.map(({ label, page, icon: Icon, adminOnly }) => {
-          if (adminOnly && user?.role !== 'admin') return null;
-          const active = currentPageName === page;
-          return (
-            <Link key={page} to={createPageUrl(page)}
-              className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${active ? 'text-blue-400' : 'text-slate-500 hover:text-slate-300'}`}>
-              <Icon className={`w-5 h-5 ${active ? 'text-blue-400' : ''}`} />
-              <span className={`text-[9px] font-semibold ${active ? 'text-blue-400' : ''}`}>{label}</span>
-            </Link>
-          );
-        })}
+      {/* Bottom Nav — 5 primary tabs */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur border-t border-slate-800 safe-area-pb">
+        <div className="flex justify-around items-center py-2 px-2">
+          {BOTTOM_NAV.map(({ label, page, icon: Icon }) => {
+            const active = currentPageName === page;
+            const hasAlert = page === 'Alerts';
+            return (
+              <Link key={page} to={createPageUrl(page)}
+                className={`relative flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all ${active ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'}`}>
+                {active && (
+                  <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-5 h-0.5 bg-indigo-400 rounded-full" />
+                )}
+                <Icon className={`w-5 h-5 ${active ? 'text-indigo-400' : ''}`} />
+                <span className={`text-[9px] font-semibold ${active ? 'text-indigo-400' : ''}`}>{label}</span>
+              </Link>
+            );
+          })}
+        </div>
       </nav>
 
       {/* Bottom padding for nav */}
