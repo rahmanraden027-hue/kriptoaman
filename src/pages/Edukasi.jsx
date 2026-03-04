@@ -221,7 +221,7 @@ Platform kami menyediakan:
   },
 ];
 
-const LEVELS = ['Semua', 'Pemula', 'Menengah', 'Lanjutan'];
+const LEVELS = ['Semua', 'Pemula', 'Menengah', 'Lanjutan', 'Penting'];
 
 function ArticleModal({ article, onClose }) {
   const lines = article.content.split('\n');
