@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Wallet, Activity, Coins, Clock, Zap, Settings, BarChart3, LayoutGrid } from 'lucide-react';
+import { Wallet, Coins, Clock, Zap, Settings, BarChart3, LayoutGrid, User, MessageCircle, Info, Mail, Activity } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { PinUnlock, useAppLock } from './components/security/PinLock';
 import { initAnalytics, identifyUser, Analytics } from './components/analytics/mixpanel';
