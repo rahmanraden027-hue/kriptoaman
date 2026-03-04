@@ -21,10 +21,12 @@ const CHAINS = [
 ];
 
 const FILTERS = [
-  { id: 'trending', label: '🔥 Trending', desc: 'Volume & transaksi meledak' },
-  { id: 'gainers', label: '📈 Potential Up', desc: 'Naik kuat 24 jam' },
-  { id: 'new', label: '⭐ Baru Listed', desc: 'Listing < 24 jam, volume bagus' },
+  { id: 'trending', label: '🔥 Trending', desc: 'Gainers terkuat 24 jam' },
+  { id: 'meme', label: '🐸 Meme Coin', desc: 'PEPE, WIF, BONK, SHIB dll' },
+  { id: 'gainers', label: '📈 Potential Up', desc: 'Naik kuat, volume oke' },
+  { id: 'new', label: '⭐ Baru Listed', desc: 'Pair baru < 72 jam' },
   { id: 'volume', label: '💰 Volume Tinggi', desc: 'Likuiditas & volume besar' },
+  { id: 'lowcap', label: '💎 Low Cap Gem', desc: 'FDV kecil, potensi 10x' },
 ];
 
 const SCORE_REASONS = {
