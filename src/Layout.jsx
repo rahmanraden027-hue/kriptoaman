@@ -34,6 +34,7 @@ const NAV = [
   { label: 'About', page: 'AboutUs', icon: Info },
   { label: 'Kontak', page: 'Contact', icon: Mail },
   { label: 'Disclaimer', page: 'Disclaimer', icon: AlertTriangle },
+  { label: 'Platform Docs', page: 'PlatformDocs', icon: BookOpen, adminOnly: true },
   { label: 'Admin Profit', page: 'AdminProfitAnalytics', icon: BarChart3, adminOnly: true },
   { label: 'Aset Platform', page: 'AdminPlatformAssets', icon: Wallet, adminOnly: true },
 ];
