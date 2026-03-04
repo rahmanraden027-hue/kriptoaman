@@ -262,10 +262,11 @@ function DepositModal({ protocol, onConfirm, onClose }) {
 }
 
 // ── PositionCard ──────────────────────────────────────────────────────────────
-function PositionCard({ pos, onWithdraw }) {
+function PositionCard({ pos, onWithdraw, liveApys }) {
   const protocol = SAVINGS_PROTOCOLS.find(p => p.id === pos.protocol.id) || pos.protocol;
+  const apy = liveApys?.[protocol.id] ?? protocol.apy;
   const days = Math.max(1, Math.floor((Date.now() - new Date(pos.date).getTime()) / 86400000));
-  const earned = (pos.amount * protocol.apy / 100 / 365 * days).toFixed(4);
+  const earned = (pos.amount * apy / 100 / 365 * days).toFixed(4);
   const total = (pos.amount + parseFloat(earned)).toFixed(2);
 
   return (
