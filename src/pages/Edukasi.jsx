@@ -303,7 +303,7 @@ export default function Edukasi() {
                 <div className="text-3xl shrink-0">{a.icon}</div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${a.level === 'Pemula' ? 'bg-green-500/20 text-green-400' : a.level === 'Menengah' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'}`}>{a.level}</span>
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${a.level === 'Pemula' ? 'bg-green-500/20 text-green-400' : a.level === 'Menengah' ? 'bg-yellow-500/20 text-yellow-400' : a.level === 'Penting' ? 'bg-rose-500/20 text-rose-400' : 'bg-red-500/20 text-red-400'}`}>{a.level}</span>
                     <span className="text-slate-500 text-[10px] flex items-center gap-1"><Clock className="w-2.5 h-2.5" />{a.readMin} mnt</span>
                   </div>
                   <p className="text-white font-semibold text-sm">{a.title}</p>
