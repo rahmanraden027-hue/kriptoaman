@@ -51,6 +51,14 @@ export default function Market() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white pb-24">
+      {chartCoin && (
+        <CandlestickModal
+          coin={chartCoin}
+          currentPrice={data[chartCoin.id]?.usd}
+          change24h={data[chartCoin.id]?.usd_24h_change}
+          onClose={() => setChartCoin(null)}
+        />
+      )}
       <div className="max-w-lg mx-auto px-4 pt-4">
 
         {/* Header */}
