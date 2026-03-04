@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BookOpen, ChevronRight, Clock, Star, Play, Search, X } from 'lucide-react';
+import { BookOpen, ChevronRight, Clock, Search, X, ShieldAlert } from 'lucide-react';
 
 const ARTICLES = [
   {
