@@ -240,22 +240,36 @@ async function fetchTrending() {
   return Array.isArray(details) ? details : [];
 }
 
+// Popular tokens to scan across all chains
+const SCAN_TOKENS = ['PEPE', 'SHIB', 'DOGE', 'WIF', 'BONK', 'FLOKI', 'MEME', 'WOJAK', 'TURBO', 'MOG'];
+const STABLE_QUOTES = ['USDT', 'USDC', 'WETH', 'WBNB', 'SOL'];
+
+async function searchPairs(query) {
+  const res = await fetch(`https://api.dexscreener.com/latest/dex/search?q=${encodeURIComponent(query)}`);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.pairs || [];
+}
+
 async function fetchGainers(chain) {
-  // Search for high momentum pairs
-  const chainParam = chain === 'all' ? '' : chain;
-  const url = chainParam
-    ? `https://api.dexscreener.com/token-profiles/latest/v1`
-    : `https://api.dexscreener.com/token-profiles/latest/v1`;
-  // Use search for gainers - top movers
-  const searchRes = await fetch(`https://api.dexscreener.com/latest/dex/search?q=USDT`);
-  if (!searchRes.ok) throw new Error('gagal');
-  const data = await searchRes.json();
-  const pairs = data.pairs || [];
-  const filtered = chain === 'all' ? pairs : pairs.filter(p => p.chainId === chain);
+  // Fetch from multiple token queries in parallel for wider coverage
+  const queries = chain === 'all'
+    ? ['USDT', 'USDC', 'WETH', 'WBNB', 'SOL', 'PEPE', 'WIF', 'BONK']
+    : ['USDT', 'USDC', 'WETH'];
+  const results = await Promise.all(queries.map(q => searchPairs(q)));
+  const allPairs = results.flat();
+  // Deduplicate by pairAddress
+  const seen = new Set();
+  const unique = allPairs.filter(p => {
+    if (seen.has(p.pairAddress)) return false;
+    seen.add(p.pairAddress);
+    return true;
+  });
+  const filtered = chain === 'all' ? unique : unique.filter(p => p.chainId === chain);
   return filtered
-    .filter(p => (p.priceChange?.h24 || 0) > 5 && (p.volume?.h24 || 0) > 50000)
+    .filter(p => (p.priceChange?.h24 || 0) > 5 && (p.volume?.h24 || 0) > 30000)
     .sort((a, b) => (b.priceChange?.h24 || 0) - (a.priceChange?.h24 || 0))
-    .slice(0, 30);
+    .slice(0, 50);
 }
 
 async function fetchByChainSearch(query, chain) {
@@ -263,31 +277,61 @@ async function fetchByChainSearch(query, chain) {
   if (!res.ok) throw new Error('gagal');
   const data = await res.json();
   const pairs = data.pairs || [];
-  if (chain === 'all') return pairs.slice(0, 30);
-  return pairs.filter(p => p.chainId === chain).slice(0, 30);
+  if (chain === 'all') return pairs.slice(0, 50);
+  return pairs.filter(p => p.chainId === chain).slice(0, 50);
 }
 
 async function fetchNewPairs(chain) {
-  const res = await fetch(`https://api.dexscreener.com/latest/dex/search?q=new`);
-  if (!res.ok) throw new Error('gagal');
-  const data = await res.json();
-  const pairs = data.pairs || [];
+  const queries = ['new', 'launch', 'PEPE', 'MEME', 'AI', 'inu'];
+  const results = await Promise.all(queries.map(q => searchPairs(q)));
+  const allPairs = results.flat();
+  const seen = new Set();
+  const unique = allPairs.filter(p => {
+    if (seen.has(p.pairAddress)) return false;
+    seen.add(p.pairAddress);
+    return true;
+  });
   const now = Date.now();
-  const filtered = pairs.filter(p => {
+  const filtered = unique.filter(p => {
     const age = p.pairCreatedAt ? (now - p.pairCreatedAt) / 3600000 : 9999;
-    return age < 48 && (p.volume?.h24 || 0) > 10000;
+    return age < 72 && (p.volume?.h24 || 0) > 5000;
   });
   const chainFiltered = chain === 'all' ? filtered : filtered.filter(p => p.chainId === chain);
-  return chainFiltered.sort((a, b) => (b.pairCreatedAt || 0) - (a.pairCreatedAt || 0)).slice(0, 30);
+  return chainFiltered.sort((a, b) => (b.pairCreatedAt || 0) - (a.pairCreatedAt || 0)).slice(0, 50);
 }
 
 async function fetchVolume(chain) {
-  const res = await fetch(`https://api.dexscreener.com/latest/dex/search?q=USDC`);
-  if (!res.ok) throw new Error('gagal');
-  const data = await res.json();
-  const pairs = data.pairs || [];
-  const filtered = chain === 'all' ? pairs : pairs.filter(p => p.chainId === chain);
-  return filtered.sort((a, b) => (b.volume?.h24 || 0) - (a.volume?.h24 || 0)).slice(0, 30);
+  const queries = ['USDT', 'USDC', 'WETH', 'WBNB', 'BTC', 'ETH', 'SOL'];
+  const results = await Promise.all(queries.map(q => searchPairs(q)));
+  const allPairs = results.flat();
+  const seen = new Set();
+  const unique = allPairs.filter(p => {
+    if (seen.has(p.pairAddress)) return false;
+    seen.add(p.pairAddress);
+    return true;
+  });
+  const filtered = chain === 'all' ? unique : unique.filter(p => p.chainId === chain);
+  return filtered
+    .filter(p => (p.volume?.h24 || 0) > 10000)
+    .sort((a, b) => (b.volume?.h24 || 0) - (a.volume?.h24 || 0))
+    .slice(0, 50);
+}
+
+async function fetchTrendingMeme(chain) {
+  const queries = SCAN_TOKENS;
+  const results = await Promise.all(queries.map(q => searchPairs(q)));
+  const allPairs = results.flat();
+  const seen = new Set();
+  const unique = allPairs.filter(p => {
+    if (seen.has(p.pairAddress)) return false;
+    seen.add(p.pairAddress);
+    return true;
+  });
+  const filtered = chain === 'all' ? unique : unique.filter(p => p.chainId === chain);
+  return filtered
+    .filter(p => (p.volume?.h24 || 0) > 5000)
+    .sort((a, b) => (b.priceChange?.h24 || 0) - (a.priceChange?.h24 || 0))
+    .slice(0, 50);
 }
 
 // ── Main Component ───────────────────────────────────────────────────────────
