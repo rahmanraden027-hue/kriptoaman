@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { TrendingUp, TrendingDown, Search, RefreshCw, Globe } from 'lucide-react';
+import { TrendingUp, TrendingDown, Search, RefreshCw, Globe, BarChart2 } from 'lucide-react';
 import KriptoAmanLogo from '../components/brand/KriptoAmanLogo';
+import CandlestickModal from '../components/market/CandlestickModal';
 
 const COINS = [
   { id: 'bitcoin', sym: 'BTC', name: 'Bitcoin' },
