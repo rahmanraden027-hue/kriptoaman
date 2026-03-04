@@ -143,11 +143,32 @@ export default function Wallet() {
         {/* Header */}
         <div className="pt-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="9" stroke="white" strokeWidth="2"/>
-                <path d="M9 8.5C9 8.5 9 7 11 7C13 7 14.5 8 14.5 10C14.5 12 12.5 12.5 12 13C11.5 13.5 11.5 14.5 11.5 14.5" stroke="white" strokeWidth="1.8" strokeLinecap="round"/>
-                <circle cx="11.5" cy="17" r="1" fill="white"/>
+            {/* KriptoAman Shield Logo */}
+            <div className="relative w-10 h-11 flex items-center justify-center animate-ka-glow">
+              <style>{`
+                @keyframes ka-glow {
+                  0%, 100% { filter: drop-shadow(0 0 4px rgba(0,212,255,0.5)); }
+                  50% { filter: drop-shadow(0 0 10px rgba(0,212,255,0.8)); }
+                }
+                .animate-ka-glow { animation: ka-glow 2.8s ease-in-out infinite; }
+              `}</style>
+              <svg width="24" height="28" viewBox="0 0 48 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="wallet_shield" x1="24" y1="1" x2="24" y2="51">
+                    <stop offset="0%" stopColor="#67e8f9" />
+                    <stop offset="60%" stopColor="#0ea5e9" />
+                    <stop offset="100%" stopColor="#0369a1" />
+                  </linearGradient>
+                  <linearGradient id="wallet_coin" x1="16" y1="16" x2="32" y2="32">
+                    <stop offset="0%" stopColor="#fde68a" />
+                    <stop offset="50%" stopColor="#f59e0b" />
+                    <stop offset="100%" stopColor="#d97706" />
+                  </linearGradient>
+                </defs>
+                <path d="M24 1L3 9V25C3 36.5 12.5 46.5 24 50C35.5 46.5 45 36.5 45 25V9L24 1Z" fill="url(#wallet_shield)" />
+                <path d="M24 4.5L6 11.5V25C6 34.8 14.2 43.5 24 46.8C33.8 43.5 42 34.8 42 25V11.5L24 4.5Z" fill="#0c2340" />
+                <circle cx="24" cy="22" r="7.5" fill="url(#wallet_coin)" />
+                <text x="24" y="26.5" textAnchor="middle" fontSize="9" fontWeight="900" fill="#7c2d12">₿</text>
               </svg>
             </div>
             <div>
