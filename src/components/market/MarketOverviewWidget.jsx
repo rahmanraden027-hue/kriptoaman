@@ -258,6 +258,8 @@ export default function MarketOverviewWidget() {
         </div>
       </div>
 
+      <GlobalStatsBar stats={globalStats} fearGreed={fearGreed} loadingStats={loadingStats} />
+
       {error && (
         <div className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">{error}</div>
       )}
