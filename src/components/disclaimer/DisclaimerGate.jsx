@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { AlertTriangle, CheckCircle2, ChevronDown } from 'lucide-react';
 
 const STORAGE_KEY = '_ka_disclaimer_accepted_v2';
