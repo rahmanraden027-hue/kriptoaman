@@ -147,7 +147,7 @@ export default function MarketOverviewWidget() {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-white font-bold text-base">📊 Market Overview</h2>
+        <h2 className="text-white font-bold text-base flex items-center gap-2"><Activity className="w-4 h-4 text-blue-400" /> Market Overview</h2>
         <div className="flex items-center gap-2">
           {lastUpdated && (
             <span className="text-slate-500 text-[10px]">
