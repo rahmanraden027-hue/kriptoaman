@@ -381,7 +381,12 @@ export default function DEXScreener() {
     }
   }, [filter, chain, searchQuery]);
 
+  // Auto-refresh every 20 seconds
   useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    const interval = setInterval(() => loadData(), 20000);
+    return () => clearInterval(interval);
+  }, [loadData]);
 
   const handleSearch = (e) => {
     e.preventDefault();
