@@ -90,15 +90,108 @@ function SectionCard({ title, icon: Icon, iconColor, children, loading }) {
   );
 }
 
+function GlobalStatsBar({ stats, fearGreed, loadingStats }) {
+  if (loadingStats) return (
+    <div className="bg-slate-800/40 border border-slate-700/40 rounded-xl px-4 py-3 flex items-center justify-center">
+      <RefreshCw className="w-4 h-4 text-slate-500 animate-spin" />
+    </div>
+  );
+  if (!stats) return null;
+
+  const fgValue = fearGreed?.data?.[0]?.value;
+  const fgLabel = fearGreed?.data?.[0]?.value_classification;
+  const fgColor = fgValue < 25 ? 'text-red-400' : fgValue < 45 ? 'text-orange-400' : fgValue < 55 ? 'text-yellow-400' : fgValue < 75 ? 'text-green-400' : 'text-emerald-400';
+
+  const totalMcap = stats.data?.total_market_cap?.usd;
+  const totalVol = stats.data?.total_volume?.usd;
+  const btcDom = stats.data?.market_cap_percentage?.btc;
+  const ethDom = stats.data?.market_cap_percentage?.eth;
+  const mcapChange = stats.data?.market_cap_change_percentage_24h_usd;
+
+  return (
+    <div className="bg-slate-800/40 border border-slate-700/40 rounded-xl overflow-hidden">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700/30 bg-slate-900/40">
+        <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-blue-500/20 text-blue-400">
+          <Globe className="w-3.5 h-3.5" />
+        </div>
+        <span className="text-white text-sm font-bold">Global Market Stats</span>
+        {mcapChange != null && (
+          <span className={`ml-auto text-[10px] font-semibold ${mcapChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            {mcapChange >= 0 ? '+' : ''}{mcapChange?.toFixed(2)}% 24h
+          </span>
+        )}
+      </div>
+      <div className="px-4 py-3 grid grid-cols-2 gap-2">
+        <div className="bg-slate-900/50 rounded-xl p-3">
+          <p className="text-[9px] text-slate-500 uppercase tracking-wide mb-1 flex items-center gap-1"><BarChart2 className="w-2.5 h-2.5" /> Total Market Cap</p>
+          <p className="text-sm text-white font-bold">{fmt(totalMcap)}</p>
+        </div>
+        <div className="bg-slate-900/50 rounded-xl p-3">
+          <p className="text-[9px] text-slate-500 uppercase tracking-wide mb-1 flex items-center gap-1"><Activity className="w-2.5 h-2.5" /> Volume 24h</p>
+          <p className="text-sm text-white font-bold">{fmt(totalVol)}</p>
+        </div>
+        <div className="bg-slate-900/50 rounded-xl p-3">
+          <p className="text-[9px] text-slate-500 uppercase tracking-wide mb-1">BTC Dominance</p>
+          <p className="text-sm text-orange-400 font-bold">{btcDom?.toFixed(1)}%</p>
+          <div className="mt-1.5 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+            <div className="h-full bg-orange-400 rounded-full" style={{ width: `${btcDom}%` }} />
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-xl p-3">
+          <p className="text-[9px] text-slate-500 uppercase tracking-wide mb-1">ETH Dominance</p>
+          <p className="text-sm text-blue-400 font-bold">{ethDom?.toFixed(1)}%</p>
+          <div className="mt-1.5 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+            <div className="h-full bg-blue-400 rounded-full" style={{ width: `${ethDom}%` }} />
+          </div>
+        </div>
+        {fgValue && (
+          <div className="col-span-2 bg-slate-900/50 rounded-xl p-3">
+            <p className="text-[9px] text-slate-500 uppercase tracking-wide mb-1 flex items-center gap-1"><DollarSign className="w-2.5 h-2.5" /> Fear & Greed Index</p>
+            <div className="flex items-center gap-3">
+              <span className={`text-2xl font-black ${fgColor}`}>{fgValue}</span>
+              <div>
+                <p className={`text-sm font-bold ${fgColor}`}>{fgLabel}</p>
+                <div className="mt-1 w-32 h-2 bg-slate-700 rounded-full overflow-hidden">
+                  <div className={`h-full rounded-full transition-all`}
+                    style={{ width: `${fgValue}%`, background: fgValue < 25 ? '#f87171' : fgValue < 45 ? '#fb923c' : fgValue < 55 ? '#facc15' : fgValue < 75 ? '#4ade80' : '#34d399' }} />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function MarketOverviewWidget() {
   const [gainers, setGainers] = useState([]);
   const [losers, setLosers] = useState([]);
   const [newListings, setNewListings] = useState([]);
   const [highVol, setHighVol] = useState([]);
   const [lowVol, setLowVol] = useState([]);
+  const [globalStats, setGlobalStats] = useState(null);
+  const [fearGreed, setFearGreed] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(true);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [error, setError] = useState(null);
+
+  const fetchGlobalStats = async () => {
+    setLoadingStats(true);
+    try {
+      const [gs, fg] = await Promise.all([
+        fetch('https://api.coingecko.com/api/v3/global').then(r => r.json()),
+        fetch('https://api.alternative.me/fng/?limit=1').then(r => r.json()),
+      ]);
+      setGlobalStats(gs);
+      setFearGreed(fg);
+    } catch (e) {
+      // silent fail
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
