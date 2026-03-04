@@ -111,14 +111,17 @@ export default function Market() {
                     <p className="text-slate-500 text-[11px]">{c.name}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-white text-sm font-bold">
-                    {d?.usd != null ? `$${d.usd.toLocaleString('en-US', { maximumFractionDigits: 6 })}` : '—'}
-                  </p>
-                  <div className={`flex items-center justify-end gap-1 text-xs font-semibold ${isUp ? 'text-green-400' : 'text-red-400'}`}>
-                    {isUp ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                    {chg != null ? `${isUp ? '+' : ''}${chg.toFixed(2)}%` : '—'}
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <p className="text-white text-sm font-bold">
+                      {d?.usd != null ? `$${d.usd.toLocaleString('en-US', { maximumFractionDigits: 6 })}` : '—'}
+                    </p>
+                    <div className={`flex items-center justify-end gap-1 text-xs font-semibold ${isUp ? 'text-green-400' : 'text-red-400'}`}>
+                      {isUp ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                      {chg != null ? `${isUp ? '+' : ''}${chg.toFixed(2)}%` : '—'}
+                    </div>
                   </div>
+                  <BarChart2 className="w-4 h-4 text-slate-600" />
                 </div>
               </div>
             );
