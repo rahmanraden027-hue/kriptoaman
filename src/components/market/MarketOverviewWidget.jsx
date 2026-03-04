@@ -14,41 +14,56 @@ const pct = (n) => {
   return `${n > 0 ? '+' : ''}${n.toFixed(2)}%`;
 };
 
-function CoinRow({ coin, showMarketCap, showVolume }) {
+function CoinRow({ coin }) {
   const change = coin.price_change_percentage_24h;
   const isUp = change >= 0;
+  const priceStr = coin.current_price < 0.01
+    ? `$${coin.current_price.toFixed(6)}`
+    : `$${coin.current_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
   return (
-    <div className="flex items-center gap-2 py-2.5 border-b border-slate-700/30 last:border-0">
-      <img
-        src={coin.image}
-        alt={coin.symbol}
-        className="w-7 h-7 rounded-full bg-slate-700 flex-shrink-0"
-        onError={e => { e.target.style.display = 'none'; }}
-      />
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5">
-          <span className="text-white text-xs font-bold uppercase">{coin.symbol}</span>
-          <span className="text-slate-500 text-[10px] truncate hidden sm:block">{coin.name}</span>
-          {coin.market_cap_rank && (
-            <span className="text-[9px] bg-slate-700/60 text-slate-400 px-1 rounded">#{coin.market_cap_rank}</span>
-          )}
+    <div className="py-3 border-b border-slate-700/30 last:border-0">
+      <div className="flex items-center gap-2">
+        <img
+          src={coin.image}
+          alt={coin.symbol}
+          className="w-8 h-8 rounded-full bg-slate-700 flex-shrink-0"
+          onError={e => { e.target.style.display = 'none'; }}
+        />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-white text-xs font-bold uppercase">{coin.symbol}</span>
+            <span className="text-slate-400 text-[10px] truncate">{coin.name}</span>
+            {coin.market_cap_rank && (
+              <span className="text-[9px] bg-slate-700/60 text-slate-400 px-1.5 py-0.5 rounded-full">#{coin.market_cap_rank}</span>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-2 mt-0.5">
-          {showMarketCap && coin.market_cap && (
-            <span className="text-slate-400 text-[10px]">MCap: {fmt(coin.market_cap)}</span>
-          )}
-          {showVolume && coin.total_volume && (
-            <span className="text-slate-400 text-[10px]">Vol: {fmt(coin.total_volume)}</span>
-          )}
+        <div className="text-right flex-shrink-0">
+          <div className="text-white text-xs font-bold">{priceStr}</div>
+          <div className={`text-[10px] font-semibold flex items-center justify-end gap-0.5 ${isUp ? 'text-green-400' : 'text-red-400'}`}>
+            {isUp ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
+            {pct(change)}
+          </div>
         </div>
       </div>
-      <div className="text-right flex-shrink-0">
-        <div className="text-white text-xs font-semibold">
-          {coin.current_price < 0.01 ? `$${coin.current_price.toFixed(6)}` : `$${coin.current_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+      {/* Detail Row */}
+      <div className="mt-1.5 grid grid-cols-3 gap-1.5">
+        <div className="bg-slate-900/50 rounded-lg px-2 py-1">
+          <p className="text-[9px] text-slate-500 uppercase tracking-wide">Market Cap</p>
+          <p className="text-[11px] text-slate-200 font-semibold">{fmt(coin.market_cap)}</p>
         </div>
-        <div className={`text-[10px] font-semibold flex items-center justify-end gap-0.5 ${isUp ? 'text-green-400' : 'text-red-400'}`}>
-          {isUp ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
-          {pct(change)}
+        <div className="bg-slate-900/50 rounded-lg px-2 py-1">
+          <p className="text-[9px] text-slate-500 uppercase tracking-wide">Vol 24h</p>
+          <p className="text-[11px] text-slate-200 font-semibold">{fmt(coin.total_volume)}</p>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg px-2 py-1">
+          <p className="text-[9px] text-slate-500 uppercase tracking-wide">High/Low 24h</p>
+          <p className="text-[11px] text-slate-200 font-semibold">
+            <span className="text-green-400">{coin.high_24h < 1 ? coin.high_24h?.toFixed(4) : coin.high_24h?.toLocaleString(undefined,{maximumFractionDigits:2})}</span>
+            <span className="text-slate-500 mx-0.5">/</span>
+            <span className="text-red-400">{coin.low_24h < 1 ? coin.low_24h?.toFixed(4) : coin.low_24h?.toLocaleString(undefined,{maximumFractionDigits:2})}</span>
+          </p>
         </div>
       </div>
     </div>
