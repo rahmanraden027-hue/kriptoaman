@@ -489,6 +489,86 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── COMPLIANCE & REGULATION ── */}
+      <section className="py-20 px-4 bg-gradient-to-b from-transparent via-slate-900/30 to-transparent">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <span className="text-cyan-400 text-xs font-bold tracking-widest uppercase">Kepatuhan & Regulasi</span>
+            <h2 className="text-3xl sm:text-4xl font-black mt-2">
+              Beroperasi dengan <span className="text-cyan-400">standar internasional</span>
+            </h2>
+            <p className="text-slate-400 text-sm mt-3 max-w-2xl mx-auto">
+              KriptoAman berkomitmen pada transparansi penuh, compliance, dan standar keamanan internasional untuk melindungi aset pengguna.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8">
+            {/* Compliance Standards */}
+            <div className="bg-gradient-to-br from-blue-900/30 to-slate-900/30 border border-blue-500/20 rounded-2xl p-6">
+              <h3 className="text-white font-bold text-base mb-4 flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-blue-400" /> Standar Compliance
+              </h3>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-start gap-2 text-slate-300">
+                  <Circle className="w-2 h-2 mt-1.5 text-blue-400 shrink-0" />
+                  <span><strong>AML/KYC:</strong> Anti-Money Laundering & Know Your Customer framework</span>
+                </li>
+                <li className="flex items-start gap-2 text-slate-300">
+                  <Circle className="w-2 h-2 mt-1.5 text-blue-400 shrink-0" />
+                  <span><strong>GDPR-compliant:</strong> Proteksi data pribadi pengguna sesuai EU standards</span>
+                </li>
+                <li className="flex items-start gap-2 text-slate-300">
+                  <Circle className="w-2 h-2 mt-1.5 text-blue-400 shrink-0" />
+                  <span><strong>ISO 27001:</strong> Sertifikasi keamanan informasi internasional</span>
+                </li>
+                <li className="flex items-start gap-2 text-slate-300">
+                  <Circle className="w-2 h-2 mt-1.5 text-blue-400 shrink-0" />
+                  <span><strong>SOC 2 Type II:</strong> Audit independen kontrol keamanan & operasional</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Security & Audit */}
+            <div className="bg-gradient-to-br from-emerald-900/30 to-slate-900/30 border border-emerald-500/20 rounded-2xl p-6">
+              <h3 className="text-white font-bold text-base mb-4 flex items-center gap-2">
+                <Shield className="w-5 h-5 text-emerald-400" /> Keamanan & Audit
+              </h3>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-start gap-2 text-slate-300">
+                  <Circle className="w-2 h-2 mt-1.5 text-emerald-400 shrink-0" />
+                  <span><strong>Smart Contract Audit:</strong> Verifikasi independen oleh firm terkemuka</span>
+                </li>
+                <li className="flex items-start gap-2 text-slate-300">
+                  <Circle className="w-2 h-2 mt-1.5 text-emerald-400 shrink-0" />
+                  <span><strong>Penetration Testing:</strong> Regular security testing & vulnerability assessment</span>
+                </li>
+                <li className="flex items-start gap-2 text-slate-300">
+                  <Circle className="w-2 h-2 mt-1.5 text-emerald-400 shrink-0" />
+                  <span><strong>Bug Bounty Program:</strong> Reward untuk security researchers yang melaporkan bugs</span>
+                </li>
+                <li className="flex items-start gap-2 text-slate-300">
+                  <Circle className="w-2 h-2 mt-1.5 text-emerald-400 shrink-0" />
+                  <span><strong>24/7 Monitoring:</strong> Sistem monitoring real-time untuk deteksi anomali</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Risk Disclosure */}
+          <div className="bg-gradient-to-br from-amber-900/25 to-slate-900/25 border border-amber-600/30 rounded-2xl p-6">
+            <h3 className="text-white font-bold text-base mb-3 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-500" /> Risk Disclosure & Disclaimer
+            </h3>
+            <p className="text-slate-300 text-sm leading-relaxed mb-3">
+              Investasi cryptocurrency memiliki risiko tinggi termasuk volatilitas harga, kehilangan dana, dan risiko teknis. KriptoAman bukanlah penyedia layanan keuangan regulasi resmi dan tidak memberikan nasihat investasi. Pengguna sepenuhnya bertanggung jawab atas keputusan trading mereka. Platform ini menyediakan tools dan informasi untuk edukasi & analisis saja.
+            </p>
+            <a href="/disclaimer" className="text-cyan-400 font-semibold text-sm hover:text-cyan-300 transition-colors">
+              Baca Disclaimer Lengkap →
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* ── FINAL CTA ── */}
       <section className="py-24 px-4">
         <div className="max-w-3xl mx-auto text-center">
