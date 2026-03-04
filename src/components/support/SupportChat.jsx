@@ -12,7 +12,7 @@ const QUICK_TOPICS = [
 ];
 
 const AUTO_REPLIES = {
-  default: 'Terima kasih sudah menghubungi CoinVault Support! Tim kami sedang meninjau pesan Anda dan akan membalas secepatnya (biasanya dalam 1-2 jam). Sementara itu, apakah ada detail tambahan yang ingin Anda sampaikan?',
+  default: 'Terima kasih sudah menghubungi KriptoAman Support! Tim kami sedang meninjau pesan Anda dan akan membalas secepatnya (biasanya dalam 1-2 jam). Sementara itu, apakah ada detail tambahan yang ingin Anda sampaikan?',
   transaction: 'Untuk masalah transaksi, mohon sertakan: (1) Hash transaksi, (2) Tanggal & waktu, (3) Jumlah & koin yang terlibat. Kami akan segera menginvestigasi.',
   security: 'Masalah keamanan sangat kami prioritaskan! Jika Anda merasa akun dikompromikan, segera ubah password dan aktifkan 2FA di halaman Settings > Security. Tim keamanan kami akan menghubungi Anda segera.',
   swap: 'Untuk masalah swap/bridge, mohon sertakan: (1) Token asal & tujuan, (2) Jumlah, (3) TX hash jika ada. Kami akan melacak status transaksi Anda.',
