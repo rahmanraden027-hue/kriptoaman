@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Wallet, Coins, Clock, Zap, Settings, BarChart3, LayoutGrid, User, MessageCircle, Info, Mail } from 'lucide-react';
+import { Wallet, Coins, Clock, Zap, Settings, BarChart3, LayoutGrid, User, MessageCircle, Info, Mail, AlertTriangle } from 'lucide-react';
 import KriptoAmanLogo from './components/brand/KriptoAmanLogo';
 import { base44 } from '@/api/base44Client';
 import { PinUnlock, useAppLock } from './components/security/PinLock';
