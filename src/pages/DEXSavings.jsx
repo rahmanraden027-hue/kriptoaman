@@ -371,14 +371,18 @@ export default function DEXSavings() {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex bg-slate-800/60 border border-slate-700/40 rounded-2xl p-1">
+        <div className="flex bg-slate-800/60 border border-slate-700/40 rounded-2xl p-1 gap-0.5">
           <button onClick={() => setTab('savings')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === 'savings' ? 'bg-green-600 text-white' : 'text-slate-400 hover:text-slate-300'}`}>
-            <PiggyBank className="w-4 h-4" /> USDT Savings
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${tab === 'savings' ? 'bg-green-600 text-white' : 'text-slate-400 hover:text-slate-300'}`}>
+            <PiggyBank className="w-3.5 h-3.5" /> Savings
+          </button>
+          <button onClick={() => setTab('screener')}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${tab === 'screener' ? 'bg-orange-600 text-white' : 'text-slate-400 hover:text-slate-300'}`}>
+            <Zap className="w-3.5 h-3.5" /> Screener
           </button>
           <button onClick={() => setTab('dex')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === 'dex' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-300'}`}>
-            <ArrowLeftRight className="w-4 h-4" /> DEX Market
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${tab === 'dex' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-300'}`}>
+            <ArrowLeftRight className="w-3.5 h-3.5" /> DEX
           </button>
         </div>
 
