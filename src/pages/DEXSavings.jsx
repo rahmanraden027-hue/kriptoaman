@@ -478,6 +478,10 @@ export default function DEXSavings() {
           </>
         )}
 
+        {tab === 'screener' && (
+          <DEXScreener />
+        )}
+
         {tab === 'dex' && (
           <>
             <div className="flex items-start gap-2.5 px-3 py-2.5 bg-purple-500/10 border border-purple-500/20 rounded-xl">
