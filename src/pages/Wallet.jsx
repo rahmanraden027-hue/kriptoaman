@@ -278,6 +278,31 @@ export default function Wallet() {
          {/* Comprehensive Transaction History */}
          <ComprehensiveTransactionHistory />
 
+        {/* Advanced Price Chart */}
+        {showPriceChart ? (
+          <AdvancedPriceChart
+            coinId={activeCoin}
+            coinName={activeCoin}
+            onClose={() => setShowPriceChart(false)}
+          />
+        ) : (
+          <button
+            onClick={() => setShowPriceChart(true)}
+            className="w-full flex items-center justify-between px-4 py-3 bg-blue-500/10 border border-blue-500/20 rounded-2xl hover:bg-blue-500/15 transition-colors"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg>
+              </div>
+              <div className="text-left">
+                <p className="text-blue-300 text-sm font-semibold">Chart Harga {activeCoin}</p>
+                <p className="text-blue-600 text-[10px]">Candlestick & Line · 1H / 24H / 7D / 1M / 1Y</p>
+              </div>
+            </div>
+            <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+          </button>
+        )}
+
         {/* Market Overview: gainers, new listings, volume */}
         <MarketOverviewWidget />
 
