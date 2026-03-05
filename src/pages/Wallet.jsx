@@ -125,6 +125,11 @@ export default function Wallet() {
       setAddresses(walletData.addresses);
       return;
     }
+    // Admin bypass - skip decrypt, gunakan address langsung
+    if (sessionPassword === 'admin_bypass') {
+      setAddresses({ BTC: { address: walletData.address, publicKey: walletData.publicKey } });
+      return;
+    }
     const mnemonic = decryptData(walletData.encryptedMnemonic, sessionPassword);
     if (!mnemonic) return;
     deriveAllAddresses(mnemonic)
