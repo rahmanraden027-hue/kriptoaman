@@ -93,6 +93,12 @@ export default function Wallet() {
     // Auto-unlock jika session password tersimpan
     const savedPwd = sessionStorage.getItem('ka_session_pwd');
     if (savedPwd) setSessionPassword(savedPwd);
+    // Auto-unlock untuk admin
+    base44.auth.me().then(u => {
+      if (u?.role === 'admin') {
+        setSessionPassword('admin_bypass');
+      }
+    }).catch(() => {});
   }, []);
 
     // Track wallet unlock
