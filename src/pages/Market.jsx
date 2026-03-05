@@ -27,33 +27,13 @@ const COINS = [
 const IDR_RATE = 16200;
 
 export default function Market() {
-  const [data, setData] = useState({});
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState('all');
-  const [currency, setCurrency] = useState('idr'); // idr | usd
+  const [currency, setCurrency] = useState('idr');
   const [chartCoin, setChartCoin] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState(null);
-  const [countdown, setCountdown] = useState(30);
   const [watchlist, setWatchlist] = useState(() => JSON.parse(localStorage.getItem('ka_watchlist') || '[]'));
-  const intervalRef = useRef(null);
-  const countdownRef = useRef(null);
 
-  const fetchPrices = useCallback(() => {
-    setLoading(true);
-    const ids = COINS.map(c => c.id).join(',');
-    fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd,idr&include_24hr_change=true&include_market_cap=true`)
-      .then(r => r.json())
-      .then(d => { setData(d); setLoading(false); setLastUpdated(new Date()); setCountdown(30); })
-      .catch(() => setLoading(false));
-  }, []);
-
-  useEffect(() => {
-    fetchPrices();
-    intervalRef.current = setInterval(fetchPrices, 30000);
-    countdownRef.current = setInterval(() => setCountdown(c => c > 0 ? c - 1 : 0), 1000);
-    return () => { clearInterval(intervalRef.current); clearInterval(countdownRef.current); };
-  }, [fetchPrices]);
+  const { prices: liveData, connected, idrRate } = useLivePrices();
 
   const toggleWatchlist = (sym) => {
     const next = watchlist.includes(sym) ? watchlist.filter(s => s !== sym) : [...watchlist, sym];
