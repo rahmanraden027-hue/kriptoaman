@@ -74,6 +74,7 @@ import Wallet from './pages/Wallet';
 import PlatformDocs from './pages/PlatformDocs';
 import LandingPage from './pages/LandingPage';
 import P2PLending from './pages/P2PLending';
+import AppBuildAnalytics from './pages/AppBuildAnalytics';
 import __Layout from './Layout.jsx';
 
 
@@ -105,6 +106,7 @@ export const PAGES = {
     "PlatformDocs": PlatformDocs,
     "LandingPage": LandingPage,
     "P2PLending": P2PLending,
+    "AppBuildAnalytics": AppBuildAnalytics,
 }
 
 export const pagesConfig = {
