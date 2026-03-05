@@ -228,6 +228,24 @@ export default function Wallet() {
           </div>
         )}
 
+        {/* Web3 Wallet Status */}
+        <Web3StatusBar />
+
+        {/* Onchain Send Button */}
+        <button onClick={() => setShowOnchainSend(true)}
+          className="w-full flex items-center justify-between px-4 py-3 bg-violet-500/10 border border-violet-500/20 rounded-2xl hover:bg-violet-500/15 transition-colors">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-violet-500/20 flex items-center justify-center">
+              <svg className="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+            </div>
+            <div className="text-left">
+              <p className="text-violet-300 text-sm font-semibold">Kirim Onchain (Web3)</p>
+              <p className="text-violet-600 text-[10px]">ETH / BNB / MATIC / ARB langsung ke blockchain</p>
+            </div>
+          </div>
+          <svg className="w-4 h-4 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+        </button>
+
         {/* Virtual Balance */}
         <VirtualBalanceCard
           userEmail={currentUser?.email}
