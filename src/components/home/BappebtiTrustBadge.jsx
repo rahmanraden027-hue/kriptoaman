@@ -120,20 +120,33 @@ export default function BappebtiTrustBadge() {
         </div>
       </div>
 
-      {/* Additional badges */}
-      <div className="grid grid-cols-2 gap-2">
-        {[
-          { label: 'SSL Encrypted', desc: 'Data 100% aman' },
-          { label: 'KYC Verified', desc: 'Verifikasi identitas' },
-        ].map(badge => (
-          <div key={badge.label} className="flex items-start gap-2 bg-green-900/20 border border-green-800/30 rounded-xl p-2.5">
-            <CheckCircle2 className="w-3.5 h-3.5 text-green-400 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-green-300 text-[10px] font-bold">{badge.label}</p>
-              <p className="text-green-700 text-[9px]">{badge.desc}</p>
+      {/* SSL & KYC Logos */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* SSL */}
+        <div className="flex flex-col items-center gap-2 bg-emerald-900/20 border border-emerald-700/30 rounded-xl p-3">
+          <SSLLogo size={44} />
+          <div className="text-center">
+            <p className="text-emerald-300 text-[10px] font-bold">SSL ENCRYPTED</p>
+            <p className="text-slate-400 text-[9px] leading-tight">Enkripsi data<br/>256-bit</p>
+            <div className="flex items-center justify-center gap-1 mt-1">
+              <CheckCircle2 className="w-3 h-3 text-green-400" />
+              <span className="text-green-400 text-[9px] font-semibold">Aktif</span>
             </div>
           </div>
-        ))}
+        </div>
+
+        {/* KYC */}
+        <div className="flex flex-col items-center gap-2 bg-blue-900/20 border border-blue-700/30 rounded-xl p-3">
+          <KYCLogo size={44} />
+          <div className="text-center">
+            <p className="text-blue-300 text-[10px] font-bold">KYC VERIFIED</p>
+            <p className="text-slate-400 text-[9px] leading-tight">Verifikasi<br/>identitas pengguna</p>
+            <div className="flex items-center justify-center gap-1 mt-1">
+              <CheckCircle2 className="w-3 h-3 text-green-400" />
+              <span className="text-green-400 text-[9px] font-semibold">Aktif</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
