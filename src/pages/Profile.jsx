@@ -172,14 +172,38 @@ export default function Profile() {
               <span className="text-green-400 text-xs">● Terlindungi</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-400 text-sm">Status Akun</span>
-              <span className="text-green-400 text-xs">● Aktif</span>
+              <span className="text-slate-400 text-sm">Status KYC</span>
+              <span className={`text-xs capitalize font-semibold ${user.kycStatus === 'approved' ? 'text-green-400' : user.kycStatus === 'pending' ? 'text-yellow-400' : 'text-red-400'}`}>
+                {user.kycStatus === 'approved' ? '✓ Terverifikasi' : user.kycStatus === 'pending' ? '⏳ Menunggu Review' : '✗ Belum Verifikasi'}
+              </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-slate-400 text-sm">Role</span>
               <span className="text-blue-400 text-xs capitalize">{user.role || 'user'}</span>
             </div>
           </div>
+        </div>
+
+        {/* KYC & Referral shortcuts */}
+        <div className="grid grid-cols-2 gap-3">
+          <Link to={createPageUrl('KYC')}
+            className={`flex items-center gap-2.5 p-3.5 border rounded-2xl transition-all ${user.kycStatus === 'approved' ? 'bg-green-500/10 border-green-500/20' : 'bg-yellow-500/10 border-yellow-500/20 hover:bg-yellow-500/15'}`}>
+            <FileCheck className={`w-5 h-5 shrink-0 ${user.kycStatus === 'approved' ? 'text-green-400' : 'text-yellow-400'}`} />
+            <div>
+              <p className={`text-sm font-semibold ${user.kycStatus === 'approved' ? 'text-green-300' : 'text-yellow-300'}`}>
+                {user.kycStatus === 'approved' ? 'KYC Aktif ✓' : 'Verifikasi KYC'}
+              </p>
+              <p className="text-slate-500 text-[10px]">{user.kycStatus === 'approved' ? 'Full access' : 'Aktifkan limit penuh'}</p>
+            </div>
+          </Link>
+          <Link to={createPageUrl('Referral')}
+            className="flex items-center gap-2.5 p-3.5 bg-orange-500/10 border border-orange-500/20 rounded-2xl hover:bg-orange-500/15 transition-all">
+            <Gift className="w-5 h-5 text-orange-400 shrink-0" />
+            <div>
+              <p className="text-orange-300 text-sm font-semibold">Referral</p>
+              <p className="text-slate-500 text-[10px]">Undang teman, dapat bonus</p>
+            </div>
+          </Link>
         </div>
 
         {/* Logout */}
