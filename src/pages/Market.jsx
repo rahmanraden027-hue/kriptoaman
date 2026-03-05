@@ -118,11 +118,11 @@ export default function Market() {
         </div>
 
         {/* Market stats bar */}
-        {!loading && Object.keys(data).length > 0 && (
+        {Object.keys(liveData).length > 0 && (
           <div className="grid grid-cols-3 gap-2 mb-4">
             {[
-              { label: 'Naik hari ini', value: COINS.filter(c => (data[c.id]?.usd_24h_change || 0) > 0).length, color: 'text-green-400' },
-              { label: 'Turun hari ini', value: COINS.filter(c => (data[c.id]?.usd_24h_change || 0) < 0).length, color: 'text-red-400' },
+              { label: 'Naik hari ini', value: COINS.filter(c => (liveData[c.sym]?.change24h || 0) > 0).length, color: 'text-green-400' },
+              { label: 'Turun hari ini', value: COINS.filter(c => (liveData[c.sym]?.change24h || 0) < 0).length, color: 'text-red-400' },
               { label: 'Total koin', value: COINS.length, color: 'text-slate-300' },
             ].map(stat => (
               <div key={stat.label} className="bg-slate-800/40 border border-slate-700/30 rounded-xl p-2.5 text-center">
