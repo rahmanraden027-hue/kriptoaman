@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { TrendingUp, TrendingDown, Search, RefreshCw, Globe, BarChart2, Clock, Star, Filter, Wifi, WifiOff } from 'lucide-react';
+import React, { useState } from 'react';
+import { TrendingUp, TrendingDown, Search, Globe, BarChart2, Star, Wifi, WifiOff } from 'lucide-react';
 import CandlestickModal from '../components/market/CandlestickModal';
 import useLivePrices from '../components/market/useLivePrices';
 
@@ -23,8 +23,6 @@ const COINS = [
   { id: 'shiba-inu', sym: 'SHIB', name: 'Shiba Inu', emoji: '🐕', color: '#e0522b' },
   { id: 'pepe', sym: 'PEPE', name: 'Pepe', emoji: '🐸', color: '#4caf50' },
 ];
-
-const IDR_RATE = 16200;
 
 export default function Market() {
   const [search, setSearch] = useState('');
