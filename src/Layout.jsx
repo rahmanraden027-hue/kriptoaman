@@ -11,6 +11,7 @@ import LiveTickerBar from './components/market/LiveTickerBar';
 import { usePWAInitializer, PWAUpdateNotification } from './components/pwa/PWAInitializer';
 import AdminDepositNotifier from './components/admin/AdminDepositNotifier';
 import DisclaimerGate from './components/disclaimer/DisclaimerGate';
+import { Web3Provider } from './components/web3/Web3Provider';
 
 // Primary bottom nav (5 tabs — shown always)
 const BOTTOM_NAV = [
