@@ -90,11 +90,15 @@ export default function Wallet() {
   useEffect(() => {
     const stored = loadWallet();
     setWalletData(stored);
-    }, []);
+    // Auto-unlock jika session password tersimpan
+    const savedPwd = sessionStorage.getItem('ka_session_pwd');
+    if (savedPwd) setSessionPassword(savedPwd);
+  }, []);
 
     // Track wallet unlock
     const handleWalletUnlocked = (pwd) => {
     setSessionPassword(pwd);
+    sessionStorage.setItem('ka_session_pwd', pwd);
     Analytics.walletUnlocked();
     };
 

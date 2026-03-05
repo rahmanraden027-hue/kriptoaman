@@ -52,6 +52,7 @@ import AdminPlatformAssets from './pages/AdminPlatformAssets';
 import AdminProfitAnalytics from './pages/AdminProfitAnalytics';
 import AdminUserBalances from './pages/AdminUserBalances';
 import Alerts from './pages/Alerts';
+import AppBuildAnalytics from './pages/AppBuildAnalytics';
 import AssetManager from './pages/AssetManager';
 import AutoTrading from './pages/AutoTrading';
 import Contact from './pages/Contact';
@@ -61,6 +62,7 @@ import Edukasi from './pages/Edukasi';
 import Home from './pages/Home';
 import LandingPage from './pages/LandingPage';
 import Market from './pages/Market';
+import MarketResearch from './pages/MarketResearch';
 import P2PLending from './pages/P2PLending';
 import PWAValidation from './pages/PWAValidation';
 import PlatformDocs from './pages/PlatformDocs';
@@ -74,8 +76,6 @@ import TermsOfService from './pages/TermsOfService';
 import TradingAnalytics from './pages/TradingAnalytics';
 import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
-import AppBuildAnalytics from './pages/AppBuildAnalytics';
-import MarketResearch from './pages/MarketResearch';
 import Web3Wallet from './pages/Web3Wallet';
 import __Layout from './Layout.jsx';
 
@@ -86,6 +86,7 @@ export const PAGES = {
     "AdminProfitAnalytics": AdminProfitAnalytics,
     "AdminUserBalances": AdminUserBalances,
     "Alerts": Alerts,
+    "AppBuildAnalytics": AppBuildAnalytics,
     "AssetManager": AssetManager,
     "AutoTrading": AutoTrading,
     "Contact": Contact,
@@ -95,6 +96,7 @@ export const PAGES = {
     "Home": Home,
     "LandingPage": LandingPage,
     "Market": Market,
+    "MarketResearch": MarketResearch,
     "P2PLending": P2PLending,
     "PWAValidation": PWAValidation,
     "PlatformDocs": PlatformDocs,
@@ -108,8 +110,6 @@ export const PAGES = {
     "TradingAnalytics": TradingAnalytics,
     "TxHistory": TxHistory,
     "Wallet": Wallet,
-    "AppBuildAnalytics": AppBuildAnalytics,
-    "MarketResearch": MarketResearch,
     "Web3Wallet": Web3Wallet,
 }
 
