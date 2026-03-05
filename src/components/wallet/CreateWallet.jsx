@@ -6,7 +6,7 @@ import { generateWallet, encryptData, hashPassword, saveWallet } from './walletU
 import { deriveAllAddresses } from './multiCoinWallet';
 import { Shield, Eye, EyeOff, Copy, Check, AlertTriangle, User, AtSign } from 'lucide-react';
 
-const USERNAME_KEY = 'coinvault_username';
+const USERNAME_KEY = 'kriptoaman_username';
 
 export default function CreateWallet({ onWalletCreated }) {
   const [step, setStep] = useState(0); // 0: username/id, 1: set password, 2: backup mnemonic, 3: finish
@@ -73,8 +73,8 @@ export default function CreateWallet({ onWalletCreated }) {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-orange-500/20 border border-orange-500/30 mb-4">
             <Shield className="w-8 h-8 text-orange-400" />
           </div>
-          <h1 className="text-2xl font-bold text-white">CoinVault</h1>
-          <p className="text-slate-400 text-sm mt-1">Buat dompet CoinVault baru Anda</p>
+          <h1 className="text-2xl font-bold text-white">KriptoAman</h1>
+          <p className="text-slate-400 text-sm mt-1">Buat dompet KriptoAman baru Anda</p>
         </div>
 
         <div className="flex gap-2 mb-6">
@@ -86,7 +86,7 @@ export default function CreateWallet({ onWalletCreated }) {
         {step === 0 && (
           <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-6 space-y-4">
             <h2 className="text-lg font-semibold text-white">Buat Nama ID Akun</h2>
-            <p className="text-slate-400 text-sm">Nama ID unik Anda di CoinVault. Gunakan huruf, angka, atau underscore.</p>
+            <p className="text-slate-400 text-sm">Nama ID unik Anda di KriptoAman. Gunakan huruf, angka, atau underscore.</p>
             <div className="space-y-2">
               <Label className="text-slate-300">Nama ID (Username)</Label>
               <div className="relative">

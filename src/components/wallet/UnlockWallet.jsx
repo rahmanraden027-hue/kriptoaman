@@ -38,7 +38,7 @@ export default function UnlockWallet({ wallet, onUnlocked, onReset }) {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-orange-500/20 border border-orange-500/30 mb-4">
             <Lock className="w-8 h-8 text-orange-400" />
           </div>
-          <h1 className="text-2xl font-bold text-white">CoinVault</h1>
+          <h1 className="text-2xl font-bold text-white">KriptoAman</h1>
           {currentUser && (
             <div className="flex items-center justify-center gap-2 mt-3 mb-1">
               <div className="flex items-center gap-2 bg-slate-800/80 border border-slate-700/50 rounded-full px-3 py-1.5">
