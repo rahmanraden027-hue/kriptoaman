@@ -79,9 +79,18 @@ export default function Market() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-xl font-bold text-white">Market</h1>
-            <p className="text-slate-500 text-xs">Harga live · CoinGecko</p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+              <p className="text-slate-500 text-xs">Live · Auto-refresh 30 detik</p>
+            </div>
+            {lastUpdated && (
+              <p className="text-slate-600 text-[10px] flex items-center gap-1 mt-0.5">
+                <Clock className="w-3 h-3" />
+                Update: {lastUpdated.toLocaleTimeString('id-ID')} · berikutnya {countdown}d
+              </p>
+            )}
           </div>
-          <button onClick={fetchPrices} className="p-2 bg-slate-800 border border-slate-700/40 rounded-xl hover:bg-slate-700 transition-colors">
+          <button onClick={() => { fetchPrices(); setCountdown(30); }} className="p-2 bg-slate-800 border border-slate-700/40 rounded-xl hover:bg-slate-700 transition-colors">
             <RefreshCw className={`w-4 h-4 text-slate-400 ${loading ? 'animate-spin' : ''}`} />
           </button>
         </div>
