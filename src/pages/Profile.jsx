@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { User, Mail, Calendar, Hash, Star, LogOut, Edit3, Save, X, Loader2, Shield, Phone } from 'lucide-react';
+import { User, Mail, Calendar, Hash, Star, LogOut, Edit3, Save, X, Loader2, Shield, Phone, Gift, FileCheck, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 
 export default function Profile() {
   const [user, setUser] = useState(null);
