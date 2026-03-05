@@ -147,8 +147,8 @@ export default function KriptoAmanLogo({ size = 32, showText = true, textSize = 
       </div>
 
       {showText && (
-        <span className={`font-bold tracking-tight ${textSize}`}>
-          <span className="text-cyan-300">K</span><span className="text-white">ripto</span><span className="text-cyan-400">.</span><span className="text-indigo-400">id</span>
+        <span className={`font-extrabold tracking-widest uppercase ${textSize}`}>
+          <span className="text-white">Kripto</span><span className="text-emerald-400">Aman</span>
         </span>
       )}
     </div>
