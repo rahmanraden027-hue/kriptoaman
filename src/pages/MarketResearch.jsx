@@ -65,7 +65,8 @@ const P2P_GROWTH = [
 
 const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#06b6d4'];
 
-function StatCard({ icon: Icon, label, value, sub, color = 'indigo', trend }) {
+function StatCard({ icon: IconComp, label, value, sub, color = 'indigo', trend }) {
+  const Icon = IconComp;
   const colorMap = {
     indigo: 'from-indigo-900/40 to-blue-900/40 border-indigo-500/30 text-indigo-400',
     green: 'from-green-900/40 to-emerald-900/40 border-green-500/30 text-emerald-400',
