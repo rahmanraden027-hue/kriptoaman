@@ -44,7 +44,7 @@ export default function Market() {
   const filtered = COINS.filter(c => {
     const q = search.toLowerCase();
     if (q && !c.sym.toLowerCase().includes(q) && !c.name.toLowerCase().includes(q)) return false;
-    const chg = data[c.id]?.usd_24h_change;
+    const chg = liveData[c.sym]?.change24h;
     if (tab === 'gainers' && (chg == null || chg < 0)) return false;
     if (tab === 'losers' && (chg == null || chg > 0)) return false;
     if (tab === 'watchlist' && !watchlist.includes(c.sym)) return false;
@@ -52,24 +52,14 @@ export default function Market() {
   });
 
   const formatPrice = (coin) => {
-    const d = data[coin.id];
-    if (!d) return '—';
-    if (currency === 'usd') return `$${d.usd?.toLocaleString('en-US', { maximumFractionDigits: 6 }) || '—'}`;
-    const idr = d.idr || (d.usd ? d.usd * IDR_RATE : null);
-    if (!idr) return '—';
+    const d = liveData[coin.sym];
+    if (!d?.price) return '—';
+    if (currency === 'usd') return `$${d.price.toLocaleString('en-US', { maximumFractionDigits: 6 })}`;
+    const idr = d.price * idrRate;
     if (idr >= 1e9) return `Rp ${(idr / 1e9).toFixed(2)}M`;
     if (idr >= 1e6) return `Rp ${(idr / 1e6).toFixed(2)} Jt`;
     if (idr >= 1e3) return `Rp ${idr.toLocaleString('id-ID', { maximumFractionDigits: 0 })}`;
     return `Rp ${idr.toFixed(0)}`;
-  };
-
-  const formatMCap = (d) => {
-    const mc = d?.usd_market_cap;
-    if (!mc) return null;
-    if (mc >= 1e12) return `$${(mc / 1e12).toFixed(2)}T`;
-    if (mc >= 1e9) return `$${(mc / 1e9).toFixed(2)}B`;
-    if (mc >= 1e6) return `$${(mc / 1e6).toFixed(2)}M`;
-    return null;
   };
 
   return (
