@@ -17,12 +17,9 @@ const QUICK_LINKS = [
 
 export default function Home() {
   const [user, setUser] = useState(null);
-  const [prices, setPrices] = useState({});
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
-    fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin,solana&vs_currencies=usd&include_24hr_change=true')
-      .then(r => r.json()).then(setPrices).catch(() => {});
   }, []);
 
   const greeting = () => {
