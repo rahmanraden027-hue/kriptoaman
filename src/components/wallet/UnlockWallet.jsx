@@ -49,7 +49,7 @@ export default function UnlockWallet({ wallet, onUnlocked, onReset }) {
               </div>
             </div>
           )}
-          <p className="text-slate-400 text-sm mt-2 font-mono truncate px-4">{wallet.address}</p>
+          
         </div>
 
         <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-6 space-y-4">
