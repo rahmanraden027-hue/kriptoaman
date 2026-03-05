@@ -1,42 +1,47 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { TrendingUp, TrendingDown, Search, RefreshCw, Globe, BarChart2, Clock } from 'lucide-react';
-import KriptoAmanLogo from '../components/brand/KriptoAmanLogo';
+import { TrendingUp, TrendingDown, Search, RefreshCw, Globe, BarChart2, Clock, Star, Filter } from 'lucide-react';
 import CandlestickModal from '../components/market/CandlestickModal';
 
 const COINS = [
-  { id: 'bitcoin', sym: 'BTC', name: 'Bitcoin' },
-  { id: 'ethereum', sym: 'ETH', name: 'Ethereum' },
-  { id: 'binancecoin', sym: 'BNB', name: 'BNB' },
-  { id: 'solana', sym: 'SOL', name: 'Solana' },
-  { id: 'ripple', sym: 'XRP', name: 'XRP' },
-  { id: 'cardano', sym: 'ADA', name: 'Cardano' },
-  { id: 'dogecoin', sym: 'DOGE', name: 'Dogecoin' },
-  { id: 'tron', sym: 'TRX', name: 'TRON' },
-  { id: 'avalanche-2', sym: 'AVAX', name: 'Avalanche' },
-  { id: 'polkadot', sym: 'DOT', name: 'Polkadot' },
-  { id: 'chainlink', sym: 'LINK', name: 'Chainlink' },
-  { id: 'matic-network', sym: 'MATIC', name: 'Polygon' },
-  { id: 'litecoin', sym: 'LTC', name: 'Litecoin' },
-  { id: 'uniswap', sym: 'UNI', name: 'Uniswap' },
-  { id: 'tether', sym: 'USDT', name: 'Tether' },
-  { id: 'usd-coin', sym: 'USDC', name: 'USD Coin' },
+  { id: 'bitcoin', sym: 'BTC', name: 'Bitcoin', emoji: '₿', color: '#f59e0b' },
+  { id: 'ethereum', sym: 'ETH', name: 'Ethereum', emoji: 'Ξ', color: '#6366f1' },
+  { id: 'binancecoin', sym: 'BNB', name: 'BNB', emoji: 'B', color: '#f0b90b' },
+  { id: 'solana', sym: 'SOL', name: 'Solana', emoji: '◎', color: '#9945ff' },
+  { id: 'ripple', sym: 'XRP', name: 'XRP', emoji: 'X', color: '#00aae4' },
+  { id: 'cardano', sym: 'ADA', name: 'Cardano', emoji: 'A', color: '#0033ad' },
+  { id: 'dogecoin', sym: 'DOGE', name: 'Dogecoin', emoji: 'D', color: '#c2a633' },
+  { id: 'tron', sym: 'TRX', name: 'TRON', emoji: 'T', color: '#ef0027' },
+  { id: 'avalanche-2', sym: 'AVAX', name: 'Avalanche', emoji: 'A', color: '#e84142' },
+  { id: 'polkadot', sym: 'DOT', name: 'Polkadot', emoji: 'D', color: '#e6007a' },
+  { id: 'chainlink', sym: 'LINK', name: 'Chainlink', emoji: '⬡', color: '#2a5ada' },
+  { id: 'matic-network', sym: 'MATIC', name: 'Polygon', emoji: 'P', color: '#8247e5' },
+  { id: 'litecoin', sym: 'LTC', name: 'Litecoin', emoji: 'Ł', color: '#345d9d' },
+  { id: 'uniswap', sym: 'UNI', name: 'Uniswap', emoji: '🦄', color: '#ff007a' },
+  { id: 'tether', sym: 'USDT', name: 'Tether', emoji: '₮', color: '#26a17b' },
+  { id: 'usd-coin', sym: 'USDC', name: 'USD Coin', emoji: '$', color: '#2775ca' },
+  { id: 'shiba-inu', sym: 'SHIB', name: 'Shiba Inu', emoji: '🐕', color: '#e0522b' },
+  { id: 'pepe', sym: 'PEPE', name: 'Pepe', emoji: '🐸', color: '#4caf50' },
 ];
+
+const IDR_RATE = 16200;
 
 export default function Market() {
   const [data, setData] = useState({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [tab, setTab] = useState('all'); // all | gainers | losers
+  const [tab, setTab] = useState('all');
+  const [currency, setCurrency] = useState('idr'); // idr | usd
   const [chartCoin, setChartCoin] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [countdown, setCountdown] = useState(30);
+  const [watchlist, setWatchlist] = useState(() => JSON.parse(localStorage.getItem('ka_watchlist') || '[]'));
   const intervalRef = useRef(null);
   const countdownRef = useRef(null);
 
   const fetchPrices = useCallback(() => {
     setLoading(true);
     const ids = COINS.map(c => c.id).join(',');
-    fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`)
+    fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd,idr&include_24hr_change=true&include_market_cap=true`)
       .then(r => r.json())
       .then(d => { setData(d); setLoading(false); setLastUpdated(new Date()); setCountdown(30); })
       .catch(() => setLoading(false));
@@ -44,15 +49,16 @@ export default function Market() {
 
   useEffect(() => {
     fetchPrices();
-    // Auto-refresh setiap 30 detik
     intervalRef.current = setInterval(fetchPrices, 30000);
-    // Countdown timer
     countdownRef.current = setInterval(() => setCountdown(c => c > 0 ? c - 1 : 0), 1000);
-    return () => {
-      clearInterval(intervalRef.current);
-      clearInterval(countdownRef.current);
-    };
+    return () => { clearInterval(intervalRef.current); clearInterval(countdownRef.current); };
   }, [fetchPrices]);
+
+  const toggleWatchlist = (sym) => {
+    const next = watchlist.includes(sym) ? watchlist.filter(s => s !== sym) : [...watchlist, sym];
+    setWatchlist(next);
+    localStorage.setItem('ka_watchlist', JSON.stringify(next));
+  };
 
   const filtered = COINS.filter(c => {
     const q = search.toLowerCase();
@@ -60,8 +66,30 @@ export default function Market() {
     const chg = data[c.id]?.usd_24h_change;
     if (tab === 'gainers' && (chg == null || chg < 0)) return false;
     if (tab === 'losers' && (chg == null || chg > 0)) return false;
+    if (tab === 'watchlist' && !watchlist.includes(c.sym)) return false;
     return true;
   });
+
+  const formatPrice = (coin) => {
+    const d = data[coin.id];
+    if (!d) return '—';
+    if (currency === 'usd') return `$${d.usd?.toLocaleString('en-US', { maximumFractionDigits: 6 }) || '—'}`;
+    const idr = d.idr || (d.usd ? d.usd * IDR_RATE : null);
+    if (!idr) return '—';
+    if (idr >= 1e9) return `Rp ${(idr / 1e9).toFixed(2)}M`;
+    if (idr >= 1e6) return `Rp ${(idr / 1e6).toFixed(2)} Jt`;
+    if (idr >= 1e3) return `Rp ${idr.toLocaleString('id-ID', { maximumFractionDigits: 0 })}`;
+    return `Rp ${idr.toFixed(0)}`;
+  };
+
+  const formatMCap = (d) => {
+    const mc = d?.usd_market_cap;
+    if (!mc) return null;
+    if (mc >= 1e12) return `$${(mc / 1e12).toFixed(2)}T`;
+    if (mc >= 1e9) return `$${(mc / 1e9).toFixed(2)}B`;
+    if (mc >= 1e6) return `$${(mc / 1e6).toFixed(2)}M`;
+    return null;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white pb-24">
@@ -81,18 +109,20 @@ export default function Market() {
             <h1 className="text-xl font-bold text-white">Market</h1>
             <div className="flex items-center gap-2 mt-0.5">
               <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-              <p className="text-slate-500 text-xs">Live · Auto-refresh 30 detik</p>
+              <p className="text-slate-500 text-xs">Live · Auto-refresh {countdown}d</p>
+              {lastUpdated && <p className="text-slate-600 text-[10px]">· {lastUpdated.toLocaleTimeString('id-ID')}</p>}
             </div>
-            {lastUpdated && (
-              <p className="text-slate-600 text-[10px] flex items-center gap-1 mt-0.5">
-                <Clock className="w-3 h-3" />
-                Update: {lastUpdated.toLocaleTimeString('id-ID')} · berikutnya {countdown}d
-              </p>
-            )}
           </div>
-          <button onClick={() => { fetchPrices(); setCountdown(30); }} className="p-2 bg-slate-800 border border-slate-700/40 rounded-xl hover:bg-slate-700 transition-colors">
-            <RefreshCw className={`w-4 h-4 text-slate-400 ${loading ? 'animate-spin' : ''}`} />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Currency toggle */}
+            <button onClick={() => setCurrency(c => c === 'idr' ? 'usd' : 'idr')}
+              className="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-300 hover:text-white transition-colors">
+              {currency === 'idr' ? 'IDR 🇮🇩' : 'USD 🇺🇸'}
+            </button>
+            <button onClick={() => { fetchPrices(); setCountdown(30); }} className="p-2 bg-slate-800 border border-slate-700/40 rounded-xl hover:bg-slate-700 transition-colors">
+              <RefreshCw className={`w-4 h-4 text-slate-400 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
         </div>
 
         {/* Search */}
@@ -101,50 +131,74 @@ export default function Market() {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Cari koin..."
+            placeholder="Cari koin... (BTC, ETH, SOL)"
             className="w-full bg-slate-800/70 border border-slate-700/50 rounded-2xl pl-9 pr-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 placeholder-slate-500"
           />
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-5">
-          {[['all', 'Semua'], ['gainers', '🔼 Naik'], ['losers', '🔽 Turun']].map(([key, label]) => (
+        <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
+          {[['all', '🌐 Semua'], ['gainers', '🔼 Naik'], ['losers', '🔽 Turun'], ['watchlist', '⭐ Watchlist']].map(([key, label]) => (
             <button key={key} onClick={() => setTab(key)}
-              className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition-all ${tab === key ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}>
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${tab === key ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}>
               {label}
             </button>
           ))}
         </div>
 
+        {/* Market stats bar */}
+        {!loading && Object.keys(data).length > 0 && (
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            {[
+              { label: 'Naik hari ini', value: COINS.filter(c => (data[c.id]?.usd_24h_change || 0) > 0).length, color: 'text-green-400' },
+              { label: 'Turun hari ini', value: COINS.filter(c => (data[c.id]?.usd_24h_change || 0) < 0).length, color: 'text-red-400' },
+              { label: 'Total koin', value: COINS.length, color: 'text-slate-300' },
+            ].map(stat => (
+              <div key={stat.label} className="bg-slate-800/40 border border-slate-700/30 rounded-xl p-2.5 text-center">
+                <p className={`text-sm font-bold ${stat.color}`}>{stat.value}</p>
+                <p className="text-slate-600 text-[10px]">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Coin list */}
         <div className="space-y-2">
-          {filtered.map(c => {
+          {filtered.map((c, idx) => {
             const d = data[c.id];
             const chg = d?.usd_24h_change;
             const isUp = chg >= 0;
+            const inWatchlist = watchlist.includes(c.sym);
             return (
-              <div key={c.id} className="flex items-center justify-between bg-slate-800/50 border border-slate-700/40 rounded-2xl px-4 py-3 cursor-pointer hover:border-indigo-500/40 transition-all active:scale-[0.99]"
+              <div key={c.id}
+                className="flex items-center justify-between bg-slate-800/50 border border-slate-700/40 rounded-2xl px-4 py-3 cursor-pointer hover:border-indigo-500/40 transition-all active:scale-[0.99]"
                 onClick={() => setChartCoin(c)}>
                 <div className="flex items-center gap-3">
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white ${isUp ? 'bg-green-500/30' : 'bg-red-500/30'}`}>
-                    {c.sym.slice(0, 2)}
+                  <div className="relative">
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shadow"
+                      style={{ background: c.color }}>
+                      {c.emoji}
+                    </div>
+                    <span className="absolute -bottom-1 -right-1 text-[9px] bg-slate-700 text-slate-400 rounded-full px-1">#{idx + 1}</span>
                   </div>
                   <div>
-                    <p className="text-white text-sm font-semibold">{c.sym}</p>
-                    <p className="text-slate-500 text-[11px]">{c.name}</p>
+                    <p className="text-white text-sm font-bold">{c.sym}</p>
+                    <p className="text-slate-500 text-[10px]">{c.name}</p>
+                    {formatMCap(d) && <p className="text-slate-600 text-[9px]">MCap {formatMCap(d)}</p>}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="text-right">
-                    <p className="text-white text-sm font-bold">
-                      {d?.usd != null ? `$${d.usd.toLocaleString('en-US', { maximumFractionDigits: 6 })}` : '—'}
-                    </p>
+                    <p className="text-white text-sm font-bold">{formatPrice(c)}</p>
                     <div className={`flex items-center justify-end gap-1 text-xs font-semibold ${isUp ? 'text-green-400' : 'text-red-400'}`}>
                       {isUp ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                       {chg != null ? `${isUp ? '+' : ''}${chg.toFixed(2)}%` : '—'}
                     </div>
                   </div>
-                  <BarChart2 className="w-4 h-4 text-slate-600" />
+                  <button onClick={e => { e.stopPropagation(); toggleWatchlist(c.sym); }}
+                    className={`p-1.5 rounded-lg transition-all ${inWatchlist ? 'text-yellow-400' : 'text-slate-700 hover:text-slate-500'}`}>
+                    <Star className={`w-4 h-4 ${inWatchlist ? 'fill-yellow-400' : ''}`} />
+                  </button>
                 </div>
               </div>
             );
@@ -154,7 +208,9 @@ export default function Market() {
         {filtered.length === 0 && (
           <div className="text-center text-slate-500 py-16">
             <Globe className="w-10 h-10 mx-auto mb-3 opacity-30" />
-            <p className="text-sm">Tidak ada hasil</p>
+            <p className="text-sm">
+              {tab === 'watchlist' ? 'Belum ada koin di watchlist. Tap ⭐ pada koin untuk menambahkan.' : 'Tidak ada hasil'}
+            </p>
           </div>
         )}
       </div>
