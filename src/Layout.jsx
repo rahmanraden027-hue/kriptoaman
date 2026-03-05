@@ -167,5 +167,4 @@ export default function Layout({ children, currentPageName }) {
       </Web3Provider>
     </DisclaimerGate>
   );
-  );
 }
