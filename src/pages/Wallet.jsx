@@ -213,20 +213,12 @@ export default function Wallet() {
 
         {/* User Identity Card */}
         {currentUser && (
-          <div className={`flex items-center gap-3 px-3 py-2.5 rounded-2xl border ${isLight ? 'bg-white border-slate-200' : 'bg-slate-800/50 border-slate-700/40'}`}>
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shrink-0">
-              <span className="text-white text-sm font-bold">
-                {currentUser.full_name
-                  ? currentUser.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-                  : <User className="w-4 h-4" />}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className={`font-semibold text-sm truncate ${textMain}`}>{currentUser.full_name || 'Pengguna'}</p>
-              <p className="text-slate-500 text-[10px] truncate">{currentUser.email}</p>
-            </div>
-            <span className="text-[10px] bg-blue-500/15 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full capitalize shrink-0">{currentUser.role || 'user'}</span>
-          </div>
+          <WalletProfileCard
+            user={currentUser}
+            address={activeAddress || btcAddress}
+            coin={activeCoin}
+            isLight={isLight}
+          />
         )}
 
         {/* Web3 Wallet Status */}
