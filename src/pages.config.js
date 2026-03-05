@@ -77,6 +77,8 @@ import TradingAnalytics from './pages/TradingAnalytics';
 import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
 import Web3Wallet from './pages/Web3Wallet';
+import KYC from './pages/KYC';
+import Referral from './pages/Referral';
 import __Layout from './Layout.jsx';
 
 
@@ -111,6 +113,8 @@ export const PAGES = {
     "TxHistory": TxHistory,
     "Wallet": Wallet,
     "Web3Wallet": Web3Wallet,
+    "KYC": KYC,
+    "Referral": Referral,
 }
 
 export const pagesConfig = {
