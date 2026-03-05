@@ -26,6 +26,7 @@ const NAV = [
   { label: 'Portfolio', page: 'PortfolioOverview', icon: BarChart3 },
   { label: 'DEX & Savings', page: 'DEXSavings', icon: Coins },
   { label: 'P2P Lending', page: 'P2PLending', icon: Coins },
+  { label: 'Market Research', page: 'MarketResearch', icon: BarChart3 },
   { label: 'Aset', page: 'AssetManager', icon: LayoutGrid },
   { label: 'Auto-Trade', page: 'AutoTrading', icon: Zap },
   { label: 'Edukasi', page: 'Edukasi', icon: BookOpen },
