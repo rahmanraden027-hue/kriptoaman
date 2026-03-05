@@ -11,8 +11,8 @@ import { TrendingUp, Wallet, Zap, Bell, BookOpen, ArrowRight, Shield, Activity, 
 const QUICK_LINKS = [
   { label: 'Wallet', page: 'Wallet', icon: Wallet, color: 'from-blue-500 to-indigo-600' },
   { label: 'Market', page: 'Market', icon: TrendingUp, color: 'from-green-500 to-emerald-600' },
-  { label: 'Auto-Trade', page: 'AutoTrading', icon: Zap, color: 'from-yellow-500 to-orange-500' },
-  { label: 'Edukasi', page: 'Edukasi', icon: BookOpen, color: 'from-purple-500 to-pink-500' },
+  { label: 'Referral', page: 'Referral', icon: Users, color: 'from-yellow-500 to-orange-500' },
+  { label: 'KYC', page: 'KYC', icon: FileCheck, color: 'from-purple-500 to-pink-500' },
 ];
 
 export default function Home() {
