@@ -110,43 +110,14 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Live prices */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Harga Live</p>
-            <Link to={createPageUrl('Market')} className="text-indigo-400 text-xs flex items-center gap-1 hover:text-indigo-300">
-              Lihat semua <ArrowRight className="w-3 h-3" />
-            </Link>
-          </div>
-          <div className="space-y-2">
-            {coins.map(c => {
-              const data = prices[c.id];
-              const change = data?.usd_24h_change;
-              return (
-                <div key={c.id} className="flex items-center justify-between bg-slate-800/50 border border-slate-700/40 rounded-2xl px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                      style={{ background: c.color }}>
-                      {c.sym[0]}
-                    </div>
-                    <div>
-                      <p className="text-white text-sm font-semibold">{c.sym}</p>
-                      <p className="text-slate-500 text-[11px]">{c.name}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-white text-sm font-bold">
-                      {data ? `$${data.usd.toLocaleString()}` : '—'}
-                    </p>
-                    <p className={`text-xs font-semibold ${change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {change ? `${change >= 0 ? '+' : ''}${change.toFixed(2)}%` : '—'}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        {/* Bappebti Trust Badge */}
+        <BappebtiTrustBadge />
+
+        {/* QRIS & E-wallet Deposit */}
+        <QRISDepositBanner onDepositClick={() => window.location.href = createPageUrl('Wallet')} />
+
+        {/* Live prices in IDR */}
+        <IDRPriceCard />
 
         {/* CTA links */}
         <div className="grid grid-cols-2 gap-3">
@@ -158,15 +129,28 @@ export default function Home() {
               <p className="text-slate-400 text-[10px]">Notifikasi harga</p>
             </div>
           </Link>
-          <Link to={createPageUrl('Edukasi')}
-            className="flex items-center gap-3 p-4 bg-purple-500/10 border border-purple-500/20 rounded-2xl hover:bg-purple-500/15 transition-all">
-            <BookOpen className="w-5 h-5 text-purple-400 shrink-0" />
+          <Link to={createPageUrl('KYC')}
+            className="flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/20 rounded-2xl hover:bg-green-500/15 transition-all">
+            <Shield className="w-5 h-5 text-green-400 shrink-0" />
             <div>
-              <p className="text-white text-sm font-semibold">Edukasi</p>
-              <p className="text-slate-400 text-[10px]">Belajar kripto</p>
+              <p className="text-white text-sm font-semibold">Verifikasi KYC</p>
+              <p className="text-slate-400 text-[10px]">Aktifkan fitur penuh</p>
             </div>
           </Link>
         </div>
+
+        {/* Referral banner */}
+        <Link to={createPageUrl('Referral')}
+          className="flex items-center justify-between p-4 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 rounded-2xl hover:opacity-80 transition-all">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🎁</span>
+            <div>
+              <p className="text-yellow-300 font-bold text-sm">Undang Teman, Dapat Bonus!</p>
+              <p className="text-slate-400 text-[10px]">Kamu & teman masing-masing dapat Rp 25.000</p>
+            </div>
+          </div>
+          <ArrowRight className="w-4 h-4 text-yellow-500 shrink-0" />
+        </Link>
 
       </div>
     </div>
