@@ -28,7 +28,6 @@ const NAV = [
   { label: 'DEX & Savings', page: 'DEXSavings', icon: Coins },
   { label: 'P2P Lending', page: 'P2PLending', icon: Coins },
   { label: 'Market Research', page: 'MarketResearch', icon: BarChart3 },
-  { label: 'Web3 Wallet', page: 'Web3Wallet', icon: Wallet },
   { label: 'Aset', page: 'AssetManager', icon: LayoutGrid },
   { label: 'Auto-Trade', page: 'AutoTrading', icon: Zap },
   { label: 'Edukasi', page: 'Edukasi', icon: BookOpen },
@@ -164,7 +163,7 @@ export default function Layout({ children, currentPageName }) {
       {/* Bottom padding for nav */}
       <div className={user?.role === 'admin' ? 'h-24' : 'h-16'} />
       </div>
-      </Web3Provider>
+    </Web3Provider>
     </DisclaimerGate>
   );
 }
