@@ -32,12 +32,7 @@ export default function Home() {
     return 'Selamat Malam';
   };
 
-  const coins = [
-    { id: 'bitcoin', sym: 'BTC', name: 'Bitcoin', color: '#f59e0b' },
-    { id: 'ethereum', sym: 'ETH', name: 'Ethereum', color: '#6366f1' },
-    { id: 'binancecoin', sym: 'BNB', name: 'BNB', color: '#f0b90b' },
-    { id: 'solana', sym: 'SOL', name: 'Solana', color: '#9945ff' },
-  ];
+  const coins = [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white pb-24">
