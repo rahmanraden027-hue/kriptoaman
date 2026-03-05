@@ -20,6 +20,48 @@ function BappebtiLogo({ size = 36 }) {
   );
 }
 
+// SSL Encrypted Logo SVG
+function SSLLogo({ size = 36 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="48" fill="#065F46" stroke="#34D399" strokeWidth="3"/>
+      {/* Lock body */}
+      <rect x="30" y="48" width="40" height="30" rx="5" fill="#34D399"/>
+      {/* Lock shackle */}
+      <path d="M37 48 L37 36 C37 26 63 26 63 36 L63 48" stroke="#34D399" strokeWidth="6" fill="none" strokeLinecap="round"/>
+      {/* Keyhole */}
+      <circle cx="50" cy="61" r="5" fill="#065F46"/>
+      <rect x="47" y="62" width="6" height="8" rx="1" fill="#065F46"/>
+      {/* SSL text */}
+      <text x="50" y="90" textAnchor="middle" fontSize="8" fontWeight="900" fill="#34D399" fontFamily="Arial">SSL</text>
+    </svg>
+  );
+}
+
+// KYC Verified Logo SVG
+function KYCLogo({ size = 36 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="48" fill="#1E3A5F" stroke="#60A5FA" strokeWidth="3"/>
+      {/* ID card */}
+      <rect x="18" y="30" width="64" height="42" rx="5" fill="#2563EB"/>
+      {/* Photo placeholder */}
+      <circle cx="33" cy="47" r="10" fill="#93C5FD"/>
+      <circle cx="33" cy="43" r="5" fill="#1E3A5F"/>
+      <path d="M23 57 C23 51 43 51 43 57" fill="#1E3A5F"/>
+      {/* Lines of text */}
+      <rect x="48" y="38" width="26" height="4" rx="2" fill="#93C5FD"/>
+      <rect x="48" y="46" width="20" height="3" rx="1.5" fill="#60A5FA" opacity="0.6"/>
+      <rect x="48" y="53" width="22" height="3" rx="1.5" fill="#60A5FA" opacity="0.6"/>
+      {/* Green check badge */}
+      <circle cx="72" cy="68" r="10" fill="#059669" stroke="#fff" strokeWidth="2"/>
+      <path d="M67 68 L70 72 L77 64" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      {/* KYC text */}
+      <text x="50" y="90" textAnchor="middle" fontSize="8" fontWeight="900" fill="#60A5FA" fontFamily="Arial">KYC</text>
+    </svg>
+  );
+}
+
 // OJK Logo SVG (Otoritas Jasa Keuangan)
 function OJKLogo({ size = 36 }) {
   return (
