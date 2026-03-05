@@ -59,8 +59,11 @@ import DEXSavings from './pages/DEXSavings';
 import Disclaimer from './pages/Disclaimer';
 import Edukasi from './pages/Edukasi';
 import Home from './pages/Home';
+import LandingPage from './pages/LandingPage';
 import Market from './pages/Market';
+import P2PLending from './pages/P2PLending';
 import PWAValidation from './pages/PWAValidation';
+import PlatformDocs from './pages/PlatformDocs';
 import PortfolioOverview from './pages/PortfolioOverview';
 import PriceTracker from './pages/PriceTracker';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -71,10 +74,8 @@ import TermsOfService from './pages/TermsOfService';
 import TradingAnalytics from './pages/TradingAnalytics';
 import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
-import PlatformDocs from './pages/PlatformDocs';
-import LandingPage from './pages/LandingPage';
-import P2PLending from './pages/P2PLending';
 import AppBuildAnalytics from './pages/AppBuildAnalytics';
+import MarketResearch from './pages/MarketResearch';
 import __Layout from './Layout.jsx';
 
 
@@ -91,8 +92,11 @@ export const PAGES = {
     "Disclaimer": Disclaimer,
     "Edukasi": Edukasi,
     "Home": Home,
+    "LandingPage": LandingPage,
     "Market": Market,
+    "P2PLending": P2PLending,
     "PWAValidation": PWAValidation,
+    "PlatformDocs": PlatformDocs,
     "PortfolioOverview": PortfolioOverview,
     "PriceTracker": PriceTracker,
     "PrivacyPolicy": PrivacyPolicy,
@@ -103,10 +107,8 @@ export const PAGES = {
     "TradingAnalytics": TradingAnalytics,
     "TxHistory": TxHistory,
     "Wallet": Wallet,
-    "PlatformDocs": PlatformDocs,
-    "LandingPage": LandingPage,
-    "P2PLending": P2PLending,
     "AppBuildAnalytics": AppBuildAnalytics,
+    "MarketResearch": MarketResearch,
 }
 
 export const pagesConfig = {
