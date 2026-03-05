@@ -28,17 +28,31 @@ export default function Market() {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState('all'); // all | gainers | losers
   const [chartCoin, setChartCoin] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [countdown, setCountdown] = useState(30);
+  const intervalRef = useRef(null);
+  const countdownRef = useRef(null);
 
   const fetchPrices = useCallback(() => {
     setLoading(true);
     const ids = COINS.map(c => c.id).join(',');
     fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`)
       .then(r => r.json())
-      .then(d => { setData(d); setLoading(false); })
+      .then(d => { setData(d); setLoading(false); setLastUpdated(new Date()); setCountdown(30); })
       .catch(() => setLoading(false));
   }, []);
 
-  useEffect(() => { fetchPrices(); }, [fetchPrices]);
+  useEffect(() => {
+    fetchPrices();
+    // Auto-refresh setiap 30 detik
+    intervalRef.current = setInterval(fetchPrices, 30000);
+    // Countdown timer
+    countdownRef.current = setInterval(() => setCountdown(c => c > 0 ? c - 1 : 0), 1000);
+    return () => {
+      clearInterval(intervalRef.current);
+      clearInterval(countdownRef.current);
+    };
+  }, [fetchPrices]);
 
   const filtered = COINS.filter(c => {
     const q = search.toLowerCase();
