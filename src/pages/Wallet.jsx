@@ -37,6 +37,7 @@ import AdminTransactionHistory from '../components/wallet/AdminTransactionHistor
 import UserWalletManagement from '../components/wallet/UserWalletManagement';
 import ComprehensiveTransactionHistory from '../components/wallet/ComprehensiveTransactionHistory';
 import { HelpCircle, ArrowRight, Settings2, User, Building2, MessageCircle } from 'lucide-react';
+import WalletProfileCard from '../components/wallet/WalletProfileCard';
 import MarketOverviewWidget from '../components/market/MarketOverviewWidget';
 import AdvancedPriceChart from '../components/charting/AdvancedPriceChart';
 import { Analytics } from '../components/analytics/mixpanel';
