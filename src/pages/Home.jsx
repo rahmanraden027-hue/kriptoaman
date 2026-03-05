@@ -3,7 +3,10 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import KriptoAmanLogo from '../components/brand/KriptoAmanLogo';
-import { TrendingUp, Wallet, Zap, Bell, BookOpen, ArrowRight, Shield, Activity } from 'lucide-react';
+import IDRPriceCard from '../components/home/IDRPriceCard';
+import BappebtiTrustBadge from '../components/home/BappebtiTrustBadge';
+import QRISDepositBanner from '../components/home/QRISDepositBanner';
+import { TrendingUp, Wallet, Zap, Bell, BookOpen, ArrowRight, Shield, Activity, Users, FileCheck } from 'lucide-react';
 
 const QUICK_LINKS = [
   { label: 'Wallet', page: 'Wallet', icon: Wallet, color: 'from-blue-500 to-indigo-600' },
