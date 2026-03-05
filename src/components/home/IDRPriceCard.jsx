@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
+import { TrendingUp, TrendingDown, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import useLivePrices from '../market/useLivePrices';
 
 const COINS = [
   { id: 'bitcoin', sym: 'BTC', name: 'Bitcoin', color: '#f59e0b', emoji: '₿' },

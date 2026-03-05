@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { TrendingUp, TrendingDown, Search, RefreshCw, Globe, BarChart2, Clock, Star, Filter } from 'lucide-react';
+import { TrendingUp, TrendingDown, Search, RefreshCw, Globe, BarChart2, Clock, Star, Filter, Wifi, WifiOff } from 'lucide-react';
 import CandlestickModal from '../components/market/CandlestickModal';
+import useLivePrices from '../components/market/useLivePrices';
 
 const COINS = [
   { id: 'bitcoin', sym: 'BTC', name: 'Bitcoin', emoji: '₿', color: '#f59e0b' },
