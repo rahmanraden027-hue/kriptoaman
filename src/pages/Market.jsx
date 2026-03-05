@@ -79,20 +79,20 @@ export default function Market() {
           <div>
             <h1 className="text-xl font-bold text-white">Market</h1>
             <div className="flex items-center gap-2 mt-0.5">
-              <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-              <p className="text-slate-500 text-xs">Live · Auto-refresh {countdown}d</p>
-              {lastUpdated && <p className="text-slate-600 text-[10px]">· {lastUpdated.toLocaleTimeString('id-ID')}</p>}
+              <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${connected ? 'bg-green-400' : 'bg-yellow-400'}`} />
+              <p className={`text-xs ${connected ? 'text-green-400' : 'text-yellow-400'}`}>
+                {connected ? 'WebSocket Live 24/7' : 'Reconnecting…'}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {/* Currency toggle */}
             <button onClick={() => setCurrency(c => c === 'idr' ? 'usd' : 'idr')}
               className="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-300 hover:text-white transition-colors">
               {currency === 'idr' ? 'IDR 🇮🇩' : 'USD 🇺🇸'}
             </button>
-            <button onClick={() => { fetchPrices(); setCountdown(30); }} className="p-2 bg-slate-800 border border-slate-700/40 rounded-xl hover:bg-slate-700 transition-colors">
-              <RefreshCw className={`w-4 h-4 text-slate-400 ${loading ? 'animate-spin' : ''}`} />
-            </button>
+            <div className={`p-2 rounded-xl border ${connected ? 'bg-green-500/10 border-green-500/20' : 'bg-slate-800 border-slate-700'}`}>
+              {connected ? <Wifi className="w-4 h-4 text-green-400" /> : <WifiOff className="w-4 h-4 text-yellow-400" />}
+            </div>
           </div>
         </div>
 
