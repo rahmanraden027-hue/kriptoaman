@@ -136,9 +136,9 @@ export default function Market() {
         {/* Coin list */}
         <div className="space-y-2">
           {filtered.map((c, idx) => {
-            const d = data[c.id];
-            const chg = d?.usd_24h_change;
-            const isUp = chg >= 0;
+            const d = liveData[c.sym];
+            const chg = d?.change24h;
+            const isUp = (chg || 0) >= 0;
             const inWatchlist = watchlist.includes(c.sym);
             return (
               <div key={c.id}
@@ -155,12 +155,13 @@ export default function Market() {
                   <div>
                     <p className="text-white text-sm font-bold">{c.sym}</p>
                     <p className="text-slate-500 text-[10px]">{c.name}</p>
-                    {formatMCap(d) && <p className="text-slate-600 text-[9px]">MCap {formatMCap(d)}</p>}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="text-right">
-                    <p className="text-white text-sm font-bold">{formatPrice(c)}</p>
+                    <p className={`text-sm font-bold transition-colors duration-300 ${d?.tick === 'up' ? 'text-green-300' : d?.tick === 'down' ? 'text-red-300' : 'text-white'}`}>
+                      {formatPrice(c)}
+                    </p>
                     <div className={`flex items-center justify-end gap-1 text-xs font-semibold ${isUp ? 'text-green-400' : 'text-red-400'}`}>
                       {isUp ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                       {chg != null ? `${isUp ? '+' : ''}${chg.toFixed(2)}%` : '—'}
