@@ -68,43 +68,44 @@ export default function useLivePrices() {
     return () => clearInterval(idrInterval);
   }, []);
 
-  // Initial REST snapshot from CoinGecko
+  // Load initial data: try CoinGecko, fallback to DB cache
   useEffect(() => {
-    const ids = ASSETS.map(a => a.id.toLowerCase()).join(',')
-      .replace('shib', 'shiba-inu')
-      .replace('matic', 'matic-network')
-      .replace('avax', 'avalanche-2')
-      .replace('bnb', 'binancecoin')
-      .replace('xrp', 'ripple');
-    // Use a simpler CoinGecko call for initial data
     const geckoIds = 'bitcoin,ethereum,binancecoin,solana,ripple,cardano,dogecoin,tron,avalanche-2,polkadot,chainlink,matic-network,litecoin,uniswap,shiba-inu,pepe,cosmos,near,arbitrum,optimism,sui,aptos';
+    const geckoMap = {
+      bitcoin: 'BTC', ethereum: 'ETH', binancecoin: 'BNB', solana: 'SOL',
+      ripple: 'XRP', cardano: 'ADA', dogecoin: 'DOGE', tron: 'TRX',
+      'avalanche-2': 'AVAX', polkadot: 'DOT', chainlink: 'LINK',
+      'matic-network': 'MATIC', litecoin: 'LTC', uniswap: 'UNI',
+      'shiba-inu': 'SHIB', pepe: 'PEPE', cosmos: 'ATOM', near: 'NEAR',
+      arbitrum: 'ARB', optimism: 'OP', sui: 'SUI', aptos: 'APT',
+    };
+
+    // Try CoinGecko first
     fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${geckoIds}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_high_24hr=true&include_low_24hr=true`)
       .then(r => r.json())
       .then(data => {
         if (!mountedRef.current) return;
-        const geckoMap = {
-          bitcoin: 'BTC', ethereum: 'ETH', binancecoin: 'BNB', solana: 'SOL',
-          ripple: 'XRP', cardano: 'ADA', dogecoin: 'DOGE', tron: 'TRX',
-          'avalanche-2': 'AVAX', polkadot: 'DOT', chainlink: 'LINK',
-          'matic-network': 'MATIC', litecoin: 'LTC', uniswap: 'UNI',
-          'shiba-inu': 'SHIB', pepe: 'PEPE', cosmos: 'ATOM', near: 'NEAR',
-          arbitrum: 'ARB', optimism: 'OP', sui: 'SUI', aptos: 'APT',
-        };
         const initial = {};
         Object.entries(data).forEach(([gid, d]) => {
           const id = geckoMap[gid];
-          if (id) initial[id] = {
-            price: d.usd,
-            change24h: d.usd_24h_change,
-            volume24h: d.usd_24h_vol,
-            high24h: d.usd_24h_high,
-            low24h: d.usd_24h_low,
-            tick: null,
-          };
+          if (id) initial[id] = { price: d.usd, change24h: d.usd_24h_change, volume24h: d.usd_24h_vol, high24h: d.usd_24h_high, low24h: d.usd_24h_low, tick: null };
         });
-        setPrices(initial);
+        if (Object.keys(initial).length > 0) setPrices(initial);
       })
-      .catch(() => {});
+      .catch(() => {
+        // Fallback: load from DB cache (updated every 5 min via automation)
+        import('@/api/base44Client').then(({ base44 }) => {
+          base44.entities.CachedPrice.list().then(cached => {
+            if (!mountedRef.current || !cached?.length) return;
+            const initial = {};
+            cached.forEach(c => {
+              initial[c.symbol] = { price: c.price, change24h: c.change24h, volume24h: c.volume24h, high24h: c.high24h, low24h: c.low24h, tick: null };
+              if (c.idrRate) { cachedIDR = c.idrRate; setIdrRate(c.idrRate); }
+            });
+            setPrices(initial);
+          }).catch(() => {});
+        });
+      });
   }, []);
 
   // Binance WebSocket — persistent 24/7 connection
