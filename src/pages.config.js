@@ -60,6 +60,7 @@ import DEXSavings from './pages/DEXSavings';
 import Disclaimer from './pages/Disclaimer';
 import Edukasi from './pages/Edukasi';
 import Home from './pages/Home';
+import KYC from './pages/KYC';
 import LandingPage from './pages/LandingPage';
 import Market from './pages/Market';
 import MarketResearch from './pages/MarketResearch';
@@ -70,6 +71,7 @@ import PortfolioOverview from './pages/PortfolioOverview';
 import PriceTracker from './pages/PriceTracker';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Profile from './pages/Profile';
+import Referral from './pages/Referral';
 import Settings from './pages/Settings';
 import Support from './pages/Support';
 import TermsOfService from './pages/TermsOfService';
@@ -77,8 +79,6 @@ import TradingAnalytics from './pages/TradingAnalytics';
 import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
 import Web3Wallet from './pages/Web3Wallet';
-import KYC from './pages/KYC';
-import Referral from './pages/Referral';
 import __Layout from './Layout.jsx';
 
 
@@ -96,6 +96,7 @@ export const PAGES = {
     "Disclaimer": Disclaimer,
     "Edukasi": Edukasi,
     "Home": Home,
+    "KYC": KYC,
     "LandingPage": LandingPage,
     "Market": Market,
     "MarketResearch": MarketResearch,
@@ -106,6 +107,7 @@ export const PAGES = {
     "PriceTracker": PriceTracker,
     "PrivacyPolicy": PrivacyPolicy,
     "Profile": Profile,
+    "Referral": Referral,
     "Settings": Settings,
     "Support": Support,
     "TermsOfService": TermsOfService,
@@ -113,8 +115,6 @@ export const PAGES = {
     "TxHistory": TxHistory,
     "Wallet": Wallet,
     "Web3Wallet": Web3Wallet,
-    "KYC": KYC,
-    "Referral": Referral,
 }
 
 export const pagesConfig = {

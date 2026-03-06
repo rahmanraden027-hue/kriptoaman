@@ -28,6 +28,7 @@ import VirtualBalanceCard from '../components/wallet/VirtualBalanceCard';
 import WithdrawalModal from '../components/wallet/WithdrawalModal';
 import AllReceiveAddressesModal from '../components/wallet/AllReceiveAddressesModal';
 import SupportChat from '../components/support/SupportChat';
+import BappebtiTrustBadge from '../components/home/BappebtiTrustBadge';
 import Web3StatusBar from '../components/web3/Web3StatusBar';
 import OnchainSendModal from '../components/web3/OnchainSendModal';
 import AdminBalanceDisplay from '../components/wallet/AdminBalanceDisplay';
