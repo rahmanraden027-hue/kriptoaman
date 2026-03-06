@@ -286,6 +286,9 @@ export default function Wallet() {
           <span className="text-blue-300 text-xs">Tap koin untuk ganti aset aktif · Swap = tukar antar koin · Trade = simulasi order</span>
         </div>
 
+        {/* Trust Badges */}
+        <BappebtiTrustBadge />
+
         {/* All Receive Addresses Button */}
         {addresses && Object.keys(addresses).length > 0 && (
           <button
