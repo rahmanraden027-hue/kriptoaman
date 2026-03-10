@@ -20,7 +20,7 @@ const TESTIMONIALS = [
 ];
 
 const STATS = [
-  { value: '50.000+', label: 'Pengguna Aktif' },
+  { value: '50.000+', label: 'Daftar Tunggu KYC' },
   { value: 'Rp 2T+', label: 'Volume Transaksi' },
   { value: '99.9%', label: 'Uptime Platform' },
   { value: '50+', label: 'Aset Kripto' },
