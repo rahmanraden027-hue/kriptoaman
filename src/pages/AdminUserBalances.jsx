@@ -8,6 +8,21 @@ export default function AdminUserBalances() {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [exportResult, setExportResult] = useState(null);
+  const [kycUpdating, setKycUpdating] = useState(null);
+  const queryClient = useQueryClient();
+
+  const handleKYCUpdate = async (targetUser, newStatus) => {
+    setKycUpdating(targetUser.id);
+    await base44.asServiceRole.entities.User.update(targetUser.id, { kycStatus: newStatus });
+    // Trigger email via backend function
+    await base44.functions.invoke('sendKYCStatusEmail', {
+      event: { type: 'update', entity_name: 'User', entity_id: targetUser.id },
+      data: { email: targetUser.email, full_name: targetUser.full_name, kycStatus: newStatus },
+      old_data: { kycStatus: targetUser.kycStatus || 'pending' }
+    });
+    queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+    setKycUpdating(null);
+  };
 
   const handleExportToSheets = async () => {
     setExporting(true);
