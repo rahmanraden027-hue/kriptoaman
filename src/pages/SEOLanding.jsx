@@ -14,9 +14,9 @@ const FEATURES = [
 ];
 
 const TESTIMONIALS = [
-  { name: 'Rizky P.', role: 'Investor Pemula', rating: 5, text: 'Awalnya ragu, tapi setelah coba ternyata platform ini beneran aman dan mudah dipakai. Udah 4 bulan dan profit terus!' },
-  { name: 'Dewi R.', role: 'Trader Harian', rating: 5, text: 'Auto trading botnya bagus banget, profit konsisten tanpa harus mantengin layar terus.' },
-  { name: 'Ahmad F.', role: 'Pengusaha', rating: 5, text: 'Deposit IDR-nya gampang banget, langsung bisa beli BTC dalam hitungan menit.' },
+  { name: '🚀 Platform Baru', role: 'Baru Rilis', rating: 5, text: 'KriptoAman baru saja resmi diluncurkan! Segera hadir di App Store & Google Play Store. Daftar sekarang dan jadilah pengguna pertama.' },
+  { name: '✅ Izin Resmi', role: 'Terdaftar & Diawasi', rating: 5, text: 'Meski baru rilis, KriptoAman sudah mengantongi izin resmi dari Bappebti & OJK. Aset Anda terlindungi sejak hari pertama.' },
+  { name: '📱 Segera di App Store & Play Store', role: 'Coming Soon', rating: 5, text: 'Aplikasi mobile KriptoAman segera tersedia di App Store dan Google Play Store. Pantau terus update-nya dan dapatkan notifikasi pertama!' },
 ];
 
 const STATS = [
