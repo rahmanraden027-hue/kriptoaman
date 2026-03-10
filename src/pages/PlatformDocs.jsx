@@ -3,7 +3,8 @@ import {
   Database, Server, Zap, Target, Shield, Globe, TrendingUp,
   Wallet, Users, Bell, BookOpen, Code, GitBranch, Layers,
   CheckCircle2, Clock, Circle, ArrowRight, Star, Megaphone,
-  BarChart3, Lock, Smartphone, Cpu, ChevronDown, ChevronRight
+  BarChart3, Lock, Smartphone, Cpu, ChevronDown, ChevronRight,
+  AlertTriangle, Radio, Link2, Package, ArrowUpRight
 } from 'lucide-react';
 
 const SECTIONS = [
