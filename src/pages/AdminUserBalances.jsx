@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Users, Wallet, TrendingUp, AlertCircle, Loader2 } from 'lucide-react';
+import { Users, Wallet, TrendingUp, AlertCircle, Loader2, FileSpreadsheet, ExternalLink } from 'lucide-react';
 
 export default function AdminUserBalances() {
   const [user, setUser] = useState(null);

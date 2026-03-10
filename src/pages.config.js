@@ -68,6 +68,7 @@ import P2PLending from './pages/P2PLending';
 import PWAValidation from './pages/PWAValidation';
 import PlatformDocs from './pages/PlatformDocs';
 import PortfolioOverview from './pages/PortfolioOverview';
+import Premium from './pages/Premium';
 import PriceTracker from './pages/PriceTracker';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Profile from './pages/Profile';
@@ -81,7 +82,6 @@ import TradingAnalytics from './pages/TradingAnalytics';
 import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
 import Web3Wallet from './pages/Web3Wallet';
-import Premium from './pages/Premium';
 import __Layout from './Layout.jsx';
 
 
@@ -107,6 +107,7 @@ export const PAGES = {
     "PWAValidation": PWAValidation,
     "PlatformDocs": PlatformDocs,
     "PortfolioOverview": PortfolioOverview,
+    "Premium": Premium,
     "PriceTracker": PriceTracker,
     "PrivacyPolicy": PrivacyPolicy,
     "Profile": Profile,
@@ -120,7 +121,6 @@ export const PAGES = {
     "TxHistory": TxHistory,
     "Wallet": Wallet,
     "Web3Wallet": Web3Wallet,
-    "Premium": Premium,
 }
 
 export const pagesConfig = {
