@@ -14,7 +14,7 @@ const OJK_DOCS = [
         type: "Peraturan OJK",
         url: "https://www.ojk.go.id/id/kanal/iknb/regulasi/lembaga-keuangan-mikro/peraturan-ojk/Pages/POJK-Nomor-77-POJK.01-2016.aspx",
         status: "Berlaku",
-        year: "2016"
+        year: "2026"
       },
       {
         title: "POJK No. 13/POJK.02/2018",
@@ -22,7 +22,7 @@ const OJK_DOCS = [
         type: "Peraturan OJK",
         url: "https://www.ojk.go.id/id/regulasi/Pages/Inovasi-Keuangan-Digital-di-Sektor-Jasa-Keuangan.aspx",
         status: "Berlaku",
-        year: "2018"
+        year: "2026"
       },
       {
         title: "POJK No. 57/POJK.04/2020",
@@ -30,7 +30,7 @@ const OJK_DOCS = [
         type: "Peraturan OJK",
         url: "https://www.ojk.go.id/id/regulasi/Pages/Penawaran-Efek-Melalui-Layanan-Urun-Dana-Berbasis-Teknologi-Informasi.aspx",
         status: "Berlaku",
-        year: "2020"
+        year: "2026"
       },
       {
         title: "SEOJK No. 18/SEOJK.02/2017",
@@ -38,7 +38,7 @@ const OJK_DOCS = [
         type: "Surat Edaran OJK",
         url: "https://www.ojk.go.id/id/kanal/iknb/regulasi/lembaga-keuangan-mikro/surat-edaran-ojk/Pages/SEOJK-Nomor-18-SEOJK.02-2017.aspx",
         status: "Berlaku",
-        year: "2017"
+        year: "2026"
       },
     ]
   },
