@@ -14,7 +14,7 @@ const FEATURES = [
 ];
 
 const TESTIMONIALS = [
-  { name: 'Budi S.', role: 'Investor Pemula', rating: 5, text: 'Akhirnya nemu platform kripto yang beneran aman! Udah 6 bulan pakai, belum ada masalah.' },
+  { name: 'Rizky P.', role: 'Investor Pemula', rating: 5, text: 'Awalnya ragu, tapi setelah coba ternyata platform ini beneran aman dan mudah dipakai. Udah 4 bulan dan profit terus!' },
   { name: 'Dewi R.', role: 'Trader Harian', rating: 5, text: 'Auto trading botnya bagus banget, profit konsisten tanpa harus mantengin layar terus.' },
   { name: 'Ahmad F.', role: 'Pengusaha', rating: 5, text: 'Deposit IDR-nya gampang banget, langsung bisa beli BTC dalam hitungan menit.' },
 ];
