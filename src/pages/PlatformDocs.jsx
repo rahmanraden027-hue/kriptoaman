@@ -327,7 +327,7 @@ export default function PlatformDocs() {
                 </p>
                 <div className="flex items-center gap-2 mt-2 px-3 py-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
                   <ArrowUpRight className="w-3.5 h-3.5 text-yellow-400 shrink-0" />
-                  <span className="text-yellow-300 text-xs font-semibold">Hubungi Tim Teknis: devops@kriptoaman.id</span>
+                  <span className="text-yellow-300 text-xs font-semibold">International Organization of Securities Commissions (IOSCO)</span>
                 </div>
               </div>
             </div>
