@@ -112,7 +112,7 @@ export default function AdminUserBalances() {
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6 pb-20">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div>
+        <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3 mb-2">
             <Users className="w-8 h-8 text-blue-400" />
             <h1 className="text-3xl font-bold text-white">Admin - User Balances</h1>
