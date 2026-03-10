@@ -223,7 +223,48 @@ export default function AdminUserBalances() {
                         {u.activeStrategies}/{u.strategies}
                       </span>
                     </td>
-                  </tr>
+                    <td className="px-4 py-3 text-center">
+                      {kycUpdating === u.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-slate-400 mx-auto" />
+                      ) : u.kycStatus === 'approved' ? (
+                        <div className="flex items-center justify-center gap-1">
+                          <span className="px-2 py-1 rounded bg-green-500/20 text-green-400 text-xs font-semibold flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" /> Approved
+                          </span>
+                          <button onClick={() => handleKYCUpdate(u, 'rejected')} title="Tolak KYC"
+                            className="p-1 rounded hover:bg-red-500/20 text-red-400 transition-colors">
+                            <XCircle className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ) : u.kycStatus === 'pending' ? (
+                        <div className="flex items-center justify-center gap-1">
+                          <span className="px-2 py-1 rounded bg-yellow-500/20 text-yellow-400 text-xs font-semibold flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> Pending
+                          </span>
+                          <button onClick={() => handleKYCUpdate(u, 'approved')} title="Approve KYC"
+                            className="p-1 rounded hover:bg-green-500/20 text-green-400 transition-colors">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={() => handleKYCUpdate(u, 'rejected')} title="Tolak KYC"
+                            className="p-1 rounded hover:bg-red-500/20 text-red-400 transition-colors">
+                            <XCircle className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ) : u.kycStatus === 'rejected' ? (
+                        <div className="flex items-center justify-center gap-1">
+                          <span className="px-2 py-1 rounded bg-red-500/20 text-red-400 text-xs font-semibold flex items-center gap-1">
+                            <XCircle className="w-3 h-3" /> Rejected
+                          </span>
+                          <button onClick={() => handleKYCUpdate(u, 'approved')} title="Approve KYC"
+                            className="p-1 rounded hover:bg-green-500/20 text-green-400 transition-colors">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-slate-600 text-xs">—</span>
+                      )}
+                    </td>
+                    </tr>
                 ))}
               </tbody>
             </table>
