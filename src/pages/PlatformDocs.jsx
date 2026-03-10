@@ -247,7 +247,102 @@ export default function PlatformDocs() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 pt-5 space-y-4">
+      {/* ── BANNER PEMBERITAHUAN MIGRASI ── */}
+      <div className="max-w-2xl mx-auto px-4 pt-4">
+        <div className="relative overflow-hidden border border-red-500/40 bg-gradient-to-br from-red-950/60 via-orange-950/40 to-slate-900/80 rounded-2xl p-4 mb-2">
+          {/* Blinking dot */}
+          <div className="absolute top-3 right-3 flex items-center gap-1.5">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+            </span>
+            <span className="text-red-400 text-[10px] font-bold uppercase tracking-widest">URGENT</span>
+          </div>
+
+          <div className="flex items-start gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-red-500/20 border border-red-500/30 flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-5 h-5 text-red-400" />
+            </div>
+            <div>
+              <h2 className="text-white font-bold text-base">⚠️ Pemberitahuan Migrasi Platform</h2>
+              <p className="text-red-300 text-xs mt-0.5">Diterbitkan: 10 Maret 2026 — Tim Teknis KriptoAman</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+
+            {/* Item 1 */}
+            <div className="flex items-start gap-3 p-3 bg-orange-500/10 border border-orange-500/20 rounded-xl">
+              <div className="w-7 h-7 rounded-lg bg-orange-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                <Link2 className="w-3.5 h-3.5 text-orange-400" />
+              </div>
+              <div>
+                <p className="text-orange-300 font-bold text-sm">Hubungkan Semua Rantai Jaringan ke Platform Publik</p>
+                <p className="text-slate-400 text-xs mt-1 leading-relaxed">
+                  Seluruh node dan rantai jaringan yang saat ini beroperasi secara terpusat (internal/private) <span className="text-orange-300 font-semibold">wajib segera dihubungkan ke infrastruktur platform publik</span>. Pastikan setiap koneksi node telah dikonfigurasi dengan endpoint yang terdaftar dan terverifikasi di dashboard platform.
+                </p>
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {['Ethereum Mainnet', 'BNB Chain', 'Polygon', 'Arbitrum', 'Solana', 'Base', 'Avalanche'].map(chain => (
+                    <span key={chain} className="text-[9px] bg-orange-500/15 text-orange-400 border border-orange-500/20 px-2 py-0.5 rounded-full font-semibold">{chain}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Item 2 */}
+            <div className="flex items-start gap-3 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+              <div className="w-7 h-7 rounded-lg bg-red-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                <Package className="w-3.5 h-3.5 text-red-400" />
+              </div>
+              <div>
+                <p className="text-red-300 font-bold text-sm">Migrasi Semua Muatan Kontainer ke Platform</p>
+                <p className="text-slate-400 text-xs mt-1 leading-relaxed">
+                  Semua data, konfigurasi, dan layanan yang masih berjalan di dalam <span className="text-red-300 font-semibold">kontainer lokal/legacy</span> harus segera dimigrasikan ke platform terpusat KriptoAman. Ini mencakup seluruh image container, volume data, environment variables, dan service configuration.
+                </p>
+                <div className="mt-2 space-y-1">
+                  {[
+                    { label: 'Kontainer Wallet Service', status: 'Belum Migrasi' },
+                    { label: 'Kontainer Trading Engine', status: 'Belum Migrasi' },
+                    { label: 'Kontainer Market Data', status: 'Belum Migrasi' },
+                    { label: 'Kontainer Auth Service', status: 'Belum Migrasi' },
+                  ].map(item => (
+                    <div key={item.label} className="flex items-center justify-between px-2 py-1 bg-slate-800/60 rounded-lg">
+                      <span className="text-slate-300 text-[11px]">{item.label}</span>
+                      <span className="text-[9px] bg-red-500/20 text-red-400 border border-red-500/20 px-2 py-0.5 rounded-full font-bold">{item.status}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Item 3 */}
+            <div className="flex items-start gap-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
+              <div className="w-7 h-7 rounded-lg bg-yellow-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                <Radio className="w-3.5 h-3.5 text-yellow-400" />
+              </div>
+              <div>
+                <p className="text-yellow-300 font-bold text-sm">Tenggat Waktu & Tindakan Segera</p>
+                <p className="text-slate-400 text-xs mt-1 leading-relaxed">
+                  Proses migrasi dan koneksi jaringan harus diselesaikan sebelum <span className="text-yellow-300 font-semibold">31 Maret 2026</span>. Kegagalan dalam memenuhi tenggat ini akan menyebabkan layanan yang belum termigrasi <span className="text-red-400 font-semibold">dinonaktifkan otomatis</span> dari sistem platform.
+                </p>
+                <div className="flex items-center gap-2 mt-2 px-3 py-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                  <ArrowUpRight className="w-3.5 h-3.5 text-yellow-400 shrink-0" />
+                  <span className="text-yellow-300 text-xs font-semibold">Hubungi Tim Teknis: devops@kriptoaman.id</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Footer note */}
+          <div className="mt-4 pt-3 border-t border-red-500/20 flex items-center justify-between">
+            <p className="text-slate-600 text-[10px]">Dokumen internal — hanya untuk admin platform</p>
+            <span className="text-[9px] bg-red-500/20 text-red-400 border border-red-500/20 px-2 py-0.5 rounded-full font-bold">REV 1.0 / 2026</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-2xl mx-auto px-4 pt-2 space-y-4">
 
         {/* ── DATABASE ── */}
         {activeSection === 'database' && (
