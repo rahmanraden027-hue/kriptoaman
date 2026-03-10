@@ -6,6 +6,16 @@ import { Users, Wallet, TrendingUp, AlertCircle, Loader2, FileSpreadsheet, Exter
 export default function AdminUserBalances() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
+  const [exportResult, setExportResult] = useState(null);
+
+  const handleExportToSheets = async () => {
+    setExporting(true);
+    setExportResult(null);
+    const res = await base44.functions.invoke('exportKYCToSheets', {});
+    setExporting(false);
+    setExportResult(res.data);
+  };
 
   useEffect(() => {
     base44.auth.me().then(u => {
