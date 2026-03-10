@@ -119,6 +119,27 @@ export default function AdminUserBalances() {
           </div>
           <p className="text-slate-400">Overview saldo dan aktivitas trading semua user</p>
         </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleExportToSheets}
+            disabled={exporting}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white rounded-lg text-sm font-semibold transition-colors"
+          >
+            {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileSpreadsheet className="w-4 h-4" />}
+            {exporting ? 'Mengekspor...' : 'Export ke Google Sheets'}
+          </button>
+          {exportResult?.spreadsheetUrl && (
+            <a
+              href={exportResult.spreadsheetUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-2 bg-slate-700 hover:bg-slate-600 text-green-400 rounded-lg text-sm font-semibold transition-colors"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Buka Spreadsheet ({exportResult.totalExported} data)
+            </a>
+          )}
+        </div>
 
         {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
