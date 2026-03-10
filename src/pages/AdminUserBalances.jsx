@@ -189,7 +189,8 @@ export default function AdminUserBalances() {
                   <th className="px-4 py-3 text-right text-slate-400 font-semibold">Total Balance</th>
                   <th className="px-4 py-3 text-center text-slate-400 font-semibold">Trades</th>
                   <th className="px-4 py-3 text-center text-slate-400 font-semibold">Strategies</th>
-                </tr>
+                  <th className="px-4 py-3 text-center text-slate-400 font-semibold">KYC</th>
+                  </tr>
               </thead>
               <tbody>
                 {sortedUsers.map(u => (
