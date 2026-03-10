@@ -30,6 +30,7 @@ const NAV = [
   { label: 'Market Research', page: 'MarketResearch', icon: BarChart3 },
   { label: 'Aset', page: 'AssetManager', icon: LayoutGrid },
   { label: 'Auto-Trade', page: 'AutoTrading', icon: Zap },
+  { label: 'Premium', page: 'Premium', icon: Zap },
   { label: 'Edukasi', page: 'Edukasi', icon: BookOpen },
   { label: 'Riwayat', page: 'TxHistory', icon: Clock },
   { label: 'Settings', page: 'Settings', icon: Settings },
