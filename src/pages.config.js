@@ -81,6 +81,7 @@ import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
 import Web3Wallet from './pages/Web3Wallet';
 import SEOLanding from './pages/SEOLanding';
+import Premium from './pages/Premium';
 import __Layout from './Layout.jsx';
 
 
@@ -119,6 +120,7 @@ export const PAGES = {
     "Wallet": Wallet,
     "Web3Wallet": Web3Wallet,
     "SEOLanding": SEOLanding,
+    "Premium": Premium,
 }
 
 export const pagesConfig = {
