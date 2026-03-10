@@ -79,6 +79,7 @@ import TradingAnalytics from './pages/TradingAnalytics';
 import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
 import Web3Wallet from './pages/Web3Wallet';
+import RegulatoryDocs from './pages/RegulatoryDocs';
 import __Layout from './Layout.jsx';
 
 
@@ -115,6 +116,7 @@ export const PAGES = {
     "TxHistory": TxHistory,
     "Wallet": Wallet,
     "Web3Wallet": Web3Wallet,
+    "RegulatoryDocs": RegulatoryDocs,
 }
 
 export const pagesConfig = {
