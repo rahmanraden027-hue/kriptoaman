@@ -1,6 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { createWalletClient, createPublicClient, custom, http, formatEther, parseEther } from 'viem';
-import { mainnet, bsc, polygon, arbitrum, base, optimism } from 'viem/chains';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 
 const Web3Context = createContext(null);
 
