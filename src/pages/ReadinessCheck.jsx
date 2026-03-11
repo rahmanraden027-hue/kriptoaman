@@ -301,6 +301,13 @@ export default function ReadinessCheck() {
     );
   };
 
+  const toggleCategory = (categoryId) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [categoryId]: !prev[categoryId]
+    }));
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 pt-20 pb-20">
       <div className="max-w-6xl mx-auto px-4 space-y-8">
