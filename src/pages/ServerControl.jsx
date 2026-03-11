@@ -697,6 +697,10 @@ echo ".env" >> .gitignore`} />
                 ['AWS IAM Best Practices', 'https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html'],
                 ['GCP IAM Best Practices', 'https://cloud.google.com/iam/docs/using-iam-securely'],
                 ['DigitalOcean Security Guide', 'https://docs.digitalocean.com/products/droplets/how-to/setup-an-ubuntu-18-04-server/'],
+                ['Cloudflare DNS', 'https://dash.cloudflare.com'],
+                ['MySQL Docs', 'https://dev.mysql.com/doc/'],
+                ['PostgreSQL Docs', 'https://www.postgresql.org/docs/'],
+                ['WHOIS Lookup', 'https://lookup.icann.org'],
               ].map(([label, url]) => (
                 <a key={url} href={url} target="_blank" rel="noreferrer"
                   className="flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm transition-colors">
