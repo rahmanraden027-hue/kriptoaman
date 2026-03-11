@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ethers } from 'ethers';
+import { parseEther } from 'viem';
 import { useWeb3 } from './Web3Provider';
 import { Send, X, Loader2, CheckCircle, ExternalLink, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
