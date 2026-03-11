@@ -82,12 +82,29 @@ const EMAIL_TEMPLATES = {
   }
 };
 
+// Encode email to base64url for Gmail API
+function encodeEmail(to, subject, htmlBody, fromName) {
+  const email = [
+    `From: ${fromName} <me>`,
+    `To: ${to}`,
+    `Subject: ${subject}`,
+    `MIME-Version: 1.0`,
+    `Content-Type: text/html; charset=UTF-8`,
+    ``,
+    htmlBody
+  ].join('\r\n');
+
+  return btoa(unescape(encodeURIComponent(email)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const payload = await req.json();
 
-    // Called from entity automation (User update)
     const { event, data, old_data } = payload;
 
     if (!data || !old_data) {
@@ -114,17 +131,31 @@ Deno.serve(async (req) => {
       return Response.json({ skipped: true, reason: 'No email found' });
     }
 
-    console.log(`Sending KYC email to ${userEmail}, status: ${oldStatus} → ${newStatus}`);
+    console.log(`Sending KYC email via Gmail to ${userEmail}, status: ${oldStatus} → ${newStatus}`);
 
-    await base44.asServiceRole.integrations.Core.SendEmail({
-      to: userEmail,
-      subject: template.subject,
-      body: template.body(userName),
-      from_name: 'KriptoAman'
+    // Get Gmail OAuth access token
+    const { accessToken } = await base44.asServiceRole.connectors.getConnection('gmail');
+
+    const encodedMessage = encodeEmail(userEmail, template.subject, template.body(userName), 'KriptoAman');
+
+    const gmailRes = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ raw: encodedMessage }),
     });
 
-    console.log(`KYC email sent successfully to ${userEmail}`);
-    return Response.json({ success: true, email: userEmail, status: newStatus });
+    if (!gmailRes.ok) {
+      const errText = await gmailRes.text();
+      console.error('Gmail API error:', errText);
+      return Response.json({ error: `Gmail API error: ${errText}` }, { status: 500 });
+    }
+
+    const result = await gmailRes.json();
+    console.log(`KYC email sent via Gmail to ${userEmail}, messageId: ${result.id}`);
+    return Response.json({ success: true, email: userEmail, status: newStatus, messageId: result.id });
 
   } catch (error) {
     console.error('sendKYCStatusEmail error:', error.message);
