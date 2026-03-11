@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import AdminGuard, { OWNER_EMAIL } from '../components/security/AdminGuard';
-import { Server, Cloud, Shield, Key, Lock, AlertTriangle, CheckCircle2, ExternalLink, Copy, CheckCheck, ChevronDown, ChevronRight, Terminal, User, Globe, Database, AtSign } from 'lucide-react';
+import { Server, Cloud, Shield, Key, Lock, AlertTriangle, CheckCircle2, ExternalLink, Copy, CheckCheck, ChevronDown, ChevronRight, Terminal, User, Globe, Database, AtSign, Activity, Zap, RefreshCw } from 'lucide-react';
+import ServerMonitorPanel from '../components/admin/ServerMonitorPanel';
+import APIControlPanel from '../components/admin/APIControlPanel';
+import AppUpdatePanel from '../components/admin/AppUpdatePanel';
 
 const OWNER = {
   name: 'Rahmanraden',
