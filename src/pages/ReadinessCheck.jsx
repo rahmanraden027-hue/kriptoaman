@@ -303,15 +303,25 @@ export default function ReadinessCheck() {
           </Card>
         )}
 
-        {/* Ready Banner */}
-        {stats.readinessPercent >= 80 && (
-          <Card className="bg-green-900/20 border-green-700">
-            <CardContent className="pt-6 text-center space-y-2">
-              <p className="text-green-400 font-semibold text-lg">✓ Application Ready for Production Launch</p>
-              <p className="text-green-300 text-sm">All critical systems are operational & compliant</p>
-            </CardContent>
-          </Card>
-        )}
+        {/* Quick Links */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <a href="/RegulatoryDocs" className="block p-4 bg-slate-800 border border-slate-700 rounded-lg hover:border-slate-600 transition-colors text-center">
+            <Shield className="w-5 h-5 text-blue-400 mx-auto mb-2" />
+            <p className="text-white text-sm font-semibold">Regulatory Docs</p>
+          </a>
+          <a href="/SecurityCenter" className="block p-4 bg-slate-800 border border-slate-700 rounded-lg hover:border-slate-600 transition-colors text-center">
+            <ShieldCheck className="w-5 h-5 text-green-400 mx-auto mb-2" />
+            <p className="text-white text-sm font-semibold">Security Center</p>
+          </a>
+          <a href="/Settings" className="block p-4 bg-slate-800 border border-slate-700 rounded-lg hover:border-slate-600 transition-colors text-center">
+            <Zap className="w-5 h-5 text-yellow-400 mx-auto mb-2" />
+            <p className="text-white text-sm font-semibold">App Settings</p>
+          </a>
+          <a href="/AdminUserBalances" className="block p-4 bg-slate-800 border border-slate-700 rounded-lg hover:border-slate-600 transition-colors text-center">
+            <TrendingUp className="w-5 h-5 text-indigo-400 mx-auto mb-2" />
+            <p className="text-white text-sm font-semibold">Admin Dashboard</p>
+          </a>
+        </div>
       </div>
     </div>
   );
