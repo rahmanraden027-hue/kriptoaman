@@ -87,6 +87,7 @@ import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
 import Web3Wallet from './pages/Web3Wallet';
 import KYCVerificationPage from './pages/KYCVerificationPage';
+import AMLDashboard from './pages/AMLDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -131,6 +132,7 @@ export const PAGES = {
     "Wallet": Wallet,
     "Web3Wallet": Web3Wallet,
     "KYCVerificationPage": KYCVerificationPage,
+    "AMLDashboard": AMLDashboard,
 }
 
 export const pagesConfig = {
