@@ -18,10 +18,17 @@ Deno.serve(async (req) => {
       created_date: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() }
     });
 
-    const sendHistory = await base44.asServiceRole.entities.SendTransaction?.filter?.({
-      userEmail,
-      created_date: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() }
-    }) || [];
+    // Try to fetch send history if entity exists
+    let sendHistory = [];
+    try {
+      sendHistory = await base44.asServiceRole.entities.SendTransaction?.filter?.({
+        userEmail,
+        created_date: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() }
+      }) || [];
+    } catch (err) {
+      // Entity doesn't exist, continue with just withdrawals
+      sendHistory = [];
+    }
 
     const allTx = [...(txHistory || []), ...(sendHistory || [])].sort((a, b) => 
       new Date(b.created_date) - new Date(a.created_date)
