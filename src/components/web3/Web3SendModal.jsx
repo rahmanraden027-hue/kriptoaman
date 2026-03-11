@@ -5,7 +5,7 @@ import { Send, X, Loader2, CheckCircle, ExternalLink, AlertCircle } from 'lucide
 import { Button } from '@/components/ui/button';
 
 export default function Web3SendModal({ onClose }) {
-  const { signer, account, currentChain, refreshBalance } = useWeb3();
+  const { sendTransaction, account, currentChain, refreshBalance } = useWeb3();
   const [to, setTo] = useState('');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
