@@ -24,6 +24,7 @@ const BOTTOM_NAV = [
 
 // Secondary nav (shown in sidebar/more menu)
 const NAV = [
+  { label: 'KYC Verification', page: 'KYCVerificationPage', icon: ShieldCheck },
   { label: 'Portfolio', page: 'PortfolioOverview', icon: BarChart3 },
   { label: 'DEX & Savings', page: 'DEXSavings', icon: Coins },
   { label: 'P2P Lending', page: 'P2PLending', icon: Coins },
