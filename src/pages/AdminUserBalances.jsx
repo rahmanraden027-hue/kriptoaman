@@ -15,11 +15,15 @@ export default function AdminUserBalances() {
     setKycUpdating(targetUser.id);
     await base44.asServiceRole.entities.User.update(targetUser.id, { kycStatus: newStatus });
     // Trigger email via backend function
-    await base44.functions.invoke('sendKYCStatusEmail', {
+    const kycPayload = {
       event: { type: 'update', entity_name: 'User', entity_id: targetUser.id },
-      data: { email: targetUser.email, full_name: targetUser.full_name, kycStatus: newStatus },
+      data: { email: targetUser.email, full_name: targetUser.full_name, kycStatus: newStatus, role: targetUser.role },
       old_data: { kycStatus: targetUser.kycStatus || 'pending' }
-    });
+    };
+    await Promise.all([
+      base44.functions.invoke('sendKYCStatusEmail', kycPayload),
+      base44.functions.invoke('syncKYCToNotion', kycPayload),
+    ]);
     queryClient.invalidateQueries({ queryKey: ['allUsers'] });
     setKycUpdating(null);
   };
