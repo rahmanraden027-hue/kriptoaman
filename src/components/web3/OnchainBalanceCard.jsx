@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ethers } from 'ethers';
+import { createPublicClient, http, formatUnits } from 'viem';
+import { mainnet, bsc, polygon } from 'viem/chains';
 import { useWeb3, SUPPORTED_CHAINS } from './Web3Provider';
 import { RefreshCw, ExternalLink, TrendingUp } from 'lucide-react';
 
