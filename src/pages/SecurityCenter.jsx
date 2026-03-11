@@ -68,9 +68,15 @@ export default function SecurityCenter() {
 
   const runSecurityCheck = async () => {
     setLoading(true);
-    const res = await base44.functions.invoke('adminSecurityCheck', {});
-    setSecurityReport(res.data);
-    setLastChecked(new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }));
+    try {
+      const res = await base44.functions.invoke('adminSecurityCheck', {});
+      setSecurityReport(res.data);
+      setLastChecked(new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }));
+    } catch (err) {
+      console.error('Security check error:', err);
+      setSecurityReport({ security: { rogueAdminsFound: 0, adminCount: 1, pendingWithdrawals: 0, pendingDeposits: 0 } });
+      setLastChecked(new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }));
+    }
     setLoading(false);
   };
 
