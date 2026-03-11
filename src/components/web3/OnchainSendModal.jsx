@@ -17,8 +17,8 @@ export default function OnchainSendModal({ onClose }) {
     setError('');
     setLoading(true);
     try {
-      const tx = await sendTransaction({ to, value: amount });
-      setTxHash(tx.hash);
+      const hash = await sendTransaction({ to, value: amount });
+      setTxHash(hash);
     } catch (e) {
       setError(e.message || 'Transaksi gagal');
     } finally {
