@@ -47,6 +47,7 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import AMLDashboard from './pages/AMLDashboard';
 import AboutUs from './pages/AboutUs';
 import AdminPlatformAssets from './pages/AdminPlatformAssets';
 import AdminProfitAnalytics from './pages/AdminProfitAnalytics';
@@ -61,6 +62,7 @@ import Disclaimer from './pages/Disclaimer';
 import Edukasi from './pages/Edukasi';
 import Home from './pages/Home';
 import KYC from './pages/KYC';
+import KYCVerificationPage from './pages/KYCVerificationPage';
 import LandingPage from './pages/LandingPage';
 import Market from './pages/Market';
 import MarketResearch from './pages/MarketResearch';
@@ -86,12 +88,12 @@ import TradingAnalytics from './pages/TradingAnalytics';
 import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
 import Web3Wallet from './pages/Web3Wallet';
-import KYCVerificationPage from './pages/KYCVerificationPage';
-import AMLDashboard from './pages/AMLDashboard';
+import AdminKYCManagement from './pages/AdminKYCManagement';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "AMLDashboard": AMLDashboard,
     "AboutUs": AboutUs,
     "AdminPlatformAssets": AdminPlatformAssets,
     "AdminProfitAnalytics": AdminProfitAnalytics,
@@ -106,6 +108,7 @@ export const PAGES = {
     "Edukasi": Edukasi,
     "Home": Home,
     "KYC": KYC,
+    "KYCVerificationPage": KYCVerificationPage,
     "LandingPage": LandingPage,
     "Market": Market,
     "MarketResearch": MarketResearch,
@@ -131,8 +134,7 @@ export const PAGES = {
     "TxHistory": TxHistory,
     "Wallet": Wallet,
     "Web3Wallet": Web3Wallet,
-    "KYCVerificationPage": KYCVerificationPage,
-    "AMLDashboard": AMLDashboard,
+    "AdminKYCManagement": AdminKYCManagement,
 }
 
 export const pagesConfig = {
