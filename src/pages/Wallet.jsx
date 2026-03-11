@@ -287,6 +287,9 @@ export default function Wallet() {
           <span className="text-blue-300 text-xs">Tap koin untuk ganti aset aktif · Swap = tukar antar koin · Trade = simulasi order</span>
         </div>
 
+        {/* KAM Token Card - Native Token */}
+        <KAMTokenCard userBalance={currentUser?.kamBalance || 0} />
+
         {/* Trust Badges */}
         <BappebtiTrustBadge />
 
