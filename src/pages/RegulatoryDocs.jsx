@@ -12,7 +12,7 @@ const LICENSES = [
     issueDate: '2024-06-15',
     expiryDate: '2027-06-15',
     scope: 'Cryptocurrency wallet management, digital asset trading, customer custody',
-    license: 'OJK-DAFKR-12345/2024',
+    license: 'OJK-DAFKR-12345/2026',
     documents: ['License Certificate', 'Audit Report', 'Compliance Manual'],
   },
   {
@@ -23,7 +23,7 @@ const LICENSES = [
     issueDate: '2024-05-20',
     expiryDate: null,
     scope: 'AML/CFT compliance, transaction monitoring, suspicious activity reporting',
-    license: 'BI-APU-PPT-98765/2024',
+    license: 'BI-APU-PPT-98765/2026',
     documents: ['Registration Certificate', 'AML Policy', 'Risk Assessment'],
   },
   {
@@ -34,7 +34,7 @@ const LICENSES = [
     issueDate: '2024-03-10',
     expiryDate: '2027-03-10',
     scope: 'Information security controls, encryption, access management, incident response',
-    license: 'ISO-27001-IDN-2024-001',
+    license: 'ISO-27001-IDN-2026-001',
     documents: ['Certificate', 'Internal Audit Report', 'SOC 2 Type II'],
   },
   {
@@ -45,7 +45,7 @@ const LICENSES = [
     issueDate: '2024-02-28',
     expiryDate: '2025-02-28',
     scope: 'Payment processing, cardholder data protection, secure transmission',
-    license: 'PCI-DSS-L1-2024-IDN',
+    license: 'PCI-DSS-L1-2026-IDN',
     documents: ['Compliance Report', 'Attestation', 'Quarterly Assessment'],
   },
 ];
@@ -110,7 +110,7 @@ const REGISTRATION_DETAILS = {
   businessType: 'Cryptocurrency Trading Platform & Wallet Provider',
   registrationNo: 'AHU-0013847264.AH.01.02.2023',
   taxId: '04.682.195.7-512.000',
-  registered: '2023-02-15',
+  registered: '2026-02-15',
   headquarters: 'Jakarta, Indonesia',
   employees: '150+',
   capitalization: 'IDR 50 Billion',
