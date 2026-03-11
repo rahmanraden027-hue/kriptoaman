@@ -84,6 +84,7 @@ import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
 import Web3Wallet from './pages/Web3Wallet';
 import StoreDeploymentGuide from './pages/StoreDeploymentGuide';
+import SecurityCenter from './pages/SecurityCenter';
 import __Layout from './Layout.jsx';
 
 
@@ -125,6 +126,7 @@ export const PAGES = {
     "Wallet": Wallet,
     "Web3Wallet": Web3Wallet,
     "StoreDeploymentGuide": StoreDeploymentGuide,
+    "SecurityCenter": SecurityCenter,
 }
 
 export const pagesConfig = {
