@@ -684,6 +684,234 @@ echo ".env" >> .gitignore`} />
             </div>
           </div>
 
+          {/* ── GOOGLE PLAY CONSOLE ──────────────────────────────────────── */}
+          <Accordion title="Google Play Console" icon={Cloud} color="green" badge="Android Developer Account — Atas Nama Anda">
+            <div className="space-y-3">
+              <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-3 text-xs text-green-200">
+                📱 Akun Google Play Console adalah milik Anda selamanya. Daftarkan dengan akun Google pribadi Anda, bukan akun tim atau orang lain.
+              </div>
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Langkah 1: Siapkan Google Account Anda</p>
+              <div className="space-y-1.5">
+                <Rule ok text={`Gunakan Google Account: ${OWNER.email}`} />
+                <Rule ok text="Aktifkan 2-Step Verification di Google Account Anda" />
+                <Rule ok text="Pastikan nama di Google Account = nama asli Anda (Rahmanraden)" />
+              </div>
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Langkah 2: Daftar Akun Developer</p>
+              <div className="bg-slate-900/60 rounded-xl p-4 space-y-2 text-xs">
+                <p className="text-slate-300">Buka: <a href="https://play.google.com/console/signup" target="_blank" rel="noreferrer" className="text-green-400 underline">play.google.com/console/signup</a></p>
+                <div className="space-y-1.5 mt-2">
+                  <Rule ok text="Account type: Pilih 'Organization' (untuk bisnis) atau 'Individual'" />
+                  <Rule ok text="Developer name: KriptoAman (nama yang tampil di Play Store)" />
+                  <Rule ok text="Contact name: Rahmanraden" />
+                  <Rule ok text={`Contact email: ${OWNER.email}`} />
+                  <Rule ok text="Payment: kartu kredit atas nama Anda — biaya $25 USD (sekali seumur hidup)" />
+                  <Rule ok text="Alamat: isi dengan alamat Anda yang valid" />
+                </div>
+              </div>
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Langkah 3: Verifikasi Identitas (Wajib sejak 2023)</p>
+              <div className="space-y-1.5">
+                <Rule ok text="Upload KTP / Paspor atas nama Anda (Rahmanraden)" />
+                <Rule ok text="Verifikasi bisa memakan waktu 1-3 hari kerja" />
+                <Rule ok text="Gunakan dokumen yang masih berlaku" />
+                <Rule text="JANGAN gunakan identitas orang lain — akun bisa dibanned permanen" />
+              </div>
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Langkah 4: Setup Keamanan Akun</p>
+              <div className="space-y-1.5">
+                <Rule ok text="Pergi ke Settings → Developer account → Account details" />
+                <Rule ok text="Tambahkan recovery email & phone number Anda" />
+                <Rule ok text="Di Users & permissions — JANGAN tambahkan user lain sebagai 'Account owner'" />
+                <Rule ok text="Jika ada tim, beri role 'Release manager' atau 'Developer' saja" />
+                <Rule text="JANGAN share login Google Account Anda ke siapapun" />
+              </div>
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Data Signing Key (Keystore) — Hanya Anda yang Pegang</p>
+              <CodeBlock code={`# Generate keystore untuk sign APK/AAB:
+keytool -genkey -v \\
+  -keystore kriptoaman-release.keystore \\
+  -alias kriptoaman \\
+  -keyalg RSA \\
+  -keysize 2048 \\
+  -validity 10000
+
+# Isi dengan data Anda:
+# First & Last Name: Rahmanraden
+# Organization: KriptoAman
+# Country: ID
+
+# SIMPAN FILE INI! Jika hilang, Anda tidak bisa update app!
+# Backup ke: USB terenkripsi + lokasi fisik aman
+
+# Sign AAB/APK:
+jarsigner -verbose -sigalg SHA256withRSA \\
+  -digestalg SHA-256 \\
+  -keystore kriptoaman-release.keystore \\
+  app-release.aab kriptoaman`} />
+
+              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-xs text-red-200 mt-2">
+                ⚠️ <strong>Keystore = Kunci App Anda.</strong> Jika keystore hilang atau bocor, Anda tidak bisa update app di Play Store dan harus publish ulang dengan package name baru (kehilangan semua rating/review).
+              </div>
+
+              <a href="https://play.google.com/console" target="_blank" rel="noreferrer"
+                className="flex items-center gap-2 text-green-400 text-xs hover:underline mt-2">
+                <ExternalLink className="w-3.5 h-3.5" /> Buka Google Play Console
+              </a>
+            </div>
+          </Accordion>
+
+          {/* ── APPLE APP STORE CONNECT ───────────────────────────────────── */}
+          <Accordion title="Apple App Store Connect" icon={Cloud} color="slate" badge="iOS Developer Account — Atas Nama Anda">
+            <div className="space-y-3">
+              <div className="bg-slate-500/10 border border-slate-500/20 rounded-xl p-3 text-xs text-slate-200">
+                🍎 Apple Developer Program harus terdaftar atas nama Anda. Apple memverifikasi identitas secara ketat — gunakan nama & data asli Anda.
+              </div>
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Langkah 1: Buat Apple ID Pribadi</p>
+              <div className="space-y-1.5">
+                <Rule ok text="Buka appleid.apple.com → Create Your Apple ID" />
+                <Rule ok text={`Email: gunakan ${OWNER.email} atau buat Apple ID baru khusus developer`} />
+                <Rule ok text="Nama: Rahmanraden (nama asli, sesuai KTP)" />
+                <Rule ok text="Aktifkan Two-Factor Authentication (WAJIB untuk developer)" />
+                <Rule text="JANGAN pakai Apple ID yang sudah dipakai untuk personal (pisahkan)" />
+              </div>
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Langkah 2: Daftar Apple Developer Program</p>
+              <div className="bg-slate-900/60 rounded-xl p-4 space-y-2 text-xs">
+                <p className="text-slate-300">Buka: <a href="https://developer.apple.com/programs/enroll/" target="_blank" rel="noreferrer" className="text-blue-400 underline">developer.apple.com/programs/enroll</a></p>
+                <div className="space-y-1.5 mt-2">
+                  <Rule ok text="Entity type: 'Individual' (jika atas nama pribadi) atau 'Organization' (jika ada PT)" />
+                  <Rule ok text="Legal Name: Rahmanraden (sesuai KTP/paspor)" />
+                  <Rule ok text={`Email: ${OWNER.email}`} />
+                  <Rule ok text="Biaya: $99 USD per tahun — bayar dengan kartu kredit atas nama Anda" />
+                  <Rule ok text="Untuk Organization: perlu D-U-N-S Number (daftar gratis di Dun & Bradstreet)" />
+                </div>
+              </div>
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Langkah 3: Verifikasi Apple (Ketat!)</p>
+              <div className="space-y-1.5">
+                <Rule ok text="Apple akan verifikasi via telepon / email — jawab dengan cepat" />
+                <Rule ok text="Untuk Organization: Apple bisa minta dokumen legalitas perusahaan" />
+                <Rule ok text="Proses: 1-7 hari kerja" />
+                <Rule ok text="Jika ditolak: hubungi Apple Developer Support dengan dokumen lengkap" />
+              </div>
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Langkah 4: Setup App Store Connect</p>
+              <div className="space-y-1.5">
+                <Rule ok text="Buka appstoreconnect.apple.com — login dengan Apple ID Anda" />
+                <Rule ok text="Users & Access: Anda sebagai 'Account Holder' (tidak bisa dipindah)" />
+                <Rule ok text="Jika ada tim: beri role 'Developer' atau 'Marketing' saja" />
+                <Rule ok text="Certificates, IDs & Profiles — HANYA Anda yang kelola" />
+                <Rule text="JANGAN beri role 'Admin' ke siapapun selain Anda" />
+              </div>
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Sertifikat & Provisioning Profile</p>
+              <CodeBlock code={`# Di Mac Anda (Xcode required):
+
+# 1. Generate Certificate Signing Request (CSR):
+# Buka Keychain Access → Certificate Assistant
+# → Request a Certificate from a Certificate Authority
+# Email: rahmanraden027@gmail.com
+# Common Name: KriptoAman
+# Saved to disk: CertificateSigningRequest.certSigningRequest
+
+# 2. Upload CSR ke Apple Developer Portal:
+# developer.apple.com → Certificates → + → iOS Distribution
+# Upload file CSR → Download certificate (.cer)
+
+# 3. Double-click .cer → masuk ke Keychain Access Anda
+# BACKUP Keychain / p12 file:
+# Keychain Access → Klik kanan certificate → Export → .p12
+# Set password kuat — JANGAN lupa password ini!
+
+# 4. Buat App ID:
+# developer.apple.com → Identifiers → +
+# Bundle ID: com.kriptoaman.app (unik, tidak bisa diubah)
+
+# 5. Buat Provisioning Profile:
+# developer.apple.com → Profiles → +
+# Type: App Store → pilih App ID → pilih Certificate`} />
+
+              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-xs text-red-200 mt-2">
+                ⚠️ <strong>Account Holder Apple = Permanen.</strong> Apple tidak mengizinkan transfer ownership akun individual. Bundle ID tidak bisa diubah setelah app publish. Pastikan semua data benar dari awal.
+              </div>
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Perbedaan Penting Individual vs Organization</p>
+              <div className="bg-slate-900/60 rounded-xl overflow-hidden">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-700">
+                      <th className="text-left p-2 text-slate-400">Aspek</th>
+                      <th className="text-center p-2 text-blue-400">Individual</th>
+                      <th className="text-center p-2 text-green-400">Organization</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      ['Biaya', '$99/tahun', '$99/tahun'],
+                      ['Nama di App Store', 'Nama pribadi', 'Nama perusahaan'],
+                      ['D-U-N-S Number', 'Tidak perlu', 'Wajib'],
+                      ['Tim', 'Hanya Anda', 'Bisa tambah tim'],
+                      ['Verifikasi', 'KTP/Paspor', 'Dokumen legal PT'],
+                    ].map(([a, b, c]) => (
+                      <tr key={a} className="border-b border-slate-800">
+                        <td className="p-2 text-slate-400">{a}</td>
+                        <td className="p-2 text-center text-slate-300">{b}</td>
+                        <td className="p-2 text-center text-slate-300">{c}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mt-2">
+                {[
+                  ['App Store Connect', 'https://appstoreconnect.apple.com'],
+                  ['Apple Developer', 'https://developer.apple.com/programs/enroll/'],
+                  ['D-U-N-S Lookup', 'https://developer.apple.com/enroll/duns-lookup/'],
+                ].map(([label, url]) => (
+                  <a key={url} href={url} target="_blank" rel="noreferrer"
+                    className="flex items-center gap-1.5 text-slate-400 hover:text-white text-xs transition-colors">
+                    <ExternalLink className="w-3 h-3" /> {label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          </Accordion>
+
+          {/* ── RINGKASAN BIAYA & CHECKLIST ───────────────────────────────── */}
+          <div className="bg-slate-800/40 border border-slate-700/40 rounded-2xl p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <CheckCircle2 className="w-5 h-5 text-green-400" />
+              <h2 className="text-green-300 font-bold">Checklist & Biaya Developer Account</h2>
+            </div>
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-3 text-center">
+                  <p className="text-green-400 font-bold text-lg">$25 USD</p>
+                  <p className="text-slate-400 text-xs">Google Play Console</p>
+                  <p className="text-slate-500 text-xs">Sekali bayar seumur hidup</p>
+                </div>
+                <div className="bg-slate-500/10 border border-slate-500/20 rounded-xl p-3 text-center">
+                  <p className="text-slate-300 font-bold text-lg">$99 USD</p>
+                  <p className="text-slate-400 text-xs">Apple Developer Program</p>
+                  <p className="text-slate-500 text-xs">Per tahun (auto-renew)</p>
+                </div>
+              </div>
+              <div className="space-y-1.5 mt-2">
+                <Rule ok text="Kedua akun atas nama: Rahmanraden" />
+                <Rule ok text={`Email terdaftar: ${OWNER.email}`} />
+                <Rule ok text="Keystore Android: backup di lokasi aman, password hanya Anda tahu" />
+                <Rule ok text="Apple Certificate .p12: export & simpan di Keychain + backup USB" />
+                <Rule ok text="Bundle ID Android: com.kriptoaman.app" />
+                <Rule ok text="Bundle ID iOS: com.kriptoaman.app" />
+                <Rule text="JANGAN biarkan orang lain daftar atas nama mereka untuk Anda" />
+              </div>
+            </div>
+          </div>
+
           {/* Quick Links */}
           <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-5">
             <h2 className="text-white font-semibold mb-3 flex items-center gap-2">
