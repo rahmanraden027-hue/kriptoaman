@@ -13,16 +13,12 @@ export default function Web3SendModal({ onClose }) {
   const [error, setError] = useState(null);
 
   const handleSend = async () => {
-    if (!to || !amount || !signer) return;
+    if (!to || !amount) return;
     setLoading(true);
     setError(null);
     try {
-      const tx = await signer.sendTransaction({
-        to,
-        value: ethers.parseEther(amount),
-      });
-      setTxHash(tx.hash);
-      await tx.wait();
+      const hash = await sendTransaction({ to, value: amount });
+      setTxHash(hash);
       refreshBalance();
     } catch (e) {
       setError(e.message || 'Transaksi gagal');
