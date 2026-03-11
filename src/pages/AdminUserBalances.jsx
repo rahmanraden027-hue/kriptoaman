@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Users, Wallet, TrendingUp, AlertCircle, Loader2, FileSpreadsheet, ExternalLink, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import GitHubSecurityReview from '../components/admin/GitHubSecurityReview';
 
 export default function AdminUserBalances() {
   const [user, setUser] = useState(null);
