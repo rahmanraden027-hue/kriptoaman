@@ -311,7 +311,7 @@ export default function RegulatoryDocs() {
                 <div className="space-y-2 text-sm">
                   <AuditItem date="2024-12-15" type="External Security Audit" status="PASSED" />
                   <AuditItem date="2024-11-20" type="Internal Compliance Audit" status="PASSED" />
-                  <AuditItem date="2024-10-10" type="Penetration Testing" status="PASSED" />
+                  <AuditItem date="2026-10-10" type="Penetration Testing" status="PASSED" />
                   <AuditItem date="2024-09-05" type="AML/CFT Review" status="PASSED" />
                 </div>
               </CardContent>
