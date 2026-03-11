@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, AlertCircle, Clock, TrendingUp, Shield, Zap, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Clock, TrendingUp, Shield, Zap, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { base44 } from '@/api/base44Client';
 
