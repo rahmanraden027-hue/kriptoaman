@@ -85,6 +85,7 @@ import Wallet from './pages/Wallet';
 import Web3Wallet from './pages/Web3Wallet';
 import StoreDeploymentGuide from './pages/StoreDeploymentGuide';
 import SecurityCenter from './pages/SecurityCenter';
+import ServerControl from './pages/ServerControl';
 import __Layout from './Layout.jsx';
 
 
@@ -127,6 +128,7 @@ export const PAGES = {
     "Web3Wallet": Web3Wallet,
     "StoreDeploymentGuide": StoreDeploymentGuide,
     "SecurityCenter": SecurityCenter,
+    "ServerControl": ServerControl,
 }
 
 export const pagesConfig = {
