@@ -23,7 +23,7 @@ const LICENSES = [
     issueDate: '2024-05-20',
     expiryDate: null,
     scope: 'AML/CFT compliance, transaction monitoring, suspicious activity reporting',
-    license: 'BI-APU-PPT-98765/2026',
+    license: 'BI-APU-PPT-026/2026-025847',
     documents: ['Registration Certificate', 'AML Policy', 'Risk Assessment'],
   },
   {
