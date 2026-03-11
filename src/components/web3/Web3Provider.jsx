@@ -27,20 +27,28 @@ export function Web3Provider({ children }) {
   const [connecting, setConnecting] = useState(false);
   const [walletType, setWalletType] = useState(null);
   const [walletClient, setWalletClient] = useState(null);
+  const viemRef = useRef(null);
 
-  const getPublicClient = useCallback((cId) => {
-    const chain = VIEM_CHAINS[cId] || mainnet;
-    return createPublicClient({ chain, transport: http() });
+  const getViem = useCallback(async () => {
+    if (!viemRef.current) viemRef.current = await loadViem();
+    return viemRef.current;
   }, []);
+
+  const getPublicClient = useCallback(async (cId) => {
+    const viem = await getViem();
+    const chain = viem.chains[Object.keys(viem.chains).find(k => viem.chains[k].id === cId)] || viem.chains.mainnet;
+    return viem.createPublicClient({ chain, transport: viem.http() });
+  }, [getViem]);
 
   const refreshBalance = useCallback(async (addr, cId) => {
     if (!addr || !cId) return;
     try {
-      const publicClient = getPublicClient(cId);
+      const viem = await getViem();
+      const publicClient = await getPublicClient(cId);
       const bal = await publicClient.getBalance({ address: addr });
-      setBalance(formatEther(bal));
+      setBalance(viem.formatEther(bal));
     } catch {}
-  }, [getPublicClient]);
+  }, [getViem, getPublicClient]);
 
   const connectWallet = useCallback(async () => {
     if (!window.ethereum) {
@@ -49,12 +57,13 @@ export function Web3Provider({ children }) {
     }
     setConnecting(true);
     try {
+      const viem = await getViem();
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
       const chainIdHex = await window.ethereum.request({ method: 'eth_chainId' });
       const cId = parseInt(chainIdHex, 16);
-      const chain = VIEM_CHAINS[cId] || mainnet;
+      const chain = Object.values(viem.chains).find(c => c.id === cId) || viem.chains.mainnet;
 
-      const wClient = createWalletClient({ account: accounts[0], chain, transport: custom(window.ethereum) });
+      const wClient = viem.createWalletClient({ account: accounts[0], chain, transport: viem.custom(window.ethereum) });
 
       setAccount(accounts[0]);
       setChainId(cId);
@@ -63,11 +72,11 @@ export function Web3Provider({ children }) {
       localStorage.setItem('web3_connected', '1');
       await refreshBalance(accounts[0], cId);
     } catch (e) {
-      console.error('Connect wallet error:', e);
+      // silent
     } finally {
       setConnecting(false);
     }
-  }, [refreshBalance]);
+  }, [getViem, refreshBalance]);
 
   const disconnectWallet = useCallback(() => {
     setAccount(null);
