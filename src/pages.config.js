@@ -76,16 +76,16 @@ import Referral from './pages/Referral';
 import RegulatoryDocs from './pages/RegulatoryDocs';
 import SEOLanding from './pages/SEOLanding';
 import SecureVault from './pages/SecureVault';
+import SecurityCenter from './pages/SecurityCenter';
+import ServerControl from './pages/ServerControl';
 import Settings from './pages/Settings';
+import StoreDeploymentGuide from './pages/StoreDeploymentGuide';
 import Support from './pages/Support';
 import TermsOfService from './pages/TermsOfService';
 import TradingAnalytics from './pages/TradingAnalytics';
 import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
 import Web3Wallet from './pages/Web3Wallet';
-import StoreDeploymentGuide from './pages/StoreDeploymentGuide';
-import SecurityCenter from './pages/SecurityCenter';
-import ServerControl from './pages/ServerControl';
 import __Layout from './Layout.jsx';
 
 
@@ -119,16 +119,16 @@ export const PAGES = {
     "RegulatoryDocs": RegulatoryDocs,
     "SEOLanding": SEOLanding,
     "SecureVault": SecureVault,
+    "SecurityCenter": SecurityCenter,
+    "ServerControl": ServerControl,
     "Settings": Settings,
+    "StoreDeploymentGuide": StoreDeploymentGuide,
     "Support": Support,
     "TermsOfService": TermsOfService,
     "TradingAnalytics": TradingAnalytics,
     "TxHistory": TxHistory,
     "Wallet": Wallet,
     "Web3Wallet": Web3Wallet,
-    "StoreDeploymentGuide": StoreDeploymentGuide,
-    "SecurityCenter": SecurityCenter,
-    "ServerControl": ServerControl,
 }
 
 export const pagesConfig = {
