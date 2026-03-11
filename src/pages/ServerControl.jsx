@@ -89,6 +89,21 @@ export default function ServerControl() {
             </div>
           </div>
 
+          {/* ── SERVER MONITORING ───────────────────────────────────────── */}
+          <Accordion title="Server & Uptime Monitor" icon={Activity} color="green" badge="Real-time status semua endpoint & API">
+            <ServerMonitorPanel />
+          </Accordion>
+
+          {/* ── API CONTROL ──────────────────────────────────────────────── */}
+          <Accordion title="API Control — Payment & Market" icon={Key} color="purple" badge="Stripe · Binance · CoinGecko · Web3 · Email">
+            <APIControlPanel />
+          </Accordion>
+
+          {/* ── APP UPDATE ───────────────────────────────────────────────── */}
+          <Accordion title="Update Aplikasi — Otomatis & Manual" icon={RefreshCw} color="orange" badge="Deploy, changelog & notifikasi update">
+            <AppUpdatePanel />
+          </Accordion>
+
           {/* ── DIGITALOCEAN ─────────────────────────────────────────────── */}
           <Accordion title="DigitalOcean" icon={Cloud} color="blue" badge="Droplets · Kubernetes · Spaces · Firewall">
             <div className="space-y-3">
