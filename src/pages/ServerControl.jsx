@@ -105,6 +105,11 @@ export default function ServerControl() {
             <AppUpdatePanel />
           </Accordion>
 
+          {/* ── BUNDLE SIZE / APK SIZE ───────────────────────────────────── */}
+          <Accordion title="Ukuran APK — Optimasi 15MB Play Store" icon={Zap} color="green" badge="Code splitting · Lazy loading · Estimasi ~12-14MB">
+            <BundleSizeGuide />
+          </Accordion>
+
           {/* ── DIGITALOCEAN ─────────────────────────────────────────────── */}
           <Accordion title="DigitalOcean" icon={Cloud} color="blue" badge="Droplets · Kubernetes · Spaces · Firewall">
             <div className="space-y-3">
