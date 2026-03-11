@@ -325,11 +325,11 @@ export default function RegulatoryDocs() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {[
-                  { title: 'Terms of Service', date: '2024-01-01', size: '245 KB' },
-                  { title: 'Privacy Policy', date: '2024-03-15', size: '189 KB' },
-                  { title: 'Risk Disclosure', date: '2024-05-20', size: '156 KB' },
-                  { title: 'AML/CFT Policy', date: '2024-06-10', size: '312 KB' },
-                  { title: 'Data Processing Agreement', date: '2024-04-01', size: '201 KB' },
+                  { title: 'Terms of Service', date: '2026-03-11', size: '245 KB' },
+                  { title: 'Privacy Policy', date: '2026-03-15', size: '189 KB' },
+                  { title: 'Risk Disclosure', date: '2026-03-20', size: '156 KB' },
+                  { title: 'AML/CFT Policy', date: '2026-03-10', size: '312 KB' },
+                  { title: 'Data Processing Agreement', date: '2026-03-01', size: '201 KB' },
                 ].map((doc, i) => (
                   <div key={i} className="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg border border-slate-600/30 hover:border-slate-600 transition-colors">
                     <div className="flex items-center gap-2">
@@ -363,7 +363,7 @@ export default function RegulatoryDocs() {
         {/* Footer */}
         <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 text-center space-y-3">
           <p className="text-slate-400">For regulatory inquiries, contact compliance@kriptoaman.com</p>
-          <p className="text-xs text-slate-500">Last updated: 2024-12-15 | All documents subject to annual review</p>
+          <p className="text-xs text-slate-500">Last updated: 2026-03-11 | All documents subject to annual review</p>
         </div>
       </div>
     </div>
