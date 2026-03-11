@@ -43,6 +43,7 @@ import MarketOverviewWidget from '../components/market/MarketOverviewWidget';
 import AdvancedPriceChart from '../components/charting/AdvancedPriceChart';
 import { Analytics } from '../components/analytics/mixpanel';
 import { base44 } from '@/api/base44Client';
+import KAMTokenCard from '../components/wallet/KAMTokenCard';
 
 const ONBOARDING_KEY = 'dex_onboarding_done';
 
