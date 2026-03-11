@@ -265,6 +265,142 @@ gcloud compute firewall-rules delete default-allow-ssh`} />
             </div>
           </Accordion>
 
+          {/* ── ROOT ACCESS EKSKLUSIF ────────────────────────────────────── */}
+          <div className="bg-red-500/5 border border-red-500/30 rounded-2xl p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Key className="w-5 h-5 text-red-400" />
+              <h2 className="text-red-300 font-bold">Root Access — Hanya Anda (Rahmanraden)</h2>
+            </div>
+            <div className="space-y-3">
+              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-xs text-red-200">
+                ⚠️ <strong>Root = Kekuasaan Penuh.</strong> Siapa yang punya root access bisa hapus semua data, install malware, atau redirect traffic. HANYA Anda yang boleh memilikinya.
+              </div>
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Setup Root Password Sendiri (Pertama Kali Login)</p>
+              <CodeBlock code={`# Login pertama kali ke server (via console provider):
+sudo passwd root
+# Masukkan password kuat — HANYA Anda yang tahu
+
+# Cek user yang punya sudo/root:
+cat /etc/sudoers
+getent group sudo
+
+# Hapus akses sudo dari user lain (ganti 'otheruser'):
+sudo deluser otheruser sudo
+sudo usermod -L otheruser   # Lock login user tersebut`} />
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Buat User Khusus Anda (Jangan Pakai Root Sehari-hari)</p>
+              <CodeBlock code={`# Buat user atas nama Anda:
+adduser rahmanraden
+usermod -aG sudo rahmanraden
+
+# Pindah ke user Anda:
+su - rahmanraden
+
+# Verifikasi akses sudo:
+sudo whoami   # harus jawab: root`} />
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Kunci Root Login via SSH</p>
+              <CodeBlock code={`# Edit config SSH:
+sudo nano /etc/ssh/sshd_config
+
+# Ubah baris ini:
+PermitRootLogin no          # ← WAJIB: matikan root login langsung
+AllowUsers rahmanraden      # ← hanya user Anda
+PasswordAuthentication no   # ← wajib pakai SSH key
+
+# Simpan & restart:
+sudo systemctl restart sshd`} />
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Cek & Monitor Siapa yang Punya Root</p>
+              <CodeBlock code={`# Cek semua user dengan UID 0 (root level):
+awk -F: '($3 == "0") {print}' /etc/passwd
+
+# Cek riwayat login root:
+last root
+lastlog
+
+# Cek proses yang berjalan sebagai root:
+ps aux | grep root
+
+# Monitor login real-time:
+tail -f /var/log/auth.log`} />
+            </div>
+          </div>
+
+          {/* ── SSH KEY GENERATOR GUIDE ──────────────────────────────────── */}
+          <div className="bg-purple-500/5 border border-purple-500/30 rounded-2xl p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Key className="w-5 h-5 text-purple-400" />
+              <h2 className="text-purple-300 font-bold">SSH Key Milik Anda Sendiri — Setup Lengkap</h2>
+            </div>
+            <div className="space-y-3">
+              <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3 text-xs text-purple-200">
+                🔑 SSH key = kunci fisik server Anda. Private key (<code>.pem / id_ed25519</code>) = jangan pernah bocor. Public key = aman untuk di-share ke server.
+              </div>
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Langkah 1: Generate SSH Key di Komputer Anda</p>
+              <CodeBlock code={`# Windows (PowerShell / WSL) / Mac / Linux:
+ssh-keygen -t ed25519 -C "rahmanraden027@gmail.com" -f ~/.ssh/kriptoaman_main
+
+# Akan ada 2 file:
+# ~/.ssh/kriptoaman_main      ← PRIVATE KEY (jangan bocor!)
+# ~/.ssh/kriptoaman_main.pub  ← PUBLIC KEY (upload ke server)
+
+# Set permission ketat:
+chmod 600 ~/.ssh/kriptoaman_main
+chmod 644 ~/.ssh/kriptoaman_main.pub`} />
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Langkah 2: Copy Public Key ke Server</p>
+              <CodeBlock code={`# Cara otomatis:
+ssh-copy-id -i ~/.ssh/kriptoaman_main.pub rahmanraden@YOUR_SERVER_IP
+
+# Cara manual (jika ssh-copy-id tidak ada):
+cat ~/.ssh/kriptoaman_main.pub
+# Copy outputnya, lalu di server:
+echo "PASTE_PUBLIC_KEY_DISINI" >> ~/.ssh/authorized_keys
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys`} />
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Langkah 3: Test Koneksi SSH</p>
+              <CodeBlock code={`# Koneksi dengan key Anda:
+ssh -i ~/.ssh/kriptoaman_main rahmanraden@YOUR_SERVER_IP
+
+# Buat shortcut di ~/.ssh/config (Windows: C:\\Users\\Anda\\.ssh\\config):
+Host kriptoaman-do
+  HostName YOUR_DO_IP
+  User rahmanraden
+  IdentityFile ~/.ssh/kriptoaman_main
+
+Host kriptoaman-aws
+  HostName YOUR_AWS_IP
+  User ubuntu
+  IdentityFile ~/.ssh/kriptoaman_main
+
+# Setelah config di atas, cukup:
+ssh kriptoaman-do
+ssh kriptoaman-aws`} />
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Langkah 4: Backup Private Key (Wajib!)</p>
+              <div className="space-y-1.5">
+                <Rule ok text="Copy ~/.ssh/kriptoaman_main ke USB flash drive terenkripsi" />
+                <Rule ok text="Simpan di lokasi fisik aman (brankas / laci terkunci)" />
+                <Rule ok text="Buat backup ke 2 lokasi berbeda (rumah & kantor)" />
+                <Rule text="JANGAN upload ke Google Drive / Dropbox / iCloud" />
+                <Rule text="JANGAN kirim via WhatsApp / Telegram / Email" />
+                <Rule text="JANGAN simpan di repo GitHub / GitLab manapun" />
+              </div>
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Langkah 5: Tambah Passphrase (Lapisan Extra)</p>
+              <CodeBlock code={`# Tambah passphrase ke SSH key yang sudah ada:
+ssh-keygen -p -f ~/.ssh/kriptoaman_main
+
+# Gunakan ssh-agent agar tidak perlu ketik passphrase terus:
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/kriptoaman_main`} />
+            </div>
+          </div>
+
           {/* ── UNIVERSAL SECURITY RULES ─────────────────────────────────── */}
           <div className="bg-slate-800/40 border border-slate-700/40 rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-4">
