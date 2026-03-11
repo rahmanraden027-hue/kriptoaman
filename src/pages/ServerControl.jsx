@@ -4,6 +4,7 @@ import { Server, Cloud, Shield, Key, Lock, AlertTriangle, CheckCircle2, External
 import ServerMonitorPanel from '../components/admin/ServerMonitorPanel';
 import APIControlPanel from '../components/admin/APIControlPanel';
 import AppUpdatePanel from '../components/admin/AppUpdatePanel';
+import BundleSizeGuide from '../components/admin/BundleSizeGuide';
 
 const OWNER = {
   name: 'Rahmanraden',
