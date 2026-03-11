@@ -3,6 +3,7 @@ import { Shield, ShieldCheck, ShieldOff, Smartphone, Monitor, Globe, Clock, Tras
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PinSetup, PIN_ENABLED_KEY, BIOMETRIC_ENABLED_KEY, PIN_STORAGE_KEY } from '../security/PinLock';
+import { TOTPSetup, TOTPVerify } from '../security/TOTP2FA';
 import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
 
@@ -184,9 +185,6 @@ export default function SecuritySection() {
   };
 
   const startSetup = () => {
-    const s = generateSecret();
-    setSecret(s);
-    localStorage.setItem(STORAGE_KEY_SECRET, s);
     setSetupMode(true);
   };
 
@@ -309,7 +307,7 @@ export default function SecuritySection() {
         )}
 
         {setupMode && (
-          <TwoFASetup secret={secret} onDone={handleEnabled} onCancel={() => setSetupMode(false)} />
+          <TOTPSetup onDone={() => { handleEnabled(); setSetupMode(false); }} onCancel={() => setSetupMode(false)} />
         )}
 
         {disableConfirm && (
