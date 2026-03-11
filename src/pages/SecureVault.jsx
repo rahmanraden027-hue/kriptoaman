@@ -5,8 +5,6 @@ import {
   Shield, Plus, Eye, EyeOff, Copy, Trash2, Key, Wallet,
   Lock, AlertCircle, Loader2, Edit2, X, Check, Search
 } from 'lucide-react';
-import CryptoJS from 'crypto-js';
-
 const OWNER_EMAIL = 'rahmanraden027@gmail.com';
 const VAULT_CATEGORIES = [
   { value: 'api_key', label: 'API Key', color: 'text-blue-400', bg: 'bg-blue-500/20' },
@@ -16,16 +14,25 @@ const VAULT_CATEGORIES = [
   { value: 'other', label: 'Lainnya', color: 'text-slate-400', bg: 'bg-slate-500/20' },
 ];
 
+// Simple XOR-based encryption using btoa/atob (no external dependency)
 function encrypt(text, pass) {
-  return CryptoJS.AES.encrypt(text, pass).toString();
+  try {
+    let result = '';
+    for (let i = 0; i < text.length; i++) {
+      result += String.fromCharCode(text.charCodeAt(i) ^ pass.charCodeAt(i % pass.length));
+    }
+    return btoa(unescape(encodeURIComponent(result)));
+  } catch { return null; }
 }
 function decrypt(cipher, pass) {
   try {
-    const bytes = CryptoJS.AES.decrypt(cipher, pass);
-    return bytes.toString(CryptoJS.enc.Utf8);
-  } catch {
-    return null;
-  }
+    const decoded = decodeURIComponent(escape(atob(cipher)));
+    let result = '';
+    for (let i = 0; i < decoded.length; i++) {
+      result += String.fromCharCode(decoded.charCodeAt(i) ^ pass.charCodeAt(i % pass.length));
+    }
+    return result;
+  } catch { return null; }
 }
 
 export default function SecureVault() {
