@@ -121,7 +121,9 @@ export default function Layout({ children, currentPageName }) {
       {user && <div className="h-10" />}
       <div className="h-8" />{/* ticker bar height */}
 
-      {children}
+      <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center"><div className="w-6 h-6 rounded-full border-2 border-indigo-400 border-t-transparent animate-spin" /></div>}>
+        {children}
+      </Suspense>
 
       {/* Bottom Nav — 5 primary tabs */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur border-t border-slate-800 safe-area-pb">
