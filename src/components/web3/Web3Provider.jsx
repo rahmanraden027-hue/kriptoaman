@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { ethers } from 'ethers';
+import { createWalletClient, createPublicClient, custom, http, formatEther, parseEther } from 'viem';
+import { mainnet, bsc, polygon, arbitrum, base, optimism } from 'viem/chains';
 
 const Web3Context = createContext(null);
 
@@ -12,14 +13,29 @@ export const SUPPORTED_CHAINS = {
   10: { name: 'Optimism', symbol: 'ETH', rpc: 'https://mainnet.optimism.io', explorer: 'https://optimistic.etherscan.io', color: '#FF0420' },
 };
 
+const VIEM_CHAINS = { 1: mainnet, 56: bsc, 137: polygon, 42161: arbitrum, 8453: base, 10: optimism };
+
 export function Web3Provider({ children }) {
   const [account, setAccount] = useState(null);
   const [chainId, setChainId] = useState(null);
-  const [provider, setProvider] = useState(null);
-  const [signer, setSigner] = useState(null);
   const [balance, setBalance] = useState('0');
   const [connecting, setConnecting] = useState(false);
-  const [walletType, setWalletType] = useState(null); // 'metamask' | 'injected'
+  const [walletType, setWalletType] = useState(null);
+  const [walletClient, setWalletClient] = useState(null);
+
+  const getPublicClient = useCallback((cId) => {
+    const chain = VIEM_CHAINS[cId] || mainnet;
+    return createPublicClient({ chain, transport: http() });
+  }, []);
+
+  const refreshBalance = useCallback(async (addr, cId) => {
+    if (!addr || !cId) return;
+    try {
+      const publicClient = getPublicClient(cId);
+      const bal = await publicClient.getBalance({ address: addr });
+      setBalance(formatEther(bal));
+    } catch {}
+  }, [getPublicClient]);
 
   const connectWallet = useCallback(async () => {
     if (!window.ethereum) {
@@ -28,34 +44,32 @@ export function Web3Provider({ children }) {
     }
     setConnecting(true);
     try {
-      const p = new ethers.BrowserProvider(window.ethereum);
-      const accounts = await p.send('eth_requestAccounts', []);
-      const s = await p.getSigner();
-      const network = await p.getNetwork();
-      const bal = await p.getBalance(accounts[0]);
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const chainIdHex = await window.ethereum.request({ method: 'eth_chainId' });
+      const cId = parseInt(chainIdHex, 16);
+      const chain = VIEM_CHAINS[cId] || mainnet;
 
-      setProvider(p);
-      setSigner(s);
+      const wClient = createWalletClient({ account: accounts[0], chain, transport: custom(window.ethereum) });
+
       setAccount(accounts[0]);
-      setChainId(Number(network.chainId));
-      setBalance(ethers.formatEther(bal));
+      setChainId(cId);
+      setWalletClient(wClient);
       setWalletType(window.ethereum.isMetaMask ? 'metamask' : 'injected');
-
       localStorage.setItem('web3_connected', '1');
+      await refreshBalance(accounts[0], cId);
     } catch (e) {
       console.error('Connect wallet error:', e);
     } finally {
       setConnecting(false);
     }
-  }, []);
+  }, [refreshBalance]);
 
   const disconnectWallet = useCallback(() => {
     setAccount(null);
-    setProvider(null);
-    setSigner(null);
     setChainId(null);
     setBalance('0');
     setWalletType(null);
+    setWalletClient(null);
     localStorage.removeItem('web3_connected');
   }, []);
 
@@ -83,22 +97,20 @@ export function Web3Provider({ children }) {
     }
   }, []);
 
-  const sendTransaction = useCallback(async ({ to, value, data = '0x' }) => {
-    if (!signer) throw new Error('Wallet tidak terhubung');
-    const tx = await signer.sendTransaction({ to, value: ethers.parseEther(value.toString()), data });
-    return tx;
-  }, [signer]);
+  const sendTransaction = useCallback(async ({ to, value }) => {
+    if (!walletClient || !account) throw new Error('Wallet tidak terhubung');
+    const hash = await walletClient.sendTransaction({
+      account,
+      to,
+      value: parseEther(value.toString()),
+    });
+    return hash;
+  }, [walletClient, account]);
 
   const signMessage = useCallback(async (message) => {
-    if (!signer) throw new Error('Wallet tidak terhubung');
-    return await signer.signMessage(message);
-  }, [signer]);
-
-  const refreshBalance = useCallback(async () => {
-    if (!provider || !account) return;
-    const bal = await provider.getBalance(account);
-    setBalance(ethers.formatEther(bal));
-  }, [provider, account]);
+    if (!walletClient || !account) throw new Error('Wallet tidak terhubung');
+    return await walletClient.signMessage({ account, message });
+  }, [walletClient, account]);
 
   // Auto-reconnect
   useEffect(() => {
@@ -112,22 +124,28 @@ export function Web3Provider({ children }) {
     if (!window.ethereum) return;
     const handleAccounts = (accounts) => {
       if (accounts.length === 0) disconnectWallet();
-      else { setAccount(accounts[0]); refreshBalance(); }
+      else { setAccount(accounts[0]); refreshBalance(accounts[0], chainId); }
     };
-    const handleChain = (chainIdHex) => setChainId(parseInt(chainIdHex, 16));
-
+    const handleChain = (chainIdHex) => {
+      const cId = parseInt(chainIdHex, 16);
+      setChainId(cId);
+      refreshBalance(account, cId);
+    };
     window.ethereum.on('accountsChanged', handleAccounts);
     window.ethereum.on('chainChanged', handleChain);
     return () => {
       window.ethereum.removeListener('accountsChanged', handleAccounts);
       window.ethereum.removeListener('chainChanged', handleChain);
     };
-  }, [disconnectWallet, refreshBalance]);
+  }, [disconnectWallet, refreshBalance, account, chainId]);
 
   return (
     <Web3Context.Provider value={{
-      account, chainId, provider, signer, balance, connecting, walletType,
-      connectWallet, disconnectWallet, switchChain, sendTransaction, signMessage, refreshBalance,
+      account, chainId, balance, connecting, walletType, walletClient,
+      provider: walletClient, // backward compat alias
+      signer: walletClient,   // backward compat alias
+      connectWallet, disconnectWallet, switchChain, sendTransaction, signMessage,
+      refreshBalance: () => refreshBalance(account, chainId),
       isConnected: !!account,
       currentChain: SUPPORTED_CHAINS[chainId] || null,
     }}>
