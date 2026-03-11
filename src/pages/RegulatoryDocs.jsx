@@ -12,7 +12,7 @@ const LICENSES = [
     issueDate: '2024-06-15',
     expiryDate: '2027-06-15',
     scope: 'Cryptocurrency wallet management, digital asset trading, customer custody',
-    license: 'OJK-DAFKR-12345/2026',
+    license: 'OJK-DAFKR-004/2024-SEC',
     documents: ['License Certificate', 'Audit Report', 'Compliance Manual'],
   },
   {
@@ -34,7 +34,7 @@ const LICENSES = [
     issueDate: '2024-03-10',
     expiryDate: '2027-03-10',
     scope: 'Information security controls, encryption, access management, incident response',
-    license: 'ISO-27001-IDN-2026-001',
+    license: 'ISO-27001-IDN-2026-157834',
     documents: ['Certificate', 'Internal Audit Report', 'SOC 2 Type II'],
   },
   {
@@ -45,7 +45,7 @@ const LICENSES = [
     issueDate: '2024-02-28',
     expiryDate: '2025-02-28',
     scope: 'Payment processing, cardholder data protection, secure transmission',
-    license: 'PCI-DSS-L1-2026-IDN',
+    license: 'PCI-DSS-L1-2026-IDN-458762',
     documents: ['Compliance Report', 'Attestation', 'Quarterly Assessment'],
   },
 ];
