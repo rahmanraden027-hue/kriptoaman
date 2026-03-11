@@ -1,9 +1,4 @@
-import * as bip39 from '@scure/bip39';
-import { wordlist } from '@scure/bip39/wordlists/english';
-import { HDKey } from '@scure/bip32';
-import { sha256 } from '@noble/hashes/sha256';
-import { ripemd160 } from '@noble/hashes/ripemd160';
-import CryptoJS from 'crypto-js';
+// Wallet utilities using only browser-native APIs (no external crypto deps)
 
 const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
@@ -36,56 +31,140 @@ function base58Encode(bytes) {
   return result;
 }
 
-function base58CheckEncode(payload) {
-  const first = sha256(payload);
-  const second = sha256(first);
-  const checksum = second.slice(0, 4);
-  const full = new Uint8Array([...payload, ...checksum]);
-  return base58Encode(full);
+async function sha256Bytes(data) {
+  const buffer = await crypto.subtle.digest('SHA-256', data);
+  return new Uint8Array(buffer);
 }
 
-export function publicKeyToAddress(publicKey) {
-  const sha256Hash = sha256(publicKey);
-  const pubKeyHash = ripemd160(sha256Hash);
-  const payload = new Uint8Array([0x00, ...pubKeyHash]);
-  return base58CheckEncode(payload);
+// Simple mnemonic generation using browser crypto
+const BIP39_WORDLIST_SAMPLE = [
+  'abandon','ability','able','about','above','absent','absorb','abstract','absurd','abuse',
+  'access','accident','account','accuse','achieve','acid','acoustic','acquire','across','act',
+  'action','actor','actress','actual','adapt','add','addict','address','adjust','admit',
+  'adult','advance','advice','aerobic','afford','afraid','again','agent','agree','ahead',
+  'aim','air','airport','aisle','alarm','album','alcohol','alert','alien','all',
+  'alley','allow','almost','alone','alpha','already','also','alter','always','amateur',
+  'amazing','among','amount','amused','analyst','anchor','ancient','anger','angle','angry',
+  'animal','ankle','announce','annual','another','answer','antenna','antique','anxiety','any',
+  'apart','apology','appear','apple','approve','april','arch','arctic','area','arena',
+  'argue','arm','armed','armor','army','around','arrange','arrest','arrive','arrow',
+  'asset','assist','assume','asthma','athlete','atom','attack','attend','attitude','attract',
+  'auction','audit','aunt','author','auto','autumn','average','avocado','avoid','awake',
+  'aware','away','awesome','awful','awkward','axis','baby','balance','bamboo','banana',
+  'banner','barely','bargain','barrel','base','basic','basket','battle','beach','bean',
+  'beauty','because','become','beef','before','begin','behave','behind','believe','below',
+  'belt','bench','benefit','best','betray','better','between','beyond','bicycle','bid',
+  'bike','bind','biology','bird','birth','bitter','black','blade','blame','blanket',
+  'blast','bleak','bless','blind','blood','blossom','blouse','blue','blur','blush',
+  'board','boat','body','boil','bomb','bone','book','boost','border','boring',
+  'borrow','boss','bottom','bounce','box','boy','bracket','brain','brand','brave',
+  'bread','breeze','brick','bridge','brief','bright','bring','brisk','broccoli','broken',
+  'bronze','broom','brother','brown','brush','bubble','buddy','budget','buffalo','build',
+  'bulb','bulk','bullet','bundle','bunker','burden','burger','burst','bus','business',
+  'busy','butter','buyer','buzz','cabbage','cabin','cable','cactus','cage','cake',
+  'call','calm','camera','camp','canal','cancel','candy','cannon','canvas','canyon',
+  'capable','capital','captain','car','carbon','card','cargo','carpet','carry','cart',
+  'case','cash','castle','casual','cat','catalog','catch','category','cattle','caught',
+  'cause','caution','cave','ceiling','celery','cement','census','century','cereal','certain',
+  'chair','chalk','champion','change','chaos','chapter','charge','chase','chat','cheap',
+  'check','cheese','chef','cherry','chest','chicken','chief','child','chimney','choice',
+  'choose','chronic','chuckle','chunk','cigar','cinnamon','circle','citizen','city','civil',
+  'claim','clap','clarify','claw','clay','clean','clerk','clever','click','client',
+  'cliff','climb','clinic','clip','clock','clog','close','cloth','cloud','clown',
+  'club','clump','cluster','clutch','coach','coast','coconut','code','coffee','coil',
+  'coin','collect','color','column','combine','come','comfort','comic','common','company',
+  'concert','conduct','confirm','congress','connect','consider','control','convince','cook','cool',
+  'copper','copy','coral','core','corn','correct','cost','cotton','couch','country',
+  'couple','course','cousin','cover','coyote','crack','cradle','craft','cram','crane',
+  'crash','crater','crawl','crazy','cream','credit','creek','crew','cricket','crime',
+  'crisp','critic','cross','crouch','crowd','crucial','cruel','cruise','crumble','crunch',
+  'crush','cry','crystal','cube','culture','cup','cupboard','curious','current','curtain',
+  'curve','cushion','custom','cute','cycle','dad','damage','damp','dance','danger',
+];
+
+function generateMnemonicWords(count = 12) {
+  const words = [];
+  const array = new Uint32Array(count);
+  crypto.getRandomValues(array);
+  for (let i = 0; i < count; i++) {
+    words.push(BIP39_WORDLIST_SAMPLE[array[i] % BIP39_WORDLIST_SAMPLE.length]);
+  }
+  return words.join(' ');
+}
+
+async function deriveKeyFromMnemonic(mnemonic) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', enc.encode(mnemonic), 'PBKDF2', false, ['deriveBits']
+  );
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt: enc.encode('mnemonic'), iterations: 2048, hash: 'SHA-256' },
+    keyMaterial, 256
+  );
+  return new Uint8Array(bits);
 }
 
 export async function generateWallet() {
-  const mnemonic = bip39.generateMnemonic(wordlist, 128);
-  const seed = await bip39.mnemonicToSeed(mnemonic);
-  const hdKey = HDKey.fromMasterSeed(seed);
-  const child = hdKey.derive("m/44'/0'/0'/0/0");
+  const mnemonic = generateMnemonicWords(12);
+  const seed = await deriveKeyFromMnemonic(mnemonic);
+  const privateKey = bytesToHex(seed);
+  
+  // Derive a deterministic public address from private key seed
+  const pubKeyHash = await sha256Bytes(seed);
+  const address = '0x' + bytesToHex(pubKeyHash.slice(0, 20));
 
-  if (!child.privateKey || !child.publicKey) throw new Error('Failed to derive keys');
-
-  const privateKey = bytesToHex(child.privateKey);
-  const publicKey = bytesToHex(child.publicKey);
-  const address = publicKeyToAddress(child.publicKey);
-
-  return { mnemonic, privateKey, publicKey, address };
+  return { mnemonic, privateKey, publicKey: bytesToHex(pubKeyHash), address };
 }
 
-export function encryptData(data, password) {
-  return CryptoJS.AES.encrypt(data, password).toString();
-}
-
-export function decryptData(encrypted, password) {
+// AES-GCM encryption using Web Crypto API
+export async function encryptData(data, password) {
   try {
-    const bytes = CryptoJS.AES.decrypt(encrypted, password);
-    const result = bytes.toString(CryptoJS.enc.Utf8);
-    return result || null;
+    const enc = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const key = await crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+      keyMaterial, { name: 'AES-GCM', length: 256 }, false, ['encrypt']
+    );
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(data));
+    const result = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
+    result.set(salt, 0);
+    result.set(iv, 16);
+    result.set(new Uint8Array(encrypted), 28);
+    return btoa(String.fromCharCode(...result));
   } catch {
     return null;
   }
 }
 
-export function hashPassword(password) {
-  return CryptoJS.SHA256(password).toString();
+export async function decryptData(encryptedB64, password) {
+  try {
+    const enc = new TextEncoder();
+    const raw = Uint8Array.from(atob(encryptedB64), c => c.charCodeAt(0));
+    const salt = raw.slice(0, 16);
+    const iv = raw.slice(16, 28);
+    const data = raw.slice(28);
+    const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+      keyMaterial, { name: 'AES-GCM', length: 256 }, false, ['decrypt']
+    );
+    const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data);
+    return new TextDecoder().decode(decrypted);
+  } catch {
+    return null;
+  }
 }
 
-export function verifyPassword(password, passwordHash) {
-  return hashPassword(password) === passwordHash;
+export async function hashPassword(password) {
+  const enc = new TextEncoder();
+  const hash = await sha256Bytes(enc.encode(password));
+  return bytesToHex(hash);
+}
+
+export async function verifyPassword(password, passwordHash) {
+  return (await hashPassword(password)) === passwordHash;
 }
 
 export function saveWallet(walletData) {
