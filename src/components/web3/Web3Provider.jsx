@@ -3,15 +3,22 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 const Web3Context = createContext(null);
 
 export const SUPPORTED_CHAINS = {
-  1: { name: 'Ethereum', symbol: 'ETH', rpc: 'https://eth.llamarpc.com', explorer: 'https://etherscan.io', color: '#627EEA' },
-  56: { name: 'BNB Chain', symbol: 'BNB', rpc: 'https://bsc-dataseed.binance.org', explorer: 'https://bscscan.com', color: '#F3BA2F' },
-  137: { name: 'Polygon', symbol: 'MATIC', rpc: 'https://polygon-rpc.com', explorer: 'https://polygonscan.com', color: '#8247E5' },
-  42161: { name: 'Arbitrum', symbol: 'ETH', rpc: 'https://arb1.arbitrum.io/rpc', explorer: 'https://arbiscan.io', color: '#28A0F0' },
-  8453: { name: 'Base', symbol: 'ETH', rpc: 'https://mainnet.base.org', explorer: 'https://basescan.org', color: '#0052FF' },
-  10: { name: 'Optimism', symbol: 'ETH', rpc: 'https://mainnet.optimism.io', explorer: 'https://optimistic.etherscan.io', color: '#FF0420' },
+  1:     { name: 'Ethereum', symbol: 'ETH',  rpc: 'https://eth.llamarpc.com',          explorer: 'https://etherscan.io',            color: '#627EEA' },
+  56:    { name: 'BNB Chain', symbol: 'BNB',  rpc: 'https://bsc-dataseed.binance.org',   explorer: 'https://bscscan.com',             color: '#F3BA2F' },
+  137:   { name: 'Polygon',   symbol: 'MATIC', rpc: 'https://polygon-rpc.com',            explorer: 'https://polygonscan.com',         color: '#8247E5' },
+  42161: { name: 'Arbitrum',  symbol: 'ETH',  rpc: 'https://arb1.arbitrum.io/rpc',       explorer: 'https://arbiscan.io',             color: '#28A0F0' },
+  8453:  { name: 'Base',      symbol: 'ETH',  rpc: 'https://mainnet.base.org',            explorer: 'https://basescan.org',            color: '#0052FF' },
+  10:    { name: 'Optimism',  symbol: 'ETH',  rpc: 'https://mainnet.optimism.io',         explorer: 'https://optimistic.etherscan.io', color: '#FF0420' },
 };
 
-const VIEM_CHAINS = { 1: mainnet, 56: bsc, 137: polygon, 42161: arbitrum, 8453: base, 10: optimism };
+// Lazy-load viem only when needed (reduces initial bundle ~600KB)
+async function loadViem() {
+  const [viemCore, viemChains] = await Promise.all([
+    import('viem'),
+    import('viem/chains'),
+  ]);
+  return { ...viemCore, chains: viemChains };
+}
 
 export function Web3Provider({ children }) {
   const [account, setAccount] = useState(null);
