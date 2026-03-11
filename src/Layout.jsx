@@ -45,6 +45,7 @@ const NAV = [
   { label: 'Aset Platform', page: 'AdminPlatformAssets', icon: Wallet, adminOnly: true },
   { label: 'Secure Vault', page: 'SecureVault', icon: Lock, adminOnly: true },
   { label: 'Security Center', page: 'SecurityCenter', icon: ShieldCheck, adminOnly: true },
+  { label: 'Server Control', page: 'ServerControl', icon: Lock, adminOnly: true },
 ];
 
 export default function Layout({ children, currentPageName }) {
