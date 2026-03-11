@@ -476,6 +476,14 @@ export default function ReadinessCheck() {
           </a>
         </div>
       </div>
+
+      {/* Detail Modal */}
+      {selectedCategory && (
+        <DetailModal
+          category={selectedCategory}
+          onClose={() => setSelectedCategory(null)}
+        />
+      )}
     </div>
   );
 }
