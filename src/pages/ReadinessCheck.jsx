@@ -364,39 +364,67 @@ export default function ReadinessCheck() {
         </div>
 
         {/* Categories */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {READINESS_CATEGORIES.map((category) => {
             const categoryComplete = category.items.filter((i) => i.status === 'complete').length;
             const categoryPercent = Math.round((categoryComplete / category.items.length) * 100);
+            const isExpanded = expandedCategories[category.id];
 
             return (
               <Card key={category.id} className="bg-slate-800 border-slate-700">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="text-blue-400">{category.icon}</div>
-                      <div>
-                        <CardTitle>{category.name}</CardTitle>
-                        <p className="text-slate-400 text-xs mt-1">
-                          {categoryComplete} of {category.items.length} complete ({categoryPercent}%)
-                        </p>
+                <button
+                  onClick={() => toggleCategory(category.id)}
+                  className="w-full text-left"
+                >
+                  <CardHeader className="cursor-pointer hover:bg-slate-700/50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="text-blue-400">{category.icon}</div>
+                        <div>
+                          <CardTitle className="flex items-center gap-2">
+                            {category.name}
+                            {isExpanded ? (
+                              <ChevronUp className="w-4 h-4 text-slate-400" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4 text-slate-400" />
+                            )}
+                          </CardTitle>
+                          <p className="text-slate-400 text-xs mt-1">
+                            {categoryComplete} of {category.items.length} complete ({categoryPercent}%)
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {category.items.map((item, i) => (
-                      <div
-                        key={i}
-                        className={`flex items-center gap-2 p-3 rounded-lg border ${getStatusColor(item.status)}`}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedCategory(category);
+                        }}
+                        className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded transition-colors"
                       >
-                        {getStatusIcon(item.status)}
-                        <span className="text-sm">{item.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
+                        View Details
+                      </button>
+                    </div>
+                  </CardHeader>
+                </button>
+
+                {isExpanded && (
+                  <CardContent className="space-y-3 border-t border-slate-700">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-4">
+                      {category.items.map((item, i) => (
+                        <div
+                          key={i}
+                          className={`flex items-center gap-2 p-3 rounded-lg border ${getStatusColor(item.status)}`}
+                        >
+                          {getStatusIcon(item.status)}
+                          <div className="flex-1">
+                            <span className="text-sm font-medium block">{item.name}</span>
+                            <span className="text-xs opacity-75">{getDetailDescription(category.id, item.name)}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                )}
               </Card>
             );
           })}
