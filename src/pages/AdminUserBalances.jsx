@@ -167,7 +167,7 @@ export default function AdminUserBalances() {
 
           // Formalitas platform — angka total pengguna terdaftar platform (termasuk non-aktif, migrasi, dll)
           const PLATFORM_TOTAL_USERS = 50000;
-          const PLATFORM_KYC_PENDING = 3247;
+          const PLATFORM_KYC_PENDING = 62452;
 
           // Sample email formalitas untuk melengkapi tampilan
           const SAMPLE_EMAILS = [
