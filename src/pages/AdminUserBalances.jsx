@@ -282,6 +282,9 @@ export default function AdminUserBalances() {
             <p className="text-slate-400">Tidak ada data user</p>
           </div>
         )}
+
+        {/* GitHub PR Security Review */}
+        <GitHubSecurityReview />
       </div>
     </div>
   );
