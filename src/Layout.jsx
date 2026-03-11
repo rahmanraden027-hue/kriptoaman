@@ -43,6 +43,7 @@ const NAV = [
   { label: 'Dok. Regulasi', page: 'RegulatoryDocs', icon: ShieldCheck, adminOnly: true },
   { label: 'Admin Profit', page: 'AdminProfitAnalytics', icon: BarChart3, adminOnly: true },
   { label: 'Aset Platform', page: 'AdminPlatformAssets', icon: Wallet, adminOnly: true },
+  { label: 'Secure Vault', page: 'SecureVault', icon: Lock, adminOnly: true },
 ];
 
 export default function Layout({ children, currentPageName }) {
