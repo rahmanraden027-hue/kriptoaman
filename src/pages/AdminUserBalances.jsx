@@ -162,24 +162,44 @@ export default function AdminUserBalances() {
         </div>
 
         {/* Summary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-4">
-            <p className="text-slate-400 text-sm mb-1">Total Users</p>
-            <p className="text-3xl font-bold text-white">{users.length}</p>
-          </div>
-          <div className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-4">
-            <p className="text-slate-400 text-sm mb-1">Total Portfolio Value</p>
-            <p className="text-3xl font-bold text-green-400">
-              ${sortedUsers.reduce((sum, u) => sum + u.portfolioValue, 0).toLocaleString('en-US', { maximumFractionDigits: 2 })}
-            </p>
-          </div>
-          <div className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-4">
-            <p className="text-slate-400 text-sm mb-1">Total Realized P&L</p>
-            <p className="text-3xl font-bold text-blue-400">
-              ${sortedUsers.reduce((sum, u) => sum + u.realizedPL, 0).toLocaleString('en-US', { maximumFractionDigits: 2 })}
-            </p>
-          </div>
-        </div>
+        {(() => {
+          const pendingKYC = users.filter(u => u.kycStatus === 'pending');
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-4">
+                <p className="text-slate-400 text-sm mb-1">Total Users</p>
+                <p className="text-3xl font-bold text-white">{users.length}</p>
+                <div className="mt-2 space-y-1 max-h-32 overflow-y-auto">
+                  {users.map(u => (
+                    <p key={u.id} className="text-xs text-slate-500 truncate">{u.email}</p>
+                  ))}
+                </div>
+              </div>
+              <div className="bg-slate-800/60 border border-yellow-500/30 rounded-xl p-4">
+                <p className="text-slate-400 text-sm mb-1">Daftar Tunggu KYC</p>
+                <p className="text-3xl font-bold text-yellow-400">{pendingKYC.length}</p>
+                <div className="mt-2 space-y-1 max-h-32 overflow-y-auto">
+                  {pendingKYC.map(u => (
+                    <p key={u.id} className="text-xs text-yellow-500/70 truncate">{u.email}</p>
+                  ))}
+                  {pendingKYC.length === 0 && <p className="text-xs text-slate-600">Tidak ada antrian</p>}
+                </div>
+              </div>
+              <div className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-4">
+                <p className="text-slate-400 text-sm mb-1">Total Portfolio Value</p>
+                <p className="text-3xl font-bold text-green-400">
+                  ${sortedUsers.reduce((sum, u) => sum + u.portfolioValue, 0).toLocaleString('en-US', { maximumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-4">
+                <p className="text-slate-400 text-sm mb-1">Total Realized P&L</p>
+                <p className="text-3xl font-bold text-blue-400">
+                  ${sortedUsers.reduce((sum, u) => sum + u.realizedPL, 0).toLocaleString('en-US', { maximumFractionDigits: 2 })}
+                </p>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Users Table */}
         <div className="bg-slate-800/60 border border-slate-700/40 rounded-xl overflow-hidden">
