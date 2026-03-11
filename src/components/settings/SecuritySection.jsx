@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, ShieldCheck, ShieldOff, Smartphone, Monitor, Globe, Clock, Trash2, CheckCircle2, XCircle, Key, RefreshCw, AlertTriangle, Copy, Check, Lock, Fingerprint, Timer, FileText } from 'lucide-react';
+import { Shield, ShieldCheck, ShieldOff, Smartphone, Monitor, Globe, Clock, Trash2, CheckCircle2, XCircle, Key, RefreshCw, AlertTriangle, Copy, Check, Lock, Fingerprint, Timer, FileText, Badge as BadgeIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PinSetup, PIN_ENABLED_KEY, BIOMETRIC_ENABLED_KEY, PIN_STORAGE_KEY } from '../security/PinLock';
@@ -148,7 +148,7 @@ function TwoFASetup({ secret, onDone, onCancel }) {
 
 const SESSION_TIMEOUT_KEY = 'cv_session_timeout_min';
 
-export default function SecuritySection() {
+export default function SecuritySection({ onNavigateTo }) {
   const [is2FAEnabled, setIs2FAEnabled] = useState(() => localStorage.getItem(STORAGE_KEY_2FA) === 'true');
   const [setupMode, setSetupMode] = useState(false);
   const [secret, setSecret] = useState(() => localStorage.getItem(STORAGE_KEY_SECRET) || '');
@@ -163,6 +163,26 @@ export default function SecuritySection() {
   const [biometricEnabled, setBiometricEnabled] = useState(() => localStorage.getItem(BIOMETRIC_ENABLED_KEY) === 'true');
   const [showPinSetup, setShowPinSetup] = useState(false);
   const [sessionTimeout, setSessionTimeout] = useState(() => parseInt(localStorage.getItem(SESSION_TIMEOUT_KEY) || '5'));
+  const [kycStatus, setKycStatus] = useState(null);
+  const [loadingKyc, setLoadingKyc] = useState(true);
+
+  useEffect(() => {
+    fetchKYCStatus();
+  }, []);
+
+  const fetchKYCStatus = async () => {
+    try {
+      const user = await base44.auth.me();
+      const kycRecords = await base44.entities.KYCVerification.filter({
+        userEmail: user.email
+      });
+      setKycStatus(kycRecords[0] || null);
+    } catch (err) {
+      console.error('Error fetching KYC:', err);
+    } finally {
+      setLoadingKyc(false);
+    }
+  };
 
   const disablePin = () => {
     localStorage.setItem(PIN_ENABLED_KEY, 'false');
@@ -209,6 +229,55 @@ export default function SecuritySection() {
 
   return (
     <div className="space-y-6">
+
+      {/* KYC Verification Card */}
+      <div className={`rounded-2xl p-5 space-y-4 border ${!loadingKyc && kycStatus?.status === 'verified' ? 'bg-green-500/10 border-green-500/30' : 'bg-slate-800/50 border-slate-700/50'}`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${!loadingKyc && kycStatus?.status === 'verified' ? 'bg-green-500/20' : 'bg-slate-700'}`}>
+              <BadgeIcon className={`w-5 h-5 ${!loadingKyc && kycStatus?.status === 'verified' ? 'text-green-400' : 'text-slate-400'}`} />
+            </div>
+            <div>
+              <p className="text-white font-semibold text-sm">KYC Verification</p>
+              <p className={`text-xs font-semibold ${!loadingKyc && kycStatus?.status === 'verified' ? 'text-green-400' : 'text-slate-500'}`}>
+                {loadingKyc ? 'Loading...' : kycStatus?.status === 'verified' ? '✓ Verified' : kycStatus?.status === 'pending' ? '⏳ Pending Review' : 'Not Started'}
+              </p>
+            </div>
+          </div>
+          {!loadingKyc && (
+            <button
+              onClick={() => onNavigateTo?.('KYCVerificationPage')}
+              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                kycStatus?.status === 'verified'
+                  ? 'bg-green-600/20 text-green-400 hover:bg-green-600/30'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
+            >
+              {kycStatus?.status === 'verified' ? 'View Details' : 'Get Verified'}
+            </button>
+          )}
+        </div>
+
+        {!loadingKyc && kycStatus?.status === 'verified' && (
+          <div className="bg-slate-800/50 rounded-lg p-3 text-sm space-y-1">
+            <div className="flex justify-between text-slate-300">
+              <span>Daily Withdrawal Limit:</span>
+              <span className="text-green-400 font-semibold">${kycStatus.withdrawalLimit}</span>
+            </div>
+            <div className="flex justify-between text-slate-400 text-xs">
+              <span>Tier:</span>
+              <span className="uppercase">{kycStatus.verificationLevel}</span>
+            </div>
+          </div>
+        )}
+
+        {!loadingKyc && !kycStatus && (
+          <div className="flex items-start gap-2 bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3">
+            <AlertTriangle className="w-3.5 h-3.5 text-yellow-400 shrink-0 mt-0.5" />
+            <p className="text-yellow-300 text-xs">Complete KYC verification to enable withdrawals and increase security limits.</p>
+          </div>
+        )}
+      </div>
 
       {/* PIN Lock Card */}
       <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5 space-y-4">
