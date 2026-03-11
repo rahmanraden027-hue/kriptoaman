@@ -113,13 +113,14 @@ export function Web3Provider({ children }) {
 
   const sendTransaction = useCallback(async ({ to, value }) => {
     if (!walletClient || !account) throw new Error('Wallet tidak terhubung');
+    const { parseEther } = await getViem();
     const hash = await walletClient.sendTransaction({
       account,
       to,
       value: parseEther(value.toString()),
     });
     return hash;
-  }, [walletClient, account]);
+  }, [walletClient, account, getViem]);
 
   const signMessage = useCallback(async (message) => {
     if (!walletClient || !account) throw new Error('Wallet tidak terhubung');
