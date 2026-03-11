@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Shield, CheckCircle2, AlertCircle, FileText, Lock, Users, Zap, Award, Download, MapPin, Calendar } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
 
 const LICENSES = [
   {
@@ -208,8 +209,8 @@ export default function RegulatoryDocs() {
         {/* Company Overview */}
         <Card className="bg-slate-800 border-slate-700">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-blue-400" />
+            <CardTitle className="flex items-center gap-3">
+              <KriptoAmanLogo size={32} showText={false} />
               Company Registration Details
             </CardTitle>
           </CardHeader>
