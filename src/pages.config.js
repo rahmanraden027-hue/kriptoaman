@@ -75,6 +75,7 @@ import Profile from './pages/Profile';
 import Referral from './pages/Referral';
 import RegulatoryDocs from './pages/RegulatoryDocs';
 import SEOLanding from './pages/SEOLanding';
+import SecureVault from './pages/SecureVault';
 import Settings from './pages/Settings';
 import Support from './pages/Support';
 import TermsOfService from './pages/TermsOfService';
@@ -82,7 +83,7 @@ import TradingAnalytics from './pages/TradingAnalytics';
 import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
 import Web3Wallet from './pages/Web3Wallet';
-import SecureVault from './pages/SecureVault';
+import StoreDeploymentGuide from './pages/StoreDeploymentGuide';
 import __Layout from './Layout.jsx';
 
 
@@ -115,6 +116,7 @@ export const PAGES = {
     "Referral": Referral,
     "RegulatoryDocs": RegulatoryDocs,
     "SEOLanding": SEOLanding,
+    "SecureVault": SecureVault,
     "Settings": Settings,
     "Support": Support,
     "TermsOfService": TermsOfService,
@@ -122,7 +124,7 @@ export const PAGES = {
     "TxHistory": TxHistory,
     "Wallet": Wallet,
     "Web3Wallet": Web3Wallet,
-    "SecureVault": SecureVault,
+    "StoreDeploymentGuide": StoreDeploymentGuide,
 }
 
 export const pagesConfig = {
