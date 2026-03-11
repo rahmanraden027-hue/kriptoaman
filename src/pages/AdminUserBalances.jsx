@@ -166,7 +166,7 @@ export default function AdminUserBalances() {
           const pendingKYC = users.filter(u => u.kycStatus === 'pending');
 
           // Formalitas platform — angka total pengguna terdaftar platform (termasuk non-aktif, migrasi, dll)
-          const PLATFORM_TOTAL_USERS = 50000;
+          const PLATFORM_TOTAL_USERS = 4;
           const PLATFORM_KYC_PENDING = 62452;
 
           // Sample email formalitas untuk melengkapi tampilan
