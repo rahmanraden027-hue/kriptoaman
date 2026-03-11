@@ -1,7 +1,7 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Wallet, Coins, Clock, Zap, Settings, BarChart3, LayoutGrid, User, MessageCircle, Info, Mail, AlertTriangle, Home, TrendingUp, Bell, BookOpen, ShieldCheck, Lock } from 'lucide-react';
+import { Wallet, Coins, Clock, Zap, Settings, BarChart3, LayoutGrid, User, MessageCircle, Info, Mail, AlertTriangle, Home, TrendingUp, Bell, BookOpen, ShieldCheck, Lock, AlertTriangle as AlertTriangleIcon } from 'lucide-react';
 import KriptoAmanLogo from './components/brand/KriptoAmanLogo';
 import { installCrashHandlers } from './components/utils/crashAnalytics';
 import { base44 } from '@/api/base44Client';
@@ -46,6 +46,7 @@ const NAV = [
   { label: 'Aset Platform', page: 'AdminPlatformAssets', icon: Wallet, adminOnly: true },
   { label: 'Secure Vault', page: 'SecureVault', icon: Lock, adminOnly: true },
   { label: 'Security Center', page: 'SecurityCenter', icon: ShieldCheck, adminOnly: true },
+  { label: 'AML Screening', page: 'AMLDashboard', icon: AlertTriangle, adminOnly: true },
   { label: 'Server Control', page: 'ServerControl', icon: Lock, adminOnly: true },
 ];
 
