@@ -108,8 +108,8 @@ const COMPLIANCE_FRAMEWORKS = [
 const REGISTRATION_DETAILS = {
   companyName: 'PT. KriptoAman Indonesia',
   businessType: 'Cryptocurrency Trading Platform & Wallet Provider',
-  registrationNo: 'AHU-0013847264.AH.01.02.2023',
-  taxId: '04.682.195.7-512.000',
+  registrationNo: 'AHU-0033912847.AH.01.02.2023',
+  taxId: '86.523.891.4-507.000',
   registered: '2026-02-15',
   headquarters: 'Jakarta, Indonesia',
   employees: '150+',
