@@ -49,6 +49,7 @@
  */
 import AMLDashboard from './pages/AMLDashboard';
 import AboutUs from './pages/AboutUs';
+import AdminKYCManagement from './pages/AdminKYCManagement';
 import AdminPlatformAssets from './pages/AdminPlatformAssets';
 import AdminProfitAnalytics from './pages/AdminProfitAnalytics';
 import AdminUserBalances from './pages/AdminUserBalances';
@@ -88,13 +89,13 @@ import TradingAnalytics from './pages/TradingAnalytics';
 import TxHistory from './pages/TxHistory';
 import Wallet from './pages/Wallet';
 import Web3Wallet from './pages/Web3Wallet';
-import AdminKYCManagement from './pages/AdminKYCManagement';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AMLDashboard": AMLDashboard,
     "AboutUs": AboutUs,
+    "AdminKYCManagement": AdminKYCManagement,
     "AdminPlatformAssets": AdminPlatformAssets,
     "AdminProfitAnalytics": AdminProfitAnalytics,
     "AdminUserBalances": AdminUserBalances,
@@ -134,7 +135,6 @@ export const PAGES = {
     "TxHistory": TxHistory,
     "Wallet": Wallet,
     "Web3Wallet": Web3Wallet,
-    "AdminKYCManagement": AdminKYCManagement,
 }
 
 export const pagesConfig = {

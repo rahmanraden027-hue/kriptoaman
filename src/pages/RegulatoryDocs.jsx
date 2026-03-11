@@ -289,7 +289,7 @@ export default function RegulatoryDocs() {
                   <SecurityFeature
                     title="Penetration Testing"
                     description="Quarterly external penetration testing & vulnerability assessments"
-                    status="Last: 2024-11-15"
+                    status="Last: 2026-04-27"
                   />
                   <SecurityFeature
                     title="Insurance"
