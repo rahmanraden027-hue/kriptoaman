@@ -448,6 +448,242 @@ who
 last | head -20`} />
           </div>
 
+          {/* ── DOMAIN REGISTRATION ──────────────────────────────────────── */}
+          <div className="bg-cyan-500/5 border border-cyan-500/30 rounded-2xl p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <AtSign className="w-5 h-5 text-cyan-400" />
+              <h2 className="text-cyan-300 font-bold">Domain — Terdaftar Atas Nama Anda</h2>
+            </div>
+            <div className="space-y-3">
+              <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-3 text-xs text-cyan-200">
+                🌐 Domain adalah identitas digital platform Anda. Jika domain tidak atas nama Anda, orang lain bisa mengambil alih atau memperbarui tanpa izin Anda.
+              </div>
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Data Registrasi Domain (Wajib Atas Nama Anda)</p>
+              <div className="bg-slate-900/60 rounded-xl p-4 space-y-2 text-xs font-mono">
+                {[
+                  ['Registrant Name', 'Rahmanraden'],
+                  ['Registrant Email', OWNER.email],
+                  ['Registrant Organization', 'KriptoAman'],
+                  ['Admin Contact', OWNER.email],
+                  ['Tech Contact', OWNER.email],
+                  ['Billing Contact', OWNER.email],
+                ].map(([k, v]) => (
+                  <div key={k} className="flex justify-between gap-2">
+                    <span className="text-slate-500">{k}:</span>
+                    <span className="text-white">{v}</span>
+                  </div>
+                ))}
+              </div>
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Registrar Terpercaya (Domain Milik Anda)</p>
+              <div className="space-y-1.5">
+                <Rule ok text="Namecheap / GoDaddy / Cloudflare Registrar — daftar dengan email Anda" />
+                <Rule ok text="Aktifkan Domain Lock (EPP Lock) agar tidak bisa transfer tanpa izin Anda" />
+                <Rule ok text="Aktifkan WHOIS Privacy Protection (sembunyikan data pribadi dari publik)" />
+                <Rule ok text="Aktifkan 2FA di akun registrar Anda" />
+                <Rule ok text="Auto-renew ON + kartu kredit atas nama Anda" />
+                <Rule text="JANGAN biarkan orang lain daftarkan domain atas nama mereka untuk Anda" />
+                <Rule text="JANGAN transfer domain ke akun yang bukan milik Anda" />
+              </div>
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Cek WHOIS — Verifikasi Domain Atas Nama Anda</p>
+              <CodeBlock code={`# Cek siapa pemilik domain via terminal:
+whois kriptoaman.com
+
+# Atau gunakan website:
+# https://www.whois.com/whois/kriptoaman.com
+# https://lookup.icann.org
+
+# Pastikan Registrant Name = Rahmanraden
+# Pastikan Registrant Email = rahmanraden027@gmail.com`} />
+
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">DNS Control — Hanya Anda yang Bisa Edit</p>
+              <CodeBlock code={`# Gunakan Cloudflare DNS (gratis, cepat, aman):
+# 1. Daftar di cloudflare.com dengan email Anda
+# 2. Add site → masukkan domain Anda
+# 3. Ganti nameserver di registrar ke Cloudflare NS
+
+# Contoh DNS records untuk KriptoAman:
+# Type  Name    Value              TTL
+# A     @       YOUR_SERVER_IP     Auto
+# A     www     YOUR_SERVER_IP     Auto
+# CNAME api     kriptoaman.com     Auto
+# MX    @       mail.kriptoaman    Auto
+
+# Aktifkan:
+# - Proxy (orange cloud) untuk DDoS protection
+# - SSL/TLS: Full (strict)
+# - Always Use HTTPS: ON
+# - HSTS: ON`} />
+
+              <div className="flex flex-wrap gap-2 mt-1">
+                {[
+                  ['Cloudflare', 'https://dash.cloudflare.com'],
+                  ['Namecheap', 'https://www.namecheap.com'],
+                  ['WHOIS Lookup', 'https://lookup.icann.org'],
+                ].map(([label, url]) => (
+                  <a key={url} href={url} target="_blank" rel="noreferrer"
+                    className="flex items-center gap-1.5 text-cyan-400 hover:text-cyan-300 text-xs transition-colors">
+                    <ExternalLink className="w-3 h-3" /> {label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ── DATABASE CONTROL ─────────────────────────────────────────── */}
+          <div className="bg-yellow-500/5 border border-yellow-500/30 rounded-2xl p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Database className="w-5 h-5 text-yellow-400" />
+              <h2 className="text-yellow-300 font-bold">Database Control — MySQL & PostgreSQL</h2>
+            </div>
+            <div className="space-y-4">
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 text-xs text-yellow-200">
+                🗄️ Database = semua data user & transaksi. Root DB user hanya untuk Anda. App harus pakai user terpisah dengan privilege minimal.
+              </div>
+
+              {/* MySQL */}
+              <div>
+                <p className="text-blue-400 text-xs font-bold uppercase tracking-wider mb-2">── MySQL ──────────────────────────</p>
+
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Install & Amankan MySQL</p>
+                <CodeBlock code={`# Install MySQL:
+sudo apt update && sudo apt install mysql-server -y
+
+# Jalankan wizard keamanan (WAJIB):
+sudo mysql_secure_installation
+# Jawab: Y Y Y Y Y
+# Set root password yang kuat — HANYA Anda tahu
+
+# Login sebagai root:
+sudo mysql -u root -p`} />
+
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mt-3">Buat Database & User untuk Aplikasi</p>
+                <CodeBlock code={`-- Di MySQL shell:
+-- Buat database KriptoAman:
+CREATE DATABASE kriptoaman_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Buat user aplikasi (BUKAN root):
+CREATE USER 'kriptoaman_app'@'localhost' IDENTIFIED BY 'PASSWORD_KUAT_DISINI';
+
+-- Beri privilege hanya untuk DB ini:
+GRANT SELECT, INSERT, UPDATE, DELETE ON kriptoaman_db.* TO 'kriptoaman_app'@'localhost';
+FLUSH PRIVILEGES;
+
+-- Cek user yang ada:
+SELECT user, host FROM mysql.user;
+
+-- Pastikan root HANYA bisa login dari localhost:
+SELECT user, host FROM mysql.user WHERE user='root';`} />
+
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mt-3">Kunci Akses Remote MySQL</p>
+                <CodeBlock code={`# Edit konfigurasi MySQL:
+sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
+
+# Pastikan baris ini ada (bind ke localhost saja):
+bind-address = 127.0.0.1
+# (Hapus atau comment jika ada: bind-address = 0.0.0.0)
+
+# Restart MySQL:
+sudo systemctl restart mysql
+
+# Backup database (jalankan rutin):
+mysqldump -u root -p kriptoaman_db > backup_$(date +%Y%m%d).sql`} />
+              </div>
+
+              {/* PostgreSQL */}
+              <div>
+                <p className="text-green-400 text-xs font-bold uppercase tracking-wider mb-2">── PostgreSQL ──────────────────────</p>
+
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Install & Amankan PostgreSQL</p>
+                <CodeBlock code={`# Install PostgreSQL:
+sudo apt update && sudo apt install postgresql postgresql-contrib -y
+
+# Login sebagai postgres superuser:
+sudo -i -u postgres psql
+
+# Set password untuk postgres user:
+\\password postgres
+# Masukkan password kuat — HANYA Anda tahu`} />
+
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mt-3">Buat Database & User untuk Aplikasi</p>
+                <CodeBlock code={`-- Di PostgreSQL shell (sudo -i -u postgres psql):
+
+-- Buat database:
+CREATE DATABASE kriptoaman_db;
+
+-- Buat user aplikasi (bukan superuser):
+CREATE USER kriptoaman_app WITH ENCRYPTED PASSWORD 'PASSWORD_KUAT_DISINI';
+
+-- Beri privilege:
+GRANT ALL PRIVILEGES ON DATABASE kriptoaman_db TO kriptoaman_app;
+
+-- Batasi: tidak bisa create database atau role baru:
+ALTER USER kriptoaman_app NOCREATEDB NOCREATEROLE;
+
+-- Cek semua user:
+\\du
+
+-- Cek semua database:
+\\l`} />
+
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mt-3">Kunci Akses Remote PostgreSQL</p>
+                <CodeBlock code={`# Edit pg_hba.conf (autentikasi):
+sudo nano /etc/postgresql/*/main/pg_hba.conf
+
+# Pastikan hanya localhost yang bisa connect:
+# TYPE  DATABASE  USER            ADDRESS    METHOD
+local   all       postgres                   peer
+local   all       all                        md5
+host    all       all             127.0.0.1/32  md5
+# Hapus/comment baris yang allow 0.0.0.0/0
+
+# Edit postgresql.conf:
+sudo nano /etc/postgresql/*/main/postgresql.conf
+# listen_addresses = 'localhost'   ← pastikan ini
+
+# Restart:
+sudo systemctl restart postgresql
+
+# Backup database:
+pg_dump -U postgres kriptoaman_db > backup_$(date +%Y%m%d).sql`} />
+              </div>
+
+              {/* DB Security Rules */}
+              <div>
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Aturan Keamanan Database</p>
+                <div className="space-y-1.5">
+                  <Rule ok text="Root/superuser DB — password kuat, hanya Anda yang tahu" />
+                  <Rule ok text="App hanya pakai user terpisah dengan privilege minimal (SELECT/INSERT/UPDATE/DELETE)" />
+                  <Rule ok text="Database bind ke 127.0.0.1 — tidak bisa diakses dari internet langsung" />
+                  <Rule ok text="Backup otomatis harian, simpan di storage terpisah (S3/DO Spaces)" />
+                  <Rule ok text="Enkripsi backup file sebelum upload ke cloud" />
+                  <Rule ok text="Aktifkan slow query log untuk deteksi query mencurigakan" />
+                  <Rule text="JANGAN expose port 3306 (MySQL) atau 5432 (PostgreSQL) ke internet" />
+                  <Rule text="JANGAN pakai password yang sama untuk DB dan SSH" />
+                  <Rule text="JANGAN simpan DB credentials di kode / repo GitHub" />
+                  <Rule text="JANGAN beri akses superuser ke developer" />
+                </div>
+              </div>
+
+              {/* Connection String Example */}
+              <div>
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Connection String (Simpan di .env — Jangan di Git)</p>
+                <CodeBlock code={`# .env file di server Anda (chmod 600 .env):
+
+# MySQL:
+DATABASE_URL=mysql://kriptoaman_app:PASSWORD@127.0.0.1:3306/kriptoaman_db
+
+# PostgreSQL:
+DATABASE_URL=postgresql://kriptoaman_app:PASSWORD@127.0.0.1:5432/kriptoaman_db
+
+# Tambahkan .env ke .gitignore:
+echo ".env" >> .gitignore`} />
+              </div>
+            </div>
+          </div>
+
           {/* Quick Links */}
           <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-5">
             <h2 className="text-white font-semibold mb-3 flex items-center gap-2">
