@@ -35,15 +35,26 @@ export default function OnchainBalanceCard() {
   const [loading, setLoading] = useState(false);
 
   const fetchTokenBalances = async () => {
-    if (!provider || !account || !chainId) return;
+    if (!account || !chainId) return;
     setLoading(true);
     const tokenList = CHAIN_TOKENS[chainId] || [];
     const results = [];
+    
+    const chainMap = { 1: mainnet, 56: bsc, 137: polygon };
+    const viemChain = chainMap[chainId];
+    if (!viemChain) { setLoading(false); return; }
+
+    const client = createPublicClient({ chain: viemChain, transport: http() });
+
     for (const token of tokenList) {
       try {
-        const contract = new ethers.Contract(token.address, ERC20_ABI, provider);
-        const bal = await contract.balanceOf(account);
-        const formatted = parseFloat(ethers.formatUnits(bal, token.decimals));
+        const bal = await client.readContract({
+          address: token.address,
+          abi: [{ name: 'balanceOf', type: 'function', inputs: [{ name: '', type: 'address' }], outputs: [{ name: '', type: 'uint256' }], stateMutability: 'view' }],
+          functionName: 'balanceOf',
+          args: [account],
+        });
+        const formatted = parseFloat(formatUnits(bal, token.decimals));
         if (formatted > 0) {
           results.push({ ...token, balance: formatted });
         }
