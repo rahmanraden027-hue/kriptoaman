@@ -96,15 +96,15 @@ export default function KAMTokenCard({ userBalance = 0 }) {
       <div className="grid grid-cols-3 gap-3">
         <div className={`${KAM_TOKEN.bgColor} border ${KAM_TOKEN.borderColor} rounded-lg p-3`}>
           <p className={`text-xs font-semibold ${KAM_TOKEN.textColor} uppercase mb-1`}>Holders</p>
-          <p className="text-white font-bold text-lg">{KAM_TOKEN.stats.holders}</p>
+          <p className="text-white font-bold text-lg">{liveStats.holders.toLocaleString()}</p>
         </div>
         <div className={`${KAM_TOKEN.bgColor} border ${KAM_TOKEN.borderColor} rounded-lg p-3`}>
           <p className={`text-xs font-semibold ${KAM_TOKEN.textColor} uppercase mb-1`}>Transfers/24h</p>
-          <p className="text-white font-bold text-lg">{KAM_TOKEN.stats.transfers24h}</p>
+          <p className="text-white font-bold text-lg">{liveStats.transfers24h.toLocaleString()}</p>
         </div>
         <div className={`${KAM_TOKEN.bgColor} border ${KAM_TOKEN.borderColor} rounded-lg p-3`}>
           <p className={`text-xs font-semibold ${KAM_TOKEN.textColor} uppercase mb-1`}>Volume</p>
-          <p className="text-white font-bold text-lg">{KAM_TOKEN.stats.volume24h}</p>
+          <p className="text-white font-bold text-lg">${(liveStats.volume24h / 1000000).toFixed(2)}M</p>
         </div>
       </div>
 
