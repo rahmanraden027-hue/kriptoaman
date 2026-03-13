@@ -64,7 +64,7 @@ export default function KAMTokenCard({ userBalance = 0 }) {
       <div className={`bg-gradient-to-r ${KAM_TOKEN.color} rounded-xl p-6 text-white shadow-lg border ${KAM_TOKEN.borderColor}`}>
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="text-5xl">{KAM_TOKEN.logo}</div>
+            <img src={KAM_TOKEN.logo} alt="KAM Token" className="w-14 h-14 rounded-full object-cover" />
             <div>
               <h2 className="text-2xl font-bold">{KAM_TOKEN.symbol}</h2>
               <p className="text-indigo-100 text-sm">{KAM_TOKEN.name}</p>
