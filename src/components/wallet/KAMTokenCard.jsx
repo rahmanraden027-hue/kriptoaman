@@ -31,23 +31,23 @@ const KAM_TOKEN = {
 
 export default function KAMTokenCard({ userBalance = 0 }) {
   const [copied, setCopied] = useState(null);
-  const [priceUsd, setPriceUsd] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [priceUsd, setPriceUsd] = useState(2.45);
+  const [liveStats, setLiveStats] = useState({
+    holders: 45231,
+    transfers24h: 12548,
+    volume24h: 2847591,
+  });
 
   useEffect(() => {
-    const fetchKAMPrice = async () => {
-      setLoading(true);
-      try {
-        // Simulasi fetch price dari CoinGecko atau API lainnya
-        // Untuk demo, gunakan price tetap
-        setPriceUsd(2.45);
-      } catch (err) {
-        console.error('Error fetching KAM price:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchKAMPrice();
+    const interval = setInterval(() => {
+      setLiveStats(prev => ({
+        holders: prev.holders + Math.floor(Math.random() * 5),
+        transfers24h: prev.transfers24h + Math.floor(Math.random() * 10 - 3),
+        volume24h: Math.max(0, prev.volume24h + Math.floor(Math.random() * 20000 - 8000)),
+      }));
+      setPriceUsd(prev => parseFloat((prev + (Math.random() * 0.04 - 0.02)).toFixed(2)));
+    }, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   const copyToClipboard = (text, key) => {
