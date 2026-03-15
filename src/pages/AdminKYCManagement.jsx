@@ -60,22 +60,54 @@ export default function AdminKYCManagement() {
   const handleApprove = async (kycId) => {
     try {
       const kyc = kycRecords.find(k => k.id === kycId);
-      
-      // Update KYC entity status
+      const withdrawalLimit = kyc.verificationLevel === 'advanced' ? 100000 : 50000;
+      const verifiedAt = new Date().toISOString();
+      const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+
+      // 1. Update KYC entity status
       await base44.asServiceRole.entities.KYCVerification.update(kycId, {
         status: 'verified',
-        verifiedAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-        withdrawalLimit: kyc.verificationLevel === 'advanced' ? 100000 : 50000
+        verifiedAt,
+        expiresAt,
+        withdrawalLimit
       });
 
-      // Update user kycStatus so the app reflects the change
+      // 2. Update user kycStatus
       const users = await base44.asServiceRole.entities.User.filter({ email: kyc.userEmail }, null, 1);
       if (users && users.length > 0) {
-        await base44.asServiceRole.entities.User.update(users[0].id, { kycStatus: 'approved' });
+        await base44.asServiceRole.entities.User.update(users[0].id, {
+          kycStatus: 'approved',
+          kycVerifiedAt: verifiedAt,
+          kycLevel: kyc.verificationLevel,
+          kycWithdrawalLimit: withdrawalLimit,
+        });
       }
 
-      // Send approval email
+      // 3. Inisialisasi UserBalance IDR jika belum ada (virtual account IDR)
+      const existingIDR = await base44.asServiceRole.entities.UserBalance.filter({
+        userEmail: kyc.userEmail, coin: 'IDR'
+      });
+      if (existingIDR.length === 0) {
+        await base44.asServiceRole.entities.UserBalance.create({
+          userEmail: kyc.userEmail,
+          coin: 'IDR',
+          amount: 0,
+        });
+      }
+
+      // 4. Pastikan saldo USDT juga ada
+      const existingUSDT = await base44.asServiceRole.entities.UserBalance.filter({
+        userEmail: kyc.userEmail, coin: 'USDT'
+      });
+      if (existingUSDT.length === 0) {
+        await base44.asServiceRole.entities.UserBalance.create({
+          userEmail: kyc.userEmail,
+          coin: 'USDT',
+          amount: 0,
+        });
+      }
+
+      // 5. Send approval email
       await base44.asServiceRole.integrations.Core.SendEmail({
         to: kyc.userEmail,
         subject: '✅ KYC Verification Approved — KriptoAman',
