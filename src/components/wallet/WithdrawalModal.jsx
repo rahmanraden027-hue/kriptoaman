@@ -67,7 +67,19 @@ export default function WithdrawalModal({ onClose, userEmail }) {
       netAmount,
     });
     setSubmitting(false);
-    if (res.data?.error) { setError(res.data.error); return; }
+    if (res.data?.error) {
+      // Handle KYC specific errors
+      if (res.data.error === 'KYC_REQUIRED') {
+        setError('❌ Verifikasi KYC diperlukan. Selesaikan KYC terlebih dahulu untuk mengaktifkan withdrawal.');
+      } else if (res.data.error === 'KYC_PENDING') {
+        setError('⏳ KYC Anda masih dalam proses review. Silakan tunggu 1×24 jam.');
+      } else if (res.data.error === 'DAILY_LIMIT_EXCEEDED') {
+        setError(res.data.message);
+      } else {
+        setError(res.data.message || res.data.error);
+      }
+      return;
+    }
     setRequestId(res.data.requestId);
     setStep('otp');
     setTimeout(() => inputRefs.current[0]?.focus(), 100);
