@@ -377,7 +377,7 @@ export default function KYC() {
             </div>
             <div className="bg-slate-800/50 border border-slate-700/40 rounded-2xl p-4">
               <label className="block cursor-pointer">
-                <input type="file" accept="image/*" capture="user" onChange={e => handleFileChange(e, 'selfie')} className="hidden" />
+                <input type="file" accept="image/*" onChange={e => handleFileChange(e, 'selfie')} className="hidden" />
                 {selfiePreview ? (
                   <div className="space-y-2">
                     <img src={selfiePreview} alt="Selfie" className="w-full h-52 object-cover rounded-xl" />
