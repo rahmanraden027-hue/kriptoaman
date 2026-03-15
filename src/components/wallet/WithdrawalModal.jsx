@@ -6,6 +6,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { base44 } from '@/api/base44Client';
+import KYCWalletGate from '@/components/kyc/KYCWalletGate';
 
 const COINS = {
   USDT: { label: 'Tether', network: 'Ethereum (ERC-20)', color: '#26A17B', icon: '₮', fee: 5, min: 20 },
