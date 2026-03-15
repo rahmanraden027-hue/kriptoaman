@@ -112,14 +112,20 @@ export default function AdminKYCManagement() {
         to: kyc.userEmail,
         subject: '✅ KYC Verification Approved — KriptoAman',
         body: `
-          <h2>KYC Verification Approved</h2>
-          <p>Hi ${kyc.fullName},</p>
-          <p>Your KYC verification has been approved! ✓</p>
-          <p><strong>Verification Level:</strong> ${kyc.verificationLevel}</p>
-          <p><strong>Daily Withdrawal Limit:</strong> $${kyc.withdrawalLimit}</p>
-          <p><strong>Expires:</strong> ${new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString('id-ID')}</p>
-          <p>You can now perform withdrawals and access premium features.</p>
-          <p>Best regards,<br/>KriptoAman Team</p>
+        <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;background:#0f172a;color:#f8fafc;padding:32px;border-radius:16px">
+          <h2 style="color:#10b981">✅ KYC Anda Telah Diverifikasi!</h2>
+          <p>Halo <strong>${kyc.fullName}</strong>,</p>
+          <p>Selamat! Identitas Anda telah berhasil diverifikasi oleh tim KriptoAman.</p>
+          <div style="background:#1e293b;border:1px solid #10b981;border-radius:12px;padding:16px;margin:16px 0">
+            <p><strong>Level Verifikasi:</strong> ${kyc.verificationLevel?.toUpperCase()}</p>
+            <p><strong>Limit Penarikan Harian:</strong> $${withdrawalLimit.toLocaleString()}</p>
+            <p><strong>Berlaku Hingga:</strong> ${new Date(expiresAt).toLocaleDateString('id-ID')}</p>
+          </div>
+          <p>✅ Virtual account IDR Anda telah aktif</p>
+          <p>✅ Withdrawal kripto kini tersedia</p>
+          <p>✅ Akses fitur P2P Lending dan deposit bank</p>
+          <p style="color:#94a3b8;margin-top:24px">Salam,<br/>Tim KriptoAman</p>
+        </div>
         `
       });
 
