@@ -78,7 +78,35 @@ export default function KYC() {
     let ktpUrl = null, selfieUrl = null;
     if (ktpFile) { const r = await base44.integrations.Core.UploadFile({ file: ktpFile }); ktpUrl = r.file_url; }
     if (selfieFile) { const r = await base44.integrations.Core.UploadFile({ file: selfieFile }); selfieUrl = r.file_url; }
+
+    // Save to KYCVerification entity (for admin review)
+    await base44.entities.KYCVerification.create({
+      userEmail: user.email,
+      fullName: form.fullName,
+      idType: 'ktp',
+      idNumber: form.nik,
+      dateOfBirth: form.birthDate,
+      nationality: 'ID',
+      address: form.address,
+      province: form.province,
+      phoneNumber: form.phone,
+      idPhotoUrl: ktpUrl,
+      selfieUrl: selfieUrl,
+      verificationLevel: 'intermediate',
+      status: 'pending',
+      withdrawalLimit: 0,
+    });
+
+    // Update user status
     await base44.auth.updateMe({ kycStatus: 'pending', kycData: { ...form, ktpUrl, selfieUrl, submittedAt: new Date().toISOString() } });
+
+    // Notify admin
+    await base44.integrations.Core.SendEmail({
+      to: 'sinaga28081981@gmail.com',
+      subject: '📋 KYC Baru Menunggu Review — KriptoAman',
+      body: `<h2>KYC Submission Baru</h2><p>Nama: <strong>${form.fullName}</strong></p><p>NIK: ${form.nik}</p><p>Email: ${user.email}</p><p>Silakan login ke dashboard admin untuk mereview.</p>`
+    });
+
     setSubmitted(true);
     setLoading(false);
   };
