@@ -388,8 +388,8 @@ export default function KYC() {
                     <div className="w-14 h-14 bg-slate-700 rounded-2xl flex items-center justify-center">
                       <Camera className="w-6 h-6 text-slate-400" />
                     </div>
-                    <p className="text-slate-400 text-sm font-semibold">Tap untuk selfie dengan KTP</p>
-                    <p className="text-slate-600 text-xs">Kamera depan akan terbuka</p>
+                    <p className="text-slate-400 text-sm font-semibold">Tap untuk foto selfie + KTP</p>
+                    <p className="text-slate-600 text-xs">Bisa dari galeri atau ambil foto baru</p>
                   </div>
                 )}
               </label>
