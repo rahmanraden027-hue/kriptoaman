@@ -205,7 +205,7 @@ export default function WithdrawalModal({ onClose, userEmail }) {
               </div>
             )}
 
-            <Button onClick={handleSendOTP} disabled={!canProceed || submitting}
+            <Button onClick={handleSendOTP} disabled={!canProceed || submitting || kycBlocked}
               className="w-full h-12 font-bold text-white bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 disabled:opacity-40">
               {submitting
                 ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Mengirim OTP...</>
