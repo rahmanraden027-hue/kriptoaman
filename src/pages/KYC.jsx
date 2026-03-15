@@ -43,7 +43,17 @@ export default function KYC() {
   useEffect(() => {
     base44.auth.me().then(async u => {
       setUser(u);
-      setForm(f => ({ ...f, fullName: u.full_name || '', phone: u.phone || '' }));
+      // Auto-fill as much as possible from user profile
+      setForm(f => ({
+        ...f,
+        fullName: u.full_name || u.kycData?.fullName || '',
+        phone: u.phone || u.kycData?.phone || '',
+        address: u.kycData?.address || '',
+        province: u.kycData?.province || '',
+        nik: u.kycData?.nik || '',
+        birthDate: u.kycData?.birthDate || '',
+        occupation: u.kycData?.occupation || '',
+      }));
       // Check KYCVerification entity as source of truth
       try {
         const records = await base44.entities.KYCVerification.filter({ userEmail: u.email }, '-created_date', 1);
