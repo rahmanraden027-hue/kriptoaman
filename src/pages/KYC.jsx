@@ -41,10 +41,27 @@ export default function KYC() {
   const [selfiePreview, setSelfiePreview] = useState(null);
 
   useEffect(() => {
-    base44.auth.me().then(u => {
+    base44.auth.me().then(async u => {
       setUser(u);
       setForm(f => ({ ...f, fullName: u.full_name || '', phone: u.phone || '' }));
-      if (u.kycStatus === 'approved' || u.kycStatus === 'pending') setSubmitted(true);
+      // Check KYCVerification entity as source of truth
+      try {
+        const records = await base44.entities.KYCVerification.filter({ userEmail: u.email }, '-created_date', 1);
+        if (records && records.length > 0) {
+          const latest = records[0];
+          if (latest.status === 'verified') {
+            await base44.auth.updateMe({ kycStatus: 'approved' });
+            setUser(prev => ({ ...prev, kycStatus: 'approved' }));
+          } else if (latest.status === 'pending' || latest.status === 'rejected') {
+            await base44.auth.updateMe({ kycStatus: latest.status === 'rejected' ? 'rejected' : 'pending' });
+            setSubmitted(true);
+          }
+        } else if (u.kycStatus === 'approved' || u.kycStatus === 'pending') {
+          setSubmitted(true);
+        }
+      } catch {
+        if (u.kycStatus === 'approved' || u.kycStatus === 'pending') setSubmitted(true);
+      }
     }).catch(() => {});
   }, []);
 
