@@ -61,13 +61,19 @@ export default function AdminKYCManagement() {
     try {
       const kyc = kycRecords.find(k => k.id === kycId);
       
-      // Update KYC status
+      // Update KYC entity status
       await base44.asServiceRole.entities.KYCVerification.update(kycId, {
         status: 'verified',
         verifiedAt: new Date().toISOString(),
         expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
         withdrawalLimit: kyc.verificationLevel === 'advanced' ? 100000 : 50000
       });
+
+      // Update user kycStatus so the app reflects the change
+      const users = await base44.asServiceRole.entities.User.filter({ email: kyc.userEmail }, null, 1);
+      if (users && users.length > 0) {
+        await base44.asServiceRole.entities.User.update(users[0].id, { kycStatus: 'approved' });
+      }
 
       // Send approval email
       await base44.asServiceRole.integrations.Core.SendEmail({
