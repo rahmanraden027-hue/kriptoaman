@@ -133,6 +133,9 @@ export default function WithdrawalModal({ onClose, userEmail }) {
         {/* ===== FORM STEP ===== */}
         {step === 'form' && (
           <div className="p-4 space-y-4">
+            {/* KYC Gate Banner */}
+            <KYCWalletGate compact onBlock={setKycBlocked} />
+
             {/* Coin selector */}
             <div className="space-y-2">
               <label className="text-slate-400 text-xs font-semibold">PILIH ASET</label>
