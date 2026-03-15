@@ -219,6 +219,19 @@ export default function KYC() {
           </div>
         </div>
 
+        {/* Welcome Banner for new user */}
+        {!user?.kycStatus && (
+          <div className="bg-gradient-to-r from-indigo-500/20 to-blue-500/10 border border-indigo-500/30 rounded-2xl p-4 flex items-start gap-3">
+            <span className="text-2xl">👋</span>
+            <div>
+              <p className="text-white font-bold text-sm">Halo, {user?.full_name?.split(' ')[0] || 'Pengguna'}!</p>
+              <p className="text-slate-400 text-xs mt-0.5 leading-relaxed">
+                Verifikasi KYC hanya butuh <strong className="text-white">3 langkah mudah</strong> dan selesai dalam <strong className="text-white">5 menit</strong>. Data Anda sudah kami isi sebagian!
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Benefits */}
         <div className="grid grid-cols-2 gap-2">
           {BENEFITS.map(b => (
