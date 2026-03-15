@@ -112,6 +112,12 @@ export default function AdminKYCManagement() {
         rejectionReason
       });
 
+      // Update user kycStatus
+      const users = await base44.asServiceRole.entities.User.filter({ email: kyc.userEmail }, null, 1);
+      if (users && users.length > 0) {
+        await base44.asServiceRole.entities.User.update(users[0].id, { kycStatus: 'rejected' });
+      }
+
       // Send rejection email
       await base44.asServiceRole.integrations.Core.SendEmail({
         to: kyc.userEmail,
