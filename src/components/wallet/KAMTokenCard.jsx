@@ -146,6 +146,27 @@ export default function KAMTokenCard({ userBalance = 0 }) {
         ))}
       </div>
 
+      {/* Deposit USDT Address */}
+      <div className={`${KAM_TOKEN.bgColor} border ${KAM_TOKEN.borderColor} rounded-lg p-4 space-y-2`}>
+        <h3 className={`text-sm font-bold ${KAM_TOKEN.textColor} uppercase mb-3`}>Deposit USDT (TRC-20)</h3>
+        <div className="flex items-center justify-between p-2 bg-slate-700/30 rounded">
+          <div className="flex-1 min-w-0">
+            <p className="text-slate-300 text-xs mb-0.5">Alamat Deposit USDT</p>
+            <p className="text-slate-200 font-mono text-xs truncate">TMGxZDg6PVA8AL82XgTdZSmfR9hohE9VcS</p>
+          </div>
+          <button
+            onClick={() => copyToClipboard('TMGxZDg6PVA8AL82XgTdZSmfR9hohE9VcS', 'usdt_deposit')}
+            className="ml-2 p-1.5 hover:bg-slate-600 rounded transition-colors shrink-0"
+          >
+            <Copy className={`w-4 h-4 ${copied === 'usdt_deposit' ? 'text-green-400' : 'text-slate-400'}`} />
+          </button>
+        </div>
+        {copied === 'usdt_deposit' && (
+          <p className="text-green-400 text-xs text-center">✓ Alamat berhasil disalin!</p>
+        )}
+        <p className="text-yellow-400 text-xs">⚠ Hanya kirim USDT via jaringan TRC-20 ke alamat ini.</p>
+      </div>
+
       {/* Action Buttons */}
       <div className="grid grid-cols-2 gap-3">
         <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg transition-colors">
