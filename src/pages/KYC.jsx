@@ -272,7 +272,21 @@ export default function KYC() {
         {/* Step 1: Identity */}
         {step === 'identity' && (
           <div className="space-y-4">
-            <h2 className="text-white font-semibold">Data Diri</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-white font-semibold">Data Diri</h2>
+              {user?.full_name && (
+                <button
+                  onClick={() => setForm(f => ({
+                    ...f,
+                    fullName: user.full_name || f.fullName,
+                    phone: user.phone || f.phone,
+                  }))}
+                  className="text-xs text-indigo-400 border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 rounded-full hover:bg-indigo-500/20 transition-colors"
+                >
+                  ✨ Isi dari Akun
+                </button>
+              )}
+            </div>
             {[
               { label: 'Nama Lengkap (sesuai KTP)', key: 'fullName', placeholder: 'Nama sesuai KTP', required: true },
               { label: 'NIK (16 digit)', key: 'nik', placeholder: '3273XXXXXXXXXXXX', type: 'tel', required: true },
