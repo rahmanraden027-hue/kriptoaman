@@ -24,6 +24,7 @@ export default function WithdrawalModal({ onClose, userEmail }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [requestId, setRequestId] = useState(null);
+  const [kycBlocked, setKycBlocked] = useState(true); // default block until KYC confirmed
 
   // OTP state
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
