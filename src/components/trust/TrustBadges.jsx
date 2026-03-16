@@ -73,7 +73,7 @@ const KYCLogo = () => (
 export default function TrustBadges({ compact = false }) {
   const badges = [
     { Logo: BappebtiLogo, label: 'Terdaftar Bappebti', color: 'border-blue-500/30 bg-blue-950/40' },
-    { Logo: OJKLogo, label: 'Diawasi OJK', color: 'border-yellow-500/30 bg-yellow-950/30' },
+    { Logo: OJKLogo, label: 'Diawasi OJK', color: 'border-red-700/40 bg-white/5' },
     { Logo: SSLLogo, label: 'SSL 256-bit', color: 'border-green-500/30 bg-green-950/40' },
     { Logo: KYCLogo, label: 'KYC Verified', color: 'border-purple-500/30 bg-purple-950/40' },
   ];
