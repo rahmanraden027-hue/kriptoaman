@@ -11,18 +11,33 @@ const BappebtiLogo = () => (
   </svg>
 );
 
-// Logo OJK SVG (real branding colors)
+// Logo OJK SVG — branding resmi (merah #9F1E22, putih, abu)
 const OJKLogo = () => (
-  <svg viewBox="0 0 100 40" className="h-8 w-auto" xmlns="http://www.w3.org/2000/svg">
-    <rect width="100" height="40" rx="6" fill="#003d99"/>
-    {/* OJK circle emblem */}
-    <circle cx="20" cy="20" r="13" fill="none" stroke="#f5c518" strokeWidth="2"/>
-    <circle cx="20" cy="20" r="8" fill="#f5c518"/>
-    <text x="20" y="24" textAnchor="middle" fill="#003d99" fontSize="8" fontWeight="bold" fontFamily="Arial">OJK</text>
-    {/* Text */}
-    <text x="62" y="15" textAnchor="middle" fill="#f5c518" fontSize="9" fontWeight="bold" fontFamily="Arial">OJK</text>
-    <text x="62" y="25" textAnchor="middle" fill="#ffffff" fontSize="5.5" fontFamily="Arial">Otoritas Jasa Keuangan</text>
-    <text x="62" y="34" textAnchor="middle" fill="#aac4ff" fontSize="5" fontFamily="Arial">Diawasi & Dilindungi</text>
+  <svg viewBox="0 0 110 44" className="h-9 w-auto" xmlns="http://www.w3.org/2000/svg">
+    {/* Background putih bersih seperti logo resmi */}
+    <rect width="110" height="44" rx="6" fill="#ffffff"/>
+    <rect width="110" height="44" rx="6" fill="none" stroke="#9F1E22" strokeWidth="1.5"/>
+
+    {/* Emblem OJK: lingkaran merah dengan stilisasi burung/api */}
+    {/* Outer circle */}
+    <circle cx="22" cy="22" r="16" fill="#9F1E22"/>
+    {/* Inner white circle */}
+    <circle cx="22" cy="22" r="11" fill="white"/>
+    {/* Stilisasi huruf O merah di tengah */}
+    <circle cx="22" cy="22" r="7" fill="none" stroke="#9F1E22" strokeWidth="3"/>
+    {/* Garis horizontal kecil di tengah = stylized J */}
+    <line x1="22" y1="17" x2="22" y2="27" stroke="#9F1E22" strokeWidth="2.5" strokeLinecap="round"/>
+    <line x1="19" y1="27" x2="22" y2="27" stroke="#9F1E22" strokeWidth="2.5" strokeLinecap="round"/>
+    {/* Titik atas = K */}
+    <circle cx="22" cy="15.5" r="1.5" fill="#9F1E22"/>
+
+    {/* Teks OJK merah bold */}
+    <text x="66" y="17" textAnchor="middle" fill="#9F1E22" fontSize="13" fontWeight="bold" fontFamily="Arial, sans-serif" letterSpacing="2">OJK</text>
+    {/* Garis divider */}
+    <line x1="43" y1="22" x2="107" y2="22" stroke="#9F1E22" strokeWidth="0.8" opacity="0.4"/>
+    {/* Sub teks */}
+    <text x="66" y="30" textAnchor="middle" fill="#555555" fontSize="5.5" fontFamily="Arial, sans-serif">Otoritas Jasa Keuangan</text>
+    <text x="66" y="38" textAnchor="middle" fill="#9F1E22" fontSize="4.8" fontFamily="Arial, sans-serif" fontWeight="bold">Republik Indonesia</text>
   </svg>
 );
 
