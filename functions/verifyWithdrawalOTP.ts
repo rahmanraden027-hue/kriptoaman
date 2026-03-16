@@ -41,6 +41,11 @@ Deno.serve(async (req) => {
       otpCode: '', // hapus OTP setelah digunakan
     });
 
+    // Save receipt to Google Drive (fire-and-forget, non-blocking)
+    base44.functions.invoke('saveWithdrawalReceiptToDrive', { requestId: request.id }).catch(err => {
+      console.error('Failed to save receipt to Drive:', err.message);
+    });
+
     return Response.json({ success: true });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
