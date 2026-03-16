@@ -114,7 +114,7 @@ export default function TrustBadges({ compact = false }) {
   if (compact) {
     return (
       <div className="flex items-center justify-center gap-3 flex-wrap">
-        {badges.map(({ Logo, label, color }) => (
+        {badges.map(({ Logo, label, color, textColor }) => (
           <div key={label} className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${color}`}>
             <Logo />
             <span className={`text-[10px] font-semibold ${textColor}`}>{label}</span>
