@@ -1,5 +1,6 @@
 import React from 'react';
 import { Shield, Zap, Globe, Users, Award, Lock, TrendingUp, Heart, Mail, ExternalLink } from 'lucide-react';
+import TrustBadges from '../components/trust/TrustBadges';
 import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
 

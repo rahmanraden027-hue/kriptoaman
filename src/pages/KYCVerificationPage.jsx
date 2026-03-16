@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { ShieldCheck, Clock, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import KYCForm from '../components/kyc/KYCForm';
+import TrustBadges from '../components/trust/TrustBadges';
 
 export default function KYCVerificationPage() {
   const [kycStatus, setKycStatus] = useState(null);
