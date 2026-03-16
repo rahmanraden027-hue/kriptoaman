@@ -72,7 +72,11 @@ export default function VirtualBalanceCard({ userEmail, onDeposit, onWithdraw })
           <button onClick={load} className="text-slate-400 hover:text-white transition-colors p-1">
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           </button>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <button onClick={() => setShowTopup(true)}
+              className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-xl bg-green-500/20 border border-green-500/30 text-green-300 hover:bg-green-500/30 hover:text-white transition-all">
+              <CreditCard className="w-3 h-3" /> Top-up IDR
+            </button>
             <button onClick={onDeposit}
               className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-300 hover:bg-blue-500/30 hover:text-white transition-all">
               <ArrowDownToLine className="w-3 h-3" /> Deposit
