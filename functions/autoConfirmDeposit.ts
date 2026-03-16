@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
         });
       }
 
-      // 3. Kirim email konfirmasi ke user
+      // 3. Kirim email konfirmasi ke user (tidak gagalkan flow jika error)
       const amountDisplay = type === 'bank'
         ? `Rp ${creditAmount.toLocaleString('id-ID')}`
         : `${creditAmount} ${creditCoin}`;
