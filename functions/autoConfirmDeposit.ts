@@ -100,23 +100,27 @@ Deno.serve(async (req) => {
     if (status === 'rejected' && old_data?.status !== 'rejected') {
       const reason = deposit.adminNote || 'Deposit tidak memenuhi syarat verifikasi.';
 
-      await base44.asServiceRole.integrations.Core.SendEmail({
-        to: userEmail,
-        subject: '❌ Deposit Ditolak — KriptoAman',
-        body: `
-          <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; background: #0f172a; color: #e2e8f0; padding: 32px; border-radius: 16px;">
-            <h2 style="color: #f87171; margin: 0 0 16px;">❌ Deposit Ditolak</h2>
-            <p>Halo <strong>${userEmail}</strong>,</p>
-            <p>Maaf, deposit Anda tidak dapat dikonfirmasi.</p>
-            <div style="background: #1e293b; border-radius: 12px; padding: 16px; margin: 20px 0; border-left: 3px solid #f87171;">
-              <p style="margin: 4px 0; color: #94a3b8;">Alasan:</p>
-              <p style="margin: 4px 0; color: #fca5a5;">${reason}</p>
+      try {
+        await base44.asServiceRole.integrations.Core.SendEmail({
+          to: userEmail,
+          subject: '❌ Deposit Ditolak — KriptoAman',
+          body: `
+            <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; background: #0f172a; color: #e2e8f0; padding: 32px; border-radius: 16px;">
+              <h2 style="color: #f87171; margin: 0 0 16px;">❌ Deposit Ditolak</h2>
+              <p>Halo <strong>${userEmail}</strong>,</p>
+              <p>Maaf, deposit Anda tidak dapat dikonfirmasi.</p>
+              <div style="background: #1e293b; border-radius: 12px; padding: 16px; margin: 20px 0; border-left: 3px solid #f87171;">
+                <p style="margin: 4px 0; color: #94a3b8;">Alasan:</p>
+                <p style="margin: 4px 0; color: #fca5a5;">${reason}</p>
+              </div>
+              <p style="color: #94a3b8; font-size: 12px;">Jika ada pertanyaan, silakan hubungi support KriptoAman.</p>
+              <p style="color: #64748b; font-size: 11px; margin-top: 24px;">© KriptoAman · Platform kripto terdaftar Bappebti & OJK</p>
             </div>
-            <p style="color: #94a3b8; font-size: 12px;">Jika ada pertanyaan, silakan hubungi support KriptoAman.</p>
-            <p style="color: #64748b; font-size: 11px; margin-top: 24px;">© KriptoAman · Platform kripto terdaftar Bappebti & OJK</p>
-          </div>
-        `,
-      });
+          `,
+        });
+      } catch (emailErr) {
+        console.warn(`[autoConfirmDeposit] Email gagal dikirim ke ${userEmail}:`, emailErr.message);
+      }
 
       console.log(`[autoConfirmDeposit] Deposit rejected for ${userEmail}, reason: ${reason}`);
       return Response.json({ success: true, notified: 'rejected', userEmail });
