@@ -69,24 +69,28 @@ Deno.serve(async (req) => {
         ? `Rp ${creditAmount.toLocaleString('id-ID')}`
         : `${creditAmount} ${creditCoin}`;
 
-      await base44.asServiceRole.integrations.Core.SendEmail({
-        to: userEmail,
-        subject: '✅ Deposit Dikonfirmasi — KriptoAman',
-        body: `
-          <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; background: #0f172a; color: #e2e8f0; padding: 32px; border-radius: 16px;">
-            <h2 style="color: #4ade80; margin: 0 0 16px;">✅ Deposit Berhasil Dikonfirmasi</h2>
-            <p>Halo <strong>${userEmail}</strong>,</p>
-            <p>Deposit Anda telah dikonfirmasi dan saldo telah dikreditkan ke akun Anda.</p>
-            <div style="background: #1e293b; border-radius: 12px; padding: 16px; margin: 20px 0;">
-              <p style="margin: 4px 0; color: #94a3b8;">Jumlah Deposit:</p>
-              <p style="margin: 4px 0; font-size: 24px; font-weight: bold; color: #4ade80;">${amountDisplay}</p>
-              <p style="margin: 8px 0 0; color: #94a3b8; font-size: 12px;">Metode: ${type === 'crypto' ? 'Kripto (' + coin + ')' : 'Transfer Bank'}</p>
+      try {
+        await base44.asServiceRole.integrations.Core.SendEmail({
+          to: userEmail,
+          subject: '✅ Deposit Dikonfirmasi — KriptoAman',
+          body: `
+            <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; background: #0f172a; color: #e2e8f0; padding: 32px; border-radius: 16px;">
+              <h2 style="color: #4ade80; margin: 0 0 16px;">✅ Deposit Berhasil Dikonfirmasi</h2>
+              <p>Halo <strong>${userEmail}</strong>,</p>
+              <p>Deposit Anda telah dikonfirmasi dan saldo telah dikreditkan ke akun Anda.</p>
+              <div style="background: #1e293b; border-radius: 12px; padding: 16px; margin: 20px 0;">
+                <p style="margin: 4px 0; color: #94a3b8;">Jumlah Deposit:</p>
+                <p style="margin: 4px 0; font-size: 24px; font-weight: bold; color: #4ade80;">${amountDisplay}</p>
+                <p style="margin: 8px 0 0; color: #94a3b8; font-size: 12px;">Metode: ${type === 'crypto' ? 'Kripto (' + coin + ')' : 'Transfer Bank'}</p>
+              </div>
+              <p style="color: #94a3b8; font-size: 12px;">Saldo Anda sekarang sudah tersedia. Silakan login ke KriptoAman untuk melihat saldo.</p>
+              <p style="color: #64748b; font-size: 11px; margin-top: 24px;">© KriptoAman · Platform kripto terdaftar Bappebti & OJK</p>
             </div>
-            <p style="color: #94a3b8; font-size: 12px;">Saldo Anda sekarang sudah tersedia. Silakan login ke KriptoAman untuk melihat saldo.</p>
-            <p style="color: #64748b; font-size: 11px; margin-top: 24px;">© KriptoAman · Platform kripto terdaftar Bappebti & OJK</p>
-          </div>
-        `,
-      });
+          `,
+        });
+      } catch (emailErr) {
+        console.warn(`[autoConfirmDeposit] Email gagal dikirim ke ${userEmail}:`, emailErr.message);
+      }
 
       console.log(`[autoConfirmDeposit] Credited ${creditAmount} ${creditCoin} to ${userEmail}, fee: ${feeAmount}`);
       return Response.json({ success: true, credited: { userEmail, coin: creditCoin, amount: creditAmount, fee: feeAmount } });
