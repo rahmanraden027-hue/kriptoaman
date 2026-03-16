@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Wallet, RefreshCw, ArrowDownToLine, ArrowUpFromLine, Clock } from 'lucide-react';
+import { Wallet, RefreshCw, ArrowDownToLine, ArrowUpFromLine, Clock, CreditCard } from 'lucide-react';
+import IDRTopupModal from './IDRTopupModal';
 
 const COIN_INFO = {
   USDT: { label: 'USDT', color: '#26A17B', icon: '₮' },
