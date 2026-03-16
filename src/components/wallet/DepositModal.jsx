@@ -61,6 +61,27 @@ export default function DepositModal({ onClose, userEmail }) {
     }).catch(() => setLoadingPlatform(false));
   }, []);
 
+  // Poll deposit status setiap 10 detik setelah submit
+  useEffect(() => {
+    if (!depositId) return;
+    const poll = async () => {
+      try {
+        const dep = await base44.entities.DepositRequest.filter({ id: depositId });
+        if (dep && dep.length > 0) setDepositStatus(dep[0].status);
+      } catch {}
+    };
+    poll();
+    pollRef.current = setInterval(poll, 10000);
+    return () => clearInterval(pollRef.current);
+  }, [depositId]);
+
+  const handleProofFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setProofFile(file);
+    setProofPreview(URL.createObjectURL(file));
+  };
+
   const selectedCryptoEntry = cryptoAddresses.find(c => (c.coin + '_' + c.id) === selectedCoin);
   const idrRaw = parseInt(amountIDR.replace(/\D/g, '') || '0');
 
