@@ -335,25 +335,39 @@ export default function KYC() {
               <p>• Tidak buram atau silau</p>
               <p>• Tulisan dapat dibaca dengan jelas</p>
             </div>
-            <div className="bg-slate-800/50 border border-slate-700/40 rounded-2xl p-4">
-              <label className="block cursor-pointer">
-                <input type="file" accept="image/*" onChange={e => handleFileChange(e, 'ktp')} className="hidden" />
-                {ktpPreview ? (
-                  <div className="space-y-2">
-                    <img src={ktpPreview} alt="KTP" className="w-full h-52 object-cover rounded-xl" />
-                    <button onClick={() => { setKtpFile(null); setKtpPreview(null); }} className="text-red-400 text-xs w-full text-center">🗑️ Hapus & ganti foto</button>
-                  </div>
-                ) : (
-                  <div className="w-full h-52 border-2 border-dashed border-slate-600 rounded-xl flex flex-col items-center justify-center gap-3 hover:border-blue-500 transition-colors">
-                    <div className="w-14 h-14 bg-slate-700 rounded-2xl flex items-center justify-center">
-                      <Upload className="w-6 h-6 text-slate-400" />
+
+            {ktpPreview ? (
+              <div className="bg-slate-800/50 border border-slate-700/40 rounded-2xl p-4 space-y-2">
+                <img src={ktpPreview} alt="KTP" className="w-full h-52 object-cover rounded-xl" />
+                <button onClick={() => { setKtpFile(null); setKtpPreview(null); }} className="text-red-400 text-xs w-full text-center py-1">🗑️ Hapus & ganti foto</button>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {/* Kamera HP */}
+                <label className="block cursor-pointer">
+                  <input type="file" accept="image/*" capture="environment" onChange={e => handleFileChange(e, 'ktp')} className="hidden" id="ktpCamera" />
+                  <div className="w-full py-4 bg-blue-600/15 border border-blue-500/30 rounded-2xl flex items-center justify-center gap-3 hover:bg-blue-600/25 active:scale-95 transition-all">
+                    <Camera className="w-5 h-5 text-blue-400" />
+                    <div>
+                      <p className="text-blue-300 text-sm font-bold">Ambil Foto dengan Kamera</p>
+                      <p className="text-blue-500 text-xs">Gunakan kamera HP langsung</p>
                     </div>
-                    <p className="text-slate-400 text-sm font-semibold">Tap untuk upload foto KTP</p>
-                    <p className="text-slate-600 text-xs">JPG, PNG, HEIC · Maks 10MB</p>
                   </div>
-                )}
-              </label>
-            </div>
+                </label>
+                {/* Galeri / Upload */}
+                <label className="block cursor-pointer">
+                  <input type="file" accept="image/*" onChange={e => handleFileChange(e, 'ktp')} className="hidden" id="ktpGallery" />
+                  <div className="w-full py-4 bg-slate-800/50 border border-slate-700/40 rounded-2xl flex items-center justify-center gap-3 hover:bg-slate-700/50 active:scale-95 transition-all">
+                    <Upload className="w-5 h-5 text-slate-400" />
+                    <div>
+                      <p className="text-slate-300 text-sm font-bold">Pilih dari Galeri</p>
+                      <p className="text-slate-500 text-xs">JPG, PNG, HEIC · Maks 10MB</p>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            )}
+
             <div className="flex gap-3">
               <button onClick={() => setStep('identity')} className="flex-1 py-3 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-2xl hover:bg-slate-700 transition-colors">← Kembali</button>
               <button onClick={() => setStep('selfie')} disabled={!ktpFile}
