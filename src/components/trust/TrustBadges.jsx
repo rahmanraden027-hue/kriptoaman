@@ -126,7 +126,7 @@ export default function TrustBadges({ compact = false }) {
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      {badges.map(({ Logo, label, color }) => (
+      {badges.map(({ Logo, label, color, textColor }) => (
         <div key={label} className={`flex flex-col items-center gap-2 px-3 py-3 rounded-2xl border ${color}`}>
           <Logo />
           <span className={`text-[10px] font-semibold text-center ${textColor}`}>{label}</span>
