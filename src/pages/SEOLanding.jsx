@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Shield, TrendingUp, Lock, CheckCircle, Star, ArrowRight, Zap, Users, Award } from 'lucide-react';
 import KriptoAmanLogo from '../components/brand/KriptoAmanLogo';
+import TrustBadges from '../components/trust/TrustBadges';
 
 const FEATURES = [
   { icon: Shield, title: 'Terdaftar Bappebti & OJK', desc: 'Platform kripto legal di Indonesia, diawasi regulator resmi untuk perlindungan aset Anda.' },
