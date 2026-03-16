@@ -518,7 +518,7 @@ export default function DepositModal({ onClose, userEmail }) {
 
                 <Button onClick={submitBank} disabled={idrRaw < 50000 || !senderName.trim() || !selectedBank || submitting || uploadingProof}
                   className="w-full h-12 font-bold text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-40">
-                  {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <><ArrowDownToLine className="w-4 h-4 mr-2" /> Kirim Bukti Transfer</>}
+                  {submitting || uploadingProof ? <><Loader2 className="w-5 h-5 animate-spin mr-2" />{uploadingProof ? 'Mengupload bukti...' : 'Mengirim...'}</> : <><ArrowDownToLine className="w-4 h-4 mr-2" /> Kirim Bukti Transfer</>}
                 </Button>
               </div>
             )}
