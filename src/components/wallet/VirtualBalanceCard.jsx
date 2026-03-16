@@ -139,5 +139,6 @@ export default function VirtualBalanceCard({ userEmail, onDeposit, onWithdraw })
     {showTopup && (
       <IDRTopupModal onClose={() => { setShowTopup(false); load(); }} />
     )}
+    </>
   );
 }
