@@ -1,81 +1,114 @@
 import React from 'react';
 
-// Logo Bappebti SVG (real branding)
+// ============================================================
+// BAPPEBTI — Logo resmi Kementerian Perdagangan RI
+// Warna: biru tua #1B3A6B, aksen biru muda, teks putih
+// ============================================================
 const BappebtiLogo = () => (
-  <svg viewBox="0 0 120 40" className="h-8 w-auto" xmlns="http://www.w3.org/2000/svg">
-    <rect width="120" height="40" rx="6" fill="#1a3a6e"/>
-    <text x="60" y="15" textAnchor="middle" fill="#f5c518" fontSize="9" fontWeight="bold" fontFamily="Arial">BAPPEBTI</text>
-    <text x="60" y="26" textAnchor="middle" fill="#ffffff" fontSize="6" fontFamily="Arial">Kementerian Perdagangan RI</text>
-    <rect x="5" y="30" width="110" height="1.5" fill="#f5c518" opacity="0.6"/>
-    <text x="60" y="37" textAnchor="middle" fill="#aac4ff" fontSize="5" fontFamily="Arial">Terdaftar Resmi No. 001/KA-BBT</text>
+  <svg viewBox="0 0 150 52" className="h-10 w-auto" xmlns="http://www.w3.org/2000/svg">
+    <rect width="150" height="52" rx="5" fill="#ffffff"/>
+
+    {/* Emblem lingkaran biru Kemendag */}
+    <circle cx="24" cy="26" r="20" fill="#1B3A6B"/>
+    {/* Bintang Garuda di tengah emblem — disederhanakan */}
+    <polygon points="24,10 26.5,19 36,19 28.5,24.5 31,34 24,28.5 17,34 19.5,24.5 12,19 21.5,19" fill="#FFD700"/>
+    {/* Lingkaran putih tipis border dalam */}
+    <circle cx="24" cy="26" r="18" fill="none" stroke="white" strokeWidth="1" opacity="0.4"/>
+
+    {/* Garis vertikal separator */}
+    <line x1="50" y1="8" x2="50" y2="44" stroke="#1B3A6B" strokeWidth="1.2"/>
+
+    {/* Teks BAPPEBTI */}
+    <text x="100" y="21" textAnchor="middle" fill="#1B3A6B" fontSize="12" fontWeight="900" fontFamily="Arial Black, Arial, sans-serif" letterSpacing="1">BAPPEBTI</text>
+    {/* Garis bawah */}
+    <line x1="57" y1="25" x2="143" y2="25" stroke="#1B3A6B" strokeWidth="0.8" opacity="0.3"/>
+    {/* Sub teks */}
+    <text x="100" y="34" textAnchor="middle" fill="#444444" fontSize="5.5" fontFamily="Arial, sans-serif">Badan Pengawas Perdagangan</text>
+    <text x="100" y="42" textAnchor="middle" fill="#444444" fontSize="5.5" fontFamily="Arial, sans-serif">Berjangka Komoditi</text>
   </svg>
 );
 
-// Logo OJK SVG — sesuai logo resmi: huruf OJK merah besar + pita merah-abu melengkung + teks OTORITAS JASA KEUANGAN
+// ============================================================
+// OJK — Logo resmi: huruf OJK merah besar + pita melengkung
+// Warna: merah #9F1E22, abu, teks gelap
+// ============================================================
 const OJKLogo = () => (
   <svg viewBox="0 0 160 54" className="h-10 w-auto" xmlns="http://www.w3.org/2000/svg">
-    {/* Background putih */}
     <rect width="160" height="54" rx="5" fill="#ffffff"/>
 
-    {/* ===== BAGIAN KIRI: Huruf OJK besar merah ===== */}
-    {/* Huruf O */}
-    <text x="6" y="42" fill="#9F1E22" fontSize="36" fontWeight="900" fontFamily="Arial Black, Arial, sans-serif">O</text>
-    {/* Huruf J */}
-    <text x="28" y="42" fill="#9F1E22" fontSize="36" fontWeight="900" fontFamily="Arial Black, Arial, sans-serif">J</text>
-    {/* Huruf K */}
-    <text x="44" y="42" fill="#9F1E22" fontSize="36" fontWeight="900" fontFamily="Arial Black, Arial, sans-serif">K</text>
+    {/* Huruf OJK merah besar — bold italic seperti aslinya */}
+    <text x="5" y="46" fill="#9F1E22" fontSize="40" fontWeight="900" fontFamily="Arial Black, Arial, sans-serif" fontStyle="italic">OJK</text>
 
-    {/* ===== PITA MELENGKUNG di atas OJK (merah di atas, abu di bawah) ===== */}
-    {/* Pita merah atas — melengkung dari kiri-atas ke kanan */}
-    <path d="M4 14 Q18 2 46 6 Q62 8 70 14" fill="none" stroke="#9F1E22" strokeWidth="6" strokeLinecap="round"/>
-    {/* Pita abu/silver di bawah pita merah — sedikit offset */}
-    <path d="M4 20 Q18 9 46 13 Q62 15 70 20" fill="none" stroke="#b0b0b0" strokeWidth="4" strokeLinecap="round"/>
+    {/* Pita merah melengkung di atas kiri huruf O */}
+    <path d="M3 16 Q22 2 50 7 Q64 9 72 16" fill="none" stroke="#9F1E22" strokeWidth="7" strokeLinecap="round"/>
+    {/* Pita abu/silver di bawah pita merah */}
+    <path d="M3 23 Q22 9 50 14 Q64 16 72 23" fill="none" stroke="#c0c0c0" strokeWidth="4.5" strokeLinecap="round"/>
 
-    {/* ===== GARIS VERTIKAL PEMBATAS ===== */}
-    <line x1="78" y1="6" x2="78" y2="48" stroke="#9F1E22" strokeWidth="1.5"/>
+    {/* Garis vertikal separator */}
+    <line x1="80" y1="7" x2="80" y2="47" stroke="#9F1E22" strokeWidth="1.5"/>
 
-    {/* ===== BAGIAN KANAN: Teks OTORITAS JASA KEUANGAN ===== */}
-    <text x="86" y="20" fill="#555555" fontSize="7.5" fontWeight="bold" fontFamily="Arial, sans-serif" letterSpacing="0.5">OTORITAS</text>
-    <text x="86" y="31" fill="#555555" fontSize="7.5" fontWeight="bold" fontFamily="Arial, sans-serif" letterSpacing="0.5">JASA</text>
-    <text x="86" y="42" fill="#555555" fontSize="7.5" fontWeight="bold" fontFamily="Arial, sans-serif" letterSpacing="0.5">KEUANGAN</text>
+    {/* Teks OTORITAS JASA KEUANGAN */}
+    <text x="88" y="21" fill="#333333" fontSize="8" fontWeight="bold" fontFamily="Arial, sans-serif" letterSpacing="0.3">OTORITAS</text>
+    <text x="88" y="32" fill="#333333" fontSize="8" fontWeight="bold" fontFamily="Arial, sans-serif" letterSpacing="0.3">JASA</text>
+    <text x="88" y="43" fill="#333333" fontSize="8" fontWeight="bold" fontFamily="Arial, sans-serif" letterSpacing="0.3">KEUANGAN</text>
   </svg>
 );
 
-// SSL 256-bit Badge
+// ============================================================
+// SSL 256-bit — padlock hijau + teks secure seperti badge SSL resmi
+// ============================================================
 const SSLLogo = () => (
-  <svg viewBox="0 0 100 40" className="h-8 w-auto" xmlns="http://www.w3.org/2000/svg">
-    <rect width="100" height="40" rx="6" fill="#166534"/>
-    {/* Lock icon */}
-    <rect x="6" y="18" width="14" height="12" rx="2" fill="#4ade80"/>
-    <path d="M9 18 v-4 a4 4 0 0 1 8 0 v4" fill="none" stroke="#4ade80" strokeWidth="2"/>
-    <circle cx="13" cy="23" r="1.5" fill="#166534"/>
-    {/* Text */}
-    <text x="61" y="15" textAnchor="middle" fill="#4ade80" fontSize="9" fontWeight="bold" fontFamily="Arial">SSL/TLS</text>
-    <text x="61" y="25" textAnchor="middle" fill="#ffffff" fontSize="6.5" fontFamily="Arial">256-bit Encryption</text>
-    <text x="61" y="34" textAnchor="middle" fill="#86efac" fontSize="5" fontFamily="Arial">Secured by TrustArc</text>
+  <svg viewBox="0 0 130 52" className="h-10 w-auto" xmlns="http://www.w3.org/2000/svg">
+    <rect width="130" height="52" rx="5" fill="#1a6b2e"/>
+    <rect width="130" height="52" rx="5" fill="none" stroke="#2d9e4a" strokeWidth="1"/>
+
+    {/* Padlock icon */}
+    <rect x="8" y="22" width="18" height="16" rx="3" fill="#4ade80"/>
+    <path d="M11 22 v-5 a6 6 0 0 1 12 0 v5" fill="none" stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round"/>
+    <circle cx="17" cy="29" r="2.5" fill="#1a6b2e"/>
+    <rect x="16" y="30" width="2" height="4" rx="1" fill="#1a6b2e"/>
+
+    {/* Garis vertikal */}
+    <line x1="34" y1="8" x2="34" y2="44" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+
+    {/* Teks */}
+    <text x="82" y="19" textAnchor="middle" fill="#4ade80" fontSize="13" fontWeight="900" fontFamily="Arial Black, Arial, sans-serif">SSL/TLS</text>
+    <line x1="38" y1="23" x2="126" y2="23" stroke="#4ade80" strokeWidth="0.6" opacity="0.4"/>
+    <text x="82" y="33" textAnchor="middle" fill="#ffffff" fontSize="7" fontFamily="Arial, sans-serif">256-bit Encryption</text>
+    <text x="82" y="43" textAnchor="middle" fill="#86efac" fontSize="6" fontFamily="Arial, sans-serif">Secured Connection</text>
   </svg>
 );
 
-// KYC Verified Badge
+// ============================================================
+// KYC Verified — shield biru + centang, seperti badge verifikasi identitas
+// ============================================================
 const KYCLogo = () => (
-  <svg viewBox="0 0 100 40" className="h-8 w-auto" xmlns="http://www.w3.org/2000/svg">
-    <rect width="100" height="40" rx="6" fill="#4c1d95"/>
-    {/* Shield with checkmark */}
-    <path d="M10 8 L20 8 L22 10 L22 22 Q22 28 16 31 Q10 28 10 22 Z" fill="#a78bfa"/>
-    <path d="M13 19 L16 22 L20 15" fill="none" stroke="#4c1d95" strokeWidth="2" strokeLinecap="round"/>
-    {/* Text */}
-    <text x="62" y="15" textAnchor="middle" fill="#a78bfa" fontSize="9" fontWeight="bold" fontFamily="Arial">KYC</text>
-    <text x="62" y="25" textAnchor="middle" fill="#ffffff" fontSize="6.5" fontFamily="Arial">Identity Verified</text>
-    <text x="62" y="34" textAnchor="middle" fill="#c4b5fd" fontSize="5" fontFamily="Arial">AML/CFT Compliant</text>
+  <svg viewBox="0 0 130 52" className="h-10 w-auto" xmlns="http://www.w3.org/2000/svg">
+    <rect width="130" height="52" rx="5" fill="#1e3a8a"/>
+    <rect width="130" height="52" rx="5" fill="none" stroke="#3b82f6" strokeWidth="1"/>
+
+    {/* Shield */}
+    <path d="M12 8 L28 8 L30 11 L30 27 Q30 36 20 40 Q10 36 10 27 L10 11 Z" fill="#3b82f6"/>
+    {/* Checkmark dalam shield */}
+    <path d="M14 23 L18 28 L26 16" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+
+    {/* Garis vertikal */}
+    <line x1="36" y1="8" x2="36" y2="44" stroke="#3b82f6" strokeWidth="0.8" opacity="0.5"/>
+
+    {/* Teks */}
+    <text x="83" y="20" textAnchor="middle" fill="#60a5fa" fontSize="13" fontWeight="900" fontFamily="Arial Black, Arial, sans-serif">KYC</text>
+    <line x1="40" y1="24" x2="126" y2="24" stroke="#3b82f6" strokeWidth="0.6" opacity="0.4"/>
+    <text x="83" y="34" textAnchor="middle" fill="#ffffff" fontSize="7" fontFamily="Arial, sans-serif">Identity Verified</text>
+    <text x="83" y="43" textAnchor="middle" fill="#93c5fd" fontSize="6" fontFamily="Arial, sans-serif">AML/CFT Compliant</text>
   </svg>
 );
 
 export default function TrustBadges({ compact = false }) {
   const badges = [
-    { Logo: BappebtiLogo, label: 'Terdaftar Bappebti', color: 'border-blue-500/30 bg-blue-950/40' },
+    { Logo: BappebtiLogo, label: 'Terdaftar Bappebti', color: 'border-blue-800/40 bg-white/5' },
     { Logo: OJKLogo, label: 'Diawasi OJK', color: 'border-red-700/40 bg-white/5' },
-    { Logo: SSLLogo, label: 'SSL 256-bit', color: 'border-green-500/30 bg-green-950/40' },
-    { Logo: KYCLogo, label: 'KYC Verified', color: 'border-purple-500/30 bg-purple-950/40' },
+    { Logo: SSLLogo, label: 'SSL 256-bit', color: 'border-green-500/30 bg-green-950/20' },
+    { Logo: KYCLogo, label: 'KYC Verified', color: 'border-blue-500/30 bg-blue-950/20' },
   ];
 
   if (compact) {
