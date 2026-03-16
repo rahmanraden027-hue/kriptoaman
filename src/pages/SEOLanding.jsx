@@ -54,12 +54,8 @@ export default function SEOLanding() {
           </Link>
         </div>
         {/* Trust badges */}
-        <div className="flex items-center justify-center gap-4 mt-6 flex-wrap">
-          {['Bappebti', 'OJK', 'SSL 256-bit', 'KYC Verified'].map(b => (
-            <span key={b} className="flex items-center gap-1 text-xs text-green-400 bg-green-400/10 border border-green-400/20 px-3 py-1 rounded-full">
-              <CheckCircle className="w-3 h-3" /> {b}
-            </span>
-          ))}
+        <div className="mt-8">
+          <TrustBadges compact />
         </div>
       </section>
 
