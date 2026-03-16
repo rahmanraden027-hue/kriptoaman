@@ -52,38 +52,27 @@ export default function Home() {
 
         {/* ── Hero ── */}
         <div className="rounded-3xl overflow-hidden relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/20 via-blue-700/25 to-indigo-700/30" />
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
-          {/* decorative glow circle behind logo */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none" />
-          <div className="relative p-6 flex flex-col items-center text-center">
-            {/* Logo besar di tengah */}
-            <KriptoAmanLogo size={72} showText={false} animate={true} className="mb-3 drop-shadow-xl" />
-            {/* Brand name sesuai template (Kripto + Aman) */}
-            <p className="text-xl font-extrabold tracking-widest uppercase mb-1">
-              <span className="text-white">Kripto</span><span className="text-emerald-400">Aman</span>
-            </p>
-            <p className="text-slate-400 text-[10px] tracking-wide uppercase mb-4">Platform Kripto Terpercaya Indonesia</p>
-
-            <div className="w-full border-t border-slate-700/40 mb-4" />
-
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/40 via-blue-600/20 to-purple-600/30" />
+          <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" />
+          <div className="relative p-6">
+            <KriptoAmanLogo size={40} showText={true} textSize="text-base" className="mb-3" />
             <p className="text-slate-400 text-xs">{greeting()},</p>
             <h1 className="text-2xl font-bold text-white mt-0.5">
               {user?.full_name?.split(' ')[0] || 'Pengguna'} 👋
             </h1>
-            <p className="text-slate-400 text-xs mt-2 leading-relaxed max-w-xs">
-              All-in-one kripto terpercaya. Aman, cepat, dan sesuai regulasi Bappebti & OJK.
+            <p className="text-slate-400 text-xs mt-2 leading-relaxed">
+              Platform kripto all-in-one terpercaya Indonesia. Aman, cepat, dan sesuai regulasi Bappebti & OJK.
             </p>
 
             {/* Status tags */}
-            <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
+            <div className="flex items-center gap-2 mt-3 flex-wrap">
               <div className="flex items-center gap-1.5 bg-green-500/15 border border-green-500/25 px-2.5 py-1 rounded-full">
                 <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
                 <span className="text-green-400 text-[10px] font-semibold">Live Data</span>
               </div>
-              <div className="flex items-center gap-1.5 bg-cyan-500/15 border border-cyan-500/25 px-2.5 py-1 rounded-full">
-                <Shield className="w-3 h-3 text-cyan-400" />
-                <span className="text-cyan-400 text-[10px] font-semibold">SSL 256-bit</span>
+              <div className="flex items-center gap-1.5 bg-blue-500/15 border border-blue-500/25 px-2.5 py-1 rounded-full">
+                <Shield className="w-3 h-3 text-blue-400" />
+                <span className="text-blue-400 text-[10px] font-semibold">SSL 256-bit</span>
               </div>
               <div className="flex items-center gap-1.5 bg-yellow-500/15 border border-yellow-500/25 px-2.5 py-1 rounded-full">
                 <Star className="w-3 h-3 text-yellow-400" />
