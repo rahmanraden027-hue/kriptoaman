@@ -24,6 +24,7 @@ export default function VirtualBalanceCard({ userEmail, onDeposit, onWithdraw })
   const [pendingCount, setPendingCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [prices, setPrices] = useState({});
+  const [showTopup, setShowTopup] = useState(false);
 
   const loadPrices = async () => {
     try {
