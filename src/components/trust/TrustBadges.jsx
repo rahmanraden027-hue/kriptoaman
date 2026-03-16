@@ -105,38 +105,31 @@ const KYCLogo = () => (
 
 export default function TrustBadges({ compact = false }) {
   const badges = [
-    { Logo: BappebtiLogo, label: 'Terdaftar Bappebti', color: 'border-blue-800/40 bg-blue-950/20', textColor: 'text-blue-200' },
-    { Logo: OJKLogo, label: 'Diawasi OJK', color: 'border-red-700/40 bg-red-950/20', textColor: 'text-red-200' },
-    { Logo: SSLLogo, label: 'SSL 256-bit Enkripsi', color: 'border-green-500/30 bg-green-950/20', textColor: 'text-green-200' },
-    { Logo: KYCLogo, label: 'KYC & AML Verified', color: 'border-blue-500/30 bg-sky-950/20', textColor: 'text-sky-200' },
+    { Logo: BappebtiLogo, label: 'Terdaftar Bappebti', color: 'border-blue-800/40 bg-white/5', textColor: 'text-blue-200' },
+    { Logo: OJKLogo, label: 'Diawasi OJK', color: 'border-red-700/40 bg-white/5', textColor: 'text-red-200' },
+    { Logo: SSLLogo, label: 'SSL 256-bit', color: 'border-green-500/30 bg-green-950/20', textColor: 'text-green-200' },
+    { Logo: KYCLogo, label: 'KYC Verified', color: 'border-blue-500/30 bg-blue-950/20', textColor: 'text-sky-200' },
   ];
 
   if (compact) {
     return (
-      <div className="flex items-center justify-center gap-2 flex-wrap">
+      <div className="flex items-center justify-center gap-3 flex-wrap">
         {badges.map(({ Logo, label, color, textColor }) => (
-          <div key={label} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border ${color}`}>
-            <div className="scale-50 origin-left" style={{ height: 20, overflow: 'hidden' }}><Logo /></div>
-            <span className={`text-[9px] font-semibold whitespace-nowrap ${textColor}`}>{label}</span>
+          <div key={label} className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${color}`}>
+            <Logo />
+            <span className={`text-[10px] font-semibold ${textColor}`}>{label}</span>
           </div>
         ))}
       </div>
     );
   }
 
-  // Grid 2x2 — logo di kiri, teks di kanan (horizontal card)
   return (
-    <div className="grid grid-cols-2 gap-2.5">
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
       {badges.map(({ Logo, label, color, textColor }) => (
-        <div key={label} className={`flex items-center gap-2.5 px-3 py-2.5 rounded-2xl border ${color}`}>
-          {/* Logo container — ukuran konsisten */}
-          <div className="shrink-0 flex items-center justify-center w-16 h-8 overflow-hidden">
-            <div className="transform scale-[0.52] origin-left">
-              <Logo />
-            </div>
-          </div>
-          {/* Label */}
-          <span className={`text-[10px] font-semibold leading-tight ${textColor}`}>{label}</span>
+        <div key={label} className={`flex flex-col items-center gap-2 px-3 py-3 rounded-2xl border ${color}`}>
+          <Logo />
+          <span className={`text-[10px] font-semibold text-center ${textColor}`}>{label}</span>
         </div>
       ))}
     </div>
