@@ -71,6 +71,13 @@ export default function SEOLanding() {
         </div>
       </section>
 
+      {/* Regulasi & Keamanan */}
+      <section className="px-4 pb-12 max-w-2xl mx-auto">
+        <h2 className="text-lg font-bold text-center mb-2 text-white">Diregulasi & Terproteksi</h2>
+        <p className="text-slate-500 text-xs text-center mb-5">KriptoAman beroperasi di bawah regulasi resmi Indonesia dan standar keamanan internasional</p>
+        <TrustBadges />
+      </section>
+
       {/* Features */}
       <section className="px-4 pb-14 max-w-2xl mx-auto">
         <h2 className="text-xl font-bold text-center mb-6">
