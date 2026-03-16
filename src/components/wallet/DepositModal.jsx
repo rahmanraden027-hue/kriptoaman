@@ -133,15 +133,28 @@ export default function DepositModal({ onClose, userEmail }) {
   const submitBank = async () => {
     if (idrRaw < 50000 || !senderName.trim() || !selectedBank) return;
     setSubmitting(true);
-    await base44.entities.DepositRequest.create({
+
+    // Upload bukti transfer jika ada
+    let proofUrl = '';
+    if (proofFile) {
+      setUploadingProof(true);
+      try {
+        const res = await base44.integrations.Core.UploadFile({ file: proofFile });
+        proofUrl = res.file_url;
+      } catch {}
+      setUploadingProof(false);
+    }
+
+    const deposit = await base44.entities.DepositRequest.create({
       userEmail,
       type: 'bank',
       coin: 'IDR',
       amountIDR: idrRaw,
       senderName: senderName.trim(),
-      proofNote: proofNote + (selectedBank ? ` | Transfer ke ${selectedBank.bank} - ${selectedBank.accountNumber}` : ''),
+      proofNote: (proofNote || '') + ` | Transfer ke ${selectedBank.bank} - ${selectedBank.accountNumber}${proofUrl ? ' | Bukti: ' + proofUrl : ''}`,
       status: 'pending',
     });
+    setDepositId(deposit.id);
     setSubmitting(false);
     setStep('success');
   };
