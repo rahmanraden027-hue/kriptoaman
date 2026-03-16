@@ -11,33 +11,33 @@ const BappebtiLogo = () => (
   </svg>
 );
 
-// Logo OJK SVG — branding resmi (merah #9F1E22, putih, abu)
+// Logo OJK SVG — sesuai logo resmi: huruf OJK merah besar + pita merah-abu melengkung + teks OTORITAS JASA KEUANGAN
 const OJKLogo = () => (
-  <svg viewBox="0 0 110 44" className="h-9 w-auto" xmlns="http://www.w3.org/2000/svg">
-    {/* Background putih bersih seperti logo resmi */}
-    <rect width="110" height="44" rx="6" fill="#ffffff"/>
-    <rect width="110" height="44" rx="6" fill="none" stroke="#9F1E22" strokeWidth="1.5"/>
+  <svg viewBox="0 0 160 54" className="h-10 w-auto" xmlns="http://www.w3.org/2000/svg">
+    {/* Background putih */}
+    <rect width="160" height="54" rx="5" fill="#ffffff"/>
 
-    {/* Emblem OJK: lingkaran merah dengan stilisasi burung/api */}
-    {/* Outer circle */}
-    <circle cx="22" cy="22" r="16" fill="#9F1E22"/>
-    {/* Inner white circle */}
-    <circle cx="22" cy="22" r="11" fill="white"/>
-    {/* Stilisasi huruf O merah di tengah */}
-    <circle cx="22" cy="22" r="7" fill="none" stroke="#9F1E22" strokeWidth="3"/>
-    {/* Garis horizontal kecil di tengah = stylized J */}
-    <line x1="22" y1="17" x2="22" y2="27" stroke="#9F1E22" strokeWidth="2.5" strokeLinecap="round"/>
-    <line x1="19" y1="27" x2="22" y2="27" stroke="#9F1E22" strokeWidth="2.5" strokeLinecap="round"/>
-    {/* Titik atas = K */}
-    <circle cx="22" cy="15.5" r="1.5" fill="#9F1E22"/>
+    {/* ===== BAGIAN KIRI: Huruf OJK besar merah ===== */}
+    {/* Huruf O */}
+    <text x="6" y="42" fill="#9F1E22" fontSize="36" fontWeight="900" fontFamily="Arial Black, Arial, sans-serif">O</text>
+    {/* Huruf J */}
+    <text x="28" y="42" fill="#9F1E22" fontSize="36" fontWeight="900" fontFamily="Arial Black, Arial, sans-serif">J</text>
+    {/* Huruf K */}
+    <text x="44" y="42" fill="#9F1E22" fontSize="36" fontWeight="900" fontFamily="Arial Black, Arial, sans-serif">K</text>
 
-    {/* Teks OJK merah bold */}
-    <text x="66" y="17" textAnchor="middle" fill="#9F1E22" fontSize="13" fontWeight="bold" fontFamily="Arial, sans-serif" letterSpacing="2">OJK</text>
-    {/* Garis divider */}
-    <line x1="43" y1="22" x2="107" y2="22" stroke="#9F1E22" strokeWidth="0.8" opacity="0.4"/>
-    {/* Sub teks */}
-    <text x="66" y="30" textAnchor="middle" fill="#555555" fontSize="5.5" fontFamily="Arial, sans-serif">Otoritas Jasa Keuangan</text>
-    <text x="66" y="38" textAnchor="middle" fill="#9F1E22" fontSize="4.8" fontFamily="Arial, sans-serif" fontWeight="bold">Republik Indonesia</text>
+    {/* ===== PITA MELENGKUNG di atas OJK (merah di atas, abu di bawah) ===== */}
+    {/* Pita merah atas — melengkung dari kiri-atas ke kanan */}
+    <path d="M4 14 Q18 2 46 6 Q62 8 70 14" fill="none" stroke="#9F1E22" strokeWidth="6" strokeLinecap="round"/>
+    {/* Pita abu/silver di bawah pita merah — sedikit offset */}
+    <path d="M4 20 Q18 9 46 13 Q62 15 70 20" fill="none" stroke="#b0b0b0" strokeWidth="4" strokeLinecap="round"/>
+
+    {/* ===== GARIS VERTIKAL PEMBATAS ===== */}
+    <line x1="78" y1="6" x2="78" y2="48" stroke="#9F1E22" strokeWidth="1.5"/>
+
+    {/* ===== BAGIAN KANAN: Teks OTORITAS JASA KEUANGAN ===== */}
+    <text x="86" y="20" fill="#555555" fontSize="7.5" fontWeight="bold" fontFamily="Arial, sans-serif" letterSpacing="0.5">OTORITAS</text>
+    <text x="86" y="31" fill="#555555" fontSize="7.5" fontWeight="bold" fontFamily="Arial, sans-serif" letterSpacing="0.5">JASA</text>
+    <text x="86" y="42" fill="#555555" fontSize="7.5" fontWeight="bold" fontFamily="Arial, sans-serif" letterSpacing="0.5">KEUANGAN</text>
   </svg>
 );
 
