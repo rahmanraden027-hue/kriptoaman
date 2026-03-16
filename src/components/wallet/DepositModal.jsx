@@ -35,10 +35,18 @@ export default function DepositModal({ onClose, userEmail }) {
   const [amountIDR, setAmountIDR] = useState('');
   const [senderName, setSenderName] = useState('');
   const [proofNote, setProofNote] = useState('');
+  const [proofFile, setProofFile] = useState(null);
+  const [proofPreview, setProofPreview] = useState(null);
+  const [uploadingProof, setUploadingProof] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [verifyResult, setVerifyResult] = useState(null); // null | { verified, errorMsg, explorerLink }
+  
+  // Real-time status polling for submitted deposit
+  const [depositId, setDepositId] = useState(null);
+  const [depositStatus, setDepositStatus] = useState(null);
+  const pollRef = useRef(null);
 
   useEffect(() => {
     Promise.all([
