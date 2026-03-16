@@ -106,6 +106,7 @@ export default function DepositModal({ onClose, userEmail }) {
       txHash: txHash.trim(),
       status: 'pending',
     });
+    setDepositId(deposit.id);
 
     setSubmitting(false);
     setVerifying(true);
