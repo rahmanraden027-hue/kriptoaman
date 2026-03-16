@@ -124,6 +124,12 @@ export default function KYCVerificationPage() {
       </div>
 
       <KYCForm onComplete={() => fetchKYCStatus()} />
+
+      {/* Trust badges */}
+      <div className="bg-slate-800/30 border border-slate-700/30 rounded-2xl p-4">
+        <p className="text-slate-500 text-xs text-center mb-3">Platform diregulasi & dilindungi</p>
+        <TrustBadges />
+      </div>
     </div>
   );
 }

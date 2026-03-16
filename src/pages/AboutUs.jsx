@@ -81,6 +81,12 @@ export default function AboutUs() {
           </div>
         </div>
 
+        {/* Trust Badges */}
+        <div className="bg-slate-800/30 border border-slate-700/30 rounded-2xl p-4">
+          <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-3 text-center">Regulasi & Keamanan</p>
+          <TrustBadges />
+        </div>
+
         {/* Values */}
         <div className="bg-gradient-to-br from-blue-900/20 to-indigo-900/20 border border-blue-700/30 rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-3">
