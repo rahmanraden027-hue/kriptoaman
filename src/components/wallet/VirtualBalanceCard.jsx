@@ -56,6 +56,7 @@ export default function VirtualBalanceCard({ userEmail, onDeposit, onWithdraw })
   }, [userEmail]);
 
   return (
+    <>
     <div className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 rounded-2xl overflow-hidden">
       {/* Header */}
       <div className="px-4 py-3 flex items-center justify-between border-b border-blue-500/15">
