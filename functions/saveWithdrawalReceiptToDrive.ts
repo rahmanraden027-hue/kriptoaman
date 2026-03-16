@@ -1,10 +1,45 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 /**
- * Generates an HTML receipt and uploads it to Google Drive.
- * Called after OTP verification succeeds.
+ * Generates an HTML receipt and uploads it to a dedicated
+ * "KriptoAman - Withdrawal Receipts" folder in Google Drive.
+ * Saves driveReceiptFileId, driveReceiptLink, driveReceiptSavedAt
+ * directly on the WithdrawalRequest record.
  * Payload: { requestId }
  */
+
+const DRIVE_FOLDER_NAME = 'KriptoAman - Withdrawal Receipts';
+
+async function getOrCreateFolder(accessToken) {
+  // Search for existing folder created by this app
+  const searchRes = await fetch(
+    `https://www.googleapis.com/drive/v3/files?q=name%3D%27${encodeURIComponent(DRIVE_FOLDER_NAME)}%27+and+mimeType%3D%27application%2Fvnd.google-apps.folder%27+and+trashed%3Dfalse&fields=files(id,name)`,
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+  const searchData = await searchRes.json();
+
+  if (searchData.files && searchData.files.length > 0) {
+    return searchData.files[0].id;
+  }
+
+  // Create folder if not found
+  const createRes = await fetch('https://www.googleapis.com/drive/v3/files?fields=id,name', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      name: DRIVE_FOLDER_NAME,
+      mimeType: 'application/vnd.google-apps.folder',
+    }),
+  });
+
+  const folder = await createRes.json();
+  console.log('Created Drive folder:', folder.id);
+  return folder.id;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -21,7 +56,6 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Request tidak ditemukan' }, { status: 404 });
     }
 
-    // Build HTML receipt
     const now = new Date().toISOString();
     const receiptHtml = `<!DOCTYPE html>
 <html lang="id">
@@ -63,14 +97,18 @@ Deno.serve(async (req) => {
 </body>
 </html>`;
 
-    // Upload to Google Drive
     const { accessToken } = await base44.asServiceRole.connectors.getConnection('googledrive');
 
-    const fileName = `Withdrawal_Receipt_${requestId}_${Date.now()}.html`;
+    // Get or create dedicated folder
+    const folderId = await getOrCreateFolder(accessToken);
 
-    // Multipart upload: metadata + file content
+    const fileName = `Withdrawal_Receipt_${requestId}_${Date.now()}.html`;
     const boundary = 'kriptoaman_receipt_boundary';
-    const metadata = JSON.stringify({ name: fileName, mimeType: 'text/html' });
+    const metadata = JSON.stringify({
+      name: fileName,
+      mimeType: 'text/html',
+      parents: [folderId],
+    });
     const body = [
       `--${boundary}`,
       'Content-Type: application/json; charset=UTF-8',
@@ -102,11 +140,13 @@ Deno.serve(async (req) => {
     }
 
     const driveFile = await uploadRes.json();
-    console.log('Receipt uploaded to Drive:', driveFile.id, driveFile.webViewLink);
+    console.log('Receipt uploaded to Drive folder:', folderId, '| file:', driveFile.id, driveFile.webViewLink);
 
-    // Save drive file reference back to the WithdrawalRequest
+    // Save dedicated fields on the WithdrawalRequest record
     await base44.entities.WithdrawalRequest.update(wr.id, {
-      adminNote: (wr.adminNote ? wr.adminNote + ' | ' : '') + `DriveReceipt: ${driveFile.webViewLink}`,
+      driveReceiptFileId: driveFile.id,
+      driveReceiptLink: driveFile.webViewLink,
+      driveReceiptSavedAt: now,
     });
 
     return Response.json({
@@ -114,6 +154,7 @@ Deno.serve(async (req) => {
       driveFileId: driveFile.id,
       driveFileName: driveFile.name,
       driveLink: driveFile.webViewLink,
+      folderId,
     });
   } catch (error) {
     console.error('saveWithdrawalReceiptToDrive error:', error.message);
