@@ -482,9 +482,41 @@ export default function DepositModal({ onClose, userEmail }) {
                     <Input value={proofNote} onChange={e => setProofNote(e.target.value)}
                       placeholder="Nomor referensi / waktu transfer" className="bg-slate-800 border-slate-700 text-white" />
                   </div>
+
+                  {/* Upload Bukti Transfer */}
+                  <div className="space-y-1.5">
+                    <label className="text-slate-400 text-xs font-semibold">BUKTI TRANSFER (foto/screenshot)</label>
+                    {proofPreview ? (
+                      <div className="space-y-2">
+                        <img src={proofPreview} alt="Bukti" className="w-full h-40 object-cover rounded-xl border border-slate-700" />
+                        <button onClick={() => { setProofFile(null); setProofPreview(null); }}
+                          className="text-red-400 text-xs w-full text-center py-1">
+                          🗑️ Hapus & ganti foto
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <label className="block cursor-pointer">
+                          <input type="file" accept="image/*" capture="environment" onChange={handleProofFileChange} className="hidden" />
+                          <div className="w-full py-3 bg-green-600/10 border border-green-500/25 rounded-xl flex items-center justify-center gap-2 hover:bg-green-600/20 active:scale-95 transition-all">
+                            <Upload className="w-4 h-4 text-green-400" />
+                            <span className="text-green-300 text-sm font-semibold">Ambil / Upload Bukti Transfer</span>
+                          </div>
+                        </label>
+                        <label className="block cursor-pointer">
+                          <input type="file" accept="image/*" onChange={handleProofFileChange} className="hidden" />
+                          <div className="w-full py-2.5 bg-slate-800/50 border border-slate-700/40 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-700/50 active:scale-95 transition-all">
+                            <Image className="w-4 h-4 text-slate-400" />
+                            <span className="text-slate-400 text-xs">Pilih dari Galeri</span>
+                          </div>
+                        </label>
+                      </div>
+                    )}
+                    <p className="text-slate-600 text-[10px]">Upload screenshot bukti transfer untuk mempercepat konfirmasi</p>
+                  </div>
                 </div>
 
-                <Button onClick={submitBank} disabled={idrRaw < 50000 || !senderName.trim() || !selectedBank || submitting}
+                <Button onClick={submitBank} disabled={idrRaw < 50000 || !senderName.trim() || !selectedBank || submitting || uploadingProof}
                   className="w-full h-12 font-bold text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-40">
                   {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <><ArrowDownToLine className="w-4 h-4 mr-2" /> Kirim Bukti Transfer</>}
                 </Button>
