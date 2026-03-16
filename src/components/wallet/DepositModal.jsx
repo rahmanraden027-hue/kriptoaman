@@ -61,18 +61,21 @@ export default function DepositModal({ onClose, userEmail }) {
     }).catch(() => setLoadingPlatform(false));
   }, []);
 
-  // Poll deposit status setiap 10 detik setelah submit
+  // Real-time subscription untuk status deposit setelah submit
   useEffect(() => {
     if (!depositId) return;
-    const poll = async () => {
-      try {
-        const dep = await base44.entities.DepositRequest.filter({ id: depositId });
-        if (dep && dep.length > 0) setDepositStatus(dep[0].status);
-      } catch {}
-    };
-    poll();
-    pollRef.current = setInterval(poll, 10000);
-    return () => clearInterval(pollRef.current);
+    // Fetch initial status
+    base44.entities.DepositRequest.filter({ id: depositId })
+      .then(deps => { if (deps?.length > 0) setDepositStatus(deps[0].status); })
+      .catch(() => {});
+    // Subscribe real-time
+    const unsub = base44.entities.DepositRequest.subscribe((event) => {
+      if (event.id === depositId || event.data?.id === depositId) {
+        const newStatus = event.data?.status;
+        if (newStatus) setDepositStatus(newStatus);
+      }
+    });
+    return () => unsub();
   }, [depositId]);
 
   const handleProofFileChange = (e) => {
