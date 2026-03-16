@@ -237,6 +237,27 @@ export default function DepositModal({ onClose, userEmail }) {
                 </div>
               </>
             )}
+
+            {/* Real-time status tracker */}
+            {depositId && (
+              <div className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-4 text-left space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-slate-400 text-xs font-semibold">STATUS DEPOSIT</p>
+                  <RefreshCw className="w-3 h-3 text-slate-600 animate-spin" />
+                </div>
+                <div className="flex items-center gap-2">
+                  {depositStatus === 'confirmed' ? (
+                    <><CheckCircle2 className="w-4 h-4 text-green-400" /><span className="text-green-400 text-sm font-bold">Dikonfirmasi — Saldo sudah masuk</span></>
+                  ) : depositStatus === 'rejected' ? (
+                    <><AlertTriangle className="w-4 h-4 text-red-400" /><span className="text-red-400 text-sm font-bold">Ditolak — Hubungi support</span></>
+                  ) : (
+                    <><Clock className="w-4 h-4 text-amber-400 animate-pulse" /><span className="text-amber-300 text-sm">Menunggu konfirmasi admin...</span></>
+                  )}
+                </div>
+                <p className="text-slate-600 text-[10px]">Status diperbarui otomatis. Email konfirmasi akan dikirim ke {userEmail}.</p>
+              </div>
+            )}
+
             <Button onClick={onClose}
               className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold">
               Selesai
