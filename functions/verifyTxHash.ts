@@ -1,8 +1,13 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 /**
  * Verifies a crypto transaction hash against public block explorers.
  * Supports: ETH/ERC-20, SOL, BNB, BTC, USDT (auto-detect network).
+ * 
+ * IMPORTANT: This function ONLY updates DepositRequest status to 'confirmed'.
+ * Actual balance credit is handled by the autoConfirmDeposit automation (entity trigger),
+ * which fires when DepositRequest status changes to 'confirmed'.
+ * This prevents double-credit.
  *
  * Payload: { txHash, coin, network, expectedAmount, toAddress, depositRequestId, userEmail }
  */
@@ -16,6 +21,12 @@ Deno.serve(async (req) => {
 
     if (!txHash || !coin || !depositRequestId) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Guard: cek apakah deposit sudah confirmed sebelumnya (hindari proses ulang)
+    const existingDeposit = await base44.asServiceRole.entities.DepositRequest.filter({ id: depositRequestId });
+    if (existingDeposit.length > 0 && existingDeposit[0].status === 'confirmed') {
+      return Response.json({ verified: true, alreadyConfirmed: true, errorMsg: null });
     }
 
     let verified = false;
@@ -45,19 +56,16 @@ Deno.serve(async (req) => {
 
       if (data?.result && data.result !== null) {
         const tx = data.result;
-        // Check recipient matches platform address (case-insensitive)
         const toOk = !toAddress || tx.to?.toLowerCase() === toAddress.toLowerCase();
 
         if (toOk) {
-          // For native ETH/BNB, value is in hex wei
           const valueWei = parseInt(tx.value, 16);
           const valueEth = valueWei / 1e18;
           actualAmount = valueEth;
-
-          // For USDT (ERC-20), we need the receipt logs - use a simpler amount match
-          // If USDT, skip amount check strictly (log parsing is complex without key)
+          // USDT: skip strict amount check (ERC-20 log parsing needs API key)
           const amountOk = coin === 'USDT' || !expectedAmount || Math.abs(valueEth - parseFloat(expectedAmount)) / parseFloat(expectedAmount) < 0.05;
           verified = amountOk;
+          if (!amountOk) errorMsg = `Jumlah tidak sesuai. Terdeteksi: ${valueEth.toFixed(6)} ${coin}`;
         } else {
           errorMsg = 'Alamat penerima tidak cocok dengan platform.';
         }
@@ -82,10 +90,8 @@ Deno.serve(async (req) => {
       const data = await res.json();
       const tx = data?.result;
       if (tx && !tx.meta?.err) {
-        // Confirmed if no error
         const preBalances = tx.meta?.preBalances || [];
         const postBalances = tx.meta?.postBalances || [];
-        // Amount transferred = change in receiver's balance (lamports → SOL)
         const maxChange = Math.max(...postBalances.map((b, i) => b - (preBalances[i] || 0)));
         actualAmount = maxChange / 1e9;
         const amountOk = !expectedAmount || Math.abs(actualAmount - parseFloat(expectedAmount)) / parseFloat(expectedAmount) < 0.05;
@@ -105,12 +111,11 @@ Deno.serve(async (req) => {
       if (res.ok) {
         const tx = await res.json();
         if (tx?.status?.confirmed) {
-          // Find output matching platform address
           const output = toAddress
             ? tx.vout?.find(v => v.scriptpubkey_address === toAddress)
             : tx.vout?.[0];
           if (output) {
-            actualAmount = output.value / 1e8; // satoshi → BTC
+            actualAmount = output.value / 1e8;
             const amountOk = !expectedAmount || Math.abs(actualAmount - parseFloat(expectedAmount)) / parseFloat(expectedAmount) < 0.05;
             verified = amountOk;
             if (!amountOk) errorMsg = `Jumlah tidak sesuai. Terdeteksi: ${actualAmount.toFixed(8)} BTC`;
@@ -126,34 +131,24 @@ Deno.serve(async (req) => {
     }
 
     else {
-      // Unknown coin — just mark as pending for manual review
       errorMsg = `Verifikasi otomatis untuk ${coin} belum didukung. Menunggu konfirmasi manual admin.`;
     }
 
-    // ── Update deposit request ──
+    // ── Update DepositRequest status ──
+    // Balance credit TIDAK dilakukan di sini — diserahkan ke automation autoConfirmDeposit
+    // sehingga tidak ada double-credit baik via auto-verify maupun admin manual confirm
     if (verified) {
       await base44.asServiceRole.entities.DepositRequest.update(depositRequestId, {
         status: 'confirmed',
         confirmedAt: new Date().toISOString(),
-        adminNote: `Auto-verified via blockchain. Amount: ${actualAmount ?? expectedAmount}`,
+        adminNote: `Auto-verified via blockchain. Amount: ${actualAmount ?? expectedAmount} ${coin}`,
       });
-
-      // Credit balance to user
-      if (userEmail) {
-        const balances = await base44.asServiceRole.entities.UserBalance.filter({ userEmail, coin });
-        if (balances.length > 0) {
-          const bal = balances[0];
-          await base44.asServiceRole.entities.UserBalance.update(bal.id, {
-            amount: (bal.amount || 0) + parseFloat(expectedAmount),
-          });
-        } else {
-          await base44.asServiceRole.entities.UserBalance.create({
-            userEmail,
-            coin,
-            amount: parseFloat(expectedAmount),
-          });
-        }
-      }
+      console.log(`[verifyTxHash] DepositRequest ${depositRequestId} confirmed. Balance akan di-credit oleh automation.`);
+    } else {
+      // Tandai pending reason agar admin tahu
+      await base44.asServiceRole.entities.DepositRequest.update(depositRequestId, {
+        pendingReason: errorMsg || 'Verifikasi otomatis gagal, menunggu review manual.',
+      });
     }
 
     return Response.json({
@@ -164,6 +159,7 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
+    console.error('[verifyTxHash] Error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
