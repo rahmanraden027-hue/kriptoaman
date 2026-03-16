@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import KriptoAmanLogo from '../components/brand/KriptoAmanLogo';
 import IDRPriceCard from '../components/home/IDRPriceCard';
-import BappebtiTrustBadge from '../components/home/BappebtiTrustBadge';
 import QRISDepositBanner from '../components/home/QRISDepositBanner';
+import TrustBadges from '../components/trust/TrustBadges';
 import { TrendingUp, Wallet, Bell, ArrowRight, Shield, Users, FileCheck, Zap, BookOpen, BarChart3, Gift, Star, ChevronRight } from 'lucide-react';
 
 const QUICK_LINKS = [
@@ -48,15 +48,15 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white pb-24">
-      <div className="max-w-lg mx-auto px-4 pt-4 space-y-5">
+      <div className="max-w-lg mx-auto px-4 pt-4 space-y-4">
 
-        {/* Hero greeting */}
+        {/* ── Hero ── */}
         <div className="rounded-3xl overflow-hidden relative">
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/40 via-blue-600/20 to-purple-600/30" />
           <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" />
           <div className="relative p-6">
-            <KriptoAmanLogo size={40} showText={true} textSize="text-base" className="mb-4" />
-            <p className="text-slate-300 text-sm">{greeting()},</p>
+            <KriptoAmanLogo size={40} showText={true} textSize="text-base" className="mb-3" />
+            <p className="text-slate-400 text-xs">{greeting()},</p>
             <h1 className="text-2xl font-bold text-white mt-0.5">
               {user?.full_name?.split(' ')[0] || 'Pengguna'} 👋
             </h1>
@@ -64,45 +64,45 @@ export default function Home() {
               Platform kripto all-in-one terpercaya Indonesia. Aman, cepat, dan sesuai regulasi Bappebti & OJK.
             </p>
 
-            {/* KYC Status Banner */}
-            {kycStatus !== 'approved' && (
-              <Link to={createPageUrl('KYC')}
-                className="mt-4 flex items-center justify-between bg-yellow-500/15 border border-yellow-500/30 rounded-2xl px-4 py-2.5">
-                <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-yellow-400" />
-                  <span className="text-yellow-300 text-xs font-semibold">
-                    {kycStatus === 'pending' ? '⏳ KYC dalam proses review' : '⚡ Lengkapi KYC untuk akses penuh'}
-                  </span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-yellow-500" />
-              </Link>
-            )}
-            {kycStatus === 'approved' && (
-              <div className="mt-4 flex items-center gap-2 bg-green-500/15 border border-green-500/30 rounded-2xl px-4 py-2.5">
-                <Shield className="w-4 h-4 text-green-400" />
-                <span className="text-green-300 text-xs font-semibold">✓ KYC Terverifikasi — Full Access Aktif</span>
-                <span className="ml-auto text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full border border-green-500/30">Level 2</span>
-              </div>
-            )}
-
-            <div className="flex items-center gap-2 mt-3">
-              <div className="flex items-center gap-1.5 bg-green-500/15 border border-green-500/25 px-3 py-1.5 rounded-full">
+            {/* Status tags */}
+            <div className="flex items-center gap-2 mt-3 flex-wrap">
+              <div className="flex items-center gap-1.5 bg-green-500/15 border border-green-500/25 px-2.5 py-1 rounded-full">
                 <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-green-400 text-xs font-semibold">Live Data</span>
+                <span className="text-green-400 text-[10px] font-semibold">Live Data</span>
               </div>
-              <div className="flex items-center gap-1.5 bg-blue-500/15 border border-blue-500/25 px-3 py-1.5 rounded-full">
+              <div className="flex items-center gap-1.5 bg-blue-500/15 border border-blue-500/25 px-2.5 py-1 rounded-full">
                 <Shield className="w-3 h-3 text-blue-400" />
-                <span className="text-blue-400 text-xs font-semibold">SSL Secured</span>
+                <span className="text-blue-400 text-[10px] font-semibold">SSL 256-bit</span>
               </div>
-              <div className="flex items-center gap-1.5 bg-purple-500/15 border border-purple-500/25 px-3 py-1.5 rounded-full">
-                <Star className="w-3 h-3 text-purple-400" />
-                <span className="text-purple-400 text-xs font-semibold">Bappebti</span>
+              <div className="flex items-center gap-1.5 bg-yellow-500/15 border border-yellow-500/25 px-2.5 py-1 rounded-full">
+                <Star className="w-3 h-3 text-yellow-400" />
+                <span className="text-yellow-400 text-[10px] font-semibold">Bappebti</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Quick access — 4 col grid */}
+        {/* ── KYC Status Banner ── */}
+        {kycStatus !== 'approved' ? (
+          <Link to={createPageUrl('KYC')}
+            className="flex items-center justify-between bg-yellow-500/10 border border-yellow-500/25 rounded-2xl px-4 py-3">
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-yellow-400 shrink-0" />
+              <span className="text-yellow-300 text-xs font-semibold">
+                {kycStatus === 'pending' ? '⏳ KYC dalam proses review' : '⚡ Lengkapi KYC untuk akses penuh'}
+              </span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-yellow-500 shrink-0" />
+          </Link>
+        ) : (
+          <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/25 rounded-2xl px-4 py-3">
+            <Shield className="w-4 h-4 text-green-400 shrink-0" />
+            <span className="text-green-300 text-xs font-semibold">✓ KYC Terverifikasi — Full Access Aktif</span>
+            <span className="ml-auto text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full border border-green-500/30">Level 2</span>
+          </div>
+        )}
+
+        {/* ── Quick Links ── */}
         <div>
           <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-3">Akses Cepat</p>
           <div className="grid grid-cols-4 gap-2.5">
@@ -113,22 +113,25 @@ export default function Home() {
                   <Icon className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-slate-200 text-[10px] font-bold text-center leading-tight">{label}</span>
-                <span className="text-slate-600 text-[9px] text-center leading-tight">{desc}</span>
+                <span className="text-slate-500 text-[9px] text-center leading-tight">{desc}</span>
               </Link>
             ))}
           </div>
         </div>
 
-        {/* Bappebti + OJK + SSL + KYC Trust Badges */}
-        <BappebtiTrustBadge />
-
-        {/* QRIS & E-wallet Deposit */}
+        {/* ── QRIS & E-wallet Deposit ── */}
         <QRISDepositBanner onDepositClick={() => window.location.href = createPageUrl('Wallet')} />
 
-        {/* Live prices in IDR */}
+        {/* ── Live Prices ── */}
         <IDRPriceCard />
 
-        {/* Feature highlights */}
+        {/* ── Trust Badges ── */}
+        <div className="bg-slate-800/30 border border-slate-700/30 rounded-2xl p-4">
+          <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider text-center mb-3">Regulasi & Keamanan</p>
+          <TrustBadges />
+        </div>
+
+        {/* ── Fitur Unggulan ── */}
         <div>
           <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-3">Fitur Unggulan</p>
           <div className="grid grid-cols-2 gap-2.5">
@@ -142,7 +145,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* CTA links */}
+        {/* ── CTA Cards ── */}
         <div className="grid grid-cols-2 gap-3">
           <Link to={createPageUrl('Alerts')}
             className="flex items-center gap-3 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl hover:bg-yellow-500/15 transition-all">
@@ -162,11 +165,11 @@ export default function Home() {
           </Link>
         </div>
 
-        {/* Referral banner */}
+        {/* ── Referral Banner ── */}
         <Link to={createPageUrl('Referral')}
           className="flex items-center justify-between p-4 bg-gradient-to-r from-pink-500/10 via-rose-500/10 to-orange-500/10 border border-pink-500/20 rounded-2xl hover:opacity-80 transition-all">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-orange-500 rounded-xl flex items-center justify-center text-lg">🎁</div>
+            <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-orange-500 rounded-xl flex items-center justify-center text-lg shrink-0">🎁</div>
             <div>
               <p className="text-white font-bold text-sm">Undang Teman, Dapat Bonus!</p>
               <p className="text-slate-400 text-[10px]">Kamu & teman masing-masing dapat Rp 25.000</p>
@@ -175,10 +178,10 @@ export default function Home() {
           <ArrowRight className="w-4 h-4 text-pink-400 shrink-0" />
         </Link>
 
-        {/* Footer trust note */}
+        {/* ── Footer ── */}
         <div className="text-center pb-2">
           <p className="text-slate-600 text-[10px] leading-relaxed">
-            KriptoAman beroperasi sesuai regulasi Bappebti & OJK Indonesia.<br/>
+            KriptoAman beroperasi sesuai regulasi Bappebti & OJK Indonesia.<br />
             Transaksi dijamin dengan enkripsi SSL 256-bit. © 2025 KriptoAman
           </p>
         </div>
