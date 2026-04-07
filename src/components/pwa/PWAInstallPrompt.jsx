@@ -34,8 +34,8 @@ export default function PWAInstallPrompt() {
     <div className="fixed bottom-20 left-4 right-4 z-40 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-4 shadow-xl pwa-install-prompt">
       <div className="flex items-start gap-3">
         <div className="flex-1">
-          <h3 className="text-white font-semibold text-sm">Install COINVAULT</h3>
-          <p className="text-blue-100 text-xs mt-1">Add to home screen untuk akses lebih cepat</p>
+          <h3 className="text-white font-semibold text-sm">Install KriptoAman</h3>
+          <p className="text-blue-100 text-xs mt-1">Tambahkan ke home screen untuk akses lebih cepat</p>
         </div>
         <button
           onClick={() => setShowPrompt(false)}
