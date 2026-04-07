@@ -13,6 +13,8 @@ import ActivityHistory from '../components/settings/ActivityHistory';
 import AdminBalanceEditor from '../components/wallet/AdminBalanceEditor';
 import UserPreferencesEnhanced from '../components/settings/UserPreferencesEnhanced';
 import PaymentAddressBook from '../components/settings/PaymentAddressBook';
+import NetworkStatusPanel from '../components/network/NetworkStatusPanel';
+import { Globe } from 'lucide-react';
 
 const TABS = [
   { id: 'profile', label: 'Profil', icon: User },
@@ -21,6 +23,7 @@ const TABS = [
   { id: 'security', label: 'Keamanan', icon: Shield },
   { id: 'addresses', label: 'Alamat', icon: BookMarked },
   { id: 'balance', label: 'Saldo', icon: Wallet },
+  { id: 'network', label: 'Network', icon: Globe },
 ];
 
 export default function Settings() {
@@ -122,8 +125,8 @@ export default function Settings() {
         </div>
 
         {/* Tab Nav */}
-        <div className="grid grid-cols-3 gap-1 bg-slate-800/60 border border-slate-700/40 rounded-2xl p-1 mb-2">
-          {TABS.slice(0, 3).map(tab => {
+        <div className="grid grid-cols-4 gap-1 bg-slate-800/60 border border-slate-700/40 rounded-2xl p-1 mb-2">
+          {TABS.slice(0, 4).map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
@@ -136,7 +139,7 @@ export default function Settings() {
           })}
         </div>
         <div className="grid grid-cols-3 gap-1 bg-slate-800/60 border border-slate-700/40 rounded-2xl p-1 mb-5">
-          {TABS.slice(3).map(tab => {
+          {TABS.slice(4).map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
@@ -175,6 +178,9 @@ export default function Settings() {
         )}
         {activeTab === 'balance' && user && (
           <AdminBalanceEditor />
+        )}
+        {activeTab === 'network' && (
+          <NetworkStatusPanel />
         )}
         </div>
         </div>
