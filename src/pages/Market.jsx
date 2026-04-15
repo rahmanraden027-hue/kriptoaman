@@ -65,8 +65,8 @@ export default function Market() {
       {chartCoin && (
         <CandlestickModal
           coin={chartCoin}
-          currentPrice={data[chartCoin.id]?.usd}
-          change24h={data[chartCoin.id]?.usd_24h_change}
+          currentPrice={liveData[chartCoin.sym]?.price}
+          change24h={liveData[chartCoin.sym]?.change24h}
           onClose={() => setChartCoin(null)}
         />
       )}

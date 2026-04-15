@@ -7,7 +7,7 @@ export function usePWAInitializer() {
 
   useEffect(() => {
     // Register Service Worker
-    if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+    if ('serviceWorker' in navigator && import.meta.env.PROD) {
       window.addEventListener('load', async () => {
         try {
           const reg = await navigator.serviceWorker.register('/sw.js', {
@@ -75,7 +75,7 @@ async function subscribeToPushNotifications(swReg) {
     const subscription = await swReg.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(
-        process.env.REACT_APP_VAPID_PUBLIC_KEY || ''
+        import.meta.env.VITE_VAPID_PUBLIC_KEY || ''
       ),
     });
 

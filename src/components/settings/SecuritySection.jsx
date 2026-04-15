@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
 import { Shield, ShieldCheck, ShieldOff, Smartphone, Monitor, Globe, Clock, Trash2, CheckCircle2, XCircle, Key, RefreshCw, AlertTriangle, Copy, Check, Lock, Fingerprint, Timer, FileText, Badge as BadgeIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
