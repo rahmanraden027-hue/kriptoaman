@@ -1,0 +1,148 @@
+{
+  "name": "TradingRule",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nama strategi trading"
+    },
+    "userEmail": {
+      "type": "string",
+      "description": "Email pengguna pemilik rule"
+    },
+    "pair": {
+      "type": "string",
+      "description": "Trading pair, e.g. BTCUSDT, ETHUSDT",
+      "default": "BTCUSDT"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": false,
+      "description": "Apakah rule ini aktif"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "paper",
+        "live"
+      ],
+      "default": "paper",
+      "description": "Paper trading (simulasi) atau live (gunakan saldo internal)"
+    },
+    "entryRules": {
+      "type": "array",
+      "description": "Aturan entry (beli)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "indicator": {
+            "type": "string"
+          },
+          "condition": {
+            "type": "string"
+          },
+          "value": {
+            "type": "number"
+          },
+          "logic": {
+            "type": "string",
+            "enum": [
+              "AND",
+              "OR"
+            ],
+            "default": "AND"
+          }
+        }
+      }
+    },
+    "exitRules": {
+      "type": "array",
+      "description": "Aturan exit (jual)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "indicator": {
+            "type": "string"
+          },
+          "condition": {
+            "type": "string"
+          },
+          "value": {
+            "type": "number"
+          },
+          "logic": {
+            "type": "string",
+            "enum": [
+              "AND",
+              "OR"
+            ],
+            "default": "AND"
+          }
+        }
+      }
+    },
+    "tradeAmount": {
+      "type": "number",
+      "description": "Jumlah USDT per trade",
+      "default": 100
+    },
+    "stopLossPercent": {
+      "type": "number",
+      "description": "Stop loss %",
+      "default": 5
+    },
+    "takeProfitPercent": {
+      "type": "number",
+      "description": "Take profit %",
+      "default": 10
+    },
+    "stats": {
+      "type": "object",
+      "properties": {
+        "totalTrades": {
+          "type": "number",
+          "default": 0
+        },
+        "winTrades": {
+          "type": "number",
+          "default": 0
+        },
+        "lossTrades": {
+          "type": "number",
+          "default": 0
+        },
+        "totalPnL": {
+          "type": "number",
+          "default": 0
+        },
+        "winRate": {
+          "type": "number",
+          "default": 0
+        }
+      }
+    },
+    "lastCheckedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "lastSignal": {
+      "type": "string",
+      "enum": [
+        "none",
+        "buy",
+        "sell",
+        "hold"
+      ],
+      "default": "none"
+    },
+    "lastIndicatorSnapshot": {
+      "type": "object",
+      "description": "Nilai indikator terakhir"
+    }
+  },
+  "required": [
+    "name",
+    "userEmail",
+    "pair"
+  ]
+}

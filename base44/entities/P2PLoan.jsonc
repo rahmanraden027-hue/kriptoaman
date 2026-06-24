@@ -1,0 +1,87 @@
+{
+  "name": "P2PLoan",
+  "type": "object",
+  "properties": {
+    "lenderEmail": {
+      "type": "string",
+      "description": "Email pemberi pinjaman"
+    },
+    "borrowerEmail": {
+      "type": "string",
+      "description": "Email peminjam"
+    },
+    "assetSymbol": {
+      "type": "string",
+      "description": "Simbol aset (BTC, ETH, USDT, dll)"
+    },
+    "principalAmount": {
+      "type": "number",
+      "description": "Jumlah pokok pinjaman"
+    },
+    "interestRate": {
+      "type": "number",
+      "description": "Bunga dalam % (per tahun)"
+    },
+    "durationDays": {
+      "type": "number",
+      "description": "Durasi pinjaman dalam hari"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active",
+        "partially_repaid",
+        "completed",
+        "defaulted",
+        "cancelled"
+      ],
+      "default": "pending",
+      "description": "Status pinjaman"
+    },
+    "disbursedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Waktu dana dicairkan"
+    },
+    "dueDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Tanggal jatuh tempo"
+    },
+    "totalOwed": {
+      "type": "number",
+      "description": "Total utang (pokok + bunga)"
+    },
+    "amountRepaid": {
+      "type": "number",
+      "default": 0,
+      "description": "Jumlah yang sudah dibayar"
+    },
+    "lateFee": {
+      "type": "number",
+      "default": 0,
+      "description": "Denda keterlambatan dalam %"
+    },
+    "collateralSymbol": {
+      "type": "string",
+      "description": "Aset jaminan (optional)"
+    },
+    "collateralAmount": {
+      "type": "number",
+      "description": "Jumlah jaminan"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Catatan peminjam"
+    }
+  },
+  "required": [
+    "lenderEmail",
+    "borrowerEmail",
+    "assetSymbol",
+    "principalAmount",
+    "interestRate",
+    "durationDays"
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "name": "TradingNotification",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "alert",
+        "warning",
+        "critical",
+        "info"
+      ],
+      "description": "Notification type/severity"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "market_condition",
+        "trade_execution",
+        "strategy_performance",
+        "system_health",
+        "anomaly"
+      ],
+      "description": "Notification category"
+    },
+    "title": {
+      "type": "string",
+      "description": "Notification title"
+    },
+    "message": {
+      "type": "string",
+      "description": "Notification message"
+    },
+    "strategyId": {
+      "type": "string",
+      "description": "Associated strategy ID if applicable"
+    },
+    "strategyName": {
+      "type": "string",
+      "description": "Associated strategy name"
+    },
+    "data": {
+      "type": "object",
+      "description": "Additional event data (JSON)"
+    },
+    "isRead": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether notification has been read"
+    },
+    "isAcknowledged": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether critical alert has been acknowledged"
+    },
+    "actionRequired": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether action is required from user"
+    }
+  },
+  "required": [
+    "type",
+    "category",
+    "title",
+    "message"
+  ]
+}

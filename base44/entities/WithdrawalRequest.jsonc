@@ -1,0 +1,86 @@
+{
+  "name": "WithdrawalRequest",
+  "type": "object",
+  "properties": {
+    "userEmail": {
+      "type": "string",
+      "description": "Email pengguna"
+    },
+    "coin": {
+      "type": "string",
+      "description": "Aset kripto (USDT, SOL, ETH, BTC)"
+    },
+    "network": {
+      "type": "string",
+      "description": "Jaringan blockchain"
+    },
+    "toAddress": {
+      "type": "string",
+      "description": "Alamat tujuan"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Jumlah penarikan"
+    },
+    "fee": {
+      "type": "number",
+      "description": "Biaya jaringan"
+    },
+    "netAmount": {
+      "type": "number",
+      "description": "Jumlah bersih setelah fee"
+    },
+    "otpCode": {
+      "type": "string",
+      "description": "Kode OTP (sementara)"
+    },
+    "otpExpiry": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Waktu kadaluarsa OTP"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending_otp",
+        "pending",
+        "processing",
+        "completed",
+        "rejected",
+        "expired"
+      ],
+      "default": "pending_otp"
+    },
+    "txHash": {
+      "type": "string",
+      "description": "Hash transaksi blockchain"
+    },
+    "adminNote": {
+      "type": "string"
+    },
+    "processedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "driveReceiptFileId": {
+      "type": "string",
+      "description": "Google Drive file ID untuk receipt"
+    },
+    "driveReceiptLink": {
+      "type": "string",
+      "description": "Link Google Drive untuk melihat receipt"
+    },
+    "driveReceiptSavedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Waktu receipt disimpan ke Drive"
+    }
+  },
+  "required": [
+    "userEmail",
+    "coin",
+    "toAddress",
+    "amount",
+    "status"
+  ]
+}

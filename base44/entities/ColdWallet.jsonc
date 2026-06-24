@@ -1,0 +1,60 @@
+{
+  "name": "ColdWallet",
+  "type": "object",
+  "properties": {
+    "walletAddress": {
+      "type": "string",
+      "description": "Public wallet address (cold storage)"
+    },
+    "coin": {
+      "type": "string",
+      "description": "Cryptocurrency (BTC, ETH, USDT, SOL, dll)"
+    },
+    "network": {
+      "type": "string",
+      "description": "Blockchain network"
+    },
+    "balance": {
+      "type": "number",
+      "default": 0,
+      "description": "Total balance di cold wallet"
+    },
+    "label": {
+      "type": "string",
+      "description": "Nama/label wallet (e.g., Cold Storage Vault 1)"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "description": "Wallet aktif menerima deposit dari hot wallet"
+    },
+    "reservedAmount": {
+      "type": "number",
+      "default": 0,
+      "description": "Total yang di-reserve untuk pending withdrawal"
+    },
+    "availableAmount": {
+      "type": "number",
+      "default": 0,
+      "description": "Balance - reserved (amount yang bisa digunakan)"
+    },
+    "minBalance": {
+      "type": "number",
+      "description": "Minimum balance harus dijaga di cold wallet"
+    },
+    "lastVerifiedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last blockchain verification timestamp"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Internal notes"
+    }
+  },
+  "required": [
+    "walletAddress",
+    "coin",
+    "label"
+  ]
+}

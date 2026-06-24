@@ -1,0 +1,119 @@
+{
+  "name": "KYCVerification",
+  "type": "object",
+  "properties": {
+    "userEmail": {
+      "type": "string",
+      "description": "Email pengguna yang melakukan KYC"
+    },
+    "fullName": {
+      "type": "string",
+      "description": "Nama lengkap sesuai KTP/identitas"
+    },
+    "idType": {
+      "type": "string",
+      "enum": [
+        "ktp",
+        "passport",
+        "sim"
+      ],
+      "description": "Jenis identitas"
+    },
+    "idNumber": {
+      "type": "string",
+      "description": "Nomor identitas (encrypted backend)"
+    },
+    "dateOfBirth": {
+      "type": "string",
+      "format": "date",
+      "description": "Tanggal lahir"
+    },
+    "nationality": {
+      "type": "string",
+      "default": "ID",
+      "description": "Negara asal"
+    },
+    "address": {
+      "type": "string",
+      "description": "Alamat sesuai identitas"
+    },
+    "city": {
+      "type": "string"
+    },
+    "province": {
+      "type": "string"
+    },
+    "phoneNumber": {
+      "type": "string",
+      "description": "Nomor telepon terverifikasi"
+    },
+    "selfieUrl": {
+      "type": "string",
+      "description": "URL foto selfie dengan identitas"
+    },
+    "idPhotoUrl": {
+      "type": "string",
+      "description": "URL foto identitas"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "verified",
+        "rejected",
+        "expired"
+      ],
+      "default": "pending",
+      "description": "Status verifikasi KYC"
+    },
+    "verificationLevel": {
+      "type": "string",
+      "enum": [
+        "basic",
+        "intermediate",
+        "advanced"
+      ],
+      "default": "basic",
+      "description": "Level verifikasi (basic=email, intermediate=ID, advanced=liveness)"
+    },
+    "riskScore": {
+      "type": "number",
+      "description": "Risk assessment score (0-100)"
+    },
+    "rejectionReason": {
+      "type": "string",
+      "description": "Alasan penolakan jika status=rejected"
+    },
+    "verifiedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Waktu verifikasi selesai"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Waktu KYC expire (biasanya 1 tahun)"
+    },
+    "withdrawalLimit": {
+      "type": "number",
+      "default": 0,
+      "description": "Daily withdrawal limit dalam USD sesuai tier KYC"
+    },
+    "adminNotes": {
+      "type": "string",
+      "description": "Catatan admin review"
+    },
+    "amlchecked": {
+      "type": "boolean",
+      "default": false,
+      "description": "Sudah dicek di AMLC/BI watchlist"
+    }
+  },
+  "required": [
+    "userEmail",
+    "fullName",
+    "idType",
+    "idNumber",
+    "dateOfBirth"
+  ]
+}

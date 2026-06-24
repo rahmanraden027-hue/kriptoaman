@@ -1,0 +1,148 @@
+{
+  "name": "PaperTrade",
+  "type": "object",
+  "properties": {
+    "strategyId": {
+      "type": "string",
+      "description": "Referensi ke AutoTradingStrategy yang disimulasikan"
+    },
+    "strategyName": {
+      "type": "string",
+      "description": "Nama strategi untuk referensi cepat"
+    },
+    "simulationName": {
+      "type": "string",
+      "description": "Nama custom untuk simulasi"
+    },
+    "startingCapital": {
+      "type": "number",
+      "description": "Modal awal simulasi dalam USD"
+    },
+    "simulationDays": {
+      "type": "number",
+      "description": "Durasi simulasi dalam hari"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "running",
+        "failed"
+      ],
+      "default": "running",
+      "description": "Status simulasi"
+    },
+    "trades": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "entryPrice": {
+            "type": "number"
+          },
+          "exitPrice": {
+            "type": "number"
+          },
+          "quantity": {
+            "type": "string"
+          },
+          "profitLoss": {
+            "type": "number"
+          },
+          "profitLossPercent": {
+            "type": "number"
+          },
+          "entryTime": {
+            "type": "string"
+          },
+          "exitTime": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Daftar trades simulasi"
+    },
+    "statistics": {
+      "type": "object",
+      "properties": {
+        "totalTrades": {
+          "type": "number"
+        },
+        "winningTrades": {
+          "type": "number"
+        },
+        "losingTrades": {
+          "type": "number"
+        },
+        "winRate": {
+          "type": "number"
+        },
+        "totalPL": {
+          "type": "number"
+        },
+        "totalPLPercent": {
+          "type": "number"
+        },
+        "maxDrawdown": {
+          "type": "number"
+        },
+        "maxDrawdownPercent": {
+          "type": "number"
+        },
+        "avgWin": {
+          "type": "number"
+        },
+        "avgLoss": {
+          "type": "number"
+        },
+        "profitFactor": {
+          "type": "number"
+        },
+        "sharpeRatio": {
+          "type": "number"
+        },
+        "finalBalance": {
+          "type": "number"
+        }
+      },
+      "description": "Statistik kinerja simulasi"
+    },
+    "equityData": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "balance": {
+            "type": "number"
+          },
+          "equity": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Data ekuitas harian untuk grafik"
+    },
+    "errorMessage": {
+      "type": "string",
+      "description": "Pesan error jika simulasi gagal"
+    },
+    "completedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Waktu simulasi selesai"
+    }
+  },
+  "required": [
+    "strategyId",
+    "strategyName",
+    "simulationName",
+    "startingCapital",
+    "simulationDays"
+  ]
+}

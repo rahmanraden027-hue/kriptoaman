@@ -1,0 +1,44 @@
+{
+  "name": "PlatformCryptoAddress",
+  "type": "object",
+  "properties": {
+    "coin": {
+      "type": "string",
+      "description": "Koin (BTC, ETH, USDT, SOL, dll)"
+    },
+    "label": {
+      "type": "string",
+      "description": "Label / nama alamat"
+    },
+    "address": {
+      "type": "string",
+      "description": "Alamat kripto platform"
+    },
+    "network": {
+      "type": "string",
+      "description": "Jaringan blockchain (ERC-20, TRC-20, dll)"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "description": "Apakah alamat ini aktif digunakan"
+    },
+    "minDeposit": {
+      "type": "number",
+      "description": "Minimum jumlah deposit (dalam koin tersebut)"
+    },
+    "maxDeposit": {
+      "type": "number",
+      "description": "Maximum jumlah deposit (dalam koin tersebut)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Catatan admin"
+    }
+  },
+  "required": [
+    "coin",
+    "label",
+    "address"
+  ]
+}

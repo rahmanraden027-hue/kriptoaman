@@ -1,0 +1,57 @@
+{
+  "name": "AdminProfit",
+  "type": "object",
+  "properties": {
+    "transactionType": {
+      "type": "string",
+      "enum": [
+        "send",
+        "swap",
+        "trade",
+        "deposit",
+        "withdrawal"
+      ],
+      "description": "Jenis transaksi"
+    },
+    "userEmail": {
+      "type": "string",
+      "description": "Email pengguna yang melakukan transaksi"
+    },
+    "amount": {
+      "type": "number",
+      "default": 0.5,
+      "description": "Jumlah fee yang dikumpulkan dalam USD"
+    },
+    "transactionId": {
+      "type": "string",
+      "description": "ID transaksi reference"
+    },
+    "currency": {
+      "type": "string",
+      "description": "Mata uang transaksi (BTC, ETH, etc)"
+    },
+    "transactionAmount": {
+      "type": "number",
+      "description": "Total amount dari transaksi original"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "collected",
+        "refunded"
+      ],
+      "default": "collected",
+      "description": "Status pengumpulan fee"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Catatan tambahan"
+    }
+  },
+  "required": [
+    "transactionType",
+    "userEmail",
+    "amount"
+  ]
+}

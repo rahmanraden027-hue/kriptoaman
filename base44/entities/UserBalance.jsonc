@@ -1,0 +1,24 @@
+{
+  "name": "UserBalance",
+  "type": "object",
+  "properties": {
+    "userEmail": {
+      "type": "string",
+      "description": "Email pengguna"
+    },
+    "coin": {
+      "type": "string",
+      "description": "Koin (USDT, SOL, IDR, dll)"
+    },
+    "amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Jumlah saldo"
+    }
+  },
+  "required": [
+    "userEmail",
+    "coin",
+    "amount"
+  ]
+}

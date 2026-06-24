@@ -1,0 +1,58 @@
+{
+  "name": "UserLendingRating",
+  "type": "object",
+  "properties": {
+    "userEmail": {
+      "type": "string",
+      "description": "Email pengguna"
+    },
+    "totalLoans": {
+      "type": "number",
+      "default": 0,
+      "description": "Total pinjaman yang pernah diambil"
+    },
+    "completedLoans": {
+      "type": "number",
+      "default": 0,
+      "description": "Pinjaman yang berhasil diselesaikan"
+    },
+    "defaultedLoans": {
+      "type": "number",
+      "default": 0,
+      "description": "Pinjaman yang default"
+    },
+    "avgRepaymentRate": {
+      "type": "number",
+      "default": 0,
+      "description": "Rata-rata tingkat pembayaran tepat waktu dalam %"
+    },
+    "creditScore": {
+      "type": "number",
+      "default": 500,
+      "description": "Credit score 0-1000"
+    },
+    "rating": {
+      "type": "number",
+      "default": 0,
+      "description": "Rating 0-5 bintang"
+    },
+    "totalBorrowAmount": {
+      "type": "number",
+      "default": 0,
+      "description": "Total amount yang pernah dipinjam (USD)"
+    },
+    "totalRepaidAmount": {
+      "type": "number",
+      "default": 0,
+      "description": "Total amount yang sudah dibayar (USD)"
+    },
+    "lastUpdateAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Waktu update terakhir"
+    }
+  },
+  "required": [
+    "userEmail"
+  ]
+}

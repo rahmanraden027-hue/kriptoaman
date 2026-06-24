@@ -1,0 +1,42 @@
+{
+  "name": "LoanRepayment",
+  "type": "object",
+  "properties": {
+    "loanId": {
+      "type": "string",
+      "description": "Referensi ke P2PLoan"
+    },
+    "borrowerEmail": {
+      "type": "string",
+      "description": "Email peminjam"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Jumlah pembayaran"
+    },
+    "txHash": {
+      "type": "string",
+      "description": "Transaction hash dari blockchain"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "failed"
+      ],
+      "default": "pending",
+      "description": "Status pembayaran"
+    },
+    "paidAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Waktu pembayaran"
+    }
+  },
+  "required": [
+    "loanId",
+    "borrowerEmail",
+    "amount"
+  ]
+}

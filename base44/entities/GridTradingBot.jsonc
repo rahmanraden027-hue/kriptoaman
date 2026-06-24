@@ -1,0 +1,127 @@
+{
+  "name": "GridTradingBot",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nama bot"
+    },
+    "exchange": {
+      "type": "string",
+      "enum": [
+        "binance",
+        "bybit",
+        "okx"
+      ],
+      "description": "Exchange yang digunakan"
+    },
+    "cexConnectionId": {
+      "type": "string",
+      "description": "ID koneksi CEX dari CexConnection"
+    },
+    "symbol": {
+      "type": "string",
+      "description": "Trading pair, mis. BTCUSDT"
+    },
+    "upperPrice": {
+      "type": "number",
+      "description": "Harga batas atas grid"
+    },
+    "lowerPrice": {
+      "type": "number",
+      "description": "Harga batas bawah grid"
+    },
+    "gridCount": {
+      "type": "number",
+      "description": "Jumlah grid level"
+    },
+    "totalInvestment": {
+      "type": "number",
+      "description": "Total modal dalam USDT"
+    },
+    "perGridAmount": {
+      "type": "number",
+      "description": "Jumlah USDT per grid (dihitung otomatis)"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": false,
+      "description": "Status bot aktif atau tidak"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "neutral",
+        "long",
+        "short"
+      ],
+      "default": "neutral",
+      "description": "Mode grid trading"
+    },
+    "activeOrders": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "side": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Order aktif di exchange"
+    },
+    "stats": {
+      "type": "object",
+      "properties": {
+        "totalProfit": {
+          "type": "number",
+          "default": 0
+        },
+        "totalTrades": {
+          "type": "number",
+          "default": 0
+        },
+        "profitPercent": {
+          "type": "number",
+          "default": 0
+        },
+        "runningHours": {
+          "type": "number",
+          "default": 0
+        }
+      }
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "lastRunAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "errorMessage": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "exchange",
+    "symbol",
+    "upperPrice",
+    "lowerPrice",
+    "gridCount",
+    "totalInvestment"
+  ]
+}

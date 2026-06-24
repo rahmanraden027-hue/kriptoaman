@@ -1,0 +1,129 @@
+{
+  "name": "AMLScreening",
+  "type": "object",
+  "properties": {
+    "userEmail": {
+      "type": "string",
+      "description": "Email pengguna yang di-screen"
+    },
+    "riskScore": {
+      "type": "number",
+      "description": "Daily risk score (0-100)"
+    },
+    "riskLevel": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "description": "Risk level classification"
+    },
+    "flaggedTransaction": {
+      "type": "string",
+      "description": "ID transaksi yang trigger flag"
+    },
+    "transactionAmount": {
+      "type": "number",
+      "description": "Amount dari transaksi yang di-flag"
+    },
+    "indicators": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "rapid_transfers",
+              "high_volume",
+              "unknown_address",
+              "pattern_change",
+              "velocity_check",
+              "round_amount",
+              "off_hours",
+              "geo_anomaly"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Array of detected fraud indicators"
+    },
+    "transactionHistory24h": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "type": {
+            "type": "string"
+          },
+          "riskScore": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Last 24h transactions for context"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "clean",
+        "pending_review",
+        "flagged",
+        "under_investigation",
+        "blocked"
+      ],
+      "default": "clean",
+      "description": "AML screening status"
+    },
+    "adminAction": {
+      "type": "string",
+      "enum": [
+        "none",
+        "approved",
+        "rejected",
+        "manual_review"
+      ],
+      "default": "none",
+      "description": "Admin action taken"
+    },
+    "adminNote": {
+      "type": "string",
+      "description": "Admin review notes"
+    },
+    "reviewedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When admin reviewed"
+    },
+    "lastScreenedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last screening timestamp"
+    },
+    "notificationSent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Apakah notification sudah dikirim ke admin"
+    }
+  },
+  "required": [
+    "userEmail",
+    "riskScore",
+    "riskLevel",
+    "status"
+  ]
+}

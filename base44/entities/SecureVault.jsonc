@@ -1,0 +1,53 @@
+{
+  "name": "SecureVault",
+  "type": "object",
+  "properties": {
+    "label": {
+      "type": "string",
+      "description": "Nama/label untuk key ini"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "api_key",
+        "private_key",
+        "wallet_key",
+        "secret",
+        "other"
+      ],
+      "description": "Kategori key"
+    },
+    "service": {
+      "type": "string",
+      "description": "Nama layanan/platform (Binance, MetaMask, dll)"
+    },
+    "encryptedValue": {
+      "type": "string",
+      "description": "Nilai key yang terenkripsi"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Catatan tambahan"
+    },
+    "ownerEmail": {
+      "type": "string",
+      "description": "Email owner"
+    },
+    "isVisible": {
+      "type": "boolean",
+      "default": false,
+      "description": "Status tampilkan value"
+    },
+    "lastAccessedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Terakhir diakses"
+    }
+  },
+  "required": [
+    "label",
+    "category",
+    "encryptedValue",
+    "ownerEmail"
+  ]
+}

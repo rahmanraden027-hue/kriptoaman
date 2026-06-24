@@ -1,0 +1,104 @@
+{
+  "name": "MarketCondition",
+  "type": "object",
+  "properties": {
+    "pair": {
+      "type": "string",
+      "description": "Trading pair being monitored"
+    },
+    "assetClass": {
+      "type": "string",
+      "enum": [
+        "crypto",
+        "forex",
+        "indices",
+        "commodities"
+      ],
+      "description": "Asset class"
+    },
+    "volatility": {
+      "type": "number",
+      "description": "Current volatility measure (0-100)"
+    },
+    "volatilityTrend": {
+      "type": "string",
+      "enum": [
+        "increasing",
+        "decreasing",
+        "stable"
+      ],
+      "description": "Volatility trend direction"
+    },
+    "trend": {
+      "type": "string",
+      "enum": [
+        "uptrend",
+        "downtrend",
+        "sideways"
+      ],
+      "description": "Market trend"
+    },
+    "trendStrength": {
+      "type": "number",
+      "description": "Trend strength (0-100)"
+    },
+    "supportLevel": {
+      "type": "number",
+      "description": "Nearest support level"
+    },
+    "resistanceLevel": {
+      "type": "number",
+      "description": "Nearest resistance level"
+    },
+    "lastPrice": {
+      "type": "number",
+      "description": "Last recorded price"
+    },
+    "riskLevel": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "description": "Overall risk assessment"
+    },
+    "alerts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "volatility_spike",
+              "trend_reversal",
+              "support_break",
+              "resistance_break"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Market alerts"
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last update time"
+    }
+  },
+  "required": [
+    "pair",
+    "assetClass",
+    "volatility",
+    "trend",
+    "lastPrice"
+  ]
+}

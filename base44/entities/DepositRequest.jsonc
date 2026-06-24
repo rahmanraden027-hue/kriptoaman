@@ -1,0 +1,73 @@
+{
+  "name": "DepositRequest",
+  "type": "object",
+  "properties": {
+    "userEmail": {
+      "type": "string",
+      "description": "Email pengguna"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "crypto",
+        "bank"
+      ],
+      "description": "Metode deposit"
+    },
+    "coin": {
+      "type": "string",
+      "description": "Koin atau IDR"
+    },
+    "network": {
+      "type": "string",
+      "description": "Jaringan blockchain (untuk kripto)"
+    },
+    "amountCrypto": {
+      "type": "number",
+      "description": "Jumlah kripto yang dideposit"
+    },
+    "amountIDR": {
+      "type": "number",
+      "description": "Jumlah IDR (untuk bank)"
+    },
+    "txHash": {
+      "type": "string",
+      "description": "Transaction hash (untuk kripto)"
+    },
+    "senderName": {
+      "type": "string",
+      "description": "Nama pengirim (untuk bank)"
+    },
+    "proofNote": {
+      "type": "string",
+      "description": "Catatan / nomor referensi"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "rejected"
+      ],
+      "default": "pending"
+    },
+    "pendingReason": {
+      "type": "string",
+      "description": "Alasan mengapa transaksi masih tertunda"
+    },
+    "adminNote": {
+      "type": "string",
+      "description": "Catatan admin"
+    },
+    "confirmedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "userEmail",
+    "type",
+    "coin",
+    "status"
+  ]
+}

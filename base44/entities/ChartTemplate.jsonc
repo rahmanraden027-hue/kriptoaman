@@ -1,0 +1,77 @@
+{
+  "name": "ChartTemplate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Template name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Template description"
+    },
+    "indicators": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "ma",
+              "ema",
+              "rsi",
+              "macd",
+              "bollinger",
+              "atr"
+            ]
+          },
+          "period": {
+            "type": "number"
+          },
+          "color": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "description": "Array of technical indicators"
+    },
+    "timeframe": {
+      "type": "string",
+      "enum": [
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "4h",
+        "1d"
+      ],
+      "default": "1h",
+      "description": "Default timeframe for this template"
+    },
+    "chartType": {
+      "type": "string",
+      "enum": [
+        "candlestick",
+        "line",
+        "area"
+      ],
+      "default": "candlestick",
+      "description": "Chart type"
+    },
+    "isDefault": {
+      "type": "boolean",
+      "default": false,
+      "description": "Mark as default template"
+    }
+  },
+  "required": [
+    "name",
+    "indicators"
+  ]
+}

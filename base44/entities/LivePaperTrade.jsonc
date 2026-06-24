@@ -1,0 +1,106 @@
+{
+  "name": "LivePaperTrade",
+  "type": "object",
+  "properties": {
+    "strategyId": {
+      "type": "string",
+      "description": "Reference to AutoTradingStrategy"
+    },
+    "strategyName": {
+      "type": "string",
+      "description": "Name of the strategy"
+    },
+    "assetClass": {
+      "type": "string",
+      "enum": [
+        "crypto",
+        "forex",
+        "indices",
+        "commodities"
+      ],
+      "description": "Asset class being traded"
+    },
+    "pair": {
+      "type": "string",
+      "description": "Trading pair (e.g., EUR/USD, AAPL, GOLD)"
+    },
+    "entryPrice": {
+      "type": "number",
+      "description": "Entry price of the trade"
+    },
+    "currentPrice": {
+      "type": "number",
+      "description": "Current market price"
+    },
+    "quantity": {
+      "type": "number",
+      "description": "Trade size/quantity"
+    },
+    "stopLoss": {
+      "type": "number",
+      "description": "Stop loss price"
+    },
+    "takeProfit": {
+      "type": "number",
+      "description": "Take profit price"
+    },
+    "unrealizedPL": {
+      "type": "number",
+      "description": "Unrealized profit/loss in USD"
+    },
+    "unrealizedPLPercent": {
+      "type": "number",
+      "description": "Unrealized P/L percentage"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "closed",
+        "pending"
+      ],
+      "default": "open",
+      "description": "Trade status"
+    },
+    "entryTime": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the trade was opened"
+    },
+    "exitTime": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the trade was closed"
+    },
+    "exitPrice": {
+      "type": "number",
+      "description": "Exit price if closed"
+    },
+    "realizedPL": {
+      "type": "number",
+      "description": "Realized P/L if closed"
+    },
+    "executionMode": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "automatic"
+      ],
+      "description": "How the trade was executed"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Trade notes"
+    }
+  },
+  "required": [
+    "strategyId",
+    "strategyName",
+    "pair",
+    "assetClass",
+    "entryPrice",
+    "quantity",
+    "stopLoss",
+    "takeProfit"
+  ]
+}

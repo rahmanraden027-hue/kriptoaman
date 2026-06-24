@@ -1,0 +1,76 @@
+{
+  "name": "TradePerformance",
+  "type": "object",
+  "properties": {
+    "dexOrderId": {
+      "type": "string",
+      "description": "Referensi ke DEXOrder yang dikaitkan"
+    },
+    "orderType": {
+      "type": "string",
+      "enum": [
+        "stop-loss",
+        "take-profit"
+      ],
+      "description": "Jenis order"
+    },
+    "chainName": {
+      "type": "string",
+      "description": "Nama blockchain"
+    },
+    "fromTokenSymbol": {
+      "type": "string",
+      "description": "Token asal"
+    },
+    "toTokenSymbol": {
+      "type": "string",
+      "description": "Token tujuan"
+    },
+    "entryPrice": {
+      "type": "number",
+      "description": "Harga trigger/entry"
+    },
+    "exitPrice": {
+      "type": "number",
+      "description": "Harga keluar/eksekusi"
+    },
+    "quantity": {
+      "type": "string",
+      "description": "Jumlah token"
+    },
+    "profitLoss": {
+      "type": "number",
+      "description": "Total profit/loss dalam USD"
+    },
+    "profitLossPercent": {
+      "type": "number",
+      "description": "Profit/loss dalam persen"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "executed",
+        "failed",
+        "cancelled"
+      ],
+      "description": "Status trade"
+    },
+    "executedDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Tanggal eksekusi trade"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Catatan tambahan"
+    }
+  },
+  "required": [
+    "dexOrderId",
+    "orderType",
+    "fromTokenSymbol",
+    "toTokenSymbol",
+    "entryPrice",
+    "status"
+  ]
+}

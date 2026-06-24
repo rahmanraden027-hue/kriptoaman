@@ -1,0 +1,129 @@
+{
+  "name": "AutoTradingStrategy",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nama strategi trading"
+    },
+    "strategyType": {
+      "type": "string",
+      "enum": [
+        "template",
+        "custom"
+      ],
+      "description": "Tipe strategi - template atau custom"
+    },
+    "templateName": {
+      "type": "string",
+      "enum": [
+        "rsi",
+        "macd",
+        "bollinger",
+        "custom"
+      ],
+      "description": "Template strategi jika menggunakan template"
+    },
+    "assetClass": {
+      "type": "string",
+      "enum": [
+        "crypto",
+        "forex",
+        "indices",
+        "commodities"
+      ],
+      "default": "crypto",
+      "description": "Kelas aset yang diperdagangkan"
+    },
+    "pair": {
+      "type": "string",
+      "description": "Trading pair (e.g., ETH/USDT, EUR/USD, AAPL, GOLD)"
+    },
+    "chain": {
+      "type": "string",
+      "description": "Blockchain chain untuk crypto (e.g., Ethereum, BNB)"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": false,
+      "description": "Status strategi aktif atau tidak"
+    },
+    "analysisInterval": {
+      "type": "number",
+      "description": "Interval analisis dalam menit (5, 15, 30, 60)"
+    },
+    "entryCondition": {
+      "type": "string",
+      "description": "Kondisi entry strategy (JSON string)"
+    },
+    "exitCondition": {
+      "type": "string",
+      "description": "Kondisi exit strategy (JSON string)"
+    },
+    "riskManagement": {
+      "type": "object",
+      "properties": {
+        "useATR": {
+          "type": "boolean",
+          "default": true,
+          "description": "Gunakan ATR untuk SL/TP dinamis"
+        },
+        "atrMultiplier": {
+          "type": "number",
+          "default": 2,
+          "description": "Multiplier untuk ATR (untuk SL)"
+        },
+        "tpMultiplier": {
+          "type": "number",
+          "default": 3,
+          "description": "Multiplier untuk TP (profit target)"
+        },
+        "maxRiskPercent": {
+          "type": "number",
+          "description": "Maksimal risk per trade dalam persen"
+        },
+        "tradeSize": {
+          "type": "number",
+          "description": "Ukuran trade dalam USD"
+        }
+      }
+    },
+    "stats": {
+      "type": "object",
+      "properties": {
+        "totalTrades": {
+          "type": "number",
+          "default": 0
+        },
+        "winningTrades": {
+          "type": "number",
+          "default": 0
+        },
+        "totalPL": {
+          "type": "number",
+          "default": 0
+        },
+        "winRate": {
+          "type": "number",
+          "default": 0
+        }
+      }
+    },
+    "lastAnalyzedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Waktu analisis terakhir"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Catatan tambahan tentang strategi"
+    }
+  },
+  "required": [
+    "name",
+    "pair",
+    "analysisInterval",
+    "strategyType",
+    "assetClass"
+  ]
+}

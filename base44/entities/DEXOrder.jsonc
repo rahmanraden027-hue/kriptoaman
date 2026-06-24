@@ -1,0 +1,88 @@
+{
+  "name": "DEXOrder",
+  "type": "object",
+  "properties": {
+    "orderType": {
+      "type": "string",
+      "enum": [
+        "stop-loss",
+        "take-profit"
+      ],
+      "description": "Jenis order: stop-loss atau take-profit"
+    },
+    "chainId": {
+      "type": "number",
+      "description": "Chain ID (1 untuk Ethereum, 56 untuk BNB, dst)"
+    },
+    "chainName": {
+      "type": "string",
+      "description": "Nama chain (Ethereum, BNB Chain, dst)"
+    },
+    "fromTokenSymbol": {
+      "type": "string",
+      "description": "Symbol token asal (ETH, USDT, dst)"
+    },
+    "fromTokenAddress": {
+      "type": "string",
+      "description": "Address token asal"
+    },
+    "toTokenSymbol": {
+      "type": "string",
+      "description": "Symbol token tujuan"
+    },
+    "toTokenAddress": {
+      "type": "string",
+      "description": "Address token tujuan"
+    },
+    "amount": {
+      "type": "string",
+      "description": "Jumlah token yang akan ditukar"
+    },
+    "triggerPrice": {
+      "type": "number",
+      "description": "Harga trigger untuk mengeksekusi order"
+    },
+    "executionPrice": {
+      "type": "number",
+      "description": "Harga eksekusi (optional, untuk referensi)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "triggered",
+        "executed",
+        "cancelled",
+        "failed"
+      ],
+      "default": "pending",
+      "description": "Status order saat ini"
+    },
+    "retryCount": {
+      "type": "number",
+      "default": 0,
+      "description": "Jumlah percobaan eksekusi yang telah dilakukan"
+    },
+    "lastError": {
+      "type": "string",
+      "description": "Error message dari percobaan terakhir"
+    },
+    "txHash": {
+      "type": "string",
+      "description": "Transaction hash jika eksekusi berhasil"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Catatan tambahan tentang order"
+    }
+  },
+  "required": [
+    "orderType",
+    "chainId",
+    "chainName",
+    "fromTokenSymbol",
+    "toTokenSymbol",
+    "amount",
+    "triggerPrice"
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "name": "CachedPrice",
+  "type": "object",
+  "properties": {
+    "symbol": {
+      "type": "string",
+      "description": "Simbol koin (BTC, ETH, dll)"
+    },
+    "price": {
+      "type": "number",
+      "description": "Harga dalam USD"
+    },
+    "change24h": {
+      "type": "number",
+      "description": "Perubahan 24 jam dalam %"
+    },
+    "volume24h": {
+      "type": "number",
+      "description": "Volume 24 jam dalam USD"
+    },
+    "high24h": {
+      "type": "number",
+      "description": "Harga tertinggi 24 jam"
+    },
+    "low24h": {
+      "type": "number",
+      "description": "Harga terendah 24 jam"
+    },
+    "idrRate": {
+      "type": "number",
+      "description": "Kurs USD ke IDR saat data diambil"
+    },
+    "fetchedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Waktu data diambil"
+    }
+  },
+  "required": [
+    "symbol",
+    "price",
+    "fetchedAt"
+  ]
+}

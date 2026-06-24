@@ -1,0 +1,70 @@
+{
+  "name": "TradingSignal",
+  "type": "object",
+  "properties": {
+    "ruleId": {
+      "type": "string",
+      "description": "ID TradingRule"
+    },
+    "ruleName": {
+      "type": "string"
+    },
+    "userEmail": {
+      "type": "string"
+    },
+    "pair": {
+      "type": "string"
+    },
+    "signal": {
+      "type": "string",
+      "enum": [
+        "buy",
+        "sell",
+        "hold"
+      ],
+      "description": "Sinyal yang dihasilkan"
+    },
+    "price": {
+      "type": "number",
+      "description": "Harga saat sinyal terjadi"
+    },
+    "indicatorValues": {
+      "type": "object",
+      "description": "Nilai indikator saat sinyal (RSI, EMA, MACD, dll)"
+    },
+    "triggeredRules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Rule mana yang ter-trigger"
+    },
+    "executed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Apakah sudah dieksekusi"
+    },
+    "executionResult": {
+      "type": "string",
+      "description": "Hasil eksekusi trade"
+    },
+    "pnl": {
+      "type": "number",
+      "description": "Profit/loss dari signal ini (jika sell)"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "paper",
+        "live"
+      ],
+      "default": "paper"
+    }
+  },
+  "required": [
+    "ruleId",
+    "pair",
+    "signal",
+    "price"
+  ]
+}

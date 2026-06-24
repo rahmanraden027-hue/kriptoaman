@@ -1,0 +1,36 @@
+{
+  "name": "SupportMessage",
+  "type": "object",
+  "properties": {
+    "conversationId": {
+      "type": "string",
+      "description": "Unique conversation ID per user session"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "user",
+        "support"
+      ],
+      "description": "Sender role"
+    },
+    "content": {
+      "type": "string",
+      "description": "Message content"
+    },
+    "userEmail": {
+      "type": "string",
+      "description": "Email of the user"
+    },
+    "isRead": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the message has been read by the other party"
+    }
+  },
+  "required": [
+    "conversationId",
+    "role",
+    "content"
+  ]
+}

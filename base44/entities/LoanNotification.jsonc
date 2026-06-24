@@ -1,0 +1,57 @@
+{
+  "name": "LoanNotification",
+  "type": "object",
+  "properties": {
+    "userEmail": {
+      "type": "string",
+      "description": "Email penerima notifikasi"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "loan_request",
+        "loan_accepted",
+        "loan_disbursed",
+        "payment_received",
+        "payment_due_soon",
+        "payment_overdue",
+        "loan_completed",
+        "default_warning"
+      ],
+      "description": "Tipe notifikasi"
+    },
+    "loanId": {
+      "type": "string",
+      "description": "Referensi ke P2PLoan"
+    },
+    "title": {
+      "type": "string",
+      "description": "Judul notifikasi"
+    },
+    "message": {
+      "type": "string",
+      "description": "Pesan notifikasi"
+    },
+    "isRead": {
+      "type": "boolean",
+      "default": false,
+      "description": "Status baca notifikasi"
+    },
+    "actionRequired": {
+      "type": "boolean",
+      "default": false,
+      "description": "Apakah diperlukan tindakan"
+    },
+    "sentAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Waktu notifikasi dikirim"
+    }
+  },
+  "required": [
+    "userEmail",
+    "type",
+    "title",
+    "message"
+  ]
+}

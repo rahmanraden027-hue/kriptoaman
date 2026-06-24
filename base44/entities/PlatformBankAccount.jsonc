@@ -1,0 +1,36 @@
+{
+  "name": "PlatformBankAccount",
+  "type": "object",
+  "properties": {
+    "bank": {
+      "type": "string",
+      "description": "Nama bank / e-wallet"
+    },
+    "accountNumber": {
+      "type": "string",
+      "description": "Nomor rekening platform"
+    },
+    "accountName": {
+      "type": "string",
+      "description": "Nama pemilik rekening"
+    },
+    "label": {
+      "type": "string",
+      "description": "Label tampilan"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "description": "Apakah rekening ini aktif"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Catatan admin"
+    }
+  },
+  "required": [
+    "bank",
+    "accountNumber",
+    "accountName"
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "name": "OpenPosition",
+  "type": "object",
+  "properties": {
+    "ruleId": {
+      "type": "string"
+    },
+    "ruleName": {
+      "type": "string"
+    },
+    "userEmail": {
+      "type": "string"
+    },
+    "pair": {
+      "type": "string"
+    },
+    "entryPrice": {
+      "type": "number"
+    },
+    "quantity": {
+      "type": "number",
+      "description": "Jumlah koin"
+    },
+    "tradeAmount": {
+      "type": "number",
+      "description": "USDT yang digunakan"
+    },
+    "stopLossPrice": {
+      "type": "number"
+    },
+    "takeProfitPrice": {
+      "type": "number"
+    },
+    "currentPrice": {
+      "type": "number"
+    },
+    "unrealizedPnL": {
+      "type": "number",
+      "default": 0
+    },
+    "unrealizedPnLPercent": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "closed"
+      ],
+      "default": "open"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "paper",
+        "live"
+      ],
+      "default": "paper"
+    },
+    "entrySignalId": {
+      "type": "string"
+    },
+    "exitSignalId": {
+      "type": "string"
+    },
+    "exitPrice": {
+      "type": "number"
+    },
+    "exitReason": {
+      "type": "string",
+      "enum": [
+        "take_profit",
+        "stop_loss",
+        "signal",
+        "manual"
+      ]
+    },
+    "realizedPnL": {
+      "type": "number"
+    },
+    "closedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "ruleId",
+    "userEmail",
+    "pair",
+    "entryPrice",
+    "quantity",
+    "tradeAmount"
+  ]
+}

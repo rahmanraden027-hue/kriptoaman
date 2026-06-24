@@ -35,7 +35,7 @@ export function useNotifications(address) {
   const [notifications, setNotifications] = useState([]);
   const [unread, setUnread]               = useState(0);
   const [pushEnabled, setPushEnabled]     = useState(
-    typeof window !== 'undefined' && Notification?.permission === 'granted'
+    typeof window !== 'undefined' && typeof Notification !== 'undefined' && Notification.permission === 'granted'
   );
   const prevPriceRef     = useRef(null);
   const prevBalanceRef   = useRef(null);

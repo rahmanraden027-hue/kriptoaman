@@ -1,0 +1,73 @@
+{
+  "name": "WithdrawalHold",
+  "type": "object",
+  "properties": {
+    "withdrawalRequestId": {
+      "type": "string",
+      "description": "Reference to WithdrawalRequest"
+    },
+    "userEmail": {
+      "type": "string",
+      "description": "User email"
+    },
+    "coin": {
+      "type": "string",
+      "description": "Cryptocurrency"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Amount yang di-hold"
+    },
+    "holdUntil": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Waktu hold selesai (default 24-48 jam dari request)"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "aml_check",
+        "fraud_prevention",
+        "volume_limit",
+        "new_address_verification"
+      ],
+      "description": "Alasan hold"
+    },
+    "riskFlag": {
+      "type": "boolean",
+      "default": false,
+      "description": "Apakah ada risk flag yang require manual review"
+    },
+    "adminReviewed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Sudah di-review admin"
+    },
+    "releaseApprovedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Waktu admin approve release"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "holding",
+        "released",
+        "cancelled"
+      ],
+      "default": "holding",
+      "description": "Status hold"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Admin notes"
+    }
+  },
+  "required": [
+    "withdrawalRequestId",
+    "userEmail",
+    "coin",
+    "amount",
+    "holdUntil"
+  ]
+}
