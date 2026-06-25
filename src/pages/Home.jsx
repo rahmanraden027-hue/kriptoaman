@@ -17,6 +17,7 @@ const QUICK_LINKS = [
   { label: 'Referral', page: 'Referral', icon: Gift, color: 'from-pink-500 to-rose-500', desc: 'Bonus Rp25K' },
   { label: 'Edukasi', page: 'Edukasi', icon: BookOpen, color: 'from-teal-500 to-green-500', desc: 'Belajar kripto' },
   { label: 'P2P', page: 'P2PLending', icon: Users, color: 'from-amber-500 to-yellow-500', desc: 'Lending' },
+  { label: 'Tentang', page: 'SEOLanding', icon: Star, color: 'from-indigo-500 to-violet-600', desc: 'Kenapa kami' },
 ];
 
 const FEATURES = [

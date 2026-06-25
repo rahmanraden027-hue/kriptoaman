@@ -37,7 +37,7 @@ const NAV = [
   { label: 'Riwayat', page: 'TxHistory', icon: Clock },
   { label: 'Settings', page: 'Settings', icon: Settings },
   { label: 'Support', page: 'Support', icon: MessageCircle },
-  { label: 'SEO Landing', page: 'SEOLanding', icon: TrendingUp, adminOnly: true },
+  { label: 'SEO Landing', page: 'SEOLanding', icon: TrendingUp },
   { label: 'About', page: 'AboutUs', icon: Info },
   { label: 'Kontak', page: 'Contact', icon: Mail },
   { label: 'Disclaimer', page: 'Disclaimer', icon: AlertTriangle },
