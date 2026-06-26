@@ -83,5 +83,57 @@
     "principalAmount",
     "interestRate",
     "durationDays"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.lenderEmail": "{{user.email}}"
+        },
+        {
+          "data.borrowerEmail": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.lenderEmail": "{{user.email}}"
+        },
+        {
+          "data.borrowerEmail": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.lenderEmail": "{{user.email}}"
+        },
+        {
+          "data.borrowerEmail": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }
