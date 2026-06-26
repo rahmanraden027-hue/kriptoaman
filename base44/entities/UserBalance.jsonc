@@ -13,7 +13,11 @@
     "amount": {
       "type": "number",
       "default": 0,
-      "description": "Jumlah saldo"
+      "description": "Jumlah saldo (plaintext fallback, selalu 0 setelah enkripsi aktif)"
+    },
+    "amountEncrypted": {
+      "type": "string",
+      "description": "Jumlah saldo terenkripsi AES-256-GCM (iv + ciphertext base64)"
     },
     "description": {
       "type": "string",
