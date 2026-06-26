@@ -49,6 +49,7 @@ const NAV = [
   { label: 'Security Center', page: 'SecurityCenter', icon: ShieldCheck, adminOnly: true },
   { label: 'AML Screening', page: 'AMLDashboard', icon: AlertTriangle, adminOnly: true },
   { label: 'Server Control', page: 'ServerControl', icon: Lock, adminOnly: true },
+  { label: 'Coinbase Trade', page: 'CoinbaseTrade', icon: TrendingUp },
 ];
 
 export default function Layout({ children, currentPageName }) {
