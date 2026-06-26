@@ -57,6 +57,11 @@
       "type": "boolean",
       "default": false,
       "description": "Whether action is required from user"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Deskripsi tambahan untuk pencarian"
     }
   },
   "required": [

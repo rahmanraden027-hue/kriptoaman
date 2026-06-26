@@ -113,6 +113,11 @@
     },
     "errorMessage": {
       "type": "string"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Deskripsi tambahan untuk pencarian"
     }
   },
   "required": [

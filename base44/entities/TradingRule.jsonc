@@ -138,6 +138,11 @@
     "lastIndicatorSnapshot": {
       "type": "object",
       "description": "Nilai indikator terakhir"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Deskripsi tambahan untuk pencarian"
     }
   },
   "required": [

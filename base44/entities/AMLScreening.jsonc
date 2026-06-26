@@ -118,6 +118,11 @@
       "type": "boolean",
       "default": false,
       "description": "Apakah notification sudah dikirim ke admin"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Deskripsi tambahan untuk pencarian"
     }
   },
   "required": [

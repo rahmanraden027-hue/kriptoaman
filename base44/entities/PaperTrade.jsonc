@@ -136,6 +136,11 @@
       "type": "string",
       "format": "date-time",
       "description": "Waktu simulasi selesai"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Deskripsi tambahan untuk pencarian"
     }
   },
   "required": [

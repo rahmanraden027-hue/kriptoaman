@@ -51,6 +51,11 @@
     "error_message": {
       "type": "string",
       "description": "Last error message if status is error"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Deskripsi tambahan untuk pencarian"
     }
   },
   "required": [

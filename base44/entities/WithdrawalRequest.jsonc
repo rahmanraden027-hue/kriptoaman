@@ -74,6 +74,11 @@
       "type": "string",
       "format": "date-time",
       "description": "Waktu receipt disimpan ke Drive"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Deskripsi tambahan untuk pencarian"
     }
   },
   "required": [
