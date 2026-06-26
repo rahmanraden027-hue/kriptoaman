@@ -68,7 +68,7 @@
     "read": {
       "$or": [
         {
-          "created_by_id": "{{user.id}}"
+          "data.userEmail": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -80,7 +80,7 @@
     "update": {
       "$or": [
         {
-          "created_by_id": "{{user.id}}"
+          "data.userEmail": "{{user.email}}"
         },
         {
           "user_condition": {
