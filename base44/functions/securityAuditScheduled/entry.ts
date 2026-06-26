@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
-const OWNER_EMAIL = 'rahmanraden027@gmail.com';
+const OWNER_EMAIL = Deno.env.get('ADMIN_NOTIFY_EMAIL') || 'admin@kriptoaman.id';
 
 /**
  * Scheduled security audit — berjalan otomatis setiap 6 jam.

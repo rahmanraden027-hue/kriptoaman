@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
     if (coldWallets.length === 0 || coldWallets[0].availableAmount < amount) {
       // Not enough in cold wallet — flag for admin
       await base44.asServiceRole.integrations.Core.SendEmail({
-        to: 'rahmanraden027@gmail.com',
+        to: Deno.env.get('ADMIN_NOTIFY_EMAIL') || 'admin@kriptoaman.id',
         subject: `⚠️ Cold Wallet Insufficient Balance — ${coin}`,
         body: `
           <p>Withdrawal request dari <strong>${user.email}</strong> tapi cold wallet tidak cukup.</p>
