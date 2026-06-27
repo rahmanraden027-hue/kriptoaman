@@ -253,6 +253,21 @@ Deno.serve(async (req) => {
       return Response.json(await apiCall('POST', '/portfolios/transfer', null, { amount: String(amount), currency, from, to }));
     }
 
+    // ── Coinbase v2 Accounts ──
+    if (action === 'get_accounts_v2') {
+      const jwt = await generateJwt('GET', '/v2/accounts');
+      console.log('[Coinbase v2] GET /v2/accounts');
+      const response = await fetch(`${API_BASE}/v2/accounts`, {
+        headers: { 'Authorization': `Bearer ${jwt}` }
+      });
+      const text = await response.text();
+      if (!response.ok) {
+        console.error(`[Coinbase v2] Error ${response.status}: ${text}`);
+        throw new Error(`Coinbase v2 API error ${response.status}: ${text}`);
+      }
+      return Response.json(JSON.parse(text));
+    }
+
     // ── Base SQL API via CDP (read-only onchain data) ──
     if (action === 'run_sql') {
       const { sql } = body;
