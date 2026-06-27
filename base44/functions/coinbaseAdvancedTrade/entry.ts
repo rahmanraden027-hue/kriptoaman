@@ -253,26 +253,26 @@ Deno.serve(async (req) => {
       return Response.json(await apiCall('POST', '/portfolios/transfer', null, { amount: String(amount), currency, from, to }));
     }
 
-    // ── Base SQL API (read-only onchain data, all authenticated users) ──
+    // ── Base SQL API via CDP (read-only onchain data) ──
     if (action === 'run_sql') {
-      const { sql, max_age_ms } = body;
+      const { sql } = body;
       if (!sql) return Response.json({ error: 'sql required' }, { status: 400 });
-      const SQL_BASE = 'https://api.developer.coinbase.com';
-      const SQL_PATH = '/v2/data/query/run';
-      const jwt = await generateJwt('POST', SQL_PATH, SQL_BASE);
-      console.log('[Coinbase SQL] POST', SQL_PATH);
-      const response = await fetch(`${SQL_BASE}${SQL_PATH}`, {
+      const cdpKey = Deno.env.get("COINBASE_CDP_API_KEY");
+      if (!cdpKey) throw new Error('COINBASE_CDP_API_KEY secret not configured');
+      const CDP_URL = 'https://api.cdp.coinbase.com/platform/v2/data/query/run';
+      console.log('[CDP SQL] POST query');
+      const response = await fetch(CDP_URL, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${jwt}`,
+          'Authorization': `Bearer ${cdpKey}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ sql, cache: { maxAgeMs: max_age_ms || 500 } })
+        body: JSON.stringify({ sql })
       });
       const text = await response.text();
       if (!response.ok) {
-        console.error(`[Coinbase SQL] Error ${response.status}: ${text}`);
-        throw new Error(`Coinbase SQL API error ${response.status}: ${text}`);
+        console.error(`[CDP SQL] Error ${response.status}: ${text}`);
+        throw new Error(`CDP SQL API error ${response.status}: ${text}`);
       }
       return Response.json(JSON.parse(text));
     }

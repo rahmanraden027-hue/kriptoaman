@@ -4,16 +4,16 @@ import { Database, Play, Loader2, Clock, CheckCircle2 } from 'lucide-react';
 
 const PRESETS = [
   {
-    label: 'USDC Transfers (Base)',
+    label: 'USDC Swaps (Base)',
     sql: `SELECT
-  parameters['from'] AS sender,
   parameters['to'] AS to,
-  parameters['value'] AS amount,
-  address AS token_address
+  parameters['amount0In'] AS amount0In,
+  parameters['amount0Out'] AS amount0Out,
+  parameters['amount1In'] AS amount1In,
+  parameters['amount1Out'] AS amount1Out,
+  parameters['sender'] AS sender
 FROM base.events
-WHERE
-  event_signature = 'Transfer(address,address,uint256)'
-  AND address = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913'
+WHERE event_signature = 'Swap(address,uint256,uint256,uint256,uint256,address)'
 LIMIT 10;`
   },
   {
