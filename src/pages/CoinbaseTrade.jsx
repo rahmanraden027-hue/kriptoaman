@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Search, TrendingUp, TrendingDown, RefreshCw, Wallet, ArrowRight, ShoppingCart, Info } from 'lucide-react';
+import BaseSqlRunner from '@/components/coinbase/BaseSqlRunner';
 
 export default function CoinbaseTrade() {
   const [user, setUser] = useState(null);
@@ -298,6 +299,8 @@ export default function CoinbaseTrade() {
           )}
         </div>
       </div>
+
+      <BaseSqlRunner />
 
       <div className="flex items-start gap-2 bg-slate-900/50 rounded-xl p-3 border border-slate-800/50">
         <Info className="w-3.5 h-3.5 text-slate-500 shrink-0 mt-0.5" />

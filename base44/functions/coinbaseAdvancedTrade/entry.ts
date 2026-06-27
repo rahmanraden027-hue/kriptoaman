@@ -68,10 +68,10 @@ function base64UrlEncode(bytes) {
   return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
-async function generateJwt(method, path) {
+async function generateJwt(method, path, baseUrl = API_BASE) {
   const key = await getSigningKey();
   const now = Math.floor(Date.now() / 1000);
-  const uri = `${method} ${API_BASE.replace('https://', '')}${path}`;
+  const uri = `${method} ${baseUrl.replace('https://', '')}${path}`;
   const header = { alg: 'ES256', typ: 'JWT', kid: KEY_NAME, nonce: cryptoRandomHex(16) };
   const payload = { iss: 'cdp', sub: KEY_NAME, nbf: now, exp: now + 120, uri };
   const encHeader = base64UrlEncode(new TextEncoder().encode(JSON.stringify(header)));
@@ -251,6 +251,30 @@ Deno.serve(async (req) => {
       const { amount, currency, from, to } = body;
       if (!amount || !currency || !from || !to) return Response.json({ error: 'amount, currency, from, and to required' }, { status: 400 });
       return Response.json(await apiCall('POST', '/portfolios/transfer', null, { amount: String(amount), currency, from, to }));
+    }
+
+    // ── Base SQL API (read-only onchain data, all authenticated users) ──
+    if (action === 'run_sql') {
+      const { sql, max_age_ms } = body;
+      if (!sql) return Response.json({ error: 'sql required' }, { status: 400 });
+      const SQL_BASE = 'https://api.developer.coinbase.com';
+      const SQL_PATH = '/v2/data/query/run';
+      const jwt = await generateJwt('POST', SQL_PATH, SQL_BASE);
+      console.log('[Coinbase SQL] POST', SQL_PATH);
+      const response = await fetch(`${SQL_BASE}${SQL_PATH}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${jwt}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ sql, cache: { maxAgeMs: max_age_ms || 500 } })
+      });
+      const text = await response.text();
+      if (!response.ok) {
+        console.error(`[Coinbase SQL] Error ${response.status}: ${text}`);
+        throw new Error(`Coinbase SQL API error ${response.status}: ${text}`);
+      }
+      return Response.json(JSON.parse(text));
     }
 
     return Response.json({ error: 'Unknown action: ' + action }, { status: 400 });
