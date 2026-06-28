@@ -37,7 +37,7 @@ import AdminBalanceDetail from '../components/wallet/AdminBalanceDetail';
 import AdminTransactionHistory from '../components/wallet/AdminTransactionHistory';
 import UserWalletManagement from '../components/wallet/UserWalletManagement';
 import ComprehensiveTransactionHistory from '../components/wallet/ComprehensiveTransactionHistory';
-import { HelpCircle, ArrowRight, Settings2, User, Building2, MessageCircle, Lock } from 'lucide-react';
+import { HelpCircle, ArrowRight, Settings2, User, Building2, MessageCircle } from 'lucide-react';
 import WalletProfileCard from '../components/wallet/WalletProfileCard';
 import MarketOverviewWidget from '../components/market/MarketOverviewWidget';
 import AdvancedPriceChart from '../components/charting/AdvancedPriceChart';
@@ -69,10 +69,9 @@ export default function Wallet() {
   const [showOnchainSend, setShowOnchainSend] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [currentUser, setCurrentUser] = useState(null);
-  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    base44.auth.me().then(u => { setCurrentUser(u); setAuthChecked(true); }).catch(() => setAuthChecked(true));
+    base44.auth.me().then(u => setCurrentUser(u)).catch(() => {});
   }, []);
 
   const { prefs, toggleSection, toggleCoin, moveSectionUp, moveSectionDown, update, reset } = usePersonalization();
@@ -144,31 +143,6 @@ export default function Wallet() {
   const isLocked = walletData && !sessionPassword;
   const isCreating = !walletData;
   const activeAddress = addresses?.[activeCoin]?.address || '';
-
-  if (!authChecked) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-indigo-500 rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  if (currentUser?.role !== 'admin') {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <div className="max-w-md text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-rose-500/10 flex items-center justify-center">
-            <Lock className="w-8 h-8 text-rose-500" />
-          </div>
-          <h2 className="text-xl font-bold text-white mb-2">Akses Ditolak</h2>
-          <p className="text-sm text-slate-400 mb-6">Halaman dompet ini khusus admin. Silakan hubungi administrator untuk akses.</p>
-          <a href="/" className="inline-flex items-center px-4 py-2 bg-slate-800 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors">
-            Kembali ke Beranda
-          </a>
-        </div>
-      </div>
-    );
-  }
 
   if (isCreating) {
     return <CreateWallet onWalletCreated={handleWalletCreated} />;
