@@ -18,10 +18,21 @@ Deno.serve(async (req) => {
     ]);
 
     // ── Deteksi & auto-downgrade rogue admins ────────────────────────────────
+    // The app owner is protected by the platform and cannot have their role
+    // changed via API. Wrap each downgrade individually so one protected user
+    // (e.g. the actual app owner) doesn't abort the entire audit.
     const rogueAdmins = users.filter(u => u.role === 'admin' && u.email !== OWNER_EMAIL);
+    const downgraded = [];
+    const downgradeFailed = [];
     for (const rogue of rogueAdmins) {
-      await base44.asServiceRole.entities.User.update(rogue.id, { role: 'user' });
-      console.warn(`[SCHEDULED-SECURITY] Downgraded rogue admin: ${rogue.email}`);
+      try {
+        await base44.asServiceRole.entities.User.update(rogue.id, { role: 'user' });
+        downgraded.push(rogue.email);
+        console.warn(`[SCHEDULED-SECURITY] Downgraded rogue admin: ${rogue.email}`);
+      } catch (err) {
+        downgradeFailed.push({ email: rogue.email, error: err.message });
+        console.warn(`[SCHEDULED-SECURITY] Could not downgrade ${rogue.email}: ${err.message}`);
+      }
     }
 
     // ── Deteksi deposit pending lebih dari 3 hari ─────────────────────────────
@@ -37,7 +48,8 @@ Deno.serve(async (req) => {
     });
 
     const issues = [];
-    if (rogueAdmins.length > 0) issues.push(`🚨 ${rogueAdmins.length} rogue admin dinonaktifkan`);
+    if (downgraded.length > 0) issues.push(`🚨 ${downgraded.length} rogue admin dinonaktifkan`);
+    if (downgradeFailed.length > 0) issues.push(`⚠️ ${downgradeFailed.length} admin tidak bisa di-downgrade (mungkin owner)`);
     if (stalePendingDeposits.length > 0) issues.push(`⏳ ${stalePendingDeposits.length} deposit pending > 3 hari`);
     if (staleWithdrawals.length > 0) issues.push(`⏳ ${staleWithdrawals.length} withdrawal pending > 24 jam`);
 
@@ -67,7 +79,8 @@ Deno.serve(async (req) => {
               <tr><td style="padding:8px">Deposit Pending</td><td style="padding:8px">${deposits.length}</td></tr>
               <tr style="background:#f1f5f9"><td style="padding:8px">Withdrawal Pending</td><td style="padding:8px">${withdrawals.length}</td></tr>
               <tr><td style="padding:8px">Admin Aktif</td><td style="padding:8px">${users.filter(u => u.role === 'admin').length} (hanya owner)</td></tr>
-              <tr style="background:#f1f5f9"><td style="padding:8px">Rogue Admin Dinonaktifkan</td><td style="padding:8px">${rogueAdmins.length}</td></tr>
+              <tr style="background:#f1f5f9"><td style="padding:8px">Rogue Admin Dinonaktifkan</td><td style="padding:8px">${downgraded.length}</td></tr>
+              <tr><td style="padding:8px">Admin Tidak Bisa Di-downgrade</td><td style="padding:8px">${downgradeFailed.length}</td></tr>
             </table>
 
             <p style="margin-top:16px;color:#94a3b8;font-size:12px">
@@ -78,11 +91,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log(`[SCHEDULED-SECURITY] Audit selesai. Issues: ${issues.length}, Users: ${users.length}`);
+    console.log(`[SCHEDULED-SECURITY] Audit selesai. Issues: ${issues.length}, Users: ${users.length}, Downgraded: ${downgraded.length}, Failed: ${downgradeFailed.length}`);
     return Response.json({
       success: true,
       issues: issues.length,
-      details: { rogueAdmins: rogueAdmins.length, stalePendingDeposits: stalePendingDeposits.length, staleWithdrawals: staleWithdrawals.length },
+      details: { rogueAdmins: rogueAdmins.length, downgraded: downgraded.length, downgradeFailed, stalePendingDeposits: stalePendingDeposits.length, staleWithdrawals: staleWithdrawals.length },
       checkedAt: new Date().toISOString()
     });
 
