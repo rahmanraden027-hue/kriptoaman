@@ -37,6 +37,8 @@ export default function Login() {
       icon={LogIn}
       title="Welcome back"
       subtitle="Log in to your account"
+      logo
+      darkBlue
       footer={
         <>
           Don't have an account?{" "}
