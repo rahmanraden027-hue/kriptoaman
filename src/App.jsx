@@ -14,6 +14,7 @@ import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import CoinbaseTrade from './pages/CoinbaseTrade';
 import FeatureUpdateBroadcast from './pages/FeatureUpdateBroadcast';
+import AMLAssistant from './pages/AMLAssistant';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -75,6 +76,11 @@ const AuthenticatedApp = () => {
         <Route path="/FeatureUpdateBroadcast" element={
           <LayoutWrapper currentPageName="FeatureUpdateBroadcast">
             <FeatureUpdateBroadcast />
+          </LayoutWrapper>
+        } />
+        <Route path="/AMLAssistant" element={
+          <LayoutWrapper currentPageName="AMLAssistant">
+            <AMLAssistant />
           </LayoutWrapper>
         } />
       </Route>

@@ -48,6 +48,7 @@ const NAV = [
   { label: 'Secure Vault', page: 'SecureVault', icon: Lock, adminOnly: true },
   { label: 'Security Center', page: 'SecurityCenter', icon: ShieldCheck, adminOnly: true },
   { label: 'AML Screening', page: 'AMLDashboard', icon: AlertTriangle, adminOnly: true },
+  { label: 'AML Assistant', page: 'AMLAssistant', icon: ShieldCheck },
   { label: 'Server Control', page: 'ServerControl', icon: Lock, adminOnly: true },
   { label: 'Coinbase Trade', page: 'CoinbaseTrade', icon: TrendingUp },
   { label: 'Broadcast Fitur', page: 'FeatureUpdateBroadcast', icon: Mail, adminOnly: true },
