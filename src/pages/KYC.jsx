@@ -33,7 +33,7 @@ export default function KYC() {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({
-    fullName: '', nik: '', birthDate: '', phone: '', address: '', province: '', occupation: '',
+    fullName: '', idType: 'ktp', nik: '', birthDate: '', phone: '', address: '', province: '', occupation: '',
   });
   const [ktpFile, setKtpFile] = useState(null);
   const [ktpPreview, setKtpPreview] = useState(null);
@@ -93,7 +93,7 @@ export default function KYC() {
     await base44.entities.KYCVerification.create({
       userEmail: user.email,
       fullName: form.fullName,
-      idType: 'ktp',
+      idType: form.idType || 'ktp',
       idNumber: form.nik,
       dateOfBirth: form.birthDate,
       nationality: 'ID',
@@ -287,9 +287,38 @@ export default function KYC() {
                 </button>
               )}
             </div>
+            <div>
+              <label className="text-slate-400 text-xs mb-1.5 block">Jenis Dokumen <span className="text-red-400">*</span></label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { value: 'ktp', label: 'KTP' },
+                  { value: 'passport', label: 'Passport' },
+                  { value: 'sim', label: 'SIM' },
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, idType: opt.value }))}
+                    className={`py-2.5 rounded-xl text-sm font-semibold border-2 transition-all ${
+                      form.idType === opt.value
+                        ? 'bg-blue-600 border-blue-400 text-white'
+                        : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-600'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
             {[
-              { label: 'Nama Lengkap (sesuai KTP)', key: 'fullName', placeholder: 'Nama sesuai KTP', required: true },
-              { label: 'NIK (16 digit)', key: 'nik', placeholder: '3273XXXXXXXXXXXX', type: 'tel', required: true },
+              { label: 'Nama Lengkap', placeholder: 'Nama sesuai dokumen', key: 'fullName', required: true },
+              {
+                label: form.idType === 'passport' ? 'Nomor Passport' : form.idType === 'sim' ? 'Nomor SIM' : 'NIK (16 digit)',
+                key: 'nik',
+                placeholder: form.idType === 'passport' ? 'A1234567' : form.idType === 'sim' ? '1234567890123' : '3273XXXXXXXXXXXX',
+                type: 'tel',
+                required: true
+              },
               { label: 'Tanggal Lahir', key: 'birthDate', type: 'date', required: true },
               { label: 'Nomor HP Aktif', key: 'phone', placeholder: '+62812XXXXXXXX', required: true },
               { label: 'Alamat Lengkap', key: 'address', placeholder: 'Jl. Nama Jalan No. RT/RW Kel. Kec.' },
@@ -320,7 +349,7 @@ export default function KYC() {
               onClick={() => setStep('document')}
               disabled={!form.fullName || !form.nik || !form.birthDate || !form.phone}
               className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-2xl transition-colors flex items-center justify-center gap-2">
-              Lanjut: Upload KTP <ChevronRight className="w-4 h-4" />
+              Lanjut: Upload Dokumen <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         )}
@@ -328,7 +357,7 @@ export default function KYC() {
         {/* Step 2: Document */}
         {step === 'document' && (
           <div className="space-y-4">
-            <h2 className="text-white font-semibold">Upload KTP / Paspor</h2>
+            <h2 className="text-white font-semibold">Upload {form.idType === 'passport' ? 'Passport' : form.idType === 'sim' ? 'SIM' : 'KTP'}</h2>
             <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 text-xs text-yellow-300 space-y-1">
               <p>📋 <strong>Pastikan foto:</strong></p>
               <p>• Seluruh kartu terlihat jelas, tidak terpotong</p>
@@ -381,11 +410,11 @@ export default function KYC() {
         {/* Step 3: Selfie */}
         {step === 'selfie' && (
           <div className="space-y-4">
-            <h2 className="text-white font-semibold">Foto Selfie + KTP</h2>
+            <h2 className="text-white font-semibold">Foto Selfie + {form.idType === 'passport' ? 'Passport' : form.idType === 'sim' ? 'SIM' : 'KTP'}</h2>
             <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 text-xs text-yellow-300 space-y-1">
               <p>📸 <strong>Panduan selfie:</strong></p>
-              <p>• Pegang KTP di samping wajah Anda</p>
-              <p>• Pastikan wajah & tulisan KTP terlihat jelas</p>
+              <p>• Pegang dokumen identitas di samping wajah Anda</p>
+              <p>• Pastikan wajah & tulisan dokumen terlihat jelas</p>
               <p>• Gunakan pencahayaan yang cukup</p>
               <p>• Lepas masker, kacamata hitam, topi</p>
             </div>
@@ -428,7 +457,7 @@ export default function KYC() {
                 <p className="text-slate-400 text-xs font-semibold mb-2">📋 Ringkasan Data</p>
                 <div className="grid grid-cols-2 gap-1.5 text-xs">
                   <span className="text-slate-500">Nama:</span><span className="text-white">{form.fullName}</span>
-                  <span className="text-slate-500">NIK:</span><span className="text-white">{form.nik?.slice(0, 4)}••••••••••••</span>
+                  <span className="text-slate-500">{form.idType === 'passport' ? 'Passport:' : form.idType === 'sim' ? 'SIM:' : 'NIK:'}</span><span className="text-white">{form.nik?.slice(0, 4)}••••••••••••</span>
                   <span className="text-slate-500">Provinsi:</span><span className="text-white">{form.province || '—'}</span>
                   <span className="text-slate-500">HP:</span><span className="text-white">{form.phone}</span>
                 </div>
