@@ -50,6 +50,7 @@ const NAV = [
   { label: 'AML Screening', page: 'AMLDashboard', icon: AlertTriangle, adminOnly: true },
   { label: 'Server Control', page: 'ServerControl', icon: Lock, adminOnly: true },
   { label: 'Coinbase Trade', page: 'CoinbaseTrade', icon: TrendingUp },
+  { label: 'Broadcast Fitur', page: 'FeatureUpdateBroadcast', icon: Mail, adminOnly: true },
 ];
 
 export default function Layout({ children, currentPageName }) {

@@ -13,6 +13,7 @@ import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import CoinbaseTrade from './pages/CoinbaseTrade';
+import FeatureUpdateBroadcast from './pages/FeatureUpdateBroadcast';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -69,6 +70,11 @@ const AuthenticatedApp = () => {
         <Route path="/CoinbaseTrade" element={
           <LayoutWrapper currentPageName="CoinbaseTrade">
             <CoinbaseTrade />
+          </LayoutWrapper>
+        } />
+        <Route path="/FeatureUpdateBroadcast" element={
+          <LayoutWrapper currentPageName="FeatureUpdateBroadcast">
+            <FeatureUpdateBroadcast />
           </LayoutWrapper>
         } />
       </Route>
