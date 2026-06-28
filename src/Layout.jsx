@@ -1,6 +1,9 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { useSystemDarkMode } from './hooks/useSystemDarkMode';
+import MobileHeader from './components/mobile/MobileHeader';
+import PageTransition from './components/mobile/PageTransition';
 import { Wallet, Coins, Clock, Zap, Settings, BarChart3, LayoutGrid, User, MessageCircle, Info, Mail, AlertTriangle, Home, TrendingUp, Bell, BookOpen, ShieldCheck, Lock, AlertTriangle as AlertTriangleIcon } from 'lucide-react';
 import KriptoAmanLogo from './components/brand/KriptoAmanLogo';
 import { installCrashHandlers } from './components/utils/crashAnalytics';
@@ -60,6 +63,7 @@ export default function Layout({ children, currentPageName }) {
     parseInt(localStorage.getItem('cv_session_timeout_min') || '5') * 60 * 1000
   );
   const { swReady } = usePWAInitializer();
+  useSystemDarkMode();
 
   useEffect(() => {
     initAnalytics();
@@ -127,8 +131,9 @@ export default function Layout({ children, currentPageName }) {
       {user && <div className="h-10" />}
       <div className="h-8" />{/* ticker bar height */}
 
+      <MobileHeader currentPageName={currentPageName} />
       <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center"><div className="w-6 h-6 rounded-full border-2 border-indigo-400 border-t-transparent animate-spin" /></div>}>
-        {children}
+        <PageTransition>{children}</PageTransition>
       </Suspense>
 
       {/* Bottom Nav — 5 primary tabs */}
@@ -139,7 +144,7 @@ export default function Layout({ children, currentPageName }) {
             const hasAlert = page === 'Alerts';
             return (
               <Link key={page} to={createPageUrl(page)}
-                className={`relative flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all ${active ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'}`}>
+                className={`relative flex flex-col items-center justify-center gap-0.5 px-3 min-h-[44px] min-w-[44px] rounded-xl transition-all ${active ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'}`}>
                 {active && (
                   <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-5 h-0.5 bg-indigo-400 rounded-full" />
                 )}

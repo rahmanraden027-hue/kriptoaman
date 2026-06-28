@@ -86,3 +86,39 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ===== Mobile UX — Branded 44 Guidelines ===== */
+
+/* Minimum 44x44px tap target for interactive elements on touch devices */
+@media (pointer: coarse) {
+  button:not(:disabled),
+  a,
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  /* Allow inline links and small text buttons to stay natural size */
+  .tap-reset,
+  .tap-reset * {
+    min-height: 0;
+    min-width: 0;
+  }
+}
+
+/* Explicit tap-target helper for cases needing guaranteed 44px */
+.tap-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Smooth scrolling for native feel */
+* {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Prevent text size adjust on orientation change */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}

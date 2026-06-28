@@ -14,6 +14,7 @@ import AdminBalanceEditor from '../components/wallet/AdminBalanceEditor';
 import UserPreferencesEnhanced from '../components/settings/UserPreferencesEnhanced';
 import PaymentAddressBook from '../components/settings/PaymentAddressBook';
 import NetworkStatusPanel from '../components/network/NetworkStatusPanel';
+import DeleteAccount from '../components/mobile/DeleteAccount';
 import { Globe } from 'lucide-react';
 
 const TABS = [
@@ -181,6 +182,11 @@ export default function Settings() {
         )}
         {activeTab === 'network' && (
           <NetworkStatusPanel />
+        )}
+
+        {/* Account Deletion — mandatory for app store compliance */}
+        {(activeTab === 'profile' || activeTab === 'security') && (
+          <DeleteAccount />
         )}
         </div>
         </div>
