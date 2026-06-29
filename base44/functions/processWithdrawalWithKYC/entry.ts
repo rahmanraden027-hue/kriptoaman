@@ -14,6 +14,15 @@ Deno.serve(async (req) => {
 
     const { withdrawalRequestId, coin, amount, toAddress } = await req.json();
 
+    // Step 0: Validasi withdrawal request exists & milik user
+    const withdrawalRequest = await base44.entities.WithdrawalRequest.get(withdrawalRequestId);
+    if (!withdrawalRequest) {
+      return Response.json({ error: 'Withdrawal request not found' }, { status: 404 });
+    }
+    if (withdrawalRequest.userEmail !== user.email) {
+      return Response.json({ error: 'Forbidden — withdrawal request does not belong to this user' }, { status: 403 });
+    }
+
     // Step 1: Cek KYC status
     const kycRecords = await base44.entities.KYCVerification.filter({
       userEmail: user.email,
