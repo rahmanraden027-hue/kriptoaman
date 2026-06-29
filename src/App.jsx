@@ -12,7 +12,6 @@ import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
-import CoinbaseTrade from './pages/CoinbaseTrade';
 import FeatureUpdateBroadcast from './pages/FeatureUpdateBroadcast';
 import AMLAssistant from './pages/AMLAssistant';
 
@@ -68,11 +67,6 @@ const AuthenticatedApp = () => {
             }
           />
         ))}
-        <Route path="/CoinbaseTrade" element={
-          <LayoutWrapper currentPageName="CoinbaseTrade">
-            <CoinbaseTrade />
-          </LayoutWrapper>
-        } />
         <Route path="/FeatureUpdateBroadcast" element={
           <LayoutWrapper currentPageName="FeatureUpdateBroadcast">
             <FeatureUpdateBroadcast />
