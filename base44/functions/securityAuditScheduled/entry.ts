@@ -19,8 +19,10 @@ Deno.serve(async (req) => {
 
     // ── Deteksi & auto-downgrade rogue admins ────────────────────────────────
     // The app owner is protected by the platform and cannot have their role
-    // changed via API. Wrap each downgrade individually so one protected user
-    // (e.g. the actual app owner) doesn't abort the entire audit.
+    // changed via API. We exclude OWNER_EMAIL as an optimization, but the
+    // per-user try/catch is the real safety net — it ensures a protected owner
+    // (whose email may differ from OWNER_EMAIL when the secret is unset) is
+    // silently skipped instead of aborting the entire audit with a 500.
     const rogueAdmins = users.filter(u => u.role === 'admin' && u.email !== OWNER_EMAIL);
     const downgraded = [];
     const downgradeFailed = [];
