@@ -37,7 +37,7 @@ import AdminBalanceDetail from '../components/wallet/AdminBalanceDetail';
 import AdminTransactionHistory from '../components/wallet/AdminTransactionHistory';
 import UserWalletManagement from '../components/wallet/UserWalletManagement';
 import ComprehensiveTransactionHistory from '../components/wallet/ComprehensiveTransactionHistory';
-import { HelpCircle, ArrowRight, Settings2, User, Building2, MessageCircle } from 'lucide-react';
+import { HelpCircle, ArrowRight, Settings2, User, Building2, MessageCircle, Wifi } from 'lucide-react';
 import WalletProfileCard from '../components/wallet/WalletProfileCard';
 import MarketOverviewWidget from '../components/market/MarketOverviewWidget';
 import AdvancedPriceChart from '../components/charting/AdvancedPriceChart';
@@ -45,6 +45,7 @@ import { Analytics } from '../components/analytics/mixpanel';
 import { base44 } from '@/api/base44Client';
 import KAMTokenCard from '../components/wallet/KAMTokenCard';
 import KYCWalletGate from '../components/kyc/KYCWalletGate';
+import CEXPanel from '../components/wallet/CEXPanel';
 
 const ONBOARDING_KEY = 'dex_onboarding_done';
 
@@ -266,6 +267,15 @@ export default function Wallet() {
           onDeposit={() => setShowDeposit(true)}
           onWithdraw={() => setShowWithdrawal(true)}
         />
+
+        {/* CEX Live Balances — sync dari Binance, Coinbase, Kraken, dll */}
+        <div className={`border rounded-2xl p-4 ${cardBg}`}>
+          <div className="flex items-center gap-2 mb-3">
+            <Wifi className="w-4 h-4 text-blue-400" />
+            <h3 className={`font-semibold text-sm ${textMain}`}>Saldo CEX Live</h3>
+          </div>
+          <CEXPanel />
+        </div>
 
         {/* WalletConnect */}
         <WalletConnectPanel />
