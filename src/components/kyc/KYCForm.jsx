@@ -56,9 +56,30 @@ export default function KYCForm({ onComplete }) {
     setLoading(true);
 
     try {
+      // For KTP: verify identity via Verihubs before creating KYC record
+      let verihubsVerified = false;
+      let verihubsData = null;
+
+      if (formData.idType === 'ktp') {
+        const verihubsRes = await base44.functions.invoke('verifyKYCWithVerihubs', {
+          nik: formData.idNumber,
+          name: formData.fullName,
+          birth_date: formData.dateOfBirth,
+        });
+
+        const result = verihubsRes.data;
+        if (!result.verified) {
+          setError('Verifikasi KTP gagal: ' + (result.error || 'Data tidak cocok dengan dukcapil.'));
+          setLoading(false);
+          return;
+        }
+        verihubsVerified = true;
+        verihubsData = result.data;
+      }
+
       // Upload files
       let idPhotoUrl = '', selfieUrl = '';
-      
+
       if (files.idPhoto) {
         const idRes = await base44.integrations.Core.UploadFile({ file: files.idPhoto });
         idPhotoUrl = idRes.file_url;
@@ -84,8 +105,13 @@ export default function KYCForm({ onComplete }) {
         phoneNumber: formData.phoneNumber,
         idPhotoUrl,
         selfieUrl,
-        verificationLevel: 'intermediate',
-        status: 'pending'
+        verificationLevel: verihubsVerified ? 'intermediate' : 'basic',
+        status: verihubsVerified ? 'verified' : 'pending',
+        withdrawalLimit: verihubsVerified ? 10000 : 0,
+        verifiedAt: verihubsVerified ? new Date().toISOString() : null,
+        expiresAt: verihubsVerified ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() : null,
+        adminNotes: verihubsVerified ? 'Auto-verified via Verihubs Dukcapil' : '',
+        description: verihubsData ? `Verihubs ref: ${verihubsData.reference_id || 'N/A'}` : '',
       });
 
       setLoading(false);
