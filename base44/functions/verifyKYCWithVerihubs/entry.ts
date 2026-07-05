@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
       formattedDate = `${d}-${m}-${y}`;
     }
 
-    const response = await fetch('https://api.verihubs.com/data-verification/id-verification/verify', {
+    const response = await fetch('https://api.verihubs.com/v1/data-verification/id-verification/sandbox', {
       method: 'POST',
       headers: {
         'accept': 'application/json',
