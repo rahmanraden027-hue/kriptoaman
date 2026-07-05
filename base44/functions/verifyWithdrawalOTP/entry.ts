@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 Deno.serve(async (req) => {
   try {
@@ -30,15 +30,52 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Kode OTP sudah kadaluarsa. Silakan ulangi.' }, { status: 400 });
     }
 
-    // Verifikasi OTP
-    if (request.otpCode !== otpInput.trim()) {
-      return Response.json({ error: 'Kode OTP salah' }, { status: 400 });
+    // Verifikasi OTP via Verihubs API
+    const appId = Deno.env.get('VERIHUBS_APP_ID');
+    const apiKey = Deno.env.get('VERIHUBS_API_KEY');
+    if (!appId || !apiKey) {
+      return Response.json({ error: 'Verihubs credentials not configured' }, { status: 500 });
+    }
+
+    const challenge = request.otpCode;
+    const kycRecords = await base44.entities.KYCVerification.filter(
+      { userEmail: user.email, status: 'verified' }, '-created_date', 1
+    );
+    const phoneNumber = kycRecords[0]?.phoneNumber;
+
+    if (!phoneNumber) {
+      return Response.json({ error: 'Nomor telepon tidak ditemukan' }, { status: 400 });
+    }
+
+    const verifyResponse = await fetch('https://api.verihubs.com/v2/otp/verify', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'content-type': 'application/json',
+        'App-ID': appId,
+        'API-Key': apiKey,
+      },
+      body: JSON.stringify({
+        msisdn: phoneNumber,
+        otp: otpInput.trim(),
+        challenge,
+      }),
+    });
+
+    const verifyResult = await verifyResponse.json();
+
+    if (!verifyResponse.ok) {
+      console.error('[verifyWithdrawalOTP] Verihubs verify error:', verifyResponse.status, verifyResult);
+      return Response.json({
+        error: 'Kode OTP salah atau tidak valid',
+        details: verifyResult.message || 'Verification failed'
+      }, { status: 400 });
     }
 
     // OTP valid - update status ke pending (menunggu admin)
     await base44.entities.WithdrawalRequest.update(request.id, {
       status: 'pending',
-      otpCode: '', // hapus OTP setelah digunakan
+      otpCode: '', // hapus challenge setelah digunakan
     });
 
     // Save receipt to Google Drive (fire-and-forget, non-blocking)

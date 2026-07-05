@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 Deno.serve(async (req) => {
   try {
@@ -56,9 +56,23 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Generate 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    // Ambil nomor telepon dari KYC
+    const phoneNumber = kyc.phoneNumber;
+    if (!phoneNumber) {
+      return Response.json({
+        error: 'PHONE_REQUIRED',
+        message: 'Nomor telepon belum terdaftar di KYC. Hubungi support untuk memperbarui nomor telepon.'
+      }, { status: 400 });
+    }
+
+    const appId = Deno.env.get('VERIHUBS_APP_ID');
+    const apiKey = Deno.env.get('VERIHUBS_API_KEY');
+    if (!appId || !apiKey) {
+      return Response.json({ error: 'Verihubs credentials not configured' }, { status: 500 });
+    }
+
+    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+    const challenge = `withdrawal-${user.id}-${Date.now()}`;
 
     // Hapus request pending_otp sebelumnya
     const existing = await base44.entities.WithdrawalRequest.filter({
@@ -69,7 +83,7 @@ Deno.serve(async (req) => {
       await base44.entities.WithdrawalRequest.delete(r.id);
     }
 
-    // Buat draft withdrawal dengan OTP
+    // Buat draft withdrawal dengan challenge Verihubs
     const request = await base44.entities.WithdrawalRequest.create({
       userEmail: user.email,
       coin,
@@ -78,40 +92,46 @@ Deno.serve(async (req) => {
       amount,
       fee,
       netAmount,
-      otpCode: otp,
+      otpCode: challenge,
       otpExpiry,
       status: 'pending_otp',
     });
 
-    // Kirim OTP via email
-    await base44.integrations.Core.SendEmail({
-      to: user.email,
-      subject: `[KriptoAman] Kode OTP Penarikan ${coin} — ${otp}`,
-      body: `
-<div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;background:#0f172a;color:#f8fafc;padding:32px;border-radius:16px">
-  <h2 style="color:#60a5fa;margin-bottom:4px">🔐 Konfirmasi Penarikan</h2>
-  <p style="color:#94a3b8;font-size:14px;margin-bottom:24px">KriptoAman Security</p>
-
-  <div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:24px">
-    <p style="color:#94a3b8;font-size:12px;margin:0 0 4px">Detail Penarikan</p>
-    <p style="color:#f8fafc;font-size:14px;margin:4px 0"><strong>Aset:</strong> ${amount} ${coin}</p>
-    <p style="color:#f8fafc;font-size:14px;margin:4px 0"><strong>Tujuan:</strong> ${toAddress.slice(0,16)}...${toAddress.slice(-6)}</p>
-    <p style="color:#f8fafc;font-size:14px;margin:4px 0"><strong>Jaringan:</strong> ${network || '-'}</p>
-    <p style="color:#10b981;font-size:12px;margin:8px 0 0">✓ KYC Terverifikasi — Level ${kyc.verificationLevel}</p>
-  </div>
-
-  <p style="color:#94a3b8;font-size:14px;margin-bottom:8px">Kode OTP Anda:</p>
-  <div style="text-align:center;background:#1d4ed8;border-radius:12px;padding:20px;letter-spacing:12px;font-size:32px;font-weight:bold;color:#ffffff;margin-bottom:16px">
-    ${otp}
-  </div>
-
-  <p style="color:#ef4444;font-size:12px;text-align:center">⏱ Berlaku 10 menit. Jangan bagikan kode ini kepada siapapun.</p>
-  <p style="color:#475569;font-size:11px;text-align:center;margin-top:16px">Jika Anda tidak melakukan permintaan ini, abaikan email ini dan segera hubungi support.</p>
-</div>
-      `.trim(),
+    // Kirim OTP via Verihubs SMS
+    const otpResponse = await fetch('https://api.verihubs.com/v2/otp/send', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'content-type': 'application/json',
+        'App-ID': appId,
+        'API-Key': apiKey,
+      },
+      body: JSON.stringify({
+        msisdn: phoneNumber,
+        template: 'KriptoAman: Kode OTP penarikan Anda adalah $OTP. Jangan bagikan kode ini. Berlaku 5 menit.',
+        time_limit: '300',
+        challenge,
+      }),
     });
 
-    console.log(`[sendWithdrawalOTP] OTP sent to ${user.email} — KYC level: ${kyc.verificationLevel}`);
+    const otpResult = await otpResponse.json();
+
+    if (!otpResponse.ok) {
+      console.error('[sendWithdrawalOTP] Verihubs SMS error:', otpResponse.status, otpResult);
+      // Fallback ke email jika SMS gagal
+      await base44.integrations.Core.SendEmail({
+        to: user.email,
+        subject: `[KriptoAman] Kode OTP Penarikan ${coin}`,
+        body: `<p>Permintaan OTP via SMS gagal. Silakan coba lagi atau hubungi support.</p><p>Error: ${otpResult.message || 'Unknown'}</p>`,
+      });
+      await base44.entities.WithdrawalRequest.delete(request.id);
+      return Response.json({
+        error: 'SMS_OTP_FAILED',
+        message: otpResult.message || 'Gagal mengirim OTP via SMS. Silakan coba lagi.'
+      }, { status: 502 });
+    }
+
+    console.log(`[sendWithdrawalOTP] SMS OTP sent to ${phoneNumber} — KYC level: ${kyc.verificationLevel}`);
     return Response.json({ success: true, requestId: request.id, kycLevel: kyc.verificationLevel });
   } catch (error) {
     console.error('[sendWithdrawalOTP] Error:', error.message);
