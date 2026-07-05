@@ -69,12 +69,21 @@ export default function KYCForm({ onComplete }) {
 
         const result = verihubsRes.data;
         if (!result.verified) {
-          setError('Verifikasi KTP gagal: ' + (result.error || 'Data tidak cocok dengan dukcapil.'));
+          const fields = result.fields || {};
+          const failures = [];
+          if (fields.nik === false) failures.push('NIK');
+          if (fields.name === false) failures.push('Nama');
+          if (fields.birth_date === false) failures.push('Tanggal Lahir');
+          setError(
+            failures.length > 0
+              ? `Verifikasi KTP gagal — data tidak cocok: ${failures.join(', ')}`
+              : (result.error || 'Data tidak ditemukan di database Dukcapil.')
+          );
           setLoading(false);
           return;
         }
         verihubsVerified = true;
-        verihubsData = result.data;
+        verihubsData = { reference_id: result.reference_id, transaction_id: result.transaction_id };
       }
 
       // Upload files
@@ -111,7 +120,7 @@ export default function KYCForm({ onComplete }) {
         verifiedAt: verihubsVerified ? new Date().toISOString() : null,
         expiresAt: verihubsVerified ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() : null,
         adminNotes: verihubsVerified ? 'Auto-verified via Verihubs Dukcapil' : '',
-        description: verihubsData ? `Verihubs ref: ${verihubsData.reference_id || 'N/A'}` : '',
+        description: verihubsData ? `Verihubs ref: ${verihubsData.reference_id || 'N/A'} | Tx: ${verihubsData.transaction_id || 'N/A'}` : '',
       });
 
       setLoading(false);

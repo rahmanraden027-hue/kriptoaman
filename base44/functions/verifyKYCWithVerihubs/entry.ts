@@ -19,6 +19,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Verihubs credentials not configured' }, { status: 500 });
     }
 
+    // Verihubs expects DD-MM-YYYY format; accept YYYY-MM-DD and convert
+    let formattedDate = birth_date;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(birth_date)) {
+      const [y, m, d] = birth_date.split('-');
+      formattedDate = `${d}-${m}-${y}`;
+    }
+
     const response = await fetch('https://api.verihubs.com/data-verification/id-verification/verify', {
       method: 'POST',
       headers: {
@@ -30,25 +37,39 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         nik,
         name,
-        birth_date,
+        birth_date: formattedDate,
         reference_id: `kriptoaman-kyc-${user.id}-${Date.now()}`,
       }),
     });
 
-    const data = await response.json();
+    const result = await response.json();
 
     if (!response.ok) {
-      console.error('Verihubs API error:', response.status, data);
+      console.error('Verihubs API error:', response.status, result);
       return Response.json({
         verified: false,
-        error: data?.detail || data?.message || 'Verihubs verification failed',
+        error: result?.message || 'Verihubs verification failed',
         status_code: response.status,
       }, { status: 200 });
     }
 
+    // Verihubs returns data.nik, data.name, data.birth_date as booleans (true/false/null)
+    const verificationData = result.data || {};
+    const nikValid = verificationData.nik === true;
+    const nameValid = verificationData.name === true;
+    const birthDateValid = verificationData.birth_date === true;
+    const allVerified = nikValid && nameValid && birthDateValid;
+
     return Response.json({
-      verified: true,
-      data,
+      verified: allVerified,
+      fields: {
+        nik: nikValid,
+        name: nameValid,
+        birth_date: birthDateValid,
+      },
+      reference_id: verificationData.reference_id || null,
+      transaction_id: verificationData.id || null,
+      message: result.message || null,
     });
   } catch (error) {
     console.error('verifyKYCWithVerihubs error:', error);
