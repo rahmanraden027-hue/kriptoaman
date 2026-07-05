@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
       formattedDate = `${d}-${m}-${y}`;
     }
 
-    const response = await fetch('https://api.verihubs.com/v1/data-verification/id-verification/sandbox', {
+    const response = await fetch('https://api.verihubs.com/data-verification/id-verification/verify', {
       method: 'POST',
       headers: {
         'accept': 'application/json',
@@ -58,6 +58,7 @@ Deno.serve(async (req) => {
     const nikValid = verificationData.nik === true;
     const nameValid = verificationData.name === true;
     const birthDateValid = verificationData.birth_date === true;
+    // When NIK not found, name/birth_date return null — treat as not verified
     const allVerified = nikValid && nameValid && birthDateValid;
 
     return Response.json({
