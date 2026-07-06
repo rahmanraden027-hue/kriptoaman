@@ -51,6 +51,7 @@ const NAV = [
   { label: 'Secure Vault', page: 'SecureVault', icon: Lock, adminOnly: true },
   { label: 'Security Center', page: 'SecurityCenter', icon: ShieldCheck, adminOnly: true },
   { label: 'AML Screening', page: 'AMLDashboard', icon: AlertTriangle, adminOnly: true },
+  { label: 'BQ KYC Reports', page: 'BigQueryKYCReports', icon: BarChart3, adminOnly: true },
   { label: 'AML Assistant', page: 'AMLAssistant', icon: ShieldCheck },
   { label: 'Server Control', page: 'ServerControl', icon: Lock, adminOnly: true },
   { label: 'Broadcast Fitur', page: 'FeatureUpdateBroadcast', icon: Mail, adminOnly: true },
