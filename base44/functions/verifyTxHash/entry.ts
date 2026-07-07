@@ -23,9 +23,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Guard: fetch actual deposit and enforce owner before any service-role update.
-    const existingDeposits = await base44.asServiceRole.entities.DepositRequest.filter({ id: depositRequestId });
-    const existingDeposit = existingDeposits[0];
+    // Guard: fetch through caller permissions and enforce owner before any service-role update.
+    const existingDeposit = await base44.entities.DepositRequest.get(depositRequestId);
     if (!existingDeposit) {
       return Response.json({ error: 'Deposit not found' }, { status: 404 });
     }
@@ -166,7 +165,7 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    if (error.message?.includes('Object not found')) {
+    if (error.message?.includes('Object not found') || error.message?.includes('not found')) {
       return Response.json({ error: 'Deposit not found' }, { status: 404 });
     }
     console.error('[verifyTxHash] Error:', error.message);
