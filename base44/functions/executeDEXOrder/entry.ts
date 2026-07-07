@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { orderId, executionPrice, userId } = await req.json();
+    const { orderId, executionPrice } = await req.json();
 
     if (!orderId || !executionPrice) {
       return Response.json(
@@ -71,12 +71,18 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch order
-    const order = await base44.asServiceRole.entities.DEXOrder.read(orderId);
+    // Fetch order through the caller's permissions first, then enforce ownership before any service-role writes.
+    const order = await base44.entities.DEXOrder.get(orderId);
 
     if (!order) {
       return Response.json({ error: 'Order not found' }, { status: 404 });
     }
+
+    if (user.role !== 'admin' && order.created_by_id !== user.id) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const notificationEmail = order.userEmail || user.email;
 
     if (order.status !== 'pending' && order.status !== 'triggered') {
       return Response.json(
@@ -95,7 +101,7 @@ Deno.serve(async (req) => {
       });
 
       // Send failure notification email
-      await sendFailureNotification(base44, userId, order, 'Max retries exceeded');
+      await sendFailureNotification(base44, notificationEmail, order, 'Max retries exceeded');
 
       return Response.json({
         success: false,
@@ -143,7 +149,7 @@ Deno.serve(async (req) => {
       if (newRetryCount < MAX_RETRIES) {
         await sendRetryNotification(
           base44,
-          userId,
+          notificationEmail,
           order,
           errorMsg,
           newRetryCount
@@ -155,7 +161,7 @@ Deno.serve(async (req) => {
         });
         await sendFailureNotification(
           base44,
-          userId,
+          notificationEmail,
           order,
           `Final attempt failed: ${errorMsg}`
         );

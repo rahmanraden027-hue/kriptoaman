@@ -16,7 +16,17 @@ Deno.serve(async (req) => {
       return Response.json({ skipped: true, reason: 'Not an update event' });
     }
 
-    const deposit = data;
+    const depositId = event?.entity_id || data?.id;
+    if (!depositId) {
+      return Response.json({ error: 'Missing deposit id' }, { status: 400 });
+    }
+
+    const deposits = await base44.asServiceRole.entities.DepositRequest.filter({ id: depositId });
+    const deposit = deposits[0];
+    if (!deposit) {
+      return Response.json({ error: 'Deposit not found' }, { status: 404 });
+    }
+
     const { userEmail, coin, amountCrypto, amountIDR, type, status } = deposit;
 
     if (!userEmail || !coin) {
@@ -39,6 +49,15 @@ Deno.serve(async (req) => {
         return Response.json({ skipped: true, reason: 'No amount to credit' });
       }
 
+      const alreadyCredited = await base44.asServiceRole.entities.AdminProfit.filter({
+        transactionType: 'deposit',
+        transactionId: deposit.id,
+        status: 'collected',
+      });
+      if (alreadyCredited.length > 0) {
+        return Response.json({ skipped: true, reason: 'Deposit already credited' });
+      }
+
       // 1. Credit UserBalance
       const existing = await base44.asServiceRole.entities.UserBalance.filter({ userEmail, coin: creditCoin });
       if (existing.length > 0) {
@@ -49,20 +68,18 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.UserBalance.create({ userEmail, coin: creditCoin, amount: creditAmount });
       }
 
-      // 2. Catat AdminProfit (fee deposit 0.1%)
+      // 2. Catat AdminProfit sebagai idempotency marker (fee deposit 0.1%)
       const feeAmount = parseFloat((creditAmount * 0.001).toFixed(8));
-      if (feeAmount > 0) {
-        await base44.asServiceRole.entities.AdminProfit.create({
-          transactionType: 'deposit',
-          userEmail,
-          amount: feeAmount,
-          transactionId: deposit.id,
-          currency: creditCoin,
-          transactionAmount: creditAmount,
-          status: 'collected',
-          notes: `Fee deposit ${type} — ${creditAmount} ${creditCoin}`,
-        });
-      }
+      await base44.asServiceRole.entities.AdminProfit.create({
+        transactionType: 'deposit',
+        userEmail,
+        amount: feeAmount,
+        transactionId: deposit.id,
+        currency: creditCoin,
+        transactionAmount: creditAmount,
+        status: 'collected',
+        notes: `Fee deposit ${type} — ${creditAmount} ${creditCoin}`,
+      });
 
       // 3. Kirim email konfirmasi ke user (tidak gagalkan flow jika error)
       const amountDisplay = type === 'bank'
@@ -129,6 +146,9 @@ Deno.serve(async (req) => {
     return Response.json({ skipped: true, reason: 'Status unchanged or not relevant' });
 
   } catch (error) {
+    if (error.message?.includes('Object not found')) {
+      return Response.json({ error: 'Deposit not found' }, { status: 404 });
+    }
     console.error('[autoConfirmDeposit] Error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
   }

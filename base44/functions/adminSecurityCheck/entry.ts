@@ -13,6 +13,15 @@ function isRateLimited(ip) {
   return entry.count > 20; // max 20 req/menit per IP
 }
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
 Deno.serve(async (req) => {
   const ip = req.headers.get('x-forwarded-for') || 'unknown';
 
@@ -40,10 +49,10 @@ Deno.serve(async (req) => {
             <div style="font-family:sans-serif;max-width:500px">
               <h2 style="color:#ef4444">⚠️ Percobaan Akses Admin Tidak Sah</h2>
               <table style="width:100%;border-collapse:collapse">
-                <tr><td style="padding:6px;color:#888">Email</td><td style="padding:6px;color:#fff;background:#1e293b">${user.email}</td></tr>
-                <tr><td style="padding:6px;color:#888">Nama</td><td style="padding:6px">${user.full_name || '-'}</td></tr>
-                <tr><td style="padding:6px;color:#888">Role</td><td style="padding:6px">${user.role}</td></tr>
-                <tr><td style="padding:6px;color:#888">IP</td><td style="padding:6px;font-family:monospace">${ip}</td></tr>
+                <tr><td style="padding:6px;color:#888">Email</td><td style="padding:6px;color:#fff;background:#1e293b">${escapeHtml(user.email)}</td></tr>
+                <tr><td style="padding:6px;color:#888">Nama</td><td style="padding:6px">${escapeHtml(user.full_name || '-')}</td></tr>
+                <tr><td style="padding:6px;color:#888">Role</td><td style="padding:6px">${escapeHtml(user.role)}</td></tr>
+                <tr><td style="padding:6px;color:#888">IP</td><td style="padding:6px;font-family:monospace">${escapeHtml(ip)}</td></tr>
                 <tr><td style="padding:6px;color:#888">Waktu</td><td style="padding:6px">${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })} WIB</td></tr>
               </table>
               <p style="color:#ef4444;margin-top:16px"><strong>Tindakan:</strong> Akses ditolak otomatis. Jika bukan Anda, segera periksa akun.</p>
@@ -83,7 +92,7 @@ Deno.serve(async (req) => {
         body: `
           <div style="font-family:sans-serif;max-width:500px">
             <h2 style="color:#ef4444">⚠️ ${rogueAdmins.length} Admin Tidak Sah Ditemukan & Dinonaktifkan</h2>
-            <ul>${rogueAdmins.map(r => `<li>${r.email} — downgraded ke "user"</li>`).join('')}</ul>
+            <ul>${rogueAdmins.map(r => `<li>${escapeHtml(r.email)} — downgraded ke "user"</li>`).join('')}</ul>
             <p style="color:#888">Waktu: ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })} WIB</p>
           </div>
         `

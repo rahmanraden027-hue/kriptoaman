@@ -23,9 +23,16 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Guard: cek apakah deposit sudah confirmed sebelumnya (hindari proses ulang)
-    const existingDeposit = await base44.asServiceRole.entities.DepositRequest.filter({ id: depositRequestId });
-    if (existingDeposit.length > 0 && existingDeposit[0].status === 'confirmed') {
+    // Guard: fetch actual deposit and enforce owner before any service-role update.
+    const existingDeposits = await base44.asServiceRole.entities.DepositRequest.filter({ id: depositRequestId });
+    const existingDeposit = existingDeposits[0];
+    if (!existingDeposit) {
+      return Response.json({ error: 'Deposit not found' }, { status: 404 });
+    }
+    if (user.role !== 'admin' && existingDeposit.userEmail !== user.email) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    if (existingDeposit.status === 'confirmed') {
       return Response.json({ verified: true, alreadyConfirmed: true, errorMsg: null });
     }
 
@@ -159,6 +166,9 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
+    if (error.message?.includes('Object not found')) {
+      return Response.json({ error: 'Deposit not found' }, { status: 404 });
+    }
     console.error('[verifyTxHash] Error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
