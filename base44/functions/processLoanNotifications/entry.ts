@@ -3,10 +3,16 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me().catch(() => null);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
     const { loanId, type, userEmail, message } = await req.json();
 
     if (!loanId || !type || !userEmail) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+    if (user.role !== 'admin' && user.email !== userEmail) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Notifikasi mapping

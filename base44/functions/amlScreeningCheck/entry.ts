@@ -7,7 +7,17 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me().catch(() => null);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
     const { userEmail, transactionId, transactionType, amount, toAddress } = await req.json();
+
+    if (!userEmail || !transactionType || typeof amount !== 'number') {
+      return Response.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+    if (user.role !== 'admin' && user.email !== userEmail) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     console.log(`[AML] Screening ${userEmail}: ${transactionType} $${amount}`);
 

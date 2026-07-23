@@ -4,15 +4,16 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Allow scheduled calls (no user) or admin users
-    let isAdmin = false;
-    try {
-      const user = await base44.auth.me();
-      if (user?.role === 'admin') isAdmin = true;
-    } catch {
-      // scheduled call — allow via service role
-      isAdmin = true;
+    const schedulerToken = Deno.env.get('BACKUP_SCHEDULER_TOKEN');
+    const requestToken = req.headers.get('x-scheduler-token');
+    const authorizedByScheduler = Boolean(schedulerToken && requestToken && requestToken === schedulerToken);
+
+    let user = null;
+    if (!authorizedByScheduler) {
+      user = await base44.auth.me().catch(() => null);
     }
+
+    const isAdmin = authorizedByScheduler || user?.role === 'admin';
 
     if (!isAdmin) {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
