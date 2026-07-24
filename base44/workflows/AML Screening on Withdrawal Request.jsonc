@@ -1,0 +1,34 @@
+{
+  "name": "AML Screening on Withdrawal Request",
+  "description": "",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "WithdrawalRequest"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "aml_screening_on_withdrawal_request",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "amlScreeningCheck",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

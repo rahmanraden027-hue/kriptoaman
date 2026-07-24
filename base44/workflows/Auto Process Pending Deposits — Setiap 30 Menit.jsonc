@@ -1,0 +1,41 @@
+{
+  "name": "Auto Process Pending Deposits \u2014 Setiap 30 Menit",
+  "description": "Re-verifikasi deposit kripto pending, tandai deposit stale, notifikasi admin \u2014 berjalan tanpa admin online",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "interval",
+      "cron_expression": null,
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": 30,
+      "interval_unit": "minutes",
+      "interval_anchor": "2026-03-24T18:23:22.149000",
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "auto_process_pending_deposits_setiap_30_menit",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "autoProcessPendingDeposits",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

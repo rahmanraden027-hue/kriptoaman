@@ -1,0 +1,34 @@
+{
+  "name": "Calculate User Lending Ratings Daily",
+  "description": "",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "update"
+      ],
+      "entity_name": "P2PLoan"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "calculate_user_lending_ratings_daily",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "calculateLoanMetrics",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

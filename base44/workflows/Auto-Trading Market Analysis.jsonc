@@ -1,0 +1,41 @@
+{
+  "name": "Auto-Trading Market Analysis",
+  "description": "Analisis pasar real-time untuk semua strategi aktif dan identifikasi peluang trading setiap 5 menit",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "interval",
+      "cron_expression": null,
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": 5,
+      "interval_unit": "minutes",
+      "interval_anchor": "2026-02-28T12:24:16.949000",
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "auto_trading_market_analysis",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "analyzeMarketOpportunity",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "name": "Auto Credit Balance on Deposit Confirmed",
+  "description": "",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "update"
+      ],
+      "entity_name": "DepositRequest"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "auto_credit_balance_on_deposit_confirmed",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "autoConfirmDeposit",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}
