@@ -205,7 +205,7 @@ export default function LandingPage() {
 
           {/* Big logo */}
           <div className="mb-8 drop-shadow-[0_0_40px_rgba(0,212,255,0.4)]">
-            <LogoSVG size={100} />
+            <LogoSVG size={180} />
           </div>
 
           {/* Headline */}
