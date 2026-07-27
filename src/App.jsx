@@ -15,6 +15,7 @@ import ResetPassword from '@/pages/ResetPassword';
 import FeatureUpdateBroadcast from './pages/FeatureUpdateBroadcast';
 import AMLAssistant from './pages/AMLAssistant';
 import BigQueryKYCReports from './pages/BigQueryKYCReports';
+import KriptoAmanGlobalLanding from './pages/KriptoAmanGlobalLanding';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -83,6 +84,8 @@ const AuthenticatedApp = () => {
             <BigQueryKYCReports />
           </LayoutWrapper>
         } />
+        {/* Preview-only public landing — full screen, no app chrome */}
+        <Route path="/KriptoAmanGlobalLanding" element={<KriptoAmanGlobalLanding />} />
       </Route>
 
       <Route path="*" element={<PageNotFound />} />
