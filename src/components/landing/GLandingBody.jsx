@@ -1,15 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Shield, Activity, RefreshCw, LayoutGrid, Eye, Search, Bell, AlertTriangle,
-  ArrowRight, Cpu, Network, Lock, BarChart3, ChevronDown, Smartphone,
+  Shield, Radar, ShieldCheck, Wallet, Eye, Search, AlertTriangle,
+  ArrowRight, Cpu, Network, Lock, BarChart3, ChevronDown,
 } from 'lucide-react';
 
 const FEATURES = [
   { icon: Shield, title: 'Lindungi Aset Anda', desc: 'Identifikasi risiko dan peringatan keamanan pada aset kripto.' },
-  { icon: Activity, title: 'Pantau Secara Real-Time', desc: 'Pantau harga, perubahan pasar, dan aktivitas aset dari sumber data yang terhubung.' },
-  { icon: RefreshCw, title: 'Verifikasi Transaksi', desc: 'Periksa status transaksi dan alamat melalui blockchain explorer yang tersedia.' },
-  { icon: LayoutGrid, title: 'Kelola Pantauan Anda', desc: 'Kelola aset favorit dan notifikasi dalam satu dashboard.' },
+  { icon: Radar, title: 'Pantau Real-time', desc: 'Pantau harga dan aktivitas aset dari sumber data yang terhubung, 24/7.' },
+  { icon: ShieldCheck, title: 'Verifikasi Transaksi', desc: 'Periksa status transaksi dan keamanan smart contract melalui explorer.' },
+  { icon: Wallet, title: 'Kelola Wallet Anda', desc: 'Kelola aset dan notifikasi dalam satu dashboard terpadu.' },
 ];
 
 const RISK_FEATURES = [
@@ -107,19 +107,33 @@ export default function GLandingBody({ stats }) {
           <div className="ka-card ka-glow p-6 sm:p-8 flex flex-col">
             <h3 className="font-bold text-lg ka-text">Dashboard Keamanan</h3>
             <p className="text-sm ka-text2 mt-2">
-              Ringkasan aset yang Anda pantau, peringatan, dan status pemeriksaan dalam satu tampilan.
+              Pantau semua aset dan transaksi Anda dalam satu dashboard yang komprehensif dan mudah dipahami.
             </p>
-            <div className="ka-card2 p-4 mt-4 grid grid-cols-2 gap-3">
-              <div className="flex items-center gap-2"><LayoutGrid className="w-4 h-4 ka-blue" /><span className="text-xs ka-text2">Ringkasan Aset</span></div>
-              <div className="flex items-center gap-2"><Activity className="w-4 h-4 ka-blue" /><span className="text-xs ka-text2">Pantauan Real-Time</span></div>
-              <div className="flex items-center gap-2"><Bell className="w-4 h-4 ka-gold" /><span className="text-xs ka-text2">Peringatan</span></div>
-              <div className="flex items-center gap-2"><RefreshCw className="w-4 h-4 ka-cyan" /><span className="text-xs ka-text2">Status Pemeriksaan</span></div>
+            <div className="ka-card2 p-3 mt-4">
+              <div className="flex items-center justify-between text-[10px] ka-text2 mb-2">
+                <span>Portofolio</span>
+                <span className="ka-green">+12.4%</span>
+              </div>
+              <div className="space-y-1.5">
+                {[['BTC','0.4821','+3.2%'],['ETH','3.2104','+5.1%'],['SOL','42.10','+8.7%']].map(([a,b,c])=>(
+                  <div key={a} className="flex items-center justify-between text-[11px]">
+                    <span className="ka-text font-semibold">{a}</span>
+                    <span className="ka-text2">{b}</span>
+                    <span className="ka-green">{c}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-end gap-1.5 h-14 mt-3">
+                {[40,65,50,80,60,95,75].map((h,i)=>(
+                  <div key={i} className="flex-1 rounded-t" style={{height:`${h}%`,background:'linear-gradient(180deg,#3b82f6,#1e3a8a)'}} />
+                ))}
+              </div>
             </div>
             <p className="text-[11px] ka-text2 mt-3 opacity-70">
-              Pengunjung yang belum login melihat preview tanpa saldo atau transaksi pribadi.
+              Preview ilustratif. Pengunjung yang belum login melihat tampilan tanpa data pribadi.
             </p>
             <Link to="/" className="ka-btn-primary inline-flex items-center justify-center gap-2 px-5 mt-5 text-sm w-max">
-              Buka Dashboard <ArrowRight className="w-4 h-4" />
+              Lihat Demo <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 
@@ -127,12 +141,16 @@ export default function GLandingBody({ stats }) {
           <div className="ka-card ka-glow p-6 sm:p-8 flex flex-col">
             <h3 className="font-bold text-lg ka-text">Verifikasi Transaksi</h3>
             <p className="text-sm ka-text2 mt-2">
-              Periksa status transaksi menggunakan hash transaksi dan jaringan blockchain.
+              Verifikasi status setiap transaksi melalui sistem pemeriksaan yang tersedia.
             </p>
-            <div className="flex items-center justify-center my-5">
-              <div className="relative">
-                <Smartphone className="w-20 h-20 ka-blue opacity-80" />
-                <Shield className="w-8 h-8 ka-gold absolute -bottom-1 -right-1" />
+            <div className="flex justify-center my-5">
+              <div className="relative w-28 h-52 rounded-[18px] ka-card2 flex flex-col items-center justify-center gap-2 px-3">
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1.5 rounded-full" style={{background:'var(--ka-border)'}} />
+                <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{background:'rgba(34,197,94,0.15)'}}>
+                  <ShieldCheck className="w-6 h-6 ka-green" />
+                </div>
+                <span className="text-[11px] font-bold ka-green">Transaction Verified</span>
+                <span className="text-[8px] ka-text2 text-center leading-tight">0x4a...e9f2 • Confirmed</span>
               </div>
             </div>
             <p className="text-[11px] ka-text2 opacity-70">

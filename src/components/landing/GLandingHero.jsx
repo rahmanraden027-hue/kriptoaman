@@ -1,12 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, ArrowRight, Activity, Eye, RefreshCw } from 'lucide-react';
+import { Shield, ArrowRight, CheckCircle } from 'lucide-react';
 import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
 
 const INDICATORS = [
-  { icon: Activity, label: 'Analisis Risiko' },
-  { icon: Eye, label: 'Pemantauan Aset' },
-  { icon: RefreshCw, label: 'Verifikasi Transaksi' },
+  { label: 'Pemantauan Real-time' },
+  { label: 'Verifikasi Transaksi' },
+  { label: 'Analisis Risiko' },
 ];
 
 const COINS = [
@@ -57,8 +57,8 @@ export default function GLandingHero() {
             Verifikasi <span className="ka-blue">Aset Kripto</span> Anda
           </h1>
           <p className="ka-text2 mt-5 max-w-xl mx-auto lg:mx-0 text-sm sm:text-base leading-relaxed">
-            KriptoAman membantu Anda memantau aset, memeriksa risiko token, dan memverifikasi
-            transaksi kripto melalui satu platform.
+            KriptoAman adalah platform keamanan aset digital yang membantu Anda melindungi,
+            memantau, dan memverifikasi transaksi kripto secara real-time.
           </p>
           <div className="mt-7 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
             <Link to="/login" className="ka-btn-primary inline-flex items-center justify-center gap-2 px-6 text-sm sm:text-base">
@@ -69,9 +69,9 @@ export default function GLandingHero() {
             </a>
           </div>
           <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 justify-center lg:justify-start">
-            {INDICATORS.map(({ icon: Icon, label }) => (
+            {INDICATORS.map(({ label }) => (
               <div key={label} className="flex items-center gap-2">
-                <Icon className="w-4 h-4 ka-blue" />
+                <CheckCircle className="w-4 h-4 ka-green" />
                 <span className="text-xs sm:text-sm font-semibold ka-text2">{label}</span>
               </div>
             ))}
