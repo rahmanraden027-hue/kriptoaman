@@ -16,10 +16,19 @@ import FeatureUpdateBroadcast from './pages/FeatureUpdateBroadcast';
 import AMLAssistant from './pages/AMLAssistant';
 import BigQueryKYCReports from './pages/BigQueryKYCReports';
 import KriptoAmanGlobalLanding from './pages/KriptoAmanGlobalLanding';
+import AdminRoute from '@/components/security/AdminRoute';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
+
+// Halaman yang hanya boleh diakses admin (dilindungi di level route)
+const ADMIN_PAGE_KEYS = new Set([
+  'AdminKYCManagement', 'AdminPlatformAssets', 'AdminProfitAnalytics', 'AdminUserBalances',
+  'ServerControl', 'BigQueryKYCReports', 'RegulatoryDocs', 'AppBuildAnalytics',
+  'AssetManager', 'SecureVault', 'AMLDashboard', 'SecurityCenter', 'PlatformDocs',
+  'FeatureUpdateBroadcast',
+]);
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}>{children}</Layout>
@@ -58,21 +67,26 @@ const AuthenticatedApp = () => {
             <MainPage />
           </LayoutWrapper>
         } />
-        {Object.entries(Pages).map(([path, Page]) => (
-          <Route
-            key={path}
-            path={`/${path}`}
-            element={
-              <LayoutWrapper currentPageName={path}>
-                <Page />
-              </LayoutWrapper>
-            }
-          />
-        ))}
+        {Object.entries(Pages).map(([path, Page]) => {
+          const wrapped = (
+            <LayoutWrapper currentPageName={path}>
+              <Page />
+            </LayoutWrapper>
+          );
+          return (
+            <Route
+              key={path}
+              path={`/${path}`}
+              element={ADMIN_PAGE_KEYS.has(path) ? <AdminRoute>{wrapped}</AdminRoute> : wrapped}
+            />
+          );
+        })}
         <Route path="/FeatureUpdateBroadcast" element={
-          <LayoutWrapper currentPageName="FeatureUpdateBroadcast">
-            <FeatureUpdateBroadcast />
-          </LayoutWrapper>
+          <AdminRoute>
+            <LayoutWrapper currentPageName="FeatureUpdateBroadcast">
+              <FeatureUpdateBroadcast />
+            </LayoutWrapper>
+          </AdminRoute>
         } />
         <Route path="/AMLAssistant" element={
           <LayoutWrapper currentPageName="AMLAssistant">
@@ -80,9 +94,11 @@ const AuthenticatedApp = () => {
           </LayoutWrapper>
         } />
         <Route path="/BigQueryKYCReports" element={
-          <LayoutWrapper currentPageName="BigQueryKYCReports">
-            <BigQueryKYCReports />
-          </LayoutWrapper>
+          <AdminRoute>
+            <LayoutWrapper currentPageName="BigQueryKYCReports">
+              <BigQueryKYCReports />
+            </LayoutWrapper>
+          </AdminRoute>
         } />
         {/* Preview-only public landing — full screen, no app chrome */}
         <Route path="/KriptoAmanGlobalLanding" element={<KriptoAmanGlobalLanding />} />

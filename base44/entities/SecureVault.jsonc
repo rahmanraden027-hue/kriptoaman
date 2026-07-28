@@ -10,16 +10,14 @@
       "type": "string",
       "enum": [
         "api_key",
-        "private_key",
-        "wallet_key",
         "secret",
         "other"
       ],
-      "description": "Kategori key"
+      "description": "Kategori key. DILARANG menyimpan private key, seed phrase, recovery code, atau wallet key dompet kripto di sini. Hanya API key/secret layanan pihak ketiga."
     },
     "service": {
       "type": "string",
-      "description": "Nama layanan/platform (Binance, MetaMask, dll)"
+      "description": "Nama layanan/platform (Binance, dll)"
     },
     "encryptedValue": {
       "type": "string",
