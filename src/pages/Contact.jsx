@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
 import { Mail, Send, MessageCircle, Phone, MapPin, Clock, CheckCircle2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -18,15 +17,13 @@ export default function Contact() {
     setSending(true);
     setError('');
     try {
-      await base44.integrations.Core.SendEmail({
-        to: 'support@kriptoaman.com',
-        subject: `[KriptoAman Contact] ${form.subject || 'Pesan dari ' + form.name}`,
-        body: `Nama: ${form.name}\nEmail: ${form.email}\n\nPesan:\n${form.message}`,
-      });
+      const subject = `[KriptoAman Contact] ${form.subject || 'Pesan dari ' + form.name}`;
+      const body = `Nama: ${form.name}\nEmail: ${form.email}\n\nPesan:\n${form.message}`;
+      window.open(`mailto:support@kriptoaman.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
       setSent(true);
       setForm({ name: '', email: '', subject: '', message: '' });
     } catch {
-      setError('Gagal mengirim pesan. Silakan coba lagi atau hubungi kami langsung via email.');
+      setError('Gagal membuka aplikasi email. Silakan kirim langsung ke support@kriptoaman.com.');
     } finally {
       setSending(false);
     }

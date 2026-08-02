@@ -26,8 +26,14 @@ const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
 const ADMIN_PAGE_KEYS = new Set([
   'AdminKYCManagement', 'AdminPlatformAssets', 'AdminProfitAnalytics', 'AdminUserBalances',
   'ServerControl', 'BigQueryKYCReports', 'RegulatoryDocs', 'AppBuildAnalytics',
-  'AssetManager', 'SecureVault', 'AMLDashboard', 'SecurityCenter', 'PlatformDocs',
+  'AssetManager', 'SecureVault', 'AMLDashboard', 'SecurityCenter',
   'FeatureUpdateBroadcast',
+]);
+
+// Halaman publik statis — dapat diakses tanpa autentikasi (paket gratis)
+const PUBLIC_PAGE_KEYS = new Set([
+  'Home', 'AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'TermsOfService',
+  'PlatformDocs',
 ]);
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
@@ -60,6 +66,22 @@ const AuthenticatedApp = () => {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
 
+      {/* Public pages — accessible without authentication (paket gratis) */}
+      {Object.entries(Pages).map(([path, Page]) => {
+        if (!PUBLIC_PAGE_KEYS.has(path)) return null;
+        return (
+          <Route
+            key={path}
+            path={`/${path}`}
+            element={
+              <LayoutWrapper currentPageName={path}>
+                <Page />
+              </LayoutWrapper>
+            }
+          />
+        );
+      })}
+
       {/* Protected app routes — gated by ProtectedRoute */}
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route path="/" element={
@@ -68,6 +90,7 @@ const AuthenticatedApp = () => {
           </LayoutWrapper>
         } />
         {Object.entries(Pages).map(([path, Page]) => {
+          if (PUBLIC_PAGE_KEYS.has(path)) return null;
           const wrapped = (
             <LayoutWrapper currentPageName={path}>
               <Page />
