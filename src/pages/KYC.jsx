@@ -112,7 +112,7 @@ export default function KYC() {
 
     // Notify admin
     await base44.integrations.Core.SendEmail({
-      to: 'sinaga28081981@gmail.com',
+      to: import.meta.env.VITE_NOTIFICATION_EMAIL,
       subject: '📋 KYC Baru Menunggu Review — KriptoAman',
       body: `<h2>KYC Submission Baru</h2><p>Nama: <strong>${form.fullName}</strong></p><p>NIK: ${form.nik}</p><p>Email: ${user.email}</p><p>Silakan login ke dashboard admin untuk mereview.</p>`
     });
