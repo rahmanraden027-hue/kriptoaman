@@ -50,7 +50,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white pb-24">
-      <div className="max-w-lg mx-auto px-4 pt-4 space-y-4"><HeroBanner />
+      <div className="max-w-lg mx-auto px-4 pt-4 space-y-4">
+        <HeroBanner />
 
         {/* ── Hero ── */}
         <div className="rounded-3xl overflow-hidden relative">
