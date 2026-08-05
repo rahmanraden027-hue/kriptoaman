@@ -17,6 +17,7 @@ import AMLAssistant from './pages/AMLAssistant';
 import BigQueryKYCReports from './pages/BigQueryKYCReports';
 import KriptoAmanGlobalLanding from './pages/KriptoAmanGlobalLanding';
 import AdminRoute from '@/components/security/AdminRoute';
+import AppErrorBoundary from '@/components/AppErrorBoundary';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -140,7 +141,9 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <NavigationTracker />
-          <AuthenticatedApp />
+          <AppErrorBoundary>
+            <AuthenticatedApp />
+          </AppErrorBoundary>
         </Router>
         <Toaster />
       </QueryClientProvider>

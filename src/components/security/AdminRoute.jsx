@@ -1,22 +1,24 @@
 import { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Loader2, ShieldAlert } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
+import { usePermissions } from '@/lib/rbac';
+import { logAudit } from '@/lib/auditLog';
 import { useToast } from '@/components/ui/use-toast';
 
 /**
- * AdminRoute — melindungi halaman/operasi admin di level route (bukan sekadar menu).
- * User biasa yang mencoba membuka URL admin langsung akan diarahkan ke "/" (Home)
- * dan ditampilkan toast "Akses tidak diizinkan".
+ * AdminRoute — melindungi halaman/operasi admin di level route (RBAC).
+ * User biasa yang mencoba membuka URL admin langsung akan diarahkan ke "/"
+ * dan ditampilkan toast "Akses tidak diizinkan"; upaya dicatat di audit log.
  */
 export default function AdminRoute({ children }) {
-  const { user, isAuthenticated, isLoadingAuth } = useAuth();
+  const { isAuthenticated, isLoadingAuth } = useAuth();
+  const { isAdmin } = usePermissions();
   const { toast } = useToast();
-
-  const isAdmin = !isLoadingAuth && isAuthenticated && user?.role === 'admin';
 
   useEffect(() => {
     if (!isLoadingAuth && isAuthenticated && !isAdmin) {
+      logAudit('admin_route_denied', { path: window.location.pathname });
       toast({
         title: 'Akses tidak diizinkan',
         description: 'Halaman ini hanya tersedia untuk admin.',

@@ -1,28 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import { ShieldAlert, Loader2 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
-
-// ─── OWNER EMAIL — HANYA EMAIL INI YANG BISA AKSES ADMIN ─────────────────────
-const OWNER_EMAIL = 'rahmanraden027@gmail.com';
+import { apiService } from '@/lib/apiService';
+import { isOwner as isOwnerUser, OWNER_EMAIL } from '@/lib/rbac';
+import { logAudit } from '@/lib/auditLog';
 
 /**
- * AdminGuard: Hanya render children jika user adalah OWNER (email hardcoded).
- * Bahkan jika seseorang di-set sebagai "admin" di database,
- * mereka tetap tidak bisa akses tanpa email yang cocok.
+ * AdminGuard: only render children if the current user is the platform OWNER
+ * (email hardcoded in rbac.OWNER_EMAIL). Uses the centralized RBAC owner check
+ * (replacing the previously duplicated base44.auth.me + email comparison).
  */
 export default function AdminGuard({ children }) {
   const [status, setStatus] = useState('loading'); // loading | allowed | denied
 
   useEffect(() => {
-    base44.auth.me()
-      .then(u => {
-        if (u && u.role === 'admin' && u.email === OWNER_EMAIL) {
+    let mounted = true;
+    apiService.auth.me()
+      .then((u) => {
+        if (!mounted) return;
+        if (isOwnerUser(u)) {
           setStatus('allowed');
         } else {
           setStatus('denied');
+          logAudit('owner_guard_denied', { email: u?.email, role: u?.role, path: window.location.pathname });
         }
       })
-      .catch(() => setStatus('denied'));
+      .catch(() => {
+        if (!mounted) return;
+        setStatus('denied');
+        logAudit('owner_guard_error', { path: window.location.pathname });
+      });
+    return () => { mounted = false; };
   }, []);
 
   if (status === 'loading') {
@@ -51,18 +58,25 @@ export default function AdminGuard({ children }) {
   return <>{children}</>;
 }
 
-// Hook untuk cek apakah user adalah owner
+// Hook untuk cek apakah user adalah owner (backward-compatible API)
 export function useIsOwner() {
   const [isOwner, setIsOwner] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    base44.auth.me()
-      .then(u => {
-        setIsOwner(!!(u && u.role === 'admin' && u.email === OWNER_EMAIL));
+    let mounted = true;
+    apiService.auth.me()
+      .then((u) => {
+        if (!mounted) return;
+        setIsOwner(isOwnerUser(u));
         setLoading(false);
       })
-      .catch(() => { setIsOwner(false); setLoading(false); });
+      .catch(() => {
+        if (!mounted) return;
+        setIsOwner(false);
+        setLoading(false);
+      });
+    return () => { mounted = false; };
   }, []);
 
   return { isOwner, loading };
