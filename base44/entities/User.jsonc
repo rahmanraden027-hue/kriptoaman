@@ -6,6 +6,10 @@
       "type": "string",
       "enum": [
         "admin",
+        "compliance",
+        "support",
+        "finance",
+        "auditor",
         "user"
       ],
       "default": "user"
