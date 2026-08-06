@@ -174,7 +174,7 @@ export default function Market() {
     <div className="flex items-center gap-3">
       <div className="relative">
         <img
-          src={`/images/${c.id}.png`}
+    src={coinImage(c.id)}
           alt={c.name}
           className="w-9 h-9 rounded-full"
           onError={(e) => {
