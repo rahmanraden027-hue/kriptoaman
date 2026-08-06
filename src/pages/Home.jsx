@@ -127,7 +127,63 @@ export default function Home() {
 
         {/* ── Live Prices ── */}
         <IDRPriceCard />
+{/* Market Overview */}
+<div className="mt-4 bg-slate-800/30 border border-slate-700/30 rounded-2xl p-4">
+  <h3 className="text-white font-semibold mb-3">Market Overview</h3>
 
+  <div className="grid grid-cols-2 gap-3">
+
+    <div className="bg-slate-900 rounded-xl p-3">
+      <p className="text-slate-400 text-xs">Market Cap</p>
+      <p className="text-white font-bold">$4.12T</p>
+    </div>
+
+    <div className="bg-slate-900 rounded-xl p-3">
+      <p className="text-slate-400 text-xs">24H Volume</p>
+      <p className="text-white font-bold">$198B</p>
+    </div>
+
+    <div className="bg-slate-900 rounded-xl p-3">
+      <p className="text-slate-400 text-xs">BTC Dominance</p>
+      <p className="text-yellow-400 font-bold">61.4%</p>
+    </div>
+
+    <div className="bg-slate-900 rounded-xl p-3">
+      <p className="text-slate-400 text-xs">Fear & Greed</p>
+      <p className="text-green-400 font-bold">72</p>
+    </div>
+
+  </div>
+</div>
+
+{/* Trending Coins */}
+<div className="mt-4 bg-slate-800/30 border border-slate-700/30 rounded-2xl p-4">
+  <h3 className="text-white font-semibold mb-3">🔥 Trending Coins</h3>
+
+  <div className="space-y-2">
+
+    <div className="flex justify-between">
+      <span>Bitcoin</span>
+      <span className="text-orange-400">BTC</span>
+    </div>
+
+    <div className="flex justify-between">
+      <span>Ethereum</span>
+      <span className="text-blue-400">ETH</span>
+    </div>
+
+    <div className="flex justify-between">
+      <span>Solana</span>
+      <span className="text-purple-400">SOL</span>
+    </div>
+
+    <div className="flex justify-between">
+      <span>BNB</span>
+      <span className="text-yellow-400">BNB</span>
+    </div>
+
+  </div>
+</div>
         {/* ── Trust Badges ── */}
         <div className="bg-slate-800/30 border border-slate-700/30 rounded-2xl p-4">
           <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider text-center mb-3">Regulasi & Keamanan</p>
