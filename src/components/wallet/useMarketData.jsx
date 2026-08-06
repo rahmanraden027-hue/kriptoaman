@@ -18,9 +18,14 @@ export async function fetchTokenMarketData(contractAddress, chainId = 1) {
   try {
     // Try to fetch from CoinGecko by contract address
     const res = await fetch(
-      `${COINGECKO_API}/simple/token_price/ethereum?contract_addresses=${contractAddress}&vs_currencies=usd&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true&include_last_updated_at=true`,
-      { method: 'GET' }
-    );
+  `${COINGECKO_API}/simple/token_price/ethereum?...`,
+  {
+    method: 'GET',
+    headers: {
+      'x-cg-pro-api-key': import.meta.env.COINGECKO_API_KEY
+    }
+  }
+);
 
     if (!res.ok) return null;
     
