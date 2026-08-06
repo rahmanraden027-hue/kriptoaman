@@ -64,16 +64,27 @@ export default function Market() {
     return true;
   });
 
-  const formatPrice = (coin) => {
-    const d = liveData[coin.sym];
-    if (!d?.price) return '—';
-    if (currency === 'usd') return `$${d.price.toLocaleString('en-US', { maximumFractionDigits: 6 })}`;
-    const idr = d.price * idrRate;
-    if (idr >= 1e9) return `Rp ${(idr / 1e9).toFixed(2)}M`;
-    if (idr >= 1e6) return `Rp ${(idr / 1e6).toFixed(2)} Jt`;
-    if (idr >= 1e3) return `Rp ${idr.toLocaleString('id-ID', { maximumFractionDigits: 0 })}`;
-    return `Rp ${idr.toFixed(0)}`;
-  };
+   const formatPrice = (coin) => {
+  const d = liveData[coin.sym];
+
+  if (!d || d.price == null) return "—";
+
+  if (currency === "usd") {
+    if (d.price >= 1) return `$${d.price.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+    return `$${d.price.toFixed(6)}`;
+  }
+
+  const idr = d.price * idrRate;
+
+  if (idr >= 1e9) return `Rp ${(idr / 1e9).toFixed(2)} M`;
+  if (idr >= 1e6) return `Rp ${(idr / 1e6).toFixed(2)} Jt`;
+  if (idr >= 1000) return `Rp ${idr.toLocaleString("id-ID", { maximumFractionDigits: 0 })}`;
+
+  return `Rp ${idr.toLocaleString("id-ID", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 8
+  })}`;
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white pb-24">
