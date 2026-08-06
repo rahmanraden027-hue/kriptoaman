@@ -141,15 +141,7 @@ export default function useLivePrices() {
       });
     });
   });
-              setPrices(initial);
-      }).catch(() => {});
-    });
-  });
 }, []);
-
-// Binance WebSocket – persistent 24/7 connection
-useEffect(() => {
-  }, []);
 
   // Binance WebSocket — persistent 24/7 connection
   useEffect(() => {
