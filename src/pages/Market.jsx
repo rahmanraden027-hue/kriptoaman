@@ -156,7 +156,7 @@ export default function Market() {
                 className="flex items-center justify-between bg-slate-800/50 border border-slate-700/40 rounded-2xl px-4 py-3 cursor-pointer hover:border-indigo-500/40 transition-all active:scale-[0.99]"
                 onClick={() => setChartCoin(c)}>
                 <img
-  src={`https://assets.coingecko.com/coins/images/${c.id}.png`}
+   src={`/images/${c.id}.png`}
   alt={c.name}
   className="w-9 h-9 rounded-full"
   onError={(e) => {
