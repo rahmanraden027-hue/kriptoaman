@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import {
+ React, { useState } from 'react';
+import {import
   TrendingUp,
   TrendingDown,
   Search,
@@ -152,7 +152,7 @@ export default function Market() {
             const isUp = (chg || 0) >= 0;
             const inWatchlist = watchlist.includes(c.sym);
             return (
-              return (
+              
   <div
     key={c.id}
     className="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl"
