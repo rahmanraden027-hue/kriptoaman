@@ -18,11 +18,19 @@ Deno.serve(async (req) => {
       return new Response(`Webhook Error: ${err.message}`, { status: 400 });
     }
 
-    const session = event.data.object;
+    const session = event.data.object; if (!session || !session.id) {
+  return new Response("Invalid session", { status: 400 });
+    }
 
     if (event.type === 'checkout.session.completed') {
       const userEmail = session.metadata?.user_email || session.customer_email;
-      const topupType = session.metadata?.topup_type;
+      const topupType = session.metadata?.topup_type; if (!session || !session.id) {
+  return new Response("Invalid session", { status: 400 });
+}
+
+if (!userEmail) {
+  return new Response("Missing user email", { status: 400 });
+}
 
       // === IDR Wallet Top-up ===
       if (topupType === 'idr_wallet' && userEmail) {
@@ -36,7 +44,15 @@ Deno.serve(async (req) => {
             });
           } else {
             await base44.asServiceRole.entities.UserBalance.create({ userEmail, coin: 'IDR', amount: amountIDR });
-          }
+          }const existingDeposit =
+  await base44.asServiceRole.entities.DepositRequest.filter({
+    proofNote: `Stripe session: ${session.id}`
+  });
+
+if (existingDeposit.length > 0) {
+  console.log("Duplicate webhook:", session.id);
+  return Response.json({ received: true });
+}
           // Catat deposit request sebagai confirmed
           await base44.asServiceRole.entities.DepositRequest.create({
             userEmail,
