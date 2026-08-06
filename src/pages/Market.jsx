@@ -14,15 +14,8 @@ import useLivePrices from '../components/market/useLivePrices';
 
 const coinImage = (id) =>
   `https://assets.coingecko.com/coins/images/${id}.png`;
-
 const COINS = [
-  {
-  id: 1,
-  image: coinImage(1),
-  sym: 'BTC',
-  name: 'Bitcoin',
-  color: '#f59e0b'
-},
+  { id: 'bitcoin', sym: 'BTC', name: 'Bitcoin', emoji: '₿', color: '#f59e0b' },
   { id: 'ethereum', sym: 'ETH', name: 'Ethereum', emoji: 'Ξ', color: '#6366f1' },
   { id: 'binancecoin', sym: 'BNB', name: 'BNB', emoji: 'B', color: '#f0b90b' },
   { id: 'solana', sym: 'SOL', name: 'Solana', emoji: '◎', color: '#9945ff' },
@@ -41,6 +34,8 @@ const COINS = [
   { id: 'shiba-inu', sym: 'SHIB', name: 'Shiba Inu', emoji: '🐕', color: '#e0522b' },
   { id: 'pepe', sym: 'PEPE', name: 'Pepe', emoji: '🐸', color: '#4caf50' },
 ];
+
+
 
 export default function Market() {
   const [search, setSearch] = useState('');
@@ -160,12 +155,14 @@ export default function Market() {
               <div key={c.id}
                 className="flex items-center justify-between bg-slate-800/50 border border-slate-700/40 rounded-2xl px-4 py-3 cursor-pointer hover:border-indigo-500/40 transition-all active:scale-[0.99]"
                 onClick={() => setChartCoin(c)}>
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shadow"
-                      style={{ background: c.color }}>
-                      {c.emoji}
-                    </div>
+                <img
+  src={`https://assets.coingecko.com/coins/images/${c.id}.png`}
+  alt={c.name}
+  className="w-9 h-9 rounded-full"
+  onError={(e) => {
+    e.currentTarget.src = "/images/default-coin.png";
+  }}
+/>
                     <span className="absolute -bottom-1 -right-1 text-[9px] bg-slate-700 text-slate-400 rounded-full px-1">#{idx + 1}</span>
                   </div>
                   <div>
