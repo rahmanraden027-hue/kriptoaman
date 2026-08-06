@@ -81,7 +81,66 @@ export default function useLivePrices() {
     };
 
     // Try CoinGecko first
-    fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${geckoIds}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_high_24hr=true&include_low_24hr=true`)
+    fetch(
+  `https://api.coingecko.com/api/v3/simple/price?ids=${geckoIds}&vs_currencies=usd&include_24hr_change=true`,
+  {
+    method: "GET",
+    headers: {
+      "x-cg-pro-api-key": import.meta.env.COINGECKO_API_KEY
+    }
+  }
+)
+  .then(r => r.json())
+  .then(data => {
+    if (!mountedRef.current) return;
+
+    const initial = {};
+
+    Object.entries(data).forEach(([gid, d]) => {
+      const id = geckoMap[gid];
+
+      if (id) {
+        initial[id] = {
+          price: d.usd,
+          change24h: d.usd_24h_change,
+          volume24h: d.usd_24h_vol,
+          high24h: d.usd_24h_high,
+          low24h: d.usd_24h_low
+        };
+      }
+    });
+
+    if (Object.keys(initial).length > 0) {
+      setPrices(initial);
+    }
+  })
+  .catch(() => {
+    // Fallback ke database cache
+    import("@/api/base44Client").then(({ base44 }) => {
+      base44.entities.CachedPrice.list().then(cached => {
+        if (!mountedRef.current || !cached?.length) return;
+
+        const initial = {};
+
+        cached.forEach(c => {
+          initial[c.symbol] = {
+            price: c.price,
+            change24h: c.change24h,
+            volume24h: c.volume24h,
+            high24h: c.high24h,
+            low24h: c.low24h
+          };
+
+          if (c.idrRate) {
+            cachedIDR = c.idrRate;
+            setIdrRate(c.idrRate);
+          }
+        });
+
+        setPrices(initial);
+      });
+    });
+  });
       .then(r => r.json())
       .then(data => {
         if (!mountedRef.current) return;
