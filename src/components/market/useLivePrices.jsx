@@ -17,7 +17,7 @@ const ASSETS = [
   { sym: 'avaxusdt',  id: 'AVAX' },
   { sym: 'dotusdt',   id: 'DOT'  },
   { sym: 'linkusdt',  id: 'LINK' },
-  { sym: 'maticusdt', id: 'MATIC'},
+  { sym: 'polusdt', id: 'MATIC' },
   { sym: 'ltcusdt',   id: 'LTC'  },
   { sym: 'uniusdt',   id: 'UNI'  },
   { sym: 'shibusdt',  id: 'SHIB' },
@@ -204,6 +204,26 @@ export default function useLivePrices() {
       wsRef.current?.close();
     };
   }, []);
+if (!prices.USDT) {
+  prices.USDT = {
+    price: 1,
+    change24h: 0,
+    high24h: 1,
+    low24h: 1,
+    volume24h: 0,
+    tick: 'same'
+  };
+}
 
+if (!prices.USDC) {
+  prices.USDC = {
+    price: 1,
+    change24h: 0,
+    high24h: 1,
+    low24h: 1,
+    volume24h: 0,
+    tick: 'same'
+  };
+}
   return { prices, connected, idrRate };
 }
