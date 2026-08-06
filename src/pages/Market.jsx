@@ -14,7 +14,28 @@ import {
 import CandlestickModal from '../components/market/CandlestickModal';
 import useLivePrices from '../components/market/useLivePrices';
 const coinImage = (id) => {
-  return `https://assets.coingecko.com/coins/images/${id}.png`;
+  const logos = {
+    bitcoin: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
+    ethereum: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
+    binancecoin: "https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png",
+    solana: "https://assets.coingecko.com/coins/images/4128/large/solana.png",
+    ripple: "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png",
+    cardano: "https://assets.coingecko.com/coins/images/975/large/cardano.png",
+    dogecoin: "https://assets.coingecko.com/coins/images/5/large/dogecoin.png",
+    tron: "https://assets.coingecko.com/coins/images/1094/large/tron-logo.png",
+    "avalanche-2": "https://assets.coingecko.com/coins/images/12559/large/Avalanche_Circle_RedWhite_Trans.png",
+    polkadot: "https://assets.coingecko.com/coins/images/12171/large/polkadot.png",
+    chainlink: "https://assets.coingecko.com/coins/images/877/large/chainlink-new-logo.png",
+    "matic-network": "https://assets.coingecko.com/coins/images/4713/large/polygon.png",
+    litecoin: "https://assets.coingecko.com/coins/images/2/large/litecoin.png",
+    uniswap: "https://assets.coingecko.com/coins/images/12504/large/uniswap-uni.png",
+    tether: "https://assets.coingecko.com/coins/images/325/large/Tether.png",
+    "usd-coin": "https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png",
+    "shiba-inu": "https://assets.coingecko.com/coins/images/11939/large/shiba.png",
+    pepe: "https://assets.coingecko.com/coins/images/29850/large/pepe-token.jpeg"
+  };
+
+  return logos[id] || "/images/default-coin.png";
 };
 const COINS = [
   { id: 'bitcoin', sym: 'BTC', name: 'Bitcoin', emoji: '₿', color: '#f59e0b' },
