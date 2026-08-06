@@ -152,24 +152,32 @@ export default function Market() {
             const isUp = (chg || 0) >= 0;
             const inWatchlist = watchlist.includes(c.sym);
             return (
-              <div key={c.id}
-                className="flex items-center justify-between bg-slate-800/50 border border-slate-700/40 rounded-2xl px-4 py-3 cursor-pointer hover:border-indigo-500/40 transition-all active:scale-[0.99]"
-                onClick={() => setChartCoin(c)}>
-                <img
-   src={`/images/${c.id}.png`}
-  alt={c.name}
-  className="w-9 h-9 rounded-full"
-  onError={(e) => {
-    e.currentTarget.src = "/images/default-coin.png";
-  }}
-/>
-                    <span className="absolute -bottom-1 -right-1 text-[9px] bg-slate-700 text-slate-400 rounded-full px-1">#{idx + 1}</span>
-                  </div>
-                  <div>
-                    <p className="text-white text-sm font-bold">{c.sym}</p>
-                    <p className="text-slate-500 text-[10px]">{c.name}</p>
-                  </div>
-                </div>
+              return (
+  <div
+    key={c.id}
+    className="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl"
+    onClick={() => setChartCoin(c)}
+  >
+    <div className="flex items-center gap-3">
+      <div className="relative">
+        <img
+          src={`/images/${c.id}.png`}
+          alt={c.name}
+          className="w-9 h-9 rounded-full"
+          onError={(e) => {
+            e.currentTarget.src = "/images/default-coin.png";
+          }}
+        />
+        <span className="absolute -bottom-1 -right-1 text-[9px] bg-slate-700 text-slate-400 rounded-full px-1">
+          #{idx + 1}
+        </span>
+      </div>
+
+      <div>
+        <p className="text-white text-sm font-bold">{c.sym}</p>
+        <p className="text-slate-500 text-[10px]">{c.name}</p>
+      </div>
+    </div>
                 <div className="flex items-center gap-3">
                   <div className="text-right">
                     <p className={`text-sm font-bold transition-colors duration-300 ${d?.tick === 'up' ? 'text-green-300' : d?.tick === 'down' ? 'text-red-300' : 'text-white'}`}>
