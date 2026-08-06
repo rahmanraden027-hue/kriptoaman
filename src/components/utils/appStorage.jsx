@@ -3,7 +3,7 @@
  * For truly sensitive data (keys, seeds) always use server-side storage.
  */
 
-const SALT = 'ka_s3cur3_2026';
+const SALT = import.meta.env.VITE_APP_ENCRYPTION_SALT;
 
 function xorEncrypt(str, key) {
   return str.split('').map((c, i) =>
