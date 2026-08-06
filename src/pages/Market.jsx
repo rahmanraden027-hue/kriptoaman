@@ -19,7 +19,7 @@ const coinImage = (id) => {
     ethereum: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
     binancecoin: "https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png",
     solana: "https://assets.coingecko.com/coins/images/4128/large/solana.png",
-    ripple: "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png",
+    ripple: "https://cryptologos.cc/logos/xrp-xrp-logo.png?v=040",
     cardano: "https://assets.coingecko.com/coins/images/975/large/cardano.png",
     dogecoin: "https://assets.coingecko.com/coins/images/5/large/dogecoin.png",
     tron: "https://assets.coingecko.com/coins/images/1094/large/tron-logo.png",
