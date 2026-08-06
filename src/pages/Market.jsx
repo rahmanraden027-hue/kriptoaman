@@ -1,10 +1,28 @@
 import React, { useState } from 'react';
-import { TrendingUp, TrendingDown, Search, Globe, BarChart2, Star, Wifi, WifiOff } from 'lucide-react';
+import {
+  TrendingUp,
+  TrendingDown,
+  Search,
+  Globe,
+  BarChart2,
+  Star,
+  Wifi,
+  WifiOff
+} from 'lucide-react';
 import CandlestickModal from '../components/market/CandlestickModal';
 import useLivePrices from '../components/market/useLivePrices';
 
+const coinImage = (id) =>
+  `https://assets.coingecko.com/coins/images/${id}.png`;
+
 const COINS = [
-  { id: 'bitcoin', sym: 'BTC', name: 'Bitcoin', emoji: '₿', color: '#f59e0b' },
+  {
+  id: 1,
+  image: coinImage(1),
+  sym: 'BTC',
+  name: 'Bitcoin',
+  color: '#f59e0b'
+},
   { id: 'ethereum', sym: 'ETH', name: 'Ethereum', emoji: 'Ξ', color: '#6366f1' },
   { id: 'binancecoin', sym: 'BNB', name: 'BNB', emoji: 'B', color: '#f0b90b' },
   { id: 'solana', sym: 'SOL', name: 'Solana', emoji: '◎', color: '#9945ff' },
