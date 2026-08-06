@@ -182,11 +182,12 @@ Deno.serve(async (req) => {
 
     // ─────────────────────────────────────────────────────────────────
     // NOTIFY ADMIN IF FLAGGED
-    // ─────────────────────────────────────────────────────────────────
+    // ────────────────────────────────────────────────────────────────
     if (totalScore >= 75 && !screeningRecord.notificationSent) {
+      const adminEmail = Deno.env.get("ADMIN_NOTIFY_EMAIL");
       await base44.asServiceRole.integrations.Core.SendEmail({
-        to: 'rahmanraden027@gmail.com',
-        subject: `🚨 AML ALERT: High Risk Account Detected — ${riskLevel.toUpperCase()}`,
+ to: adminEmail,      
+       subject: `🚨 AML ALERT: High Risk Account Detected — ${riskLevel.toUpperCase()}`,
         body: `
           <h2>AML Screening Alert</h2>
           <p><strong>User:</strong> ${userEmail}</p>
