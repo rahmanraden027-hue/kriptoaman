@@ -85,7 +85,15 @@ export async function broadcastTransaction(hex) {
 
 export async function getBtcPrice() {
   try {
-    const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+    const res = await fetch(
+  'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',
+  {
+    method: 'GET',
+    headers: {
+      'x-cg-pro-api-key': import.meta.env.COINGECKO_API_KEY
+    }
+  }
+);
     if (!res.ok) return null;
     const data = await res.json();
     return data.bitcoin?.usd || null;
