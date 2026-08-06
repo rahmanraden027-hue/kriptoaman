@@ -141,30 +141,14 @@ export default function useLivePrices() {
       });
     });
   });
-      .then(r => r.json())
-      .then(data => {
-        if (!mountedRef.current) return;
-        const initial = {};
-        Object.entries(data).forEach(([gid, d]) => {
-          const id = geckoMap[gid];
-          if (id) initial[id] = { price: d.usd, change24h: d.usd_24h_change, volume24h: d.usd_24h_vol, high24h: d.usd_24h_high, low24h: d.usd_24h_low, tick: null };
-        });
-        if (Object.keys(initial).length > 0) setPrices(initial);
-      })
-      .catch(() => {
-        // Fallback: load from DB cache (updated every 5 min via automation)
-        import('@/api/base44Client').then(({ base44 }) => {
-          base44.entities.CachedPrice.list().then(cached => {
-            if (!mountedRef.current || !cached?.length) return;
-            const initial = {};
-            cached.forEach(c => {
-              initial[c.symbol] = { price: c.price, change24h: c.change24h, volume24h: c.volume24h, high24h: c.high24h, low24h: c.low24h, tick: null };
-              if (c.idrRate) { cachedIDR = c.idrRate; setIdrRate(c.idrRate); }
-            });
-            setPrices(initial);
-          }).catch(() => {});
-        });
-      });
+              setPrices(initial);
+      }).catch(() => {});
+    });
+  });
+}, []);
+
+// Binance WebSocket – persistent 24/7 connection
+useEffect(() => {
   }, []);
 
   // Binance WebSocket — persistent 24/7 connection
