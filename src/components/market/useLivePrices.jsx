@@ -82,7 +82,7 @@ export default function useLivePrices() {
 
     // Try CoinGecko first
     fetch(
-  `https://api.coingecko.com/api/v3/simple/price?ids=${geckoIds}&vs_currencies=usd&include_24hr_change=true`,
+  `https://api.coingecko.com/api/v3/simple/price?ids=${geckoIds}&vs_currencies=usd&include_24hr_change=true&include_high_24hr=true&include_low_24hr=true`,
   {
     method: "GET",
     headers: {
