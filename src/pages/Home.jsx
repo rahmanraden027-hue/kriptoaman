@@ -12,6 +12,7 @@ import HomeTrendingCoins from '../components/home/HomeTrendingCoins';
 import HomeMarketOverview from '../components/home/HomeMarketOverview';
 import HomeNews from '../components/home/HomeNews';
 import HomeLearningCenter from '../components/home/HomeLearningCenter';
+import HomeFooter from '../components/home/HomeFooter';
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -66,12 +67,7 @@ export default function Home() {
         <HomeNews />
         <HomeLearningCenter />
 
-        <div className="text-center pt-2 pb-1">
-          <p className="ka-muted text-[10px] leading-relaxed">
-            KriptoAman beroperasi sesuai regulasi Bappebti &amp; OJK Indonesia.<br />
-            Transaksi dijamin dengan enkripsi SSL 256-bit. © 2025 KriptoAman
-          </p>
-        </div>
+        <HomeFooter />
       </div>
     </div>
   );
