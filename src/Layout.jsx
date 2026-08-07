@@ -19,10 +19,10 @@ import { Web3Provider } from './components/web3/Web3Provider';
 // Primary bottom nav (5 tabs — shown always)
 const BOTTOM_NAV = [
   { label: 'Home', page: 'Home', icon: Home },
-  { label: 'Market', page: 'Market', icon: TrendingUp },
+  { label: 'Markets', page: 'Market', icon: TrendingUp },
   { label: 'Wallet', page: 'Wallet', icon: Wallet },
   { label: 'Alerts', page: 'Alerts', icon: Bell },
-  { label: 'Profil', page: 'Profile', icon: User },
+  { label: 'Profile', page: 'Profile', icon: User },
 ];
 
 // Secondary nav (shown in sidebar/more menu)
@@ -89,11 +89,11 @@ export default function Layout({ children, currentPageName }) {
   return (
     <DisclaimerGate>
       <Web3Provider>
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <div className="min-h-screen ka-bg">
       <style>{`
         /* PWA iOS safe area & viewport */
         body { 
-          background: #020817;
+          background: #0a0c0a;
           overscroll-behavior: none;
           -webkit-tap-highlight-color: transparent;
           -webkit-touch-callout: none;
@@ -109,16 +109,21 @@ export default function Layout({ children, currentPageName }) {
       
       {/* Top user bar */}
       {user && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-slate-950/95 backdrop-blur border-b border-slate-800/60 px-4 py-2 flex items-center justify-between">
+        <div className="fixed top-0 left-0 right-0 z-50 bg-[#0a0c0a]/95 backdrop-blur border-b border-ka-card-border px-4 py-2 flex items-center justify-between">
           <KriptoAmanLogo size={26} showText={true} textSize="text-xs" />
-          <Link to={createPageUrl('Settings')}
-            className="flex items-center gap-2 px-2.5 py-1 bg-slate-800 border border-slate-700/50 rounded-full hover:bg-slate-700 transition-colors">
-            <div className="w-5 h-5 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-[9px] font-bold">
-              {initials}
-            </div>
-            <span className="text-white text-[11px] font-semibold max-w-[120px] truncate">{user.full_name || user.email}</span>
-            <span className="text-slate-500 text-[9px] capitalize bg-slate-700 px-1.5 py-0.5 rounded-full">{user.role || 'user'}</span>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link to={createPageUrl('Services')} className="flex items-center justify-center w-8 h-8 rounded-xl bg-ka-emerald/12 border border-ka-emerald/25 text-ka-emerald hover:bg-ka-emerald/20 transition-colors tap-reset" aria-label="Layanan">
+              <LayoutGrid className="w-4 h-4" />
+            </Link>
+            <Link to={createPageUrl('Settings')}
+              className="flex items-center gap-2 px-2.5 py-1 bg-ka-card border border-ka-card-border rounded-full hover:border-ka-emerald/40 transition-colors">
+              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-ka-emerald to-ka-teal flex items-center justify-center text-black text-[9px] font-bold">
+                {initials}
+              </div>
+              <span className="text-white text-[11px] font-semibold max-w-[120px] truncate">{user.full_name || user.email}</span>
+              <span className="text-ka-emerald text-[9px] capitalize bg-ka-emerald/15 px-1.5 py-0.5 rounded-full">{user.role || 'user'}</span>
+            </Link>
+          </div>
         </div>
       )}
 
@@ -132,24 +137,24 @@ export default function Layout({ children, currentPageName }) {
       <div className="h-8" />{/* ticker bar height */}
 
       <MobileHeader currentPageName={currentPageName} />
-      <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center"><div className="w-6 h-6 rounded-full border-2 border-indigo-400 border-t-transparent animate-spin" /></div>}>
+      <Suspense fallback={<div className="min-h-screen ka-bg flex items-center justify-center"><div className="w-6 h-6 rounded-full border-2 border-ka-emerald border-t-transparent animate-spin" /></div>}>
         <PageTransition>{children}</PageTransition>
       </Suspense>
 
       {/* Bottom Nav — 5 primary tabs */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur border-t border-slate-800 safe-area-pb">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#0a0c0a]/95 backdrop-blur border-t border-ka-card-border safe-area-pb">
         <div className="flex justify-around items-center py-2 px-2">
           {BOTTOM_NAV.map(({ label, page, icon: Icon }) => {
             const active = currentPageName === page;
             const hasAlert = page === 'Alerts';
             return (
               <Link key={page} to={createPageUrl(page)}
-                className={`relative flex flex-col items-center justify-center gap-0.5 px-3 min-h-[44px] min-w-[44px] rounded-xl transition-all ${active ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'}`}>
+                className={`relative flex flex-col items-center justify-center gap-0.5 px-3 min-h-[44px] min-w-[44px] rounded-xl transition-all ${active ? 'text-ka-emerald' : 'text-ka-muted hover:text-white'}`}>
                 {active && (
-                  <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-5 h-0.5 bg-indigo-400 rounded-full" />
+                  <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-5 h-0.5 bg-ka-emerald rounded-full" />
                 )}
-                <Icon className={`w-5 h-5 ${active ? 'text-indigo-400' : ''}`} />
-                <span className={`text-[9px] font-semibold ${active ? 'text-indigo-400' : ''}`}>{label}</span>
+                <Icon className={`w-5 h-5 ${active ? 'text-ka-emerald' : ''}`} />
+                <span className={`text-[9px] font-semibold ${active ? 'text-ka-emerald' : ''}`}>{label}</span>
               </Link>
             );
           })}
@@ -158,21 +163,21 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Admin Quick Links — hanya untuk admin */}
       {user?.role === 'admin' && (
-        <div className="fixed bottom-16 left-0 right-0 z-39 bg-rose-950/90 backdrop-blur border-t border-rose-800/60 px-4 py-1.5 flex items-center gap-3 overflow-x-auto">
-          <ShieldCheck className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-          <span className="text-rose-400 text-[10px] font-bold shrink-0">ADMIN:</span>
+        <div className="fixed bottom-16 left-0 right-0 z-39 bg-ka-emerald/10 backdrop-blur border-t border-ka-card-border px-4 py-1.5 flex items-center gap-3 overflow-x-auto">
+          <ShieldCheck className="w-3.5 h-3.5 text-ka-emerald shrink-0" />
+          <span className="text-ka-emerald text-[10px] font-bold shrink-0">ADMIN:</span>
           {NAV.filter(n => n.adminOnly).map(({ label, page, icon: Icon }) => {
             const active = currentPageName === page;
             return (
               <Link key={page} to={createPageUrl(page)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold whitespace-nowrap transition-all shrink-0 ${active ? 'bg-rose-600 text-white' : 'bg-rose-900/60 text-rose-300 hover:bg-rose-800/60'}`}>
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold whitespace-nowrap transition-all shrink-0 ${active ? 'bg-ka-emerald text-black' : 'bg-ka-emerald/12 text-ka-emerald hover:bg-ka-emerald/20'}`}>
                 <Icon className="w-3 h-3" />
                 {label}
               </Link>
             );
           })}
           <Link to={createPageUrl('AdminUserBalances')}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold whitespace-nowrap transition-all shrink-0 ${currentPageName === 'AdminUserBalances' ? 'bg-rose-600 text-white' : 'bg-rose-900/60 text-rose-300 hover:bg-rose-800/60'}`}>
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold whitespace-nowrap transition-all shrink-0 ${currentPageName === 'AdminUserBalances' ? 'bg-ka-emerald text-black' : 'bg-ka-emerald/12 text-ka-emerald hover:bg-ka-emerald/20'}`}>
             <User className="w-3 h-3" />
             User Balances
           </Link>

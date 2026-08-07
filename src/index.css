@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -75,50 +76,89 @@
   }
 }
 
+/* ===== Emerald Matrix — App Design System ===== */
+:root {
+  --ka-bg: #0a0c0a;
+  --ka-bg-2: #0b1410;
+  --ka-card: rgba(20, 31, 26, 0.55);
+  --ka-card-border: rgba(42, 61, 52, 0.7);
+  --ka-emerald: #2ecc71;
+  --ka-emerald-2: #10b981;
+  --ka-teal: #14b8a6;
+  --ka-positive: #2ecc71;
+  --ka-negative: #e74c3c;
+  --ka-text: #ffffff;
+  --ka-muted: #a0b3a9;
+}
 
+html { background: var(--ka-bg); }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
+body {
+  background: var(--ka-bg);
+  color: var(--ka-text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+@layer components {
+  .ka-bg {
+    background:
+      radial-gradient(1200px 600px at 50% -10%, rgba(46, 204, 113, 0.10), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(20, 184, 166, 0.06), transparent 55%),
+      linear-gradient(180deg, #0a0c0a 0%, #0b1410 100%);
   }
-
-  body {
-    @apply bg-background text-foreground;
+  .ka-surface {
+    border-radius: 20px;
+    border: 1px solid var(--ka-card-border);
+    background: var(--ka-card);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  .ka-surface-hover {
+    transition: border-color .2s ease, box-shadow .2s ease, transform .15s ease;
+  }
+  .ka-surface-hover:hover {
+    border-color: rgba(46, 204, 113, 0.45);
+    box-shadow: 0 10px 30px -12px rgba(16, 185, 129, 0.28);
+  }
+  .ka-surface-hover:active { transform: scale(0.985); }
+  .ka-emerald-glow {
+    box-shadow: 0 0 0 1px rgba(46, 204, 113, 0.25), 0 0 22px -6px rgba(46, 204, 113, 0.4);
+  }
+  .ka-chip {
+    border-radius: 9999px;
+    border: 1px solid var(--ka-card-border);
+    background: rgba(20, 31, 26, 0.6);
   }
 }
+
+@layer utilities {
+  .ka-muted { color: var(--ka-muted); }
+  .ka-num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+  .ka-pulse-dot { animation: ka-pulse-emerald 2s infinite; }
+  .ka-fade-up { animation: ka-fade-up 0.5s ease both; }
+  .ka-shimmer {
+    background: linear-gradient(90deg, rgba(160,179,169,0.06) 25%, rgba(160,179,169,0.14) 37%, rgba(160,179,169,0.06) 63%);
+    background-size: 400% 100%;
+    animation: ka-shimmer 1.4s ease infinite;
+  }
+}
+
+@keyframes ka-fade-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes ka-pulse-emerald { 0%,100% { box-shadow: 0 0 0 0 rgba(46,204,113,0.5); } 50% { box-shadow: 0 0 0 6px rgba(46,204,113,0); } }
+@keyframes ka-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
 
 /* ===== Mobile UX — Branded 44 Guidelines ===== */
-
-/* Minimum 44x44px tap target for interactive elements on touch devices */
 @media (pointer: coarse) {
-  button:not(:disabled),
-  a,
-  [role="button"] {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  /* Allow inline links and small text buttons to stay natural size */
-  .tap-reset,
-  .tap-reset * {
-    min-height: 0;
-    min-width: 0;
-  }
+  button:not(:disabled), a, [role="button"] { min-height: 44px; min-width: 44px; }
+  .tap-reset, .tap-reset * { min-height: 0; min-width: 0; }
 }
+.tap-target { min-height: 44px; min-width: 44px; }
+* { -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
-/* Explicit tap-target helper for cases needing guaranteed 44px */
-.tap-target {
-  min-height: 44px;
-  min-width: 44px;
-}
-
-/* Smooth scrolling for native feel */
-* {
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
-}
-
-/* Prevent text size adjust on orientation change */
-html {
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
+@layer base {
+  * { @apply border-border outline-ring/50; }
+  body { @apply bg-background text-foreground; }
 }

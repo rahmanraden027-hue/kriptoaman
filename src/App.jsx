@@ -16,6 +16,7 @@ import FeatureUpdateBroadcast from './pages/FeatureUpdateBroadcast';
 import AMLAssistant from './pages/AMLAssistant';
 import BigQueryKYCReports from './pages/BigQueryKYCReports';
 import KriptoAmanGlobalLanding from './pages/KriptoAmanGlobalLanding';
+import Services from './pages/Services';
 import AdminRoute from '@/components/security/AdminRoute';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 
@@ -115,6 +116,11 @@ const AuthenticatedApp = () => {
         <Route path="/AMLAssistant" element={
           <LayoutWrapper currentPageName="AMLAssistant">
             <AMLAssistant />
+          </LayoutWrapper>
+        } />
+        <Route path="/Services" element={
+          <LayoutWrapper currentPageName="Services">
+            <Services />
           </LayoutWrapper>
         } />
         <Route path="/BigQueryKYCReports" element={
