@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { COIN_META } from './coinMeta';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Eye, EyeOff, TrendingUp, TrendingDown, Wallet, Plus } from 'lucide-react';
 
 const DONUT_COLORS = ['#2ecc71', '#10b981', '#34d399', '#6ee7b7'];
@@ -11,6 +11,7 @@ export default function HomePortfolioSummary({ user, prices, idrRate }) {
   const [balances, setBalances] = useState([]);
   const [loading, setLoading] = useState(true);
   const [hidden, setHidden] = useState(false);
+  const [active, setActive] = useState(null);
 
   useEffect(() => {
     if (!user?.email) { setLoading(false); return; }
@@ -22,11 +23,10 @@ export default function HomePortfolioSummary({ user, prices, idrRate }) {
 
   const holdings = balances
     .map(b => {
-      const meta = COIN_META[b.coin] || {};
       const price = prices[b.coin]?.price || 0;
       const value = (b.amount || 0) * price;
       const chg = prices[b.coin]?.change24h || 0;
-      return { coin: b.coin, amount: b.amount || 0, price, value, chg, color: meta.color || '#2ecc71' };
+      return { coin: b.coin, amount: b.amount || 0, price, value, chg };
     })
     .filter(h => h.value > 0)
     .sort((a, b) => b.value - a.value);
@@ -36,20 +36,15 @@ export default function HomePortfolioSummary({ user, prices, idrRate }) {
   const changePct = total > 0 ? (changeUSD / total) * 100 : 0;
   const isUp = changeUSD >= 0;
 
-  const fmtUSD = (v) => hidden ? '••••••' : `$${v.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
-  const fmtIDR = (v) => hidden ? '••••••' : `Rp ${(v * (idrRate || 0)).toLocaleString('id-ID', { maximumFractionDigits: 0 })}`;
+  const top = holdings.slice(0, 4);
+  const restValue = holdings.slice(4).reduce((s, h) => s + h.value, 0);
+  const donutData = [
+    ...top.map((h, i) => ({ name: h.coin, value: h.value, color: DONUT_COLORS[i] })),
+    ...(restValue > 0 ? [{ name: 'Lain', value: restValue, color: '#1f2a25' }] : []),
+  ];
 
-  // donut segments
-  const segs = holdings.slice(0, 4);
-  let acc = 0;
-  const stops = [];
-  segs.forEach((h, i) => {
-    const pct = total ? (h.value / total) * 100 : 0;
-    stops.push(`${DONUT_COLORS[i]} ${acc}% ${acc + pct}%`);
-    acc += pct;
-  });
-  if (acc < 100 && total > 0) stops.push(`#1f2a25 ${acc}% 100%`);
-  const donutBg = total > 0 ? `conic-gradient(${stops.join(',')})` : 'conic-gradient(#1f2a25 0% 100%)';
+  const fmtUSD = (v) => (hidden ? '••••••' : `$${v.toLocaleString('en-US', { maximumFractionDigits: 2 })}`);
+  const fmtIDR = (v) => (hidden ? '••••••' : `Rp ${(v * (idrRate || 0)).toLocaleString('id-ID', { maximumFractionDigits: 0 })}`);
 
   return (
     <div className="ka-surface ka-emerald-glow p-5 ka-fade-up">
@@ -69,16 +64,53 @@ export default function HomePortfolioSummary({ user, prices, idrRate }) {
           <p className="ka-muted text-[11px] mt-0.5 ka-num">{fmtIDR(total)}</p>
         </div>
 
-        {/* Donut */}
-        <div className="relative w-20 h-20 shrink-0">
-          <div className="w-20 h-20 rounded-full" style={{ background: donutBg }} />
-          <div className="absolute inset-[14px] rounded-full bg-[#0b1410] flex items-center justify-center">
-            <Wallet className="w-5 h-5 text-ka-emerald" />
-          </div>
+        {/* Interactive donut */}
+        <div className="relative w-24 h-24 shrink-0">
+          {!loading && holdings.length > 0 ? (
+            <>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={donutData}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={30}
+                    outerRadius={44}
+                    paddingAngle={2}
+                    stroke="none"
+                    onMouseEnter={(_, i) => setActive(donutData[i])}
+                    onMouseLeave={() => setActive(null)}
+                  >
+                    {donutData.map((d, i) => <Cell key={i} fill={d.color} />)}
+                  </Pie>
+                  <Tooltip
+                    content={({ payload }) => (payload && payload[0] ? (
+                      <div className="rounded-lg bg-[#0a0c0a] border border-ka-card-border px-2 py-1 text-[10px]">
+                        <p className="text-white font-bold">{payload[0].name}</p>
+                        <p className="text-ka-emerald ka-num">${payload[0].value.toLocaleString('en-US', { maximumFractionDigits: 2 })}</p>
+                        <p className="ka-muted ka-num">{total ? ((payload[0].value / total) * 100).toFixed(1) : 0}%</p>
+                      </div>
+                    ) : null)}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="text-center">
+                  <p className="text-white text-[11px] font-bold ka-num leading-none">
+                    {active ? `${((active.value / total) * 100).toFixed(0)}%` : `${holdings.length}`}
+                  </p>
+                  <p className="ka-muted text-[8px] mt-0.5">{active ? active.name : 'aset'}</p>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="w-24 h-24 rounded-full bg-[#0b1410]/60 border border-ka-card-border flex items-center justify-center">
+              <Wallet className="w-6 h-6 text-ka-emerald" />
+            </div>
+          )}
         </div>
       </div>
 
-      {/* 24h change */}
       {!loading && total > 0 && (
         <div className="flex items-center gap-2 mb-3">
           <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${isUp ? 'bg-ka-emerald/15 text-ka-emerald' : 'bg-[#e74c3c]/15 text-[#e74c3c]'}`}>
@@ -91,10 +123,9 @@ export default function HomePortfolioSummary({ user, prices, idrRate }) {
         </div>
       )}
 
-      {/* Allocation legend */}
       {!loading && holdings.length > 0 && (
         <div className="flex flex-wrap gap-x-4 gap-y-1.5">
-          {segs.map((h, i) => (
+          {top.map((h, i) => (
             <div key={h.coin} className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full" style={{ background: DONUT_COLORS[i] }} />
               <span className="text-[11px] font-semibold text-white">{h.coin}</span>
@@ -104,7 +135,6 @@ export default function HomePortfolioSummary({ user, prices, idrRate }) {
         </div>
       )}
 
-      {/* Empty state */}
       {!loading && holdings.length === 0 && (
         <Link to={createPageUrl('Wallet')}
           className="mt-1 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-ka-emerald/15 border border-ka-emerald/30 text-ka-emerald text-xs font-bold hover:bg-ka-emerald/20 transition ka-surface-hover">

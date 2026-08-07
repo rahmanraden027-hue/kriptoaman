@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import useLivePrices from '../components/market/useLivePrices';
+import useCoinMarkets from '../components/home/useCoinMarkets';
 import { Shield, ChevronRight } from 'lucide-react';
 import HomePortfolioSummary from '../components/home/HomePortfolioSummary';
 import HomeQuickActions from '../components/home/HomeQuickActions';
@@ -16,6 +17,7 @@ export default function Home() {
   const [user, setUser] = useState(null);
   const [kycStatus, setKycStatus] = useState(null);
   const { prices, idrRate, connected } = useLivePrices();
+  const { markets } = useCoinMarkets();
 
   useEffect(() => {
     base44.auth.me().then(u => {
@@ -34,7 +36,6 @@ export default function Home() {
   return (
     <div className="ka-bg min-h-screen text-white pb-28">
       <div className="max-w-lg mx-auto px-4 pt-4 space-y-4">
-        {/* Greeting */}
         <div className="flex items-center justify-between pt-1">
           <div>
             <p className="ka-muted text-xs">{greeting()},</p>
@@ -42,7 +43,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* KYC status banner (compact) */}
         {kycStatus !== 'approved' && (
           <Link to={createPageUrl('KYC')}
             className="flex items-center justify-between ka-surface ka-surface-hover p-3">
@@ -58,28 +58,14 @@ export default function Home() {
           </Link>
         )}
 
-        {/* 1. Portfolio Summary */}
         <HomePortfolioSummary user={user} prices={prices} idrRate={idrRate} />
-
-        {/* 2. Quick Actions */}
         <HomeQuickActions />
-
-        {/* 3. Live Market */}
-        <HomeLiveMarket prices={prices} idrRate={idrRate} connected={connected} />
-
-        {/* 4. Trending Coins */}
-        <HomeTrendingCoins prices={prices} />
-
-        {/* 5. Market Overview */}
+        <HomeLiveMarket prices={prices} markets={markets} idrRate={idrRate} connected={connected} />
+        <HomeTrendingCoins markets={markets} />
         <HomeMarketOverview />
-
-        {/* 6. News */}
         <HomeNews />
-
-        {/* 7. Learning Center */}
         <HomeLearningCenter />
 
-        {/* Footer */}
         <div className="text-center pt-2 pb-1">
           <p className="ka-muted text-[10px] leading-relaxed">
             KriptoAman beroperasi sesuai regulasi Bappebti &amp; OJK Indonesia.<br />

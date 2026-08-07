@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, Activity, Layers } from 'lucide-react';
 
 function Gauge({ value }) {
   const v = Math.max(0, Math.min(100, value));
-  const angle = 180 - (v / 100) * 180; // 180° left → 0° right
-  // semicircle arc using stroke-dasharray
-  const R = 52, C = Math.PI * R; // half circumference
+  const angle = 180 - (v / 100) * 180;
+  const R = 52, C = Math.PI * R;
   const dash = (v / 100) * C;
   const label = v >= 75 ? 'Greed' : v >= 55 ? 'Optimism' : v >= 45 ? 'Netral' : v >= 25 ? 'Takut' : 'Fear Ekstrem';
   const color = v >= 75 ? '#2ecc71' : v >= 55 ? '#10b981' : v >= 45 ? '#fbbf24' : '#e74c3c';
@@ -21,7 +20,7 @@ function Gauge({ value }) {
         <circle cx="60" cy="62" r="3.5" fill="#a0b3a9" />
       </svg>
       <div className="-mt-6 text-center">
-        <p className="text-2xl font-extrabold ka-num leading-none" style={{ color }}>{value == null ? '--' : Math.round(value)}</p>
+        <p className="text-2xl font-extrabold ka-num leading-none" style={{ color }}>{Math.round(v)}</p>
         <p className="text-[10px] font-semibold ka-muted mt-0.5">{label}</p>
       </div>
     </div>
@@ -30,6 +29,7 @@ function Gauge({ value }) {
 
 export default function HomeMarketOverview() {
   const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let alive = true;
@@ -38,43 +38,79 @@ export default function HomeMarketOverview() {
       fetch('https://api.alternative.me/fng/?limit=1').then(r => r.json()).catch(() => null),
     ]).then(([g, fng]) => {
       if (!alive) return;
-      const mc = g?.data?.total_market_cap?.usd ?? null;
-      const btcDom = g?.data?.market_cap_percentage?.btc ?? null;
-      const ethDom = g?.data?.market_cap_percentage?.eth ?? null;
-      const fear = fng?.data?.[0]?.value ?? null;
-      setData({ mc, btcDom, ethDom, fear });
+      setData({
+        mc: g?.data?.total_market_cap?.usd ?? null,
+        mcChange: g?.data?.market_cap_change_percentage_24h_usd ?? null,
+        vol: g?.data?.total_volume?.usd ?? null,
+        btc: g?.data?.market_cap_percentage?.btc ?? null,
+        eth: g?.data?.market_cap_percentage?.eth ?? null,
+        active: g?.data?.active_cryptocurrencies ?? null,
+        fear: fng?.data?.[0]?.value ?? null,
+        fearLabel: fng?.data?.[0]?.value_classification ?? null,
+      });
+      if (alive) setLoading(false);
     });
     return () => { alive = false; };
   }, []);
 
-  const fmtMC = (v) => {
+  const fmtBig = (v) => {
     if (v == null) return '--';
     if (v >= 1e12) return `$${(v / 1e12).toFixed(2)}T`;
     if (v >= 1e9) return `$${(v / 1e9).toFixed(2)}B`;
+    if (v >= 1e6) return `$${(v / 1e6).toFixed(2)}M`;
     return `$${v.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
   };
+  const fmtNum = (v) => (v == null ? '--' : v.toLocaleString('en-US'));
+
+  const Stat = ({ label, value, sub, up }) => (
+    <div className="rounded-2xl bg-[#0b1410]/60 border border-ka-card-border p-3">
+      <p className="ka-muted text-[10px] font-semibold uppercase tracking-wide">{label}</p>
+      <p className="text-white font-bold ka-num text-base mt-0.5">{value}</p>
+      {sub && (
+        <p className={`text-[10px] mt-0.5 font-semibold ${up === undefined ? 'ka-muted' : up ? 'text-ka-emerald' : 'text-[#e74c3c]'}`}>{sub}</p>
+      )}
+    </div>
+  );
 
   return (
-    <div className="ka-surface p-4 ka-fade-up">
+    <div className="ka-surface p-4 ka-fade-up" style={{ animationDelay: '240ms' }}>
       <h3 className="text-white font-bold text-sm mb-3 flex items-center gap-1.5">
         <TrendingUp className="w-4 h-4 text-ka-emerald" /> Market Overview
       </h3>
 
-      <div className="grid grid-cols-2 gap-2.5 mb-4">
-        <div className="rounded-2xl bg-[#0b1410]/60 border border-ka-card-border p-3">
-          <p className="ka-muted text-[10px] font-semibold uppercase tracking-wide">Market Cap</p>
-          <p className="text-white font-bold ka-num text-base mt-0.5">{fmtMC(data?.mc)}</p>
+      {loading ? (
+        <div className="grid grid-cols-2 gap-2.5 mb-3">
+          {[0, 1, 2, 3].map(i => <div key={i} className="h-16 ka-shimmer rounded-2xl" />)}
         </div>
-        <div className="rounded-2xl bg-[#0b1410]/60 border border-ka-card-border p-3">
-          <p className="ka-muted text-[10px] font-semibold uppercase tracking-wide">BTC Dominance</p>
-          <p className="text-white font-bold ka-num text-base mt-0.5">{data?.btcDom != null ? `${data.btcDom.toFixed(1)}%` : '--'}</p>
-          <p className="ka-muted text-[10px] mt-0.5">ETH {data?.ethDom != null ? `${data.ethDom.toFixed(1)}%` : '--'}</p>
+      ) : (
+        <div className="grid grid-cols-2 gap-2.5 mb-3">
+          <Stat
+            label="Market Cap"
+            value={fmtBig(data?.mc)}
+            sub={data?.mcChange != null ? `${data.mcChange >= 0 ? '+' : ''}${data.mcChange.toFixed(2)}%` : '--'}
+            up={data?.mcChange != null ? data.mcChange >= 0 : undefined}
+          />
+          <Stat label="Volume 24j" value={fmtBig(data?.vol)} sub="likuiditas global" />
+          <Stat label="BTC Dom" value={data?.btc != null ? `${data.btc.toFixed(1)}%` : '--'} sub="dominasi" />
+          <Stat label="ETH Dom" value={data?.eth != null ? `${data.eth.toFixed(1)}%` : '--'} sub="dominasi" />
         </div>
-      </div>
+      )}
 
       <div className="rounded-2xl bg-[#0b1410]/60 border border-ka-card-border p-3">
-        <p className="ka-muted text-[10px] font-semibold uppercase tracking-wide text-center mb-1">Fear &amp; Greed Index</p>
-        {data === null ? <div className="h-16 ka-shimmer rounded-xl" /> : <Gauge value={data.fear} />}
+        <div className="flex items-center justify-between mb-1">
+          <p className="ka-muted text-[10px] font-semibold uppercase tracking-wide">Fear &amp; Greed Index</p>
+          <span className="text-[10px] ka-muted flex items-center gap-1">
+            <Activity className="w-3 h-3" /> {data?.fearLabel || '--'}
+          </span>
+        </div>
+        {loading || data?.fear == null ? (
+          <div className="h-16 ka-shimmer rounded-xl" />
+        ) : (
+          <Gauge value={data.fear} />
+        )}
+        <p className="text-center text-[10px] ka-muted mt-1 flex items-center justify-center gap-1">
+          <Layers className="w-3 h-3" /> {data?.active != null ? `${fmtNum(data.active)} aset aktif` : '--'}
+        </p>
       </div>
     </div>
   );
