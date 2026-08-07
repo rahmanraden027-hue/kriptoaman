@@ -19,6 +19,7 @@ import KriptoAmanGlobalLanding from './pages/KriptoAmanGlobalLanding';
 import Services from './pages/Services';
 import SystemStatus from './pages/SystemStatus';
 import MultiChainWallet from './pages/MultiChainWallet';
+import SecurityHub from './pages/SecurityHub';
 import AdminRoute from '@/components/security/AdminRoute';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 
@@ -133,6 +134,11 @@ const AuthenticatedApp = () => {
         <Route path="/MultiChainWallet" element={
           <LayoutWrapper currentPageName="MultiChainWallet">
             <MultiChainWallet />
+          </LayoutWrapper>
+        } />
+        <Route path="/SecurityHub" element={
+          <LayoutWrapper currentPageName="SecurityHub">
+            <SecurityHub />
           </LayoutWrapper>
         } />
         <Route path="/BigQueryKYCReports" element={
