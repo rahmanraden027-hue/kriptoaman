@@ -13,6 +13,11 @@ import HomeMarketOverview from '../components/home/HomeMarketOverview';
 import HomeNews from '../components/home/HomeNews';
 import HomeLearningCenter from '../components/home/HomeLearningCenter';
 import HomeFooter from '../components/home/HomeFooter';
+import HomePortfolioPerformance from '../components/home/HomePortfolioPerformance';
+import HomeTradingViewSection from '../components/home/HomeTradingViewSection';
+import HomeMarketMovers from '../components/home/HomeMarketMovers';
+import AIInsightCard from '../components/home/AIInsightCard';
+import WhaleAlertCard from '../components/home/WhaleAlertCard';
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -60,10 +65,15 @@ export default function Home() {
         )}
 
         <HomePortfolioSummary user={user} prices={prices} idrRate={idrRate} />
+        <HomePortfolioPerformance user={user} prices={prices} />
         <HomeQuickActions />
+        <HomeTradingViewSection />
+        <HomeMarketMovers />
         <HomeLiveMarket prices={prices} markets={markets} idrRate={idrRate} connected={connected} />
         <HomeTrendingCoins markets={markets} />
         <HomeMarketOverview />
+        <AIInsightCard />
+        <WhaleAlertCard />
         <HomeNews />
         <HomeLearningCenter />
 
