@@ -89,7 +89,8 @@ const AuthenticatedApp = () => {
       })}
 
       {/* Protected app routes — gated by ProtectedRoute */}
-      <Route path="/dashboard" element={
+      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+        <Route path="/dashboard" element={
   <LayoutWrapper currentPageName="Home">
     <DashboardPage />
   </LayoutWrapper>
