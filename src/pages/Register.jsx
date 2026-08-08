@@ -28,18 +28,9 @@ export default function Register() {
   setError("Verifikasi email sedang dipindahkan ke sistem KriptoAman.");
 };
 
-  const handleResend = async () => {
-    setError("");
-    try {
-      await base44.auth.resendOtp(email);
-      toast({
-        title: "Code sent",
-        description: "Check your email for the new code.",
-      });
-    } catch (err) {
-      setError(err.message || "Failed to resend code");
-    }
-  };
+   const handleResend = async () => {
+  setError("Pengiriman ulang kode sedang dipindahkan ke sistem KriptoAman.");
+};
 
   const handleGoogle = () => {
     base44.auth.loginWithProvider("google", "/");
