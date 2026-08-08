@@ -70,7 +70,7 @@ const AuthenticatedApp = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
-
+<Route path="/" element={<KriptoAmanGlobalLanding />} />
       {/* Public pages — accessible without authentication (paket gratis) */}
       {Object.entries(Pages).map(([path, Page]) => {
         if (!PUBLIC_PAGE_KEYS.has(path)) return null;
