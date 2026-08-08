@@ -148,7 +148,7 @@ const AuthenticatedApp = () => {
             </LayoutWrapper>
           </AdminRoute>
         } />
-        {/* Preview-only public landing — full screen, no app chrome */}
+        
         
       </Route>
 
