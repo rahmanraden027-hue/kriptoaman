@@ -25,20 +25,8 @@ export default function Register() {
 };
 
   const handleVerify = async () => {
-    setError("");
-    setLoading(true);
-    try {
-      const result = await base44.auth.verifyOtp({ email, otpCode });
-      if (result?.access_token) {
-        base44.auth.setToken(result.access_token);
-      }
-      window.location.href = "/";
-    } catch (err) {
-      setError(err.message || "Invalid verification code");
-    } finally {
-      setLoading(false);
-    }
-  };
+  setError("Verifikasi email sedang dipindahkan ke sistem KriptoAman.");
+};
 
   const handleResend = async () => {
     setError("");
