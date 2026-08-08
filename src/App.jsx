@@ -149,7 +149,7 @@ const AuthenticatedApp = () => {
           </AdminRoute>
         } />
         {/* Preview-only public landing — full screen, no app chrome */}
-        <Route path="/KriptoAmanGlobalLanding" element={<KriptoAmanGlobalLanding />} />
+        
       </Route>
 
       <Route path="*" element={<PageNotFound />} />
