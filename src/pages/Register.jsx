@@ -33,8 +33,8 @@ export default function Register() {
 };
 
   const handleGoogle = () => {
-    base44.auth.loginWithProvider("google", "/");
-  };
+  setError("Google Login sedang dipindahkan ke sistem KriptoAman.");
+};
 
   if (showOtp) {
     return (
