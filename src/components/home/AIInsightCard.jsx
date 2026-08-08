@@ -5,7 +5,7 @@ import Skeleton from './Skeleton';
 
 const FALLBACK = {
   title: 'Pasar stabil, pantau likuiditas',
-  body: 'Dominasi BTC dan indeks Fear & Greed menunjukkan sentimen netral. Perhatikan volume 24 jam untuk konfirmasi arah. Selalu kelola risiko dengan stop-loss.',
+  body: 'Dominasi BTC dan indeks sentimen menunjukkan kondisi pasar netral. Volume dan likuiditas 24 jam ditampilkan sebagai informasi analitik, bukan rekomendasi investasi.',
   sentiment: 'neutral',
   tag: 'Insight Otomatis',
 };
@@ -18,7 +18,7 @@ export default function AIInsightCard() {
     setLoading(true);
     try {
       const res = await base44.integrations.Core.InvokeLLM({
-        prompt: 'Berikan insight singkat (maks 60 kata) tentang kondisi pasar kripto saat ini dalam Bahasa Indonesia. Fokus pada BTC, ETH, dan sentimen umum. Format JSON {title, body, sentiment}.',
+        prompt: 'Berikan ringkasan deskriptif singkat (maks 60 kata) tentang kondisi pasar kripto saat ini dalam Bahasa Indonesia. Fokus pada BTC, ETH, volume, dan sentimen umum. Jangan berikan rekomendasi beli/jual, target harga, atau nasihat investasi. Format JSON {title, body, sentiment}.',
         response_json_schema: { type: 'object', properties: { title: { type: 'string' }, body: { type: 'string' }, sentiment: { type: 'string' } } },
       });
       setInsight({ ...res, tag: 'AI Insight' });
