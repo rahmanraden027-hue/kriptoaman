@@ -1,14 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowDownToLine, ShoppingCart, Tag, ArrowLeftRight, Send } from 'lucide-react';
+import { TrendingUp, PieChart, Wallet, ShieldCheck, BadgeCheck } from 'lucide-react';
 
 const ACTIONS = [
-  { label: 'Deposit', page: 'Wallet', icon: ArrowDownToLine },
-  { label: 'Beli', page: 'Market', icon: ShoppingCart },
-  { label: 'Jual', page: 'Market', icon: Tag },
-  { label: 'Swap', page: 'Wallet', icon: ArrowLeftRight },
-  { label: 'Kirim', page: 'Wallet', icon: Send },
+  { label: 'Pasar', page: 'Market', icon: TrendingUp },
+  { label: 'Portfolio', page: 'PortfolioOverview', icon: PieChart },
+  { label: 'Pantau Wallet', page: 'Wallet', icon: Wallet },
+  { label: 'Keamanan', page: 'SecurityHub', icon: ShieldCheck },
+  { label: 'KYC', page: 'KYC', icon: BadgeCheck },
 ];
 
 export default function HomeQuickActions() {
@@ -21,7 +21,7 @@ export default function HomeQuickActions() {
             <div className="w-12 h-12 rounded-2xl bg-ka-emerald/12 border border-ka-emerald/25 flex items-center justify-center ka-emerald-glow">
               <Icon className="w-5 h-5 text-ka-emerald" />
             </div>
-            <span className="text-[11px] font-bold text-white">{label}</span>
+            <span className="text-[11px] font-bold text-white text-center"
           </Link>
         ))}
       </div>
