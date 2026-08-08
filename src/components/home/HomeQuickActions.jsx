@@ -21,7 +21,7 @@ export default function HomeQuickActions() {
             <div className="w-12 h-12 rounded-2xl bg-ka-emerald/12 border border-ka-emerald/25 flex items-center justify-center ka-emerald-glow">
               <Icon className="w-5 h-5 text-ka-emerald" />
             </div>
-            <span className="text-[11px] font-bold text-white text-center"
+            <span className="text-[11px] font-bold text-white text-center">{label}</span>
           </Link>
         ))}
       </div>
