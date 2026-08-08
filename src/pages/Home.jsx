@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import useLivePrices from '../components/market/useLivePrices';
 import useCoinMarkets from '../components/home/useCoinMarkets';
-import { Shield, ChevronRight } from 'lucide-react';
+import { Shield, ChevronRight, Radio, Eye } from 'lucide-react';
 import HomePortfolioSummary from '../components/home/HomePortfolioSummary';
 import HomeQuickActions from '../components/home/HomeQuickActions';
 import HomeLiveMarket from '../components/home/HomeLiveMarket';
@@ -40,45 +40,78 @@ export default function Home() {
   };
 
   return (
-    <div className="ka-bg min-h-screen text-white pb-28">
-      <div className="max-w-lg mx-auto px-4 pt-4 space-y-4">
-        <div className="flex items-center justify-between pt-1">
-          <div>
-            <p className="ka-muted text-xs">{greeting()},</p>
-            <h1 className="text-xl font-extrabold tracking-tight">{user?.full_name?.split(' ')[0] || 'Pengguna'}</h1>
-          </div>
+  <div className="ka-bg min-h-screen text-white pb-28">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+        <div>
+          <p className="ka-muted text-xs">{greeting()},</p>
+          <h1 className="text-2xl lg:text-3xl font-extrabold tracking-tight">
+            {user?.full_name?.split(' ')[0] || 'Pengguna'}
+          </h1>
+          <p className="ka-muted text-xs mt-1">
+            Ringkasan pasar, portfolio, dan keamanan dalam satu layar.
+          </p>
         </div>
 
-        {kycStatus !== 'approved' && (
-          <Link to={createPageUrl('KYC')}
-            className="flex items-center justify-between ka-surface ka-surface-hover p-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-yellow-500/15 border border-yellow-500/30 flex items-center justify-center">
-                <Shield className="w-4 h-4 text-yellow-400" />
-              </div>
-              <span className="text-yellow-300 text-xs font-semibold">
-                {kycStatus === 'pending' ? 'KYC dalam proses review' : 'Lengkapi KYC untuk akses penuh'}
-              </span>
-            </div>
-            <ChevronRight className="w-4 h-4 text-yellow-400 shrink-0" />
-          </Link>
-        )}
-
-        <HomePortfolioSummary user={user} prices={prices} idrRate={idrRate} />
-        <HomePortfolioPerformance user={user} prices={prices} />
-        <HomeQuickActions />
-        <HomeTradingViewSection />
-        <HomeMarketMovers />
-        <HomeLiveMarket prices={prices} markets={markets} idrRate={idrRate} connected={connected} />
-        <HomeTrendingCoins markets={markets} />
-        <HomeMarketOverview />
-        <AIInsightCard />
-        <WhaleAlertCard />
-        <HomeNews />
-        <HomeLearningCenter />
-
-        <HomeFooter />
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="ka-chip px-3 py-1.5 text-[10px] font-bold text-ka-emerald inline-flex items-center gap-1.5">
+            <Radio className="w-3 h-3" /> Data Live
+          </span>
+          <span className="ka-chip px-3 py-1.5 text-[10px] font-bold text-sky-300 inline-flex items-center gap-1.5">
+            <Eye className="w-3 h-3" /> Mode Read-only
+          </span>
+        </div>
       </div>
+
+      {kycStatus !== 'approved' && (
+        <Link
+          to={createPageUrl('KYC')}
+          className="flex items-center justify-between ka-surface ka-surface-hover p-3"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-yellow-500/15 border border-yellow-500/30 flex items-center justify-center">
+              <Shield className="w-4 h-4 text-yellow-400" />
+            </div>
+            <span className="text-yellow-300 text-xs font-semibold">
+              {kycStatus === 'pending'
+                ? 'KYC dalam proses review'
+                : 'Lengkapi KYC untuk akses penuh'}
+            </span>
+          </div>
+          <ChevronRight className="w-4 h-4 text-yellow-400 shrink-0" />
+        </Link>
+      )}
+
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
+        <div className="xl:col-span-8 space-y-4 min-w-0">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <HomePortfolioSummary user={user} prices={prices} idrRate={idrRate} />
+            <HomePortfolioPerformance user={user} prices={prices} />
+          </div>
+
+          <HomeQuickActions />
+          <HomeTradingViewSection />
+          <HomeMarketMovers />
+          <HomeLiveMarket
+            prices={prices}
+            markets={markets}
+            idrRate={idrRate}
+            connected={connected}
+          />
+          <HomeTrendingCoins markets={markets} />
+        </div>
+
+        <aside className="xl:col-span-4 space-y-4 min-w-0">
+          <AIInsightCard />
+          <WhaleAlertCard />
+          <HomeMarketOverview />
+          <HomeNews />
+          <HomeLearningCenter />
+        </aside>
+      </div>
+
+      <HomeFooter />
     </div>
-  );
+  </div>
+);
 }
