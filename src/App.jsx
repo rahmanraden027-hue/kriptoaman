@@ -26,7 +26,7 @@ import AppErrorBoundary from '@/components/AppErrorBoundary';
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
-
+const DashboardPage = Pages.Home ?? MainPage;
 // Halaman yang hanya boleh diakses admin (dilindungi di level route)
 const ADMIN_PAGE_KEYS = new Set([
   'AdminKYCManagement', 'AdminPlatformAssets', 'AdminProfitAnalytics', 'AdminUserBalances',
@@ -37,7 +37,7 @@ const ADMIN_PAGE_KEYS = new Set([
 
 // Halaman publik statis — dapat diakses tanpa autentikasi (paket gratis)
 const PUBLIC_PAGE_KEYS = new Set([
-  'Home', 'AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'TermsOfService',
+   'AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'TermsOfService',
   'PlatformDocs',
 ]);
 
@@ -70,7 +70,8 @@ const AuthenticatedApp = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
-
+<Route path="/" element={<KriptoAmanGlobalLanding />} />
+<Route path="/KriptoAmanGlobalLanding" element={<KriptoAmanGlobalLanding />} />
       {/* Public pages — accessible without authentication (paket gratis) */}
       {Object.entries(Pages).map(([path, Page]) => {
         if (!PUBLIC_PAGE_KEYS.has(path)) return null;
@@ -88,12 +89,12 @@ const AuthenticatedApp = () => {
       })}
 
       {/* Protected app routes — gated by ProtectedRoute */}
-      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-        <Route path="/" element={
-          <LayoutWrapper currentPageName={mainPageKey}>
-            <MainPage />
-          </LayoutWrapper>
-        } />
+      <Route path="/dashboard" element={
+  <LayoutWrapper currentPageName="Home">
+    <DashboardPage />
+  </LayoutWrapper>
+} />
+        
         {Object.entries(Pages).map(([path, Page]) => {
           if (PUBLIC_PAGE_KEYS.has(path)) return null;
           const wrapped = (
@@ -148,8 +149,7 @@ const AuthenticatedApp = () => {
             </LayoutWrapper>
           </AdminRoute>
         } />
-        {/* Preview-only public landing — full screen, no app chrome */}
-        <Route path="/KriptoAmanGlobalLanding" element={<KriptoAmanGlobalLanding />} />
+        
       </Route>
 
       <Route path="*" element={<PageNotFound />} />
