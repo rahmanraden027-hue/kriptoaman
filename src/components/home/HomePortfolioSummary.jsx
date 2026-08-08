@@ -138,7 +138,7 @@ export default function HomePortfolioSummary({ user, prices, idrRate }) {
       {!loading && holdings.length === 0 && (
         <Link to={createPageUrl('Wallet')}
           className="mt-1 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-ka-emerald/15 border border-ka-emerald/30 text-ka-emerald text-xs font-bold hover:bg-ka-emerald/20 transition ka-surface-hover">
-          <Plus className="w-4 h-4" /> Deposit untuk memulai
+          <Plus className="w-4 h-4" /> Pantau wallet publik
         </Link>
       )}
     </div>
