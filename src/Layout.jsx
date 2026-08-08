@@ -1,10 +1,10 @@
 import React, { useEffect, useState, Suspense } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useSystemDarkMode } from './hooks/useSystemDarkMode';
 import MobileHeader from './components/mobile/MobileHeader';
 import PageTransition from './components/mobile/PageTransition';
-import { Wallet, Coins, Clock, Zap, Settings, BarChart3, LayoutGrid, User, MessageCircle, Info, Mail, AlertTriangle, Home, TrendingUp, Bell, BookOpen, ShieldCheck, Lock, AlertTriangle as AlertTriangleIcon } from 'lucide-react';
+import { Wallet, Coins, Clock, Zap, Settings, BarChart3, LayoutGrid, User, MessageCircle, Info, Mail, AlertTriangle, Home, TrendingUp, Bell, BookOpen, ShieldCheck, Lock } from 'lucide-react';
 import KriptoAmanLogo from './components/brand/KriptoAmanLogo';
 import { installCrashHandlers } from './components/utils/crashAnalytics';
 import { base44 } from '@/api/base44Client';
@@ -24,7 +24,16 @@ const BOTTOM_NAV = [
   { label: 'Alerts', page: 'Alerts', icon: Bell },
   { label: 'Profile', page: 'Profile', icon: User },
 ];
-
+const DESKTOP_NAV = [
+  { label: 'Dashboard', page: 'Home', icon: Home, to: '/dashboard' },
+  { label: 'Pasar', page: 'Market', icon: TrendingUp },
+  { label: 'Portfolio', page: 'PortfolioOverview', icon: BarChart3 },
+  { label: 'Pantau Wallet', page: 'Wallet', icon: Wallet },
+  { label: 'Keamanan', page: 'SecurityHub', icon: ShieldCheck },
+  { label: 'KYC', page: 'KYC', icon: ShieldCheck },
+  { label: 'Edukasi', page: 'Edukasi', icon: BookOpen },
+  { label: 'Notifikasi', page: 'Alerts', icon: Bell },
+];
 // Secondary nav (shown in sidebar/more menu)
 const NAV = [
   { label: 'KYC Verification', page: 'KYCVerificationPage', icon: ShieldCheck },
@@ -131,18 +140,74 @@ export default function Layout({ children, currentPageName }) {
       <div className={`fixed ${user ? 'top-10' : 'top-0'} left-0 right-0 z-40`}>
         <LiveTickerBar />
       </div>
+{/* Desktop Sidebar */}
+{user && (
+  <aside className="hidden lg:flex fixed left-0 top-[72px] bottom-0 z-30 w-60 border-r border-ka-card-border bg-[#07111d]/95 backdrop-blur-xl px-3 py-5 flex-col">
+    <div className="px-3 mb-4">
+      <p className="text-[10px] uppercase tracking-[0.18em] text-ka-muted font-bold">
+        Workspace
+      </p>
 
+      <div className="mt-2 flex items-center gap-2 text-[10px] text-sky-300 bg-sky-400/10 border border-sky-400/20 rounded-xl px-3 py-2">
+        <ShieldCheck className="w-3.5 h-3.5" />
+        Fase 1 · Read-only
+      </div>
+    </div>
+
+    <nav className="space-y-1">
+      {DESKTOP_NAV.map(({ label, page, icon: Icon, to }) => {
+        const active = currentPageName === page;
+
+        return (
+          <Link
+            key={label}
+            to={to || createPageUrl(page)}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+              active
+                ? 'bg-ka-emerald/15 text-ka-emerald border border-ka-emerald/25'
+                : 'text-ka-muted hover:text-white hover:bg-white/5 border border-transparent'
+            }`}
+          >
+            <Icon className="w-4 h-4" />
+            {label}
+          </Link>
+        );
+      })}
+    </nav>
+
+    {user?.role === 'admin' && (
+      <div className="mt-auto pt-4 border-t border-ka-card-border">
+        <p className="px-3 mb-2 text-[10px] uppercase tracking-[0.18em] text-ka-muted font-bold">
+          Owner Admin
+        </p>
+
+        <Link
+          to={createPageUrl('ServerControl')}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-ka-emerald hover:bg-ka-emerald/10 transition-all"
+        >
+          <Lock className="w-4 h-4" />
+          Admin Control
+        </Link>
+      </div>
+    )}
+  </aside>
+)}
       {/* Push content down if top bar is visible */}
       {user && <div className="h-10" />}
       <div className="h-8" />{/* ticker bar height */}
 
-      <MobileHeader currentPageName={currentPageName} />
-      <Suspense fallback={<div className="min-h-screen ka-bg flex items-center justify-center"><div className="w-6 h-6 rounded-full border-2 border-ka-emerald border-t-transparent animate-spin" /></div>}>
-        <PageTransition>{children}</PageTransition>
-      </Suspense>
+      <div className={user ? 'lg:pl-60' : ''}>
+  <div className="lg:hidden">
+    <MobileHeader currentPageName={currentPageName} />
+  </div>
+
+  <Suspense fallback={<div className="min-h-screen ka-bg flex items-center justify-center"><div className="w-6 h-6 rounded-full border-2 border-ka-emerald border-t-transparent animate-spin" /></div>}>
+    <PageTransition>{children}</PageTransition>
+  </Suspense>
+</div>
 
       {/* Bottom Nav — 5 primary tabs */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#0a0c0a]/95 backdrop-blur border-t border-ka-card-border safe-area-pb">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0a0c0a]/95 backdrop-blur border-t border-ka-card-border safe-area-pb">
         <div className="flex justify-around items-center py-2 px-2">
           {BOTTOM_NAV.map(({ label, page, icon: Icon }) => {
             const active = currentPageName === page;
@@ -185,7 +250,7 @@ export default function Layout({ children, currentPageName }) {
       )}
 
       {/* Bottom padding for nav */}
-      <div className={user?.role === 'admin' ? 'h-24' : 'h-16'} />
+      <div className={`${user?.role === 'admin' ? 'h-24' : 'h-16'} lg:h-6`} />
       </div>
     </Web3Provider>
     </DisclaimerGate>
