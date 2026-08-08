@@ -20,22 +20,9 @@ export default function Register() {
   const [otpCode, setOtpCode] = useState("");
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-    setLoading(true);
-    try {
-      await base44.auth.register({ email, password });
-      setShowOtp(true);
-    } catch (err) {
-      setError(err.message || "Registration failed");
-    } finally {
-      setLoading(false);
-    }
-  };
+  e.preventDefault();
+  setError("Pendaftaran sedang dipindahkan ke sistem KriptoAman. Silakan coba kembali setelah konfigurasi selesai.");
+};
 
   const handleVerify = async () => {
     setError("");
