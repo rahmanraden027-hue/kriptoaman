@@ -14,23 +14,15 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      await base44.auth.loginViaEmailPassword(email, password);
-      window.location.href = "/";
-    } catch (err) {
-      setError(err.message || "Invalid email or password");
-    } finally {
-      setLoading(false);
-    }
-  };
+   const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("Login sedang dipindahkan ke sistem KriptoAman. Silakan coba kembali setelah konfigurasi selesai.");
+};
 
   const handleGoogle = () => {
-    base44.auth.loginWithProvider("google", "/");
-  };
+  setError("Google Login sedang dipindahkan ke sistem KriptoAman.");
+};
+  
 
   return (
     <AuthLayout
