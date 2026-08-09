@@ -43,14 +43,14 @@ module.exports = {
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',
-  			ka: {
-  				DEFAULT: '#2ecc71',
-  				emerald: '#2ecc71',
-  				teal: '#10b981',
-  				deep: '#0b1410',
-  				muted: '#a0b3a9',
-  				card: '#141f1a',
-  				cardBorder: '#2a3d34'
+			ka: {
+				DEFAULT: '#2f8cff',
+				emerald: '#2f8cff',
+				teal: '#00b8d9',
+				deep: '#06101d',
+				muted: '#9fb3c8',
+				card: '#0b1828',
+				cardBorder: '#203b57'
   			},
   			chart: {
   				'1': 'hsl(var(--chart-1))',

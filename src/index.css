@@ -76,15 +76,16 @@
   }
 }
 
-/* ===== Emerald Matrix — App Design System ===== */
+/* ===== KriptoAman Official — Navy, Blue & Gold Design System ===== */
 :root {
   --ka-bg: #050b14;
---ka-bg-2: #07111d;
---ka-card: rgba(10, 24, 38, 0.72);
---ka-card-border: rgba(43, 67, 87, 0.72);
-  --ka-emerald: #2ecc71;
-  --ka-emerald-2: #10b981;
-  --ka-teal: #14b8a6;
+  --ka-bg-2: #07111d;
+  --ka-card: rgba(10, 24, 38, 0.82);
+  --ka-card-border: rgba(43, 84, 122, 0.62);
+  --ka-emerald: #2f8cff;
+  --ka-emerald-2: #0ea5e9;
+  --ka-teal: #00b8d9;
+  --ka-gold: #f4b942;
   --ka-positive: #2ecc71;
   --ka-negative: #e74c3c;
   --ka-text: #ffffff;
@@ -105,7 +106,7 @@ body {
   .ka-bg {
     background:
       radial-gradient(1200px 600px at 50% -10%, rgba(14, 165, 233, 0.13), transparent 60%),
-radial-gradient(900px 500px at 100% 0%, rgba(46, 204, 113, 0.08), transparent 55%),
+      radial-gradient(900px 500px at 100% 0%, rgba(244, 185, 66, 0.07), transparent 55%),
 linear-gradient(180deg, #050b14 0%, #07111d 100%);
   }
   .ka-surface {
@@ -119,17 +120,17 @@ linear-gradient(180deg, #050b14 0%, #07111d 100%);
     transition: border-color .2s ease, box-shadow .2s ease, transform .15s ease;
   }
   .ka-surface-hover:hover {
-    border-color: rgba(46, 204, 113, 0.45);
-    box-shadow: 0 10px 30px -12px rgba(16, 185, 129, 0.28);
+    border-color: rgba(47, 140, 255, 0.5);
+    box-shadow: 0 10px 30px -12px rgba(47, 140, 255, 0.3);
   }
   .ka-surface-hover:active { transform: scale(0.985); }
   .ka-emerald-glow {
-    box-shadow: 0 0 0 1px rgba(46, 204, 113, 0.25), 0 0 22px -6px rgba(46, 204, 113, 0.4);
+    box-shadow: 0 0 0 1px rgba(47, 140, 255, 0.25), 0 0 22px -6px rgba(47, 140, 255, 0.42);
   }
   .ka-chip {
     border-radius: 9999px;
     border: 1px solid var(--ka-card-border);
-    background: rgba(20, 31, 26, 0.6);
+    background: rgba(10, 29, 48, 0.72);
   }
 }
 
@@ -157,6 +158,15 @@ linear-gradient(180deg, #050b14 0%, #07111d 100%);
 .tap-target { min-height: 44px; min-width: 44px; }
 * { -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+/* Stable app viewport across Android, iOS, tablets and desktop mode. */
+#root { min-height: 100dvh; isolation: isolate; }
+body { min-width: 320px; overflow-x: hidden; }
+img { max-width: 100%; }
+:focus-visible { outline: 2px solid #2f8cff; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+}
 
 @layer base {
   * { @apply border-border outline-ring/50; }
