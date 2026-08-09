@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { QrCode, X, Copy, Check, Shield, Wallet } from 'lucide-react';
+import KriptoAmanLogo from '../brand/KriptoAmanLogo';
 
 function QRCodeCanvas({ value, size = 180 }) {
   const canvasRef = useRef(null);
@@ -22,10 +23,6 @@ function QRCodeCanvas({ value, size = 180 }) {
 export default function WalletProfileCard({ user, address, coin = 'BTC', isLight }) {
   const [showQR, setShowQR] = useState(false);
   const [copied, setCopied] = useState(false);
-
-  const initials = user?.full_name
-    ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-    : (user?.email?.[0] || '?').toUpperCase();
 
   const displayName = user?.full_name || user?.email?.split('@')[0] || 'Pengguna';
   const shortAddress = address ? `${address.slice(0, 8)}...${address.slice(-6)}` : '—';
@@ -52,8 +49,8 @@ export default function WalletProfileCard({ user, address, coin = 'BTC', isLight
         <div className="relative flex items-center gap-3">
           {/* Avatar */}
           <div className="relative shrink-0">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-500 flex items-center justify-center text-white font-bold text-lg select-none shadow-lg">
-              {initials}
+            <div className="w-14 h-14 rounded-2xl bg-[#07111d] border border-sky-500/30 flex items-center justify-center select-none shadow-lg">
+              <KriptoAmanLogo size={46} showText={false} />
             </div>
             <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-slate-900 flex items-center justify-center">
               <div className="w-1.5 h-1.5 rounded-full bg-white" />

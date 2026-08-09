@@ -207,19 +207,19 @@ export default function Layout({ children, currentPageName }) {
 </div>
 
       {/* Bottom Nav — 5 primary tabs */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0a0c0a]/95 backdrop-blur border-t border-ka-card-border safe-area-pb">
-        <div className="flex justify-around items-center py-2 px-2">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#07111d]/97 backdrop-blur-xl border-t border-sky-500/20 safe-area-pb shadow-[0_-12px_32px_rgba(0,0,0,0.35)]">
+        <div className="flex justify-around items-center py-2 px-1">
           {BOTTOM_NAV.map(({ label, page, icon: Icon }) => {
             const active = currentPageName === page;
             const hasAlert = page === 'Alerts';
             return (
               <Link key={page} to={createPageUrl(page)}
-                className={`relative flex flex-col items-center justify-center gap-0.5 px-3 min-h-[44px] min-w-[44px] rounded-xl transition-all ${active ? 'text-ka-emerald' : 'text-ka-muted hover:text-white'}`}>
+                className={`relative flex flex-1 flex-col items-center justify-center gap-1 min-h-[52px] min-w-[52px] rounded-xl transition-all ${active ? 'text-sky-400 bg-sky-500/8' : 'text-slate-400 hover:text-white'}`}>
                 {active && (
-                  <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-5 h-0.5 bg-ka-emerald rounded-full" />
+                  <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-sky-400 rounded-full" />
                 )}
-                <Icon className={`w-5 h-5 ${active ? 'text-ka-emerald' : ''}`} />
-                <span className={`text-[9px] font-semibold ${active ? 'text-ka-emerald' : ''}`}>{label}</span>
+                <Icon className={`w-5 h-5 ${active ? 'text-sky-400' : ''}`} />
+                <span className={`text-[10px] font-semibold ${active ? 'text-sky-300' : ''}`}>{label}</span>
               </Link>
             );
           })}
@@ -228,7 +228,7 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Admin Quick Links — hanya untuk admin */}
       {user?.role === 'admin' && (
-        <div className="fixed bottom-16 left-0 right-0 z-39 bg-ka-emerald/10 backdrop-blur border-t border-ka-card-border px-4 py-1.5 flex items-center gap-3 overflow-x-auto">
+        <div className="hidden lg:flex fixed bottom-0 left-60 right-0 z-30 bg-sky-500/8 backdrop-blur border-t border-sky-500/20 px-4 py-1.5 items-center gap-3 overflow-x-auto">
           <ShieldCheck className="w-3.5 h-3.5 text-ka-emerald shrink-0" />
           <span className="text-ka-emerald text-[10px] font-bold shrink-0">ADMIN:</span>
           {NAV.filter(n => n.adminOnly).map(({ label, page, icon: Icon }) => {
@@ -250,7 +250,7 @@ export default function Layout({ children, currentPageName }) {
       )}
 
       {/* Bottom padding for nav */}
-      <div className={`${user?.role === 'admin' ? 'h-24' : 'h-16'} lg:h-6`} />
+      <div className="h-20 lg:h-6" />
       </div>
     </Web3Provider>
     </DisclaimerGate>
