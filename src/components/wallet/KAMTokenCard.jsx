@@ -5,7 +5,7 @@ import { base44 } from '@/api/base44Client';
 const KAM_TOKEN = {
   symbol: 'KAM',
   name: 'KriptoAman Token',
-  logo: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69966c5817554cf31f7ec14b/dfa859cab_generated_image.png',
+  logo: '/kriptoaman-logo-primary.png',
   description: 'Native token untuk ekosistem KriptoAman',
   color: 'from-indigo-600 to-blue-600',
   borderColor: 'border-indigo-500',

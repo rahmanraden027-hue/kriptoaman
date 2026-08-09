@@ -11,6 +11,8 @@ const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/kriptoaman-logo-primary.png',
+  '/icons/kriptoaman-192.png',
 ];
 
 const API_DOMAINS = [
@@ -107,8 +109,8 @@ self.addEventListener('push', (event) => {
   const data = event.data ? event.data.json() : {};
   const options = {
     body: data.body || 'Ada notifikasi baru dari KriptoAman',
-    icon: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69966c5817554cf31f7ec14b/dfa859cab_generated_image.png',
-    badge: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69966c5817554cf31f7ec14b/dfa859cab_generated_image.png',
+    icon: '/icons/kriptoaman-192.png',
+    badge: '/icons/kriptoaman-192.png',
     vibrate: [100, 50, 100],
     data: { url: data.url || '/' },
     actions: [
