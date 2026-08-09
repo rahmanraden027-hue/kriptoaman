@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Shield, Upload, CheckCircle2, Clock, AlertCircle, User, Camera, FileText, Loader2, ArrowLeft, Phone, ChevronRight, Info } from 'lucide-react';
+import { Upload, CheckCircle2, Clock, User, Camera, FileText, Loader2, ArrowLeft, ChevronRight, Info } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
