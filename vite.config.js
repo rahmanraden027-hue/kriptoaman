@@ -15,5 +15,21 @@ export default defineConfig({
       visualEditAgent: true
     }),
     react(),
-  ]
+  ],
+  build: {
+    sourcemap: false,
+    chunkSizeWarningLimit: 750,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (id.includes('react') || id.includes('scheduler')) return 'react-vendor';
+          if (id.includes('recharts') || id.includes('d3-')) return 'charts-vendor';
+          if (id.includes('ethers') || id.includes('viem') || id.includes('@solana')) return 'web3-vendor';
+          if (id.includes('@radix-ui')) return 'ui-vendor';
+          return undefined;
+        },
+      },
+    },
+  },
 });

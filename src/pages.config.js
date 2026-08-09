@@ -1,146 +1,34 @@
-/**
- * pages.config.js - Page routing configuration
- * 
- * This file is AUTO-GENERATED. Do not add imports or modify PAGES manually.
- * Pages are auto-registered when you create files in the ./pages/ folder.
- * 
- * THE ONLY EDITABLE VALUE: mainPage
- * This controls which page is the landing page (shown when users visit the app).
- * 
- * Example file structure:
- * 
- *   import HomePage from './pages/HomePage';
- *   import Dashboard from './pages/Dashboard';
- *   import Settings from './pages/Settings';
- *   
- *   export const PAGES = {
- *       "HomePage": HomePage,
- *       "Dashboard": Dashboard,
- *       "Settings": Settings,
- *   }
- *   
- *   export const pagesConfig = {
- *       mainPage: "HomePage",
- *       Pages: PAGES,
- *   };
- * 
- * Example with Layout (wraps all pages):
- *
- *   import Home from './pages/Home';
- *   import Settings from './pages/Settings';
- *   import __Layout from './Layout.jsx';
- *
- *   export const PAGES = {
- *       "Home": Home,
- *       "Settings": Settings,
- *   }
- *
- *   export const pagesConfig = {
- *       mainPage: "Home",
- *       Pages: PAGES,
- *       Layout: __Layout,
- *   };
- *
- * To change the main page from HomePage to Dashboard, use find_replace:
- *   Old: mainPage: "HomePage",
- *   New: mainPage: "Dashboard",
- *
- * The mainPage value must match a key in the PAGES object exactly.
- */
-import AMLDashboard from './pages/AMLDashboard';
-import AboutUs from './pages/AboutUs';
-import AdminKYCManagement from './pages/AdminKYCManagement';
-import AdminPlatformAssets from './pages/AdminPlatformAssets';
-import AdminProfitAnalytics from './pages/AdminProfitAnalytics';
-import AdminUserBalances from './pages/AdminUserBalances';
-import Alerts from './pages/Alerts';
-import AppBuildAnalytics from './pages/AppBuildAnalytics';
-import AssetManager from './pages/AssetManager';
-import AutoTrading from './pages/AutoTrading';
-import Contact from './pages/Contact';
-import DEXSavings from './pages/DEXSavings';
-import Disclaimer from './pages/Disclaimer';
-import Edukasi from './pages/Edukasi';
-import Home from './pages/Home';
-import KYC from './pages/KYC';
-import KYCVerificationPage from './pages/KYCVerificationPage';
-import LandingPage from './pages/LandingPage';
-import Market from './pages/Market';
-import MarketResearch from './pages/MarketResearch';
-import P2PLending from './pages/P2PLending';
-import PWAValidation from './pages/PWAValidation';
-import PlatformDocs from './pages/PlatformDocs';
-import PortfolioOverview from './pages/PortfolioOverview';
-import Premium from './pages/Premium';
-import PriceTracker from './pages/PriceTracker';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import Profile from './pages/Profile';
-import Referral from './pages/Referral';
-import RegulatoryDocs from './pages/RegulatoryDocs';
-import SEOLanding from './pages/SEOLanding';
-import SecureVault from './pages/SecureVault';
-import SecurityCenter from './pages/SecurityCenter';
-import ServerControl from './pages/ServerControl';
-import Settings from './pages/Settings';
-import StoreDeploymentGuide from './pages/StoreDeploymentGuide';
-import Support from './pages/Support';
-import TermsOfService from './pages/TermsOfService';
-import TradingAnalytics from './pages/TradingAnalytics';
-import TxHistory from './pages/TxHistory';
-import Wallet from './pages/Wallet';
-import Web3Wallet from './pages/Web3Wallet';
-import ReadinessCheck from './pages/ReadinessCheck';
-import __Layout from './Layout.jsx';
+import { lazy } from 'react';
+const __Layout = lazy(() => import('./Layout.jsx'));
 
+// Vite creates a separate chunk for every page. This keeps admin, trading,
+// wallet, analytics, and KYC code out of the public landing-page bundle.
+const pageModules = import.meta.glob('./pages/*.jsx');
 
-export const PAGES = {
-    "AMLDashboard": AMLDashboard,
-    "AboutUs": AboutUs,
-    "AdminKYCManagement": AdminKYCManagement,
-    "AdminPlatformAssets": AdminPlatformAssets,
-    "AdminProfitAnalytics": AdminProfitAnalytics,
-    "AdminUserBalances": AdminUserBalances,
-    "Alerts": Alerts,
-    "AppBuildAnalytics": AppBuildAnalytics,
-    "AssetManager": AssetManager,
-    "AutoTrading": AutoTrading,
-    "Contact": Contact,
-    "DEXSavings": DEXSavings,
-    "Disclaimer": Disclaimer,
-    "Edukasi": Edukasi,
-    "Home": Home,
-    "KYC": KYC,
-    "KYCVerificationPage": KYCVerificationPage,
-    "LandingPage": LandingPage,
-    "Market": Market,
-    "MarketResearch": MarketResearch,
-    "P2PLending": P2PLending,
-    "PWAValidation": PWAValidation,
-    "PlatformDocs": PlatformDocs,
-    "PortfolioOverview": PortfolioOverview,
-    "Premium": Premium,
-    "PriceTracker": PriceTracker,
-    "PrivacyPolicy": PrivacyPolicy,
-    "Profile": Profile,
-    "Referral": Referral,
-    "RegulatoryDocs": RegulatoryDocs,
-    "SEOLanding": SEOLanding,
-    "SecureVault": SecureVault,
-    "SecurityCenter": SecurityCenter,
-    "ServerControl": ServerControl,
-    "Settings": Settings,
-    "StoreDeploymentGuide": StoreDeploymentGuide,
-    "Support": Support,
-    "TermsOfService": TermsOfService,
-    "TradingAnalytics": TradingAnalytics,
-    "TxHistory": TxHistory,
-    "Wallet": Wallet,
-    "Web3Wallet": Web3Wallet,
-    "ReadinessCheck": ReadinessCheck,
+const PAGE_NAMES = [
+  'AMLDashboard', 'AboutUs', 'AdminKYCManagement', 'AdminPlatformAssets',
+  'AdminProfitAnalytics', 'AdminUserBalances', 'Alerts', 'AppBuildAnalytics',
+  'AssetManager', 'AutoTrading', 'Contact', 'DEXSavings', 'Disclaimer', 'Edukasi',
+  'Home', 'KYC', 'KYCVerificationPage', 'LandingPage', 'Market', 'MarketResearch',
+  'P2PLending', 'PWAValidation', 'PlatformDocs', 'PortfolioOverview', 'Premium',
+  'PriceTracker', 'PrivacyPolicy', 'Profile', 'Referral', 'RegulatoryDocs',
+  'SEOLanding', 'SecureVault', 'SecurityCenter', 'ServerControl', 'Settings',
+  'StoreDeploymentGuide', 'Support', 'TermsOfService', 'TradingAnalytics',
+  'TxHistory', 'Wallet', 'Web3Wallet', 'ReadinessCheck',
+];
+
+function loadPage(name) {
+  const loader = pageModules[`./pages/${name}.jsx`];
+  if (!loader) throw new Error(`Page module not found: ${name}`);
+  return lazy(loader);
 }
 
+export const PAGES = Object.fromEntries(
+  PAGE_NAMES.map((name) => [name, loadPage(name)])
+);
+
 export const pagesConfig = {
-    mainPage: "Wallet",
-    Pages: PAGES,
-    Layout: __Layout,
+  mainPage: 'Wallet',
+  Pages: PAGES,
+  Layout: __Layout,
 };

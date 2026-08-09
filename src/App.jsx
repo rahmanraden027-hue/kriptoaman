@@ -12,16 +12,17 @@ import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
-import FeatureUpdateBroadcast from './pages/FeatureUpdateBroadcast';
-import AMLAssistant from './pages/AMLAssistant';
-import BigQueryKYCReports from './pages/BigQueryKYCReports';
 import KriptoAmanGlobalLanding from './pages/KriptoAmanGlobalLanding';
-import Services from './pages/Services';
-import SystemStatus from './pages/SystemStatus';
-import MultiChainWallet from './pages/MultiChainWallet';
-import SecurityHub from './pages/SecurityHub';
 import AdminRoute from '@/components/security/AdminRoute';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
+
+const FeatureUpdateBroadcast = React.lazy(() => import('./pages/FeatureUpdateBroadcast'));
+const AMLAssistant = React.lazy(() => import('./pages/AMLAssistant'));
+const BigQueryKYCReports = React.lazy(() => import('./pages/BigQueryKYCReports'));
+const Services = React.lazy(() => import('./pages/Services'));
+const SystemStatus = React.lazy(() => import('./pages/SystemStatus'));
+const MultiChainWallet = React.lazy(() => import('./pages/MultiChainWallet'));
+const SecurityHub = React.lazy(() => import('./pages/SecurityHub'));
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -72,18 +73,14 @@ const AuthenticatedApp = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
 <Route path="/" element={<KriptoAmanGlobalLanding />} />
 <Route path="/KriptoAmanGlobalLanding" element={<KriptoAmanGlobalLanding />} />
-      {/* Public pages — accessible without authentication (paket gratis) */}
+      {/* Public pages must remain readable without an account or disclaimer gate. */}
       {Object.entries(Pages).map(([path, Page]) => {
         if (!PUBLIC_PAGE_KEYS.has(path)) return null;
         return (
           <Route
             key={path}
             path={`/${path}`}
-            element={
-              <LayoutWrapper currentPageName={path}>
-                <Page />
-              </LayoutWrapper>
-            }
+            element={<Page />}
           />
         );
       })}
