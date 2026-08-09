@@ -1,0 +1,38 @@
+# KriptoAman first-party authentication
+
+This branch introduces the server-side foundation for authentication served from `kriptoaman.com`.
+
+## Cloudflare bindings
+
+Configure these for both Preview and Production before wiring the frontend to the new endpoints:
+
+- D1 binding: `AUTH_DB`
+- Secret: `GOOGLE_CLIENT_ID`
+- Secret: `GOOGLE_CLIENT_SECRET`
+- Secret: `SESSION_SECRET` (at least 32 random characters)
+- Secret: `RESEND_API_KEY`
+- Variable: `AUTH_ORIGIN=https://kriptoaman.com`
+- Variable: `AUTH_EMAIL_FROM=KriptoAman <noreply@kriptoaman.com>`
+- Variable: `ADMIN_EMAILS` (comma-separated verified Google accounts allowed to bootstrap the admin role)
+
+Run `migrations/0001_auth_users.sql` against the D1 database before enabling login.
+
+## Google OAuth client
+
+Add this exact authorized redirect URI to the Google Web OAuth client:
+
+`https://kriptoaman.com/api/auth/google/callback`
+
+The browser-facing flow is:
+
+1. `/api/auth/google/start`
+2. Google authorization
+3. `/api/auth/google/callback`
+4. signed `HttpOnly; Secure; SameSite=Lax` session cookie
+5. redirect to `/dashboard`
+
+## Migration boundary
+
+Do not switch the production frontend to this auth layer until the D1 binding and Google secrets are configured. Existing Base44 profile/KYC data remains untouched during this phase.
+
+Password registration uses a six-digit verification code delivered by Resend. Password reset uses a single-use 32-byte random token with a 30-minute lifetime. Passwords are stored using PBKDF2-HMAC-SHA256 with a unique salt and 600,000 iterations.

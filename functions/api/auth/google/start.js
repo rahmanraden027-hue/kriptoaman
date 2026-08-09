@@ -1,0 +1,30 @@
+import { authOrigin, requireBindings } from '../../../../server/auth/http.js';
+import { createOAuthState, oauthStateCookie } from '../../../../server/auth/session.js';
+
+export async function onRequestGet({ request, env }) {
+  try {
+    requireBindings(env, ['GOOGLE_CLIENT_ID', 'SESSION_SECRET']);
+    const origin = authOrigin(request, env);
+    const state = createOAuthState();
+    const params = new URLSearchParams({
+      client_id: env.GOOGLE_CLIENT_ID,
+      redirect_uri: `${origin}/api/auth/google/callback`,
+      response_type: 'code',
+      scope: 'openid email profile',
+      state,
+      prompt: 'select_account',
+    });
+
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`,
+        'Set-Cookie': oauthStateCookie(state),
+        'Cache-Control': 'no-store',
+      },
+    });
+  } catch (error) {
+    console.error('Google auth start failed', error);
+    return new Response('Authentication is not configured', { status: 503 });
+  }
+}

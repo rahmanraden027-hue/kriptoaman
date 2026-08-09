@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Shield, Upload, CheckCircle2, Clock, AlertCircle, User, Camera, FileText, Loader2, ArrowLeft, Phone, ChevronRight, Info } from 'lucide-react';
+import { Upload, CheckCircle2, Clock, User, Camera, FileText, Loader2, ArrowLeft, ChevronRight, Info } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
@@ -60,10 +60,10 @@ export default function KYC() {
         if (records && records.length > 0) {
           const latest = records[0];
           if (latest.status === 'verified') {
-            await base44.auth.updateMe({ kycStatus: 'approved' });
             setUser(prev => ({ ...prev, kycStatus: 'approved' }));
           } else if (latest.status === 'pending' || latest.status === 'rejected') {
-            await base44.auth.updateMe({ kycStatus: latest.status === 'rejected' ? 'rejected' : 'pending' });
+            if (latest.status === 'pending') await base44.auth.updateMe({ kycStatus: 'pending' });
+            setUser(prev => ({ ...prev, kycStatus: latest.status === 'rejected' ? 'rejected' : 'pending' }));
             setSubmitted(true);
           }
         } else if (u.kycStatus === 'approved' || u.kycStatus === 'pending') {
