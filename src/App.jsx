@@ -59,7 +59,7 @@ const StoreAvailabilityNotice = () => (
 // Halaman publik statis — dapat diakses tanpa autentikasi (paket gratis)
 const PUBLIC_PAGE_KEYS = new Set([
    'AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'TermsOfService',
-  'PlatformDocs',
+  'PlatformDocs', 'AccountDeletion',
 ]);
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?

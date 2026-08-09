@@ -32,10 +32,10 @@ export default function HomeFooter() {
 
       <div className="pt-3 border-t border-ka-card-border text-center">
         <p className="ka-muted text-[10px] leading-relaxed">
-          KriptoAman beroperasi sesuai regulasi Bappebti &amp; OJK Indonesia.<br />
-          Transaksi dijamin dengan enkripsi SSL 256-bit.
+          KriptoAman adalah layanan informasi, edukasi, dan pemantauan aset digital.<br />
+          Bukan bursa, kustodian, atau penasihat investasi.
         </p>
-        <p className="text-white/80 text-[10px] font-semibold mt-2">© 2025 KriptoAman. Hak cipta dilindungi.</p>
+        <p className="text-white/80 text-[10px] font-semibold mt-2">© 2026 KriptoAman. Hak cipta dilindungi.</p>
       </div>
     </footer>
   );

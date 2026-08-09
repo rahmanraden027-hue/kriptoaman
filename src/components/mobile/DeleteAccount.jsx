@@ -69,10 +69,10 @@ export default function DeleteAccount() {
       <div className="space-y-2 text-sm text-slate-300 mb-4">
         <p>Tindakan ini <strong className="text-red-400">tidak dapat dibatalkan</strong>. Konsekuensi penghapusan akun:</p>
         <ul className="list-disc list-inside space-y-1 text-slate-400 pl-2">
-          <li>Seluruh saldo dan aset kripto akan dihapus permanen.</li>
-          <li>Riwayat transaksi tidak dapat dipulihkan.</li>
-          <li>Data KYC dan verifikasi identitas akan dihapus.</li>
-          <li>Akses ke layanan P2P lending dan DEX akan dicabut.</li>
+          <li>Profil, preferensi, dan data akun akan dijadwalkan untuk dihapus.</li>
+          <li>Sesi aktif akan dihentikan dan akses akun dicabut.</li>
+          <li>Data yang wajib disimpan menurut hukum dapat dipertahankan selama masa retensi.</li>
+          <li>Alamat serta transaksi blockchain publik tidak dapat dihapus dari jaringan.</li>
         </ul>
       </div>
 

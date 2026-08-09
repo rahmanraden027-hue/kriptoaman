@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { User, Mail, Calendar, Hash, Star, LogOut, Edit3, Save, X, Loader2, Shield, Phone, Gift, FileCheck, ArrowRight } from 'lucide-react';
+import { User, Mail, Calendar, Hash, Star, LogOut, Edit3, Save, X, Loader2, Shield, Phone, Gift, FileCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
+import DeleteAccount from '@/components/mobile/DeleteAccount';
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -211,6 +212,8 @@ export default function Profile() {
           <LogOut className="w-4 h-4" />
           Keluar dari Akun
         </button>
+
+        <DeleteAccount />
 
       </div>
     </div>

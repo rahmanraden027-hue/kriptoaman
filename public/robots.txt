@@ -3,6 +3,12 @@ Allow: /
 Disallow: /Admin
 Disallow: /ServerControl
 Disallow: /SecureVault
+Disallow: /dashboard
+Disallow: /Profile
+Disallow: /Settings
+Disallow: /Wallet
+Disallow: /Alerts
+Disallow: /Market
 Disallow: /api/
 
 Sitemap: https://kriptoaman.com/sitemap.xml

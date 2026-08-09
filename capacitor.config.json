@@ -1,0 +1,15 @@
+{
+  "appId": "com.kriptoaman.app",
+  "appName": "KriptoAman",
+  "webDir": "dist",
+  "server": {
+    "url": "https://kriptoaman.com",
+    "cleartext": false,
+    "allowNavigation": ["kriptoaman.com"]
+  },
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  }
+}
