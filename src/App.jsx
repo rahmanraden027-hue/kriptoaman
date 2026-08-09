@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/toaster"
+import { lazy, Suspense } from 'react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import NavigationTracker from '@/lib/NavigationTracker'
@@ -16,13 +17,13 @@ import KriptoAmanGlobalLanding from './pages/KriptoAmanGlobalLanding';
 import AdminRoute from '@/components/security/AdminRoute';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 
-const FeatureUpdateBroadcast = React.lazy(() => import('./pages/FeatureUpdateBroadcast'));
-const AMLAssistant = React.lazy(() => import('./pages/AMLAssistant'));
-const BigQueryKYCReports = React.lazy(() => import('./pages/BigQueryKYCReports'));
-const Services = React.lazy(() => import('./pages/Services'));
-const SystemStatus = React.lazy(() => import('./pages/SystemStatus'));
-const MultiChainWallet = React.lazy(() => import('./pages/MultiChainWallet'));
-const SecurityHub = React.lazy(() => import('./pages/SecurityHub'));
+const FeatureUpdateBroadcast = lazy(() => import('./pages/FeatureUpdateBroadcast'));
+const AMLAssistant = lazy(() => import('./pages/AMLAssistant'));
+const BigQueryKYCReports = lazy(() => import('./pages/BigQueryKYCReports'));
+const Services = lazy(() => import('./pages/Services'));
+const SystemStatus = lazy(() => import('./pages/SystemStatus'));
+const MultiChainWallet = lazy(() => import('./pages/MultiChainWallet'));
+const SecurityHub = lazy(() => import('./pages/SecurityHub'));
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -65,6 +66,11 @@ const AuthenticatedApp = () => {
   }
 
   return (
+    <Suspense fallback={
+      <div className="fixed inset-0 flex items-center justify-center bg-slate-950">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-700 border-t-sky-400" />
+      </div>
+    }>
     <Routes>
       {/* Public auth routes */}
       <Route path="/login" element={<Login />} />
@@ -152,6 +158,7 @@ const AuthenticatedApp = () => {
 
       <Route path="*" element={<PageNotFound />} />
     </Routes>
+    </Suspense>
   );
 };
 
