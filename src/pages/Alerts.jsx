@@ -62,8 +62,8 @@ export default function Alerts() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white pb-24">
-      <div className="max-w-lg mx-auto px-4 pt-4 space-y-4">
+    <div className="min-h-screen bg-gradient-to-b from-[#06101d] via-[#081426] to-[#06101d] text-white pb-24">
+      <div className="max-w-lg mx-auto px-4 pt-5 space-y-4">
 
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -72,7 +72,7 @@ export default function Alerts() {
             <p className="text-slate-500 text-xs">Notifikasi ketika harga mencapai target</p>
           </div>
           <button onClick={() => setShowAdd(!showAdd)}
-            className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-xl text-white text-xs font-semibold transition-colors">
+            className="flex min-h-11 items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-white text-sm font-semibold transition-colors">
             <Plus className="w-4 h-4" /> Tambah
           </button>
         </div>
@@ -137,9 +137,12 @@ export default function Alerts() {
 
         {/* Alert list */}
         {alerts.length === 0 && !showAdd && (
-          <div className="text-center py-16">
-            <Bell className="w-12 h-12 text-slate-700 mx-auto mb-3" />
-            <p className="text-slate-500 text-sm">Belum ada alert. Tambah alert harga pertama Anda!</p>
+          <div className="rounded-2xl border border-sky-500/15 bg-slate-900/45 px-6 py-10 text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-500/10">
+              <Bell className="w-7 h-7 text-sky-400" />
+            </div>
+            <p className="text-white font-semibold">Belum ada alert harga</p>
+            <p className="mt-1 text-slate-400 text-sm">Tekan Tambah untuk membuat peringatan pertama.</p>
           </div>
         )}
 

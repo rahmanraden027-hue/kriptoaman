@@ -4,6 +4,7 @@ import { User, Mail, Calendar, Hash, Star, LogOut, Edit3, Save, X, Loader2, Shie
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -30,10 +31,6 @@ export default function Profile() {
     setTimeout(() => setSaved(false), 2500);
   };
 
-  const initials = user?.full_name
-    ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-    : user?.email?.[0]?.toUpperCase() || '?';
-
   const memberSince = user?.created_date
     ? new Date(user.created_date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })
     : '—';
@@ -54,16 +51,16 @@ export default function Profile() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-[#06101d] via-[#081426] to-[#06101d] pb-24">
       <div className="max-w-lg mx-auto px-4 pt-6 space-y-5">
 
         {/* Hero Card */}
         <div className="relative rounded-3xl overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/30 via-indigo-600/20 to-purple-600/30" />
+          <div className="absolute inset-0 bg-gradient-to-br from-sky-600/25 via-blue-700/15 to-amber-500/10" />
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
           <div className="relative p-6 text-center">
-            <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-2xl shadow-blue-500/30 text-white text-3xl font-bold mx-auto mb-4">
-              {initials}
+            <div className="w-24 h-24 rounded-3xl bg-[#07111d] border border-sky-500/25 flex items-center justify-center shadow-2xl shadow-blue-500/20 mx-auto mb-4">
+              <KriptoAmanLogo size={76} showText={false} />
             </div>
             <h1 className="text-2xl font-bold text-white">{user.full_name || 'Pengguna'}</h1>
             <p className="text-slate-400 text-sm mt-1">{user.email}</p>
