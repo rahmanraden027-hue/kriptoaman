@@ -34,7 +34,7 @@ export default function WhaleAlertCard() {
     <div className="ka-surface p-4 ka-fade-up" style={{ animationDelay: '400ms' }}>
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-white font-bold text-sm flex items-center gap-1.5">
-          <Waves className="w-4 h-4 text-ka-emerald" /> Whale Activity
+          <Waves className="w-4 h-4 text-ka-emerald" /> Aktivitas Volume Pasar
         </h3>
         <button onClick={load} className="ka-muted hover:text-ka-emerald transition tap-reset" aria-label="Refresh">
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -63,7 +63,7 @@ export default function WhaleAlertCard() {
               </div>
             );
           })}
-          <p className="ka-muted text-[9px] pt-1 leading-relaxed">Indikator: rasio volume/kapitalisasi pasar yang tinggi menandakan aktivitas whale & institusional yang meningkat.</p>
+          <p className="ka-muted text-[9px] pt-1 leading-relaxed">Sumber: CoinGecko. Rasio volume/kapitalisasi adalah indikator aktivitas pasar, bukan bukti transaksi whale atau rekomendasi investasi.</p>
         </div>
       )}
     </div>

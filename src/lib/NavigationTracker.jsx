@@ -6,7 +6,7 @@ import { pagesConfig } from '@/pages.config';
 
 // Halaman publik statis yang boleh diindeks mesin pencari
 const INDEXABLE_PAGE_KEYS = new Set([
-    'Home', 'AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'TermsOfService',
+    'Home', 'AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'TermsOfService', 'AccountDeletion',
 ]);
 
 function ensureRobotsMeta() {

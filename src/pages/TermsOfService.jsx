@@ -146,7 +146,7 @@ export default function TermsOfService() {
             </div>
             <h1 className="text-2xl font-bold">Syarat & Ketentuan Layanan</h1>
           </div>
-          <p className="text-slate-400 text-sm ml-1">Berlaku sejak: 1 Maret 2026 · Terakhir diperbarui: 4 Maret 2026</p>
+          <p className="text-slate-400 text-sm ml-1">Berlaku sejak: 1 Maret 2026 · Terakhir diperbarui: 10 Agustus 2026</p>
           <p className="text-slate-300 text-sm mt-3 leading-relaxed">
             Dengan menggunakan KriptoAman, Anda menyetujui ketentuan berikut. Harap baca dengan seksama.
           </p>
@@ -160,8 +160,8 @@ export default function TermsOfService() {
 
         <div className="mt-8 p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
           <p className="text-indigo-300 font-semibold text-sm mb-2">📬 Kontak Legal</p>
-          <p className="text-slate-300 text-sm">Email: <strong>legal@kriptoaman.id</strong></p>
-          <p className="text-slate-300 text-sm mt-1">Support: <strong>support@kriptoaman.id</strong></p>
+          <p className="text-slate-300 text-sm">Email: <strong>legal@kriptoaman.com</strong></p>
+          <p className="text-slate-300 text-sm mt-1">Support: <strong>support@kriptoaman.com</strong></p>
           <p className="text-slate-300 text-sm mt-1">Waktu respons: maks. 48 jam kerja</p>
         </div>
 
