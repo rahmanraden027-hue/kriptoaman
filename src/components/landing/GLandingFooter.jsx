@@ -4,10 +4,10 @@ import { Mail, AlertTriangle } from 'lucide-react';
 import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
 
 const COLS = [
-  { title: 'Produk', links: ['Dashboard', 'Pemantauan Aset', 'Verifikasi Transaksi', 'Pemeriksaan Risiko'] },
-  { title: 'Keamanan', links: ['Cara Kerja', 'Status Sistem', 'Pemeriksaan Alamat', 'Peringatan Risiko'] },
-  { title: 'Perusahaan', links: ['Tentang Kami', 'Blog', 'Kontak', 'Kebijakan Privasi'] },
-  { title: 'Bantuan', links: ['FAQ', 'Dukungan', 'Syarat Penggunaan', 'Disclaimer'] },
+  { title: 'Produk', links: [['Dashboard', '/login'], ['Pemantauan Aset', '/login'], ['Verifikasi Transaksi', '/login'], ['Pemeriksaan Risiko', '/login']] },
+  { title: 'Keamanan', links: [['Cara Kerja', '#fitur'], ['Status Sistem', '/SystemStatus'], ['Pemeriksaan Alamat', '/login'], ['Peringatan Risiko', '/login']] },
+  { title: 'Perusahaan', links: [['Tentang Kami', '/AboutUs'], ['Edukasi', '/Edukasi'], ['Kontak', '/Contact'], ['Kebijakan Privasi', '/PrivacyPolicy']] },
+  { title: 'Bantuan', links: [['FAQ', '#faq'], ['Dukungan', '/Contact'], ['Syarat Penggunaan', '/TermsOfService'], ['Disclaimer', '/Disclaimer']] },
 ];
 
 export default function GLandingFooter() {
@@ -33,9 +33,9 @@ export default function GLandingFooter() {
             <div key={c.title}>
               <h4 className="text-xs font-bold uppercase tracking-wider ka-text2 mb-3">{c.title}</h4>
               <ul className="space-y-2">
-                {c.links.map((l) => (
-                  <li key={l}>
-                    <Link to="#" className="text-xs ka-text2 hover:ka-blue transition-colors">{l}</Link>
+                {c.links.map(([label, to]) => (
+                  <li key={label}>
+                    <Link to={to} className="text-xs ka-text2 hover:ka-blue transition-colors">{label}</Link>
                   </li>
                 ))}
               </ul>

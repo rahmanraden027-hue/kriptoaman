@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { BookOpen, ChevronRight, ChevronDown, Shield, TrendingUp, AlertTriangle, Zap, BarChart3, Lock, Clock, Star } from 'lucide-react';
+import { BookOpen, ChevronRight, Shield, TrendingUp, Zap, BarChart3, Clock } from 'lucide-react';
 
 const CATEGORIES = [
   { id: 'pemula', label: 'Pemula', icon: BookOpen, color: 'text-green-400', bg: 'bg-green-400/10 border-green-400/20' },
@@ -44,12 +44,12 @@ Bayangkan blockchain seperti buku besar digital yang:
 1. **Mulai kecil** — investasikan hanya yang siap Anda rugikan
 2. **Diversifikasi** — jangan taruh semua di satu aset
 3. **DYOR** — Do Your Own Research sebelum beli
-4. **Pilih platform legal** — gunakan exchange terdaftar Bappebti seperti KriptoAman
+4. **Pilih platform legal** — periksa daftar penyelenggara berizin pada situs resmi OJK
 5. **Simpan di cold wallet** untuk jumlah besar
 
 ### Regulasi Kripto di Indonesia
 
-Di Indonesia, kripto diatur oleh **Bappebti** (Badan Pengawas Perdagangan Berjangka Komoditi) sebagai aset komoditi digital. Selalu gunakan platform yang terdaftar resmi untuk keamanan investasi Anda.
+Di Indonesia, pengaturan dan pengawasan aset keuangan digital termasuk aset kripto berada di bawah **OJK** sejak 10 Januari 2025. Selalu periksa whitelist resmi OJK sebelum menggunakan layanan perdagangan.
     `
   },
   {
@@ -63,7 +63,7 @@ Membeli Bitcoin di Indonesia kini sangat mudah! Berikut panduan lengkapnya.
 
 ### Langkah 1: Pilih Exchange Resmi
 
-Gunakan exchange yang **terdaftar Bappebti** seperti KriptoAman. Hindari platform tidak jelas yang berisiko scam.
+Gunakan penyelenggara yang **tercantum dalam whitelist OJK**. KriptoAman saat ini berfungsi sebagai platform informasi dan pemantauan, bukan penyelenggara perdagangan aset kripto.
 
 ### Langkah 2: Daftar & Verifikasi KYC
 
@@ -89,7 +89,7 @@ Transfer dari bank lokal Anda:
 
 ### Berapa Minimal Beli Bitcoin?
 
-Di KriptoAman, Anda bisa mulai dari **Rp 10.000** saja! Tidak perlu beli 1 BTC utuh.
+Setiap penyelenggara berizin memiliki batas transaksi minimum berbeda. Periksa biaya dan ketentuannya sebelum membeli.
 
 ### Penting: Simpan di Tempat Aman
 
@@ -143,7 +143,7 @@ Smart contract yang bisa dibeli tapi tidak bisa dijual.
 
 ### ✅ Checklist Keamanan Kripto
 
-- [ ] Gunakan exchange resmi terdaftar Bappebti
+- [ ] Gunakan penyelenggara resmi dalam whitelist OJK
 - [ ] Aktifkan 2FA di semua akun
 - [ ] Jangan share private key / seed phrase ke siapapun
 - [ ] Gunakan email khusus untuk kripto
@@ -172,7 +172,7 @@ Keamanan aset kripto sangat bergantung pada cara Anda menyimpannya.
 
 Hot wallet terhubung ke internet secara terus-menerus.
 
-**Contoh:** Exchange wallet (KriptoAman, Binance), MetaMask, Trust Wallet
+**Contoh:** Dompet kustodian pada penyelenggara berizin, MetaMask, dan Trust Wallet
 
 **Kelebihan:**
 - Mudah diakses kapan saja

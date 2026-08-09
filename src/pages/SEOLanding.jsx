@@ -1,12 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Shield, TrendingUp, Lock, CheckCircle, Star, ArrowRight, Zap, Users, Award } from 'lucide-react';
+import { Shield, TrendingUp, Lock, Star, ArrowRight, Zap, Users, Award } from 'lucide-react';
 import KriptoAmanLogo from '../components/brand/KriptoAmanLogo';
 import TrustBadges from '../components/trust/TrustBadges';
 
 const FEATURES = [
-  { icon: Shield, title: 'Terdaftar Bappebti & OJK', desc: 'Platform kripto legal di Indonesia, diawasi regulator resmi untuk perlindungan aset Anda.' },
+  { icon: Shield, title: 'Informasi Transparan', desc: 'Status fitur, sumber data, dan batasan layanan dijelaskan secara terbuka.' },
   { icon: Lock, title: 'Anti Rugpull & Scam', desc: 'Teknologi keamanan berlapis, verifikasi KYC ketat, dan sistem deteksi anomali real-time.' },
   { icon: TrendingUp, title: 'Auto Trading Bot', desc: 'Grid bot & rule-based trading otomatis. Biarkan sistem bekerja untuk Anda 24/7.' },
   { icon: Zap, title: 'Swap & DEX Instan', desc: 'Tukar kripto antar jaringan dengan biaya rendah, langsung ke dompet Anda.' },
@@ -16,15 +16,15 @@ const FEATURES = [
 
 const TESTIMONIALS = [
   { name: '🚀 Platform Baru', role: 'Baru Rilis', rating: 5, text: 'KriptoAman baru saja resmi diluncurkan! Segera hadir di App Store & Google Play Store. Daftar sekarang dan jadilah pengguna pertama.' },
-  { name: '✅ Izin Resmi', role: 'Terdaftar & Diawasi', rating: 5, text: 'Meski baru rilis, KriptoAman sudah mengantongi izin resmi dari Bappebti & OJK. Aset Anda terlindungi sejak hari pertama.' },
+  { name: '✅ Informasi Transparan', role: 'Fase Pengembangan', rating: 5, text: 'Status layanan dan batasan fitur ditampilkan secara terbuka selama tahap pengembangan.' },
   { name: '📱 Segera di App Store & Play Store', role: 'Coming Soon', rating: 5, text: 'Aplikasi mobile KriptoAman segera tersedia di App Store dan Google Play Store. Pantau terus update-nya dan dapatkan notifikasi pertama!' },
 ];
 
 const STATS = [
-  { value: '50.000+', label: 'Daftar Tunggu KYC' },
-  { value: 'Rp 2T+', label: 'Volume Transaksi' },
-  { value: '99.9%', label: 'Uptime Platform' },
-  { value: '50+', label: 'Aset Kripto' },
+  { value: '—', label: 'Pengguna Terverifikasi' },
+  { value: '—', label: 'Pemeriksaan Dilakukan' },
+  { value: '—', label: 'Uptime Terukur' },
+  { value: '—', label: 'Aset yang Dipantau' },
 ];
 
 export default function SEOLanding() {
@@ -40,8 +40,7 @@ export default function SEOLanding() {
           Platform <span className="text-cyan-400">Beli Crypto Aman</span> &<br />Terpercaya di Indonesia
         </h1>
         <p className="text-slate-400 text-sm leading-relaxed mb-6">
-          KriptoAman — platform kripto legal terdaftar <strong className="text-white">Bappebti & OJK</strong>. 
-          Investasi kripto aman, anti rugpull, dengan teknologi auto trading dan deposit IDR via bank lokal.
+          KriptoAman adalah platform informasi dan pemantauan aset digital. KriptoAman bukan penyelenggara perdagangan atau kustodian aset kripto.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link to={createPageUrl('Home')}
@@ -73,8 +72,8 @@ export default function SEOLanding() {
 
       {/* Regulasi & Keamanan */}
       <section className="px-4 pb-12 max-w-2xl mx-auto">
-        <h2 className="text-lg font-bold text-center mb-2 text-white">Diregulasi & Terproteksi</h2>
-        <p className="text-slate-500 text-xs text-center mb-5">KriptoAman beroperasi di bawah regulasi resmi Indonesia dan standar keamanan internasional</p>
+        <h2 className="text-lg font-bold text-center mb-2 text-white">Transparansi & Keamanan</h2>
+        <p className="text-slate-500 text-xs text-center mb-5">Status data dan batasan layanan ditampilkan secara terbuka untuk membantu pengguna mengambil keputusan mandiri.</p>
         <TrustBadges />
       </section>
 
@@ -123,7 +122,7 @@ export default function SEOLanding() {
 
       {/* Testimonials */}
       <section className="px-4 pb-14 max-w-2xl mx-auto">
-        <h2 className="text-xl font-bold text-center mb-6">Dipercaya Ribuan Investor Indonesia</h2>
+        <h2 className="text-xl font-bold text-center mb-6">Pembaruan KriptoAman</h2>
         <div className="space-y-3">
           {TESTIMONIALS.map(t => (
             <div key={t.name} className="bg-slate-800/40 border border-slate-700/40 rounded-2xl p-4">
@@ -144,7 +143,7 @@ export default function SEOLanding() {
         <h2 className="text-xl font-bold text-center mb-6">FAQ — Pertanyaan Umum</h2>
         <div className="space-y-3">
           {[
-            { q: 'Apakah KriptoAman aman dan legal?', a: 'Ya, KriptoAman terdaftar resmi di Bappebti dan berada di bawah pengawasan OJK. Semua transaksi dilindungi enkripsi SSL 256-bit dan sistem KYC/AML.' },
+            { q: 'Apakah KriptoAman merupakan exchange berizin?', a: 'Tidak. KriptoAman saat ini berfungsi sebagai platform informasi, pemantauan, dan analisis risiko, bukan penyelenggara perdagangan atau kustodian aset kripto.' },
             { q: 'Bagaimana cara deposit IDR ke KriptoAman?', a: 'Anda bisa deposit melalui transfer bank (BCA, BRI, Mandiri, BNI) atau dompet digital. Saldo langsung aktif setelah konfirmasi.' },
             { q: 'Apa itu auto trading bot di KriptoAman?', a: 'Bot trading otomatis yang bekerja 24/7 menggunakan strategi grid trading atau rule-based untuk menghasilkan profit bahkan saat Anda tidur.' },
             { q: 'Apakah ada risiko rugpull di KriptoAman?', a: 'KriptoAman menggunakan smart contract teraudit, sistem pemantauan anomali, dan regulasi ketat untuk mencegah rugpull dan penipuan.' },
@@ -162,7 +161,7 @@ export default function SEOLanding() {
       <section className="px-4 pb-20 max-w-2xl mx-auto text-center">
         <div className="bg-gradient-to-r from-cyan-500/10 to-indigo-500/10 border border-cyan-500/20 rounded-3xl p-8">
           <h2 className="text-xl font-bold mb-2">Mulai Investasi Kripto Aman Sekarang</h2>
-          <p className="text-slate-400 text-sm mb-6">Bergabung dengan 50.000+ investor Indonesia yang sudah mempercayai KriptoAman</p>
+          <p className="text-slate-400 text-sm mb-6">Buat akun untuk menggunakan fitur informasi dan pemantauan yang tersedia.</p>
           <Link to={createPageUrl('Home')}
             className="inline-flex items-center gap-2 px-8 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl transition-colors">
             Daftar Gratis <ArrowRight className="w-4 h-4" />

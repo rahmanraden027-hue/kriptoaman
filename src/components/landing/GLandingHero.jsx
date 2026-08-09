@@ -95,8 +95,7 @@ export default function GLandingHero() {
         </div>
       </div>
       <p className="ka-text2 text-[11px] text-center mt-10 opacity-70">
-        Ilustrasi coin logo menggunakan placeholder simbol. Untuk tampilan resmi, unggah SVG logo
-        Bitcoin, Ethereum, Solana, dan TRON bereputasi.
+        Informasi jaringan ditampilkan untuk tujuan pemantauan dan edukasi.
       </p>
     </section>
   );

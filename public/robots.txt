@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /Admin
+Disallow: /ServerControl
+Disallow: /SecureVault
+Disallow: /api/
+
+Sitemap: https://kriptoaman.com/sitemap.xml

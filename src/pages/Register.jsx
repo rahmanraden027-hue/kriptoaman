@@ -23,7 +23,7 @@ export default function Register() {
     e.preventDefault();
     setError("");
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError("Konfirmasi kata sandi tidak cocok");
       return;
     }
     setLoading(true);
@@ -31,7 +31,7 @@ export default function Register() {
       await base44.auth.register({ email, password });
       setShowOtp(true);
     } catch (err) {
-      setError(err.message || "Registration failed");
+      setError(err.message || "Pendaftaran gagal");
     } finally {
       setLoading(false);
     }
@@ -127,20 +127,20 @@ export default function Register() {
   return (
     <AuthLayout
       icon={UserPlus}
-      title="Create your account"
-      subtitle="Sign up to get started"
+      title="Buat akun KriptoAman"
+      subtitle="Daftar untuk mulai memantau aset digital"
       footer={
         <>
-          Already have an account?{" "}
-          <Link to="/login" className="text-primary font-medium hover:underline">
-            Log in
+          Sudah memiliki akun?{" "}
+          <Link to="/login" className="font-semibold text-sky-400 hover:text-sky-300 hover:underline">
+            Masuk
           </Link>
         </>
       }
     >
       <Button
         variant="outline"
-        className="w-full h-12 text-sm font-medium mb-6"
+        className="w-full h-12 text-sm font-semibold mb-6 bg-white text-slate-900 hover:bg-slate-100 border-slate-200"
         onClick={handleGoogle}
       >
         <GoogleIcon className="w-5 h-5 mr-2" />
@@ -152,7 +152,7 @@ export default function Register() {
           <div className="w-full border-t border-border" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-3 text-muted-foreground">or</span>
+          <span className="bg-card px-3 text-muted-foreground">atau</span>
         </div>
       </div>
 
@@ -181,7 +181,7 @@ export default function Register() {
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">Kata sandi</Label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
             <Input
@@ -197,7 +197,7 @@ export default function Register() {
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="confirm">Confirm Password</Label>
+          <Label htmlFor="confirm">Konfirmasi kata sandi</Label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
             <Input
@@ -212,14 +212,18 @@ export default function Register() {
             />
           </div>
         </div>
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          Dengan mendaftar, Anda menyetujui <Link to="/TermsOfService" className="text-sky-400 hover:underline">Syarat Penggunaan</Link>{" "}
+          dan <Link to="/PrivacyPolicy" className="text-sky-400 hover:underline">Kebijakan Privasi</Link> KriptoAman.
+        </p>
         <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Creating account...
+              Membuat akun...
             </>
           ) : (
-            "Create account"
+            "Daftar"
           )}
         </Button>
       </form>

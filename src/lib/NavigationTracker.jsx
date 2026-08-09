@@ -19,18 +19,28 @@ function ensureRobotsMeta() {
     return meta;
 }
 
+function ensureCanonicalLink() {
+    let link = document.querySelector('link[rel="canonical"]');
+    if (!link) {
+        link = document.createElement('link');
+        link.setAttribute('rel', 'canonical');
+        document.head.appendChild(link);
+    }
+    return link;
+}
+
 export default function NavigationTracker() {
     const location = useLocation();
     const { isAuthenticated } = useAuth();
-    const { Pages, mainPage } = pagesConfig;
-    const mainPageKey = mainPage ?? Object.keys(Pages)[0];
+    const { Pages } = pagesConfig;
 
     useEffect(() => {
         const pathname = location.pathname;
         let pageName;
 
-        if (pathname === '/' || pathname === '') {
-            pageName = mainPageKey;
+        const isLandingPage = pathname === '/' || pathname === '';
+        if (isLandingPage) {
+            pageName = 'Home';
         } else {
             const pathSegment = pathname.replace(/^\//, '').split('/')[0];
             const pageKeys = Object.keys(Pages);
@@ -45,10 +55,16 @@ export default function NavigationTracker() {
         const isIndexable = !!(pageName && INDEXABLE_PAGE_KEYS.has(pageName));
         meta.setAttribute('content', isIndexable ? 'index, follow' : 'noindex, nofollow');
 
+        const canonical = ensureCanonicalLink();
+        canonical.setAttribute(
+            'href',
+            isIndexable ? `https://kriptoaman.com${isLandingPage ? '/' : pathname}` : 'https://kriptoaman.com/'
+        );
+
         if (isAuthenticated && pageName) {
             base44.appLogs.logUserInApp(pageName).catch(() => {});
         }
-    }, [location, isAuthenticated, Pages, mainPageKey]);
+    }, [location, isAuthenticated, Pages]);
 
     return null;
 }
