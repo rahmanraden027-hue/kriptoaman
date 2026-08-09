@@ -54,6 +54,11 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   if (url.protocol === 'chrome-extension:') return;
 
+  // Authentication responses contain user/session state and must never be
+  // stored in the service-worker data cache. Let the browser fetch them
+  // directly so Cache-Control and Set-Cookie semantics are preserved.
+  if (url.pathname.startsWith('/api/auth/')) return;
+
   // API calls: Network-first with cache fallback
   const isApiCall = API_DOMAINS.some(d => url.hostname.includes(d)) 
     || url.pathname.startsWith('/api/');

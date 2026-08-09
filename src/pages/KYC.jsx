@@ -60,10 +60,10 @@ export default function KYC() {
         if (records && records.length > 0) {
           const latest = records[0];
           if (latest.status === 'verified') {
-            await base44.auth.updateMe({ kycStatus: 'approved' });
             setUser(prev => ({ ...prev, kycStatus: 'approved' }));
           } else if (latest.status === 'pending' || latest.status === 'rejected') {
-            await base44.auth.updateMe({ kycStatus: latest.status === 'rejected' ? 'rejected' : 'pending' });
+            if (latest.status === 'pending') await base44.auth.updateMe({ kycStatus: 'pending' });
+            setUser(prev => ({ ...prev, kycStatus: latest.status === 'rejected' ? 'rejected' : 'pending' }));
             setSubmitted(true);
           }
         } else if (u.kycStatus === 'approved' || u.kycStatus === 'pending') {
