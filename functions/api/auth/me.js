@@ -25,21 +25,12 @@ export async function onRequestPatch({ request, env }) {
     if (!session) return json({ authenticated: false }, { status: 401 });
     const body = await request.json();
     const changes = {};
-    const allowedKeys = new Set(['full_name', 'bio', 'phone', 'kycStatus', 'kycData', 'referralCode']);
+    const allowedKeys = new Set(['full_name', 'bio', 'phone', 'referralCode']);
     const unsupported = Object.keys(body).filter((key) => !allowedKeys.has(key));
     if (unsupported.length) return json({ error: 'Unsupported profile field' }, { status: 400 });
     if (body.full_name !== undefined) changes.full_name = String(body.full_name).trim().slice(0, 120);
     if (body.bio !== undefined) changes.bio = String(body.bio).trim().slice(0, 500);
     if (body.phone !== undefined) changes.phone = String(body.phone).trim().slice(0, 32);
-    if (body.kycStatus !== undefined) {
-      if (body.kycStatus !== 'pending') return json({ error: 'KYC status can only be changed by the verification service' }, { status: 403 });
-      changes.kycStatus = 'pending';
-    }
-    if (body.kycData !== undefined) {
-      const serialized = JSON.stringify(body.kycData);
-      if (serialized.length > 20000) return json({ error: 'KYC data is too large' }, { status: 413 });
-      changes.kycData = body.kycData;
-    }
     if (body.referralCode !== undefined) {
       const referralCode = String(body.referralCode).trim().toUpperCase();
       if (!/^KA[A-Z0-9]{6}$/.test(referralCode)) return json({ error: 'Invalid referral code' }, { status: 400 });
