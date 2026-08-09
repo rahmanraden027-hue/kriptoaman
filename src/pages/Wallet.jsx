@@ -4,9 +4,7 @@ import { deriveAllAddresses } from '../components/wallet/multiCoinWallet';
 import CreateWallet from '../components/wallet/CreateWallet';
 import UnlockWallet from '../components/wallet/UnlockWallet';
 import MultiCoinDashboard from '../components/wallet/MultiCoinDashboard';
-import MultiCoinTxList from '../components/wallet/MultiCoinTxList';
 import ReceiveModal from '../components/wallet/ReceiveModal';
-import SendModal from '../components/wallet/SendModal';
 import UniversalSendModal from '../components/wallet/UniversalSendModal';
 import TradeModal from '../components/wallet/TradeModal';
 import SwapModal from '../components/wallet/SwapModal';
@@ -37,7 +35,7 @@ import AdminBalanceDetail from '../components/wallet/AdminBalanceDetail';
 import AdminTransactionHistory from '../components/wallet/AdminTransactionHistory';
 import UserWalletManagement from '../components/wallet/UserWalletManagement';
 import ComprehensiveTransactionHistory from '../components/wallet/ComprehensiveTransactionHistory';
-import { HelpCircle, ArrowRight, Settings2, User, Building2, MessageCircle, Wifi } from 'lucide-react';
+import { HelpCircle, ArrowRight, Settings2, Building2, MessageCircle, Wifi, BarChart3 } from 'lucide-react';
 import WalletProfileCard from '../components/wallet/WalletProfileCard';
 import MarketOverviewWidget from '../components/market/MarketOverviewWidget';
 import AdvancedPriceChart from '../components/charting/AdvancedPriceChart';
@@ -46,8 +44,54 @@ import { base44 } from '@/api/base44Client';
 import KAMTokenCard from '../components/wallet/KAMTokenCard';
 import KYCWalletGate from '../components/kyc/KYCWalletGate';
 import CEXPanel from '../components/wallet/CEXPanel';
+import KriptoAmanLogo from '../components/brand/KriptoAmanLogo';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 
 const ONBOARDING_KEY = 'dex_onboarding_done';
+const STORE_RELEASE_MODE = true;
+
+function StoreSafeWallet({ user }) {
+  return (
+    <div className="ka-bg min-h-screen pb-28 text-white">
+      <div className="mx-auto max-w-lg space-y-4 px-4 pt-5">
+        <header className="flex items-center justify-between">
+          <KriptoAmanLogo size={42} showText textSize="text-sm" />
+          <span className="rounded-full border border-blue-500/25 bg-blue-500/10 px-3 py-1.5 text-[10px] font-bold text-blue-300">MODE PEMANTAUAN</span>
+        </header>
+
+        <WalletProfileCard user={user} address="" coin="" />
+
+        <section className="ka-surface overflow-hidden p-5">
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-blue-500/25 bg-blue-500/10">
+              <Wifi className="h-5 w-5 text-blue-400" />
+            </div>
+            <div>
+              <h1 className="font-bold">Dompet dalam mode read-only</h1>
+              <p className="mt-1 text-sm leading-relaxed text-slate-400">Versi publik digunakan untuk memantau informasi aset. Pengiriman, pertukaran, deposit, penarikan, dan koneksi CEX belum diaktifkan.</p>
+            </div>
+          </div>
+        </section>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Link to={createPageUrl('Market')} className="ka-surface ka-surface-hover flex min-h-24 flex-col items-center justify-center gap-2 p-4 text-center">
+            <BarChart3 className="h-6 w-6 text-blue-400" />
+            <span className="text-sm font-semibold">Pantau Pasar</span>
+          </Link>
+          <Link to={createPageUrl('SecurityHub')} className="ka-surface ka-surface-hover flex min-h-24 flex-col items-center justify-center gap-2 p-4 text-center">
+            <Settings2 className="h-6 w-6 text-amber-400" />
+            <span className="text-sm font-semibold">Pusat Keamanan</span>
+          </Link>
+        </div>
+
+        <KAMTokenCard userBalance={user?.kamBalance || 0} />
+
+        <p className="px-2 text-center text-xs leading-relaxed text-slate-500">KriptoAman tidak meminta seed phrase atau private key. Jangan mengirim aset ke alamat yang belum diumumkan melalui kanal resmi.</p>
+      </div>
+    </div>
+  );
+}
 
 export default function Wallet() {
   const [walletData, setWalletData] = useState(null);
@@ -144,6 +188,10 @@ export default function Wallet() {
   const isLocked = walletData && !sessionPassword;
   const isCreating = !walletData;
   const activeAddress = addresses?.[activeCoin]?.address || '';
+
+  if (STORE_RELEASE_MODE) {
+    return <StoreSafeWallet user={currentUser} />;
+  }
 
   if (isCreating) {
     return <CreateWallet onWalletCreated={handleWalletCreated} />;

@@ -37,6 +37,25 @@ const ADMIN_PAGE_KEYS = new Set([
   'FeatureUpdateBroadcast',
 ]);
 
+// Transactional modules remain in source for controlled testing, but the
+// public store build exposes only verified information and monitoring flows.
+const STORE_RESTRICTED_PAGE_KEYS = new Set([
+  'AutoTrading', 'DEXSavings', 'P2PLending', 'Web3Wallet', 'TradingAnalytics',
+]);
+
+const StoreAvailabilityNotice = () => (
+  <div className="ka-bg min-h-screen flex items-center justify-center px-5 text-white">
+    <div className="ka-surface max-w-md p-6 text-center">
+      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-blue-500/25 bg-blue-500/10">
+        <img src="/icons/kriptoaman-192.png" alt="KriptoAman" className="h-12 w-12 object-contain" />
+      </div>
+      <h1 className="text-xl font-bold">Fitur sedang dipersiapkan</h1>
+      <p className="mt-2 text-sm leading-relaxed text-slate-400">Fitur transaksi ini belum tersedia pada versi publik. KriptoAman saat ini berfokus pada informasi, pemantauan, edukasi, dan keamanan aset digital.</p>
+      <a href="/dashboard" className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-5 text-sm font-semibold hover:bg-blue-500">Kembali ke Dashboard</a>
+    </div>
+  </div>
+);
+
 // Halaman publik statis — dapat diakses tanpa autentikasi (paket gratis)
 const PUBLIC_PAGE_KEYS = new Set([
    'AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'TermsOfService',
@@ -103,7 +122,7 @@ const AuthenticatedApp = () => {
           if (PUBLIC_PAGE_KEYS.has(path)) return null;
           const wrapped = (
             <LayoutWrapper currentPageName={path}>
-              <Page />
+              {STORE_RESTRICTED_PAGE_KEYS.has(path) ? <StoreAvailabilityNotice /> : <Page />}
             </LayoutWrapper>
           );
           return (
