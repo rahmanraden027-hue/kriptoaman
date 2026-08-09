@@ -22,6 +22,17 @@ function constantTimeEqual(left, right) {
   return diff === 0;
 }
 
+function sortKeys(value) {
+  if (Array.isArray(value)) return value.map(sortKeys);
+  if (value !== null && typeof value === 'object') {
+    return Object.keys(value).sort().reduce((result, key) => {
+      result[key] = sortKeys(value[key]);
+      return result;
+    }, {});
+  }
+  return value;
+}
+
 export async function createDiditSession({ apiKey, workflowId, userId, callback }) {
   const response = await fetch('https://verification.didit.me/v3/session/', {
     method: 'POST',
@@ -49,12 +60,25 @@ export async function createDiditSession({ apiKey, workflowId, userId, callback 
 
 export async function verifyDiditWebhook(request, secret, rawBody) {
   const timestampHeader = request.headers.get('X-Timestamp');
-  const signature = request.headers.get('X-Signature');
   const timestamp = Number(timestampHeader);
-  if (!timestampHeader || !signature || !Number.isFinite(timestamp)) return false;
+  if (!timestampHeader || !Number.isFinite(timestamp)) return false;
   if (Math.abs(Math.floor(Date.now() / 1000) - timestamp) > 300) return false;
-  const expected = await hmacSha256(secret, rawBody);
-  return constantTimeEqual(expected.toLowerCase(), signature.toLowerCase());
+
+  const signatureV2 = request.headers.get('X-Signature-V2');
+  if (signatureV2) {
+    try {
+      const canonicalBody = JSON.stringify(sortKeys(JSON.parse(rawBody)));
+      const expectedV2 = await hmacSha256(secret, canonicalBody);
+      if (constantTimeEqual(expectedV2.toLowerCase(), signatureV2.toLowerCase())) return true;
+    } catch {
+      return false;
+    }
+  }
+
+  const rawSignature = request.headers.get('X-Signature');
+  if (!rawSignature) return false;
+  const expectedRaw = await hmacSha256(secret, rawBody);
+  return constantTimeEqual(expectedRaw.toLowerCase(), rawSignature.toLowerCase());
 }
 
 export function diditStatus(status) {
