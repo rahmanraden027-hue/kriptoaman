@@ -1,56 +1,85 @@
 import { useEffect, useRef, useState } from 'react';
 
-const IDS = 'bitcoin,ethereum,solana,binancecoin,ripple,cardano,dogecoin,avalanche-2,chainlink,polkadot,matic-network,litecoin,shiba-inu,pepe,tron,uniswap';
+const MARKET_ASSET_LIMIT = 350;
+const PAGE_SIZE = 250;
 
 /**
- * useCoinMarkets — fetches real 7-day sparkline + 24h stats for all tracked
- * coins from CoinGecko's /coins/markets endpoint. Single call, refreshed
- * every 60s. Returns a map keyed by symbol (BTC, ETH, ...).
+ * Loads the top 350 crypto assets by market cap from CoinGecko.
+ * Two requests are used because the public endpoint caps each page at 250.
+ * Results are refreshed every two minutes to reduce rate-limit pressure.
  */
 export default function useCoinMarkets() {
   const [markets, setMarkets] = useState({});
+  const [coins, setCoins] = useState([]);
   const [loading, setLoading] = useState(true);
   const timer = useRef(null);
 
   useEffect(() => {
     let alive = true;
+
+    const fetchPage = async (page) => {
+      const url = new URL('https://api.coingecko.com/api/v3/coins/markets');
+      url.search = new URLSearchParams({
+        vs_currency: 'usd',
+        order: 'market_cap_desc',
+        per_page: String(PAGE_SIZE),
+        page: String(page),
+        sparkline: 'true',
+        price_change_percentage: '24h',
+        precision: 'full',
+      }).toString();
+
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`CoinGecko market request failed: ${response.status}`);
+      return response.json();
+    };
+
     const load = async () => {
       try {
-        const r = await fetch(
-          `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${IDS}&order=market_cap_desc&sparkline=true&price_change_percentage=24h&precision=2`
-        );
-        if (!r.ok) throw new Error('bad');
-        const data = await r.json();
-        if (!alive || !Array.isArray(data)) return;
+        const [firstPage, secondPage] = await Promise.all([fetchPage(1), fetchPage(2)]);
+        const data = [...firstPage, ...secondPage].slice(0, MARKET_ASSET_LIMIT);
+        if (!alive || !Array.isArray(data) || data.length === 0) return;
+
         const map = {};
-        data.forEach(c => {
-          const sym = (c.symbol || '').toUpperCase();
-          if (!sym) return;
-          map[sym] = {
+        const normalized = data.map((coin, index) => {
+          const sym = (coin.symbol || '').toUpperCase();
+          const entry = {
+            id: coin.id,
             sym,
-            name: c.name,
-            image: c.image,
-            price: c.current_price,
-            change24h: c.price_change_percentage_24h,
-            marketCap: c.market_cap,
-            volume: c.total_volume,
-            high24h: c.high_24h,
-            low24h: c.low_24h,
-            rank: c.market_cap_rank,
-            sparkline: c.sparkline_in_7d?.price || [],
+            name: coin.name,
+            image: coin.image,
+            color: '#10b981',
+            price: coin.current_price,
+            change24h: coin.price_change_percentage_24h,
+            marketCap: coin.market_cap,
+            volume: coin.total_volume,
+            high24h: coin.high_24h,
+            low24h: coin.low_24h,
+            rank: coin.market_cap_rank || index + 1,
+            sparkline: coin.sparkline_in_7d?.price || [],
           };
-        });
+
+          // Keep the highest-ranked asset when two tokens share a ticker.
+          if (sym && !map[sym]) map[sym] = entry;
+          return entry;
+        }).filter(coin => coin.id && coin.sym);
+
+        setCoins(normalized);
         setMarkets(map);
-      } catch (e) {
-        /* network / rate-limit — keep previous data */
+      } catch {
+        // Keep the last successful snapshot when offline or rate-limited.
       } finally {
         if (alive) setLoading(false);
       }
     };
+
     load();
-    timer.current = setInterval(load, 60000);
-    return () => { alive = false; if (timer.current) clearInterval(timer.current); };
+    timer.current = setInterval(load, 120000);
+    return () => {
+      alive = false;
+      if (timer.current) clearInterval(timer.current);
+    };
   }, []);
 
-  return { markets, loading };
+  return { markets, coins, loading };
 }
