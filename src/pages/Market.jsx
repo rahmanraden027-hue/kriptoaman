@@ -15,7 +15,7 @@ import useCoinMarkets from '../components/home/useCoinMarkets';
 import InteractiveSparkline from '../components/home/InteractiveSparkline';
 import TradingViewModal from '../components/market/TradingViewModal';
 
-const coinImage = (id) => {
+const coinImage = (id, remoteImage) => {
   const logos = {
     bitcoin: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
     ethereum: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
@@ -37,7 +37,7 @@ const coinImage = (id) => {
     pepe: "https://assets.coingecko.com/coins/images/29850/large/pepe-token.jpeg"
   };
 
-  return logos[id] || "/images/default-coin.png";
+  return remoteImage || logos[id] || "/images/default-coin.png";
 };
 
 const COINS = [
@@ -69,7 +69,8 @@ export default function Market() {
   const [watchlist, setWatchlist] = useState(() => JSON.parse(localStorage.getItem('ka_watchlist') || '[]'));
 
   const { prices: liveData, connected, idrRate } = useLivePrices();
-  const { markets } = useCoinMarkets();
+  const { markets, coins: marketCoins } = useCoinMarkets();
+  const coins = marketCoins.length >= 300 ? marketCoins : COINS;
 
   const toggleWatchlist = (sym) => {
     const next = watchlist.includes(sym) ? watchlist.filter(s => s !== sym) : [...watchlist, sym];
@@ -77,7 +78,7 @@ export default function Market() {
     localStorage.setItem('ka_watchlist', JSON.stringify(next));
   };
 
-  const filtered = COINS.filter(c => {
+  const filtered = coins.filter(c => {
     const q = search.toLowerCase();
     if (q && !c.sym.toLowerCase().includes(q) && !c.name.toLowerCase().includes(q)) return false;
     const chg = liveData[c.sym]?.change24h ?? markets[c.sym]?.change24h;
@@ -141,7 +142,7 @@ export default function Market() {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Cari koin... (BTC, ETH, SOL)"
+            placeholder="Cari dari 350 aset... (BTC, ETH, SOL)"
             className="w-full ka-surface rounded-2xl pl-9 pr-4 py-3 text-white text-sm focus:outline-none focus:border-ka-emerald placeholder:ka-muted"
           />
         </div>
@@ -159,9 +160,9 @@ export default function Market() {
         {/* Market stats bar */}
         <div className="grid grid-cols-3 gap-2 mb-4">
           {[
-            { label: 'Naik', value: COINS.filter(c => ((liveData[c.sym]?.change24h ?? markets[c.sym]?.change24h) || 0) > 0).length, color: 'text-ka-emerald' },
-            { label: 'Turun', value: COINS.filter(c => ((liveData[c.sym]?.change24h ?? markets[c.sym]?.change24h) || 0) < 0).length, color: 'text-[#e74c3c]' },
-            { label: 'Total', value: COINS.length, color: 'text-white' },
+            { label: 'Naik', value: coins.filter(c => ((liveData[c.sym]?.change24h ?? markets[c.sym]?.change24h) || 0) > 0).length, color: 'text-ka-emerald' },
+            { label: 'Turun', value: coins.filter(c => ((liveData[c.sym]?.change24h ?? markets[c.sym]?.change24h) || 0) < 0).length, color: 'text-[#e74c3c]' },
+            { label: 'Total', value: coins.length, color: 'text-white' },
           ].map(stat => (
             <div key={stat.label} className="ka-surface p-2.5 text-center">
               <p className={`text-sm font-bold ka-num ${stat.color}`}>{stat.value}</p>
@@ -172,7 +173,7 @@ export default function Market() {
 
         {/* Coin list */}
         <div className="space-y-2">
-          {filtered.map((c) => {
+          {filtered.map((c, index) => {
             const d = liveData[c.sym] || markets[c.sym];
             const chg = d?.change24h;
             const isUp = (chg || 0) >= 0;
@@ -186,7 +187,7 @@ export default function Market() {
               >
                 <div className="relative shrink-0">
                   <img
-                    src={coinImage(c.id)}
+                    src={coinImage(c.id, c.image)}
                     alt={c.name}
                     className="w-9 h-9 rounded-full"
                     loading="lazy"
@@ -195,7 +196,7 @@ export default function Market() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-white text-sm font-bold">{c.sym}</p>
-                  <p className="ka-muted text-[10px]">{c.name}</p>
+                  <p className="ka-muted text-[10px]">#{c.rank || index + 1} · {c.name}</p>
                 </div>
                 <div className="ml-auto flex items-center gap-2.5">
                   <InteractiveSparkline data={spark} up={isUp} height={28} width={64} />
