@@ -1,11 +1,11 @@
 /**
- * KriptoAman Service Worker v1.0.0
+ * KriptoAman Service Worker v2.0.0
  * Strategy: Cache-first untuk static assets, Network-first untuk data API
  */
 
-const CACHE_NAME = 'kriptoaman-v1.0.0';
-const STATIC_CACHE = 'kriptoaman-static-v1';
-const DATA_CACHE = 'kriptoaman-data-v1';
+const CACHE_NAME = 'kriptoaman-v2.0.0';
+const STATIC_CACHE = 'kriptoaman-static-v2';
+const DATA_CACHE = 'kriptoaman-data-v2';
 
 const STATIC_ASSETS = [
   '/',
@@ -60,6 +60,23 @@ self.addEventListener('fetch', (event) => {
   // stored in the service-worker data cache. Let the browser fetch them
   // directly so Cache-Control and Set-Cookie semantics are preserved.
   if (url.pathname.startsWith('/api/auth/')) return;
+
+  // App navigation: always prefer the latest deployed HTML. This prevents
+  // an old index.html from referencing chunks removed by a newer deployment.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request, { cache: 'no-store' })
+        .then(response => {
+          if (response && response.ok) {
+            const cloned = response.clone();
+            caches.open(STATIC_CACHE).then(cache => cache.put('/index.html', cloned));
+          }
+          return response;
+        })
+        .catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
 
   // API calls: Network-first with cache fallback
   const isApiCall = API_DOMAINS.some(d => url.hostname.includes(d)) 
