@@ -59,7 +59,7 @@ const StoreAvailabilityNotice = () => (
 // Halaman publik statis — dapat diakses tanpa autentikasi (paket gratis)
 const PUBLIC_PAGE_KEYS = new Set([
    'AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'TermsOfService',
-  'PlatformDocs', 'AccountDeletion', 'Market', 'SystemStatus',
+  'PlatformDocs', 'AccountDeletion', 'Market',
 ]);
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
@@ -97,7 +97,7 @@ const AuthenticatedApp = () => {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
 <Route path="/" element={<KriptoAmanGlobalLanding />} />
-<Route path="/KriptoAmanGlobalLanding" element={<KriptoAmanGlobalLanding />} />
+<Route path="/KriptoAmanGlobalLanding" element={<KriptoAmanGlobalLanding />} />\n      <Route path="/SystemStatus" element={<SystemStatus />} />
       {/* Public pages must remain readable without an account or disclaimer gate. */}
       {Object.entries(Pages).map(([path, Page]) => {
         if (!PUBLIC_PAGE_KEYS.has(path)) return null;
