@@ -106,3 +106,12 @@ export async function updateUserProfile(db, userId, changes) {
   await db.prepare(`UPDATE auth_users SET ${assignments.join(', ')} WHERE id = ?`).bind(...values).run();
   return getUserById(db, userId);
 }
+
+
+export async function promoteConfiguredAdmin(db, userId) {
+  const now = new Date().toISOString();
+  await db.prepare("UPDATE auth_users SET role = 'admin', email_verified = 1, updated_at = ? WHERE id = ?")
+    .bind(now, userId)
+    .run();
+  return getUserById(db, userId);
+}
