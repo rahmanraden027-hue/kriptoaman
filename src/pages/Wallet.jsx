@@ -88,7 +88,7 @@ function StoreSafeWallet({ user }) {
           </Link>
         </div>
 
-        <KAMTokenCard userBalance={user?.kamBalance || 0} />
+        <WalletConnectPanel />\n\n        <KAMTokenCard userBalance={user?.kamBalance || 0} />
 
         <section className="grid gap-3 sm:grid-cols-3" aria-label={en ? 'Monitoring status' : 'Status pemantauan'}>
           {[
