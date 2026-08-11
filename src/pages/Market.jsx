@@ -61,7 +61,12 @@ const handleCoinImageError = (event, symbol) => {
 
   image.dataset.fallbackStep = '2';
   image.onerror = null;
-  image.src = '/images/default-coin.png';
+  image.style.display = 'none';
+
+  const symbolBadge = image.nextElementSibling;
+  if (symbolBadge instanceof HTMLElement) {
+    symbolBadge.style.display = 'flex';
+  }
 };
 
 const COINS = [
@@ -230,10 +235,17 @@ export default function Market() {
                   <img
                     src={coinImage(c.id, c.image, c.sym)}
                     alt={c.name}
-                    className="w-9 h-9 rounded-full"
+                    className="w-9 h-9 rounded-full object-cover"
                     loading="lazy"
                     onError={(e) => handleCoinImageError(e, c.sym)}
                   />
+                  <span
+                    aria-hidden="true"
+                    className="w-9 h-9 rounded-full items-center justify-center border border-ka-emerald/30 bg-ka-emerald/10 text-ka-emerald text-[9px] font-extrabold"
+                    style={{ display: 'none' }}
+                  >
+                    {c.sym.slice(0, 4)}
+                  </span>
                 </div>
                 <div className="min-w-0">
                   <p className="text-white text-sm font-bold">{c.sym}</p>
