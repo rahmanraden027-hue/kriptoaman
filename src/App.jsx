@@ -14,6 +14,7 @@ import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import KriptoAmanGlobalLanding from './pages/KriptoAmanGlobalLanding';
+import EnglishLanding from './pages/EnglishLanding';
 import AdminRoute from '@/components/security/AdminRoute';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt';
@@ -98,6 +99,7 @@ const AuthenticatedApp = () => {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
 <Route path="/" element={<KriptoAmanGlobalLanding />} />
+<Route path="/en" element={<EnglishLanding />} />
 <Route path="/KriptoAmanGlobalLanding" element={<KriptoAmanGlobalLanding />} />\n      <Route path="/SystemStatus" element={<SystemStatus />} />
       {/* Public pages must remain readable without an account or disclaimer gate. */}
       {Object.entries(Pages).map(([path, Page]) => {
