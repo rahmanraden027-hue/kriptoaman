@@ -36,7 +36,7 @@ export default function Alerts() {
 
   useEffect(() => {
     setAlerts(loadAlerts());
-    setPushEnabled(Notification.permission === 'granted');
+    setPushEnabled('Notification' in window && Notification.permission === 'granted');
   }, []);
 
   const requestPush = async () => {
