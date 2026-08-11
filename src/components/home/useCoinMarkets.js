@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 
-const MARKET_ASSET_LIMIT = 350;
+const MARKET_ASSET_LIMIT = 2000;
+const MIN_ACCEPTED_ASSETS = 1000;
 const PAGE_SIZE = 250;
 const MARKET_CACHE_KEY = 'ka_market_snapshot_v2';
-const MARKET_CACHE_MAX_AGE = 30 * 60 * 1000;
-const REFRESH_INTERVAL = 2 * 60 * 1000;
+const MARKET_CACHE_MAX_AGE = 60 * 60 * 1000;
+const REFRESH_INTERVAL = 10 * 60 * 1000;
 const CRYPTOCOMPARE_IMAGE_BASE = 'https://www.cryptocompare.com';
 
 /**
@@ -109,19 +110,22 @@ export default function useCoinMarkets() {
     };
 
     const fetchCoinGecko = async () => {
-      const results = await Promise.allSettled([
-        fetchCoinGeckoPage(1),
-        fetchCoinGeckoPage(2),
-      ]);
-      const data = results
-        .filter((result) => result.status === 'fulfilled')
-        .flatMap((result) => result.value)
-        .slice(0, MARKET_ASSET_LIMIT);
+      const data = [];
+      for (let page = 1; page <= Math.ceil(MARKET_ASSET_LIMIT / PAGE_SIZE); page += 1) {
+        try {
+          const rows = await fetchCoinGeckoPage(page);
+          data.push(...rows);
+          if (rows.length < PAGE_SIZE || data.length >= MARKET_ASSET_LIMIT) break;
+        } catch {
+          if (data.length >= MIN_ACCEPTED_ASSETS) break;
+          throw new Error(`CoinGecko stopped at page ${page}`);
+        }
+      }
 
-      if (data.length < 300) {
+      if (data.length < MIN_ACCEPTED_ASSETS) {
         throw new Error(`CoinGecko returned only ${data.length} assets`);
       }
-      return data;
+      return data.slice(0, MARKET_ASSET_LIMIT);
     };
 
     const fetchCryptoComparePage = async (page) => {
@@ -146,14 +150,21 @@ export default function useCoinMarkets() {
     };
 
     const fetchCryptoCompare = async () => {
-      const results = await Promise.allSettled(
-        [0, 1, 2, 3].map((page) => fetchCryptoComparePage(page)),
-      );
-      const rows = results
-        .filter((result) => result.status === 'fulfilled')
-        .flatMap((result) => result.value);
+      const rows = [];
+      const maxPages = Math.ceil(MARKET_ASSET_LIMIT / 100) + 2;
+      for (let page = 0; page < maxPages; page += 1) {
+        try {
+          const pageRows = await fetchCryptoComparePage(page);
+          if (pageRows.length === 0) break;
+          rows.push(...pageRows);
+          if (rows.length >= MARKET_ASSET_LIMIT + 100) break;
+        } catch {
+          if (rows.length >= MIN_ACCEPTED_ASSETS) break;
+          throw new Error(`CryptoCompare stopped at page ${page}`);
+        }
+      }
 
-      if (rows.length < 300) {
+      if (rows.length < MIN_ACCEPTED_ASSETS) {
         throw new Error(`CryptoCompare returned only ${rows.length} assets`);
       }
 
