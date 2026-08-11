@@ -1,5 +1,11 @@
 const encoder = new TextEncoder();
 
+function decode(value) {
+  const padded = value.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((value.length + 3) % 4);
+  const binary = atob(padded);
+  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+}
+
 function encode(bytes) {
   let binary = '';
   for (const byte of bytes) binary += String.fromCharCode(byte);
@@ -96,4 +102,36 @@ export async function markChallengeUsed(db, id) {
   await db.prepare('UPDATE auth_challenges SET used_at = ?, attempts = attempts + 1 WHERE id = ?')
     .bind(new Date().toISOString(), id)
     .run();
+}
+
+
+export async function createSignedToken(secret, payload) {
+  const encodedPayload = encode(encoder.encode(JSON.stringify(payload)));
+  const signature = await hmac(secret, 'signed:' + encodedPayload);
+  return encodedPayload + '.' + signature;
+}
+
+export async function verifySignedToken(secret, token, purpose) {
+  if (!token || !token.includes('.')) return null;
+  const parts = token.split('.');
+  const encodedPayload = parts[0];
+  const signature = parts[1];
+  if (!encodedPayload || !signature || parts.length !== 2) return null;
+  const expected = await hmac(secret, 'signed:' + encodedPayload);
+  if (signature !== expected) return null;
+  try {
+    const payload = JSON.parse(new TextDecoder().decode(decode(encodedPayload)));
+    if (payload.purpose !== purpose || !payload.exp || payload.exp <= Math.floor(Date.now() / 1000)) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+export async function consumeOneTimeToken(db, jti) {
+  if (!jti) return false;
+  const result = await db.prepare(
+    'INSERT OR IGNORE INTO auth_rate_limits (key, count, window_started_at) VALUES (?, 1, ?)'
+  ).bind('used-token:' + jti, new Date().toISOString()).run();
+  return Number(result?.meta?.changes || 0) === 1;
 }
