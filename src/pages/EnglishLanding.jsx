@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, BarChart3, CheckCircle2, Globe2, Lock, Network, Radar, ShieldCheck } from 'lucide-react';
 import GlobalLandingStyles from '@/components/landing/GlobalLandingStyles';
 import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
+import { useLanguage } from '@/lib/LanguageContext';
 
 const features = [
   [Radar, 'Live market monitoring', 'Track prices and market movements from connected public data providers.'],
@@ -14,6 +15,7 @@ const features = [
 const networks = ['Bitcoin', 'Ethereum', 'BNB Chain', 'Polygon', 'Arbitrum', 'Base', 'Solana', 'TRON'];
 
 export default function EnglishLanding() {
+  const { setLanguage } = useLanguage();
   return (
     <div className="ka-landing min-h-screen overflow-x-hidden">
       <GlobalLandingStyles />
@@ -30,7 +32,7 @@ export default function EnglishLanding() {
             <a href="#faq">FAQ</a>
           </nav>
           <div className="flex items-center gap-2">
-            <Link to="/" className="ka-card2 inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-bold ka-text2" hrefLang="id">
+            <Link to="/" onClick={() => setLanguage('id')} className="ka-card2 inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-bold ka-text2" hrefLang="id">
               <Globe2 className="h-3.5 w-3.5" /> ID
             </Link>
             <Link to="/login" className="ka-btn-primary inline-flex h-9 items-center justify-center px-4 text-sm">Sign in</Link>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, Sun, Moon, Globe } from 'lucide-react';
 import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
+import { useLanguage } from '@/lib/LanguageContext';
 
 const LINKS = [
   { label: 'Beranda', href: '#beranda' },
@@ -13,6 +14,7 @@ const LINKS = [
 ];
 
 export default function GLandingHeader({ dark, onToggleTheme, active = 'Beranda' }) {
+  const { setLanguage } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -51,7 +53,7 @@ export default function GLandingHeader({ dark, onToggleTheme, active = 'Beranda'
             className="w-9 h-9 rounded-lg flex items-center justify-center ka-card2">
             {dark ? <Sun className="w-4 h-4 ka-gold" /> : <Moon className="w-4 h-4 ka-blue" />}
           </button>
-          <Link to="/en" hrefLang="en" aria-label="Switch to English" className="hidden sm:flex items-center gap-1.5 h-9 px-3 rounded-lg ka-card2 text-xs font-bold ka-text2 hover:ka-blue">
+          <Link to="/en" onClick={() => setLanguage('en')} hrefLang="en" aria-label="Switch to English" className="hidden sm:flex items-center gap-1.5 h-9 px-3 rounded-lg ka-card2 text-xs font-bold ka-text2 hover:ka-blue">
             <Globe className="w-3.5 h-3.5" /> EN
           </Link>
           <Link to="/login"

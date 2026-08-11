@@ -38,5 +38,6 @@ jobs:
           npx eslint server/auth/*.js functions/api/auth/*.js
           functions/api/auth/google/*.js src/lib/kriptoAuth.js
           src/lib/AuthContext.jsx src/api/base44Client.js src/pages/KYC.jsx
-          src/pages/EnglishLanding.jsx src/pages/SystemStatus.jsx
-          src/components/market/TradingViewModal.jsx public/sw.js --quiet
+          src/pages/EnglishLanding.jsx src/pages/SystemStatus.jsx src/pages/Market.jsx
+          src/components/market/TradingViewModal.jsx src/components/LanguageSwitcher.jsx
+          src/lib/LanguageContext.jsx public/sw.js --quiet

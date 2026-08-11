@@ -1,9 +1,11 @@
 import React from "react";
 import KriptoAmanLogo from "@/components/brand/KriptoAmanLogo";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export default function AuthLayout({ icon: Icon, title, subtitle, footer, children, logo = false, darkBlue = false }) {
   return (
-    <div className={`min-h-screen flex items-center justify-center px-4 ka-bg ${darkBlue ? "text-white" : ""}`}>
+    <div className={`relative min-h-screen flex items-center justify-center px-4 ka-bg ${darkBlue ? "text-white" : ""}`}>
+      <LanguageSwitcher compact className="absolute right-4 top-4 z-20" />
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
           {logo ? (

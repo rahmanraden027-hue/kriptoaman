@@ -14,6 +14,8 @@ import useLivePrices from '../components/market/useLivePrices';
 import useCoinMarkets from '../components/home/useCoinMarkets';
 import InteractiveSparkline from '../components/home/InteractiveSparkline';
 import TradingViewModal from '../components/market/TradingViewModal';
+import LanguageSwitcher from '../components/LanguageSwitcher';
+import { useLanguage } from '../lib/LanguageContext';
 
 const SYMBOL_LOGOS = {
   BTC: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
@@ -90,7 +92,36 @@ const COINS = [
   { id: 'pepe', sym: 'PEPE', name: 'Pepe', color: '#4caf50' },
 ];
 
+const COPY = {
+  id: {
+    title: 'Pasar Kripto', identity: 'KRIPTOAMAN MARKET INTELLIGENCE', live: 'Live 24/7',
+    available: 'Data pasar tersedia', connecting: 'Menghubungkan…', assets: 'aset',
+    updated: 'diperbarui', fallback: 'Sumber cadangan', search: 'Cari aset',
+    all: 'Semua', gainers: 'Naik', losers: 'Turun', watchlist: 'Watchlist',
+    today: 'hari ini', methodology: 'Transparansi data', source: 'Sumber pasar',
+    cadence: 'Pembaruan', cadenceValue: 'Setiap 15 menit + harga live untuk aset utama',
+    scope: 'Cakupan', scopeValue: 'Informasi pasar—bukan harga eksekusi bursa',
+    disclaimer: 'Harga dapat berbeda antar bursa dan mengalami keterlambatan. KriptoAman tidak mengubah data harga sumber dan tidak menjamin keuntungan.',
+    load: 'Muat 100 aset berikutnya', remaining: 'tersisa', empty: 'Tidak ada hasil',
+    emptyWatch: 'Belum ada aset di watchlist. Tekan bintang untuk menambahkan.',
+  },
+  en: {
+    title: 'Crypto Market', identity: 'KRIPTOAMAN MARKET INTELLIGENCE', live: 'Live 24/7',
+    available: 'Market data available', connecting: 'Connecting…', assets: 'assets',
+    updated: 'updated', fallback: 'Fallback source', search: 'Search assets',
+    all: 'All', gainers: 'Gainers', losers: 'Losers', watchlist: 'Watchlist',
+    today: 'today', methodology: 'Data transparency', source: 'Market source',
+    cadence: 'Refresh', cadenceValue: 'Every 15 minutes + live prices for major assets',
+    scope: 'Scope', scopeValue: 'Market information—not exchange execution prices',
+    disclaimer: 'Prices may vary by exchange and may be delayed. KriptoAman does not alter source prices and does not guarantee returns.',
+    load: 'Load next 100 assets', remaining: 'remaining', empty: 'No results',
+    emptyWatch: 'Your watchlist is empty. Press the star to add an asset.',
+  },
+};
+
 export default function Market() {
+  const { language } = useLanguage();
+  const text = COPY[language] || COPY.id;
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState('all');
   const [currency, setCurrency] = useState('idr');
@@ -107,9 +138,9 @@ export default function Market() {
     coingecko: 'CoinGecko',
     cryptocompare: 'CryptoCompare',
     cache: 'Cache',
-  }[source] || 'Sumber cadangan';
+  }[source] || text.fallback;
   const updatedLabel = lastUpdated
-    ? new Date(lastUpdated).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+    ? new Date(lastUpdated).toLocaleTimeString(language === 'en' ? 'en-US' : 'id-ID', { hour: '2-digit', minute: '2-digit' })
     : null;
 
   const toggleWatchlist = (sym) => {
@@ -161,19 +192,21 @@ export default function Market() {
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-xl font-bold text-white">Pasar Kripto</h1>
+            <p className="text-[9px] font-extrabold tracking-[0.18em] text-sky-300">{text.identity}</p>
+            <h1 className="mt-1 text-xl font-bold text-white">{text.title}</h1>
             <div className="flex items-center gap-2 mt-0.5">
               <div className={`w-1.5 h-1.5 rounded-full ${marketAvailable ? 'bg-ka-emerald ka-pulse-dot' : 'bg-yellow-400'}`} />
               <p className={`text-xs ${marketAvailable ? 'text-ka-emerald' : 'text-yellow-400'}`}>
-                {connected ? 'Live 24/7' : dataAvailable ? 'Data pasar tersedia' : 'Menghubungkan…'}
+                {connected ? text.live : dataAvailable ? text.available : text.connecting}
               </p>
             </div>
             <p className="ka-muted text-[10px] mt-1">
-              {coins.length.toLocaleString('id-ID')} aset · {sourceLabel}
-              {updatedLabel ? ` · diperbarui ${updatedLabel}` : ''}
+              {coins.length.toLocaleString(language === 'en' ? 'en-US' : 'id-ID')} {text.assets} · {sourceLabel}
+              {updatedLabel ? ` · ${text.updated} ${updatedLabel}` : ''}
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <LanguageSwitcher compact />
             <button onClick={() => setCurrency(c => c === 'idr' ? 'usd' : 'idr')}
               className="px-3 py-1.5 ka-chip text-xs font-bold ka-muted hover:text-white transition-colors">
               {currency === 'idr' ? 'IDR 🇮🇩' : 'USD 🇺🇸'}
@@ -190,14 +223,14 @@ export default function Market() {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder={`Cari dari ${coins.length} aset... (BTC, ETH, SOL)`}
+            placeholder={`${text.search} (${coins.length})… BTC, ETH, SOL`}
             className="w-full ka-surface rounded-2xl pl-9 pr-4 py-3 text-white text-sm focus:outline-none focus:border-ka-emerald placeholder:ka-muted"
           />
         </div>
 
         {/* Tabs */}
         <div className="flex gap-2 mb-4 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-          {[['all', 'Semua'], ['gainers', 'Naik'], ['losers', 'Turun'], ['watchlist', 'Watchlist']].map(([key, label]) => (
+          {[['all', text.all], ['gainers', text.gainers], ['losers', text.losers], ['watchlist', text.watchlist]].map(([key, label]) => (
             <button key={key} onClick={() => setTab(key)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${tab === key ? 'bg-ka-emerald text-black' : 'ka-chip ka-muted hover:text-white'}`}>
               {label}
@@ -208,16 +241,29 @@ export default function Market() {
         {/* Market stats bar */}
         <div className="grid grid-cols-3 gap-2 mb-4">
           {[
-            { label: 'Naik', value: coins.filter(c => ((liveData[c.sym]?.change24h ?? markets[c.sym]?.change24h) || 0) > 0).length, color: 'text-ka-emerald' },
-            { label: 'Turun', value: coins.filter(c => ((liveData[c.sym]?.change24h ?? markets[c.sym]?.change24h) || 0) < 0).length, color: 'text-[#e74c3c]' },
+            { label: text.gainers, value: coins.filter(c => ((liveData[c.sym]?.change24h ?? markets[c.sym]?.change24h) || 0) > 0).length, color: 'text-ka-emerald' },
+            { label: text.losers, value: coins.filter(c => ((liveData[c.sym]?.change24h ?? markets[c.sym]?.change24h) || 0) < 0).length, color: 'text-[#e74c3c]' },
             { label: 'Total', value: coins.length, color: 'text-white' },
           ].map(stat => (
             <div key={stat.label} className="ka-surface p-2.5 text-center">
               <p className={`text-sm font-bold ka-num ${stat.color}`}>{stat.value}</p>
-              <p className="ka-muted text-[10px]">{stat.label} hari ini</p>
+              <p className="ka-muted text-[10px]">{stat.label} {text.today}</p>
             </div>
           ))}
         </div>
+
+        <section className="mb-4 rounded-2xl border border-sky-400/20 bg-gradient-to-br from-sky-400/[0.08] to-transparent p-4" aria-labelledby="market-methodology">
+          <div className="flex items-center justify-between gap-3">
+            <h2 id="market-methodology" className="text-xs font-extrabold text-white">{text.methodology}</h2>
+            <span className="rounded-full border border-emerald-400/25 bg-emerald-400/10 px-2 py-1 text-[9px] font-bold text-emerald-300">PT KRIPTO AMAN INDONESIA</span>
+          </div>
+          <dl className="mt-3 grid gap-3 text-[10px] sm:grid-cols-3">
+            <div><dt className="font-bold text-sky-300">{text.source}</dt><dd className="mt-1 text-slate-400">{sourceLabel}</dd></div>
+            <div><dt className="font-bold text-sky-300">{text.cadence}</dt><dd className="mt-1 text-slate-400">{text.cadenceValue}</dd></div>
+            <div><dt className="font-bold text-sky-300">{text.scope}</dt><dd className="mt-1 text-slate-400">{text.scopeValue}</dd></div>
+          </dl>
+          <p className="mt-3 border-t border-white/10 pt-3 text-[9px] leading-relaxed text-slate-500">{text.disclaimer}</p>
+        </section>
 
         {/* Coin list */}
         <div className="space-y-2">
@@ -285,7 +331,7 @@ export default function Market() {
             onClick={() => setVisibleCount(count => Math.min(count + 100, filtered.length))}
             className="w-full ka-btn-primary mt-4 py-3 text-sm"
           >
-            Muat 100 aset berikutnya ({filtered.length - visibleCount} tersisa)
+            {text.load} ({filtered.length - visibleCount} {text.remaining})
           </button>
         )}
 
@@ -293,7 +339,7 @@ export default function Market() {
           <div className="text-center ka-muted py-16">
             <Globe className="w-10 h-10 mx-auto mb-3 opacity-30" />
             <p className="text-sm">
-              {tab === 'watchlist' ? 'Belum ada koin di watchlist. Tap ⭐ pada koin untuk menambahkan.' : 'Tidak ada hasil'}
+              {tab === 'watchlist' ? text.emptyWatch : text.empty}
             </p>
           </div>
         )}

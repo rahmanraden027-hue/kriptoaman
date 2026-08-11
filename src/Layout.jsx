@@ -15,6 +15,7 @@ import { usePWAInitializer, PWAUpdateNotification } from './components/pwa/PWAIn
 import AdminDepositNotifier from './components/admin/AdminDepositNotifier';
 import DisclaimerGate from './components/disclaimer/DisclaimerGate';
 import { Web3Provider } from './components/web3/Web3Provider';
+import LanguageSwitcher from './components/LanguageSwitcher';
 
 // Primary bottom nav (5 tabs — shown always)
 const BOTTOM_NAV = [
@@ -121,6 +122,7 @@ export default function Layout({ children, currentPageName }) {
         <div className="fixed top-0 left-0 right-0 z-50 bg-[#0a0c0a]/95 backdrop-blur border-b border-ka-card-border px-4 py-2 flex items-center justify-between">
           <KriptoAmanLogo size={26} showText={true} textSize="text-xs" />
           <div className="flex items-center gap-2">
+            <LanguageSwitcher compact />
             <Link to={createPageUrl('Services')} className="flex items-center justify-center w-8 h-8 rounded-xl bg-ka-emerald/12 border border-ka-emerald/25 text-ka-emerald hover:bg-ka-emerald/20 transition-colors tap-reset" aria-label="Layanan">
               <LayoutGrid className="w-4 h-4" />
             </Link>

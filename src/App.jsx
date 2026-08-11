@@ -18,6 +18,7 @@ import EnglishLanding from './pages/EnglishLanding';
 import AdminRoute from '@/components/security/AdminRoute';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt';
+import { LanguageProvider } from '@/lib/LanguageContext';
 
 const FeatureUpdateBroadcast = lazy(() => import('./pages/FeatureUpdateBroadcast'));
 const AMLAssistant = lazy(() => import('./pages/AMLAssistant'));
@@ -183,6 +184,7 @@ const AuthenticatedApp = () => {
 function App() {
 
   return (
+    <LanguageProvider>
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router>
@@ -195,6 +197,7 @@ function App() {
         <PWAInstallPrompt />
       </QueryClientProvider>
     </AuthProvider>
+    </LanguageProvider>
   )
 }
 
