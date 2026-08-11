@@ -51,7 +51,7 @@ export default function PWAInstallPrompt() {
       <button
         type="button"
         onClick={install}
-        className="fixed bottom-24 right-4 z-[70] flex min-h-12 items-center gap-2 rounded-2xl border border-sky-400/30 bg-sky-500 px-4 py-3 text-sm font-bold text-white shadow-2xl shadow-sky-950/50 hover:bg-sky-400 lg:bottom-6"
+        className="fixed bottom-24 left-1/2 z-[70] -translate-x-1/2 sm:left-auto sm:right-6 sm:translate-x-0 flex min-h-12 items-center gap-2 rounded-2xl border border-sky-400/30 bg-sky-500 px-4 py-3 text-sm font-bold text-white shadow-2xl shadow-sky-950/50 hover:bg-sky-400 lg:bottom-6"
         aria-label="Pasang aplikasi KriptoAman"
       >
         <Download className="h-4 w-4" />

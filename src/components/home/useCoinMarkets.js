@@ -277,8 +277,24 @@ export default function useCoinMarkets() {
       }));
     };
 
+    const fetchServerSnapshot = async () => {
+      const response = await fetchWithTimeout('/api/market-snapshot', {
+        headers: { Accept: 'application/json' },
+      });
+      if (!response.ok) {
+        throw new Error(`KriptoAman snapshot request failed: ${response.status}`);
+      }
+      const payload = await response.json();
+      if (!Array.isArray(payload?.data) || payload.data.length < MIN_ACCEPTED_ASSETS) {
+        throw new Error(`KriptoAman snapshot returned only ${payload?.data?.length || 0} assets`);
+      }
+      payload.data.snapshotSavedAt = Number(payload.capturedAt) || Date.now();
+      return payload.data;
+    };
+
     const load = async () => {
       const providers = [
+        ['server', fetchServerSnapshot],
         ['coinlore', fetchCoinLore],
         ['coingecko', fetchCoinGecko],
         ['cryptocompare', fetchCryptoCompare],
@@ -296,7 +312,7 @@ export default function useCoinMarkets() {
             );
           }
 
-          const savedAt = Date.now();
+          const savedAt = Number(data.snapshotSavedAt) || Date.now();
           applyData(data, provider, savedAt);
           try {
             localStorage.setItem(
