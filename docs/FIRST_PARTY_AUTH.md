@@ -42,7 +42,7 @@ The browser-facing flow is:
 
 Do not switch the production frontend to this auth layer until the D1 binding and Google secrets are configured. Existing Base44 profile/KYC data remains untouched during this phase.
 
-Password registration uses a six-digit verification code delivered by Resend. Password reset uses a single-use 32-byte random token with a 30-minute lifetime. Passwords are stored using PBKDF2-HMAC-SHA256 with a unique salt and 600,000 iterations.
+Password registration uses a six-digit verification code delivered by Resend. Password reset uses a single-use 32-byte random token with a 30-minute lifetime. Passwords are stored using PBKDF2-HMAC-SHA256 with a unique salt and a Cloudflare-compatible 210,000 iterations. The iteration count is encoded in every stored hash to support future upgrades.
 
 
 ## Passwordless admin sign-in
