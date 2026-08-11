@@ -16,6 +16,7 @@ import ResetPassword from '@/pages/ResetPassword';
 import KriptoAmanGlobalLanding from './pages/KriptoAmanGlobalLanding';
 import AdminRoute from '@/components/security/AdminRoute';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
+import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt';
 
 const FeatureUpdateBroadcast = lazy(() => import('./pages/FeatureUpdateBroadcast'));
 const AMLAssistant = lazy(() => import('./pages/AMLAssistant'));
@@ -40,7 +41,7 @@ const ADMIN_PAGE_KEYS = new Set([
 // Transactional modules remain in source for controlled testing, but the
 // public store build exposes only verified information and monitoring flows.
 const STORE_RESTRICTED_PAGE_KEYS = new Set([
-  'AutoTrading', 'DEXSavings', 'P2PLending', 'Web3Wallet', 'TradingAnalytics',
+  'AutoTrading', 'DEXSavings', 'P2PLending', 'TradingAnalytics',
 ]);
 
 const StoreAvailabilityNotice = () => (
@@ -189,6 +190,7 @@ function App() {
           </AppErrorBoundary>
         </Router>
         <Toaster />
+        <PWAInstallPrompt />
       </QueryClientProvider>
     </AuthProvider>
   )
