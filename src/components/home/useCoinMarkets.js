@@ -157,7 +157,7 @@ export default function useCoinMarkets() {
         throw new Error(`CryptoCompare returned only ${rows.length} assets`);
       }
 
-      return rows.slice(0, MARKET_ASSET_LIMIT).map((item, index) => {
+      return rows.map((item, index) => {
         const info = item.CoinInfo || {};
         const raw = item.RAW?.USD || {};
         return {
