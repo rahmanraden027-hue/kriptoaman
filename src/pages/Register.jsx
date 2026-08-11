@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { UserPlus, Mail, Lock, Loader2 } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
@@ -17,6 +18,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,7 +29,7 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      await base44.auth.register({ email, password });
+      await base44.auth.register({ email, password, termsAccepted });
       setShowOtp(true);
     } catch (err) {
       setError(err.message || "Pendaftaran gagal");
@@ -192,10 +194,21 @@ export default function Register() {
           </div>
         </div>
         <p className="text-xs leading-relaxed text-muted-foreground">
-          Dengan mendaftar, Anda menyetujui <Link to="/TermsOfService" className="text-sky-400 hover:underline">Syarat Penggunaan</Link>{" "}
-          dan <Link to="/PrivacyPolicy" className="text-sky-400 hover:underline">Kebijakan Privasi</Link> KriptoAman.
+          Gunakan minimal 12 karakter. Jangan gunakan ulang kata sandi dari akun lain.
         </p>
-        <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
+        <div className="flex items-start gap-3 rounded-lg border border-slate-700/70 bg-slate-900/40 p-3">
+          <Checkbox
+            id="legal-consent"
+            checked={termsAccepted}
+            onCheckedChange={(checked) => setTermsAccepted(checked === true)}
+            aria-required="true"
+          />
+          <Label htmlFor="legal-consent" className="text-xs font-normal leading-relaxed text-muted-foreground">
+            Saya telah membaca dan menyetujui <Link to="/TermsOfService" target="_blank" className="text-sky-400 hover:underline">Syarat Penggunaan</Link>{" "}
+            serta <Link to="/PrivacyPolicy" target="_blank" className="text-sky-400 hover:underline">Kebijakan Privasi</Link>. Saya memahami KriptoAman saat ini menyediakan informasi, pemantauan, edukasi, dan keamanan aset digital—bukan jaminan keuntungan investasi.
+          </Label>
+        </div>
+        <Button type="submit" className="w-full h-12 font-medium" disabled={loading || !termsAccepted}>
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />

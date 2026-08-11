@@ -35,8 +35,11 @@ export const kriptoAuth = {
     return request('/api/auth/admin/request-link', { method: 'POST', body: JSON.stringify({ email }) });
   },
 
-  async register({ email, password }) {
-    return request('/api/auth/register', { method: 'POST', body: JSON.stringify({ email, password }) });
+  async register({ email, password, termsAccepted }) {
+    return request('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ email, password, termsAccepted }),
+    });
   },
 
   async verifyOtp({ email, otpCode }) {
