@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -7,15 +7,18 @@ import { Shield, ChevronRight, Radio, Eye } from 'lucide-react';
 import HomePortfolioSummary from '../components/home/HomePortfolioSummary';
 import HomeQuickActions from '../components/home/HomeQuickActions';
 import HomeMarketOverview from '../components/home/HomeMarketOverview';
-import HomeNews from '../components/home/HomeNews';
-import HomeLearningCenter from '../components/home/HomeLearningCenter';
-import HomeFooter from '../components/home/HomeFooter';
 import HomePortfolioPerformance from '../components/home/HomePortfolioPerformance';
-import HomeTradingViewSection from '../components/home/HomeTradingViewSection';
 import HomeMarketMovers from '../components/home/HomeMarketMovers';
-import AIInsightCard from '../components/home/AIInsightCard';
-import WhaleAlertCard from '../components/home/WhaleAlertCard';
 import { useLanguage } from '../lib/LanguageContext';
+
+const HomeTradingViewSection = lazy(() => import('../components/home/HomeTradingViewSection'));
+const AIInsightCard = lazy(() => import('../components/home/AIInsightCard'));
+const WhaleAlertCard = lazy(() => import('../components/home/WhaleAlertCard'));
+const HomeNews = lazy(() => import('../components/home/HomeNews'));
+const HomeLearningCenter = lazy(() => import('../components/home/HomeLearningCenter'));
+const HomeFooter = lazy(() => import('../components/home/HomeFooter'));
+
+const DeferredFallback = () => <div className="h-24 ka-shimmer rounded-[20px]" aria-hidden="true" />;
 
 const COPY = {
   id: {
@@ -102,20 +105,20 @@ export default function Home() {
           </div>
 
           <HomeQuickActions />
-          <div className="hidden md:block"><HomeTradingViewSection /></div>
+          <div className="hidden md:block"><Suspense fallback={<DeferredFallback />}><HomeTradingViewSection /></Suspense></div>
           <HomeMarketMovers />
         </div>
 
         <aside className="xl:col-span-4 space-y-4 min-w-0">
-          <AIInsightCard />
-          <WhaleAlertCard />
+          <Suspense fallback={<DeferredFallback />}><AIInsightCard /></Suspense>
+          <Suspense fallback={<DeferredFallback />}><WhaleAlertCard /></Suspense>
           <HomeMarketOverview />
-          <HomeNews />
-          <HomeLearningCenter />
+          <Suspense fallback={<DeferredFallback />}><HomeNews /></Suspense>
+          <Suspense fallback={<DeferredFallback />}><HomeLearningCenter /></Suspense>
         </aside>
       </div>
 
-      <HomeFooter />
+      <Suspense fallback={null}><HomeFooter /></Suspense>
     </div>
   </div>
 );

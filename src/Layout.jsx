@@ -32,15 +32,19 @@ const NAV_LABELS = {
   en: { home: 'Home', markets: 'Markets', wallet: 'Watch', alerts: 'Alerts', profile: 'Profile' },
 };
 const DESKTOP_NAV = [
-  { label: 'Dashboard', page: 'Home', icon: Home, to: '/dashboard' },
-  { label: 'Pasar', page: 'Market', icon: TrendingUp },
-  { label: 'Portfolio', page: 'PortfolioOverview', icon: BarChart3 },
-  { label: 'Pantau Wallet', page: 'Wallet', icon: Wallet },
-  { label: 'Keamanan', page: 'SecurityHub', icon: ShieldCheck },
-  { label: 'KYC', page: 'KYC', icon: ShieldCheck },
-  { label: 'Edukasi', page: 'Edukasi', icon: BookOpen },
-  { label: 'Notifikasi', page: 'Alerts', icon: Bell },
+  { id: 'home', page: 'Home', icon: Home, to: '/dashboard' },
+  { id: 'markets', page: 'Market', icon: TrendingUp },
+  { id: 'portfolio', page: 'PortfolioOverview', icon: BarChart3 },
+  { id: 'wallet', page: 'Wallet', icon: Wallet },
+  { id: 'security', page: 'SecurityHub', icon: ShieldCheck },
+  { id: 'kyc', page: 'KYC', icon: ShieldCheck },
+  { id: 'education', page: 'Edukasi', icon: BookOpen },
+  { id: 'alerts', page: 'Alerts', icon: Bell },
 ];
+const DESKTOP_LABELS = {
+  id: { home: 'Dasbor', markets: 'Pasar', portfolio: 'Portofolio', wallet: 'Pantau Wallet', security: 'Keamanan', kyc: 'KYC', education: 'Edukasi', alerts: 'Peringatan' },
+  en: { home: 'Dashboard', markets: 'Markets', portfolio: 'Portfolio', wallet: 'Watch Wallet', security: 'Security', kyc: 'KYC', education: 'Education', alerts: 'Alerts' },
+};
 // Secondary nav (shown in sidebar/more menu)
 const NAV = [
   { label: 'KYC Verification', page: 'KYCVerificationPage', icon: ShieldCheck },
@@ -76,6 +80,7 @@ const NAV = [
 export default function Layout({ children, currentPageName }) {
   const { language } = useLanguage();
   const navLabels = NAV_LABELS[language] || NAV_LABELS.id;
+  const desktopLabels = DESKTOP_LABELS[language] || DESKTOP_LABELS.id;
   const [user, setUser] = useState(null);
   const { locked, unlock } = useAppLock(
     parseInt(localStorage.getItem('cv_session_timeout_min') || '5') * 60 * 1000
@@ -131,7 +136,7 @@ export default function Layout({ children, currentPageName }) {
           <KriptoAmanLogo size={26} showText={true} textSize="text-xs" />
           <div className="flex items-center gap-2">
             <LanguageSwitcher compact />
-            <Link to={createPageUrl('Services')} className="flex items-center justify-center w-8 h-8 rounded-xl bg-ka-emerald/12 border border-ka-emerald/25 text-ka-emerald hover:bg-ka-emerald/20 transition-colors tap-reset" aria-label="Layanan">
+            <Link to={createPageUrl('Services')} className="flex items-center justify-center w-8 h-8 rounded-xl bg-ka-emerald/12 border border-ka-emerald/25 text-ka-emerald hover:bg-ka-emerald/20 transition-colors tap-reset" aria-label={language === 'en' ? 'Services' : 'Layanan'}>
               <LayoutGrid className="w-4 h-4" />
             </Link>
             <Link to={createPageUrl('Settings')}
@@ -160,12 +165,13 @@ export default function Layout({ children, currentPageName }) {
 
       <div className="mt-2 flex items-center gap-2 text-[10px] text-sky-300 bg-sky-400/10 border border-sky-400/20 rounded-xl px-3 py-2">
         <ShieldCheck className="w-3.5 h-3.5" />
-        Fase 1 · Read-only
+        {language === 'en' ? 'Phase 1 · Watch-only' : 'Fase 1 · Pemantauan'}
       </div>
     </div>
 
     <nav className="space-y-1">
-      {DESKTOP_NAV.map(({ label, page, icon: Icon, to }) => {
+      {DESKTOP_NAV.map(({ id, page, icon: Icon, to }) => {
+        const label = desktopLabels[id];
         const active = currentPageName === page;
 
         return (

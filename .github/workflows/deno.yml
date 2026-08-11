@@ -42,7 +42,8 @@ jobs:
           src/pages/Login.jsx src/pages/Register.jsx src/pages/ForgotPassword.jsx src/pages/ResetPassword.jsx
           src/pages/Home.jsx src/pages/Wallet.jsx src/pages/Alerts.jsx src/pages/Profile.jsx
           src/components/home/AIInsightCard.jsx src/components/home/WhaleAlertCard.jsx
-          src/components/home/HomeNews.jsx src/components/home/HomeMarketOverview.jsx src/Layout.jsx
+          src/components/home/HomeNews.jsx src/components/home/HomeMarketOverview.jsx
+          src/components/home/HomeQuickActions.jsx src/Layout.jsx
           src/components/market/TradingViewModal.jsx src/components/market/useLivePrices.jsx
           src/components/home/useCoinMarkets.js src/components/LanguageSwitcher.jsx
           src/lib/LanguageContext.jsx src/components/pwa/PWAInstallPrompt.jsx

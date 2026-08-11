@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Bell, BellOff, Plus, Trash2, TrendingUp, TrendingDown, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { appStorage } from '@/components/utils/appStorage';
 import { useLanguage } from '@/lib/LanguageContext';
+import useLivePrices from '@/components/market/useLivePrices';
 
 const STORAGE_KEY = 'ka_price_alerts';
 
@@ -16,11 +17,11 @@ const COPY = {
   id: { title: 'Peringatan Harga', subtitle: 'Notifikasi saat harga mencapai target', add: 'Tambah',
     empty: 'Belum ada peringatan harga', emptyBody: 'Tekan Tambah untuk membuat peringatan pertama.',
     guide: 'Cara kerja peringatan', local: 'Tersimpan aman di perangkat ini', permission: 'Mengikuti izin notifikasi browser',
-    info: 'Bersifat informatif, bukan rekomendasi investasi.' },
+    info: 'Bersifat informatif, bukan rekomendasi investasi.', live: 'Pemantauan harga live', triggered: 'Target tercapai', current: 'Harga sekarang' },
   en: { title: 'Price Alerts', subtitle: 'Notifications when prices reach your target', add: 'Add',
     empty: 'No price alerts yet', emptyBody: 'Press Add to create your first alert.',
     guide: 'How alerts work', local: 'Stored securely on this device', permission: 'Uses your browser notification permission',
-    info: 'For information only, not investment advice.' },
+    info: 'For information only, not investment advice.', live: 'Live price monitoring', triggered: 'Target reached', current: 'Current price' },
 };
 
 const COINS = ['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'MATIC', 'LINK'];
@@ -33,11 +34,37 @@ export default function Alerts() {
   const [form, setForm] = useState({ coin: 'BTC', condition: 'above', price: '' });
   const [pushEnabled, setPushEnabled] = useState(false);
   const [pushStatus, setPushStatus] = useState('');
+  const { prices, connected } = useLivePrices();
 
   useEffect(() => {
     setAlerts(loadAlerts());
     setPushEnabled('Notification' in window && Notification.permission === 'granted');
   }, []);
+
+  useEffect(() => {
+    if (!alerts.length || !Object.keys(prices).length) return;
+    let changed = false;
+    const next = alerts.map((alert) => {
+      const current = Number(prices[alert.coin]?.price);
+      if (!alert.active || !Number.isFinite(current)) return alert;
+      const reached = alert.condition === 'above' ? current >= alert.price : current <= alert.price;
+      if (!reached) return alert;
+
+      changed = true;
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(`${alert.coin} · ${text.triggered}`, {
+          body: `${text.current}: ${current.toLocaleString('en-US', { maximumFractionDigits: 6 })}`,
+          icon: '/icons/kriptoaman-192.png',
+          tag: `ka-price-alert-${alert.id}`,
+        });
+      }
+      return { ...alert, active: false, triggeredAt: new Date().toISOString(), triggeredPrice: current };
+    });
+    if (changed) {
+      setAlerts(next);
+      saveAlerts(next);
+    }
+  }, [alerts, prices, text.current, text.triggered]);
 
   const requestPush = async () => {
     if (!('Notification' in window)) {
@@ -97,7 +124,7 @@ export default function Alerts() {
             {pushEnabled ? <Bell className="w-5 h-5 text-green-400" /> : <BellOff className="w-5 h-5 text-slate-400" />}
             <div>
               <p className="text-white text-sm font-semibold">Push Notification</p>
-              <p className="text-slate-400 text-xs">{pushEnabled ? 'Aktif — notifikasi browser diizinkan' : 'Nonaktif — klik untuk mengaktifkan'}</p>
+              <p className="text-slate-400 text-xs">{pushEnabled ? (language === 'en' ? 'Enabled — browser notifications allowed' : 'Aktif — notifikasi browser diizinkan') : (language === 'en' ? 'Disabled — tap to enable' : 'Nonaktif — klik untuk mengaktifkan')}</p>
             </div>
           </div>
           {!pushEnabled && (
@@ -106,6 +133,10 @@ export default function Alerts() {
             </button>
           )}
           {pushEnabled && <CheckCircle2 className="w-5 h-5 text-green-400" />}
+        </div>
+        <div role="status" className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm ${connected ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-300' : 'border-amber-500/20 bg-amber-500/5 text-amber-300'}`}>
+          <span>{text.live}</span>
+          <span className="font-semibold">{connected ? (language === 'en' ? 'Connected' : 'Terhubung') : (language === 'en' ? 'Fallback active' : 'Fallback aktif')}</span>
         </div>
         {pushStatus && <p className="text-xs text-center text-indigo-300">{pushStatus}</p>}
 
@@ -169,14 +200,14 @@ export default function Alerts() {
                 </div>
                 <div>
                   <p className="text-white text-sm font-semibold">{a.coin} {a.condition === 'above' ? '↑' : '↓'} ${a.price.toLocaleString()}</p>
-                  <p className="text-slate-500 text-[11px]">{a.active ? 'Aktif' : 'Nonaktif'} · {new Date(a.createdAt).toLocaleDateString('id-ID')}</p>
+                  <p className="text-slate-500 text-[11px]">{a.triggeredAt ? text.triggered : a.active ? (language === 'en' ? 'Active' : 'Aktif') : (language === 'en' ? 'Paused' : 'Nonaktif')} · {new Date(a.createdAt).toLocaleDateString(language === 'en' ? 'en-US' : 'id-ID')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => toggleAlert(a.id)} className="p-2 rounded-lg hover:bg-slate-700 transition-colors">
+                <button onClick={() => toggleAlert(a.id)} className="p-2 rounded-lg hover:bg-slate-700 transition-colors" aria-label={a.active ? (language === 'en' ? 'Pause alert' : 'Jeda peringatan') : (language === 'en' ? 'Enable alert' : 'Aktifkan peringatan')}>
                   {a.active ? <Bell className="w-4 h-4 text-indigo-400" /> : <BellOff className="w-4 h-4 text-slate-500" />}
                 </button>
-                <button onClick={() => deleteAlert(a.id)} className="p-2 rounded-lg hover:bg-red-500/15 transition-colors">
+                <button onClick={() => deleteAlert(a.id)} className="p-2 rounded-lg hover:bg-red-500/15 transition-colors" aria-label={language === 'en' ? 'Delete alert' : 'Hapus peringatan'}>
                   <Trash2 className="w-4 h-4 text-red-400" />
                 </button>
               </div>
