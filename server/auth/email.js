@@ -44,3 +44,15 @@ export function sendPasswordResetEmail(env, email, resetUrl) {
     idempotencyKey: `reset-${crypto.randomUUID()}`,
   });
 }
+
+
+export function sendAdminMagicLinkEmail(env, email, loginUrl) {
+  const safeUrl = escapeHtml(loginUrl);
+  return send(env, {
+    to: email,
+    subject: 'Tautan masuk admin KriptoAman',
+    html: '<p>Gunakan tautan berikut untuk masuk ke panel admin KriptoAman tanpa kata sandi:</p><p><a href="' + safeUrl + '">Masuk sebagai admin</a></p><p>Tautan hanya dapat digunakan sekali dan berlaku 10 menit. Abaikan email ini jika Anda tidak memintanya.</p>',
+    text: 'Masuk sebagai admin KriptoAman: ' + loginUrl + '\nTautan berlaku 10 menit dan hanya dapat digunakan sekali.',
+    idempotencyKey: 'admin-login-' + crypto.randomUUID(),
+  });
+}
