@@ -1,56 +1,79 @@
-import React, { useEffect, useState } from 'react';
-import { X, Download } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Download, Share2, X } from 'lucide-react';
+
+function isStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
 
 export default function PWAInstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [showPrompt, setShowPrompt] = useState(false);
+  const [installEvent, setInstallEvent] = useState(null);
+  const [installed, setInstalled] = useState(() => isStandalone());
+  const [showIosHelp, setShowIosHelp] = useState(false);
+  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
   useEffect(() => {
-    const handler = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShowPrompt(true);
+    if ('serviceWorker' in navigator && import.meta.env.PROD) {
+      navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
+    }
+
+    const handlePrompt = (event) => {
+      event.preventDefault();
+      setInstallEvent(event);
+    };
+    const handleInstalled = () => {
+      setInstalled(true);
+      setInstallEvent(null);
     };
 
-    window.addEventListener('beforeinstallprompt', handler);
-
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    window.addEventListener('beforeinstallprompt', handlePrompt);
+    window.addEventListener('appinstalled', handleInstalled);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handlePrompt);
+      window.removeEventListener('appinstalled', handleInstalled);
+    };
   }, []);
 
-  const handleInstall = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        setShowPrompt(false);
-        setDeferredPrompt(null);
-      }
+  if (installed || (!installEvent && !isIos)) return null;
+
+  const install = async () => {
+    if (isIos && !installEvent) {
+      setShowIosHelp(true);
+      return;
     }
+    await installEvent.prompt();
+    const choice = await installEvent.userChoice;
+    if (choice.outcome === 'accepted') setInstalled(true);
+    setInstallEvent(null);
   };
 
-  if (!showPrompt || !deferredPrompt) return null;
-
   return (
-    <div className="fixed bottom-20 left-4 right-4 z-40 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-4 shadow-xl pwa-install-prompt">
-      <div className="flex items-start gap-3">
-        <div className="flex-1">
-          <h3 className="text-white font-semibold text-sm">Install KriptoAman</h3>
-          <p className="text-blue-100 text-xs mt-1">Tambahkan ke home screen untuk akses lebih cepat</p>
-        </div>
-        <button
-          onClick={() => setShowPrompt(false)}
-          className="text-blue-100 hover:text-white transition-colors shrink-0"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
+    <>
       <button
-        onClick={handleInstall}
-        className="w-full mt-3 flex items-center justify-center gap-2 bg-white text-blue-600 font-medium py-2 rounded-lg hover:bg-blue-50 transition-colors text-sm"
+        type="button"
+        onClick={install}
+        className="fixed bottom-24 right-4 z-[70] flex min-h-12 items-center gap-2 rounded-2xl border border-sky-400/30 bg-sky-500 px-4 py-3 text-sm font-bold text-white shadow-2xl shadow-sky-950/50 hover:bg-sky-400 lg:bottom-6"
+        aria-label="Pasang aplikasi KriptoAman"
       >
-        <Download className="w-4 h-4" />
-        Install
+        <Download className="h-4 w-4" />
+        Pasang KriptoAman
       </button>
-    </div>
+
+      {showIosHelp && (
+        <div className="fixed inset-0 z-[80] flex items-end bg-black/70 p-4">
+          <div className="w-full rounded-3xl border border-sky-500/25 bg-slate-950 p-5 text-white">
+            <div className="flex items-center justify-between">
+              <h2 className="font-bold">Pasang KriptoAman</h2>
+              <button onClick={() => setShowIosHelp(false)} aria-label="Tutup"><X className="h-5 w-5" /></button>
+            </div>
+            <p className="mt-3 text-sm text-slate-300">
+              Ketuk tombol Bagikan di Safari, lalu pilih Tambahkan ke Layar Utama.
+            </p>
+            <div className="mt-4 flex items-center gap-2 rounded-xl bg-sky-500/10 p-3 text-sm text-sky-300">
+              <Share2 className="h-4 w-4" /> Bagikan → Tambahkan ke Layar Utama
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
