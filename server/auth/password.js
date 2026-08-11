@@ -2,7 +2,7 @@ const encoder = new TextEncoder();
 // Cloudflare Pages Functions must complete password operations within the
 // request CPU budget. Keep the iteration count encoded in every hash so it
 // can be raised transparently as the runtime budget evolves.
-const ITERATIONS = 210000;
+const ITERATIONS = 100000;
 const SALT_BYTES = 16;
 const HASH_BYTES = 32;
 
