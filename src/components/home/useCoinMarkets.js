@@ -199,6 +199,13 @@ export default function useCoinMarkets() {
           const data = await fetchProvider();
           if (!alive || !Array.isArray(data) || data.length === 0) return;
 
+          const { normalized } = normalize(data);
+          if (normalized.length < MIN_ACCEPTED_ASSETS) {
+            throw new Error(
+              `${provider} returned only ${normalized.length} unique assets after deduplication`,
+            );
+          }
+
           const savedAt = Date.now();
           applyData(data, provider, savedAt);
           localStorage.setItem(
