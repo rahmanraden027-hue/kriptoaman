@@ -35,6 +35,16 @@ ASSETS.forEach(a => { SYM_MAP[a.sym] = a.id; });
 
 const STREAMS = ASSETS.map(a => `${a.sym}@ticker`).join('/');
 const WS_URL = `wss://stream.binance.com:9443/stream?streams=${STREAMS}`;
+const LIVE_CACHE_KEY = 'ka_live_prices_v1';
+
+const loadLiveCache = () => {
+  try {
+    const cached = JSON.parse(localStorage.getItem(LIVE_CACHE_KEY) || 'null');
+    return cached?.prices && typeof cached.prices === 'object' ? cached.prices : {};
+  } catch {
+    return {};
+  }
+};
 
 // IDR rate cache
 let cachedIDR = 16200;
@@ -52,12 +62,24 @@ async function fetchIDRRate() {
 }
 
 export default function useLivePrices() {
-  const [prices, setPrices] = useState({});
+  const [prices, setPrices] = useState(loadLiveCache);
   const [connected, setConnected] = useState(false);
   const [idrRate, setIdrRate] = useState(16200);
   const wsRef = useRef(null);
   const reconnectRef = useRef(null);
   const mountedRef = useRef(true);
+  const lastPersistRef = useRef(0);
+
+  useEffect(() => {
+    const now = Date.now();
+    if (Object.keys(prices).length === 0 || now - lastPersistRef.current < 30000) return;
+    try {
+      localStorage.setItem(LIVE_CACHE_KEY, JSON.stringify({ savedAt: now, idrRate, prices }));
+      lastPersistRef.current = now;
+    } catch {
+      // Storage restrictions must not interrupt live pricing.
+    }
+  }, [prices, idrRate]);
 
   // Fetch IDR rate on mount and every 5 min
   useEffect(() => {
