@@ -15,7 +15,10 @@ Configure these for both Preview and Production before wiring the frontend to th
 - Variable: `AUTH_EMAIL_FROM=KriptoAman <noreply@kriptoaman.com>`
 - Variable: `ADMIN_EMAILS` (comma-separated verified Google accounts allowed to bootstrap the admin role)
 
-Run `migrations/0001_auth_users.sql` against the D1 database before enabling login.
+Run `migrations/0001_auth_users.sql` against the D1 database before enabling login. The
+authentication middleware also applies the same `CREATE ... IF NOT EXISTS` schema at
+runtime as a recovery guard, so a newly bound or accidentally unmigrated production D1
+database can initialize safely without overwriting existing records.
 
 ## Google OAuth client
 
