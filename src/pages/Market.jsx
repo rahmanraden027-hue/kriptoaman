@@ -66,6 +66,7 @@ export default function Market() {
   const [tab, setTab] = useState('all');
   const [currency, setCurrency] = useState('idr');
   const [chartCoin, setChartCoin] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(100);
   const [watchlist, setWatchlist] = useState(() => JSON.parse(localStorage.getItem('ka_watchlist') || '[]'));
 
   const { prices: liveData, connected, idrRate } = useLivePrices();
@@ -88,6 +89,8 @@ export default function Market() {
     if (tab === 'watchlist' && !watchlist.includes(c.sym)) return false;
     return true;
   });
+
+  const visibleCoins = filtered.slice(0, visibleCount);
 
   const formatPrice = (sym) => {
     const d = liveData[sym] || markets[sym];
@@ -143,7 +146,7 @@ export default function Market() {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder={`Cari dari ${coins.length >= 300 ? '350' : coins.length} aset... (BTC, ETH, SOL)`}
+            placeholder={`Cari dari ${coins.length} aset... (BTC, ETH, SOL)`}
             className="w-full ka-surface rounded-2xl pl-9 pr-4 py-3 text-white text-sm focus:outline-none focus:border-ka-emerald placeholder:ka-muted"
           />
         </div>
@@ -174,7 +177,7 @@ export default function Market() {
 
         {/* Coin list */}
         <div className="space-y-2">
-          {filtered.map((c, index) => {
+          {visibleCoins.map((c, index) => {
             const d = liveData[c.sym] || markets[c.sym];
             const chg = d?.change24h;
             const isUp = (chg || 0) >= 0;
@@ -220,6 +223,16 @@ export default function Market() {
             );
           })}
         </div>
+
+        {visibleCount < filtered.length && (
+          <button
+            type="button"
+            onClick={() => setVisibleCount(count => Math.min(count + 100, filtered.length))}
+            className="w-full ka-btn-primary mt-4 py-3 text-sm"
+          >
+            Muat 100 aset berikutnya ({filtered.length - visibleCount} tersisa)
+          </button>
+        )}
 
         {filtered.length === 0 && (
           <div className="text-center ka-muted py-16">
