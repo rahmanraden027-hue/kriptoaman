@@ -27,6 +27,8 @@ export function Web3Provider({ children }) {
   const [connecting, setConnecting] = useState(false);
   const [walletType, setWalletType] = useState(null);
   const [walletClient, setWalletClient] = useState(null);
+  const [availableWallets, setAvailableWallets] = useState([]);
+  const providerRef = useRef(null);
   const viemRef = useRef(null);
 
   const getViem = useCallback(async () => {
@@ -50,25 +52,27 @@ export function Web3Provider({ children }) {
     } catch {}
   }, [getViem, getPublicClient]);
 
-  const connectWallet = useCallback(async () => {
-    if (!window.ethereum) {
+  const connectWallet = useCallback(async (selectedWallet = null) => {
+    const selectedProvider = selectedWallet?.provider || window.ethereum;
+    if (!selectedProvider) {
       alert('MetaMask atau wallet browser tidak ditemukan. Silakan install MetaMask.');
       return;
     }
     setConnecting(true);
     try {
       const viem = await getViem();
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      const chainIdHex = await window.ethereum.request({ method: 'eth_chainId' });
+      const accounts = await selectedProvider.request({ method: 'eth_requestAccounts' });
+      const chainIdHex = await selectedProvider.request({ method: 'eth_chainId' });
       const cId = parseInt(chainIdHex, 16);
       const chain = Object.values(viem.chains).find(c => c.id === cId) || viem.chains.mainnet;
 
-      const wClient = viem.createWalletClient({ account: accounts[0], chain, transport: viem.custom(window.ethereum) });
+      const wClient = viem.createWalletClient({ account: accounts[0], chain, transport: viem.custom(selectedProvider) });
 
       setAccount(accounts[0]);
       setChainId(cId);
       setWalletClient(wClient);
-      setWalletType(window.ethereum.isMetaMask ? 'metamask' : 'injected');
+      providerRef.current = selectedProvider;
+      setWalletType(selectedWallet?.info?.name || (selectedProvider.isMetaMask ? 'MetaMask' : 'Injected Wallet'));
       localStorage.setItem('web3_connected', '1');
       await refreshBalance(accounts[0], cId);
     } catch (e) {
@@ -88,16 +92,17 @@ export function Web3Provider({ children }) {
   }, []);
 
   const switchChain = useCallback(async (targetChainId) => {
-    if (!window.ethereum) return;
+    const selectedProvider = providerRef.current || window.ethereum;
+    if (!selectedProvider) return;
     try {
-      await window.ethereum.request({
+      await selectedProvider.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: `0x${targetChainId.toString(16)}` }],
       });
     } catch (err) {
       if (err.code === 4902 && SUPPORTED_CHAINS[targetChainId]) {
         const chain = SUPPORTED_CHAINS[targetChainId];
-        await window.ethereum.request({
+        await selectedProvider.request({
           method: 'wallet_addEthereumChain',
           params: [{
             chainId: `0x${targetChainId.toString(16)}`,
@@ -127,6 +132,26 @@ export function Web3Provider({ children }) {
     return await walletClient.signMessage({ account, message });
   }, [walletClient, account]);
 
+  // Discover all installed EVM wallets through EIP-6963.
+  useEffect(() => {
+    const announced = new Map();
+    const handleProvider = (event) => {
+      const detail = event.detail;
+      if (!detail?.provider || !detail?.info?.uuid) return;
+      announced.set(detail.info.uuid, detail);
+      setAvailableWallets(Array.from(announced.values()));
+    };
+    window.addEventListener('eip6963:announceProvider', handleProvider);
+    window.dispatchEvent(new Event('eip6963:requestProvider'));
+    if (window.ethereum) {
+      setAvailableWallets((current) => current.length ? current : [{
+        info: { uuid: 'legacy-injected', name: window.ethereum.isMetaMask ? 'MetaMask' : 'Browser Wallet', icon: '' },
+        provider: window.ethereum,
+      }]);
+    }
+    return () => window.removeEventListener('eip6963:announceProvider', handleProvider);
+  }, []);
+
   // Auto-reconnect
   useEffect(() => {
     if (localStorage.getItem('web3_connected') && window.ethereum) {
@@ -136,7 +161,8 @@ export function Web3Provider({ children }) {
 
   // Listen to account/chain changes
   useEffect(() => {
-    if (!window.ethereum) return;
+    const activeProvider = providerRef.current || window.ethereum;
+    if (!activeProvider) return;
     const handleAccounts = (accounts) => {
       if (accounts.length === 0) disconnectWallet();
       else { setAccount(accounts[0]); refreshBalance(accounts[0], chainId); }
@@ -146,17 +172,17 @@ export function Web3Provider({ children }) {
       setChainId(cId);
       refreshBalance(account, cId);
     };
-    window.ethereum.on('accountsChanged', handleAccounts);
-    window.ethereum.on('chainChanged', handleChain);
+    activeProvider.on('accountsChanged', handleAccounts);
+    activeProvider.on('chainChanged', handleChain);
     return () => {
-      window.ethereum.removeListener('accountsChanged', handleAccounts);
-      window.ethereum.removeListener('chainChanged', handleChain);
+      activeProvider.removeListener('accountsChanged', handleAccounts);
+      activeProvider.removeListener('chainChanged', handleChain);
     };
   }, [disconnectWallet, refreshBalance, account, chainId]);
 
   return (
     <Web3Context.Provider value={{
-      account, chainId, balance, connecting, walletType, walletClient,
+      account, chainId, balance, connecting, walletType, walletClient, availableWallets,
       provider: walletClient, // backward compat alias
       signer: walletClient,   // backward compat alias
       connectWallet, disconnectWallet, switchChain, sendTransaction, signMessage,
