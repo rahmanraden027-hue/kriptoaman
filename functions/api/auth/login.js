@@ -1,5 +1,5 @@
 import { json, requireBindings, requireSameOrigin } from '../../../server/auth/http.js';
-import { hashPassword, verifyPassword } from '../../../server/auth/password.js';
+import { verifyPassword } from '../../../server/auth/password.js';
 import { checkRateLimit } from '../../../server/auth/rateLimit.js';
 import { createSessionToken, sessionCookie } from '../../../server/auth/session.js';
 import { getUserByEmail } from '../../../server/auth/users.js';
@@ -18,10 +18,7 @@ export async function onRequestPost({ request, env }) {
     if (!allowed) return json({ error: 'Too many login attempts. Try again later.' }, { status: 429 });
 
     const user = await getUserByEmail(env.AUTH_DB, email, { includePassword: true });
-    if (!user?.password_hash) {
-      await hashPassword(password);
-      return json(INVALID, { status: 401 });
-    }
+    if (!user?.password_hash) return json(INVALID, { status: 401 });
     if (!(await verifyPassword(password, user.password_hash))) return json(INVALID, { status: 401 });
     if (!user.email_verified) return json({ error: 'Email verification required', verification_required: true }, { status: 403 });
 
