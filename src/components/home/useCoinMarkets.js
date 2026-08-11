@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 
-const MARKET_ASSET_LIMIT = 2000;
-const MIN_ACCEPTED_ASSETS = 1000;
+const MARKET_ASSET_LIMIT = 2500;
+const MIN_ACCEPTED_ASSETS = 2001;
 const PAGE_SIZE = 250;
-const MARKET_CACHE_KEY = 'ka_market_snapshot_v2';
+const MARKET_CACHE_KEY = 'ka_market_snapshot_v3';
 const MARKET_CACHE_MAX_AGE = 60 * 60 * 1000;
-const REFRESH_INTERVAL = 10 * 60 * 1000;
+const REFRESH_INTERVAL = 15 * 60 * 1000;
 const CRYPTOCOMPARE_IMAGE_BASE = 'https://www.cryptocompare.com';
 
 /**
@@ -188,8 +188,69 @@ export default function useCoinMarkets() {
       });
     };
 
+    const fetchCoinLorePage = async (start) => {
+      const params = new URLSearchParams({
+        start: String(start),
+        limit: '100',
+      });
+      const response = await fetch(
+        `https://api.coinlore.net/api/tickers/?${params.toString()}`,
+        { headers: { Accept: 'application/json' } },
+      );
+      if (!response.ok) {
+        throw new Error(`CoinLore market request failed: ${response.status}`);
+      }
+      const payload = await response.json();
+      if (!Array.isArray(payload?.data)) {
+        throw new Error('CoinLore returned invalid data');
+      }
+      return payload.data;
+    };
+
+    const fetchCoinLore = async () => {
+      const rows = [];
+      const batchSize = 5;
+
+      for (let batchStart = 0; batchStart < MARKET_ASSET_LIMIT; batchStart += batchSize * 100) {
+        const starts = Array.from(
+          { length: batchSize },
+          (_, index) => batchStart + index * 100,
+        ).filter((start) => start < MARKET_ASSET_LIMIT);
+
+        const results = await Promise.allSettled(
+          starts.map((start) => fetchCoinLorePage(start)),
+        );
+        const batchRows = results
+          .filter((result) => result.status === 'fulfilled')
+          .flatMap((result) => result.value);
+
+        rows.push(...batchRows);
+        if (batchRows.length === 0 || rows.length >= MARKET_ASSET_LIMIT) break;
+      }
+
+      if (rows.length < MIN_ACCEPTED_ASSETS) {
+        throw new Error(`CoinLore returned only ${rows.length} assets`);
+      }
+
+      return rows.slice(0, MARKET_ASSET_LIMIT).map((item, index) => ({
+        id: `coinlore-${item.id || item.symbol || index}`,
+        symbol: item.symbol || '',
+        name: item.name || item.nameid || item.symbol || '',
+        image: '',
+        current_price: Number(item.price_usd),
+        price_change_percentage_24h: Number(item.percent_change_24h),
+        market_cap: Number(item.market_cap_usd),
+        total_volume: Number(item.volume24),
+        high_24h: null,
+        low_24h: null,
+        market_cap_rank: Number(item.rank) || index + 1,
+        sparkline_in_7d: { price: [] },
+      }));
+    };
+
     const load = async () => {
       const providers = [
+        ['coinlore', fetchCoinLore],
         ['coingecko', fetchCoinGecko],
         ['cryptocompare', fetchCryptoCompare],
       ];
