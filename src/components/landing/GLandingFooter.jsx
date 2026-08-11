@@ -23,7 +23,10 @@ export default function GLandingFooter() {
               </span>
             </div>
             <p className="text-xs ka-text2 mt-3 leading-relaxed">
-              Platform informasi, pemantauan, dan analisis risiko aset kripto.
+              Platform informasi, pemantauan, edukasi, dan analisis risiko indikatif aset kripto.
+            </p>
+            <p className="text-[11px] ka-text2 mt-2 leading-relaxed">
+              Dioperasikan oleh PT Kripto Aman Indonesia · Republik Indonesia. Bukan bursa, kustodian, broker, atau penasihat investasi.
             </p>
             <a href="mailto:hello@kriptoaman.com" className="inline-flex items-center gap-2 text-xs ka-blue mt-3">
               <Mail className="w-3.5 h-3.5" /> hello@kriptoaman.com
