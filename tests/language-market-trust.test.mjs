@@ -37,3 +37,19 @@ test('market provides bilingual identity and transparent methodology', async () 
   assert.match(market, /does not guarantee returns/);
   assert.match(market, /PT KRIPTO AMAN INDONESIA/);
 });
+
+
+test('authentication surfaces follow the shared ID and EN language selection', async () => {
+  const pages = await Promise.all([
+    read('src/pages/Login.jsx'),
+    read('src/pages/Register.jsx'),
+    read('src/pages/ForgotPassword.jsx'),
+    read('src/pages/ResetPassword.jsx'),
+  ]);
+  for (const page of pages) {
+    assert.match(page, /useLanguage/);
+    assert.match(page, /const COPY =/);
+    assert.match(page, /\bid:/);
+    assert.match(page, /\ben:/);
+  }
+});
