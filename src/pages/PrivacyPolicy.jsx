@@ -41,12 +41,12 @@ const sections = [
     title: '3. Keamanan Data',
     content: (
       <>
-        <p className="text-slate-300 mb-3">Kami menerapkan langkah-langkah keamanan industri standar:</p>
+        <p className="text-slate-300 mb-3">Kami menerapkan kontrol keamanan yang tersedia dan dapat diverifikasi pada layanan:</p>
         <ul className="space-y-2 text-slate-300">
-          <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Enkripsi end-to-end untuk data sensitif</li>
+          <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Hash kata sandi menggunakan PBKDF2-SHA256 dengan salt unik</li>
           <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> HTTPS/TLS untuk semua koneksi</li>
-          <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Audit keamanan berkala</li>
-          <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Dukungan autentikasi multi-faktor</li>
+          <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Pembatasan percobaan, masa berlaku OTP, dan token sekali pakai</li>
+          <li className="flex gap-2"><span className="text-indigo-400 mt-1">▸</span> Cookie sesi aman dengan HttpOnly, Secure, dan SameSite</li>
         </ul>
         <p className="text-slate-400 text-sm mt-3">Namun tidak ada metode transmisi atau penyimpanan yang 100% aman. Kami tidak dapat menjamin keamanan absolut.</p>
       </>

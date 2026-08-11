@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
+      - name: Auth security regression tests
+        run: npm run test
+
       - name: Build application
         run: npm run build
 
@@ -35,4 +38,5 @@ jobs:
           npx eslint server/auth/*.js functions/api/auth/*.js
           functions/api/auth/google/*.js src/lib/kriptoAuth.js
           src/lib/AuthContext.jsx src/api/base44Client.js src/pages/KYC.jsx
-          public/sw.js --quiet
+          src/pages/EnglishLanding.jsx src/pages/SystemStatus.jsx
+          src/components/market/TradingViewModal.jsx public/sw.js --quiet

@@ -1,39 +1,37 @@
-import React from 'react';
-import { X, TrendingUp, TrendingDown } from 'lucide-react';
+import React, { useState } from 'react';
+import { BarChart3, X, TrendingUp, TrendingDown } from 'lucide-react';
 import TradingViewChart from './TradingViewChart';
 import { COIN_META } from '../home/coinMeta';
 
 export default function TradingViewModal({ coin, price, change24h, onClose }) {
   const meta = COIN_META[coin.sym] || {};
+  const [logoError, setLogoError] = useState(false);
   const up = (change24h ?? 0) >= 0;
-  const fmt = (p) => (p == null ? '—' : p >= 1 ? `$${p.toLocaleString('en-US', { maximumFractionDigits: 2 })}` : `$${p.toFixed(6)}`);
+  const fmt = (value) => value == null ? '—' : value >= 1 ? `$${value.toLocaleString('en-US', { maximumFractionDigits: 2 })}` : `$${value.toFixed(6)}`;
+  const fmtBig = (value) => {
+    if (!value) return '—';
+    if (value >= 1e12) return `$${(value / 1e12).toFixed(2)}T`;
+    if (value >= 1e9) return `$${(value / 1e9).toFixed(2)}B`;
+    if (value >= 1e6) return `$${(value / 1e6).toFixed(2)}M`;
+    return `$${value.toLocaleString('en-US')}`;
+  };
+  const logo = coin.image || meta.logo;
 
   return (
-    <div className="fixed inset-0 z-[60] bg-[#0a0c0a]/97 backdrop-blur flex flex-col ka-fade-up" style={{ animationDuration: '0.25s' }}>
-      <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-ka-card-border bg-[#0a0c0a]/80">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <img src={meta.logo} alt={coin.sym} className="w-9 h-9 rounded-full shrink-0" />
-          <div className="min-w-0">
-            <p className="text-white font-bold text-sm truncate">{coin.sym}<span className="ka-muted font-normal">/USDT</span></p>
-            <p className="ka-muted text-[10px] truncate">{coin.name}</p>
-          </div>
+    <div role="dialog" aria-modal="true" aria-labelledby="asset-detail-title" className="fixed inset-0 z-[60] flex flex-col bg-[#06101c]/98 backdrop-blur ka-fade-up">
+      <header className="flex items-center justify-between gap-3 border-b border-ka-card-border bg-[#07111d]/90 px-4 py-3">
+        <div className="flex min-w-0 items-center gap-2.5">
+          {logo && !logoError ? <img src={logo} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" onError={() => setLogoError(true)} /> : <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-sky-400/30 bg-sky-400/10 text-[10px] font-extrabold text-sky-300">{coin.sym.slice(0, 4)}</span>}
+          <div className="min-w-0"><h2 id="asset-detail-title" className="truncate text-sm font-bold text-white">{coin.sym}<span className="ka-muted font-normal">/USDT</span></h2><p className="ka-muted truncate text-[10px]">{coin.name} {coin.rank ? `· Peringkat #${coin.rank}` : ''}</p></div>
         </div>
-        <div className="text-right shrink-0">
-          <p className={`text-sm font-bold ka-num ${price != null ? (up ? 'text-ka-emerald' : 'text-[#e74c3c]') : 'text-white'}`}>{fmt(price)}</p>
-          <p className={`text-[11px] font-semibold ka-num flex items-center justify-end gap-1 ${up ? 'text-ka-emerald' : 'text-[#e74c3c]'}`}>
-            {up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-            {change24h != null ? `${up ? '+' : ''}${change24h.toFixed(2)}%` : '—'}
-          </p>
-        </div>
-        <button onClick={onClose} className="w-9 h-9 rounded-xl bg-ka-card border border-ka-card-border flex items-center justify-center ka-muted hover:text-white shrink-0 tap-reset" aria-label="Tutup">
-          <X className="w-5 h-5" />
-        </button>
+        <div className="ml-auto text-right"><p className={`text-sm font-bold ka-num ${up ? 'text-ka-emerald' : 'text-red-400'}`}>{fmt(price)}</p><p className={`flex items-center justify-end gap-1 text-[11px] font-semibold ${up ? 'text-ka-emerald' : 'text-red-400'}`}>{up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}{change24h != null ? `${up ? '+' : ''}${change24h.toFixed(2)}%` : '—'}</p></div>
+        <button type="button" onClick={onClose} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-ka-card-border bg-ka-card ka-muted hover:text-white" aria-label="Tutup detail aset"><X className="h-5 w-5" /></button>
+      </header>
+      <div className="grid grid-cols-3 gap-2 border-b border-ka-card-border px-3 py-2">
+        {[['Kapitalisasi',fmtBig(coin.marketCap)],['Volume 24j',fmtBig(coin.volume)],['Sumber grafik','TradingView']].map(([label,value]) => <div key={label} className="rounded-xl bg-white/[0.03] p-2 text-center"><p className="ka-muted text-[9px] uppercase">{label}</p><p className="mt-1 truncate text-xs font-bold text-white">{value}</p></div>)}
       </div>
-      <div className="flex-1 min-h-0 p-2">
-        <div className="ka-surface p-2 h-full">
-          <TradingViewChart symbol={`${coin.sym}USDT`} height="100%" />
-        </div>
-      </div>
+      <div className="min-h-0 flex-1 p-2"><div className="ka-surface h-full p-2"><TradingViewChart symbol={`${coin.sym}USDT`} height="100%" /></div></div>
+      <div className="flex items-start gap-2 border-t border-ka-card-border px-4 py-2 text-[10px] text-slate-500"><BarChart3 className="mt-0.5 h-3.5 w-3.5 shrink-0" /><p>Grafik dapat tidak tersedia untuk pasangan tertentu. Data bersifat informatif dan bukan rekomendasi investasi.</p></div>
     </div>
   );
 }

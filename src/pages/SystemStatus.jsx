@@ -1,21 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle2, XCircle, Loader2, RefreshCw, Server } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Loader2, RefreshCw, Server, XCircle } from 'lucide-react';
 
 const SERVICES = [
-  { name: 'Binance Live Prices', url: 'https://api.binance.com/api/v3/ping' },
-  { name: 'CoinGecko Market Data', url: 'https://api.coingecko.com/api/v3/ping' },
-  { name: 'CryptoCompare News', url: 'https://min-api.cryptocompare.com/data/v2/news/?lang=EN' },
-  { name: 'Fear & Greed Index', url: 'https://api.alternative.me/fng/?limit=1' },
+  { name: 'Aplikasi KriptoAman', url: '/', critical: true },
+  { name: 'Data Pasar CoinLore', url: 'https://api.coinlore.net/api/tickers/?start=0&limit=1', critical: true },
+  { name: 'Data Pasar CoinGecko', url: 'https://api.coingecko.com/api/v3/ping', critical: false },
+  { name: 'Fear & Greed Index', url: 'https://api.alternative.me/fng/?limit=1', critical: false },
 ];
 
-function check(url) {
-  return new Promise((resolve) => {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 8000);
-    fetch(url, { signal: ctrl.signal })
-      .then((r) => { clearTimeout(t); resolve(r.ok ? 'ok' : 'error'); })
-      .catch(() => { clearTimeout(t); resolve('error'); });
-  });
+async function check(url) {
+  const ctrl = new AbortController();
+  const timeout = setTimeout(() => ctrl.abort(), 8000);
+  const started = performance.now();
+  try {
+    const response = await fetch(url, { signal: ctrl.signal, cache: 'no-store' });
+    return { state: response.ok ? 'ok' : 'error', latency: Math.round(performance.now() - started) };
+  } catch {
+    return { state: 'error', latency: null };
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export default function SystemStatus() {
@@ -25,7 +29,7 @@ export default function SystemStatus() {
 
   const run = async () => {
     setLoading(true);
-    const results = await Promise.all(SERVICES.map(async (s) => [s.name, await check(s.url)]));
+    const results = await Promise.all(SERVICES.map(async service => [service.name, await check(service.url)]));
     setStatuses(Object.fromEntries(results));
     setUpdated(new Date());
     setLoading(false);
@@ -33,64 +37,39 @@ export default function SystemStatus() {
 
   useEffect(() => { run(); }, []);
 
-  const allOk = !loading && Object.values(statuses).every((v) => v === 'ok');
+  const criticalDown = SERVICES.some(service => service.critical && statuses[service.name]?.state === 'error');
+  const anyDown = SERVICES.some(service => statuses[service.name]?.state === 'error');
+  const overall = criticalDown ? 'outage' : anyDown ? 'degraded' : 'ok';
 
   return (
-    <div className="ka-bg min-h-screen text-white pb-28">
-      <div className="max-w-lg mx-auto px-4 pt-4 space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Server className="w-5 h-5 text-ka-emerald" />
-            <h1 className="text-xl font-extrabold tracking-tight">Status Sistem</h1>
-          </div>
-          <button onClick={run}
-            className="flex items-center gap-1.5 px-3 py-1.5 ka-chip text-xs font-bold ka-muted hover:text-white transition tap-reset">
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
-          </button>
+    <main className="ka-bg min-h-screen px-4 pb-28 pt-6 text-white">
+      <div className="mx-auto max-w-2xl space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2"><Server className="h-5 w-5 text-ka-emerald" /><div><h1 className="text-xl font-extrabold">Status Sistem</h1><p className="ka-muted text-[11px]">Pemeriksaan langsung dari perangkat Anda</p></div></div>
+          <button type="button" onClick={run} className="ka-chip flex items-center gap-1.5 px-3 py-2 text-xs font-bold" aria-label="Periksa ulang status layanan"><RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />Periksa ulang</button>
         </div>
 
         {!loading && (
-          <div className={`ka-surface p-3 flex items-center gap-2 ${allOk ? 'border-ka-emerald/30' : 'border-[#e74c3c]/30'}`}>
-            {allOk
-              ? <CheckCircle2 className="w-5 h-5 text-ka-emerald" />
-              : <XCircle className="w-5 h-5 text-[#e74c3c]" />}
-            <span className={`text-sm font-bold ${allOk ? 'text-ka-emerald' : 'text-[#e74c3c]'}`}>
-              {allOk ? 'Semua sistem operasional' : 'Ada gangguan pada layanan'}
-            </span>
+          <div className={`ka-surface flex items-center gap-3 p-4 ${overall === 'ok' ? 'border-ka-emerald/30' : overall === 'degraded' ? 'border-yellow-400/30' : 'border-red-400/30'}`}>
+            {overall === 'ok' ? <CheckCircle2 className="h-6 w-6 text-ka-emerald" /> : overall === 'degraded' ? <AlertTriangle className="h-6 w-6 text-yellow-400" /> : <XCircle className="h-6 w-6 text-red-400" />}
+            <div><p className={`font-bold ${overall === 'ok' ? 'text-ka-emerald' : overall === 'degraded' ? 'text-yellow-400' : 'text-red-400'}`}>{overall === 'ok' ? 'Semua layanan yang diperiksa operasional' : overall === 'degraded' ? 'Sebagian penyedia data sedang terbatas' : 'Layanan utama mengalami gangguan'}</p><p className="ka-muted mt-1 text-[11px]">Status pihak ketiga tidak selalu berarti aplikasi KriptoAman mengalami gangguan.</p></div>
           </div>
         )}
 
-        {updated && <p className="ka-muted text-[11px]">Diperbarui: {updated.toLocaleString('id-ID')}</p>}
+        {updated && <p className="ka-muted text-[11px]">Pemeriksaan terakhir: {updated.toLocaleString('id-ID')}</p>}
 
         <div className="space-y-2">
-          {SERVICES.map((s) => {
-            const st = statuses[s.name];
-            return (
-              <div key={s.name} className="ka-surface p-3.5 flex items-center justify-between">
-                <span className="text-white text-sm font-semibold">{s.name}</span>
-                {st == null ? (
-                  <Loader2 className="w-4 h-4 text-ka-muted animate-spin" />
-                ) : st === 'ok' ? (
-                  <span className="flex items-center gap-1.5 text-ka-emerald text-xs font-bold">
-                    <CheckCircle2 className="w-4 h-4" /> Operasional
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1.5 text-[#e74c3c] text-xs font-bold">
-                    <XCircle className="w-4 h-4" /> Gangguan
-                  </span>
-                )}
-              </div>
-            );
+          {SERVICES.map(service => {
+            const result = statuses[service.name];
+            return <div key={service.name} className="ka-surface flex items-center justify-between gap-3 p-4">
+              <div><p className="text-sm font-semibold">{service.name}</p><p className="ka-muted mt-1 text-[10px]">{service.critical ? 'Layanan utama' : 'Penyedia pendukung'}</p></div>
+              {!result ? <Loader2 className="h-4 w-4 animate-spin text-slate-400" /> : result.state === 'ok' ? <span className="flex items-center gap-1.5 text-xs font-bold text-ka-emerald"><CheckCircle2 className="h-4 w-4" />Operasional{result.latency != null ? ` · ${result.latency} ms` : ''}</span> : <span className="flex items-center gap-1.5 text-xs font-bold text-yellow-400"><AlertTriangle className="h-4 w-4" />Tidak terjangkau</span>}
+            </div>;
           })}
         </div>
 
-        <div className="ka-surface p-4 text-center">
-          <p className="ka-muted text-[11px] leading-relaxed">
-            Status diperiksa langsung dari perangkat Anda. Layanan backend KriptoAman
-            (autentikasi, database, dompet) dipantau terpisah oleh tim operasional.
-          </p>
-        </div>
+        <div className="ka-surface p-4"><p className="ka-muted text-[11px] leading-relaxed">Halaman ini adalah pemeriksaan ketersediaan saat ini, bukan rekaman uptime historis atau SLA. Autentikasi dan database tidak diuji dari browser publik untuk menjaga batas keamanan.</p></div>
       </div>
-    </div>
+    </main>
   );
 }
