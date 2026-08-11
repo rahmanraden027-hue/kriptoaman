@@ -28,6 +28,7 @@ export function Web3Provider({ children }) {
   const [walletType, setWalletType] = useState(null);
   const [walletClient, setWalletClient] = useState(null);
   const [availableWallets, setAvailableWallets] = useState([]);
+  const [connectionError, setConnectionError] = useState('');
   const providerRef = useRef(null);
   const viemRef = useRef(null);
 
@@ -52,16 +53,21 @@ export function Web3Provider({ children }) {
     } catch {}
   }, [getViem, getPublicClient]);
 
-  const connectWallet = useCallback(async (selectedWallet = null) => {
+  const connectWallet = useCallback(async (selectedWallet = null, options = {}) => {
     const selectedProvider = selectedWallet?.provider || window.ethereum;
     if (!selectedProvider) {
       alert('MetaMask atau wallet browser tidak ditemukan. Silakan install MetaMask.');
       return;
     }
     setConnecting(true);
+    setConnectionError('');
     try {
       const viem = await getViem();
-      const accounts = await selectedProvider.request({ method: 'eth_requestAccounts' });
+      const accounts = await selectedProvider.request({ method: options.silent ? 'eth_accounts' : 'eth_requestAccounts' });
+      if (!accounts?.length) {
+        if (options.silent) return;
+        throw new Error('Wallet tidak memberikan akun publik.');
+      }
       const chainIdHex = await selectedProvider.request({ method: 'eth_chainId' });
       const cId = parseInt(chainIdHex, 16);
       const chain = Object.values(viem.chains).find(c => c.id === cId) || viem.chains.mainnet;
@@ -76,7 +82,7 @@ export function Web3Provider({ children }) {
       localStorage.setItem('web3_connected', '1');
       await refreshBalance(accounts[0], cId);
     } catch (e) {
-      // silent
+      if (!options.silent) setConnectionError(e?.message || 'Koneksi wallet gagal atau dibatalkan.');
     } finally {
       setConnecting(false);
     }
@@ -88,6 +94,8 @@ export function Web3Provider({ children }) {
     setBalance('0');
     setWalletType(null);
     setWalletClient(null);
+    setConnectionError('');
+    providerRef.current = null;
     localStorage.removeItem('web3_connected');
   }, []);
 
@@ -155,7 +163,7 @@ export function Web3Provider({ children }) {
   // Auto-reconnect
   useEffect(() => {
     if (localStorage.getItem('web3_connected') && window.ethereum) {
-      connectWallet();
+      connectWallet(null, { silent: true });
     }
   }, []);
 
@@ -182,7 +190,7 @@ export function Web3Provider({ children }) {
 
   return (
     <Web3Context.Provider value={{
-      account, chainId, balance, connecting, walletType, walletClient, availableWallets,
+      account, chainId, balance, connecting, connectionError, walletType, walletClient, availableWallets,
       provider: walletClient, // backward compat alias
       signer: walletClient,   // backward compat alias
       connectWallet, disconnectWallet, switchChain, sendTransaction, signMessage,
