@@ -44,14 +44,14 @@ async function sign(secret, message) {
   return base64UrlEncode(new Uint8Array(signature));
 }
 
-export async function createSessionToken(secret, user) {
+export async function createSessionToken(secret, user, ttlSeconds = SESSION_TTL_SECONDS) {
   const now = Math.floor(Date.now() / 1000);
   const payload = {
     sub: user.id,
     email: user.email,
     role: user.role || 'user',
     iat: now,
-    exp: now + SESSION_TTL_SECONDS,
+    exp: now + ttlSeconds,
   };
   const encodedPayload = base64UrlEncode(encoder.encode(JSON.stringify(payload)));
   const signature = await sign(secret, encodedPayload);
@@ -84,8 +84,8 @@ export function getSessionToken(request) {
   return readCookie(request, SESSION_COOKIE);
 }
 
-export function sessionCookie(token) {
-  return `${SESSION_COOKIE}=${token}; Path=/; Max-Age=${SESSION_TTL_SECONDS}; HttpOnly; Secure; SameSite=Lax`;
+export function sessionCookie(token, maxAge = SESSION_TTL_SECONDS) {
+  return `${SESSION_COOKIE}=${token}; Path=/; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=Lax`;
 }
 
 export function clearSessionCookie() {
