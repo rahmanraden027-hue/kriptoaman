@@ -124,9 +124,14 @@ export default function useCoinMarkets() {
       return data;
     };
 
-    const fetchCryptoCompare = async () => {
+    const fetchCryptoComparePage = async (page) => {
+      const params = new URLSearchParams({
+        limit: '99',
+        page: String(page),
+        tsym: 'USD',
+      });
       const response = await fetch(
-        `https://min-api.cryptocompare.com/data/top/totalvolfull?limit=${MARKET_ASSET_LIMIT - 1}&tsym=USD`,
+        `https://min-api.cryptocompare.com/data/top/totalvolfull?${params.toString()}`,
         { headers: { Accept: 'application/json' } },
       );
       if (!response.ok) {
@@ -137,8 +142,22 @@ export default function useCoinMarkets() {
       if (!Array.isArray(payload?.Data)) {
         throw new Error('CryptoCompare returned invalid data');
       }
+      return payload.Data;
+    };
 
-      return payload.Data.map((item, index) => {
+    const fetchCryptoCompare = async () => {
+      const results = await Promise.allSettled(
+        [0, 1, 2, 3].map((page) => fetchCryptoComparePage(page)),
+      );
+      const rows = results
+        .filter((result) => result.status === 'fulfilled')
+        .flatMap((result) => result.value);
+
+      if (rows.length < 300) {
+        throw new Error(`CryptoCompare returned only ${rows.length} assets`);
+      }
+
+      return rows.slice(0, MARKET_ASSET_LIMIT).map((item, index) => {
         const info = item.CoinInfo || {};
         const raw = item.RAW?.USD || {};
         return {
