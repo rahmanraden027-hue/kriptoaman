@@ -1,10 +1,10 @@
 /**
- * KriptoAman Service Worker v2.0.1
+ * KriptoAman Service Worker v2.1.0
  * Strategy: Cache-first untuk static assets, Network-first untuk data API
  */
 
-const CACHE_NAME = 'kriptoaman-v2.0.1';
-const STATIC_CACHE = 'kriptoaman-static-v2.0.1';
+const CACHE_NAME = 'kriptoaman-v2.1.0';
+const STATIC_CACHE = 'kriptoaman-static-v2.1.0';
 const DATA_CACHE = 'kriptoaman-data-v2';
 
 const STATIC_ASSETS = [
@@ -21,7 +21,17 @@ const STATIC_ASSETS = [
 const API_DOMAINS = [
   'api.binance.com',
   'api.coingecko.com',
+  'api.coinlore.net',
+  'min-api.cryptocompare.com',
+  'api.exchangerate-api.com',
 ];
+
+const fetchWithDeadline = (request, timeoutMs = 10000) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(request, { signal: controller.signal })
+    .finally(() => clearTimeout(timeout));
+};
 
 // ── Install: cache static assets ──────────────────────────────────────────
 self.addEventListener('install', (event) => {
@@ -68,7 +78,7 @@ self.addEventListener('fetch', (event) => {
   // an old index.html from referencing chunks removed by a newer deployment.
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request, { cache: 'no-store' })
+      fetchWithDeadline(new Request(event.request, { cache: 'no-store' }))
         .then(response => {
           if (response && response.ok) {
             const cloned = response.clone();
@@ -87,7 +97,7 @@ self.addEventListener('fetch', (event) => {
   
   if (isApiCall) {
     event.respondWith(
-      fetch(event.request)
+      fetchWithDeadline(event.request)
         .then(response => {
           if (response && response.status === 200) {
             const cloned = response.clone();
