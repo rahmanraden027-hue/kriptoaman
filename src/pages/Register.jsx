@@ -9,8 +9,16 @@ import { UserPlus, Mail, Lock, Loader2 } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import AuthLayout from "@/components/AuthLayout";
 import { toast } from "@/components/ui/use-toast";
+import { useLanguage } from "@/lib/LanguageContext";
+
+const COPY = {
+  id: { title:"Buat akun KriptoAman", subtitle:"Daftar untuk mulai memantau aset digital", hasAccount:"Sudah memiliki akun?", login:"Masuk", password:"Kata sandi", confirm:"Konfirmasi kata sandi", mismatch:"Konfirmasi kata sandi tidak cocok", exists:"Email ini sudah terdaftar dan terverifikasi. Silakan masuk, bukan meminta OTP baru.", failed:"Pendaftaran gagal", guidance:"Gunakan minimal 12 karakter. Jangan gunakan ulang kata sandi dari akun lain.", consentStart:"Saya telah membaca dan menyetujui", terms:"Syarat Penggunaan", and:"serta", privacy:"Kebijakan Privasi", consentEnd:"Saya memahami KriptoAman saat ini menyediakan informasi, pemantauan, edukasi, dan keamanan aset digital—bukan jaminan keuntungan investasi.", creating:"Membuat akun...", register:"Daftar", verifyTitle:"Verifikasi email Anda", verifySubtitle:"Kami mengirim kode ke", verifying:"Memverifikasi...", verify:"Verifikasi", noCode:"Belum menerima kode?", resend:"Kirim ulang", sentTitle:"Kode dikirim", sentDescription:"Periksa email Anda untuk kode baru.", invalidCode:"Kode verifikasi tidak valid", resendFailed:"Gagal mengirim ulang kode" },
+  en: { title:"Create your KriptoAman account", subtitle:"Register to start monitoring digital assets", hasAccount:"Already have an account?", login:"Sign in", password:"Password", confirm:"Confirm password", mismatch:"Password confirmation does not match", exists:"This email is already registered and verified. Please sign in instead of requesting another OTP.", failed:"Registration failed", guidance:"Use at least 12 characters. Do not reuse a password from another account.", consentStart:"I have read and agree to the", terms:"Terms of Service", and:"and", privacy:"Privacy Policy", consentEnd:"I understand that KriptoAman currently provides digital-asset information, monitoring, education, and security—not guaranteed investment returns.", creating:"Creating account...", register:"Register", verifyTitle:"Verify your email", verifySubtitle:"We sent a code to", verifying:"Verifying...", verify:"Verify", noCode:"Didn’t receive the code?", resend:"Resend", sentTitle:"Code sent", sentDescription:"Check your email for the new code.", invalidCode:"Invalid verification code", resendFailed:"Failed to resend code" },
+};
 
 export default function Register() {
+  const { language } = useLanguage();
+  const text = COPY[language] || COPY.id;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -24,7 +32,7 @@ export default function Register() {
     e.preventDefault();
     setError("");
     if (password !== confirmPassword) {
-      setError("Konfirmasi kata sandi tidak cocok");
+      setError(text.mismatch);
       return;
     }
     setLoading(true);
@@ -33,9 +41,9 @@ export default function Register() {
       setShowOtp(true);
     } catch (err) {
       if (err.status === 409) {
-        setError("Email ini sudah terdaftar dan terverifikasi. Silakan masuk, bukan meminta OTP baru.");
+        setError(text.exists);
       } else {
-        setError(err.message || "Pendaftaran gagal");
+        setError(err.message || text.failed);
       }
     } finally {
       setLoading(false);
@@ -52,7 +60,7 @@ export default function Register() {
       }
       window.location.href = "/dashboard";
     } catch (err) {
-      setError(err.message || "Invalid verification code");
+      setError(err.message || text.invalidCode);
     } finally {
       setLoading(false);
     }
@@ -63,11 +71,11 @@ export default function Register() {
     try {
       await base44.auth.resendOtp(email);
       toast({
-        title: "Code sent",
-        description: "Check your email for the new code.",
+        title: text.sentTitle,
+        description: text.sentDescription,
       });
     } catch (err) {
-      setError(err.message || "Failed to resend code");
+      setError(err.message || text.resendFailed);
     }
   };
 
@@ -76,8 +84,8 @@ export default function Register() {
     return (
       <AuthLayout
         icon={Mail}
-        title="Verify your email"
-        subtitle={`We sent a code to ${email}`}
+        title={text.verifyTitle}
+        subtitle={`${text.verifySubtitle} ${email}`}
       >
         {error && (
           <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
@@ -110,16 +118,16 @@ export default function Register() {
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Verifying...
+              {text.verifying}
             </>
           ) : (
-            "Verify"
+            text.verify
           )}
         </Button>
         <p className="text-center text-sm text-muted-foreground mt-4">
-          Didn't receive the code?{" "}
+          {text.noCode}{" "}
           <button onClick={handleResend} className="text-primary font-medium hover:underline">
-            Resend
+            {text.resend}
           </button>
         </p>
       </AuthLayout>
@@ -129,13 +137,13 @@ export default function Register() {
   return (
     <AuthLayout
       icon={UserPlus}
-      title="Buat akun KriptoAman"
-      subtitle="Daftar untuk mulai memantau aset digital"
+      title={text.title}
+      subtitle={text.subtitle}
       footer={
         <>
-          Sudah memiliki akun?{" "}
+          {text.hasAccount}{" "}
           <Link to="/login" className="font-semibold text-sky-400 hover:text-sky-300 hover:underline">
-            Masuk
+            {text.login}
           </Link>
         </>
       }
@@ -166,7 +174,7 @@ export default function Register() {
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Kata sandi</Label>
+          <Label htmlFor="password">{text.password}</Label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
             <Input
@@ -182,7 +190,7 @@ export default function Register() {
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="confirm">Konfirmasi kata sandi</Label>
+          <Label htmlFor="confirm">{text.confirm}</Label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
             <Input
@@ -198,7 +206,7 @@ export default function Register() {
           </div>
         </div>
         <p className="text-xs leading-relaxed text-muted-foreground">
-          Gunakan minimal 12 karakter. Jangan gunakan ulang kata sandi dari akun lain.
+          {text.guidance}
         </p>
         <div className="flex items-start gap-3 rounded-lg border border-slate-700/70 bg-slate-900/40 p-3">
           <Checkbox
@@ -208,18 +216,18 @@ export default function Register() {
             aria-required="true"
           />
           <Label htmlFor="legal-consent" className="text-xs font-normal leading-relaxed text-muted-foreground">
-            Saya telah membaca dan menyetujui <Link to="/TermsOfService" target="_blank" className="text-sky-400 hover:underline">Syarat Penggunaan</Link>{" "}
-            serta <Link to="/PrivacyPolicy" target="_blank" className="text-sky-400 hover:underline">Kebijakan Privasi</Link>. Saya memahami KriptoAman saat ini menyediakan informasi, pemantauan, edukasi, dan keamanan aset digital—bukan jaminan keuntungan investasi.
+            {text.consentStart} <Link to="/TermsOfService" target="_blank" className="text-sky-400 hover:underline">{text.terms}</Link>{" "}
+            {text.and} <Link to="/PrivacyPolicy" target="_blank" className="text-sky-400 hover:underline">{text.privacy}</Link>. {text.consentEnd}
           </Label>
         </div>
         <Button type="submit" className="w-full h-12 font-medium" disabled={loading || !termsAccepted}>
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Membuat akun...
+              {text.creating}
             </>
           ) : (
-            "Daftar"
+            text.register
           )}
         </Button>
       </form>

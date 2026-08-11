@@ -6,8 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock, Loader2, AlertTriangle } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
+import { useLanguage } from "@/lib/LanguageContext";
+
+const COPY = {
+  id: { mismatch:"Kata sandi tidak cocok", failed:"Gagal mengatur ulang kata sandi", invalidTitle:"Tautan pengaturan ulang tidak valid", invalidSubtitle:"Tautan pengaturan ulang kata sandi tidak tersedia atau tidak valid", request:"Minta tautan baru", incomplete:"Tautan yang Anda gunakan tampaknya tidak lengkap. Silakan minta email pengaturan ulang kata sandi yang baru.", title:"Kata sandi baru", subtitle:"Masukkan kata sandi baru Anda", password:"Kata sandi baru", confirm:"Konfirmasi kata sandi", resetting:"Mengatur ulang...", submit:"Atur ulang kata sandi" },
+  en: { mismatch:"Passwords do not match", failed:"Failed to reset password", invalidTitle:"Invalid reset link", invalidSubtitle:"This password reset link is missing or invalid", request:"Request a new link", incomplete:"The link you used appears to be incomplete. Please request a new password reset email.", title:"New password", subtitle:"Enter your new password below", password:"New password", confirm:"Confirm password", resetting:"Resetting...", submit:"Reset password" },
+};
 
 export default function ResetPassword() {
+  const { language } = useLanguage();
+  const text = COPY[language] || COPY.id;
   const [searchParams] = useSearchParams();
   const resetToken = searchParams.get("token");
 
@@ -20,7 +28,7 @@ export default function ResetPassword() {
     e.preventDefault();
     setError("");
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match");
+      setError(text.mismatch);
       return;
     }
     setLoading(true);
@@ -28,7 +36,7 @@ export default function ResetPassword() {
       await base44.auth.resetPassword({ resetToken, newPassword });
       window.location.href = "/login";
     } catch (err) {
-      setError(err.message || "Failed to reset password");
+      setError(err.message || text.failed);
     } finally {
       setLoading(false);
     }
@@ -38,16 +46,16 @@ export default function ResetPassword() {
     return (
       <AuthLayout
         icon={AlertTriangle}
-        title="Invalid reset link"
-        subtitle="This password reset link is missing or invalid"
+        title={text.invalidTitle}
+        subtitle={text.invalidSubtitle}
         footer={
           <Link to="/forgot-password" className="text-primary font-medium hover:underline">
-            Request a new link
+            {text.request}
           </Link>
         }
       >
         <p className="text-sm text-foreground text-center">
-          The link you used appears to be incomplete. Please request a new password reset email.
+          {text.incomplete}
         </p>
       </AuthLayout>
     );
@@ -56,8 +64,8 @@ export default function ResetPassword() {
   return (
     <AuthLayout
       icon={Lock}
-      title="New password"
-      subtitle="Enter your new password below"
+      title={text.title}
+      subtitle={text.subtitle}
     >
       {error && (
         <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
@@ -66,7 +74,7 @@ export default function ResetPassword() {
       )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="password">New Password</Label>
+          <Label htmlFor="password">{text.password}</Label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
             <Input
@@ -83,7 +91,7 @@ export default function ResetPassword() {
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="confirm">Confirm Password</Label>
+          <Label htmlFor="confirm">{text.confirm}</Label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
             <Input
@@ -102,10 +110,10 @@ export default function ResetPassword() {
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Resetting...
+              {text.resetting}
             </>
           ) : (
-            "Reset password"
+            text.submit
           )}
         </Button>
       </form>

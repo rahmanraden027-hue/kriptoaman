@@ -6,8 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
+import { useLanguage } from "@/lib/LanguageContext";
+
+const COPY = {
+  id: { title: "Selamat datang kembali", subtitle: "Masuk ke akun KriptoAman Anda", noAccount: "Belum memiliki akun?", register: "Daftar", password: "Kata sandi", forgot: "Lupa kata sandi?", invalid: "Email atau kata sandi tidak valid", adminInfo: "Akun admin menggunakan tautan masuk aman tanpa kata sandi.", adminSent: "Tautan masuk admin telah dikirim. Buka email tersebut untuk masuk langsung.", loading: "Sedang masuk...", adminSubmit: "Kirim tautan masuk admin", submit: "Masuk" },
+  en: { title: "Welcome back", subtitle: "Sign in to your KriptoAman account", noAccount: "Don’t have an account?", register: "Create account", password: "Password", forgot: "Forgot password?", invalid: "Invalid email or password", adminInfo: "The administrator account uses a secure passwordless sign-in link.", adminSent: "The administrator sign-in link has been sent. Open the email to sign in.", loading: "Signing in...", adminSubmit: "Send administrator sign-in link", submit: "Sign in" },
+};
 
 export default function Login() {
+  const { language } = useLanguage();
+  const text = COPY[language] || COPY.id;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -28,7 +36,7 @@ export default function Login() {
       await base44.auth.loginViaEmailPassword(email, password);
       window.location.href = "/dashboard";
     } catch (err) {
-      setError(err.message || "Email atau kata sandi tidak valid");
+      setError(err.message || text.invalid);
     } finally {
       setLoading(false);
     }
@@ -38,15 +46,15 @@ export default function Login() {
   return (
     <AuthLayout
       icon={LogIn}
-      title="Selamat datang kembali"
-      subtitle="Masuk ke akun KriptoAman Anda"
+      title={text.title}
+      subtitle={text.subtitle}
       logo
       darkBlue
       footer={
         <>
-          Belum memiliki akun?{" "}
+          {text.noAccount}{" "}
           <Link to="/register" className="font-semibold text-sky-400 hover:text-sky-300 hover:underline">
-            Daftar
+            {text.register}
           </Link>
         </>
       }
@@ -79,9 +87,9 @@ export default function Login() {
         {!isAdminEmail && (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password">Kata sandi</Label>
+            <Label htmlFor="password">{text.password}</Label>
             <Link to="/forgot-password" className="text-xs text-sky-400 hover:underline">
-              Lupa kata sandi?
+              {text.forgot}
             </Link>
           </div>
           <div className="relative">
@@ -101,22 +109,22 @@ export default function Login() {
         )}
         {isAdminEmail && (
           <div className="rounded-lg border border-sky-500/30 bg-sky-500/10 p-3 text-sm text-sky-200">
-            Akun admin menggunakan tautan masuk aman tanpa kata sandi.
+            {text.adminInfo}
           </div>
         )}
         {adminLinkSent && (
           <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-200">
-            Tautan masuk admin telah dikirim. Buka email tersebut untuk masuk langsung.
+            {text.adminSent}
           </div>
         )}
         <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Sedang masuk...
+              {text.loading}
             </>
           ) : (
-            isAdminEmail ? "Kirim tautan masuk admin" : "Masuk"
+            isAdminEmail ? text.adminSubmit : text.submit
           )}
         </Button>
       </form>
