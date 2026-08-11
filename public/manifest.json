@@ -51,9 +51,9 @@
   ],
   "shortcuts": [
     {
-      "name": "Pasar Ribuan Aset",
+      "name": "Pasar 2.500+ Aset",
       "short_name": "Pasar",
-      "description": "Lihat harga ribuan aset digital",
+      "description": "Lihat harga lebih dari 2.000 aset digital",
       "url": "/Market",
       "icons": [
         {
