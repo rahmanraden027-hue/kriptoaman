@@ -141,7 +141,9 @@ export default function Market() {
     if (idr >= 1e9) return `Rp ${(idr / 1e9).toFixed(2)} M`;
     if (idr >= 1e6) return `Rp ${(idr / 1e6).toFixed(2)} Jt`;
     if (idr >= 1000) return `Rp ${idr.toLocaleString("id-ID", { maximumFractionDigits: 0 })}`;
-    return `Rp ${idr.toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 8 })}`;
+    if (idr >= 1) return `Rp ${idr.toLocaleString("id-ID", { maximumFractionDigits: 2 })}`;
+    if (idr >= 0.01) return `Rp ${idr.toLocaleString("id-ID", { maximumFractionDigits: 4 })}`;
+    return `Rp ${idr.toLocaleString("id-ID", { maximumFractionDigits: 8 })}`;
   };
 
   return (
@@ -252,7 +254,11 @@ export default function Market() {
                   <p className="ka-muted text-[10px]">#{c.rank || index + 1} · {c.name}</p>
                 </div>
                 <div className="ml-auto flex items-center gap-2.5">
-                  <InteractiveSparkline data={spark} up={isUp} height={28} width={64} />
+                  {Array.isArray(spark) && spark.length > 1 ? (
+                    <InteractiveSparkline data={spark} up={isUp} height={28} width={64} />
+                  ) : (
+                    <div className="w-16 text-center ka-muted text-xs" aria-label="Grafik belum tersedia">—</div>
+                  )}
                   <div className="text-right shrink-0">
                     <p className={`text-sm font-bold ka-num transition-colors ${d?.tick === 'up' ? 'text-ka-emerald' : d?.tick === 'down' ? 'text-[#e74c3c]' : 'text-white'}`}>
                       {formatPrice(c.sym)}
