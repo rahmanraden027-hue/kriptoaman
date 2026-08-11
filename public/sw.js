@@ -1,10 +1,10 @@
 /**
- * KriptoAman Service Worker v2.0.0
+ * KriptoAman Service Worker v2.0.1
  * Strategy: Cache-first untuk static assets, Network-first untuk data API
  */
 
-const CACHE_NAME = 'kriptoaman-v2.0.0';
-const STATIC_CACHE = 'kriptoaman-static-v2';
+const CACHE_NAME = 'kriptoaman-v2.0.1';
+const STATIC_CACHE = 'kriptoaman-static-v2.0.1';
 const DATA_CACHE = 'kriptoaman-data-v2';
 
 const STATIC_ASSETS = [
@@ -13,6 +13,9 @@ const STATIC_ASSETS = [
   '/manifest.json',
   '/kriptoaman-logo-primary.png',
   '/icons/kriptoaman-192.png',
+  '/icons/kriptoaman-512.png',
+  '/icons/kriptoaman-maskable-192.png',
+  '/icons/kriptoaman-maskable-512.png',
 ];
 
 const API_DOMAINS = [
