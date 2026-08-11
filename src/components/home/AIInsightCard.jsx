@@ -13,6 +13,7 @@ const FALLBACK = {
 export default function AIInsightCard() {
   const [insight, setInsight] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [updatedAt, setUpdatedAt] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -21,9 +22,11 @@ export default function AIInsightCard() {
         prompt: 'Berikan ringkasan deskriptif singkat (maks 60 kata) tentang kondisi pasar kripto saat ini dalam Bahasa Indonesia. Fokus pada BTC, ETH, volume, dan sentimen umum. Jangan berikan rekomendasi beli/jual, target harga, atau nasihat investasi. Format JSON {title, body, sentiment}.',
         response_json_schema: { type: 'object', properties: { title: { type: 'string' }, body: { type: 'string' }, sentiment: { type: 'string' } } },
       });
-      setInsight({ ...res, tag: 'AI Insight' });
+      setInsight({ ...res, tag: 'Ringkasan berbantuan AI' });
+      setUpdatedAt(Date.now());
     } catch {
       setInsight(FALLBACK);
+      setUpdatedAt(Date.now());
     } finally {
       setLoading(false);
     }
@@ -39,7 +42,7 @@ export default function AIInsightCard() {
       <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-ka-emerald/10 blur-2xl pointer-events-none" />
       <div className="flex items-center justify-between mb-3 relative">
         <h3 className="text-white font-bold text-sm flex items-center gap-1.5">
-          <Sparkles className="w-4 h-4 text-ka-emerald" /> AI Market Insight
+          <Sparkles className="w-4 h-4 text-ka-emerald" /> Ringkasan Pasar
         </h3>
         <button onClick={load} className="ka-muted hover:text-ka-emerald transition tap-reset" aria-label="Refresh">
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -54,7 +57,8 @@ export default function AIInsightCard() {
             <span className={`text-[10px] font-bold capitalize ${sColor}`}>{sentiment}</span>
           </div>
           <p className="text-white text-sm font-bold mb-1 relative">{insight?.title}</p>
-          <p className="ka-muted text-xs leading-relaxed relative">{insight?.body}</p>
+          <p className="ka-muted text-sm leading-relaxed relative">{insight?.body}</p>
+          <p className="mt-3 border-t border-white/10 pt-2 text-[11px] text-slate-500">Sumber: data pasar publik · {updatedAt ? new Date(updatedAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '—'} · Bukan rekomendasi investasi.</p>
         </>
       )}
     </div>
