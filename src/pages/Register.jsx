@@ -32,7 +32,11 @@ export default function Register() {
       await base44.auth.register({ email, password, termsAccepted });
       setShowOtp(true);
     } catch (err) {
-      setError(err.message || "Pendaftaran gagal");
+      if (err.status === 409) {
+        setError("Email ini sudah terdaftar dan terverifikasi. Silakan masuk, bukan meminta OTP baru.");
+      } else {
+        setError(err.message || "Pendaftaran gagal");
+      }
     } finally {
       setLoading(false);
     }
