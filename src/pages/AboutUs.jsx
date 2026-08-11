@@ -5,19 +5,19 @@ import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
 
 const FEATURES = [
-  { icon: Shield, title: 'Keamanan Terjamin', desc: 'Enkripsi end-to-end dan perlindungan multi-layer untuk aset digital Anda.', color: 'text-blue-400', bg: 'bg-blue-500/15 border-blue-500/20' },
+  { icon: Shield, title: 'Keamanan Berlapis', desc: 'Kontrol sesi, autentikasi, dan perlindungan berlapis untuk membantu menjaga akun Anda.', color: 'text-blue-400', bg: 'bg-blue-500/15 border-blue-500/20' },
   { icon: Globe, title: 'Multi-Chain', desc: 'Dukung lebih dari 20 jaringan blockchain termasuk ETH, BNB, SOL, dan lainnya.', color: 'text-green-400', bg: 'bg-green-500/15 border-green-500/20' },
-  { icon: Zap, title: 'Real-Time Data', desc: 'Harga live, DEX screener, dan analitik pasar yang diperbarui setiap detik.', color: 'text-yellow-400', bg: 'bg-yellow-500/15 border-yellow-500/20' },
-  { icon: TrendingUp, title: 'Auto Trading', desc: 'Strategi trading otomatis dengan AI untuk memaksimalkan peluang pasar.', color: 'text-purple-400', bg: 'bg-purple-500/15 border-purple-500/20' },
+  { icon: Zap, title: 'Data Pasar Live', desc: 'Pantau harga, perubahan 24 jam, volume, dan kapitalisasi pasar hingga 350 aset.', color: 'text-yellow-400', bg: 'bg-yellow-500/15 border-yellow-500/20' },
+  { icon: TrendingUp, title: 'Analitik & Simulasi', desc: 'Alat analisis dan simulasi strategi untuk mendukung riset—bukan jaminan keuntungan.', color: 'text-purple-400', bg: 'bg-purple-500/15 border-purple-500/20' },
   { icon: Lock, title: 'Dompet Non-Custodial', desc: 'Anda memegang kendali penuh atas private key dan aset Anda.', color: 'text-orange-400', bg: 'bg-orange-500/15 border-orange-500/20' },
-  { icon: Users, title: 'Komunitas Aktif', desc: 'Bergabung dengan ribuan pengguna kripto Indonesia yang aktif.', color: 'text-pink-400', bg: 'bg-pink-500/15 border-pink-500/20' },
+  { icon: Users, title: 'Dibangun untuk Indonesia', desc: 'Antarmuka Bahasa Indonesia, harga IDR, serta pusat bantuan yang mudah diakses.', color: 'text-pink-400', bg: 'bg-pink-500/15 border-pink-500/20' },
 ];
 
 const STATS = [
-  { label: 'Pengguna Aktif', value: '10K+' },
+  { label: 'Aset Dipantau', value: '350' },
   { label: 'Chain Didukung', value: '20+' },
   { label: 'Protokol DeFi', value: '18+' },
-  { label: 'Uptime', value: '99.9%' },
+  { label: 'Pemantauan', value: '24/7' },
 ];
 
 export default function AboutUs() {
@@ -114,7 +114,7 @@ export default function AboutUs() {
             <ExternalLink className="w-4 h-4" />
             <span className="text-sm font-medium">Pusat Bantuan</span>
           </Link>
-          <p className="text-slate-600 text-xs pt-1">© 2025 KriptoAman · Terdaftar di Indonesia</p>
+          <p className="text-slate-600 text-xs pt-1">© 2026 PT KRIPTO AMAN INDONESIA · Jakarta Barat, DKI Jakarta</p>
         </div>
 
       </div>

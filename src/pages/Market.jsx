@@ -70,7 +70,7 @@ export default function Market() {
 
   const { prices: liveData, connected, idrRate } = useLivePrices();
   const { markets, coins: marketCoins } = useCoinMarkets();
-  const coins = marketCoins.length >= 300 ? marketCoins : COINS;
+  const coins = marketCoins.length > 0 ? marketCoins : COINS;
 
   const toggleWatchlist = (sym) => {
     const next = watchlist.includes(sym) ? watchlist.filter(s => s !== sym) : [...watchlist, sym];
@@ -142,7 +142,7 @@ export default function Market() {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Cari dari 350 aset... (BTC, ETH, SOL)"
+            placeholder={`Cari dari ${coins.length >= 300 ? '350' : coins.length} aset... (BTC, ETH, SOL)`}
             className="w-full ka-surface rounded-2xl pl-9 pr-4 py-3 text-white text-sm focus:outline-none focus:border-ka-emerald placeholder:ka-muted"
           />
         </div>
