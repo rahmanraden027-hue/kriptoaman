@@ -4,9 +4,35 @@ const MARKET_ASSET_LIMIT = 2500;
 const MIN_ACCEPTED_ASSETS = 2001;
 const PAGE_SIZE = 250;
 const MARKET_CACHE_KEY = 'ka_market_snapshot_v3';
-const MARKET_CACHE_MAX_AGE = 60 * 60 * 1000;
+const MARKET_CACHE_FRESH_AGE = 30 * 60 * 1000;
 const REFRESH_INTERVAL = 15 * 60 * 1000;
+const REQUEST_TIMEOUT = 12 * 1000;
 const CRYPTOCOMPARE_IMAGE_BASE = 'https://www.cryptocompare.com';
+
+const fetchWithTimeout = async (url, options = {}) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+  try {
+    return await fetch(url, { ...options, cache: 'no-store', signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
+const compactSnapshot = (data) => data.map((coin) => ({
+  id: coin.id,
+  symbol: coin.symbol,
+  name: coin.name,
+  image: coin.image || '',
+  current_price: coin.current_price,
+  price_change_percentage_24h: coin.price_change_percentage_24h,
+  market_cap: coin.market_cap,
+  total_volume: coin.total_volume,
+  high_24h: coin.high_24h,
+  low_24h: coin.low_24h,
+  market_cap_rank: coin.market_cap_rank,
+  sparkline_in_7d: { price: [] },
+}));
 
 /**
  * Loads up to 350 crypto assets with provider failover.
@@ -19,6 +45,8 @@ export default function useCoinMarkets() {
   const [loading, setLoading] = useState(true);
   const [source, setSource] = useState('cache');
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [isStale, setIsStale] = useState(false);
+  const [cacheAgeMs, setCacheAgeMs] = useState(null);
   const timer = useRef(null);
 
   useEffect(() => {
@@ -69,19 +97,20 @@ export default function useCoinMarkets() {
       setCoins(normalized);
       setMarkets(map);
       setSource(provider);
+      const age = Math.max(0, Date.now() - savedAt);
       setLastUpdated(savedAt);
+      setCacheAgeMs(age);
+      setIsStale(age > MARKET_CACHE_FRESH_AGE);
       setLoading(false);
       return true;
     };
 
     try {
       const cached = JSON.parse(localStorage.getItem(MARKET_CACHE_KEY) || 'null');
-      if (
-        cached?.savedAt &&
-        Date.now() - cached.savedAt < MARKET_CACHE_MAX_AGE &&
-        Array.isArray(cached.data)
-      ) {
-        applyData(cached.data, cached.source || 'cache', cached.savedAt);
+      if (cached?.savedAt && Array.isArray(cached.data) && cached.data.length > 0) {
+        // Always render the last known-good snapshot first. Old data is clearly
+        // labelled stale, but remains available while every provider is down.
+        applyData(cached.data, 'cache', cached.savedAt);
       }
     } catch {
       localStorage.removeItem(MARKET_CACHE_KEY);
@@ -97,7 +126,7 @@ export default function useCoinMarkets() {
         price_change_percentage: '24h',
         precision: 'full',
       });
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `https://api.coingecko.com/api/v3/coins/markets?${params.toString()}`,
         { headers: { Accept: 'application/json' } },
       );
@@ -134,7 +163,7 @@ export default function useCoinMarkets() {
         page: String(page),
         tsym: 'USD',
       });
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `https://min-api.cryptocompare.com/data/top/totalvolfull?${params.toString()}`,
         { headers: { Accept: 'application/json' } },
       );
@@ -193,7 +222,7 @@ export default function useCoinMarkets() {
         start: String(start),
         limit: '100',
       });
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `https://api.coinlore.net/api/tickers/?${params.toString()}`,
         { headers: { Accept: 'application/json' } },
       );
@@ -269,25 +298,41 @@ export default function useCoinMarkets() {
 
           const savedAt = Date.now();
           applyData(data, provider, savedAt);
-          localStorage.setItem(
-            MARKET_CACHE_KEY,
-            JSON.stringify({ savedAt, source: provider, data }),
-          );
+          try {
+            localStorage.setItem(
+              MARKET_CACHE_KEY,
+              JSON.stringify({ savedAt, source: provider, data: compactSnapshot(data) }),
+            );
+          } catch {
+            // Quota or privacy-mode failures must not invalidate fresh data.
+          }
           return;
         } catch {
           // Continue to the next provider and preserve the last good cache.
         }
       }
 
-      if (alive) setLoading(false);
+      if (alive) {
+        setLoading(false);
+        if (lastUpdated) setIsStale(true);
+      }
+    };
+
+    const refreshWhenOnline = () => load();
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') load();
     };
 
     load();
     timer.current = setInterval(load, REFRESH_INTERVAL);
+    window.addEventListener('online', refreshWhenOnline);
+    document.addEventListener('visibilitychange', refreshWhenVisible);
 
     return () => {
       alive = false;
       if (timer.current) clearInterval(timer.current);
+      window.removeEventListener('online', refreshWhenOnline);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
     };
   }, []);
 
@@ -297,6 +342,8 @@ export default function useCoinMarkets() {
     loading,
     source,
     lastUpdated,
+    isStale,
+    cacheAgeMs,
     dataAvailable: coins.length > 0,
   };
 }

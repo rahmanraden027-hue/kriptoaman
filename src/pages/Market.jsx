@@ -104,6 +104,8 @@ const COPY = {
     disclaimer: 'Harga dapat berbeda antar bursa dan mengalami keterlambatan. KriptoAman tidak mengubah data harga sumber dan tidak menjamin keuntungan.',
     load: 'Muat 100 aset berikutnya', remaining: 'tersisa', empty: 'Tidak ada hasil',
     emptyWatch: 'Belum ada aset di watchlist. Tekan bintang untuk menambahkan.',
+    stale: 'Menampilkan snapshot terakhir yang berhasil disimpan. Pembaruan otomatis akan dilanjutkan saat koneksi pulih.',
+    cachedSource: 'Snapshot tersimpan',
   },
   en: {
     title: 'Crypto Market', identity: 'KRIPTOAMAN MARKET INTELLIGENCE', live: 'Live 24/7',
@@ -116,6 +118,8 @@ const COPY = {
     disclaimer: 'Prices may vary by exchange and may be delayed. KriptoAman does not alter source prices and does not guarantee returns.',
     load: 'Load next 100 assets', remaining: 'remaining', empty: 'No results',
     emptyWatch: 'Your watchlist is empty. Press the star to add an asset.',
+    stale: 'Showing the last successfully saved snapshot. Automatic updates will resume when connectivity returns.',
+    cachedSource: 'Saved snapshot',
   },
 };
 
@@ -130,15 +134,18 @@ export default function Market() {
   const [watchlist, setWatchlist] = useState(() => JSON.parse(localStorage.getItem('ka_watchlist') || '[]'));
 
   const { prices: liveData, connected, idrRate } = useLivePrices();
-  const { markets, coins: marketCoins, dataAvailable, source, lastUpdated } = useCoinMarkets();
+  const { markets, coins: marketCoins, dataAvailable, source, lastUpdated, isStale, cacheAgeMs } = useCoinMarkets();
   const coins = marketCoins.length > 0 ? marketCoins : COINS;
   const marketAvailable = connected || dataAvailable;
   const sourceLabel = {
     coinlore: 'CoinLore',
     coingecko: 'CoinGecko',
     cryptocompare: 'CryptoCompare',
-    cache: 'Cache',
+    cache: text.cachedSource,
   }[source] || text.fallback;
+  const ageLabel = cacheAgeMs == null ? null : cacheAgeMs < 60 * 60 * 1000
+    ? `${Math.max(1, Math.round(cacheAgeMs / 60000))} ${language === 'en' ? 'min ago' : 'menit lalu'}`
+    : `${Math.round(cacheAgeMs / 3600000)} ${language === 'en' ? 'hours ago' : 'jam lalu'}`;
   const updatedLabel = lastUpdated
     ? new Date(lastUpdated).toLocaleTimeString(language === 'en' ? 'en-US' : 'id-ID', { hour: '2-digit', minute: '2-digit' })
     : null;
@@ -216,6 +223,12 @@ export default function Market() {
             </div>
           </div>
         </div>
+
+        {isStale && dataAvailable && (
+          <div role="status" className="mb-4 rounded-xl border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-[10px] leading-relaxed text-amber-200">
+            {text.stale}{ageLabel ? ` (${ageLabel})` : ''}
+          </div>
+        )}
 
         {/* Search */}
         <div className="relative mb-4">
