@@ -1,11 +1,11 @@
 /**
- * KriptoAman Service Worker v2.1.0
+ * KriptoAman Service Worker v2.2.0
  * Strategy: Cache-first untuk static assets, Network-first untuk data API
  */
 
-const CACHE_NAME = 'kriptoaman-v2.1.0';
-const STATIC_CACHE = 'kriptoaman-static-v2.1.0';
-const DATA_CACHE = 'kriptoaman-data-v2';
+const CACHE_NAME = 'kriptoaman-v2.2.0';
+const STATIC_CACHE = 'kriptoaman-static-v2.2.0';
+const DATA_CACHE = 'kriptoaman-data-v3';
 
 const STATIC_ASSETS = [
   '/',
@@ -86,7 +86,13 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => caches.match('/index.html'))
+        .catch(async () => {
+          const cached = await caches.match('/index.html');
+          return cached || new Response(
+            '<!doctype html><html lang="id"><meta name="viewport" content="width=device-width"><title>KriptoAman Offline</title><body style="background:#050b14;color:white;font-family:system-ui;padding:32px"><h1>KriptoAman</h1><p>Aplikasi sedang offline. Data pasar terakhir akan tersedia setelah aplikasi pernah dibuka pada perangkat ini.</p></body></html>',
+            { headers: { 'Content-Type': 'text/html; charset=utf-8' } },
+          );
+        })
     );
     return;
   }
