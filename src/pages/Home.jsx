@@ -3,7 +3,6 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import useLivePrices from '../components/market/useLivePrices';
-import useCoinMarkets from '../components/home/useCoinMarkets';
 import { Shield, ChevronRight, Radio, Eye } from 'lucide-react';
 import HomePortfolioSummary from '../components/home/HomePortfolioSummary';
 import HomeQuickActions from '../components/home/HomeQuickActions';
@@ -37,7 +36,6 @@ export default function Home() {
   const [user, setUser] = useState(null);
   const [kycStatus, setKycStatus] = useState(null);
   const { prices, idrRate, connected } = useLivePrices();
-  const { markets } = useCoinMarkets();
 
   useEffect(() => {
     base44.auth.me().then(u => {
