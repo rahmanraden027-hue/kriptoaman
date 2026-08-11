@@ -70,9 +70,18 @@ export default function Market() {
   const [watchlist, setWatchlist] = useState(() => JSON.parse(localStorage.getItem('ka_watchlist') || '[]'));
 
   const { prices: liveData, connected, idrRate } = useLivePrices();
-  const { markets, coins: marketCoins, dataAvailable } = useCoinMarkets();
+  const { markets, coins: marketCoins, dataAvailable, source, lastUpdated } = useCoinMarkets();
   const coins = marketCoins.length > 0 ? marketCoins : COINS;
   const marketAvailable = connected || dataAvailable;
+  const sourceLabel = {
+    coinlore: 'CoinLore',
+    coingecko: 'CoinGecko',
+    cryptocompare: 'CryptoCompare',
+    cache: 'Cache',
+  }[source] || 'Sumber cadangan';
+  const updatedLabel = lastUpdated
+    ? new Date(lastUpdated).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+    : null;
 
   const toggleWatchlist = (sym) => {
     const next = watchlist.includes(sym) ? watchlist.filter(s => s !== sym) : [...watchlist, sym];
@@ -121,13 +130,17 @@ export default function Market() {
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-xl font-bold text-white">Markets</h1>
+            <h1 className="text-xl font-bold text-white">Pasar Kripto</h1>
             <div className="flex items-center gap-2 mt-0.5">
               <div className={`w-1.5 h-1.5 rounded-full ${marketAvailable ? 'bg-ka-emerald ka-pulse-dot' : 'bg-yellow-400'}`} />
               <p className={`text-xs ${marketAvailable ? 'text-ka-emerald' : 'text-yellow-400'}`}>
                 {connected ? 'Live 24/7' : dataAvailable ? 'Data pasar tersedia' : 'Menghubungkan…'}
               </p>
             </div>
+            <p className="ka-muted text-[10px] mt-1">
+              {coins.length.toLocaleString('id-ID')} aset · {sourceLabel}
+              {updatedLabel ? ` · diperbarui ${updatedLabel}` : ''}
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => setCurrency(c => c === 'idr' ? 'usd' : 'idr')}
