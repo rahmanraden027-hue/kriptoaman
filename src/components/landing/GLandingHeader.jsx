@@ -51,9 +51,9 @@ export default function GLandingHeader({ dark, onToggleTheme, active = 'Beranda'
             className="w-9 h-9 rounded-lg flex items-center justify-center ka-card2">
             {dark ? <Sun className="w-4 h-4 ka-gold" /> : <Moon className="w-4 h-4 ka-blue" />}
           </button>
-          <span aria-label="Bahasa Indonesia" className="hidden sm:flex items-center gap-1.5 h-9 px-3 rounded-lg ka-card2 text-xs font-bold ka-text2">
-            <Globe className="w-3.5 h-3.5" /> ID
-          </span>
+          <Link to="/en" hrefLang="en" aria-label="Switch to English" className="hidden sm:flex items-center gap-1.5 h-9 px-3 rounded-lg ka-card2 text-xs font-bold ka-text2 hover:ka-blue">
+            <Globe className="w-3.5 h-3.5" /> EN
+          </Link>
           <Link to="/login"
             className="ka-btn-primary inline-flex items-center justify-center px-4 h-9 text-sm">
             Masuk
