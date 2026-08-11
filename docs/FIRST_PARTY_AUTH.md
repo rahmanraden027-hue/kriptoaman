@@ -15,10 +15,14 @@ Configure these for both Preview and Production before wiring the frontend to th
 - Variable: `AUTH_EMAIL_FROM=KriptoAman <noreply@kriptoaman.com>`
 - Variable: `ADMIN_EMAILS` (comma-separated verified Google accounts allowed to bootstrap the admin role)
 
-Run `migrations/0001_auth_users.sql` against the D1 database before enabling login. The
+Run `migrations/0001_auth_users.sql` and `migrations/0002_auth_consents.sql` against the D1 database before enabling login. The
 authentication middleware also applies the same `CREATE ... IF NOT EXISTS` schema at
 runtime as a recovery guard, so a newly bound or accidentally unmigrated production D1
 database can initialize safely without overwriting existing records.
+
+Password registration requires explicit acceptance of the Terms of Service and Privacy
+Policy. The server records the document versions, acceptance time, a keyed hash of the
+request IP (never the raw IP), and a truncated user agent for consent auditing.
 
 ## Google OAuth client
 
