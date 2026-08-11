@@ -45,7 +45,7 @@ export default function GLandingBody({ stats }) {
     ? new Date(stats.lastUpdated).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })
     : null;
 
-  const systemOk = stats?.assets > 0 && stats.lastUpdated &&
+  const systemOk = Boolean(stats?.marketAvailable && stats.lastUpdated) &&
     (Date.now() - new Date(stats.lastUpdated).getTime()) < 15 * 60 * 1000;
 
   return (
@@ -78,16 +78,16 @@ export default function GLandingBody({ stats }) {
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { label: 'Pengguna Terdaftar', value: stats?.users ?? '—' },
-              { label: 'Pemeriksaan Dilakukan', value: stats?.screenings ?? '—' },
-              { label: 'Aset yang Dipantau', value: stats?.assets ?? '—' },
-              { label: 'Status Sistem', value: stats.loading ? '…' : (systemOk ? 'Operasional' : stats.assets > 0 ? 'Pemeliharaan' : '—') },
+              { label: 'Cakupan Aset Pasar', value: '2.000+' },
+              { label: 'Jaringan Didukung', value: '8' },
+              { label: 'Mata Uang Tampilan', value: 'IDR / USD' },
+              { label: 'Status Data Pasar', value: stats.loading ? '…' : (systemOk ? 'Operasional' : 'Terbatas') },
             ].map((s) => (
               <div key={s.label} className="ka-card2 p-4">
                 <p className="text-2xl font-extrabold">
                   {typeof s.value === 'number' ? <StatValue value={s.value.toLocaleString('id-ID')} /> :
                    s.value === 'Operasional' ? <span className="ka-green">{s.value}</span> :
-                   s.value === 'Pemeliharaan' ? <span className="ka-gold">{s.value}</span> :
+                   s.value === 'Terbatas' ? <span className="ka-gold">{s.value}</span> :
                    <span className="ka-text2">{s.value}</span>}
                 </p>
                 <p className="text-[11px] ka-text2 mt-1">{s.label}</p>
@@ -95,7 +95,7 @@ export default function GLandingBody({ stats }) {
             ))}
           </div>
           <p className="text-[11px] ka-text2 mt-3 opacity-70">
-            Angka bersumber dari database KriptoAman. Nilai yang tidak dapat diverifikasi ditampilkan “—”.
+            Cakupan produk ditampilkan secara transparan. Status data diperiksa melalui sumber pasar publik yang digunakan KriptoAman.
           </p>
         </div>
       </section>
@@ -232,13 +232,13 @@ export default function GLandingBody({ stats }) {
             <div className="flex items-center gap-2">
               <span className={`w-2.5 h-2.5 rounded-full ${systemOk ? 'bg-[var(--ka-green)]' : 'bg-[var(--ka-gold)]'} animate-pulse`} />
               <span className="text-sm font-semibold">
-                {stats.loading ? 'Memeriksa…' : systemOk ? <span className="ka-green">Operasional</span> : <span className="ka-gold">Pemeliharaan</span>}
+                {stats.loading ? 'Memeriksa…' : systemOk ? <span className="ka-green">Operasional</span> : <span className="ka-gold">Layanan data terbatas</span>}
               </span>
               <span className="text-[11px] ka-text2">• {lastUpdated || 'Data belum tersedia'}</span>
             </div>
           </div>
           <p className="text-[11px] ka-text2 mt-3 opacity-70">
-            Status diturunkan dari pemantauan layanan (data harga cache). Jika sumber gagal, status berubah menjadi Pemeliharaan.
+            Status ini memeriksa ketersediaan sumber data pasar publik. Gangguan penyedia tidak memengaruhi akses ke halaman informasi dan edukasi.
           </p>
         </div>
       </section>

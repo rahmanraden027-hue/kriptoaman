@@ -157,7 +157,7 @@ export default function Market() {
         />
       )}
 
-      <div className="max-w-lg mx-auto px-4 pt-4">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>

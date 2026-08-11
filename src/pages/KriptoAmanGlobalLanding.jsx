@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { base44 } from '@/api/base44Client';
 import GlobalLandingStyles from '@/components/landing/GlobalLandingStyles';
 import GLandingHeader from '@/components/landing/GLandingHeader';
 import GLandingHero from '@/components/landing/GLandingHero';
@@ -9,18 +8,21 @@ import GLandingFooter from '@/components/landing/GLandingFooter';
 export default function KriptoAmanGlobalLanding() {
   const [dark, setDark] = useState(true);
   const [active, setActive] = useState('Beranda');
-  const [stats, setStats] = useState({ loading: true, users: null, screenings: null, assets: null, lastUpdated: null });
+  const [stats, setStats] = useState({ loading: true, marketAvailable: false, lastUpdated: null });
 
   useEffect(() => {
     (async () => {
-      const s = { loading: false, users: null, screenings: null, assets: null, lastUpdated: null };
+      const s = { loading: false, marketAvailable: false, lastUpdated: null };
       try {
-        const prices = await base44.entities.CachedPrice.list('-fetchedAt', 200);
-        s.assets = prices.length;
-        s.lastUpdated = prices[0]?.fetchedAt || null;
-      } catch { /* not accessible publicly — show "—" */ }
-      try { const u = await base44.entities.User.list(); s.users = u.length; } catch { /* RLS */ }
-      try { const a = await base44.entities.AMLScreening.list('-created_date', 200); s.screenings = a.length; } catch { /* RLS */ }
+        const response = await fetch('https://api.coinlore.net/api/tickers/?start=0&limit=1', {
+          headers: { Accept: 'application/json' },
+        });
+        const payload = await response.json();
+        s.marketAvailable = response.ok && Array.isArray(payload?.data) && payload.data.length > 0;
+        s.lastUpdated = s.marketAvailable ? Date.now() : null;
+      } catch {
+        // Public landing remains usable while the provider is temporarily unavailable.
+      }
       setStats(s);
     })();
 
