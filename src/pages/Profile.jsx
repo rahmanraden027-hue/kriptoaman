@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { User, Mail, Calendar, Hash, Star, LogOut, Edit3, Save, X, Loader2, Shield, Phone, Gift, FileCheck } from 'lucide-react';
+import { User, Mail, Calendar, Hash, Star, LogOut, Edit3, Save, X, Loader2, Shield, Phone, Gift, FileCheck, Bell, Globe2, MonitorSmartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -53,7 +53,7 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#06101d] via-[#081426] to-[#06101d] pb-24">
-      <div className="max-w-lg mx-auto px-4 pt-6 space-y-5">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-6 space-y-5">
 
         {/* Hero Card */}
         <div className="relative rounded-3xl overflow-hidden">
@@ -176,11 +176,25 @@ export default function Profile() {
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-400 text-sm">Role</span>
+              <span className="text-slate-400 text-sm">Peran sistem</span>
               <span className="text-blue-400 text-xs capitalize">{user.role || 'user'}</span>
             </div>
           </div>
         </div>
+
+        <section className="grid gap-3 sm:grid-cols-3" aria-label="Preferensi dan keamanan">
+          {[
+            { icon: Globe2, title: 'Bahasa & mata uang', body: 'Gunakan pemilih ID/EN di bagian atas aplikasi.' },
+            { icon: MonitorSmartphone, title: 'Sesi perangkat', body: 'Keluar dari akun bila perangkat digunakan bersama.' },
+            { icon: Bell, title: 'Notifikasi', body: typeof Notification !== 'undefined' && Notification.permission === 'granted' ? 'Notifikasi browser diizinkan.' : 'Izin notifikasi belum diberikan.' },
+          ].map(({ icon: Icon, title, body }) => (
+            <div key={title} className="rounded-2xl border border-slate-700/40 bg-slate-800/50 p-4">
+              <Icon className="h-5 w-5 text-sky-400" />
+              <h2 className="mt-3 text-sm font-bold text-white">{title}</h2>
+              <p className="mt-1 text-sm leading-relaxed text-slate-400">{body}</p>
+            </div>
+          ))}
+        </section>
 
         {/* KYC & Referral shortcuts */}
         <div className="grid grid-cols-2 gap-3">
@@ -191,7 +205,7 @@ export default function Profile() {
               <p className={`text-sm font-semibold ${user.kycStatus === 'approved' ? 'text-green-300' : 'text-yellow-300'}`}>
                 {user.kycStatus === 'approved' ? 'KYC Aktif ✓' : 'Verifikasi KYC'}
               </p>
-              <p className="text-slate-500 text-[10px]">{user.kycStatus === 'approved' ? 'Full access' : 'Aktifkan limit penuh'}</p>
+              <p className="text-slate-500 text-[10px]">{user.kycStatus === 'approved' ? 'Identitas terverifikasi' : 'Lengkapi verifikasi identitas'}</p>
             </div>
           </Link>
           <Link to={createPageUrl('Referral')}

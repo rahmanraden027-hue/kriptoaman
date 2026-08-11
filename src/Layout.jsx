@@ -16,15 +16,21 @@ import AdminDepositNotifier from './components/admin/AdminDepositNotifier';
 import DisclaimerGate from './components/disclaimer/DisclaimerGate';
 import { Web3Provider } from './components/web3/Web3Provider';
 import LanguageSwitcher from './components/LanguageSwitcher';
+import { useLanguage } from './lib/LanguageContext';
 
 // Primary bottom nav (5 tabs — shown always)
 const BOTTOM_NAV = [
-  { label: 'Home', page: 'Home', icon: Home },
-  { label: 'Markets', page: 'Market', icon: TrendingUp },
-  { label: 'Wallet', page: 'Wallet', icon: Wallet },
-  { label: 'Alerts', page: 'Alerts', icon: Bell },
-  { label: 'Profile', page: 'Profile', icon: User },
+  { id: 'home', page: 'Home', icon: Home },
+  { id: 'markets', page: 'Market', icon: TrendingUp },
+  { id: 'wallet', page: 'Wallet', icon: Wallet },
+  { id: 'alerts', page: 'Alerts', icon: Bell },
+  { id: 'profile', page: 'Profile', icon: User },
 ];
+
+const NAV_LABELS = {
+  id: { home: 'Beranda', markets: 'Pasar', wallet: 'Pantau', alerts: 'Peringatan', profile: 'Profil' },
+  en: { home: 'Home', markets: 'Markets', wallet: 'Watch', alerts: 'Alerts', profile: 'Profile' },
+};
 const DESKTOP_NAV = [
   { label: 'Dashboard', page: 'Home', icon: Home, to: '/dashboard' },
   { label: 'Pasar', page: 'Market', icon: TrendingUp },
@@ -68,6 +74,8 @@ const NAV = [
 ];
 
 export default function Layout({ children, currentPageName }) {
+  const { language } = useLanguage();
+  const navLabels = NAV_LABELS[language] || NAV_LABELS.id;
   const [user, setUser] = useState(null);
   const { locked, unlock } = useAppLock(
     parseInt(localStorage.getItem('cv_session_timeout_min') || '5') * 60 * 1000
@@ -211,17 +219,18 @@ export default function Layout({ children, currentPageName }) {
       {/* Bottom Nav — 5 primary tabs */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#07111d]/97 backdrop-blur-xl border-t border-sky-500/20 safe-area-pb shadow-[0_-12px_32px_rgba(0,0,0,0.35)]">
         <div className="flex justify-around items-center py-2 px-1">
-          {BOTTOM_NAV.map(({ label, page, icon: Icon }) => {
+          {BOTTOM_NAV.map(({ id, page, icon: Icon }) => {
+            const label = navLabels[id];
             const active = currentPageName === page;
             const hasAlert = page === 'Alerts';
             return (
               <Link key={page} to={createPageUrl(page)}
-                className={`relative flex flex-1 flex-col items-center justify-center gap-1 min-h-[52px] min-w-[52px] rounded-xl transition-all ${active ? 'text-sky-400 bg-sky-500/8' : 'text-slate-400 hover:text-white'}`}>
+                className={`relative flex flex-1 flex-col items-center justify-center gap-1.5 min-h-[58px] min-w-[56px] rounded-xl transition-all ${active ? 'text-sky-400 bg-sky-500/8' : 'text-slate-400 hover:text-white'}`}>
                 {active && (
                   <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-sky-400 rounded-full" />
                 )}
                 <Icon className={`w-5 h-5 ${active ? 'text-sky-400' : ''}`} />
-                <span className={`text-[10px] font-semibold ${active ? 'text-sky-300' : ''}`}>{label}</span>
+                <span className={`text-[11px] font-semibold ${active ? 'text-sky-300' : ''}`}>{label}</span>
               </Link>
             );
           })}

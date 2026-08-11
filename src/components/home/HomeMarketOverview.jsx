@@ -23,6 +23,7 @@ function Gauge({ value, label }) {
         <p className="text-2xl font-extrabold ka-num leading-none" style={{ color }}>{Math.round(v)}</p>
         <p className="text-[10px] font-semibold mt-0.5" style={{ color }}>{label || '—'}</p>
       </div>
+      <p className="mt-3 text-[11px] leading-relaxed text-slate-500">Sumber: CoinGecko Global dan Alternative.me · Diperbarui otomatis setiap 60 detik · Data informatif, bukan harga eksekusi.</p>
     </div>
   );
 }
@@ -74,7 +75,7 @@ export default function HomeMarketOverview() {
 
   const Stat = ({ label, value, sub, up }) => (
     <div className="rounded-2xl bg-[#0b1410]/60 border border-ka-card-border p-3">
-      <p className="ka-muted text-[10px] font-semibold uppercase tracking-wide">{label}</p>
+      <p className="ka-muted text-[11px] font-semibold uppercase tracking-wide">{label}</p>
       <p className="text-white font-bold ka-num text-sm mt-0.5">{value}</p>
       {sub && (
         <p className={`text-[10px] mt-0.5 font-semibold ${up === undefined ? 'ka-muted' : up ? 'text-ka-emerald' : 'text-[#e74c3c]'}`}>{sub}</p>
@@ -86,7 +87,7 @@ export default function HomeMarketOverview() {
     <div className="ka-surface p-4 ka-fade-up" style={{ animationDelay: '240ms' }}>
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-white font-bold text-sm flex items-center gap-1.5">
-          <TrendingUp className="w-4 h-4 text-ka-emerald" /> Market Overview
+          <TrendingUp className="w-4 h-4 text-ka-emerald" /> Ringkasan Pasar Global
         </h3>
         <button onClick={load} className="ka-muted hover:text-ka-emerald transition tap-reset" aria-label="Refresh">
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />

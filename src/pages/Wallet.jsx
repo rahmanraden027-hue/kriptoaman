@@ -47,17 +47,20 @@ import CEXPanel from '../components/wallet/CEXPanel';
 import KriptoAmanLogo from '../components/brand/KriptoAmanLogo';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { useLanguage } from '@/lib/LanguageContext';
 
 const ONBOARDING_KEY = 'dex_onboarding_done';
 const STORE_RELEASE_MODE = true;
 
 function StoreSafeWallet({ user }) {
+  const { language } = useLanguage();
+  const en = language === 'en';
   return (
     <div className="ka-bg min-h-screen pb-28 text-white">
-      <div className="mx-auto max-w-lg space-y-4 px-4 pt-5">
+      <div className="mx-auto max-w-2xl space-y-5 px-4 sm:px-6 pt-5">
         <header className="flex items-center justify-between">
           <KriptoAmanLogo size={42} showText textSize="text-sm" />
-          <span className="rounded-full border border-blue-500/25 bg-blue-500/10 px-3 py-1.5 text-[10px] font-bold text-blue-300">MODE PEMANTAUAN</span>
+          <span className="rounded-full border border-blue-500/25 bg-blue-500/10 px-3 py-1.5 text-[10px] font-bold text-blue-300">{en ? 'WATCH-ONLY MODE' : 'MODE PEMANTAUAN'}</span>
         </header>
 
         <WalletProfileCard user={user} address="" coin="" />
@@ -68,8 +71,8 @@ function StoreSafeWallet({ user }) {
               <Wifi className="h-5 w-5 text-blue-400" />
             </div>
             <div>
-              <h1 className="font-bold">Dompet dalam mode read-only</h1>
-              <p className="mt-1 text-sm leading-relaxed text-slate-400">Versi publik digunakan untuk memantau informasi aset. Pengiriman, pertukaran, deposit, penarikan, dan koneksi CEX belum diaktifkan.</p>
+              <h1 className="font-bold">{en ? 'Watch-only portfolio' : 'Portofolio dalam mode pemantauan'}</h1>
+              <p className="mt-1 text-sm leading-relaxed text-slate-400">{en ? 'The public version monitors asset information. Sending, swapping, deposits, withdrawals, and CEX connections are not enabled.' : 'Versi publik digunakan untuk memantau informasi aset. Pengiriman, pertukaran, deposit, penarikan, dan koneksi CEX belum diaktifkan.'}</p>
             </div>
           </div>
         </section>
@@ -77,17 +80,31 @@ function StoreSafeWallet({ user }) {
         <div className="grid grid-cols-2 gap-3">
           <Link to={createPageUrl('Market')} className="ka-surface ka-surface-hover flex min-h-24 flex-col items-center justify-center gap-2 p-4 text-center">
             <BarChart3 className="h-6 w-6 text-blue-400" />
-            <span className="text-sm font-semibold">Pantau Pasar</span>
+            <span className="text-sm font-semibold">{en ? 'Watch Markets' : 'Pantau Pasar'}</span>
           </Link>
           <Link to={createPageUrl('SecurityHub')} className="ka-surface ka-surface-hover flex min-h-24 flex-col items-center justify-center gap-2 p-4 text-center">
             <Settings2 className="h-6 w-6 text-amber-400" />
-            <span className="text-sm font-semibold">Pusat Keamanan</span>
+            <span className="text-sm font-semibold">{en ? 'Security Center' : 'Pusat Keamanan'}</span>
           </Link>
         </div>
 
         <KAMTokenCard userBalance={user?.kamBalance || 0} />
 
-        <p className="px-2 text-center text-xs leading-relaxed text-slate-500">KriptoAman tidak meminta seed phrase atau private key. Jangan mengirim aset ke alamat yang belum diumumkan melalui kanal resmi.</p>
+        <section className="grid gap-3 sm:grid-cols-3" aria-label={en ? 'Monitoring status' : 'Status pemantauan'}>
+          {[
+            [en ? 'Connected addresses' : 'Alamat terhubung', '0', en ? 'Add a public address when available' : 'Tambahkan alamat publik saat tersedia'],
+            [en ? 'Recent activity' : 'Aktivitas terbaru', '—', en ? 'No monitored transactions' : 'Belum ada transaksi yang dipantau'],
+            [en ? 'Network status' : 'Status jaringan', en ? 'Online' : 'Daring', en ? 'Market data service is active' : 'Layanan data pasar aktif'],
+          ].map(([label, value, description]) => (
+            <div key={label} className="ka-surface p-4">
+              <p className="text-xs font-semibold text-slate-400">{label}</p>
+              <p className="mt-2 text-lg font-extrabold text-white">{value}</p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-500">{description}</p>
+            </div>
+          ))}
+        </section>
+
+        <p className="px-2 text-center text-xs leading-relaxed text-slate-500">{en ? 'KriptoAman never asks for a seed phrase or private key. Never send assets to an address that has not been published through an official channel.' : 'KriptoAman tidak meminta seed phrase atau private key. Jangan mengirim aset ke alamat yang belum diumumkan melalui kanal resmi.'}</p>
       </div>
     </div>
   );

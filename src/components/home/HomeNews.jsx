@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Newspaper, ExternalLink } from 'lucide-react';
+import { Newspaper, ExternalLink, BookOpen, Activity } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 
 function timeAgo(ts) {
   const s = Math.floor(Date.now() / 1000 - ts);
@@ -34,9 +36,13 @@ export default function HomeNews() {
           {[0, 1, 2].map(i => <div key={i} className="h-20 ka-shimmer rounded-2xl" />)}
         </div>
       ) : news.length === 0 ? (
-        <div className="text-center py-8">
-          <Newspaper className="w-8 h-8 ka-muted opacity-40 mx-auto mb-2" />
-          <p className="ka-muted text-xs">Berita tidak tersedia saat ini.</p>
+        <div className="py-4">
+          <p className="text-sm font-semibold text-white">Umpan berita sedang tidak tersedia</p>
+          <p className="mt-1 text-sm leading-relaxed text-slate-400">Data pasar tetap aktif. Gunakan sumber internal berikut sambil koneksi berita dipulihkan.</p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <Link to={createPageUrl('Market')} className="flex min-h-12 items-center gap-2 rounded-xl border border-sky-500/20 bg-sky-500/5 px-3 text-sm text-sky-300"><Activity className="h-4 w-4" /> Data pasar</Link>
+            <Link to={createPageUrl('Edukasi')} className="flex min-h-12 items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 text-sm text-emerald-300"><BookOpen className="h-4 w-4" /> Pusat edukasi</Link>
+          </div>
         </div>
       ) : (
         <div className="space-y-2">
@@ -48,7 +54,7 @@ export default function HomeNews() {
                   onError={(e) => { e.target.style.display = 'none'; }} />
               )}
               <div className="min-w-0 flex-1">
-                <p className="text-white text-xs font-semibold leading-snug line-clamp-2">{n.title}</p>
+                <p className="text-white text-sm font-semibold leading-snug line-clamp-2">{n.title}</p>
                 <div className="flex items-center gap-1.5 mt-1.5">
                   <span className="text-[10px] ka-muted font-semibold">{n.source_info?.name || n.source}</span>
                   <span className="text-[10px] ka-muted">·</span>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, BellOff, Plus, Trash2, TrendingUp, TrendingDown, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { appStorage } from '@/components/utils/appStorage';
+import { useLanguage } from '@/lib/LanguageContext';
 
 const STORAGE_KEY = 'ka_price_alerts';
 
@@ -11,9 +12,22 @@ function saveAlerts(alerts) {
   appStorage.set(STORAGE_KEY, JSON.stringify(alerts));
 }
 
+const COPY = {
+  id: { title: 'Peringatan Harga', subtitle: 'Notifikasi saat harga mencapai target', add: 'Tambah',
+    empty: 'Belum ada peringatan harga', emptyBody: 'Tekan Tambah untuk membuat peringatan pertama.',
+    guide: 'Cara kerja peringatan', local: 'Tersimpan aman di perangkat ini', permission: 'Mengikuti izin notifikasi browser',
+    info: 'Bersifat informatif, bukan rekomendasi investasi.' },
+  en: { title: 'Price Alerts', subtitle: 'Notifications when prices reach your target', add: 'Add',
+    empty: 'No price alerts yet', emptyBody: 'Press Add to create your first alert.',
+    guide: 'How alerts work', local: 'Stored securely on this device', permission: 'Uses your browser notification permission',
+    info: 'For information only, not investment advice.' },
+};
+
 const COINS = ['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'MATIC', 'LINK'];
 
 export default function Alerts() {
+  const { language } = useLanguage();
+  const text = COPY[language] || COPY.id;
   const [alerts, setAlerts] = useState([]);
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ coin: 'BTC', condition: 'above', price: '' });
@@ -22,7 +36,7 @@ export default function Alerts() {
 
   useEffect(() => {
     setAlerts(loadAlerts());
-    setPushEnabled(Notification.permission === 'granted');
+    setPushEnabled('Notification' in window && Notification.permission === 'granted');
   }, []);
 
   const requestPush = async () => {
@@ -63,17 +77,17 @@ export default function Alerts() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#06101d] via-[#081426] to-[#06101d] text-white pb-24">
-      <div className="max-w-lg mx-auto px-4 pt-5 space-y-4">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-5 space-y-5">
 
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold">Alerts Harga</h1>
-            <p className="text-slate-500 text-xs">Notifikasi ketika harga mencapai target</p>
+            <h1 className="text-xl font-bold">{text.title}</h1>
+            <p className="text-slate-400 text-sm">{text.subtitle}</p>
           </div>
           <button onClick={() => setShowAdd(!showAdd)}
             className="flex min-h-11 items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-white text-sm font-semibold transition-colors">
-            <Plus className="w-4 h-4" /> Tambah
+            <Plus className="w-4 h-4" /> {text.add}
           </button>
         </div>
 
@@ -141,8 +155,8 @@ export default function Alerts() {
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-500/10">
               <Bell className="w-7 h-7 text-sky-400" />
             </div>
-            <p className="text-white font-semibold">Belum ada alert harga</p>
-            <p className="mt-1 text-slate-400 text-sm">Tekan Tambah untuk membuat peringatan pertama.</p>
+            <p className="text-white font-semibold">{text.empty}</p>
+            <p className="mt-1 text-slate-400 text-sm">{text.emptyBody}</p>
           </div>
         )}
 
@@ -170,9 +184,20 @@ export default function Alerts() {
           ))}
         </div>
 
+        <section className="grid gap-3 sm:grid-cols-2" aria-labelledby="alert-guide">
+          <div className="rounded-2xl border border-sky-500/15 bg-sky-500/5 p-4">
+            <h2 id="alert-guide" className="text-sm font-bold text-white">{text.guide}</h2>
+            <p className="mt-2 text-sm leading-relaxed text-slate-400">{text.local}</p>
+          </div>
+          <div className="rounded-2xl border border-emerald-500/15 bg-emerald-500/5 p-4">
+            <h2 className="text-sm font-bold text-white">Browser &amp; PWA</h2>
+            <p className="mt-2 text-sm leading-relaxed text-slate-400">{text.permission}</p>
+          </div>
+        </section>
+
         {/* Disclaimer */}
         <div className="p-3 bg-yellow-500/8 border border-yellow-500/20 rounded-xl">
-          <p className="text-yellow-300 text-xs"><AlertTriangle className="w-3.5 h-3.5 inline mr-1" />Alert hanya bersifat informatif. Pastikan notifikasi browser diaktifkan untuk mendapatkan peringatan real-time.</p>
+          <p className="text-yellow-200 text-sm leading-relaxed"><AlertTriangle className="w-3.5 h-3.5 inline mr-1" />{text.info}</p>
         </div>
 
       </div>
