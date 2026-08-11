@@ -2,7 +2,7 @@
   "name": "KriptoAman — Pemantauan Aset Digital",
   "short_name": "KriptoAman",
   "description": "Platform informasi, pemantauan, verifikasi transaksi, dan analisis risiko aset kripto.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "id": "/",
   "start_url": "/",
   "scope": "/",
@@ -12,7 +12,10 @@
   "theme_color": "#07111d",
   "lang": "id-ID",
   "dir": "ltr",
-  "categories": ["finance", "utilities"],
+  "categories": [
+    "finance",
+    "utilities"
+  ],
   "prefer_related_applications": false,
   "icons": [
     {
@@ -31,21 +34,45 @@
       "src": "/icons/kriptoaman-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ],
   "shortcuts": [
     {
-      "name": "Masuk",
-      "short_name": "Masuk",
-      "description": "Masuk ke dashboard KriptoAman",
-      "url": "/login"
+      "name": "Pasar 350 Aset",
+      "short_name": "Pasar",
+      "description": "Lihat harga 350 aset digital",
+      "url": "/Market",
+      "icons": [
+        {
+          "src": "/icons/kriptoaman-192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
-      "name": "Edukasi",
-      "short_name": "Edukasi",
-      "description": "Pelajari keamanan aset digital",
-      "url": "/Edukasi"
+      "name": "Hubungkan Dompet",
+      "short_name": "Dompet",
+      "description": "Hubungkan dompet non-kustodial",
+      "url": "/Web3Wallet",
+      "icons": [
+        {
+          "src": "/icons/kriptoaman-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Status Sistem",
+      "short_name": "Status",
+      "description": "Periksa status layanan KriptoAman",
+      "url": "/SystemStatus",
+      "icons": [
+        {
+          "src": "/icons/kriptoaman-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }

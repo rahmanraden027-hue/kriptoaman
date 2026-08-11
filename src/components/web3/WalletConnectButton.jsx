@@ -3,13 +3,20 @@ import { useWeb3, SUPPORTED_CHAINS } from './Web3Provider';
 import { Wallet, ChevronDown, LogOut, Copy, ExternalLink, RefreshCw, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+const MOBILE_WALLETS = [
+  { name: 'MetaMask', url: 'https://metamask.app.link/dapp/kriptoaman.com/Web3Wallet' },
+  { name: 'Trust Wallet', url: 'https://link.trustwallet.com/open_url?coin_id=60&url=https%3A%2F%2Fkriptoaman.com%2FWeb3Wallet' },
+  { name: 'Coinbase Wallet', url: 'https://go.cb-w.com/dapp?cb_url=https%3A%2F%2Fkriptoaman.com%2FWeb3Wallet' },
+  { name: 'Phantom', url: 'https://phantom.app/ul/browse/https%3A%2F%2Fkriptoaman.com%2FWeb3Wallet' },
+];
+
 function shortAddr(addr) {
   return addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : '';
 }
 
 export default function WalletConnectButton({ compact = false }) {
   const { account, chainId, balance, connecting, isConnected, currentChain,
-          connectWallet, disconnectWallet, switchChain, refreshBalance } = useWeb3();
+          connectWallet, disconnectWallet, switchChain, refreshBalance, availableWallets } = useWeb3();
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -21,14 +28,43 @@ export default function WalletConnectButton({ compact = false }) {
 
   if (!isConnected) {
     return (
-      <Button
-        onClick={connectWallet}
-        disabled={connecting}
-        className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-2 h-auto flex items-center gap-1.5"
-      >
-        <Wallet className="w-3.5 h-3.5" />
-        {connecting ? 'Menghubungkan...' : 'Hubungkan Wallet'}
-      </Button>
+      <div className="relative">
+        <Button
+          onClick={() => availableWallets.length === 1 ? connectWallet(availableWallets[0]) : setOpen(!open)}
+          disabled={connecting}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-2 h-auto flex items-center gap-1.5"
+        >
+          <Wallet className="w-3.5 h-3.5" />
+          {connecting ? 'Menghubungkan...' : 'Hubungkan Wallet'}
+        </Button>
+
+        {open && (
+          <div className="absolute right-0 top-full mt-2 z-50 w-72 rounded-2xl border border-slate-700 bg-slate-900 p-4 shadow-2xl">
+            <p className="text-sm font-bold text-white">Pilih dompet</p>
+            <p className="mt-1 text-xs text-slate-400">KriptoAman tidak pernah meminta seed phrase atau private key.</p>
+            <div className="mt-3 space-y-2">
+              {availableWallets.map((wallet) => (
+                <button
+                  key={wallet.info.uuid}
+                  onClick={() => { connectWallet(wallet); setOpen(false); }}
+                  className="flex w-full items-center gap-3 rounded-xl border border-slate-700 bg-slate-800 p-3 text-left text-sm text-white hover:border-indigo-500"
+                >
+                  {wallet.info.icon ? <img src={wallet.info.icon} alt="" className="h-7 w-7 rounded-lg" /> : <Wallet className="h-6 w-6 text-indigo-400" />}
+                  {wallet.info.name}
+                </button>
+              ))}
+            </div>
+            <p className="mt-4 text-[10px] font-bold uppercase tracking-wide text-slate-500">Buka di aplikasi dompet</p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {MOBILE_WALLETS.map((wallet) => (
+                <a key={wallet.name} href={wallet.url} className="rounded-xl border border-slate-700 bg-slate-800 px-2 py-2 text-center text-xs text-slate-200 hover:border-indigo-500">
+                  {wallet.name}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     );
   }
 
