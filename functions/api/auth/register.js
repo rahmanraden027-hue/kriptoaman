@@ -30,7 +30,9 @@ export async function onRequestPost({ request, env }) {
     }
 
     let user = await getUserByEmail(env.AUTH_DB, email, { includePassword: true });
-    if (user?.email_verified) return json({ verification_required: true }, { status: 202 });
+    if (user?.email_verified) {
+      return json({ error: 'An account with this email already exists' }, { status: 409 });
+    }
     if (!user) {
       user = await createPasswordUser(env.AUTH_DB, email, await hashPassword(password));
     }
