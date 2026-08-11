@@ -186,7 +186,7 @@ export default function Profile() {
           {[
             { icon: Globe2, title: 'Bahasa & mata uang', body: 'Gunakan pemilih ID/EN di bagian atas aplikasi.' },
             { icon: MonitorSmartphone, title: 'Sesi perangkat', body: 'Keluar dari akun bila perangkat digunakan bersama.' },
-            { icon: Bell, title: 'Notifikasi', body: Notification.permission === 'granted' ? 'Notifikasi browser diizinkan.' : 'Izin notifikasi belum diberikan.' },
+            { icon: Bell, title: 'Notifikasi', body: typeof Notification !== 'undefined' && Notification.permission === 'granted' ? 'Notifikasi browser diizinkan.' : 'Izin notifikasi belum diberikan.' },
           ].map(({ icon: Icon, title, body }) => (
             <div key={title} className="rounded-2xl border border-slate-700/40 bg-slate-800/50 p-4">
               <Icon className="h-5 w-5 text-sky-400" />
