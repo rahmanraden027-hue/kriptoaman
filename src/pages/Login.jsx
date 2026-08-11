@@ -12,12 +12,19 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [adminLinkSent, setAdminLinkSent] = useState(false);
+  const isAdminEmail = email.trim().toLowerCase() === "kriptoaman@gmail.com";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
+      if (isAdminEmail) {
+        await base44.auth.requestAdminLink(email);
+        setAdminLinkSent(true);
+        return;
+      }
       await base44.auth.loginViaEmailPassword(email, password);
       window.location.href = "/dashboard";
     } catch (err) {
@@ -69,6 +76,7 @@ export default function Login() {
             />
           </div>
         </div>
+        {!isAdminEmail && (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password">Kata sandi</Label>
@@ -90,6 +98,17 @@ export default function Login() {
             />
           </div>
         </div>
+        )}
+        {isAdminEmail && (
+          <div className="rounded-lg border border-sky-500/30 bg-sky-500/10 p-3 text-sm text-sky-200">
+            Akun admin menggunakan tautan masuk aman tanpa kata sandi.
+          </div>
+        )}
+        {adminLinkSent && (
+          <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-200">
+            Tautan masuk admin telah dikirim. Buka email tersebut untuk masuk langsung.
+          </div>
+        )}
         <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
           {loading ? (
             <>
@@ -97,7 +116,7 @@ export default function Login() {
               Sedang masuk...
             </>
           ) : (
-            "Masuk"
+            isAdminEmail ? "Kirim tautan masuk admin" : "Masuk"
           )}
         </Button>
       </form>
