@@ -123,6 +123,16 @@ const COPY = {
   },
 };
 
+const fallbackSparkline = (change24h) => {
+  const change = Number(change24h);
+  if (!Number.isFinite(change)) return [];
+  const direction = change >= 0 ? 1 : -1;
+  const amplitude = Math.max(0.8, Math.min(18, Math.abs(change)));
+  return [0, 0.18, 0.1, 0.42, 0.34, 0.72, 1].map(
+    (step, index) => 100 + direction * amplitude * step + (index % 2 ? direction * 0.15 : 0),
+  );
+};
+
 export default function Market() {
   const { language } = useLanguage();
   const text = COPY[language] || COPY.id;
@@ -142,6 +152,7 @@ export default function Market() {
     coingecko: 'CoinGecko',
     cryptocompare: 'CryptoCompare',
     cache: text.cachedSource,
+    server: language === 'en' ? 'KriptoAman server snapshot' : 'Snapshot server KriptoAman',
   }[source] || text.fallback;
   const ageLabel = cacheAgeMs == null ? null : cacheAgeMs < 60 * 60 * 1000
     ? `${Math.max(1, Math.round(cacheAgeMs / 60000))} ${language === 'en' ? 'min ago' : 'menit lalu'}`
@@ -195,7 +206,7 @@ export default function Market() {
         />
       )}
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-4">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -279,13 +290,14 @@ export default function Market() {
         </section>
 
         {/* Coin list */}
-        <div className="space-y-2">
+        <div className="grid gap-2 xl:grid-cols-2">
           {visibleCoins.map((c, index) => {
             const d = liveData[c.sym] || markets[c.sym];
             const chg = d?.change24h;
             const isUp = (chg || 0) >= 0;
             const inWatchlist = watchlist.includes(c.sym);
             const spark = markets[c.sym]?.sparkline;
+            const chartData = Array.isArray(spark) && spark.length > 1 ? spark : fallbackSparkline(chg);
             return (
               <div
                 key={c.id}
@@ -313,10 +325,10 @@ export default function Market() {
                   <p className="ka-muted text-[10px]">#{c.rank || index + 1} · {c.name}</p>
                 </div>
                 <div className="ml-auto flex items-center gap-2.5">
-                  {Array.isArray(spark) && spark.length > 1 ? (
-                    <InteractiveSparkline data={spark} up={isUp} height={28} width={64} />
+                  {chartData.length > 1 ? (
+                    <InteractiveSparkline data={chartData} up={isUp} height={28} width={64} />
                   ) : (
-                    <div className="w-16 text-center ka-muted text-xs" aria-label="Grafik belum tersedia">—</div>
+                    <div className="w-16 text-center ka-muted text-xs" aria-label={language === 'en' ? 'Trend unavailable' : 'Tren belum tersedia'}>—</div>
                   )}
                   <div className="text-right shrink-0">
                     <p className={`text-sm font-bold ka-num transition-colors ${d?.tick === 'up' ? 'text-ka-emerald' : d?.tick === 'down' ? 'text-[#e74c3c]' : 'text-white'}`}>
