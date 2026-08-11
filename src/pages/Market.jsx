@@ -69,8 +69,9 @@ export default function Market() {
   const [watchlist, setWatchlist] = useState(() => JSON.parse(localStorage.getItem('ka_watchlist') || '[]'));
 
   const { prices: liveData, connected, idrRate } = useLivePrices();
-  const { markets, coins: marketCoins } = useCoinMarkets();
+  const { markets, coins: marketCoins, dataAvailable } = useCoinMarkets();
   const coins = marketCoins.length > 0 ? marketCoins : COINS;
+  const marketAvailable = connected || dataAvailable;
 
   const toggleWatchlist = (sym) => {
     const next = watchlist.includes(sym) ? watchlist.filter(s => s !== sym) : [...watchlist, sym];
@@ -119,9 +120,9 @@ export default function Market() {
           <div>
             <h1 className="text-xl font-bold text-white">Markets</h1>
             <div className="flex items-center gap-2 mt-0.5">
-              <div className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-ka-emerald ka-pulse-dot' : 'bg-yellow-400'}`} />
-              <p className={`text-xs ${connected ? 'text-ka-emerald' : 'text-yellow-400'}`}>
-                {connected ? 'Live 24/7' : 'Reconnecting…'}
+              <div className={`w-1.5 h-1.5 rounded-full ${marketAvailable ? 'bg-ka-emerald ka-pulse-dot' : 'bg-yellow-400'}`} />
+              <p className={`text-xs ${marketAvailable ? 'text-ka-emerald' : 'text-yellow-400'}`}>
+                {connected ? 'Live 24/7' : dataAvailable ? 'Data pasar tersedia' : 'Menghubungkan…'}
               </p>
             </div>
           </div>
@@ -130,8 +131,8 @@ export default function Market() {
               className="px-3 py-1.5 ka-chip text-xs font-bold ka-muted hover:text-white transition-colors">
               {currency === 'idr' ? 'IDR 🇮🇩' : 'USD 🇺🇸'}
             </button>
-            <div className={`p-2 rounded-xl border ${connected ? 'bg-ka-emerald/10 border-ka-emerald/20' : 'ka-chip'}`}>
-              {connected ? <Wifi className="w-4 h-4 text-ka-emerald" /> : <WifiOff className="w-4 h-4 text-yellow-400" />}
+            <div className={`p-2 rounded-xl border ${marketAvailable ? 'bg-ka-emerald/10 border-ka-emerald/20' : 'ka-chip'}`}>
+              {marketAvailable ? <Wifi className="w-4 h-4 text-ka-emerald" /> : <WifiOff className="w-4 h-4 text-yellow-400" />}
             </div>
           </div>
         </div>
