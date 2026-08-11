@@ -59,7 +59,7 @@ const StoreAvailabilityNotice = () => (
 // Halaman publik statis — dapat diakses tanpa autentikasi (paket gratis)
 const PUBLIC_PAGE_KEYS = new Set([
    'AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'TermsOfService',
-  'PlatformDocs', 'AccountDeletion', 'Market',
+  'PlatformDocs', 'AccountDeletion', 'Market', 'SystemStatus',
 ]);
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
@@ -148,11 +148,6 @@ const AuthenticatedApp = () => {
         <Route path="/Services" element={
           <LayoutWrapper currentPageName="Services">
             <Services />
-          </LayoutWrapper>
-        } />
-        <Route path="/SystemStatus" element={
-          <LayoutWrapper currentPageName="SystemStatus">
-            <SystemStatus />
           </LayoutWrapper>
         } />
         <Route path="/MultiChainWallet" element={
