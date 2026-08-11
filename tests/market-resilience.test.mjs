@@ -49,3 +49,34 @@ test('live prices and market UI expose persistent fallback state', async () => {
   assert.match(market, /Menampilkan snapshot terakhir/);
   assert.match(market, /role="status"/);
 });
+
+
+test('server snapshot survives total upstream provider failure', async () => {
+  const [endpoint, client, migration] = await Promise.all([
+    read('functions/api/market-snapshot.js'),
+    read('src/components/home/useCoinMarkets.js'),
+    read('migrations/0003_market_snapshot.sql'),
+  ]);
+  assert.match(endpoint, /CREATE TABLE IF NOT EXISTS market_snapshots/);
+  assert.match(endpoint, /MIN_ACCEPTED_ASSETS = 2001/);
+  assert.match(endpoint, /context\.waitUntil/);
+  assert.match(endpoint, /env\.AUTH_DB/);
+  assert.match(client, /\['server', fetchServerSnapshot\]/);
+  assert.match(migration, /CHECK \(asset_count >= 2001\)/);
+});
+
+test('market disaster recovery monitoring and UI fallbacks are release-gated', async () => {
+  const [workflow, health, market, install] = await Promise.all([
+    read('.github/workflows/market-health.yml'),
+    read('scripts/check-market-health.mjs'),
+    read('src/pages/Market.jsx'),
+    read('src/components/pwa/PWAInstallPrompt.jsx'),
+  ]);
+  assert.match(workflow, /cron: '\*\/15 \* \* \* \*'/);
+  assert.match(health, /MIN_ASSETS = 2001/);
+  assert.match(health, /MAX_AGE_MS/);
+  assert.match(market, /fallbackSparkline/);
+  assert.match(market, /max-w-6xl/);
+  assert.match(market, /xl:grid-cols-2/);
+  assert.match(install, /left-1\/2/);
+});
