@@ -2,10 +2,10 @@ import React from 'react';
 import { Eye, Database, Lock, ShieldCheck } from 'lucide-react';
 
 const BADGES = [
-  { Icon: ShieldCheck, label: 'Analisis risiko indikatif', color: 'border-sky-500/30 bg-sky-950/20', textColor: 'text-sky-200' },
-  { Icon: Eye, label: 'Sumber data transparan', color: 'border-indigo-500/30 bg-indigo-950/20', textColor: 'text-indigo-200' },
+  { Icon: ShieldCheck, label: 'Analisis risiko bersifat indikatif', color: 'border-sky-500/30 bg-sky-950/20', textColor: 'text-sky-200' },
+  { Icon: Eye, label: 'Sumber data ditampilkan', color: 'border-indigo-500/30 bg-indigo-950/20', textColor: 'text-indigo-200' },
   { Icon: Lock, label: 'Koneksi HTTPS/TLS', color: 'border-green-500/30 bg-green-950/20', textColor: 'text-green-200' },
-  { Icon: Database, label: 'Data belum diverifikasi', color: 'border-amber-500/30 bg-amber-950/20', textColor: 'text-amber-200' },
+  { Icon: Database, label: 'Status data dan fallback ditampilkan', color: 'border-amber-500/30 bg-amber-950/20', textColor: 'text-amber-200' },
 ];
 
 export default function TrustBadges({ compact = false }) {
