@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { startKyc } from '@/lib/kriptoKyc';
 import { createPageUrl } from '@/utils';
 import { useLanguage } from '@/lib/LanguageContext';
+import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
 
 const DIDIT_HOSTS = new Set(['verify.didit.me', 'verification.didit.me']);
 
@@ -68,15 +69,18 @@ export default function KYC() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 pt-6 pb-24">
       <div className="max-w-lg mx-auto space-y-5">
-        <div className="flex items-center gap-3">
-          <Link to={createPageUrl('Profile')} className="p-2 bg-slate-800 border border-slate-700 rounded-xl">
+        <header className="ka-surface flex items-center gap-3 p-4">
+          <Link to={createPageUrl('Profile')} className="p-2 bg-slate-800 border border-slate-700 rounded-xl" aria-label={en ? 'Back to profile' : 'Kembali ke profil'}>
             <ArrowLeft className="w-4 h-4 text-slate-400" />
           </Link>
-          <div>
-            <h1 className="text-white font-bold text-lg">{en ? 'Identity verification' : 'Verifikasi Identitas'}</h1>
+          <KriptoAmanLogo size={38} showText={false} animate={false} />
+          <div className="min-w-0 flex-1">
+            <p className="text-[9px] font-extrabold tracking-[0.18em] text-sky-300">KRIPTOAMAN IDENTITY</p>
+            <h1 className="truncate text-white font-bold text-lg">{en ? 'Identity verification' : 'Verifikasi Identitas'}</h1>
             <p className="text-slate-500 text-xs">{en ? 'Real KYC through Didit' : 'KYC nyata melalui Didit'}</p>
           </div>
-        </div>
+          <span className="hidden sm:inline-flex rounded-full border border-blue-500/25 bg-blue-500/10 px-3 py-1 text-[10px] font-bold text-blue-300">DIDIT</span>
+        </header>
 
         <div className={`flex items-start gap-3 rounded-2xl border p-4 ${readiness?.ready ? 'border-emerald-500/25 bg-emerald-500/10' : 'border-amber-500/25 bg-amber-500/10'}`}>
           {checking ? <Loader2 className="w-5 h-5 animate-spin text-blue-400" /> : readiness?.ready ? <CheckCircle2 className="w-5 h-5 text-emerald-400" /> : <ShieldAlert className="w-5 h-5 text-amber-400" />}
