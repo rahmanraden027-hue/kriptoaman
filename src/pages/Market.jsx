@@ -16,6 +16,7 @@ import InteractiveSparkline from '../components/home/InteractiveSparkline';
 import TradingViewModal from '../components/market/TradingViewModal';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useLanguage } from '../lib/LanguageContext';
+import KriptoAmanLogo from '../components/brand/KriptoAmanLogo';
 
 const SYMBOL_LOGOS = {
   BTC: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
@@ -209,8 +210,10 @@ export default function Market() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <div>
-            <p className="text-[9px] font-extrabold tracking-[0.18em] text-sky-300">{text.identity}</p>
+          <div className="flex min-w-0 items-start gap-3">
+            <KriptoAmanLogo size={38} showText={false} animate={false} className="mt-0.5 shrink-0" />
+            <div className="min-w-0">
+            <p className="truncate text-[9px] font-extrabold tracking-[0.18em] text-sky-300">{text.identity}</p>
             <h1 className="mt-1 text-xl font-bold text-white">{text.title}</h1>
             <div className="flex items-center gap-2 mt-0.5">
               <div className={`w-1.5 h-1.5 rounded-full ${marketAvailable ? 'bg-ka-emerald ka-pulse-dot' : 'bg-yellow-400'}`} />
@@ -222,8 +225,9 @@ export default function Market() {
               {coins.length.toLocaleString(language === 'en' ? 'en-US' : 'id-ID')} {text.assets} · {sourceLabel}
               {updatedLabel ? ` · ${text.updated} ${updatedLabel}` : ''}
             </p>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <LanguageSwitcher compact />
             <button onClick={() => setCurrency(c => c === 'idr' ? 'usd' : 'idr')}
               className="px-3 py-1.5 ka-chip text-xs font-bold ka-muted hover:text-white transition-colors">
