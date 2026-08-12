@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { hashPassword, validatePassword, verifyPassword } from '../server/auth/password.js';
 import { createOtp, createResetToken, createSignedToken, verifySignedToken } from '../server/auth/tokens.js';
 
@@ -33,4 +34,28 @@ test('signed tokens enforce signature, purpose, and expiry', async () => {
   assert.equal(await verifySignedToken('different-secret', token, 'email'), null);
   const expired = await createSignedToken(secret, { purpose: 'email', exp: now - 1 });
   assert.equal(await verifySignedToken(secret, expired, 'email'), null);
+});
+
+test('account deletion is first-party, same-origin, authenticated, and clears the session', async () => {
+  const [endpoint, users, client, component, gradle] = await Promise.all([
+    readFile(new URL('../functions/api/auth/delete-account.js', import.meta.url), 'utf8'),
+    readFile(new URL('../server/auth/users.js', import.meta.url), 'utf8'),
+    readFile(new URL('../src/lib/kriptoAuth.js', import.meta.url), 'utf8'),
+    readFile(new URL('../src/components/mobile/DeleteAccount.jsx', import.meta.url), 'utf8'),
+    readFile(new URL('../android/app/build.gradle', import.meta.url), 'utf8'),
+  ]);
+
+  assert.match(endpoint, /requireSameOrigin/);
+  assert.match(endpoint, /verifySessionToken/);
+  assert.match(endpoint, /confirmation !== 'HAPUS'/);
+  assert.match(endpoint, /clearSessionCookie/);
+  assert.match(endpoint, /user\.role === 'admin'/);
+  assert.match(users, /DELETE FROM auth_challenges/);
+  assert.match(users, /DELETE FROM auth_consents/);
+  assert.match(users, /DELETE FROM auth_users/);
+  assert.match(client, /\/api\/auth\/delete-account/);
+  assert.match(component, /kriptoAuth\.deleteAccount/);
+  assert.doesNotMatch(component, /adminSecurityCheck|base44\.functions\.invoke/);
+  assert.match(gradle, /versionCode 2/);
+  assert.match(gradle, /versionName "1\.1"/);
 });

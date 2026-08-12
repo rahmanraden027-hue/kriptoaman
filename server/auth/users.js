@@ -115,3 +115,14 @@ export async function promoteConfiguredAdmin(db, userId) {
     .run();
   return getUserById(db, userId);
 }
+
+export async function deleteUserAccount(db, user) {
+  if (!user?.id || !user?.email) return false;
+  const statements = [
+    db.prepare('DELETE FROM auth_challenges WHERE email = ?').bind(user.email.toLowerCase()),
+    db.prepare('DELETE FROM auth_consents WHERE user_id = ?').bind(user.id),
+    db.prepare('DELETE FROM auth_users WHERE id = ?').bind(user.id),
+  ];
+  const results = await db.batch(statements);
+  return Boolean(results?.[2]?.meta?.changes);
+}

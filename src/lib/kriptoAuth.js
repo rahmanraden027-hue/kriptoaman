@@ -63,6 +63,13 @@ export const kriptoAuth = {
     return data.user;
   },
 
+  async deleteAccount(confirmation) {
+    return request('/api/auth/delete-account', {
+      method: 'POST',
+      body: JSON.stringify({ confirmation }),
+    });
+  },
+
   loginWithProvider(provider) {
     if (provider !== 'google') throw new Error('Unsupported authentication provider');
     window.location.assign('/api/auth/google/start');
