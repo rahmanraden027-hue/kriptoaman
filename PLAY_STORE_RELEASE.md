@@ -4,14 +4,14 @@
 
 - Package ID: `com.kriptoaman.app`
 - Nama: `KriptoAman`
-- Versi saat ini: `1.1` (`versionCode 2`)
+- Versi saat ini: `1.2` (`versionCode 3`)
 - Mode rilis awal: informasi, edukasi, keamanan, dan pemantauan read-only.
 
 ## Build AAB bertanda tangan
 
 1. Buat upload key sekali dan simpan cadangan terenkripsi.
 2. Tambahkan GitHub Actions secrets: `PLAY_KEYSTORE_BASE64`, `PLAY_KEYSTORE_PASSWORD`, `PLAY_KEY_ALIAS`, dan `PLAY_KEY_PASSWORD`.
-3. Jalankan workflow **Android Play Bundle** dari GitHub Actions.
+3. Jalankan workflow **Android Release Artifacts** dari GitHub Actions.
 4. Unduh artifact `kriptoaman-play-aab` dan unggah ke Internal testing Play Console.
 
 Jangan pernah memasukkan file `.jks`, password, token, private key, atau seed phrase ke Git.

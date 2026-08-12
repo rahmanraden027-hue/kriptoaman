@@ -15,7 +15,7 @@ function phantomProvider() {
   return null;
 }
 
-export default function ExternalWalletConnections() {
+export default function ExternalWalletConnections({ onConnectionCountChange }) {
   const { language } = useLanguage();
   const en = language === 'en';
   const web3 = useWeb3();
@@ -24,6 +24,7 @@ export default function ExternalWalletConnections() {
   const [solanaError, setSolanaError] = useState('');
   const phantom = useMemo(() => phantomProvider(), []);
   const evmWallets = web3?.availableWallets || [];
+  const connectionCount = Number(Boolean(web3?.isConnected && web3?.account)) + Number(Boolean(solanaAddress));
 
   useEffect(() => {
     if (!phantom) return undefined;
@@ -38,9 +39,14 @@ export default function ExternalWalletConnections() {
     };
   }, [phantom]);
 
+  useEffect(() => {
+    onConnectionCountChange?.(connectionCount);
+  }, [connectionCount, onConnectionCountChange]);
+
   async function connectPhantom() {
     if (!phantom) {
-      window.open('https://phantom.com/download', '_blank', 'noopener,noreferrer');
+      const target = encodeURIComponent('https://kriptoaman.com/Web3Wallet');
+      window.location.assign(`https://phantom.app/ul/browse/${target}`);
       return;
     }
     setSolanaBusy(true);

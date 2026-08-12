@@ -54,6 +54,7 @@ const STORE_RELEASE_MODE = true;
 
 function StoreSafeWallet({ user }) {
   const { language } = useLanguage();
+  const [connectedAddressCount, setConnectedAddressCount] = useState(0);
   const en = language === 'en';
   return (
     <div className="ka-bg min-h-screen pb-28 text-white">
@@ -92,7 +93,7 @@ function StoreSafeWallet({ user }) {
 
         <section className="grid gap-3 sm:grid-cols-3" aria-label={en ? 'Monitoring status' : 'Status pemantauan'}>
           {[
-            [en ? 'Connected addresses' : 'Alamat terhubung', '0', en ? 'Add a public address when available' : 'Tambahkan alamat publik saat tersedia'],
+            [en ? 'Connected addresses' : 'Alamat terhubung', String(connectedAddressCount), connectedAddressCount ? (en ? 'Public wallet connection active' : 'Koneksi dompet publik aktif') : (en ? 'Connect a public wallet when available' : 'Hubungkan dompet publik saat tersedia')],
             [en ? 'Recent activity' : 'Aktivitas terbaru', '—', en ? 'No monitored transactions' : 'Belum ada transaksi yang dipantau'],
             [en ? 'Network status' : 'Status jaringan', en ? 'Online' : 'Daring', en ? 'Market data service is active' : 'Layanan data pasar aktif'],
           ].map(([label, value, description]) => (
