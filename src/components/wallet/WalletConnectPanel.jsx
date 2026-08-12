@@ -5,6 +5,6 @@ import ExternalWalletConnections from './ExternalWalletConnections';
  * The previous implementation generated synthetic addresses, balances and QR data.
  * It is intentionally replaced by real injected EVM and Phantom providers.
  */
-export default function WalletConnectPanel() {
-  return <ExternalWalletConnections />;
+export default function WalletConnectPanel({ onConnectionCountChange }) {
+  return <ExternalWalletConnections onConnectionCountChange={onConnectionCountChange} />;
 }
