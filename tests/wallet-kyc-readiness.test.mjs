@@ -20,6 +20,25 @@ test('external wallet UI uses real providers and contains no synthetic wallet da
   assert.match(external, /Signing and transactions remain disabled/);
 });
 
+test('WalletConnect uses the official provider and public release blocks signing and transactions', async () => {
+  const [external, provider, page, pkg] = await Promise.all([
+    read('src/components/wallet/ExternalWalletConnections.jsx'),
+    read('src/components/web3/Web3Provider.jsx'),
+    read('src/pages/Web3Wallet.jsx'),
+    read('package.json'),
+  ]);
+
+  assert.match(pkg, /@walletconnect\/ethereum-provider/);
+  assert.match(provider, /VITE_WALLETCONNECT_PROJECT_ID/);
+  assert.match(provider, /EthereumProvider\.init/);
+  assert.match(provider, /showQrModal:\s*true/);
+  assert.match(provider, /READ_ONLY_RELEASE\) throw new Error\('Transaksi dinonaktifkan/);
+  assert.match(provider, /READ_ONLY_RELEASE\) throw new Error\('Penandatanganan dinonaktifkan/);
+  assert.match(external, /connectWalletConnect/);
+  assert.match(external, /600\+ dompet kompatibel/);
+  assert.doesNotMatch(page, /Web3SendModal|Web3DEXSwap|Buka Form Kirim/);
+});
+
 test('KYC readiness checks server bindings and database without exposing secret values', async () => {
   const [readiness, page, start, didit] = await Promise.all([
     read('functions/api/kyc/readiness.js'),

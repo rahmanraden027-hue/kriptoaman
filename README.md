@@ -28,6 +28,20 @@ VITE_BASE44_APP_BASE_URL=https://my-to-do-list-81bfaad7.base44.app
 
 Run the app: `npm run dev`
 
+**Wallet connections**
+
+MetaMask and other injected EVM wallets plus Phantom/Solana work without an
+extra service credential. WalletConnect QR requires the public Reown project
+identifier below at build time:
+
+```
+VITE_WALLETCONNECT_PROJECT_ID=your_reown_project_id
+```
+
+Create the identifier in the Reown Dashboard and allowlist
+`https://kriptoaman.com`. The public release only reads public addresses and
+balances; message signing and transactions are blocked in application code.
+
 **Publish your changes**
 
 Open [Base44.com](http://Base44.com) and click on Publish.
