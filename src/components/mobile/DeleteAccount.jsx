@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { kriptoAuth } from '@/lib/kriptoAuth';
 import { Trash2, AlertTriangle, Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,15 +18,8 @@ export default function DeleteAccount() {
     }
     setLoading(true);
     try {
-      const res = await base44.functions.invoke('adminSecurityCheck', {
-        action: 'delete_account',
-      });
-      if (res?.data?.success !== false) {
-        await base44.auth.logout();
-      } else {
-        setError(res?.data?.error || 'Gagal menghapus akun. Hubungi dukungan.');
-        setLoading(false);
-      }
+      await kriptoAuth.deleteAccount(confirmText);
+      window.location.assign('/login?account_deleted=1');
     } catch (err) {
       setError(
         err.message ||
