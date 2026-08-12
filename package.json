@@ -94,6 +94,7 @@
     "tailwind-merge": "^3.0.2",
     "tailwindcss-animate": "^1.0.7",
     "three": "^0.171.0",
+    "utf-8-validate": "^5.0.10",
     "vaul": "^1.1.2",
     "viem": "^2.21.0",
     "zod": "^3.24.2"
