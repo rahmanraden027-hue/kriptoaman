@@ -7,7 +7,7 @@
 
     <title>KriptoAman — Informasi & Pemantauan Kripto Indonesia</title>
     <meta name="description" content="KriptoAman menyediakan informasi, pemantauan pasar, edukasi, dan analisis risiko aset digital untuk membantu pengguna memahami aktivitas kripto secara lebih transparan." />
-    <meta name="keywords" content="kripto indonesia, keamanan aset digital, pemantauan kripto, verifikasi transaksi, analisis risiko, kriptoaman" />
+    <meta name="keywords" content="kripto indonesia, keamanan aset digital, pemantauan kripto, verifikasi transaksi, analisis risiko, kriptoaman, Raden Abdul Rahman" />
     <meta name="author" content="KriptoAman" />
     <meta name="robots" content="index, follow, max-image-preview:large" />
     <link rel="canonical" href="https://kriptoaman.com/" />
@@ -66,29 +66,13 @@
       "name": "KriptoAman",
       "operatingSystem": "Web, Android",
       "applicationCategory": "FinanceApplication",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "IDR"
-      },
+      "offers": {"@type": "Offer", "price": "0", "priceCurrency": "IDR"},
       "description": "Platform informasi, pemantauan, dan analisis risiko aset kripto.",
       "softwareVersion": "1.0.0",
-      "author": {
-        "@type": "Organization",
-        "name": "KriptoAman",
-        "url": "https://kriptoaman.com"
-      },
+      "author": {"@id": "https://kriptoaman.com/#organization"},
       "screenshot": "https://kriptoaman.com/kriptoaman-logo-primary.png",
-      "featureList": [
-        "Pemantauan harga aset digital",
-        "Verifikasi transaksi blockchain",
-        "Analisis risiko indikatif",
-        "Pemantauan alamat dompet"
-      ],
-      "audience": {
-        "@type": "Audience",
-        "audienceType": "Adults 18+"
-      }
+      "featureList": ["Pemantauan harga aset digital", "Verifikasi transaksi blockchain", "Analisis risiko indikatif", "Pemantauan alamat dompet"],
+      "audience": {"@type": "Audience", "audienceType": "Adults 18+"}
     }
     </script>
 
@@ -96,16 +80,32 @@
     {
       "@context": "https://schema.org",
       "@type": "Organization",
+      "@id": "https://kriptoaman.com/#organization",
       "name": "PT KRIPTO AMAN INDONESIA",
       "alternateName": "KriptoAman",
       "url": "https://kriptoaman.com/",
       "logo": "https://kriptoaman.com/kriptoaman-logo-primary.png",
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "Jakarta Barat",
-        "addressRegion": "DKI Jakarta",
-        "addressCountry": "ID"
-      }
+      "founder": {"@id": "https://kriptoaman.com/#raden-abdul-rahman"},
+      "address": {"@type": "PostalAddress", "addressLocality": "Jakarta Barat", "addressRegion": "DKI Jakarta", "addressCountry": "ID"}
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "@id": "https://kriptoaman.com/#raden-abdul-rahman",
+      "name": "Raden Abdul Rahman",
+      "honorificSuffix": "M.Sc.",
+      "jobTitle": "Founder & CEO",
+      "url": "https://radenabdulrahman.com/",
+      "worksFor": {"@id": "https://kriptoaman.com/#organization"},
+      "alumniOf": {
+        "@type": "CollegeOrUniversity",
+        "name": "University of Nicosia",
+        "url": "https://www.unic.ac.cy/"
+      },
+      "knowsAbout": ["Blockchain", "Digital Currency", "Digital Assets", "Web3"]
     }
     </script>
 
