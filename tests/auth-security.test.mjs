@@ -57,5 +57,5 @@ test('account deletion is first-party, same-origin, authenticated, and clears th
   assert.match(component, /kriptoAuth\.deleteAccount/);
   assert.doesNotMatch(component, /adminSecurityCheck|base44\.functions\.invoke/);
   assert.match(gradle, /versionCode 3/);
-  assert.match(gradle, /versionName "1\.1"/);
+  assert.match(gradle, /versionName "1\.2"/);
 });
