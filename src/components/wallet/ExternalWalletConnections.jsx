@@ -76,6 +76,32 @@ export default function ExternalWalletConnections() {
       </div>
 
       <div className="space-y-2">
+        <button
+          type="button"
+          disabled={web3?.connecting}
+          onClick={() => web3?.isConnected && web3.walletType === 'WalletConnect'
+            ? web3.disconnectWallet()
+            : web3.connectWalletConnect()}
+          className="w-full flex items-center gap-3 rounded-2xl border border-blue-500/35 bg-blue-500/10 p-3 text-left hover:border-blue-400 disabled:opacity-60"
+        >
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#3b99fc] text-lg font-black text-white">W</span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-bold text-white">WalletConnect</span>
+            <span className="block truncate text-xs text-slate-400">
+              {web3?.isConnected && web3.walletType === 'WalletConnect'
+                ? `${compact(web3.account)} · ${web3.currentChain?.name || 'EVM'}`
+                : web3?.walletConnectConfigured
+                  ? (en ? 'Scan QR with 600+ compatible wallets' : 'Pindai QR dengan 600+ dompet kompatibel')
+                  : (en ? 'Project ID configuration required' : 'Project ID perlu dikonfigurasi')}
+            </span>
+          </span>
+          {web3?.connecting
+            ? <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
+            : web3?.isConnected && web3.walletType === 'WalletConnect'
+              ? <Unplug className="h-4 w-4 text-red-400" />
+              : <ExternalLink className="h-4 w-4 text-blue-300" />}
+        </button>
+
         {evmWallets.length ? evmWallets.map((wallet) => {
           const active = web3?.isConnected && web3.walletType === wallet.info?.name;
           return (

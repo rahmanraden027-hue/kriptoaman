@@ -2,16 +2,12 @@ import React, { useState } from 'react';
 import { useWeb3 } from '../components/web3/Web3Provider';
 import WalletConnectButton from '../components/web3/WalletConnectButton';
 import OnchainBalanceCard from '../components/web3/OnchainBalanceCard';
-import Web3SendModal from '../components/web3/Web3SendModal';
-import Web3DEXSwap from '../components/web3/Web3DEXSwap';
 import Web3NFTGallery from '../components/web3/Web3NFTGallery';
 import Web3TxHistory from '../components/web3/Web3TxHistory';
-import { Wallet, Send, Zap, Grid3X3, Clock, Shield, Copy, CheckCircle } from 'lucide-react';
+import { Wallet, Grid3X3, Clock, Shield, Copy, CheckCircle } from 'lucide-react';
 
 const TABS = [
   { id: 'balance', label: 'Saldo', icon: Wallet },
-  { id: 'send', label: 'Kirim', icon: Send },
-  { id: 'swap', label: 'DEX Swap', icon: Zap },
   { id: 'nft', label: 'NFT', icon: Grid3X3 },
   { id: 'history', label: 'Riwayat', icon: Clock },
 ];
@@ -19,7 +15,6 @@ const TABS = [
 export default function Web3WalletPage() {
   const { account, isConnected, connecting, connectWallet, chainId, currentChain, balance } = useWeb3();
   const [activeTab, setActiveTab] = useState('balance');
-  const [showSend, setShowSend] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const copy = () => {
@@ -100,10 +95,8 @@ export default function Web3WalletPage() {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-4 gap-2 mb-4">
+            <div className="grid grid-cols-2 gap-2 mb-4">
               {[
-                { label: 'Kirim', icon: Send, action: () => setShowSend(true), color: 'text-blue-400' },
-                { label: 'Swap', icon: Zap, action: () => setActiveTab('swap'), color: 'text-yellow-400' },
                 { label: 'NFT', icon: Grid3X3, action: () => setActiveTab('nft'), color: 'text-purple-400' },
                 { label: 'Riwayat', icon: Clock, action: () => setActiveTab('history'), color: 'text-green-400' },
               ].map(btn => (
@@ -130,24 +123,12 @@ export default function Web3WalletPage() {
 
             {/* Tab Content */}
             {activeTab === 'balance' && <OnchainBalanceCard />}
-            {activeTab === 'send' && (
-              <div className="text-center py-8">
-                <Send className="w-10 h-10 text-blue-400 mx-auto mb-3" />
-                <p className="text-slate-400 text-sm mb-4">Kirim token langsung ke blockchain</p>
-                <button onClick={() => setShowSend(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl transition-colors">
-                  Buka Form Kirim
-                </button>
-              </div>
-            )}
-            {activeTab === 'swap' && <Web3DEXSwap />}
             {activeTab === 'nft' && <Web3NFTGallery />}
             {activeTab === 'history' && <Web3TxHistory />}
           </>
         )}
       </div>
 
-      {showSend && <Web3SendModal onClose={() => setShowSend(false)} />}
     </div>
   );
 }
