@@ -14,6 +14,8 @@ test('external wallet UI uses real providers and contains no synthetic wallet da
   assert.doesNotMatch(panel, /Math\.random|generateAddress|generateWCUri|wc:/);
   assert.match(external, /window\.phantom\?\.solana/);
   assert.match(external, /phantom\.connect\(\)/);
+  assert.match(external, /https:\/\/kriptoaman\.com\/Wallet/);
+  assert.doesNotMatch(external, /https:\/\/kriptoaman\.com\/Web3Wallet/);
   assert.match(provider, /eip6963:requestProvider/);
   assert.match(provider, /eth_requestAccounts/);
   assert.match(provider, /options\.silent \? 'eth_accounts'/);
