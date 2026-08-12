@@ -40,7 +40,7 @@ test('WalletConnect uses the official provider and public release blocks signing
   assert.doesNotMatch(page, /Web3SendModal|Web3DEXSwap|Buka Form Kirim/);
   const walletPage = await read('src/pages/Wallet.jsx');
   assert.match(walletPage, /connectedAddressCount/);
-  assert.doesNotMatch(walletPage, /<WalletConnectPanel \/>\\\\n\\\\n/);
+  assert.doesNotMatch(walletPage, /\\\\n\\\\n/);
 });
 
 test('KYC readiness checks server bindings and database without exposing secret values', async () => {
