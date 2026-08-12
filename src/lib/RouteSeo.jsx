@@ -1,5 +1,4 @@
-import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 const PUBLIC_META = {
   '/': {
@@ -49,14 +48,6 @@ const PUBLIC_META = {
   },
 };
 
-const NOINDEX_PREFIXES = [
-  '/login', '/register', '/forgot-password', '/reset-password', '/dashboard',
-  '/Profile', '/Settings', '/Wallet', '/Alerts', '/Market', '/Admin',
-  '/ServerControl', '/SecureVault', '/SecurityCenter', '/AMLDashboard',
-  '/AMLAssistant', '/BigQueryKYCReports', '/FeatureUpdateBroadcast',
-  '/MultiChainWallet', '/Services', '/SecurityHub',
-];
-
 function setMeta(name, content, attribute = 'name') {
   let node = document.head.querySelector(`meta[${attribute}="${name}"]`);
   if (!node) {
@@ -78,14 +69,35 @@ function setCanonical(pathname) {
 }
 
 export default function RouteSeo() {
-  const { pathname } = useLocation();
+  const [pathname, setPathname] = useState(() => window.location.pathname);
+
+  useEffect(() => {
+    const notify = () => setPathname(window.location.pathname);
+    const originalPushState = window.history.pushState;
+    const originalReplaceState = window.history.replaceState;
+
+    window.history.pushState = function (...args) {
+      originalPushState.apply(this, args);
+      notify();
+    };
+    window.history.replaceState = function (...args) {
+      originalReplaceState.apply(this, args);
+      notify();
+    };
+    window.addEventListener('popstate', notify);
+
+    return () => {
+      window.history.pushState = originalPushState;
+      window.history.replaceState = originalReplaceState;
+      window.removeEventListener('popstate', notify);
+    };
+  }, []);
 
   useEffect(() => {
     const pageMeta = PUBLIC_META[pathname];
-    const shouldNoIndex = !pageMeta || NOINDEX_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
     const title = pageMeta?.title || 'KriptoAman — Area Pengguna';
     const description = pageMeta?.description || 'Area pengguna KriptoAman untuk fitur informasi dan pemantauan aset digital.';
-    const robots = shouldNoIndex ? 'noindex, nofollow, noarchive' : pageMeta.robots;
+    const robots = pageMeta?.robots || 'noindex, nofollow, noarchive';
 
     document.title = title;
     setMeta('description', description);
