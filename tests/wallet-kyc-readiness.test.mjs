@@ -30,6 +30,7 @@ test('WalletConnect uses the official provider and public release blocks signing
 
   assert.match(pkg, /@walletconnect\/ethereum-provider/);
   assert.match(provider, /VITE_WALLETCONNECT_PROJECT_ID/);
+  assert.match(provider, /90e4a891a15a75dadc1cd3a8d1f3f814/);
   assert.match(provider, /EthereumProvider\.init/);
   assert.match(provider, /showQrModal:\s*true/);
   assert.match(provider, /READ_ONLY_RELEASE\) throw new Error\('Transaksi dinonaktifkan/);

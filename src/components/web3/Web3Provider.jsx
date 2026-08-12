@@ -2,7 +2,8 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 
 const Web3Context = createContext(null);
 
-const WALLETCONNECT_PROJECT_ID = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID?.trim();
+const WALLETCONNECT_PROJECT_ID = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID?.trim()
+  || '90e4a891a15a75dadc1cd3a8d1f3f814';
 const READ_ONLY_RELEASE = true;
 
 export const SUPPORTED_CHAINS = {
