@@ -45,7 +45,10 @@ export default function ExternalWalletConnections({ onConnectionCountChange }) {
 
   async function connectPhantom() {
     if (!phantom) {
-      const target = encodeURIComponent('https://kriptoaman.com/Web3Wallet');
+      // Open the same Solana-aware wallet screen inside Phantom's browser.
+      // Do not route to Web3Wallet because that surface is EVM-only and can
+      // make Phantom's Ethereum provider look like a successful Solana link.
+      const target = encodeURIComponent('https://kriptoaman.com/Wallet');
       window.location.assign(`https://phantom.app/ul/browse/${target}`);
       return;
     }
