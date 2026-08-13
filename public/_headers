@@ -19,48 +19,75 @@
 
 /Admin*
   X-Robots-Tag: noindex, nofollow, noarchive
-
 /ServerControl*
   X-Robots-Tag: noindex, nofollow, noarchive
-
 /SecureVault*
   X-Robots-Tag: noindex, nofollow, noarchive
-
 /dashboard*
   X-Robots-Tag: noindex, nofollow, noarchive
-
 /Profile*
   X-Robots-Tag: noindex, nofollow, noarchive
-
 /Settings*
   X-Robots-Tag: noindex, nofollow, noarchive
-
 /Wallet*
   X-Robots-Tag: noindex, nofollow, noarchive
-
+/Web3Wallet*
+  X-Robots-Tag: noindex, nofollow, noarchive
+/MultiChainWallet*
+  X-Robots-Tag: noindex, nofollow, noarchive
 /Alerts*
   X-Robots-Tag: noindex, nofollow, noarchive
-
-/login*
-  X-Robots-Tag: noindex, nofollow, noarchive
-
-/register*
-  X-Robots-Tag: noindex, nofollow, noarchive
-
-/forgot-password*
-  X-Robots-Tag: noindex, nofollow, noarchive
-
-/reset-password*
-  X-Robots-Tag: noindex, nofollow, noarchive
-
 /KYC*
   X-Robots-Tag: noindex, nofollow, noarchive
-
 /Security*
   X-Robots-Tag: noindex, nofollow, noarchive
-
+/AML*
+  X-Robots-Tag: noindex, nofollow, noarchive
 /BigQuery*
   X-Robots-Tag: noindex, nofollow, noarchive
-
+/AppBuild*
+  X-Robots-Tag: noindex, nofollow, noarchive
+/AssetManager*
+  X-Robots-Tag: noindex, nofollow, noarchive
+/AutoTrading*
+  X-Robots-Tag: noindex, nofollow, noarchive
+/DEXSavings*
+  X-Robots-Tag: noindex, nofollow, noarchive
+/FeatureUpdate*
+  X-Robots-Tag: noindex, nofollow, noarchive
+/MarketResearch*
+  X-Robots-Tag: noindex, nofollow, noarchive
+/P2PLending*
+  X-Robots-Tag: noindex, nofollow, noarchive
 /PlatformDocs*
+  X-Robots-Tag: noindex, nofollow, noarchive
+/Portfolio*
+  X-Robots-Tag: noindex, nofollow, noarchive
+/Premium*
+  X-Robots-Tag: noindex, nofollow, noarchive
+/PriceTracker*
+  X-Robots-Tag: noindex, nofollow, noarchive
+/Referral*
+  X-Robots-Tag: noindex, nofollow, noarchive
+/RegulatoryDocs*
+  X-Robots-Tag: noindex, nofollow, noarchive
+/Services*
+  X-Robots-Tag: noindex, nofollow, noarchive
+/StoreDeployment*
+  X-Robots-Tag: noindex, nofollow, noarchive
+/Support*
+  X-Robots-Tag: noindex, nofollow, noarchive
+/TradingAnalytics*
+  X-Robots-Tag: noindex, nofollow, noarchive
+/TxHistory*
+  X-Robots-Tag: noindex, nofollow, noarchive
+/ReadinessCheck*
+  X-Robots-Tag: noindex, nofollow, noarchive
+/login*
+  X-Robots-Tag: noindex, nofollow, noarchive
+/register*
+  X-Robots-Tag: noindex, nofollow, noarchive
+/forgot-password*
+  X-Robots-Tag: noindex, nofollow, noarchive
+/reset-password*
   X-Robots-Tag: noindex, nofollow, noarchive
