@@ -32,7 +32,7 @@ const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
 const DashboardPage = Pages.Home ?? MainPage;
-// Halaman yang hanya boleh diakses admin (dilindungi di level route)
+
 const ADMIN_PAGE_KEYS = new Set([
   'AdminKYCManagement', 'AdminPlatformAssets', 'AdminProfitAnalytics', 'AdminUserBalances',
   'ServerControl', 'BigQueryKYCReports', 'RegulatoryDocs', 'AppBuildAnalytics',
@@ -40,8 +40,6 @@ const ADMIN_PAGE_KEYS = new Set([
   'FeatureUpdateBroadcast',
 ]);
 
-// Transactional modules remain in source for controlled testing, but the
-// public store build exposes only verified information and monitoring flows.
 const STORE_RESTRICTED_PAGE_KEYS = new Set([
   'AutoTrading', 'DEXSavings', 'P2PLending', 'TradingAnalytics',
 ]);
@@ -59,10 +57,11 @@ const StoreAvailabilityNotice = () => (
   </div>
 );
 
-// Halaman publik statis — dapat diakses tanpa autentikasi (paket gratis)
+// Hanya halaman yang memang ditujukan untuk publik boleh dilewati tanpa autentikasi.
+// Dokumentasi internal seperti PlatformDocs tetap berada di balik ProtectedRoute.
 const PUBLIC_PAGE_KEYS = new Set([
-   'AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'TermsOfService',
-  'PlatformDocs', 'AccountDeletion', 'Market',
+  'AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'TermsOfService',
+  'AccountDeletion', 'Market',
 ]);
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
@@ -72,7 +71,6 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
 
-  // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
@@ -81,8 +79,6 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Only surface the "user not registered" error here; auth_required is now
-  // handled by ProtectedRoute (redirects to /login).
   if (authError && authError.type === 'user_not_registered') {
     return <UserNotRegisteredError />;
   }
@@ -93,110 +89,107 @@ const AuthenticatedApp = () => {
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-700 border-t-sky-400" />
       </div>
     }>
-    <Routes>
-      {/* Public auth routes */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-<Route path="/" element={<KriptoAmanGlobalLanding />} />
-<Route path="/en" element={<EnglishLanding />} />
-<Route path="/KriptoAmanGlobalLanding" element={<KriptoAmanGlobalLanding />} />\n      <Route path="/SystemStatus" element={<SystemStatus />} />
-      {/* Public pages must remain readable without an account or disclaimer gate. */}
-      {Object.entries(Pages).map(([path, Page]) => {
-        if (!PUBLIC_PAGE_KEYS.has(path)) return null;
-        return (
-          <Route
-            key={path}
-            path={`/${path}`}
-            element={<Page />}
-          />
-        );
-      })}
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/" element={<KriptoAmanGlobalLanding />} />
+        <Route path="/en" element={<EnglishLanding />} />
+        <Route path="/KriptoAmanGlobalLanding" element={<KriptoAmanGlobalLanding />} />
+        <Route path="/SystemStatus" element={<SystemStatus />} />
 
-      {/* Protected app routes — gated by ProtectedRoute */}
-      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-        <Route path="/dashboard" element={
-  <LayoutWrapper currentPageName="Home">
-    <DashboardPage />
-  </LayoutWrapper>
-} />
-        
         {Object.entries(Pages).map(([path, Page]) => {
-          if (PUBLIC_PAGE_KEYS.has(path)) return null;
-          const wrapped = (
-            <LayoutWrapper currentPageName={path}>
-              {STORE_RESTRICTED_PAGE_KEYS.has(path) ? <StoreAvailabilityNotice /> : <Page />}
-            </LayoutWrapper>
-          );
+          if (!PUBLIC_PAGE_KEYS.has(path)) return null;
           return (
             <Route
               key={path}
               path={`/${path}`}
-              element={ADMIN_PAGE_KEYS.has(path) ? <AdminRoute>{wrapped}</AdminRoute> : wrapped}
+              element={<Page />}
             />
           );
         })}
-        <Route path="/FeatureUpdateBroadcast" element={
-          <AdminRoute>
-            <LayoutWrapper currentPageName="FeatureUpdateBroadcast">
-              <FeatureUpdateBroadcast />
-            </LayoutWrapper>
-          </AdminRoute>
-        } />
-        <Route path="/AMLAssistant" element={
-          <LayoutWrapper currentPageName="AMLAssistant">
-            <AMLAssistant />
-          </LayoutWrapper>
-        } />
-        <Route path="/Services" element={
-          <LayoutWrapper currentPageName="Services">
-            <Services />
-          </LayoutWrapper>
-        } />
-        <Route path="/MultiChainWallet" element={
-          <LayoutWrapper currentPageName="MultiChainWallet">
-            <MultiChainWallet />
-          </LayoutWrapper>
-        } />
-        <Route path="/SecurityHub" element={
-          <LayoutWrapper currentPageName="SecurityHub">
-            <SecurityHub />
-          </LayoutWrapper>
-        } />
-        <Route path="/BigQueryKYCReports" element={
-          <AdminRoute>
-            <LayoutWrapper currentPageName="BigQueryKYCReports">
-              <BigQueryKYCReports />
-            </LayoutWrapper>
-          </AdminRoute>
-        } />
-        
-      </Route>
 
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
+        <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+          <Route path="/dashboard" element={
+            <LayoutWrapper currentPageName="Home">
+              <DashboardPage />
+            </LayoutWrapper>
+          } />
+
+          {Object.entries(Pages).map(([path, Page]) => {
+            if (PUBLIC_PAGE_KEYS.has(path)) return null;
+            const wrapped = (
+              <LayoutWrapper currentPageName={path}>
+                {STORE_RESTRICTED_PAGE_KEYS.has(path) ? <StoreAvailabilityNotice /> : <Page />}
+              </LayoutWrapper>
+            );
+            return (
+              <Route
+                key={path}
+                path={`/${path}`}
+                element={ADMIN_PAGE_KEYS.has(path) ? <AdminRoute>{wrapped}</AdminRoute> : wrapped}
+              />
+            );
+          })}
+
+          <Route path="/FeatureUpdateBroadcast" element={
+            <AdminRoute>
+              <LayoutWrapper currentPageName="FeatureUpdateBroadcast">
+                <FeatureUpdateBroadcast />
+              </LayoutWrapper>
+            </AdminRoute>
+          } />
+          <Route path="/AMLAssistant" element={
+            <LayoutWrapper currentPageName="AMLAssistant">
+              <AMLAssistant />
+            </LayoutWrapper>
+          } />
+          <Route path="/Services" element={
+            <LayoutWrapper currentPageName="Services">
+              <Services />
+            </LayoutWrapper>
+          } />
+          <Route path="/MultiChainWallet" element={
+            <LayoutWrapper currentPageName="MultiChainWallet">
+              <MultiChainWallet />
+            </LayoutWrapper>
+          } />
+          <Route path="/SecurityHub" element={
+            <LayoutWrapper currentPageName="SecurityHub">
+              <SecurityHub />
+            </LayoutWrapper>
+          } />
+          <Route path="/BigQueryKYCReports" element={
+            <AdminRoute>
+              <LayoutWrapper currentPageName="BigQueryKYCReports">
+                <BigQueryKYCReports />
+              </LayoutWrapper>
+            </AdminRoute>
+          } />
+        </Route>
+
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
     </Suspense>
   );
 };
 
-
 function App() {
-
   return (
     <LanguageProvider>
-    <AuthProvider>
-      <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <NavigationTracker />
-          <AppErrorBoundary>
-            <AuthenticatedApp />
-          </AppErrorBoundary>
-        </Router>
-        <Toaster />
-        <PWAInstallPrompt />
-      </QueryClientProvider>
-    </AuthProvider>
+      <AuthProvider>
+        <QueryClientProvider client={queryClientInstance}>
+          <Router>
+            <NavigationTracker />
+            <AppErrorBoundary>
+              <AuthenticatedApp />
+            </AppErrorBoundary>
+          </Router>
+          <Toaster />
+          <PWAInstallPrompt />
+        </QueryClientProvider>
+      </AuthProvider>
     </LanguageProvider>
   )
 }
