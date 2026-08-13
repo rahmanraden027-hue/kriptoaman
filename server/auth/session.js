@@ -2,7 +2,10 @@ const encoder = new TextEncoder();
 
 const SESSION_COOKIE = 'ka_session';
 const OAUTH_STATE_COOKIE = 'ka_oauth_state';
-const SESSION_TTL_SECONDS = 60 * 60 * 12;
+// Persistent login: keep the browser signed in for 30 days at a time.
+// The /api/auth/me endpoint renews this window whenever the app is opened/used,
+// so active users stay connected until they explicitly log out.
+export const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 
 function base64UrlEncode(bytes) {
   let binary = '';
