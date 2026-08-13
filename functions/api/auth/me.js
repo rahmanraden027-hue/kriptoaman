@@ -1,5 +1,10 @@
 import { json, requireBindings, requireSameOrigin } from '../../../server/auth/http.js';
-import { getSessionToken, verifySessionToken } from '../../../server/auth/session.js';
+import {
+  createSessionToken,
+  getSessionToken,
+  sessionCookie,
+  verifySessionToken,
+} from '../../../server/auth/session.js';
 import { getUserById, updateUserProfile } from '../../../server/auth/users.js';
 
 export async function onRequestGet({ request, env }) {
@@ -10,7 +15,14 @@ export async function onRequestGet({ request, env }) {
     if (!session) return json({ authenticated: false }, { status: 401 });
     const user = await getUserById(env.AUTH_DB, session.sub);
     if (!user) return json({ authenticated: false }, { status: 401 });
-    return json({ authenticated: true, user });
+
+    // Sliding session: opening/using KriptoAman renews the persistent login.
+    // Explicit /api/auth/logout remains the action that removes the cookie.
+    const renewedToken = await createSessionToken(env.SESSION_SECRET, user);
+    return json(
+      { authenticated: true, user },
+      { headers: { 'Set-Cookie': sessionCookie(renewedToken) } },
+    );
   } catch (error) {
     console.error('Session lookup failed', error);
     return json({ error: 'Authentication service unavailable' }, { status: 503 });
@@ -38,7 +50,12 @@ export async function onRequestPatch({ request, env }) {
     }
     const user = await updateUserProfile(env.AUTH_DB, session.sub, changes);
     if (!user) return json({ authenticated: false }, { status: 401 });
-    return json({ authenticated: true, user });
+
+    const renewedToken = await createSessionToken(env.SESSION_SECRET, user);
+    return json(
+      { authenticated: true, user },
+      { headers: { 'Set-Cookie': sessionCookie(renewedToken) } },
+    );
   } catch (error) {
     console.error('Profile update failed', error);
     return json({ error: 'Profile service unavailable' }, { status: 503 });
