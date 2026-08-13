@@ -4,7 +4,7 @@
 
 - Package ID: `com.kriptoaman.app`
 - Nama: `KriptoAman`
-- Versi saat ini: `1.2` (`versionCode 3`)
+- Versi saat ini: `1.3` (`versionCode 4`)
 - Mode rilis awal: informasi, edukasi, keamanan, dan pemantauan read-only.
 
 ## Build AAB bertanda tangan
