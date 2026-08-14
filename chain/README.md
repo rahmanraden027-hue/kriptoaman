@@ -14,23 +14,25 @@ This configuration is for local development/testnet only. Do not use local keys 
 - Testnet Chain ID candidate: 22027 (must be re-verified before public testnet)
 - Genesis supply target: 10,000,000,000 KAM
 
-## Prerequisites
+## Install Avalanche CLI
 
-Install the current Avalanche CLI using the official Avalanche documentation, then verify:
+Use the current official installer on a Linux/macOS development host:
 
 ```bash
+curl -sSfL https://raw.githubusercontent.com/ava-labs/avalanche-cli/main/scripts/install.sh | sh -s
+export PATH="$HOME/bin:$PATH"
 avalanche --version
 ```
 
-## Create the L1
+## Create the L1 configuration
 
-Use the CLI interactively so the installed CLI version controls the exact prompts and supported VM versions:
+Current Avalanche documentation uses the L1 creation flow below:
 
 ```bash
-avalanche blockchain create KriptoAman
+avalanche blockchain create KriptoAman --sovereign=false
 ```
 
-Choose an EVM/Subnet-EVM compatible configuration. Configure KAM as the native currency and use a development-only prefunded address. Never commit its private key.
+For the first local environment, choose **Subnet-EVM** and **defaults for a test environment**. Use only development keys/accounts. Never commit a private key.
 
 ## Deploy local network
 
@@ -38,15 +40,15 @@ Choose an EVM/Subnet-EVM compatible configuration. Configure KAM as the native c
 avalanche blockchain deploy KriptoAman --local
 ```
 
-After deployment, save the RPC URL, blockchain ID and node information printed by the CLI. Do not hard-code values before the CLI generates them.
+The official local deployment flow boots a multi-node Avalanche network and deploys the new L1. Record the RPC URL, blockchain ID and node information printed by the CLI.
 
 ## Verification
 
-Set `RPC_URL` to the RPC endpoint returned by the CLI and run:
+Set `RPC_URL` to the EVM RPC endpoint returned by the CLI and run:
 
 ```bash
 export RPC_URL='http://127.0.0.1:PORT/ext/bc/BLOCKCHAIN_ID/rpc'
-./chain/scripts/verify-localnet.sh
+bash ./chain/scripts/verify-localnet.sh
 ```
 
 Success criteria:
