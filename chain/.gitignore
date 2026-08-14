@@ -1,0 +1,15 @@
+# Never commit chain/operator secrets
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.keystore
+keystore/
+keys/
+secrets/
+
+# Local Avalanche/runtime data
+.avalanche/
+node-data/
+logs/
