@@ -116,15 +116,26 @@ export async function onRequestGet(context) {
     let snapshot = decodeSnapshot(await readSnapshot(env.AUTH_DB));
     if (!snapshot) snapshot = await refreshSnapshot(env.AUTH_DB);
 
-    const ageMs = Math.max(0, Date.now() - Number(snapshot.captured_at));
-    const stale = ageMs > SNAPSHOT_FRESH_MS;
-    if (stale && typeof context.waitUntil === 'function') {
+    const healthOnly = new URL(request.url).searchParams.get('health') === '1';
+    let ageMs = Math.max(0, Date.now() - Number(snapshot.captured_at));
+    let stale = ageMs > SNAPSHOT_FRESH_MS;
+    let refreshError = null;
+
+    if (stale && healthOnly) {
+      try {
+        snapshot = await refreshSnapshot(env.AUTH_DB);
+        ageMs = Math.max(0, Date.now() - Number(snapshot.captured_at));
+        stale = ageMs > SNAPSHOT_FRESH_MS;
+      } catch (error) {
+        refreshError = error instanceof Error ? error.message : String(error);
+        console.error('Synchronous market health refresh failed', { requestId, error });
+      }
+    } else if (stale && typeof context.waitUntil === 'function') {
       context.waitUntil(refreshSnapshot(env.AUTH_DB).catch((error) => {
         console.error('Background market snapshot refresh failed', { requestId, error });
       }));
     }
 
-    const healthOnly = new URL(request.url).searchParams.get('health') === '1';
     const metadata = {
       healthy: snapshot.asset_count >= MIN_ACCEPTED_ASSETS && ageMs <= SNAPSHOT_FRESH_MS * 4,
       source: snapshot.source,
@@ -133,6 +144,7 @@ export async function onRequestGet(context) {
       ageMs,
       stale,
       requestId,
+      ...(refreshError ? { refreshError } : {}),
     };
     return json(healthOnly ? metadata : { ...metadata, data: snapshot.data });
   } catch (error) {
