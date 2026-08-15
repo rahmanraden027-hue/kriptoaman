@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import useLivePrices from '../components/market/useLivePrices';
-import { Shield, ChevronRight, Radio, Eye } from 'lucide-react';
+import { Shield, ChevronRight, Radio, Eye, ExternalLink, UserRound } from 'lucide-react';
 import HomePortfolioSummary from '../components/home/HomePortfolioSummary';
 import HomeQuickActions from '../components/home/HomeQuickActions';
 import HomeMarketOverview from '../components/home/HomeMarketOverview';
@@ -25,11 +25,21 @@ const COPY = {
     summary: 'Ringkasan pasar, portofolio, dan keamanan dalam satu layar.',
     live: 'Data langsung', watch: 'Mode pemantauan', kycPending: 'KYC sedang ditinjau',
     kycStart: 'Lengkapi KYC untuk akses yang sesuai',
+    leadership: 'Founder & Leadership',
+    founderRole: 'Founder & CEO KriptoAman',
+    founderSummary: 'Memimpin pengembangan KriptoAman dengan fokus pada keamanan, transparansi informasi, edukasi aset digital, dan pengalaman pengguna yang profesional.',
+    aboutFounder: 'Tentang Founder',
+    officialProfile: 'Profil Resmi',
   },
   en: {
     summary: 'Market, portfolio, and security overview in one place.',
     live: 'Live data', watch: 'Watch-only mode', kycPending: 'KYC is under review',
     kycStart: 'Complete KYC for eligible access',
+    leadership: 'Founder & Leadership',
+    founderRole: 'Founder & CEO of KriptoAman',
+    founderSummary: 'Leading KriptoAman with a focus on security, information transparency, digital-asset education, and a professional user experience.',
+    aboutFounder: 'About the Founder',
+    officialProfile: 'Official Profile',
   },
 };
 
@@ -117,6 +127,41 @@ export default function Home() {
           <Suspense fallback={<DeferredFallback />}><HomeLearningCenter /></Suspense>
         </aside>
       </div>
+
+      <section className="ka-surface p-5 sm:p-6" aria-labelledby="founder-leadership-title">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+          <div className="flex items-start gap-4 min-w-0">
+            <div className="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-400/20 flex items-center justify-center shrink-0">
+              <UserRound className="w-6 h-6 text-sky-300" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-sky-300">{text.leadership}</p>
+              <h2 id="founder-leadership-title" className="text-lg sm:text-xl font-extrabold text-white mt-1">Raden Abdul Rahman, M.Sc.</h2>
+              <p className="text-xs font-semibold text-slate-300 mt-0.5">{text.founderRole}</p>
+              <p className="ka-muted text-xs sm:text-sm leading-relaxed mt-2 max-w-2xl">{text.founderSummary}</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 shrink-0">
+            <Link
+              to={createPageUrl('AboutUs')}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-600/60 bg-slate-800/50 text-slate-200 text-xs font-semibold hover:bg-slate-700/60 transition-colors"
+            >
+              {text.aboutFounder}
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+            <a
+              href="https://radenabdulrahman.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-sky-500/30 bg-sky-500/10 text-sky-300 text-xs font-semibold hover:bg-sky-500/15 transition-colors"
+            >
+              {text.officialProfile}
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
+        </div>
+      </section>
 
       <Suspense fallback={null}><HomeFooter /></Suspense>
     </div>
