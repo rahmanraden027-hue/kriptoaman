@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
-import { Info, ShieldCheck, FileText, Mail, LifeBuoy, Activity, Music2 } from 'lucide-react';
+import { Info, ShieldCheck, FileText, Mail, LifeBuoy, Activity, Music2, Instagram } from 'lucide-react';
 
 const LINKS = [
   { label: 'Tentang', page: 'AboutUs', icon: Info },
@@ -18,6 +18,11 @@ const SOCIAL_LINKS = [
     label: 'TikTok',
     href: 'https://www.tiktok.com/@kriptoamanofficial',
     icon: Music2,
+  },
+  {
+    label: 'Instagram',
+    href: 'https://www.instagram.com/kriptoamanofficial/',
+    icon: Instagram,
   },
 ];
 
