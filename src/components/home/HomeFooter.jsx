@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
-import { Info, ShieldCheck, FileText, Mail, LifeBuoy, Activity, Music2, Instagram } from 'lucide-react';
+import { Info, ShieldCheck, FileText, Mail, LifeBuoy, Activity, Music2, Instagram, Youtube, AtSign } from 'lucide-react';
 
 const LINKS = [
   { label: 'Tentang', page: 'AboutUs', icon: Info },
@@ -24,6 +24,16 @@ const SOCIAL_LINKS = [
     href: 'https://www.instagram.com/kriptoamanofficial/',
     icon: Instagram,
   },
+  {
+    label: 'YouTube',
+    href: 'https://www.youtube.com/@KriptoAmanOfficial',
+    icon: Youtube,
+  },
+  {
+    label: 'X',
+    href: 'https://x.com/KriptoAman',
+    icon: AtSign,
+  },
 ];
 
 export default function HomeFooter() {
@@ -43,7 +53,7 @@ export default function HomeFooter() {
         ))}
       </div>
 
-      <div className="flex justify-center gap-4 mb-4" aria-label="Media sosial resmi KriptoAman">
+      <div className="flex flex-wrap justify-center gap-4 mb-4" aria-label="Media sosial resmi KriptoAman">
         {SOCIAL_LINKS.map(({ label, href, icon: Icon }) => (
           <a
             key={label}
