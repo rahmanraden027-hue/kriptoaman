@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
-import { Info, ShieldCheck, FileText, Mail, LifeBuoy, Activity } from 'lucide-react';
+import { Info, ShieldCheck, FileText, Mail, LifeBuoy, Activity, Music2 } from 'lucide-react';
 
 const LINKS = [
   { label: 'Tentang', page: 'AboutUs', icon: Info },
@@ -11,6 +11,14 @@ const LINKS = [
   { label: 'Kontak', page: 'Contact', icon: Mail },
   { label: 'Bantuan', page: 'Support', icon: LifeBuoy },
   { label: 'Status', page: 'SystemStatus', icon: Activity },
+];
+
+const SOCIAL_LINKS = [
+  {
+    label: 'TikTok',
+    href: 'https://www.tiktok.com/@kriptoamanofficial',
+    icon: Music2,
+  },
 ];
 
 export default function HomeFooter() {
@@ -27,6 +35,22 @@ export default function HomeFooter() {
             <Icon className="w-4 h-4" />
             <span className="text-[10px] font-semibold text-center leading-tight">{label}</span>
           </Link>
+        ))}
+      </div>
+
+      <div className="flex justify-center gap-4 mb-4" aria-label="Media sosial resmi KriptoAman">
+        {SOCIAL_LINKS.map(({ label, href, icon: Icon }) => (
+          <a
+            key={label}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${label} resmi KriptoAman`}
+            className="flex items-center gap-1.5 ka-muted hover:text-ka-emerald transition-colors tap-reset"
+          >
+            <Icon className="w-4 h-4" />
+            <span className="text-[10px] font-semibold">{label}</span>
+          </a>
         ))}
       </div>
 
