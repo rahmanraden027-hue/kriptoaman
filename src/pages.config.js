@@ -9,7 +9,7 @@ const PAGE_NAMES = [
   'AMLDashboard', 'AboutUs', 'AdminKYCManagement', 'AdminPlatformAssets',
   'AdminProfitAnalytics', 'AdminUserBalances', 'Alerts', 'AppBuildAnalytics',
   'AssetManager', 'AutoTrading', 'Contact', 'DEXSavings', 'Disclaimer', 'Edukasi',
-  'Home', 'KYC', 'KYCVerificationPage', 'LandingPage', 'Market', 'MarketResearch',
+  'Founder', 'Home', 'KYC', 'KYCVerificationPage', 'LandingPage', 'Market', 'MarketResearch',
   'P2PLending', 'PWAValidation', 'PlatformDocs', 'PortfolioOverview', 'Premium',
   'PriceTracker', 'PrivacyPolicy', 'Profile', 'Referral', 'RegulatoryDocs',
   'SEOLanding', 'SecureVault', 'SecurityCenter', 'ServerControl', 'Settings',
