@@ -1,7 +1,7 @@
 import React from 'react';
 import { Shield, ExternalLink, BookOpen, Globe2, LockKeyhole, BadgeCheck } from 'lucide-react';
 
-const PROFILE_IMAGE = '/images/raden-abdul-rahman-founder.png';
+const PROFILE_IMAGE = '/images/raden-abdul-rahman-founder.jpg';
 
 export default function Founder() {
   return (
