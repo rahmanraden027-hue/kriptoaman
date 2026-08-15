@@ -3,6 +3,16 @@ name: Android Release Artifacts
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
+    paths:
+      - 'android/**'
+      - 'src/**'
+      - 'public/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'capacitor.config.*'
+      - '.github/workflows/android-play.yml'
     tags:
       - 'android-v*'
 
