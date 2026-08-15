@@ -51,6 +51,27 @@ export default function AboutUs() {
           </p>
         </div>
 
+        <section className="relative overflow-hidden bg-gradient-to-br from-slate-800/80 via-slate-800/55 to-blue-950/40 border border-blue-700/30 rounded-2xl p-5" aria-labelledby="founder-title">
+          <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-blue-500/10 blur-2xl" />
+          <div className="relative">
+            <p className="text-blue-400 text-[11px] font-bold uppercase tracking-[0.18em] mb-2">Founder Leadership</p>
+            <h2 id="founder-title" className="text-white font-black text-xl">Raden Abdul Rahman, M.Sc.</h2>
+            <p className="text-slate-300 text-sm font-semibold mt-1">Founder & CEO · KriptoAman</p>
+            <p className="text-slate-400 text-sm leading-relaxed mt-3">
+              Memimpin pengembangan KriptoAman dengan fokus pada keamanan, transparansi informasi, edukasi aset digital, dan pengalaman pengguna yang profesional. Arah pengembangan platform menempatkan kejelasan status fitur dan keterbatasan data sebagai bagian penting dari kepercayaan pengguna.
+            </p>
+            <a
+              href="https://radenabdulrahman.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-300 hover:bg-blue-600/30 transition-colors text-sm font-semibold"
+            >
+              Profil Founder
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          </div>
+        </section>
+
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {STATS.map(s => (
             <div key={s.label} className="bg-slate-800/50 border border-slate-700/40 rounded-xl p-3 text-center">
