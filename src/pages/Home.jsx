@@ -48,7 +48,7 @@ export default function Home() {
   const text = COPY[language] || COPY.id;
   const [user, setUser] = useState(null);
   const [kycStatus, setKycStatus] = useState(null);
-  const { prices, idrRate, connected } = useLivePrices();
+  const { prices, idrRate } = useLivePrices();
 
   useEffect(() => {
     base44.auth.me().then(u => {
@@ -73,35 +73,19 @@ export default function Home() {
           <h1 className="text-2xl lg:text-3xl font-extrabold tracking-tight">
             {user?.full_name?.split(' ')[0] || 'Pengguna'}
           </h1>
-          <p className="ka-muted text-xs mt-1">
-            {text.summary}
-          </p>
+          <p className="ka-muted text-xs mt-1">{text.summary}</p>
         </div>
-
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="ka-chip px-3 py-1.5 text-[10px] font-bold text-ka-emerald inline-flex items-center gap-1.5">
-            <Radio className="w-3 h-3" /> {text.live}
-          </span>
-          <span className="ka-chip px-3 py-1.5 text-[10px] font-bold text-sky-300 inline-flex items-center gap-1.5">
-            <Eye className="w-3 h-3" /> {text.watch}
-          </span>
+          <span className="ka-chip px-3 py-1.5 text-[10px] font-bold text-ka-emerald inline-flex items-center gap-1.5"><Radio className="w-3 h-3" /> {text.live}</span>
+          <span className="ka-chip px-3 py-1.5 text-[10px] font-bold text-sky-300 inline-flex items-center gap-1.5"><Eye className="w-3 h-3" /> {text.watch}</span>
         </div>
       </div>
 
       {kycStatus !== 'approved' && (
-        <Link
-          to={createPageUrl('KYC')}
-          className="flex items-center justify-between ka-surface ka-surface-hover p-3"
-        >
+        <Link to={createPageUrl('KYC')} className="flex items-center justify-between ka-surface ka-surface-hover p-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-yellow-500/15 border border-yellow-500/30 flex items-center justify-center">
-              <Shield className="w-4 h-4 text-yellow-400" />
-            </div>
-            <span className="text-yellow-300 text-xs font-semibold">
-              {kycStatus === 'pending'
-                ? text.kycPending
-                : text.kycStart}
-            </span>
+            <div className="w-8 h-8 rounded-xl bg-yellow-500/15 border border-yellow-500/30 flex items-center justify-center"><Shield className="w-4 h-4 text-yellow-400" /></div>
+            <span className="text-yellow-300 text-xs font-semibold">{kycStatus === 'pending' ? text.kycPending : text.kycStart}</span>
           </div>
           <ChevronRight className="w-4 h-4 text-yellow-400 shrink-0" />
         </Link>
@@ -113,12 +97,10 @@ export default function Home() {
             <HomePortfolioSummary user={user} prices={prices} idrRate={idrRate} />
             <HomePortfolioPerformance user={user} prices={prices} />
           </div>
-
           <HomeQuickActions />
           <div className="hidden md:block"><Suspense fallback={<DeferredFallback />}><HomeTradingViewSection /></Suspense></div>
           <HomeMarketMovers />
         </div>
-
         <aside className="xl:col-span-4 space-y-4 min-w-0">
           <Suspense fallback={<DeferredFallback />}><AIInsightCard /></Suspense>
           <Suspense fallback={<DeferredFallback />}><WhaleAlertCard /></Suspense>
@@ -131,9 +113,7 @@ export default function Home() {
       <section className="ka-surface p-5 sm:p-6" aria-labelledby="founder-leadership-title">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
           <div className="flex items-start gap-4 min-w-0">
-            <div className="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-400/20 flex items-center justify-center shrink-0">
-              <UserRound className="w-6 h-6 text-sky-300" />
-            </div>
+            <div className="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-400/20 flex items-center justify-center shrink-0"><UserRound className="w-6 h-6 text-sky-300" /></div>
             <div className="min-w-0">
               <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-sky-300">{text.leadership}</p>
               <h2 id="founder-leadership-title" className="text-lg sm:text-xl font-extrabold text-white mt-1">Raden Abdul Rahman, M.Sc.</h2>
@@ -141,23 +121,12 @@ export default function Home() {
               <p className="ka-muted text-xs sm:text-sm leading-relaxed mt-2 max-w-2xl">{text.founderSummary}</p>
             </div>
           </div>
-
           <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 shrink-0">
-            <Link
-              to={createPageUrl('AboutUs')}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-600/60 bg-slate-800/50 text-slate-200 text-xs font-semibold hover:bg-slate-700/60 transition-colors"
-            >
-              {text.aboutFounder}
-              <ChevronRight className="w-3.5 h-3.5" />
+            <Link to={createPageUrl('Founder')} className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-600/60 bg-slate-800/50 text-slate-200 text-xs font-semibold hover:bg-slate-700/60 transition-colors">
+              {text.aboutFounder}<ChevronRight className="w-3.5 h-3.5" />
             </Link>
-            <a
-              href="https://radenabdulrahman.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-sky-500/30 bg-sky-500/10 text-sky-300 text-xs font-semibold hover:bg-sky-500/15 transition-colors"
-            >
-              {text.officialProfile}
-              <ExternalLink className="w-3.5 h-3.5" />
+            <a href="https://radenabdulrahman.com/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-sky-500/30 bg-sky-500/10 text-sky-300 text-xs font-semibold hover:bg-sky-500/15 transition-colors">
+              {text.officialProfile}<ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
         </div>
