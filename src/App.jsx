@@ -18,6 +18,7 @@ import EnglishLanding from './pages/EnglishLanding';
 import AdminRoute from '@/components/security/AdminRoute';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt';
+import PrimaryBottomNav from '@/components/mobile/PrimaryBottomNav';
 import { LanguageProvider } from '@/lib/LanguageContext';
 
 const FeatureUpdateBroadcast = lazy(() => import('./pages/FeatureUpdateBroadcast'));
@@ -54,6 +55,13 @@ const StoreAvailabilityNotice = () => (
       <p className="mt-2 text-sm leading-relaxed text-slate-400">Fitur transaksi ini belum tersedia pada versi publik. KriptoAman saat ini berfokus pada informasi, pemantauan, edukasi, dan keamanan aset digital.</p>
       <a href="/dashboard" className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-5 text-sm font-semibold hover:bg-blue-500">Kembali ke Dashboard</a>
     </div>
+  </div>
+);
+
+const PublicMarketWithNav = ({ Page }) => (
+  <div className="min-h-screen">
+    <Page />
+    <PrimaryBottomNav currentPageName="Market" />
   </div>
 );
 
@@ -105,7 +113,7 @@ const AuthenticatedApp = () => {
             <Route
               key={path}
               path={`/${path}`}
-              element={<Page />}
+              element={path === 'Market' ? <PublicMarketWithNav Page={Page} /> : <Page />}
             />
           );
         })}
