@@ -52,7 +52,10 @@ export default function Profile() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#06101d] via-[#081426] to-[#06101d] pb-24">
+    <div
+      className="min-h-screen bg-gradient-to-b from-[#06101d] via-[#081426] to-[#06101d]"
+      style={{ paddingBottom: 'calc(7rem + env(safe-area-inset-bottom, 0px))' }}
+    >
       <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-6 space-y-5">
 
         {/* Hero Card */}
@@ -63,9 +66,9 @@ export default function Profile() {
             <div className="w-24 h-24 rounded-3xl bg-[#07111d] border border-sky-500/25 flex items-center justify-center shadow-2xl shadow-blue-500/20 mx-auto mb-4">
               <KriptoAmanLogo size={76} showText={false} />
             </div>
-            <h1 className="text-2xl font-bold text-white">{user.full_name || 'Pengguna'}</h1>
-            <p className="text-slate-400 text-sm mt-1">{user.email}</p>
-            <div className="flex items-center justify-center gap-2 mt-3">
+            <h1 className="break-words text-2xl font-bold text-white">{user.full_name || 'Pengguna'}</h1>
+            <p className="mx-auto mt-1 max-w-full break-all text-sm text-slate-400">{user.email}</p>
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-3">
               <span className="text-[11px] bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2.5 py-1 rounded-full font-semibold capitalize">
                 {user.role || 'user'}
               </span>
@@ -83,7 +86,7 @@ export default function Profile() {
             { icon: Hash, label: 'User ID', value: `#${user?.id?.slice(-6) || '—'}` },
             { icon: Star, label: 'Tier', value: 'Standard' },
           ].map(stat => (
-            <div key={stat.label} className="bg-slate-800/50 border border-slate-700/40 rounded-2xl p-3 text-center">
+            <div key={stat.label} className="min-w-0 bg-slate-800/50 border border-slate-700/40 rounded-2xl p-3 text-center">
               <stat.icon className="w-4 h-4 text-blue-400 mx-auto mb-1.5" />
               <p className="text-white text-xs font-bold truncate">{stat.value}</p>
               <p className="text-slate-500 text-[10px] truncate">{stat.label}</p>
@@ -96,11 +99,11 @@ export default function Profile() {
           <div className="flex items-center justify-between">
             <h2 className="text-white font-semibold">Informasi Akun</h2>
             {!editing ? (
-              <button onClick={() => setEditing(true)} className="flex items-center gap-1.5 text-blue-400 text-xs hover:text-blue-300">
+              <button onClick={() => setEditing(true)} className="flex min-h-11 items-center gap-1.5 rounded-xl px-2 text-blue-400 text-xs hover:text-blue-300">
                 <Edit3 className="w-3.5 h-3.5" /> Edit
               </button>
             ) : (
-              <button onClick={() => setEditing(false)} className="text-slate-500 hover:text-white">
+              <button onClick={() => setEditing(false)} className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-500 hover:text-white" aria-label="Batalkan edit">
                 <X className="w-4 h-4" />
               </button>
             )}
@@ -113,19 +116,19 @@ export default function Profile() {
                 <input value={form.full_name} onChange={e => setForm(f => ({ ...f, full_name: e.target.value }))}
                   className="w-full bg-slate-700 border border-slate-600 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500" />
               ) : (
-                <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-slate-500" />
-                  <span className="text-white text-sm">{user.full_name || '—'}</span>
+                <div className="flex min-w-0 items-center gap-2">
+                  <User className="w-4 h-4 shrink-0 text-slate-500" />
+                  <span className="min-w-0 break-words text-white text-sm">{user.full_name || '—'}</span>
                 </div>
               )}
             </div>
 
             <div>
               <label className="text-slate-500 text-xs mb-1 block">Email</label>
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-slate-500" />
-                <span className="text-white text-sm">{user.email}</span>
-                <span className="text-[10px] bg-green-500/15 text-green-400 px-1.5 py-0.5 rounded-full">Terverifikasi</span>
+              <div className="flex min-w-0 items-start gap-2">
+                <Mail className="mt-0.5 w-4 h-4 shrink-0 text-slate-500" />
+                <span className="min-w-0 flex-1 break-all text-white text-sm">{user.email}</span>
+                <span className="shrink-0 text-[10px] bg-green-500/15 text-green-400 px-1.5 py-0.5 rounded-full">Terverifikasi</span>
               </div>
             </div>
 
@@ -137,15 +140,15 @@ export default function Profile() {
                   className="w-full bg-slate-700 border border-slate-600 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500" />
               ) : (
                 <div className="flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-slate-500" />
-                  <span className="text-white text-sm">{user.phone || '—'}</span>
+                  <Phone className="w-4 h-4 shrink-0 text-slate-500" />
+                  <span className="break-all text-white text-sm">{user.phone || '—'}</span>
                 </div>
               )}
             </div>
           </div>
 
           {editing && (
-            <Button onClick={handleSave} disabled={saving} className="w-full bg-blue-600 hover:bg-blue-700">
+            <Button onClick={handleSave} disabled={saving} className="w-full min-h-11 bg-blue-600 hover:bg-blue-700">
               {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
               Simpan Perubahan
             </Button>
@@ -165,19 +168,19 @@ export default function Profile() {
             <h2 className="text-white font-semibold">Keamanan</h2>
           </div>
           <div className="space-y-2.5">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3">
               <span className="text-slate-400 text-sm">Password</span>
-              <span className="text-green-400 text-xs">● Terlindungi</span>
+              <span className="text-green-400 text-xs text-right">● Terlindungi</span>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3">
               <span className="text-slate-400 text-sm">Status KYC</span>
-              <span className={`text-xs capitalize font-semibold ${user.kycStatus === 'approved' ? 'text-green-400' : user.kycStatus === 'pending' ? 'text-yellow-400' : 'text-red-400'}`}>
+              <span className={`text-right text-xs capitalize font-semibold ${user.kycStatus === 'approved' ? 'text-green-400' : user.kycStatus === 'pending' ? 'text-yellow-400' : 'text-red-400'}`}>
                 {user.kycStatus === 'approved' ? '✓ Terverifikasi' : user.kycStatus === 'pending' ? '⏳ Menunggu Review' : '✗ Belum Verifikasi'}
               </span>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3">
               <span className="text-slate-400 text-sm">Peran sistem</span>
-              <span className="text-blue-400 text-xs capitalize">{user.role || 'user'}</span>
+              <span className="text-blue-400 text-xs capitalize text-right">{user.role || 'user'}</span>
             </div>
           </div>
         </div>
@@ -199,21 +202,21 @@ export default function Profile() {
         {/* KYC & Referral shortcuts */}
         <div className="grid grid-cols-2 gap-3">
           <Link to={createPageUrl('KYC')}
-            className={`flex items-center gap-2.5 p-3.5 border rounded-2xl transition-all ${user.kycStatus === 'approved' ? 'bg-green-500/10 border-green-500/20' : 'bg-yellow-500/10 border-yellow-500/20 hover:bg-yellow-500/15'}`}>
+            className={`flex min-h-20 items-center gap-2.5 p-3.5 border rounded-2xl transition-all ${user.kycStatus === 'approved' ? 'bg-green-500/10 border-green-500/20' : 'bg-yellow-500/10 border-yellow-500/20 hover:bg-yellow-500/15'}`}>
             <FileCheck className={`w-5 h-5 shrink-0 ${user.kycStatus === 'approved' ? 'text-green-400' : 'text-yellow-400'}`} />
-            <div>
+            <div className="min-w-0">
               <p className={`text-sm font-semibold ${user.kycStatus === 'approved' ? 'text-green-300' : 'text-yellow-300'}`}>
                 {user.kycStatus === 'approved' ? 'KYC Aktif ✓' : 'Verifikasi KYC'}
               </p>
-              <p className="text-slate-500 text-[10px]">{user.kycStatus === 'approved' ? 'Identitas terverifikasi' : 'Lengkapi verifikasi identitas'}</p>
+              <p className="text-slate-500 text-[10px] leading-relaxed">{user.kycStatus === 'approved' ? 'Identitas terverifikasi' : 'Lengkapi verifikasi identitas'}</p>
             </div>
           </Link>
           <Link to={createPageUrl('Referral')}
-            className="flex items-center gap-2.5 p-3.5 bg-orange-500/10 border border-orange-500/20 rounded-2xl hover:bg-orange-500/15 transition-all">
+            className="flex min-h-20 items-center gap-2.5 p-3.5 bg-orange-500/10 border border-orange-500/20 rounded-2xl hover:bg-orange-500/15 transition-all">
             <Gift className="w-5 h-5 text-orange-400 shrink-0" />
-            <div>
+            <div className="min-w-0">
               <p className="text-orange-300 text-sm font-semibold">Referral</p>
-              <p className="text-slate-500 text-[10px]">Undang teman, dapat bonus</p>
+              <p className="text-slate-500 text-[10px] leading-relaxed">Undang teman, dapat bonus</p>
             </div>
           </Link>
         </div>
@@ -221,7 +224,7 @@ export default function Profile() {
         {/* Logout */}
         <button
           onClick={() => base44.auth.logout()}
-          className="w-full flex items-center justify-center gap-2 py-3.5 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 hover:bg-red-500/15 transition-colors font-semibold"
+          className="w-full min-h-12 flex items-center justify-center gap-2 py-3.5 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 hover:bg-red-500/15 transition-colors font-semibold"
         >
           <LogOut className="w-4 h-4" />
           Keluar dari Akun
