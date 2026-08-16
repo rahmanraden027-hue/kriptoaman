@@ -11,7 +11,14 @@ export default function MobileHeader({ currentPageName }) {
   const navigate = useNavigate();
 
   const pathname = (location.pathname || '/').replace(/\/$/, '').toLowerCase() || '/';
-  const isRoot = ROOT_PAGES.includes(currentPageName || '') || ROOT_PATHS.has(pathname);
+  const normalizedPage = String(currentPageName || '').trim().toLowerCase();
+
+  // Market is a primary bottom-navigation destination. Never render a back header here.
+  if (pathname === '/market' || pathname.startsWith('/market/') || normalizedPage === 'market') {
+    return null;
+  }
+
+  const isRoot = ROOT_PAGES.some(page => page.toLowerCase() === normalizedPage) || ROOT_PATHS.has(pathname);
 
   const handleBack = () => {
     if (window.history.length > 1) {
