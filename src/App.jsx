@@ -57,20 +57,6 @@ const StoreAvailabilityNotice = () => (
   </div>
 );
 
-const MarketPageWithBack = ({ Page }) => (
-  <div className="relative min-h-screen">
-    <a
-      href="/dashboard"
-      aria-label="Kembali ke dashboard"
-      className="fixed left-3 top-3 z-[80] inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/15 bg-slate-950/90 px-3 py-2 text-sm font-semibold text-white shadow-lg backdrop-blur hover:bg-slate-900 active:scale-[0.98]"
-    >
-      <span aria-hidden="true" className="text-lg leading-none">←</span>
-      <span>Kembali</span>
-    </a>
-    <Page />
-  </div>
-);
-
 // Hanya halaman yang memang ditujukan untuk publik boleh dilewati tanpa autentikasi.
 // Dokumentasi internal seperti PlatformDocs tetap berada di balik ProtectedRoute.
 const PUBLIC_PAGE_KEYS = new Set([
@@ -119,7 +105,7 @@ const AuthenticatedApp = () => {
             <Route
               key={path}
               path={`/${path}`}
-              element={path === 'Market' ? <MarketPageWithBack Page={Page} /> : <Page />}
+              element={<Page />}
             />
           );
         })}
