@@ -99,7 +99,7 @@ const COPY = {
     available: 'Data pasar tersedia', connecting: 'Menghubungkan…', assets: 'aset',
     updated: 'diperbarui', fallback: 'Sumber cadangan', search: 'Cari aset',
     all: 'Semua', gainers: 'Naik', losers: 'Turun', watchlist: 'Watchlist',
-    today: 'hari ini', methodology: 'Transparansi data', source: 'Sumber pasar',
+    today: 'hari ini', methodology: 'Sumber & metodologi', source: 'Sumber pasar',
     cadence: 'Pembaruan', cadenceValue: 'Setiap 15 menit + harga live untuk aset utama',
     scope: 'Cakupan', scopeValue: 'Informasi pasar—bukan harga eksekusi bursa',
     disclaimer: 'Harga dapat berbeda antar bursa dan mengalami keterlambatan. KriptoAman tidak mengubah data harga sumber dan tidak menjamin keuntungan.',
@@ -113,7 +113,7 @@ const COPY = {
     available: 'Market data available', connecting: 'Connecting…', assets: 'assets',
     updated: 'updated', fallback: 'Fallback source', search: 'Search assets',
     all: 'All', gainers: 'Gainers', losers: 'Losers', watchlist: 'Watchlist',
-    today: 'today', methodology: 'Data transparency', source: 'Market source',
+    today: 'today', methodology: 'Source & methodology', source: 'Market source',
     cadence: 'Refresh', cadenceValue: 'Every 15 minutes + live prices for major assets',
     scope: 'Scope', scopeValue: 'Market information—not exchange execution prices',
     disclaimer: 'Prices may vary by exchange and may be delayed. KriptoAman does not alter source prices and does not guarantee returns.',
@@ -183,17 +183,17 @@ export default function Market() {
   const formatPrice = (sym) => {
     const d = liveData[sym] || markets[sym];
     const price = d?.price;
-    if (price == null) return "—";
-    if (currency === "usd") {
-      return price >= 1 ? `$${price.toLocaleString("en-US", { maximumFractionDigits: 2 })}` : `$${price.toFixed(6)}`;
+    if (price == null) return '—';
+    if (currency === 'usd') {
+      return price >= 1 ? `$${price.toLocaleString('en-US', { maximumFractionDigits: 2 })}` : `$${price.toFixed(6)}`;
     }
     const idr = price * idrRate;
     if (idr >= 1e9) return `Rp ${(idr / 1e9).toFixed(2)} M`;
     if (idr >= 1e6) return `Rp ${(idr / 1e6).toFixed(2)} Jt`;
-    if (idr >= 1000) return `Rp ${idr.toLocaleString("id-ID", { maximumFractionDigits: 0 })}`;
-    if (idr >= 1) return `Rp ${idr.toLocaleString("id-ID", { maximumFractionDigits: 2 })}`;
-    if (idr >= 0.01) return `Rp ${idr.toLocaleString("id-ID", { maximumFractionDigits: 4 })}`;
-    return `Rp ${idr.toLocaleString("id-ID", { maximumFractionDigits: 8 })}`;
+    if (idr >= 1000) return `Rp ${idr.toLocaleString('id-ID', { maximumFractionDigits: 0 })}`;
+    if (idr >= 1) return `Rp ${idr.toLocaleString('id-ID', { maximumFractionDigits: 2 })}`;
+    if (idr >= 0.01) return `Rp ${idr.toLocaleString('id-ID', { maximumFractionDigits: 4 })}`;
+    return `Rp ${idr.toLocaleString('id-ID', { maximumFractionDigits: 8 })}`;
   };
 
   return (
@@ -207,94 +207,94 @@ export default function Market() {
         />
       )}
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex min-w-0 items-start gap-3">
-            <KriptoAmanLogo size={38} showText={false} animate={false} className="mt-0.5 shrink-0" />
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 pt-2 sm:pt-4">
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <KriptoAmanLogo size={30} showText={false} animate={false} className="shrink-0" />
             <div className="min-w-0">
-            <p className="truncate text-[9px] font-extrabold tracking-[0.18em] text-sky-300">{text.identity}</p>
-            <h1 className="mt-1 text-xl font-bold text-white">{text.title}</h1>
-            <div className="flex items-center gap-2 mt-0.5">
-              <div className={`w-1.5 h-1.5 rounded-full ${marketAvailable ? 'bg-ka-emerald ka-pulse-dot' : 'bg-yellow-400'}`} />
-              <p className={`text-xs ${marketAvailable ? 'text-ka-emerald' : 'text-yellow-400'}`}>
-                {connected ? text.live : dataAvailable ? text.available : text.connecting}
+              <p className="truncate text-[8px] font-extrabold tracking-[0.16em] text-sky-300">{text.identity}</p>
+              <div className="mt-0.5 flex items-center gap-2">
+                <h1 className="text-lg font-bold text-white sm:text-xl">{text.title}</h1>
+                <span className={`inline-flex items-center gap-1 text-[10px] ${marketAvailable ? 'text-ka-emerald' : 'text-yellow-400'}`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${marketAvailable ? 'bg-ka-emerald ka-pulse-dot' : 'bg-yellow-400'}`} />
+                  {connected ? text.live : dataAvailable ? text.available : text.connecting}
+                </span>
+              </div>
+              <p className="mt-0.5 truncate text-[9px] ka-muted">
+                {coins.length.toLocaleString(language === 'en' ? 'en-US' : 'id-ID')} {text.assets} · {sourceLabel}
+                {updatedLabel ? ` · ${text.updated} ${updatedLabel}` : ''}
               </p>
             </div>
-            <p className="ka-muted text-[10px] mt-1">
-              {coins.length.toLocaleString(language === 'en' ? 'en-US' : 'id-ID')} {text.assets} · {sourceLabel}
-              {updatedLabel ? ` · ${text.updated} ${updatedLabel}` : ''}
-            </p>
-            </div>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
+
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 sm:pb-0" style={{ scrollbarWidth: 'none' }}>
             <LanguageSwitcher compact />
-            <button onClick={() => setCurrency(c => c === 'idr' ? 'usd' : 'idr')}
-              className="px-3 py-1.5 ka-chip text-xs font-bold ka-muted hover:text-white transition-colors">
+            <button
+              onClick={() => setCurrency(c => c === 'idr' ? 'usd' : 'idr')}
+              className="ka-chip shrink-0 px-2.5 py-1.5 text-[10px] font-bold ka-muted hover:text-white transition-colors"
+            >
               {currency === 'idr' ? 'IDR 🇮🇩' : 'USD 🇺🇸'}
             </button>
-            <div className={`p-2 rounded-xl border ${marketAvailable ? 'bg-ka-emerald/10 border-ka-emerald/20' : 'ka-chip'}`}>
-              {marketAvailable ? <Wifi className="w-4 h-4 text-ka-emerald" /> : <WifiOff className="w-4 h-4 text-yellow-400" />}
+            <div className={`shrink-0 rounded-lg border p-1.5 ${marketAvailable ? 'bg-ka-emerald/10 border-ka-emerald/20' : 'ka-chip'}`}>
+              {marketAvailable ? <Wifi className="h-3.5 w-3.5 text-ka-emerald" /> : <WifiOff className="h-3.5 w-3.5 text-yellow-400" />}
             </div>
           </div>
         </div>
 
         {isStale && dataAvailable && (
-          <div role="status" className="mb-4 rounded-xl border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-[10px] leading-relaxed text-amber-200">
+          <div role="status" className="mb-3 rounded-xl border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-[10px] leading-relaxed text-amber-200">
             {text.stale}{ageLabel ? ` (${ageLabel})` : ''}
           </div>
         )}
 
-        {/* Search */}
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ka-muted" />
+        <div className="relative mb-2.5">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 ka-muted" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder={`${text.search} (${coins.length})… BTC, ETH, SOL`}
-            className="w-full ka-surface rounded-2xl pl-9 pr-4 py-3 text-white text-sm focus:outline-none focus:border-ka-emerald placeholder:ka-muted"
+            className="w-full ka-surface rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-ka-emerald placeholder:ka-muted"
           />
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+        <div className="grid grid-cols-4 gap-1.5 mb-2.5">
           {[['all', text.all], ['gainers', text.gainers], ['losers', text.losers], ['watchlist', text.watchlist]].map(([key, label]) => (
-            <button key={key} onClick={() => setTab(key)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${tab === key ? 'bg-ka-emerald text-black' : 'ka-chip ka-muted hover:text-white'}`}>
-              {label}
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              className={`min-w-0 rounded-lg px-2 py-2 text-[11px] font-semibold transition-all ${tab === key ? 'bg-ka-emerald text-black' : 'ka-chip ka-muted hover:text-white'}`}
+            >
+              <span className="block truncate">{label}</span>
             </button>
           ))}
         </div>
 
-        {/* Market stats bar */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
+        <div className="grid grid-cols-3 gap-1.5 mb-2.5">
           {[
             { label: text.gainers, value: coins.filter(c => ((liveData[c.sym]?.change24h ?? markets[c.sym]?.change24h) || 0) > 0).length, color: 'text-ka-emerald' },
             { label: text.losers, value: coins.filter(c => ((liveData[c.sym]?.change24h ?? markets[c.sym]?.change24h) || 0) < 0).length, color: 'text-[#e74c3c]' },
             { label: 'Total', value: coins.length, color: 'text-white' },
           ].map(stat => (
-            <div key={stat.label} className="ka-surface p-2.5 text-center">
+            <div key={stat.label} className="ka-surface rounded-xl px-2 py-2 text-center">
               <p className={`text-sm font-bold ka-num ${stat.color}`}>{stat.value}</p>
-              <p className="ka-muted text-[10px]">{stat.label} {text.today}</p>
+              <p className="ka-muted text-[9px] truncate">{stat.label}</p>
             </div>
           ))}
         </div>
 
-        <section className="mb-4 rounded-2xl border border-sky-400/20 bg-gradient-to-br from-sky-400/[0.08] to-transparent p-4" aria-labelledby="market-methodology">
-          <div className="flex items-center justify-between gap-3">
-            <h2 id="market-methodology" className="text-xs font-extrabold text-white">{text.methodology}</h2>
-            <span className="rounded-full border border-emerald-400/25 bg-emerald-400/10 px-2 py-1 text-[9px] font-bold text-emerald-300">PT KRIPTO AMAN INDONESIA</span>
+        <details className="mb-2.5 rounded-xl border border-sky-400/15 bg-sky-400/[0.04] px-3 py-2">
+          <summary className="cursor-pointer select-none text-[10px] font-bold text-sky-300">{text.methodology}</summary>
+          <div className="pt-2 text-[9px] leading-relaxed text-slate-400">
+            <div className="grid gap-2 sm:grid-cols-3">
+              <div><span className="font-bold text-sky-300">{text.source}: </span>{sourceLabel}</div>
+              <div><span className="font-bold text-sky-300">{text.cadence}: </span>{text.cadenceValue}</div>
+              <div><span className="font-bold text-sky-300">{text.scope}: </span>{text.scopeValue}</div>
+            </div>
+            <p className="mt-2 border-t border-white/10 pt-2 text-slate-500">{text.disclaimer}</p>
           </div>
-          <dl className="mt-3 grid gap-3 text-[10px] sm:grid-cols-3">
-            <div><dt className="font-bold text-sky-300">{text.source}</dt><dd className="mt-1 text-slate-400">{sourceLabel}</dd></div>
-            <div><dt className="font-bold text-sky-300">{text.cadence}</dt><dd className="mt-1 text-slate-400">{text.cadenceValue}</dd></div>
-            <div><dt className="font-bold text-sky-300">{text.scope}</dt><dd className="mt-1 text-slate-400">{text.scopeValue}</dd></div>
-          </dl>
-          <p className="mt-3 border-t border-white/10 pt-3 text-[9px] leading-relaxed text-slate-500">{text.disclaimer}</p>
-        </section>
+        </details>
 
-        {/* Coin list */}
-        <div className="grid gap-2 xl:grid-cols-2">
+        <div className="grid gap-1.5 xl:grid-cols-2">
           {visibleCoins.map((c, index) => {
             const d = liveData[c.sym] || markets[c.sym];
             const chg = d?.change24h;
@@ -305,48 +305,50 @@ export default function Market() {
             return (
               <div
                 key={c.id}
-                className="flex items-center gap-2 ka-surface ka-surface-hover p-3"
+                className="flex items-center gap-2 ka-surface ka-surface-hover px-2.5 py-2.5"
                 onClick={() => setChartCoin(c)}
               >
                 <div className="relative shrink-0">
                   <img
                     src={coinImage(c.id, c.image, c.sym)}
                     alt={c.name}
-                    className="w-9 h-9 rounded-full object-cover"
+                    className="h-8 w-8 rounded-full object-cover"
                     loading="lazy"
                     onError={(e) => handleCoinImageError(e, c.sym)}
                   />
                   <span
                     aria-hidden="true"
-                    className="w-9 h-9 rounded-full items-center justify-center border border-ka-emerald/30 bg-ka-emerald/10 text-ka-emerald text-[9px] font-extrabold"
+                    className="h-8 w-8 rounded-full items-center justify-center border border-ka-emerald/30 bg-ka-emerald/10 text-[8px] font-extrabold text-ka-emerald"
                     style={{ display: 'none' }}
                   >
                     {c.sym.slice(0, 4)}
                   </span>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-white text-sm font-bold">{c.sym}</p>
-                  <p className="ka-muted text-[10px]">#{c.rank || index + 1} · {c.name}</p>
+                  <p className="text-sm font-bold text-white">{c.sym}</p>
+                  <p className="max-w-[100px] truncate text-[9px] ka-muted">#{c.rank || index + 1} · {c.name}</p>
                 </div>
-                <div className="ml-auto flex items-center gap-2.5">
-                  {chartData.length > 1 ? (
-                    <InteractiveSparkline data={chartData} up={isUp} height={28} width={64} />
-                  ) : (
-                    <div className="w-16 text-center ka-muted text-xs" aria-label={language === 'en' ? 'Trend unavailable' : 'Tren belum tersedia'}>—</div>
-                  )}
-                  <div className="text-right shrink-0">
-                    <p className={`text-sm font-bold ka-num transition-colors ${d?.tick === 'up' ? 'text-ka-emerald' : d?.tick === 'down' ? 'text-[#e74c3c]' : 'text-white'}`}>
+                <div className="ml-auto flex min-w-0 items-center gap-2">
+                  <div className="hidden xs:block sm:block">
+                    {chartData.length > 1 ? (
+                      <InteractiveSparkline data={chartData} up={isUp} height={24} width={52} />
+                    ) : null}
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className={`text-[13px] font-bold ka-num transition-colors ${d?.tick === 'up' ? 'text-ka-emerald' : d?.tick === 'down' ? 'text-[#e74c3c]' : 'text-white'}`}>
                       {formatPrice(c.sym)}
                     </p>
-                    <div className={`flex items-center justify-end gap-1 text-xs font-semibold ${isUp ? 'text-ka-emerald' : 'text-[#e74c3c]'}`}>
-                      {isUp ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                    <div className={`flex items-center justify-end gap-1 text-[10px] font-semibold ${isUp ? 'text-ka-emerald' : 'text-[#e74c3c]'}`}>
+                      {isUp ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                       {chg != null ? `${isUp ? '+' : ''}${chg.toFixed(2)}%` : '—'}
                     </div>
                   </div>
-                  <button onClick={e => { e.stopPropagation(); toggleWatchlist(c.sym); }}
-                    className={`p-1.5 rounded-lg transition-all shrink-0 tap-reset ${inWatchlist ? 'text-yellow-400' : 'ka-muted hover:text-white'}`}
-                    aria-label="Watchlist">
-                    <Star className={`w-4 h-4 ${inWatchlist ? 'fill-yellow-400' : ''}`} />
+                  <button
+                    onClick={e => { e.stopPropagation(); toggleWatchlist(c.sym); }}
+                    className={`shrink-0 rounded-lg p-1.5 transition-all tap-reset ${inWatchlist ? 'text-yellow-400' : 'ka-muted hover:text-white'}`}
+                    aria-label="Watchlist"
+                  >
+                    <Star className={`h-4 w-4 ${inWatchlist ? 'fill-yellow-400' : ''}`} />
                   </button>
                 </div>
               </div>
