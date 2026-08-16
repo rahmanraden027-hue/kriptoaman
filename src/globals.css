@@ -103,7 +103,13 @@ body.pwa-fullscreen {
    Android/browser status UI even when safe-area-inset-top resolves to 0. */
 @media (max-width: 639px) {
   .ka-bg.text-white.pb-24 > .max-w-6xl.mx-auto.px-3 {
-    padding-top: max(20px, calc(env(safe-area-inset-top, 0px) + 12px)) !important;
+    padding-top: max(30px, calc(env(safe-area-inset-top, 0px) + 20px)) !important;
+  }
+
+  /* Market primary prices stay neutral; direction is communicated by the
+     dedicated 24h/tick indicator below the price. */
+  .ka-bg.text-white.pb-24 .grid.gap-1\.5.xl\:grid-cols-2 .ka-num {
+    color: #ffffff !important;
   }
 }
 
