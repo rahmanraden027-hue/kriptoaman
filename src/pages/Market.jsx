@@ -197,7 +197,7 @@ export default function Market() {
   };
 
   return (
-    <div className="min-h-screen ka-bg text-white pb-24">
+    <div className="min-h-screen ka-bg text-white pb-[calc(11rem+env(safe-area-inset-bottom))] sm:pb-28">
       {chartCoin && (
         <TradingViewModal
           coin={chartCoin}
@@ -360,7 +360,7 @@ export default function Market() {
           <button
             type="button"
             onClick={() => setVisibleCount(count => Math.min(count + 100, filtered.length))}
-            className="w-full ka-btn-primary mt-4 py-3 text-sm"
+            className="w-full ka-btn-primary mt-4 mb-6 py-3 text-sm"
           >
             {text.load} ({filtered.length - visibleCount} {text.remaining})
           </button>
