@@ -27,20 +27,20 @@ export default function HomeLearningCenter() {
         <Link to={createPageUrl('Edukasi')} className="ka-muted hover:text-ka-emerald transition tap-reset"><ChevronRight className="w-4 h-4" /></Link>
       </div>
 
-      <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 snap-x" style={{ scrollbarWidth: 'none' }}>
+      <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory" style={{ scrollbarWidth: 'none' }}>
         {CARDS.map(({ icon: Icon, cat, title, desc, level, mins, color }) => (
           <Link key={title} to={createPageUrl('Edukasi')}
-            className="min-w-[185px] max-w-[185px] ka-surface ka-surface-hover p-3.5 shrink-0 snap-start relative overflow-hidden">
+            className="min-w-[86%] sm:min-w-[220px] sm:max-w-[220px] ka-surface ka-surface-hover p-4 shrink-0 snap-start relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: `linear-gradient(90deg, ${color}, transparent)` }} />
-            <div className="flex items-start justify-between mb-2.5">
-              <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ background: `${color}1f`, border: `1px solid ${color}40` }}>
+            <div className="flex items-start justify-between mb-3 gap-3">
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0" style={{ background: `${color}1f`, border: `1px solid ${color}40` }}>
                 <Icon className="w-5 h-5" style={{ color }} />
               </div>
-              <span className="text-[9px] font-bold ka-muted uppercase tracking-wide">{cat}</span>
+              <span className="text-[9px] font-bold ka-muted uppercase tracking-wide text-right">{cat}</span>
             </div>
-            <p className="text-white text-xs font-bold leading-snug">{title}</p>
-            <p className="ka-muted text-[10px] mt-1 leading-relaxed line-clamp-2 min-h-[28px]">{desc}</p>
-            <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-ka-card-border">
+            <p className="text-white text-sm font-bold leading-snug whitespace-normal break-words">{title}</p>
+            <p className="ka-muted text-[11px] mt-1.5 leading-relaxed line-clamp-2 min-h-[34px]">{desc}</p>
+            <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-ka-card-border">
               <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${levelClass(level)}`}>{level}</span>
               <span className="text-[10px] ka-muted flex items-center gap-1"><Clock className="w-3 h-3" />{mins} mnt</span>
             </div>
