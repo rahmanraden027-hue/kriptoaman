@@ -29,7 +29,10 @@ test('market trust widgets disclose source time and asset quality', async () => 
   assert.match(ai, /Bukan rekomendasi investasi/);
   assert.match(ai, /updatedAt/);
   assert.match(volume, /market_cap_rank <= 100/);
-  assert.match(volume, /kapitalisasi dan volume minimum/);
+  assert.match(volume, /berkapitalisasi besar/);
+  assert.match(volume, /ambang volume minimum/);
+  assert.match(volume, /bukan verifikasi legitimasi aset/);
+  assert.match(volume, /bukan .*rekomendasi investasi/);
   assert.match(overview, /CoinGecko Global dan Alternative\.me/);
 });
 
