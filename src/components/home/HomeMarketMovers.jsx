@@ -51,12 +51,26 @@ export default function HomeMarketMovers() {
     return () => { alive = false; clearInterval(id); };
   }, []);
 
-  const gainers = [...coins].filter(c => c.price_change_percentage_24h != null).sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h).slice(0, 10);
-  const losers = [...coins].filter(c => c.price_change_percentage_24h != null).sort((a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h).slice(0, 10);
-  const trendingCoins = trending.map(t => coins.find(c => c.id === t.id) || {
-    id: t.id, symbol: (t.symbol || '').toUpperCase(), name: t.name, image: t.small || t.thumb,
-    current_price: t.data?.price, price_change_percentage_24h: t.data?.price_change_percentage_24h,
-  });
+  const qualifiedCoins = coins.filter(c =>
+    c.current_price != null &&
+    c.price_change_percentage_24h != null &&
+    c.market_cap_rank > 0 && c.market_cap_rank <= 100 &&
+    (c.market_cap || 0) >= 100_000_000 &&
+    (c.total_volume || 0) >= 1_000_000
+  );
+
+  const gainers = [...qualifiedCoins]
+    .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h)
+    .slice(0, 10);
+  const losers = [...qualifiedCoins]
+    .sort((a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h)
+    .slice(0, 10);
+  const trendingCoins = trending
+    .map(t => coins.find(c => c.id === t.id) || {
+      id: t.id, symbol: (t.symbol || '').toUpperCase(), name: t.name, image: t.small || t.thumb,
+      current_price: t.data?.price, price_change_percentage_24h: t.data?.price_change_percentage_24h,
+    })
+    .filter(c => c.current_price != null);
 
   let list = [];
   if (tab === 'gainers') list = gainers;
@@ -66,13 +80,16 @@ export default function HomeMarketMovers() {
 
   return (
     <div className="ka-surface p-4 ka-fade-up" style={{ animationDelay: '180ms' }}>
-      <h3 className="text-white font-bold text-sm mb-3 flex items-center gap-1.5">
-        <Flame className="w-4 h-4 text-ka-emerald" /> Market Movers
-      </h3>
-      <div className="flex gap-1.5 mb-3 overflow-x-auto pb-1">
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <h3 className="text-white font-bold text-sm flex items-center gap-1.5">
+          <Flame className="w-4 h-4 text-ka-emerald" /> Market Movers
+        </h3>
+        <span className="text-[9px] ka-muted whitespace-nowrap">Top 100 market cap</span>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mb-3">
         {TABS.map(({ key, label, icon: Icon }) => (
           <button key={key} onClick={() => setTab(key)}
-            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-bold whitespace-nowrap transition tap-reset ${tab === key ? 'bg-ka-emerald text-black' : 'bg-ka-card text-ka-muted hover:text-white'}`}>
+            className={`flex items-center justify-center gap-1 px-2 py-2 rounded-lg text-[10px] font-bold whitespace-nowrap transition tap-reset ${tab === key ? 'bg-ka-emerald text-black' : 'bg-ka-card text-ka-muted hover:text-white'}`}>
             <Icon className="w-3 h-3" /> {label}
           </button>
         ))}
@@ -92,26 +109,29 @@ export default function HomeMarketMovers() {
             const up = chg >= 0;
             const watched = watchlist.includes(sym);
             return (
-              <div key={c.id || sym} className="flex items-center justify-between py-1.5 px-1 rounded-lg hover:bg-ka-card/50 transition">
-                <div className="flex items-center gap-2 min-w-0">
-                  {c.image ? <img src={c.image} alt={sym} loading="lazy" className="w-6 h-6 rounded-full" /> : <div className="w-6 h-6 rounded-full bg-ka-card" />}
-                  <div className="min-w-0">
+              <div key={c.id || sym} className="flex items-center justify-between gap-2 py-2 px-1 rounded-lg hover:bg-ka-card/50 transition">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  {c.image ? <img src={c.image} alt={sym} loading="lazy" className="w-7 h-7 rounded-full shrink-0" /> : <div className="w-7 h-7 rounded-full bg-ka-card shrink-0" />}
+                  <div className="min-w-0 flex-1">
                     <p className="text-white text-xs font-bold truncate">{sym}</p>
-                    <p className="ka-muted text-[10px] truncate max-w-[100px]">{c.name}</p>
+                    <p className="ka-muted text-[10px] truncate max-w-[150px] sm:max-w-[220px]">{c.name}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="text-right">
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="text-right min-w-[78px]">
                     <p className="text-white text-xs font-bold ka-num">{fmtPrice(c.current_price)}</p>
                     <p className={`text-[10px] font-bold ka-num ${up ? 'text-ka-emerald' : 'text-[#e74c3c]'}`}>{up ? '+' : ''}{chg.toFixed(2)}%</p>
                   </div>
-                  <button onClick={() => toggleWatch(sym)} className="tap-reset p-1" aria-label="Toggle watchlist">
-                    <Star className={`w-3.5 h-3.5 ${watched ? 'text-ka-emerald fill-ka-emerald' : 'text-ka-muted'}`} />
+                  <button onClick={() => toggleWatch(sym)} className="tap-reset p-1.5" aria-label={`Toggle ${sym} watchlist`}>
+                    <Star className={`w-4 h-4 ${watched ? 'text-ka-emerald fill-ka-emerald' : 'text-ka-muted'}`} />
                   </button>
                 </div>
               </div>
             );
           })}
+          <p className="ka-muted text-[10px] leading-relaxed pt-2 border-t border-ka-card-border">
+            Sumber: CoinGecko. Gainers/Losers disaring dari 100 aset teratas dengan kapitalisasi ≥ $100 juta dan volume 24 jam ≥ $1 juta. Data informatif, bukan rekomendasi investasi.
+          </p>
         </div>
       )}
     </div>
