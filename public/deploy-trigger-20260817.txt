@@ -1,0 +1,3 @@
+KriptoAman deployment trigger
+Requested: 2026-08-17
+Purpose: force production rebuild after mobile market navigation and PWA cache fixes.
