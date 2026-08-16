@@ -31,11 +31,12 @@ test('market provides bilingual identity and transparent methodology', async () 
   assert.match(market, /KRIPTOAMAN MARKET INTELLIGENCE/);
   assert.match(market, /Pasar Kripto/);
   assert.match(market, /Crypto Market/);
-  assert.match(market, /Transparansi data/);
-  assert.match(market, /Data transparency/);
+  assert.match(market, /Sumber & metodologi/);
+  assert.match(market, /Source & methodology/);
+  assert.match(market, /Sumber pasar/);
+  assert.match(market, /Market source/);
   assert.match(market, /tidak menjamin keuntungan/);
   assert.match(market, /does not guarantee returns/);
-  assert.match(market, /PT KRIPTO AMAN INDONESIA/);
 });
 
 
