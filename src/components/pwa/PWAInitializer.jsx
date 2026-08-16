@@ -6,60 +6,98 @@ export function usePWAInitializer() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
 
   useEffect(() => {
-    // Register Service Worker
-    if ('serviceWorker' in navigator && import.meta.env.PROD) {
-      window.addEventListener('load', async () => {
-        try {
-          const reg = await navigator.serviceWorker.register('/sw.js', {
-            scope: '/',
-          });
-          
-          setSwReady(true);
-          console.log('Service Worker registered:', reg);
+    if (!('serviceWorker' in navigator) || !import.meta.env.PROD) return undefined;
 
-          // Check for updates every hour
-          setInterval(() => {
-            reg.update();
-          }, 60 * 60 * 1000);
+    let reg;
+    let updateInterval;
+    let reloading = false;
 
-          // Listen for new service worker
-          reg.addEventListener('updatefound', () => {
-            const newWorker = reg.installing;
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'activated') {
-                setUpdateAvailable(true);
-                // Notify user
-                base44.analytics.track({
-                  eventName: 'pwa_update_available',
-                  properties: { timestamp: Date.now() }
-                });
-              }
-            });
+    const checkForUpdate = async () => {
+      try {
+        if (reg) await reg.update();
+      } catch (err) {
+        console.warn('Service Worker update check failed:', err);
+      }
+    };
+
+    const registerWorker = async () => {
+      try {
+        reg = await navigator.serviceWorker.register('/sw.js', {
+          scope: '/',
+          updateViaCache: 'none',
+        });
+
+        setSwReady(true);
+        console.log('Service Worker registered:', reg);
+
+        // Always check immediately when the app starts. This is important for
+        // installed Android PWAs that may otherwise continue using an old UI bundle.
+        await reg.update();
+
+        updateInterval = window.setInterval(checkForUpdate, 5 * 60 * 1000);
+
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (!newWorker) return;
+
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'activated') {
+              setUpdateAvailable(true);
+              base44.analytics.track({
+                eventName: 'pwa_update_available',
+                properties: { timestamp: Date.now() },
+              }).catch(() => {});
+            }
           });
-        } catch (err) {
-          console.error('Service Worker registration failed:', err);
+        });
+      } catch (err) {
+        console.error('Service Worker registration failed:', err);
+      }
+    };
+
+    // If the component mounts after window.load has already fired, register
+    // immediately instead of waiting for an event that will never fire again.
+    if (document.readyState === 'complete') {
+      registerWorker();
+    } else {
+      window.addEventListener('load', registerWorker, { once: true });
+    }
+
+    const onFocus = () => checkForUpdate();
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') checkForUpdate();
+    };
+    const onControllerChange = () => {
+      if (reloading) return;
+      reloading = true;
+      console.log('New Service Worker activated; refreshing UI');
+      window.location.reload();
+    };
+
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+
+    return () => {
+      window.removeEventListener('load', registerWorker);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+      if (updateInterval) window.clearInterval(updateInterval);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+    navigator.serviceWorker.ready.then(registration => {
+      registration.pushManager.getSubscription().then(sub => {
+        if (!sub && Notification.permission === 'granted') {
+          subscribeToPushNotifications(registration);
         }
       });
+    });
 
-      // Listen for controller change (when new SW takes over)
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        console.log('New Service Worker activated');
-        window.location.reload();
-      });
-    }
-
-    // Handle push notifications
-    if ('serviceWorker' in navigator && 'PushManager' in window) {
-      navigator.serviceWorker.ready.then(reg => {
-        reg.pushManager.getSubscription().then(sub => {
-          if (!sub && Notification.permission === 'granted') {
-            subscribeToPushNotifications(reg);
-          }
-        });
-      });
-    }
-
-    // Request notification permission
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission().catch(() => {
         console.log('Notification permission denied');
@@ -79,7 +117,6 @@ async function subscribeToPushNotifications(swReg) {
       ),
     });
 
-    // Send subscription to server
     await fetch('/api/push-subscribe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -108,7 +145,6 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
-// Hook untuk update notification
 export function PWAUpdateNotification() {
   const { updateAvailable } = usePWAInitializer();
 
