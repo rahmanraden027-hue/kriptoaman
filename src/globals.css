@@ -102,8 +102,14 @@ body.pwa-fullscreen {
 /* Market mobile header: keep the intelligence label and title clear of
    Android/browser status UI even when safe-area-inset-top resolves to 0. */
 @media (max-width: 639px) {
+  .ka-bg.text-white.pb-24 {
+    padding-bottom: max(8.5rem, calc(7rem + env(safe-area-inset-bottom, 0px))) !important;
+    scroll-padding-bottom: max(8.5rem, calc(7rem + env(safe-area-inset-bottom, 0px)));
+  }
+
   .ka-bg.text-white.pb-24 > .max-w-6xl.mx-auto.px-3 {
     padding-top: max(30px, calc(env(safe-area-inset-top, 0px) + 20px)) !important;
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
   }
 
   /* Market primary prices stay neutral; direction is communicated by the
