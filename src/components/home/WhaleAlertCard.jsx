@@ -34,7 +34,7 @@ export default function WhaleAlertCard() {
     <div className="ka-surface p-4 ka-fade-up" style={{ animationDelay: '400ms' }}>
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-white font-bold text-sm flex items-center gap-1.5">
-          <Waves className="w-4 h-4 text-ka-emerald" /> Aktivitas Aset Terverifikasi
+          <Waves className="w-4 h-4 text-ka-emerald" /> Aktivitas Aset Pasar Utama
         </h3>
         <button onClick={load} className="ka-muted hover:text-ka-emerald transition tap-reset" aria-label="Refresh">
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -63,7 +63,7 @@ export default function WhaleAlertCard() {
               </div>
             );
           })}
-          <p className="ka-muted text-[11px] pt-2 leading-relaxed">Sumber: CoinGecko · Hanya 100 aset teratas dengan kapitalisasi dan volume minimum. Rasio volume/kapitalisasi adalah indikator aktivitas, bukan bukti transaksi whale atau rekomendasi investasi.</p>
+          <p className="ka-muted text-[11px] pt-2 leading-relaxed">Sumber: CoinGecko · Menampilkan aset berkapitalisasi besar dengan ambang volume minimum. Rasio volume/kapitalisasi digunakan sebagai indikator aktivitas pasar dan bukan verifikasi legitimasi aset, bukti transaksi whale, atau rekomendasi investasi.</p>
         </div>
       )}
     </div>
