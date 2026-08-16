@@ -28,15 +28,16 @@ export default function GLandingHeader({ dark, onToggleTheme, active = 'Beranda'
     <header
       className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
       style={{
+        paddingTop: 'env(safe-area-inset-top, 0px)',
         background: scrolled ? 'color-mix(in srgb, var(--ka-bg1) 88%, transparent)' : 'transparent',
         backdropFilter: scrolled ? 'blur(12px)' : 'none',
         borderBottom: scrolled ? '1px solid var(--ka-border)' : '1px solid transparent',
       }}
     >
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-        <a href="#beranda" className="flex items-center gap-2 shrink-0">
-          <KriptoAmanLogo size={30} showText={false} animate={false} />
-          <span className="font-extrabold tracking-[0.18em] text-sm uppercase">
+      <div className="max-w-[1440px] mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-4">
+        <a href="#beranda" className="flex items-center gap-2 min-w-0 shrink">
+          <KriptoAmanLogo size={28} showText={false} animate={false} className="shrink-0" />
+          <span className="font-extrabold tracking-[0.14em] sm:tracking-[0.18em] text-xs sm:text-sm uppercase whitespace-nowrap">
             <span className="ka-text">KRIPTO</span><span className="ka-blue">AMAN</span>
           </span>
         </a>
@@ -48,7 +49,7 @@ export default function GLandingHeader({ dark, onToggleTheme, active = 'Beranda'
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <button onClick={onToggleTheme} aria-label="Ganti tema"
             className="w-9 h-9 rounded-lg flex items-center justify-center ka-card2">
             {dark ? <Sun className="w-4 h-4 ka-gold" /> : <Moon className="w-4 h-4 ka-blue" />}
@@ -57,7 +58,7 @@ export default function GLandingHeader({ dark, onToggleTheme, active = 'Beranda'
             <Globe className="w-3.5 h-3.5" /> EN
           </Link>
           <Link to="/login"
-            className="ka-btn-primary inline-flex items-center justify-center px-4 h-9 text-sm">
+            className="ka-btn-primary inline-flex items-center justify-center px-3 sm:px-4 h-9 text-xs sm:text-sm">
             Masuk
           </Link>
           <button className="lg:hidden w-9 h-9 rounded-lg flex items-center justify-center ka-card2"
@@ -68,7 +69,7 @@ export default function GLandingHeader({ dark, onToggleTheme, active = 'Beranda'
       </div>
 
       {open && (
-        <div className="lg:hidden ka-card2 border-t mx-4 mb-3 rounded-xl p-3 flex flex-col gap-1">
+        <div className="lg:hidden ka-card2 border-t mx-3 sm:mx-4 mb-3 rounded-xl p-3 flex flex-col gap-1">
           {LINKS.map((l) => (
             <a key={l.href} href={l.href} onClick={() => setOpen(false)}
               className={`ka-nav-link px-3 py-2 rounded-lg text-sm ${active === l.label ? 'active' : ''}`}>{l.label}</a>
