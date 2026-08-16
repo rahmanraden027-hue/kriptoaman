@@ -99,6 +99,14 @@ body.pwa-fullscreen {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+/* Market mobile header: keep the intelligence label and title clear of
+   Android/browser status UI even when safe-area-inset-top resolves to 0. */
+@media (max-width: 639px) {
+  .ka-bg.text-white.pb-24 > .max-w-6xl.mx-auto.px-3 {
+    padding-top: max(20px, calc(env(safe-area-inset-top, 0px) + 12px)) !important;
+  }
+}
+
 /* Install prompt styling */
 .pwa-install-prompt {
   animation: slideUp 0.3s ease-out;
