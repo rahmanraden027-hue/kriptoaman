@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import useLivePrices from '../components/market/useLivePrices';
-import { Shield, ChevronRight, Radio, Eye, ExternalLink, UserRound } from 'lucide-react';
+import { Shield, ChevronRight, Radio, Eye, UserRound } from 'lucide-react';
 import HomePortfolioSummary from '../components/home/HomePortfolioSummary';
 import HomeQuickActions from '../components/home/HomeQuickActions';
 import HomeMarketOverview from '../components/home/HomeMarketOverview';
@@ -25,21 +25,17 @@ const COPY = {
     summary: 'Ringkasan pasar, portofolio, dan keamanan dalam satu layar.',
     live: 'Data langsung', watch: 'Mode pemantauan', kycPending: 'KYC sedang ditinjau',
     kycStart: 'Lengkapi KYC untuk akses yang sesuai',
-    leadership: 'Founder & Leadership',
+    leadership: 'Kepemimpinan',
     founderRole: 'Founder & CEO KriptoAman',
-    founderSummary: 'Memimpin KriptoAman dengan fokus pada keamanan, transparansi, dan pengalaman pengguna.',
     aboutFounder: 'Tentang Founder',
-    officialProfile: 'Profil Resmi',
   },
   en: {
     summary: 'Market, portfolio, and security overview in one place.',
     live: 'Live data', watch: 'Watch-only mode', kycPending: 'KYC is under review',
     kycStart: 'Complete KYC for eligible access',
-    leadership: 'Founder & Leadership',
+    leadership: 'Leadership',
     founderRole: 'Founder & CEO of KriptoAman',
-    founderSummary: 'Leading KriptoAman with a focus on security, transparency, and user experience.',
     aboutFounder: 'About the Founder',
-    officialProfile: 'Official Profile',
   },
 };
 
@@ -110,23 +106,22 @@ export default function Home() {
         </aside>
       </div>
 
-      <section className="ka-surface p-4 sm:p-5 !mt-10" aria-labelledby="founder-leadership-title">
-        <div className="flex items-start gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-400/20 flex items-center justify-center shrink-0"><UserRound className="w-5 h-5 text-sky-300" /></div>
+      <section className="ka-surface px-4 py-3 sm:px-5 sm:py-4 !mt-10" aria-labelledby="founder-leadership-title">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 rounded-xl bg-sky-500/10 border border-sky-400/20 flex items-center justify-center shrink-0">
+            <UserRound className="w-4.5 h-4.5 text-sky-300" />
+          </div>
           <div className="min-w-0 flex-1">
             <p className="text-[9px] uppercase tracking-[0.18em] font-bold text-sky-300">{text.leadership}</p>
-            <h2 id="founder-leadership-title" className="text-base sm:text-lg font-extrabold text-white mt-1">Raden Abdul Rahman, M.Sc.</h2>
-            <p className="text-[11px] font-semibold text-slate-300 mt-0.5">{text.founderRole}</p>
-            <p className="ka-muted text-xs leading-relaxed mt-1.5 max-w-2xl">{text.founderSummary}</p>
-            <div className="flex flex-wrap gap-2 mt-3">
-              <Link to={createPageUrl('Founder')} className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-slate-600/60 bg-slate-800/50 text-slate-200 text-[11px] font-semibold hover:bg-slate-700/60 transition-colors">
-                {text.aboutFounder}<ChevronRight className="w-3 h-3" />
-              </Link>
-              <a href="https://radenabdulrahman.com/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-sky-500/30 bg-sky-500/10 text-sky-300 text-[11px] font-semibold hover:bg-sky-500/15 transition-colors">
-                {text.officialProfile}<ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
+            <h2 id="founder-leadership-title" className="text-sm sm:text-base font-extrabold text-white truncate">Raden Abdul Rahman, M.Sc.</h2>
+            <p className="text-[10px] sm:text-[11px] font-semibold text-slate-400 truncate">{text.founderRole}</p>
           </div>
+          <Link
+            to={createPageUrl('Founder')}
+            className="inline-flex items-center justify-center gap-1 px-2.5 py-2 rounded-lg border border-sky-500/25 bg-sky-500/10 text-sky-300 text-[10px] font-semibold shrink-0 hover:bg-sky-500/15 transition-colors"
+          >
+            {text.aboutFounder}<ChevronRight className="w-3 h-3" />
+          </Link>
         </div>
       </section>
 
