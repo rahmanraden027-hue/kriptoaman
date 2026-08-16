@@ -9,6 +9,7 @@ on:
       - 'android/**'
       - 'src/**'
       - 'public/**'
+      - 'tests/**'
       - 'package.json'
       - 'package-lock.json'
       - 'capacitor.config.*'
@@ -33,6 +34,8 @@ jobs:
           java-version: '21'
           cache: gradle
       - run: npm ci --legacy-peer-deps
+      - name: Run release regression tests
+        run: npm run test
       - run: npm run android:sync
       - name: Restore Play signing key
         shell: bash
