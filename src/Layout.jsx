@@ -114,45 +114,51 @@ export default function Layout({ children, currentPageName }) {
       <Web3Provider>
       <div className="min-h-screen ka-bg">
       <style>{`
-        /* PWA iOS safe area & viewport */
-        body { 
+        /* PWA safe area & viewport */
+        body {
           background: #0a0c0a;
           overscroll-behavior: none;
           -webkit-tap-highlight-color: transparent;
           -webkit-touch-callout: none;
         }
-        /* Prevent iOS bounce */
         html { overflow: hidden; height: 100%; }
         body { overflow: auto; height: 100%; }
-        /* CSP meta for inline - already in index.html */
         .safe-area-pb { padding-bottom: env(safe-area-inset-bottom, 16px); }
+        .safe-area-pt { padding-top: env(safe-area-inset-top, 0px); }
       `}</style>
       <PWAUpdateNotification />
       {user?.role === 'admin' && <AdminDepositNotifier />}
-      
+
       {/* Top user bar */}
       {user && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-[#0a0c0a]/95 backdrop-blur border-b border-ka-card-border px-4 py-2 flex items-center justify-between">
-          <KriptoAmanLogo size={26} showText={true} textSize="text-xs" />
-          <div className="flex items-center gap-2">
-            <LanguageSwitcher compact />
-            <Link to={createPageUrl('Services')} className="flex items-center justify-center w-8 h-8 rounded-xl bg-ka-emerald/12 border border-ka-emerald/25 text-ka-emerald hover:bg-ka-emerald/20 transition-colors tap-reset" aria-label={language === 'en' ? 'Services' : 'Layanan'}>
-              <LayoutGrid className="w-4 h-4" />
-            </Link>
-            <Link to={createPageUrl('Settings')}
-              className="flex items-center gap-2 px-2.5 py-1 bg-ka-card border border-ka-card-border rounded-full hover:border-ka-emerald/40 transition-colors">
-              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-ka-emerald to-ka-teal flex items-center justify-center text-black text-[9px] font-bold">
-                {initials}
-              </div>
-              <span className="text-white text-[11px] font-semibold max-w-[120px] truncate">{user.full_name || user.email}</span>
-              <span className="text-ka-emerald text-[9px] capitalize bg-ka-emerald/15 px-1.5 py-0.5 rounded-full">{user.role || 'user'}</span>
-            </Link>
+        <div className="fixed top-0 left-0 right-0 z-50 safe-area-pt bg-[#0a0c0a]/95 backdrop-blur border-b border-ka-card-border">
+          <div className="min-h-10 px-3 sm:px-4 py-2 flex items-center justify-between gap-2">
+            <div className="min-w-0 shrink-0">
+              <KriptoAmanLogo size={26} showText={true} textSize="text-xs" />
+            </div>
+            <div className="flex items-center justify-end gap-1.5 sm:gap-2 min-w-0">
+              <LanguageSwitcher compact />
+              <Link to={createPageUrl('Services')} className="flex items-center justify-center w-8 h-8 shrink-0 rounded-xl bg-ka-emerald/12 border border-ka-emerald/25 text-ka-emerald hover:bg-ka-emerald/20 transition-colors tap-reset" aria-label={language === 'en' ? 'Services' : 'Layanan'}>
+                <LayoutGrid className="w-4 h-4" />
+              </Link>
+              <Link to={createPageUrl('Settings')}
+                className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1 min-w-0 bg-ka-card border border-ka-card-border rounded-full hover:border-ka-emerald/40 transition-colors">
+                <div className="w-5 h-5 rounded-full shrink-0 bg-gradient-to-br from-ka-emerald to-ka-teal flex items-center justify-center text-black text-[9px] font-bold">
+                  {initials}
+                </div>
+                <span className="text-white text-[11px] font-semibold max-w-[72px] sm:max-w-[120px] truncate">{user.full_name || user.email}</span>
+                <span className="hidden sm:inline text-ka-emerald text-[9px] capitalize bg-ka-emerald/15 px-1.5 py-0.5 rounded-full">{user.role || 'user'}</span>
+              </Link>
+            </div>
           </div>
         </div>
       )}
 
       {/* Live market ticker */}
-      <div className={`fixed ${user ? 'top-10' : 'top-0'} left-0 right-0 z-40`}>
+      <div
+        className="fixed left-0 right-0 z-40"
+        style={{ top: user ? 'calc(2.5rem + env(safe-area-inset-top, 0px))' : 'env(safe-area-inset-top, 0px)' }}
+      >
         <LiveTickerBar />
       </div>
 {/* Desktop Sidebar */}
@@ -209,7 +215,7 @@ export default function Layout({ children, currentPageName }) {
   </aside>
 )}
       {/* Push content down if top bar is visible */}
-      {user && <div className="h-10" />}
+      {user && <div style={{ height: 'calc(2.5rem + env(safe-area-inset-top, 0px))' }} />}
       <div className="h-8" />{/* ticker bar height */}
 
       <div className={user ? 'lg:pl-60' : ''}>
@@ -228,7 +234,6 @@ export default function Layout({ children, currentPageName }) {
           {BOTTOM_NAV.map(({ id, page, icon: Icon }) => {
             const label = navLabels[id];
             const active = currentPageName === page;
-            const hasAlert = page === 'Alerts';
             return (
               <Link key={page} to={createPageUrl(page)}
                 className={`relative flex flex-1 flex-col items-center justify-center gap-1.5 min-h-[58px] min-w-[56px] rounded-xl transition-all ${active ? 'text-sky-400 bg-sky-500/8' : 'text-slate-400 hover:text-white'}`}>
