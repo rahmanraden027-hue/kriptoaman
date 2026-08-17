@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Shield, TrendingUp, Lock, Star, ArrowRight, Eye, Network, Award } from 'lucide-react';
+import { Shield, TrendingUp, Lock, ArrowRight, Eye, Network, Award } from 'lucide-react';
 import KriptoAmanLogo from '../components/brand/KriptoAmanLogo';
 import TrustBadges from '../components/trust/TrustBadges';
 
@@ -14,10 +14,10 @@ const FEATURES = [
   { icon: Award, title: 'Edukasi & Insight', desc: 'Gunakan materi edukasi dan indikator risiko sebagai referensi tambahan untuk keputusan mandiri.' },
 ];
 
-const TESTIMONIALS = [
-  { name: '📊 Market Intelligence', role: 'Fokus Produk', rating: 5, text: 'KriptoAman dikembangkan sebagai platform informasi, pemantauan, dan analisis risiko aset digital.' },
-  { name: '✅ Informasi Transparan', role: 'Status Layanan', rating: 5, text: 'Status layanan, sumber data, dan batasan fitur ditampilkan secara terbuka selama pengembangan.' },
-  { name: '📱 Aplikasi Android', role: 'Persiapan Rilis', rating: 5, text: 'Versi Android terus diuji untuk memastikan pengalaman pemantauan yang stabil dan konsisten.' },
+const UPDATES = [
+  { name: '📊 Market Intelligence', role: 'Fokus Produk', text: 'KriptoAman dikembangkan sebagai platform informasi, pemantauan, dan analisis risiko aset digital.' },
+  { name: '✅ Informasi Transparan', role: 'Status Layanan', text: 'Status layanan, sumber data, dan batasan fitur ditampilkan secara terbuka selama pengembangan.' },
+  { name: '📱 Aplikasi Android', role: 'Persiapan Rilis', text: 'Versi Android terus diuji untuk memastikan pengalaman pemantauan yang stabil dan konsisten.' },
 ];
 
 const STATS = [
@@ -31,9 +31,7 @@ export default function SEOLanding() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
       <section className="px-4 pt-10 pb-16 text-center max-w-2xl mx-auto">
-        <div className="flex justify-center mb-4">
-          <KriptoAmanLogo size={56} showText={false} />
-        </div>
+        <div className="flex justify-center mb-4"><KriptoAmanLogo size={56} showText={false} /></div>
         <h1 className="text-3xl font-extrabold leading-tight mb-3">
           Platform <span className="text-cyan-400">Market Intelligence Kripto</span><br />untuk Pemantauan yang Lebih Transparan
         </h1>
@@ -41,12 +39,10 @@ export default function SEOLanding() {
           KriptoAman adalah platform informasi, pemantauan, dan analisis risiko aset digital. KriptoAman bukan exchange, broker, penyelenggara perdagangan, atau kustodian aset kripto.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link to={createPageUrl('Home')}
-            className="px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl transition-colors flex items-center justify-center gap-2">
+          <Link to={createPageUrl('Home')} className="px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl transition-colors flex items-center justify-center gap-2">
             Mulai Memantau <ArrowRight className="w-4 h-4" />
           </Link>
-          <Link to={createPageUrl('Edukasi')}
-            className="px-6 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold rounded-xl transition-colors">
+          <Link to={createPageUrl('Edukasi')} className="px-6 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold rounded-xl transition-colors">
             Pelajari Aset Digital
           </Link>
         </div>
@@ -76,10 +72,7 @@ export default function SEOLanding() {
           {FEATURES.map(({ icon: Icon, title, desc }) => (
             <div key={title} className="bg-slate-800/40 border border-slate-700/40 rounded-2xl p-4 flex gap-3">
               <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center shrink-0"><Icon className="w-5 h-5 text-cyan-400" /></div>
-              <div>
-                <div className="font-semibold text-sm text-white">{title}</div>
-                <div className="text-slate-400 text-xs mt-1 leading-relaxed">{desc}</div>
-              </div>
+              <div><div className="font-semibold text-sm text-white">{title}</div><div className="text-slate-400 text-xs mt-1 leading-relaxed">{desc}</div></div>
             </div>
           ))}
         </div>
@@ -96,10 +89,7 @@ export default function SEOLanding() {
           ].map(({ step, title, desc }) => (
             <div key={step} className="flex gap-4 bg-slate-800/30 border border-slate-700/30 rounded-2xl p-4">
               <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 font-extrabold text-sm flex items-center justify-center shrink-0">{step}</div>
-              <div>
-                <div className="font-semibold text-sm text-white">{title}</div>
-                <div className="text-slate-400 text-xs mt-0.5">{desc}</div>
-              </div>
+              <div><div className="font-semibold text-sm text-white">{title}</div><div className="text-slate-400 text-xs mt-0.5">{desc}</div></div>
             </div>
           ))}
         </div>
@@ -108,11 +98,10 @@ export default function SEOLanding() {
       <section className="px-4 pb-14 max-w-2xl mx-auto">
         <h2 className="text-xl font-bold text-center mb-6">Pembaruan KriptoAman</h2>
         <div className="space-y-3">
-          {TESTIMONIALS.map(t => (
-            <div key={t.name} className="bg-slate-800/40 border border-slate-700/40 rounded-2xl p-4">
-              <div className="flex items-center gap-0.5 mb-2">{Array(t.rating).fill(0).map((_, i) => <Star key={i} className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />)}</div>
-              <p className="text-slate-300 text-sm italic">"{t.text}"</p>
-              <div className="mt-2 text-xs text-slate-500">{t.name} · {t.role}</div>
+          {UPDATES.map(item => (
+            <div key={item.name} className="bg-slate-800/40 border border-slate-700/40 rounded-2xl p-4">
+              <p className="text-slate-300 text-sm">{item.text}</p>
+              <div className="mt-2 text-xs text-slate-500">{item.name} · {item.role}</div>
             </div>
           ))}
         </div>
