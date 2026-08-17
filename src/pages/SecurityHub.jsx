@@ -6,7 +6,7 @@ import { createPageUrl } from '@/utils';
 import { PinSetup, PIN_ENABLED_KEY } from '../components/security/PinLock';
 import { TOTPSetup } from '../components/security/TOTP2FA';
 import SecurityScoreGauge from '../components/security/SecurityScoreGauge';
-import { Shield, ShieldCheck, Key, Fingerprint, Mail, Phone, BadgeCheck, Info, CheckCircle2, Circle } from 'lucide-react';
+import { Shield, ShieldCheck, Key, Fingerprint, Mail, Phone, BadgeCheck, Info, CheckCircle2, Circle, MonitorSmartphone, LogOut } from 'lucide-react';
 
 const K_ANTI = 'ka_antiphishing';
 const K_WPROT = 'ka_withdrawal_protection';
@@ -43,6 +43,54 @@ function MiniStat({ icon: Icon, label, ok, pending, loading, onClick, link }) {
   return inner;
 }
 
+function formatSeen(value) {
+  if (!value) return 'Tidak tersedia';
+  try {
+    return new Intl.DateTimeFormat('id-ID', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date(value));
+  } catch {
+    return value;
+  }
+}
+
+function SessionRow({ session, onRevoke, busy }) {
+  const location = [session.city, session.country].filter(Boolean).join(', ');
+  return (
+    <div className="rounded-xl border border-slate-700/70 bg-slate-950/30 p-3 space-y-2">
+      <div className="flex items-start gap-2.5">
+        <div className="mt-0.5 w-8 h-8 shrink-0 rounded-lg bg-ka-emerald/10 flex items-center justify-center">
+          <MonitorSmartphone className="w-4 h-4 text-ka-emerald" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="text-white text-xs font-bold">{session.device_label}</p>
+            {session.current && <span className="rounded-full bg-ka-emerald/15 border border-ka-emerald/30 px-2 py-0.5 text-[9px] font-bold text-ka-emerald">Perangkat ini</span>}
+            {!session.active && <span className="rounded-full border border-slate-600 px-2 py-0.5 text-[9px] font-semibold text-slate-400">Sesi berakhir</span>}
+          </div>
+          <p className="ka-muted text-[10px] mt-1">Terakhir aktif: {formatSeen(session.last_seen_at)}</p>
+          {(session.ip_masked || location) && (
+            <p className="ka-muted text-[10px] mt-0.5">
+              {[session.ip_masked, location].filter(Boolean).join(' • ')}
+            </p>
+          )}
+        </div>
+        {!session.current && session.active && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => onRevoke(session.id)}
+            className="tap-reset shrink-0 rounded-lg border border-red-500/25 bg-red-500/10 px-2.5 py-1.5 text-[10px] font-bold text-red-300 disabled:opacity-50"
+          >
+            Cabut
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function SecurityHub() {
   const [user, setUser] = useState(null);
   const [kyc, setKyc] = useState(null);
@@ -52,10 +100,27 @@ export default function SecurityHub() {
   const [setupTfa, setSetupTfa] = useState(false);
   const [pin, setPin] = useState(() => localStorage.getItem(PIN_ENABLED_KEY) === 'true');
   const [setupPin, setSetupPin] = useState(false);
+  const [sessions, setSessions] = useState([]);
+  const [loadingSessions, setLoadingSessions] = useState(true);
+  const [sessionBusy, setSessionBusy] = useState(false);
+  const [sessionError, setSessionError] = useState('');
 
   const anti = !!localStorage.getItem(K_ANTI);
   const wprot = localStorage.getItem(K_WPROT) === 'true';
   const phone = localStorage.getItem(K_PHONE) === 'true';
+
+  const loadSessions = async () => {
+    setSessionError('');
+    try {
+      const rows = await kriptoAuth.getSessions();
+      setSessions(rows);
+    } catch {
+      setSessions([]);
+      setSessionError('Riwayat sesi belum dapat dimuat.');
+    } finally {
+      setLoadingSessions(false);
+    }
+  };
 
   useEffect(() => {
     kriptoAuth.get2FAStatus()
@@ -72,7 +137,35 @@ export default function SecurityHub() {
           .finally(() => setLoadingKyc(false));
       })
       .catch(() => setLoadingKyc(false));
+
+    loadSessions();
   }, []);
+
+  const revokeOne = async (sessionId) => {
+    setSessionBusy(true);
+    setSessionError('');
+    try {
+      await kriptoAuth.revokeSession(sessionId);
+      await loadSessions();
+    } catch {
+      setSessionError('Sesi tersebut belum dapat dicabut. Silakan coba lagi.');
+    } finally {
+      setSessionBusy(false);
+    }
+  };
+
+  const revokeOthers = async () => {
+    setSessionBusy(true);
+    setSessionError('');
+    try {
+      await kriptoAuth.revokeOtherSessions();
+      await loadSessions();
+    } catch {
+      setSessionError('Sesi perangkat lain belum dapat dicabut. Silakan coba lagi.');
+    } finally {
+      setSessionBusy(false);
+    }
+  };
 
   const kycVerified = kyc?.status === 'verified';
   const emailAvailable = !!user?.email;
@@ -86,6 +179,7 @@ export default function SecurityHub() {
     [wprot, 'Aktifkan perlindungan penarikan'],
     [phone, 'Tambahkan verifikasi nomor telepon'],
   ].filter(([ok]) => !ok);
+  const activeOtherSessions = sessions.filter((session) => session.active && !session.current).length;
 
   if (setupPin) {
     return (
@@ -157,15 +251,41 @@ export default function SecurityHub() {
         </Card>
 
         <Card icon={Info} title="Perangkat & Riwayat Login" sub="Hanya menampilkan sesi yang terverifikasi server">
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 space-y-1.5">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-white text-xs font-bold">Belum ada data perangkat terverifikasi</p>
-              <span className="shrink-0 rounded-full border border-slate-600 px-2 py-0.5 text-[10px] font-semibold text-slate-300">0 perangkat</span>
+          {loadingSessions ? (
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3">
+              <p className="text-blue-200 text-xs">Memuat sesi login terverifikasi…</p>
             </div>
-            <p className="text-blue-200 text-xs leading-relaxed">
-              Data perangkat contoh atau yang belum bersumber dari sesi server tidak ditampilkan. Setelah pencatatan sesi terverifikasi tersedia, bagian ini hanya akan menampilkan aktivitas login nyata milik akun Anda.
-            </p>
-          </div>
+          ) : sessions.length === 0 ? (
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 space-y-1.5">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-white text-xs font-bold">Belum ada data perangkat terverifikasi</p>
+                <span className="shrink-0 rounded-full border border-slate-600 px-2 py-0.5 text-[10px] font-semibold text-slate-300">0 perangkat</span>
+              </div>
+              <p className="text-blue-200 text-xs leading-relaxed">Hanya sesi login nyata yang dibuat server KriptoAman yang akan muncul di sini.</p>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between gap-3">
+                <p className="ka-muted text-[10px]">{sessions.filter((s) => s.active).length} sesi aktif terverifikasi</p>
+                {activeOtherSessions > 0 && (
+                  <button
+                    type="button"
+                    disabled={sessionBusy}
+                    onClick={revokeOthers}
+                    className="tap-reset inline-flex items-center gap-1 rounded-lg border border-red-500/25 bg-red-500/10 px-2.5 py-1.5 text-[10px] font-bold text-red-300 disabled:opacity-50"
+                  >
+                    <LogOut className="w-3 h-3" />
+                    Keluar dari perangkat lain
+                  </button>
+                )}
+              </div>
+              {sessions.map((session) => (
+                <SessionRow key={session.id} session={session} onRevoke={revokeOne} busy={sessionBusy} />
+              ))}
+            </div>
+          )}
+          {sessionError && <p className="mt-2 text-[10px] text-amber-300">{sessionError}</p>}
+          <p className="ka-muted text-[9px] mt-2 leading-relaxed">Alamat IP ditampilkan dalam bentuk tersamarkan. Lokasi hanya ditampilkan bila tersedia dari infrastruktur server dan bersifat perkiraan.</p>
         </Card>
 
         <Card icon={Shield} title="Langkah Peningkatan" sub="Pilihan yang dapat Anda lengkapi secara bertahap">
