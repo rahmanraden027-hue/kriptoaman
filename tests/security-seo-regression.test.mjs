@@ -43,11 +43,12 @@ test('regulatory and security UI avoids unsupported claims and synthetic activit
 });
 
 test('balance editing is hidden from users and enforced by an admin-only server endpoint', async () => {
-  const [settings, editor, endpoint, authClient] = await Promise.all([
+  const [settings, editor, endpoint, authClient, wallet] = await Promise.all([
     read('src/pages/Settings.jsx'),
     read('src/components/wallet/AdminBalanceEditor.jsx'),
     read('functions/api/auth/admin/balance.js'),
     read('src/lib/kriptoAuth.js'),
+    read('src/pages/Wallet.jsx'),
   ]);
 
   assert.match(settings, /adminOnly:\s*true/);
@@ -61,4 +62,14 @@ test('balance editing is hidden from users and enforced by an admin-only server 
   assert.match(endpoint, /status:\s*403/);
   assert.match(endpoint, /requireSameOrigin/);
   assert.match(endpoint, /Invalid balance values/);
+
+  // The portfolio reads the protected admin balance endpoint only after the
+  // authenticated user has been verified as an admin and renders the section
+  // behind the same role condition.
+  assert.match(wallet, /currentUser\?\.role\s*!==\s*'admin'/);
+  assert.match(wallet, /kriptoAuth\.getAdminBalance\(\)/);
+  assert.match(wallet, /currentUser\?\.role\s*===\s*'admin'/);
+  assert.match(wallet, /Portofolio Admin/);
+  assert.match(wallet, /KHUSUS ADMIN/);
+  assert.match(wallet, /bukan saldo on-chain/);
 });
