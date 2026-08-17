@@ -1,10 +1,10 @@
 /**
- * KriptoAman Service Worker v2.3.0
+ * KriptoAman Service Worker v2.3.1
  * Strategy: Network-first untuk navigasi & UI bundles, cache fallback untuk offline.
  */
 
-const CACHE_NAME = 'kriptoaman-v2.3.0';
-const STATIC_CACHE = 'kriptoaman-static-v2.3.0';
+const CACHE_NAME = 'kriptoaman-v2.3.1';
+const STATIC_CACHE = 'kriptoaman-static-v2.3.1';
 const DATA_CACHE = 'kriptoaman-data-v3';
 
 const STATIC_ASSETS = [
@@ -34,7 +34,7 @@ const fetchWithDeadline = (request, timeoutMs = 10000) => {
 };
 
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing KriptoAman Service Worker v2.3.0...');
+  console.log('[SW] Installing KriptoAman Service Worker v2.3.1...');
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then(cache => cache.addAll(STATIC_ASSETS))
@@ -44,7 +44,7 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating v2.3.0...');
+  console.log('[SW] Activating v2.3.1...');
   event.waitUntil(
     caches.keys()
       .then(keys => Promise.all(
@@ -172,4 +172,4 @@ self.addEventListener('sync', (event) => {
   }
 });
 
-console.log('[SW] KriptoAman Service Worker v2.3.0 loaded ✅');
+console.log('[SW] KriptoAman Service Worker v2.3.1 loaded ✅');
