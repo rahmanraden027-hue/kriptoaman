@@ -66,6 +66,17 @@ export const kriptoAuth = {
     });
   },
 
+  async getAdminBalance() {
+    return request('/api/auth/admin/balance');
+  },
+
+  async updateAdminBalance(balances) {
+    return request('/api/auth/admin/balance', {
+      method: 'PUT',
+      body: JSON.stringify({ balances }),
+    });
+  },
+
   async requestAdminLink(email) {
     return request('/api/auth/admin/request-link', { method: 'POST', body: JSON.stringify({ email }) });
   },
