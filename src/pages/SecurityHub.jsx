@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { kriptoAuth } from '@/lib/kriptoAuth';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { PinSetup, PIN_ENABLED_KEY } from '../components/security/PinLock';
@@ -7,7 +8,6 @@ import { TOTPSetup } from '../components/security/TOTP2FA';
 import SecurityScoreGauge from '../components/security/SecurityScoreGauge';
 import { Shield, ShieldCheck, Key, Fingerprint, Mail, Phone, BadgeCheck, Info, CheckCircle2, Circle } from 'lucide-react';
 
-const K2FA = 'cv_2fa_enabled';
 const K_ANTI = 'ka_antiphishing';
 const K_WPROT = 'ka_withdrawal_protection';
 const K_PHONE = 'ka_phone_verified';
@@ -47,7 +47,8 @@ export default function SecurityHub() {
   const [user, setUser] = useState(null);
   const [kyc, setKyc] = useState(null);
   const [loadingKyc, setLoadingKyc] = useState(true);
-  const [tfa, setTfa] = useState(() => localStorage.getItem(K2FA) === 'true');
+  const [tfa, setTfa] = useState(false);
+  const [loadingTfa, setLoadingTfa] = useState(true);
   const [setupTfa, setSetupTfa] = useState(false);
   const [pin, setPin] = useState(() => localStorage.getItem(PIN_ENABLED_KEY) === 'true');
   const [setupPin, setSetupPin] = useState(false);
@@ -57,6 +58,11 @@ export default function SecurityHub() {
   const phone = localStorage.getItem(K_PHONE) === 'true';
 
   useEffect(() => {
+    kriptoAuth.get2FAStatus()
+      .then((data) => setTfa(Boolean(data.enabled)))
+      .catch(() => setTfa(false))
+      .finally(() => setLoadingTfa(false));
+
     base44.auth.me()
       .then((u) => {
         setUser(u);
@@ -123,7 +129,7 @@ export default function SecurityHub() {
         </div>
 
         <div className="grid grid-cols-2 gap-2.5">
-          <MiniStat icon={ShieldCheck} label="2FA" ok={tfa} onClick={() => !tfa && setSetupTfa(true)} />
+          <MiniStat icon={ShieldCheck} label="2FA" ok={tfa} loading={loadingTfa} onClick={() => !tfa && !loadingTfa && setSetupTfa(true)} />
           <MiniStat icon={Fingerprint} label="Passkey" pending />
           <MiniStat icon={Mail} label="Email akun" ok={emailAvailable} />
           <MiniStat icon={Phone} label="Telepon" ok={phone} />
@@ -131,11 +137,10 @@ export default function SecurityHub() {
           <MiniStat icon={Key} label="PIN App" ok={pin} onClick={() => !pin && setSetupPin(true)} />
         </div>
 
-        <Card icon={ShieldCheck} title="Autentikasi Dua Faktor (2FA)" sub="Tambahkan lapisan autentikasi TOTP pada akun">
+        <Card icon={ShieldCheck} title="Autentikasi Dua Faktor (2FA)" sub="Lapisan autentikasi TOTP yang diverifikasi server KriptoAman">
           {setupTfa && !tfa ? (
             <TOTPSetup
               onDone={() => {
-                localStorage.setItem(K2FA, 'true');
                 setTfa(true);
                 setSetupTfa(false);
               }}
@@ -143,21 +148,9 @@ export default function SecurityHub() {
             />
           ) : (
             <div className="flex items-center justify-between">
-              <span className={`text-xs font-bold ${tfa ? 'text-ka-emerald' : 'ka-muted'}`}>{tfa ? 'Aktif' : 'Siap diaktifkan'}</span>
-              {tfa ? (
-                <button
-                  onClick={() => {
-                    localStorage.setItem(K2FA, 'false');
-                    setTfa(false);
-                  }}
-                  className="ka-muted text-xs font-bold tap-reset"
-                >
-                  Ubah pengaturan
-                </button>
-              ) : (
-                <button onClick={() => setSetupTfa(true)} className="bg-ka-emerald/15 border border-ka-emerald/30 text-ka-emerald text-xs font-bold px-3 py-1.5 rounded-lg tap-reset">
-                  Aktifkan
-                </button>
+              <span className={`text-xs font-bold ${tfa ? 'text-ka-emerald' : 'ka-muted'}`}>{loadingTfa ? 'Memeriksa…' : tfa ? 'Aktif di server' : 'Siap diaktifkan'}</span>
+              {!tfa && !loadingTfa && (
+                <button onClick={() => setSetupTfa(true)} className="bg-ka-emerald/15 border border-ka-emerald/30 text-ka-emerald text-xs font-bold px-3 py-1.5 rounded-lg tap-reset">Aktifkan</button>
               )}
             </div>
           )}
@@ -165,25 +158,17 @@ export default function SecurityHub() {
 
         <Card icon={Info} title="Perangkat & Riwayat Login" sub="Transparansi data keamanan akun">
           <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3">
-            <p className="text-blue-200 text-xs leading-relaxed">
-              Data perangkat, lokasi, alamat IP, dan riwayat login akan ditampilkan setelah tersedia dari sistem sesi server yang terverifikasi. KriptoAman hanya menampilkan aktivitas akun yang bersumber dari data nyata.
-            </p>
+            <p className="text-blue-200 text-xs leading-relaxed">Data perangkat, lokasi, alamat IP, dan riwayat login akan ditampilkan setelah tersedia dari sistem sesi server yang terverifikasi. KriptoAman hanya menampilkan aktivitas akun yang bersumber dari data nyata.</p>
           </div>
         </Card>
 
         <Card icon={Shield} title="Langkah Peningkatan" sub="Pilihan yang dapat Anda lengkapi secara bertahap">
           {recs.length === 0 ? (
-            <div className="flex gap-2 items-center text-ka-emerald text-xs font-semibold">
-              <CheckCircle2 className="w-4 h-4" />
-              Semua pengaturan yang tersedia telah dilengkapi.
-            </div>
+            <div className="flex gap-2 items-center text-ka-emerald text-xs font-semibold"><CheckCircle2 className="w-4 h-4" />Semua pengaturan yang tersedia telah dilengkapi.</div>
           ) : (
             <div className="space-y-2">
               {recs.map(([, label]) => (
-                <div key={label} className="flex items-center gap-2 text-xs text-slate-300">
-                  <Circle className="w-3.5 h-3.5 text-ka-emerald" />
-                  {label}
-                </div>
+                <div key={label} className="flex items-center gap-2 text-xs text-slate-300"><Circle className="w-3.5 h-3.5 text-ka-emerald" />{label}</div>
               ))}
             </div>
           )}

@@ -49,6 +49,16 @@ const statements = [
     FOREIGN KEY (user_id) REFERENCES auth_users(id) ON DELETE CASCADE
   )`,
   'CREATE INDEX IF NOT EXISTS idx_auth_consents_user_id ON auth_consents(user_id, accepted_at DESC)',
+  `CREATE TABLE IF NOT EXISTS auth_totp (
+    user_id TEXT PRIMARY KEY,
+    secret_enc TEXT NOT NULL,
+    enabled INTEGER NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
+    backup_hashes TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES auth_users(id) ON DELETE CASCADE
+  )`,
+  'CREATE INDEX IF NOT EXISTS idx_auth_totp_enabled ON auth_totp(enabled)',
 ];
 
 async function initializeSchema(db) {
