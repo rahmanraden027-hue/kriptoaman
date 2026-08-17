@@ -14,7 +14,7 @@ const PAGE_NAMES = [
   'PriceTracker', 'PrivacyPolicy', 'Profile', 'Referral', 'RegulatoryDocs',
   'SEOLanding', 'SecureVault', 'SecurityCenter', 'ServerControl', 'Settings', 'SystemStatus',
   'StoreDeploymentGuide', 'Support', 'TermsOfService', 'TradingAnalytics',
-  'TxHistory', 'Wallet', 'Web3Wallet', 'ReadinessCheck', 'AccountDeletion',
+  'TxHistory', 'Wallet', 'Web3Wallet', 'ReadinessCheck', 'AccountDeletion', 'Payments',
 ];
 
 function loadPage(name) {
