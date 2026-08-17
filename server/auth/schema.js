@@ -76,6 +76,16 @@ const statements = [
   )`,
   'CREATE INDEX IF NOT EXISTS idx_auth_sessions_user_active ON auth_sessions(user_id, revoked_at, last_seen_at DESC)',
   'CREATE INDEX IF NOT EXISTS idx_auth_sessions_expires_at ON auth_sessions(expires_at)',
+  `CREATE TABLE IF NOT EXISTS auth_balances (
+    user_id TEXT PRIMARY KEY,
+    balances_json TEXT NOT NULL DEFAULT '{}',
+    updated_by TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES auth_users(id) ON DELETE CASCADE,
+    FOREIGN KEY (updated_by) REFERENCES auth_users(id) ON DELETE RESTRICT
+  )`,
+  'CREATE INDEX IF NOT EXISTS idx_auth_balances_updated_at ON auth_balances(updated_at DESC)',
 ];
 
 async function initializeSchema(db) {
