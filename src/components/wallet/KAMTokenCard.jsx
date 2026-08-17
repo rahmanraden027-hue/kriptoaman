@@ -23,8 +23,9 @@ export default function KAMTokenCard({ userBalance = 0 }) {
 
         <div className="mt-5 grid grid-cols-2 gap-3">
           <div className="rounded-xl bg-black/15 p-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-sky-100">Saldo Anda</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-sky-100">Catatan akun</p>
             <p className="mt-1 text-2xl font-bold">{Number(userBalance || 0).toLocaleString('id-ID')} KAM</p>
+            <p className="mt-1 text-[10px] text-sky-100/70">Bukan saldo on-chain atau aset kustodian.</p>
           </div>
           <div className="rounded-xl bg-black/15 p-3">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-sky-100">Harga pasar</p>
@@ -39,7 +40,7 @@ export default function KAMTokenCard({ userBalance = 0 }) {
           <div>
             <p className="font-semibold text-white">Data on-chain belum dipublikasikan</p>
             <p className="mt-1 text-sm leading-relaxed text-slate-400">
-              Harga, supply, volume, kontrak, dan alamat deposit akan ditampilkan setelah diverifikasi dan diumumkan melalui kanal resmi KriptoAman.
+              Harga, supply, volume, kontrak, dan alamat resmi akan ditampilkan hanya setelah data tersebut diverifikasi dan diumumkan melalui kanal resmi KriptoAman.
             </p>
           </div>
         </div>
