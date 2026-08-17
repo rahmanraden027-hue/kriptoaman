@@ -1,7 +1,9 @@
 import { json, requireBindings, requireSameOrigin } from '../../../server/auth/http.js';
 import { verifyPassword } from '../../../server/auth/password.js';
 import { checkRateLimit } from '../../../server/auth/rateLimit.js';
+import { ensureAuthSchema } from '../../../server/auth/schema.js';
 import { createSessionToken, sessionCookie } from '../../../server/auth/session.js';
+import { getTotpSettings } from '../../../server/auth/totp.js';
 import { getUserByEmail } from '../../../server/auth/users.js';
 
 const INVALID = { error: 'Invalid email or password' };
@@ -10,6 +12,7 @@ export async function onRequestPost({ request, env }) {
   try {
     requireBindings(env, ['AUTH_DB', 'SESSION_SECRET']);
     requireSameOrigin(request, env);
+    await ensureAuthSchema(env.AUTH_DB);
     const body = await request.json();
     const email = String(body.email || '').trim().toLowerCase();
     const password = String(body.password || '');
@@ -21,6 +24,11 @@ export async function onRequestPost({ request, env }) {
     if (!user?.password_hash) return json(INVALID, { status: 401 });
     if (!(await verifyPassword(password, user.password_hash))) return json(INVALID, { status: 401 });
     if (!user.email_verified) return json({ error: 'Email verification required', verification_required: true }, { status: 403 });
+
+    const totp = await getTotpSettings(env.AUTH_DB, user.id);
+    if (totp?.enabled) {
+      return json({ authenticated: false, two_factor_required: true });
+    }
 
     const session = await createSessionToken(env.SESSION_SECRET, user);
     const safeUser = { ...user };
