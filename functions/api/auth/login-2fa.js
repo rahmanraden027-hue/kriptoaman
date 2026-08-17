@@ -3,6 +3,7 @@ import { verifyPassword } from '../../../server/auth/password.js';
 import { checkRateLimit } from '../../../server/auth/rateLimit.js';
 import { ensureAuthSchema } from '../../../server/auth/schema.js';
 import { createSessionToken, sessionCookie } from '../../../server/auth/session.js';
+import { createVerifiedSession } from '../../../server/auth/sessions.js';
 import { decryptTotpSecret, getTotpSettings, verifyTotp } from '../../../server/auth/totp.js';
 import { getUserByEmail } from '../../../server/auth/users.js';
 
@@ -31,7 +32,8 @@ export async function onRequestPost({ request, env }) {
     const secret = await decryptTotpSecret(settings.secret_enc, env.SESSION_SECRET);
     if (!(await verifyTotp(secret, code))) return json(INVALID, { status: 401 });
 
-    const session = await createSessionToken(env.SESSION_SECRET, user);
+    const verifiedSession = await createVerifiedSession(env.AUTH_DB, env.SESSION_SECRET, user.id, request);
+    const session = await createSessionToken(env.SESSION_SECRET, user, verifiedSession.id);
     const safeUser = { ...user };
     delete safeUser.password_hash;
     return json({ authenticated: true, user: safeUser }, { headers: { 'Set-Cookie': sessionCookie(session) } });
