@@ -47,6 +47,25 @@ export const kriptoAuth = {
     return request('/api/auth/2fa/verify', { method: 'POST', body: JSON.stringify({ code }) });
   },
 
+  async getSessions() {
+    const data = await request('/api/auth/sessions');
+    return data.sessions || [];
+  },
+
+  async revokeSession(sessionId) {
+    return request('/api/auth/sessions', {
+      method: 'DELETE',
+      body: JSON.stringify({ sessionId }),
+    });
+  },
+
+  async revokeOtherSessions() {
+    return request('/api/auth/sessions', {
+      method: 'DELETE',
+      body: JSON.stringify({ others: true }),
+    });
+  },
+
   async requestAdminLink(email) {
     return request('/api/auth/admin/request-link', { method: 'POST', body: JSON.stringify({ email }) });
   },

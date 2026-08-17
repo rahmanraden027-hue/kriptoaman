@@ -38,6 +38,6 @@ test('regulatory and security UI avoids unsupported claims and synthetic activit
   assert.doesNotMatch(combined, /Laptop Kantor/i);
   assert.doesNotMatch(combined, /Math\.random/i);
   assert.match(regulatory, /bukti resmi dapat diverifikasi/i);
-  assert.match(security, /bersumber dari data nyata/i);
+  assert.match(security, /sesi login nyata|bersumber dari data nyata/i);
   assert.match(security, /bukan jaminan tingkat keamanan/i);
 });

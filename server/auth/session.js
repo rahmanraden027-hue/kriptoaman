@@ -4,7 +4,7 @@ const SESSION_COOKIE = 'ka_session';
 const OAUTH_STATE_COOKIE = 'ka_oauth_state';
 // Persistent login: keep the browser signed in for 30 days at a time.
 // The /api/auth/me endpoint renews this window whenever the app is opened/used,
-// so active users stay connected until they explicitly log out.
+// so active users stay connected until they explicitly log out or revoke the session.
 export const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 
 function base64UrlEncode(bytes) {
@@ -47,12 +47,13 @@ async function sign(secret, message) {
   return base64UrlEncode(new Uint8Array(signature));
 }
 
-export async function createSessionToken(secret, user, ttlSeconds = SESSION_TTL_SECONDS) {
+export async function createSessionToken(secret, user, sessionId = null, ttlSeconds = SESSION_TTL_SECONDS) {
   const now = Math.floor(Date.now() / 1000);
   const payload = {
     sub: user.id,
     email: user.email,
     role: user.role || 'user',
+    sid: sessionId || undefined,
     iat: now,
     exp: now + ttlSeconds,
   };
