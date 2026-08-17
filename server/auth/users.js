@@ -12,17 +12,7 @@ export async function upsertGoogleUser(db, profile, role = 'user') {
       email_verified = 1,
       role = CASE WHEN excluded.role = 'admin' THEN 'admin' ELSE auth_users.role END,
       updated_at = excluded.updated_at
-  `).bind(
-    id,
-    profile.email.toLowerCase(),
-    profile.name || null,
-    profile.picture || null,
-    profile.sub,
-    role,
-    now,
-    now,
-  ).run();
-
+  `).bind(id, profile.email.toLowerCase(), profile.name || null, profile.picture || null, profile.sub, role, now, now).run();
   return getUserByEmail(db, profile.email);
 }
 
@@ -61,9 +51,7 @@ export async function getUserByEmail(db, email, { includePassword = false } = {}
   const columns = includePassword
     ? 'id, email, full_name, bio, phone, avatar_url, role, email_verified, password_hash, kyc_status, kyc_data, referral_code, created_at, updated_at'
     : 'id, email, full_name, bio, phone, avatar_url, role, email_verified, kyc_status, kyc_data, referral_code, created_at, updated_at';
-  const user = await db.prepare(`SELECT ${columns} FROM auth_users WHERE email = ? LIMIT 1`)
-    .bind(email.toLowerCase())
-    .first();
+  const user = await db.prepare(`SELECT ${columns} FROM auth_users WHERE email = ? LIMIT 1`).bind(email.toLowerCase()).first();
   return normalizeUser(user);
 }
 
@@ -79,16 +67,12 @@ export async function createPasswordUser(db, email, passwordHash) {
 
 export async function setPassword(db, userId, passwordHash) {
   const now = new Date().toISOString();
-  await db.prepare('UPDATE auth_users SET password_hash = ?, updated_at = ? WHERE id = ?')
-    .bind(passwordHash, now, userId)
-    .run();
+  await db.prepare('UPDATE auth_users SET password_hash = ?, updated_at = ? WHERE id = ?').bind(passwordHash, now, userId).run();
 }
 
 export async function markEmailVerified(db, userId) {
   const now = new Date().toISOString();
-  await db.prepare('UPDATE auth_users SET email_verified = 1, updated_at = ? WHERE id = ?')
-    .bind(now, userId)
-    .run();
+  await db.prepare('UPDATE auth_users SET email_verified = 1, updated_at = ? WHERE id = ?').bind(now, userId).run();
 }
 
 export async function updateUserProfile(db, userId, changes) {
@@ -107,22 +91,23 @@ export async function updateUserProfile(db, userId, changes) {
   return getUserById(db, userId);
 }
 
-
 export async function promoteConfiguredAdmin(db, userId) {
   const now = new Date().toISOString();
-  await db.prepare("UPDATE auth_users SET role = 'admin', email_verified = 1, updated_at = ? WHERE id = ?")
-    .bind(now, userId)
-    .run();
+  await db.prepare("UPDATE auth_users SET role = 'admin', email_verified = 1, updated_at = ? WHERE id = ?").bind(now, userId).run();
   return getUserById(db, userId);
 }
 
 export async function deleteUserAccount(db, user) {
   if (!user?.id || !user?.email) return false;
+  const email = user.email.toLowerCase();
   const statements = [
-    db.prepare('DELETE FROM auth_challenges WHERE email = ?').bind(user.email.toLowerCase()),
+    db.prepare('DELETE FROM auth_sessions WHERE user_id = ?').bind(user.id),
+    db.prepare('DELETE FROM auth_totp WHERE user_id = ?').bind(user.id),
+    db.prepare('DELETE FROM auth_balances WHERE user_id = ?').bind(user.id),
     db.prepare('DELETE FROM auth_consents WHERE user_id = ?').bind(user.id),
+    db.prepare('DELETE FROM auth_challenges WHERE email = ?').bind(email),
     db.prepare('DELETE FROM auth_users WHERE id = ?').bind(user.id),
   ];
   const results = await db.batch(statements);
-  return Boolean(results?.[2]?.meta?.changes);
+  return Boolean(results?.[5]?.meta?.changes);
 }
