@@ -54,6 +54,12 @@ function NetworkRow({ item }) {
   );
 }
 
+async function fetchFirstPartyGas() {
+  const response = await fetch('/api/network-gas', { cache: 'no-store' });
+  if (!response.ok) throw new Error(`Gas API HTTP ${response.status}`);
+  return response.json();
+}
+
 export default function NetworkStatusPanel({ compact = false }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -68,11 +74,12 @@ export default function NetworkStatusPanel({ compact = false }) {
       const [statusRes, ratesRes, gasRes] = await Promise.allSettled([
         base44.functions.invoke('networkConnector', { action: 'status' }),
         base44.functions.invoke('networkConnector', { action: 'bankrates' }),
-        base44.functions.invoke('networkConnector', { action: 'gasprice' }),
+        fetchFirstPartyGas(),
       ]);
       if (statusRes.status === 'fulfilled' && statusRes.value?.data) setData(statusRes.value.data);
       if (ratesRes.status === 'fulfilled' && ratesRes.value?.data) setBankRates(ratesRes.value.data);
-      if (gasRes.status === 'fulfilled' && gasRes.value?.data) setGasData(gasRes.value.data);
+      if (gasRes.status === 'fulfilled') setGasData(gasRes.value);
+      else setGasData({ gas_prices: [], summary: { status: 'unavailable' } });
       setLastUpdated(new Date());
     } catch (e) {
       console.error('Network status fetch error:', e);
@@ -222,17 +229,34 @@ export default function NetworkStatusPanel({ compact = false }) {
 
         {activeTab === 'gas' && (
           <div className="space-y-2">
-            <p className="text-[10px] text-slate-500 uppercase font-bold mb-3">Gas Price Real-time (Gwei)</p>
-            {gasData ? (
-              (gasData.gas_prices || []).map((g, i) => (
-                <div key={i} className="flex items-center justify-between bg-slate-800/50 rounded-xl px-3 py-2">
-                  <span className="text-xs text-slate-300">{g.name || g.chain}</span>
-                  {g.error ? <span className="text-[10px] text-red-400">Offline</span> : <span className="text-xs font-bold text-slate-200">{g.gwei} Gwei</span>}
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <p className="text-[10px] text-slate-500 uppercase font-bold">Gas Price Real-time (Gwei)</p>
+              {gasData?.summary && (
+                <span className={`text-[10px] font-semibold ${gasData.summary.status === 'ok' ? 'text-green-400' : gasData.summary.status === 'degraded' ? 'text-yellow-400' : 'text-slate-500'}`}>
+                  {gasData.summary.available}/{gasData.summary.total} tersedia
+                </span>
+              )}
+            </div>
+            {gasData?.gas_prices?.length ? (
+              gasData.gas_prices.map((g) => (
+                <div key={g.name} className="flex items-center justify-between bg-slate-800/50 rounded-xl px-3 py-2">
+                  <div>
+                    <span className="text-xs text-slate-300">{g.name}</span>
+                    {g.latency != null && <p className="text-[9px] text-slate-600 mt-0.5">RPC {g.latency} ms</p>}
+                  </div>
+                  {g.status !== 'online' ? (
+                    <span className="text-[10px] text-yellow-400">Tidak tersedia</span>
+                  ) : (
+                    <span className="text-xs font-bold text-slate-200">{g.gwei} Gwei</span>
+                  )}
                 </div>
               ))
             ) : (
-              <div className="py-8 text-center text-slate-500 text-sm">{loading ? <RefreshCw className="w-5 h-5 animate-spin mx-auto" /> : 'Klik refresh'}</div>
+              <div className="py-8 text-center text-slate-500 text-sm">
+                {loading ? <RefreshCw className="w-5 h-5 animate-spin mx-auto" /> : 'Data gas belum tersedia — tekan refresh'}
+              </div>
             )}
+            <p className="pt-2 text-[9px] leading-relaxed text-slate-600">Nilai berasal dari respons RPC jaringan saat pemeriksaan. Jaringan yang tidak merespons ditandai tidak tersedia, bukan diberi nilai perkiraan.</p>
           </div>
         )}
       </div>
