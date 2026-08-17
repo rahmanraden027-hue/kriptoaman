@@ -41,3 +41,24 @@ test('regulatory and security UI avoids unsupported claims and synthetic activit
   assert.match(security, /sesi login nyata|bersumber dari data nyata/i);
   assert.match(security, /bukan jaminan tingkat keamanan/i);
 });
+
+test('balance editing is hidden from users and enforced by an admin-only server endpoint', async () => {
+  const [settings, editor, endpoint, authClient] = await Promise.all([
+    read('src/pages/Settings.jsx'),
+    read('src/components/wallet/AdminBalanceEditor.jsx'),
+    read('functions/api/auth/admin/balance.js'),
+    read('src/lib/kriptoAuth.js'),
+  ]);
+
+  assert.match(settings, /adminOnly:\s*true/);
+  assert.match(settings, /user\?\.role\s*===\s*'admin'/);
+  assert.match(editor, /user\.role\s*!==\s*'admin'/);
+  assert.doesNotMatch(editor, /auth\.updateMe\(\{\s*balances/);
+  assert.match(editor, /updateAdminBalance/);
+  assert.match(authClient, /\/api\/auth\/admin\/balance/);
+  assert.match(endpoint, /user\.role\s*!==\s*'admin'/);
+  assert.match(endpoint, /getActiveSession/);
+  assert.match(endpoint, /status:\s*403/);
+  assert.match(endpoint, /requireSameOrigin/);
+  assert.match(endpoint, /Invalid balance values/);
+});
