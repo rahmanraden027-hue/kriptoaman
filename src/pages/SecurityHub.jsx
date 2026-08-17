@@ -156,9 +156,15 @@ export default function SecurityHub() {
           )}
         </Card>
 
-        <Card icon={Info} title="Perangkat & Riwayat Login" sub="Transparansi data keamanan akun">
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3">
-            <p className="text-blue-200 text-xs leading-relaxed">Data perangkat, lokasi, alamat IP, dan riwayat login akan ditampilkan setelah tersedia dari sistem sesi server yang terverifikasi. KriptoAman hanya menampilkan aktivitas akun yang bersumber dari data nyata.</p>
+        <Card icon={Info} title="Perangkat & Riwayat Login" sub="Hanya menampilkan sesi yang terverifikasi server">
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 space-y-1.5">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-white text-xs font-bold">Belum ada data perangkat terverifikasi</p>
+              <span className="shrink-0 rounded-full border border-slate-600 px-2 py-0.5 text-[10px] font-semibold text-slate-300">0 perangkat</span>
+            </div>
+            <p className="text-blue-200 text-xs leading-relaxed">
+              Data perangkat contoh atau yang belum bersumber dari sesi server tidak ditampilkan. Setelah pencatatan sesi terverifikasi tersedia, bagian ini hanya akan menampilkan aktivitas login nyata milik akun Anda.
+            </p>
           </div>
         </Card>
 
