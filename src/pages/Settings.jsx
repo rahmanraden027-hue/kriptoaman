@@ -23,7 +23,7 @@ const TABS = [
   { id: 'activity', label: 'Aktivitas', icon: Activity },
   { id: 'security', label: 'Keamanan', icon: Shield },
   { id: 'addresses', label: 'Alamat', icon: BookMarked },
-  { id: 'balance', label: 'Saldo', icon: Wallet },
+  { id: 'balance', label: 'Saldo', icon: Wallet, adminOnly: true },
   { id: 'network', label: 'Network', icon: Globe },
 ];
 
@@ -37,6 +37,12 @@ export default function Settings() {
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {}).finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!loading && user?.role !== 'admin' && activeTab === 'balance') {
+      setActiveTab('profile');
+    }
+  }, [activeTab, loading, user?.role]);
 
   const handleSaveProfile = async (profileData) => {
     setSaving(true);
@@ -58,6 +64,8 @@ export default function Settings() {
     ? new Date(user.created_date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long' })
     : '—';
 
+  const secondaryTabs = TABS.slice(4).filter(tab => !tab.adminOnly || user?.role === 'admin');
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
@@ -72,12 +80,10 @@ export default function Settings() {
 
         {/* Hero Profile Card */}
         <div className="relative rounded-3xl overflow-hidden mb-6">
-          {/* Background gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/30 via-indigo-600/20 to-purple-600/30" />
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
 
           <div className="relative p-6">
-            {/* Avatar & basic info */}
             <div className="flex items-center gap-4 mb-5">
               <div className="relative">
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-xl shadow-blue-500/30 text-white text-2xl font-bold">
@@ -108,7 +114,6 @@ export default function Settings() {
               </button>
             </div>
 
-            {/* Stats row */}
             <div className="grid grid-cols-3 gap-3">
               {[
                 { icon: Calendar, label: 'Member Sejak', value: memberSince },
@@ -139,8 +144,8 @@ export default function Settings() {
             );
           })}
         </div>
-        <div className="grid grid-cols-3 gap-1 bg-slate-800/60 border border-slate-700/40 rounded-2xl p-1 mb-5">
-          {TABS.slice(4).map(tab => {
+        <div className={`grid ${secondaryTabs.length === 2 ? 'grid-cols-2' : 'grid-cols-3'} gap-1 bg-slate-800/60 border border-slate-700/40 rounded-2xl p-1 mb-5`}>
+          {secondaryTabs.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
@@ -153,7 +158,6 @@ export default function Settings() {
           })}
         </div>
 
-        {/* Saved banner */}
         {saved && (
           <div className="mb-4 flex items-center gap-2 bg-green-500/15 border border-green-500/30 rounded-xl px-4 py-2.5 text-green-400 text-sm font-semibold">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
@@ -161,7 +165,6 @@ export default function Settings() {
           </div>
         )}
 
-        {/* Tab Content */}
         {activeTab === 'profile' && user && (
           <ProfileSection user={user} onSave={handleSaveProfile} saving={saving} />
         )}
@@ -177,18 +180,17 @@ export default function Settings() {
         {activeTab === 'addresses' && (
           <PaymentAddressBook />
         )}
-        {activeTab === 'balance' && user && (
+        {activeTab === 'balance' && user?.role === 'admin' && (
           <AdminBalanceEditor />
         )}
         {activeTab === 'network' && (
           <NetworkStatusPanel />
         )}
 
-        {/* Account Deletion — mandatory for app store compliance */}
         {(activeTab === 'profile' || activeTab === 'security') && (
           <DeleteAccount />
         )}
-        </div>
-        </div>
-        );
+      </div>
+    </div>
+  );
 }
