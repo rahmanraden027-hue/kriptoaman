@@ -26,7 +26,37 @@ const STEPS = [
   { no: '04', title: 'Kelola Notifikasi', desc: 'Atur peringatan dan aset favorit sesuai kebutuhan Anda.' },
 ];
 
-const NETWORKS = ['Bitcoin', 'Ethereum', 'BNB Chain', 'Polygon', 'Arbitrum', 'Base', 'Solana', 'TRON'];
+const NETWORKS = [
+  { name: 'Bitcoin', status: 'active' },
+  { name: 'Ethereum', status: 'active' },
+  { name: 'BNB Chain', status: 'active' },
+  { name: 'Polygon', status: 'active' },
+  { name: 'Arbitrum', status: 'active' },
+  { name: 'Optimism', status: 'active' },
+  { name: 'Base', status: 'active' },
+  { name: 'Avalanche', status: 'active' },
+  { name: 'Solana', status: 'active' },
+  { name: 'TRON', status: 'active' },
+  { name: 'Fantom', status: 'expanding' },
+  { name: 'Cronos', status: 'expanding' },
+  { name: 'Gnosis', status: 'expanding' },
+  { name: 'Celo', status: 'expanding' },
+  { name: 'Linea', status: 'expanding' },
+  { name: 'zkSync Era', status: 'expanding' },
+  { name: 'Scroll', status: 'expanding' },
+  { name: 'Mantle', status: 'expanding' },
+  { name: 'Aptos', status: 'expanding' },
+  { name: 'Sui', status: 'expanding' },
+  { name: 'NEAR', status: 'expanding' },
+  { name: 'Cosmos', status: 'expanding' },
+  { name: 'Cardano', status: 'expanding' },
+  { name: 'XRP Ledger', status: 'expanding' },
+  { name: 'Litecoin', status: 'expanding' },
+  { name: 'Dogecoin', status: 'expanding' },
+  { name: 'Polkadot', status: 'expanding' },
+];
+
+const ACTIVE_NETWORK_COUNT = NETWORKS.filter((network) => network.status === 'active').length;
 
 const FAQS = [
   { q: 'Apakah KriptoAman menjamin keamanan aset saya?', a: 'Tidak. KriptoAman adalah platform informasi, pemantauan, dan analisis risiko. Kami tidak menyimpan atau menjamin dana Anda. Selalu lakukan verifikasi mandiri.' },
@@ -79,7 +109,7 @@ export default function GLandingBody({ stats }) {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { label: 'Cakupan Aset Pasar', value: '2.000+' },
-              { label: 'Jaringan Didukung', value: '8' },
+              { label: 'Jaringan Aktif', value: String(ACTIVE_NETWORK_COUNT) },
               { label: 'Mata Uang Tampilan', value: 'IDR / USD' },
               { label: 'Status Data Pasar', value: stats.loading ? '…' : (systemOk ? 'Operasional' : 'Terbatas') },
             ].map((s) => (
@@ -182,16 +212,20 @@ export default function GLandingBody({ stats }) {
       {/* JARINGAN DIDUKUNG */}
       <section className="px-4 sm:px-6 py-14">
         <div className="max-w-[1440px] mx-auto">
-          <SectionHead eyebrow="Jaringan" title="Jaringan yang Didukung" />
+          <SectionHead eyebrow="Jaringan" title="Jaringan yang Didukung & Dalam Perluasan" />
           <div className="flex flex-wrap gap-2.5 mt-8 justify-center">
-            {NETWORKS.map((n) => (
-              <span key={n} className="ka-card2 px-4 py-2 text-xs font-semibold ka-text2 inline-flex items-center gap-2">
-                <Network className="w-3.5 h-3.5 ka-blue" /> {n}
+            {NETWORKS.map((network) => (
+              <span key={network.name} className="ka-card2 px-4 py-2 text-xs font-semibold ka-text2 inline-flex items-center gap-2">
+                <Network className="w-3.5 h-3.5 ka-blue" />
+                {network.name}
+                <span className={`text-[9px] rounded-full px-1.5 py-0.5 ${network.status === 'active' ? 'ka-green' : 'ka-gold'}`}>
+                  {network.status === 'active' ? 'Aktif' : 'Perluasan'}
+                </span>
               </span>
             ))}
           </div>
-          <p className="text-[11px] ka-text2 mt-4 text-center opacity-70">
-            Dukungan jaringan bergantung pada ketersediaan explorer dan koneksi data yang aktif.
+          <p className="text-[11px] ka-text2 mt-4 text-center opacity-70 max-w-3xl mx-auto">
+            Jaringan berstatus Aktif memiliki konektor atau sumber data yang sudah digunakan KriptoAman. Jaringan berstatus Perluasan ditampilkan sebagai cakupan integrasi bertahap dan belum dianggap aktif sampai konektor/explorer-nya tersedia serta terverifikasi.
           </p>
         </div>
       </section>
