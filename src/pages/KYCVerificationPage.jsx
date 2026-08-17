@@ -34,23 +34,21 @@ export default function KYCVerificationPage() {
     );
   }
 
-  // Verified
   if (kycStatus?.status === 'verified') {
     return (
       <div className="max-w-2xl mx-auto p-6 pb-20">
         <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-8 text-center space-y-4">
           <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto" />
-          <h1 className="text-white font-bold text-2xl">KYC Verified ✓</h1>
+          <h1 className="text-white font-bold text-2xl">Verifikasi Identitas Selesai ✓</h1>
           <p className="text-slate-300">
-            Akun Anda sudah diverifikasi. Anda dapat melakukan withdrawal hingga ${kycStatus.withdrawalLimit}/hari.
+            Status identitas pada akun Anda telah tercatat sebagai terverifikasi. Status ini digunakan untuk fitur verifikasi dan keamanan yang tersedia di KriptoAman.
           </p>
           <div className="bg-slate-800/50 rounded-lg p-4 text-left space-y-2 text-sm">
-            <div className="flex justify-between"><span className="text-slate-400">Nama:</span><span className="text-white">{kycStatus.fullName}</span></div>
-            <div className="flex justify-between"><span className="text-slate-400">Status:</span><span className="text-green-400 font-semibold">Verified</span></div>
-            <div className="flex justify-between"><span className="text-slate-400">Level:</span><span className="text-blue-400 uppercase text-xs">{kycStatus.verificationLevel}</span></div>
-            <div className="flex justify-between"><span className="text-slate-400">Daily Limit:</span><span className="text-white">${kycStatus.withdrawalLimit}</span></div>
+            {kycStatus.fullName && <div className="flex justify-between"><span className="text-slate-400">Nama:</span><span className="text-white">{kycStatus.fullName}</span></div>}
+            <div className="flex justify-between"><span className="text-slate-400">Status:</span><span className="text-green-400 font-semibold">Terverifikasi</span></div>
+            {kycStatus.verificationLevel && <div className="flex justify-between"><span className="text-slate-400">Level:</span><span className="text-blue-400 uppercase text-xs">{kycStatus.verificationLevel}</span></div>}
             {kycStatus.expiresAt && (
-              <div className="flex justify-between"><span className="text-slate-400">Expires:</span><span className="text-white">{new Date(kycStatus.expiresAt).toLocaleDateString('id-ID')}</span></div>
+              <div className="flex justify-between"><span className="text-slate-400">Berlaku hingga:</span><span className="text-white">{new Date(kycStatus.expiresAt).toLocaleDateString('id-ID')}</span></div>
             )}
           </div>
         </div>
@@ -58,76 +56,72 @@ export default function KYCVerificationPage() {
     );
   }
 
-  // Pending
   if (kycStatus?.status === 'pending') {
     return (
       <div className="max-w-2xl mx-auto p-6 pb-20">
         <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-8 text-center space-y-4">
           <Clock className="w-16 h-16 text-yellow-400 mx-auto" />
-          <h1 className="text-white font-bold text-2xl">KYC Dalam Review</h1>
+          <h1 className="text-white font-bold text-2xl">Verifikasi Sedang Diproses</h1>
           <p className="text-slate-300">
-            Data KYC Anda sedang diverifikasi oleh tim admin. Proses biasanya memakan waktu 2-24 jam.
+            Data verifikasi Anda telah diterima dan sedang diproses. Waktu penyelesaian bergantung pada penyedia dan pemeriksaan yang diperlukan.
           </p>
-          <p className="text-slate-400 text-sm">Kami akan mengirimkan email notifikasi setelah verifikasi selesai.</p>
+          <p className="text-slate-400 text-sm">Status akan diperbarui pada akun setelah hasil verifikasi tersedia.</p>
           <div className="bg-slate-800/50 rounded-lg p-4 text-left space-y-2 text-sm">
-            <div className="flex justify-between"><span className="text-slate-400">Status:</span><span className="text-yellow-400 font-semibold">Pending Review</span></div>
-            <div className="flex justify-between"><span className="text-slate-400">Submitted:</span><span className="text-white">{new Date(kycStatus.created_date).toLocaleDateString('id-ID')}</span></div>
+            <div className="flex justify-between"><span className="text-slate-400">Status:</span><span className="text-yellow-400 font-semibold">Dalam Proses</span></div>
+            {kycStatus.created_date && <div className="flex justify-between"><span className="text-slate-400">Dikirim:</span><span className="text-white">{new Date(kycStatus.created_date).toLocaleDateString('id-ID')}</span></div>}
           </div>
         </div>
       </div>
     );
   }
 
-  // Rejected
   if (kycStatus?.status === 'rejected') {
     return (
       <div className="max-w-2xl mx-auto p-6 pb-20">
         <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-8 text-center space-y-4">
           <AlertCircle className="w-16 h-16 text-red-400 mx-auto" />
-          <h1 className="text-white font-bold text-2xl">KYC Ditolak</h1>
-          <p className="text-slate-300">{kycStatus.rejectionReason}</p>
-          <p className="text-slate-400 text-sm">Silakan submit ulang dengan dokumen yang lebih jelas.</p>
+          <h1 className="text-white font-bold text-2xl">Verifikasi Belum Berhasil</h1>
+          <p className="text-slate-300">{kycStatus.rejectionReason || 'Data verifikasi belum dapat diterima.'}</p>
+          <p className="text-slate-400 text-sm">Silakan periksa kembali data dan dokumen sebelum mengirim ulang.</p>
           <button
             onClick={() => setKycStatus(null)}
             className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
           >
-            Submit Ulang
+            Kirim Ulang
           </button>
         </div>
       </div>
     );
   }
 
-  // Not started
   return (
     <div className="max-w-2xl mx-auto p-6 pb-20 space-y-6">
       <div className="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-6">
         <div className="flex gap-3">
           <ShieldCheck className="w-6 h-6 text-blue-400 shrink-0" />
           <div>
-            <h2 className="text-white font-bold mb-1">Verifikasi KYC Diperlukan</h2>
+            <h2 className="text-white font-bold mb-1">Verifikasi Identitas</h2>
             <p className="text-blue-300 text-sm">
-              Untuk keamanan dan compliance, kami memerlukan verifikasi identitas Anda sebelum withdrawal crypto.
+              Verifikasi identitas membantu menjaga integritas akun dan mendukung fitur keamanan serta kepatuhan yang tersedia pada platform.
             </p>
           </div>
         </div>
       </div>
 
       <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6">
-        <h3 className="text-white font-bold mb-4">Requirement:</h3>
+        <h3 className="text-white font-bold mb-4">Dokumen yang mungkin diperlukan:</h3>
         <ul className="space-y-2 text-slate-300 text-sm">
-          <li>✓ Identitas asli (KTP/Passport/SIM)</li>
-          <li>✓ Foto identitas yang jelas</li>
-          <li>✓ Foto selfie dengan identitas</li>
-          <li>✓ Data alamat sesuai identitas</li>
+          <li>✓ Identitas resmi yang didukung penyedia verifikasi</li>
+          <li>✓ Foto dokumen yang jelas dan dapat dibaca</li>
+          <li>✓ Pemeriksaan wajah/selfie bila diminta</li>
+          <li>✓ Informasi tambahan sesuai proses verifikasi</li>
         </ul>
       </div>
 
       <KYCForm onComplete={() => fetchKYCStatus()} />
 
-      {/* Trust badges */}
       <div className="bg-slate-800/30 border border-slate-700/30 rounded-2xl p-4">
-        <p className="text-slate-500 text-xs text-center mb-3">Platform diregulasi & dilindungi</p>
+        <p className="text-slate-500 text-xs text-center mb-3">Prinsip transparansi dan keamanan data</p>
         <TrustBadges />
       </div>
     </div>
