@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import {
-  User, Bell, Lock, Shield, Loader2, Activity,
-  Camera, Mail, Phone, FileText, ChevronRight,
-  LogOut, Star, Calendar, Hash, Wallet, BookMarked
+  User, Bell, Shield, Loader2, Activity,
+  LogOut, Star, Calendar, Hash, Wallet, BookMarked, Globe, SlidersHorizontal, Settings2
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import ProfileSection from '../components/settings/ProfileSection';
-import PreferencesSection from '../components/settings/PreferencesSection';
 import SecuritySection from '../components/settings/SecuritySection';
 import ActivityHistory from '../components/settings/ActivityHistory';
 import AdminBalanceEditor from '../components/wallet/AdminBalanceEditor';
@@ -15,7 +12,6 @@ import UserPreferencesEnhanced from '../components/settings/UserPreferencesEnhan
 import PaymentAddressBook from '../components/settings/PaymentAddressBook';
 import NetworkStatusPanel from '../components/network/NetworkStatusPanel';
 import DeleteAccount from '../components/mobile/DeleteAccount';
-import { Globe } from 'lucide-react';
 
 const TABS = [
   { id: 'profile', label: 'Profil', icon: User },
@@ -39,16 +35,14 @@ export default function Settings() {
   }, []);
 
   useEffect(() => {
-    if (!loading && user?.role !== 'admin' && activeTab === 'balance') {
-      setActiveTab('profile');
-    }
+    if (!loading && user?.role !== 'admin' && activeTab === 'balance') setActiveTab('profile');
   }, [activeTab, loading, user?.role]);
 
   const handleSaveProfile = async (profileData) => {
     setSaving(true);
     try {
       await base44.auth.updateMe(profileData);
-      setUser(u => ({ ...u, ...profileData }));
+      setUser(current => ({ ...current, ...profileData }));
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } finally {
@@ -57,139 +51,75 @@ export default function Settings() {
   };
 
   const initials = user?.full_name
-    ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    ? user.full_name.split(' ').map(name => name[0]).join('').toUpperCase().slice(0, 2)
     : user?.email?.[0]?.toUpperCase() || '?';
 
   const memberSince = user?.created_date
     ? new Date(user.created_date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long' })
     : '—';
 
-  const secondaryTabs = TABS.slice(4).filter(tab => !tab.adminOnly || user?.role === 'admin');
+  const visibleTabs = TABS.filter(tab => !tab.adminOnly || user?.role === 'admin');
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
-      </div>
-    );
+    return <div className="ka-bg min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-sky-400" /></div>;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 pb-24">
-      <div className="max-w-lg mx-auto px-4 pt-4">
-
-        {/* Hero Profile Card */}
-        <div className="relative rounded-3xl overflow-hidden mb-6">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/30 via-indigo-600/20 to-purple-600/30" />
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
-
-          <div className="relative p-6">
-            <div className="flex items-center gap-4 mb-5">
-              <div className="relative">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-xl shadow-blue-500/30 text-white text-2xl font-bold">
-                  {initials}
-                </div>
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-2 border-slate-900 rounded-full flex items-center justify-center">
-                  <div className="w-2 h-2 bg-white rounded-full" />
-                </div>
+    <div className="ka-bg ka-workspace-page min-h-screen pb-28 text-white">
+      <div className="mx-auto max-w-6xl space-y-5 px-4 pt-5 sm:px-6 lg:px-8">
+        <section className="ka-command-hero p-5 sm:p-7">
+          <div className="relative z-10 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl border border-sky-500/25 bg-gradient-to-br from-sky-500/30 to-indigo-500/20 text-2xl font-black shadow-[0_18px_50px_rgba(14,165,233,.15)]">
+                {initials}
+                <span className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-4 border-[#07111d] bg-emerald-400" />
               </div>
-              <div className="flex-1 min-w-0">
-                <h1 className="text-xl font-bold text-white truncate">{user?.full_name || 'Pengguna'}</h1>
-                <p className="text-slate-400 text-sm truncate">{user?.email}</p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-[11px] bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2.5 py-0.5 rounded-full font-semibold capitalize">
-                    {user?.role || 'user'}
-                  </span>
-                  <span className="text-[11px] bg-green-500/15 text-green-400 border border-green-500/20 px-2.5 py-0.5 rounded-full font-semibold">
-                    ● Aktif
-                  </span>
-                </div>
+              <div className="min-w-0">
+                <p className="ka-command-kicker"><Settings2 className="h-3.5 w-3.5" /> KRIPTOAMAN ACCOUNT CONTROL</p>
+                <h1 className="mt-2 truncate text-2xl font-black sm:text-3xl">{user?.full_name || 'Pengguna'}</h1>
+                <p className="mt-1 truncate text-sm text-slate-400">{user?.email}</p>
+                <div className="mt-3 flex flex-wrap gap-2"><span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-2.5 py-1 text-[9px] font-bold uppercase text-sky-300">{user?.role || 'user'}</span><span className="ka-command-status">ACCOUNT ACTIVE</span></div>
               </div>
-              <button
-                onClick={() => base44.auth.logout()}
-                className="p-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors"
-                title="Logout"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
             </div>
+            <button onClick={() => base44.auth.logout()} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-4 text-xs font-bold text-red-300 transition hover:bg-red-500/15"><LogOut className="h-4 w-4" /> Logout</button>
+          </div>
+          <div className="relative z-10 mt-5 grid grid-cols-3 gap-2">
+            {[
+              [Calendar, 'Member Sejak', memberSince],
+              [Hash, 'User ID', `#${user?.id?.slice(-5) || '—'}`],
+              [Star, 'Tier', 'Standard'],
+            ].map(([Icon, label, value]) => <div key={label} className="rounded-2xl border border-white/10 bg-slate-950/30 p-3 text-center"><Icon className="mx-auto h-4 w-4 text-sky-400" /><p className="mt-2 truncate text-xs font-black">{value}</p><p className="mt-1 truncate text-[9px] text-slate-500">{label}</p></div>)}
+          </div>
+        </section>
 
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { icon: Calendar, label: 'Member Sejak', value: memberSince },
-                { icon: Hash, label: 'User ID', value: `#${user?.id?.slice(-5) || '—'}` },
-                { icon: Star, label: 'Tier', value: 'Standard' },
-              ].map(stat => (
-                <div key={stat.label} className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-2.5 text-center">
-                  <stat.icon className="w-3.5 h-3.5 text-slate-500 mx-auto mb-1" />
-                  <p className="text-white text-xs font-bold truncate">{stat.value}</p>
-                  <p className="text-slate-600 text-[10px] truncate">{stat.label}</p>
-                </div>
-              ))}
+        <div className="grid gap-5 lg:grid-cols-12">
+          <aside className="lg:col-span-3">
+            <div className="ka-command-panel p-3 lg:sticky lg:top-24">
+              <p className="ka-command-kicker px-2 py-2"><SlidersHorizontal className="h-3.5 w-3.5" /> CONTROL MODULES</p>
+              <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-1">
+                {visibleTabs.map(tab => {
+                  const Icon = tab.icon;
+                  const active = activeTab === tab.id;
+                  return <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex min-h-11 items-center gap-2 rounded-xl border px-3 text-left text-[11px] font-bold transition ${active ? 'border-sky-500/30 bg-sky-500/12 text-sky-300' : 'border-transparent text-slate-500 hover:border-slate-700 hover:bg-white/[0.03] hover:text-white'}`}><Icon className="h-4 w-4 shrink-0" /><span className="truncate">{tab.label}</span></button>;
+                })}
+              </div>
             </div>
-          </div>
+          </aside>
+
+          <main className="lg:col-span-9 space-y-4">
+            {saved && <div className="ka-command-panel border-emerald-500/25 px-4 py-3 text-sm font-bold text-emerald-300">Perubahan berhasil disimpan.</div>}
+            <section className="ka-command-panel p-4 sm:p-5">
+              {activeTab === 'profile' && user && <ProfileSection user={user} onSave={handleSaveProfile} saving={saving} />}
+              {activeTab === 'preferences' && user && <UserPreferencesEnhanced user={user} onSave={handleSaveProfile} saving={saving} />}
+              {activeTab === 'activity' && <ActivityHistory />}
+              {activeTab === 'security' && <SecuritySection />}
+              {activeTab === 'addresses' && <PaymentAddressBook />}
+              {activeTab === 'balance' && user?.role === 'admin' && <AdminBalanceEditor />}
+              {activeTab === 'network' && <NetworkStatusPanel />}
+            </section>
+            {(activeTab === 'profile' || activeTab === 'security') && <DeleteAccount />}
+          </main>
         </div>
-
-        {/* Tab Nav */}
-        <div className="grid grid-cols-4 gap-1 bg-slate-800/60 border border-slate-700/40 rounded-2xl p-1 mb-2">
-          {TABS.slice(0, 4).map(tab => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl transition-all ${isActive ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-slate-500 hover:text-slate-300'}`}>
-                <Icon className="w-4 h-4" />
-                <span className="text-[10px] font-semibold">{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-        <div className={`grid ${secondaryTabs.length === 2 ? 'grid-cols-2' : 'grid-cols-3'} gap-1 bg-slate-800/60 border border-slate-700/40 rounded-2xl p-1 mb-5`}>
-          {secondaryTabs.map(tab => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl transition-all ${isActive ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-slate-500 hover:text-slate-300'}`}>
-                <Icon className="w-4 h-4" />
-                <span className="text-[10px] font-semibold">{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {saved && (
-          <div className="mb-4 flex items-center gap-2 bg-green-500/15 border border-green-500/30 rounded-xl px-4 py-2.5 text-green-400 text-sm font-semibold">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            Perubahan berhasil disimpan!
-          </div>
-        )}
-
-        {activeTab === 'profile' && user && (
-          <ProfileSection user={user} onSave={handleSaveProfile} saving={saving} />
-        )}
-        {activeTab === 'preferences' && user && (
-          <UserPreferencesEnhanced user={user} onSave={handleSaveProfile} saving={saving} />
-        )}
-        {activeTab === 'activity' && (
-          <ActivityHistory />
-        )}
-        {activeTab === 'security' && (
-          <SecuritySection />
-        )}
-        {activeTab === 'addresses' && (
-          <PaymentAddressBook />
-        )}
-        {activeTab === 'balance' && user?.role === 'admin' && (
-          <AdminBalanceEditor />
-        )}
-        {activeTab === 'network' && (
-          <NetworkStatusPanel />
-        )}
-
-        {(activeTab === 'profile' || activeTab === 'security') && (
-          <DeleteAccount />
-        )}
       </div>
     </div>
   );
