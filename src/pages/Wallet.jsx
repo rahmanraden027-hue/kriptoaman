@@ -72,11 +72,6 @@ export default function Wallet() {
                     {en ? 'ADMIN ONLY' : 'KHUSUS ADMIN'}
                   </span>
                 </div>
-                <p className="mt-1 text-xs leading-relaxed text-slate-400">
-                  {en
-                    ? 'Internal admin balance records. Only a verified admin session can view or edit these values; they are not on-chain balances.'
-                    : 'Catatan saldo internal admin. Hanya sesi admin terverifikasi yang dapat melihat atau mengubah nilai ini; nilai ini bukan saldo on-chain.'}
-                </p>
               </div>
             </div>
 
