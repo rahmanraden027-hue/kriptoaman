@@ -33,7 +33,7 @@ jobs:
       - name: Build application
         run: npm run build
 
-      - name: Lint first-party auth
+      - name: Lint security, core UI, and admin workspace
         run: >-
           npx eslint server/auth/*.js functions/api/auth/*.js functions/api/market-snapshot.js
           functions/api/auth/google/*.js src/lib/kriptoAuth.js
@@ -41,10 +41,15 @@ jobs:
           src/pages/EnglishLanding.jsx src/pages/SystemStatus.jsx src/pages/Market.jsx
           src/pages/Login.jsx src/pages/Register.jsx src/pages/ForgotPassword.jsx src/pages/ResetPassword.jsx
           src/pages/Home.jsx src/pages/Wallet.jsx src/pages/Alerts.jsx src/pages/Profile.jsx
+          src/pages/PortfolioOverview.jsx src/pages/Settings.jsx src/pages/Services.jsx
+          src/pages/AdminKYCManagementModern.jsx src/pages/AdminUserBalancesModern.jsx
+          src/pages/AdminPlatformAssetsModern.jsx src/pages/AdminProfitAnalyticsModern.jsx
+          src/pages/AMLDashboardModern.jsx src/pages/ServerControlModern.jsx
+          src/components/admin/AdminCommandShell.jsx src/pages.config.js src/main.jsx
           src/components/home/AIInsightCard.jsx src/components/home/WhaleAlertCard.jsx
           src/components/home/HomeNews.jsx src/components/home/HomeMarketOverview.jsx
           src/components/home/HomeQuickActions.jsx src/Layout.jsx
           src/components/market/TradingViewModal.jsx src/components/market/useLivePrices.jsx
           src/components/home/useCoinMarkets.js src/components/LanguageSwitcher.jsx
           src/lib/LanguageContext.jsx src/components/pwa/PWAInstallPrompt.jsx
-          scripts/check-market-health.mjs public/sw.js --quiet
+          scripts/check-market-health.mjs scripts/check-system-health.mjs public/sw.js --quiet
