@@ -182,7 +182,7 @@ export default function AdminUserBalances() {
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <StatCard label="Pengguna terdaftar" value={users.length.toLocaleString('id-ID')} icon={Users} />
           <StatCard label="KYC menunggu review" value={pendingKYC.length.toLocaleString('id-ID')} icon={Clock} tone="warning" />
-          <StatCard label="Portfolio terpantau" value={`$${totalPortfolioValue.toLocaleString('en-US', { maximumFractionDigits: 2 })}`} icon={Wallet} tone="positive" />
+          <StatCard label="Saldo administrasi internal KriptoAman" value={`$${totalPortfolioValue.toLocaleString('en-US', { maximumFractionDigits: 2 })}`} icon={Wallet} tone="positive" />
           <StatCard label="Realized P&L" value={`$${totalRealizedPL.toLocaleString('en-US', { maximumFractionDigits: 2 })}`} icon={User} tone="info" />
         </div>
 
