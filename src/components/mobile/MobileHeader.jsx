@@ -3,8 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 
-const ROOT_PAGES = ['Home', 'Market', 'Wallet', 'Alerts', 'Profile', ''];
-const ROOT_PATHS = new Set(['/', '/dashboard', '/home', '/market', '/wallet', '/alerts', '/profile']);
+const ROOT_PAGES = ['Home', 'Market', 'PortfolioOverview', 'Wallet', 'SecurityHub', ''];
+const ROOT_PATHS = new Set(['/', '/dashboard', '/home', '/market', '/portfoliooverview', '/wallet', '/securityhub']);
 
 export default function MobileHeader({ currentPageName }) {
   const location = useLocation();
