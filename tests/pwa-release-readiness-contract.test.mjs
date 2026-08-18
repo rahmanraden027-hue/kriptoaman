@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const manifest = JSON.parse(await readFile(new URL('../public/manifest.json', import.meta.url), 'utf8'));
 const readiness = await readFile(new URL('../src/pages/PWAValidation.jsx', import.meta.url), 'utf8');
+const androidManifest = await readFile(new URL('../android/app/src/main/AndroidManifest.xml', import.meta.url), 'utf8');
 
 test('PWA manifest is aligned with Android 1.3 release identity', () => {
   assert.equal(manifest.short_name, 'KriptoAman');
@@ -26,4 +27,9 @@ test('PWA readiness page does not make hard-coded completion claims', () => {
   assert.match(readiness, /Belum dinyatakan 100% siap store/);
   assert.match(readiness, /build AAB terbaru/);
   assert.match(readiness, /Play Console Data safety/);
+});
+
+test('Android release disables application backup for sensitive app state', () => {
+  assert.match(androidManifest, /android:allowBackup="false"/);
+  assert.doesNotMatch(androidManifest, /android:allowBackup="true"/);
 });
