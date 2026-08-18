@@ -1,0 +1,16 @@
+{
+  "status": "development-testnet-only",
+  "networkName": "KriptoAman Testnet",
+  "nativeCurrency": {
+    "name": "KriptoAman",
+    "symbol": "KAM",
+    "decimals": 18
+  },
+  "chainId": 22027,
+  "chainIdHex": "0x560b",
+  "workingGenesisSupplyKAM": "1000000000",
+  "rpcUrl": "SET_AT_DEPLOYMENT",
+  "explorerUrl": "SET_AFTER_INDEXER_DEPLOYMENT",
+  "commercialValue": "none-guaranteed-testnet",
+  "mainnetEnabled": false
+}
