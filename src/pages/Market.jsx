@@ -7,7 +7,11 @@ import {
   Globe,
   Star,
   Wifi,
-  WifiOff
+  WifiOff,
+  Activity,
+  Radar,
+  Sparkles,
+  Layers3,
 } from 'lucide-react';
 
 import useLivePrices from '../components/market/useLivePrices';
@@ -107,6 +111,8 @@ const COPY = {
     emptyWatch: 'Belum ada aset di watchlist. Tekan bintang untuk menambahkan.',
     stale: 'Menampilkan snapshot terakhir yang berhasil disimpan. Pembaruan otomatis akan dilanjutkan saat koneksi pulih.',
     cachedSource: 'Snapshot tersimpan',
+    hero: 'Pusat intelijen pasar multi-aset untuk memantau momentum, tren, dan perubahan harga secara real-time.',
+    breadth: 'Market breadth', feeds: 'Data feeds', universe: 'Asset universe', mode: 'Intelligence mode',
   },
   en: {
     title: 'Crypto Market', identity: 'KRIPTOAMAN MARKET INTELLIGENCE', live: 'Live 24/7',
@@ -121,6 +127,8 @@ const COPY = {
     emptyWatch: 'Your watchlist is empty. Press the star to add an asset.',
     stale: 'Showing the last successfully saved snapshot. Automatic updates will resume when connectivity returns.',
     cachedSource: 'Saved snapshot',
+    hero: 'A multi-asset market intelligence center for monitoring momentum, trends, and price changes in real time.',
+    breadth: 'Market breadth', feeds: 'Data feeds', universe: 'Asset universe', mode: 'Intelligence mode',
   },
 };
 
@@ -179,6 +187,9 @@ export default function Market() {
   });
 
   const visibleCoins = filtered.slice(0, visibleCount);
+  const gainersCount = coins.filter(c => ((liveData[c.sym]?.change24h ?? markets[c.sym]?.change24h) || 0) > 0).length;
+  const losersCount = coins.filter(c => ((liveData[c.sym]?.change24h ?? markets[c.sym]?.change24h) || 0) < 0).length;
+  const breadth = gainersCount + losersCount > 0 ? Math.round((gainersCount / (gainersCount + losersCount)) * 100) : 0;
 
   const formatPrice = (sym) => {
     const d = liveData[sym] || markets[sym];
@@ -207,94 +218,119 @@ export default function Market() {
         />
       )}
 
-      <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 pt-2 sm:pt-4">
-        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-center gap-2.5">
-            <KriptoAmanLogo size={30} showText={false} animate={false} className="shrink-0" />
-            <div className="min-w-0">
-              <p className="truncate text-[8px] font-extrabold tracking-[0.16em] text-sky-300">{text.identity}</p>
-              <div className="mt-0.5 flex items-center gap-2">
-                <h1 className="text-lg font-bold text-white sm:text-xl">{text.title}</h1>
-                <span className={`inline-flex items-center gap-1 text-[10px] ${marketAvailable ? 'text-ka-emerald' : 'text-yellow-400'}`}>
-                  <span className={`h-1.5 w-1.5 rounded-full ${marketAvailable ? 'bg-ka-emerald ka-pulse-dot' : 'bg-yellow-400'}`} />
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-3 sm:pt-5 space-y-4">
+        <section className="relative overflow-hidden rounded-[28px] border border-sky-400/20 bg-slate-950/55 p-4 sm:p-6 lg:p-7 shadow-[0_24px_80px_rgba(0,0,0,0.32)]">
+          <div className="pointer-events-none absolute inset-0 opacity-80" style={{ backgroundImage: 'radial-gradient(circle at 12% 0%, rgba(56,189,248,.18), transparent 34%), radial-gradient(circle at 88% 10%, rgba(59,130,246,.14), transparent 30%), linear-gradient(rgba(56,189,248,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(56,189,248,.035) 1px, transparent 1px)', backgroundSize: 'auto, auto, 28px 28px, 28px 28px' }} />
+          <div className="relative grid gap-5 lg:grid-cols-[1.35fr_.65fr] lg:items-center">
+            <div>
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-sky-400/25 bg-sky-400/10 shadow-[0_0_30px_rgba(56,189,248,.16)]">
+                  <KriptoAmanLogo size={34} showText={false} animate={false} />
+                </div>
+                <div>
+                  <p className="text-[9px] font-extrabold tracking-[0.22em] text-sky-300">{text.identity}</p>
+                  <h1 className="mt-1 text-2xl font-black tracking-tight text-white sm:text-3xl lg:text-4xl">{text.title}</h1>
+                </div>
+              </div>
+              <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-400 sm:text-[15px]">{text.hero}</p>
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-bold ${marketAvailable ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300' : 'border-amber-400/25 bg-amber-400/10 text-amber-300'}`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${marketAvailable ? 'bg-emerald-400 ka-pulse-dot' : 'bg-amber-400'}`} />
                   {connected ? text.live : dataAvailable ? text.available : text.connecting}
                 </span>
+                <span className="ka-chip px-3 py-1.5 text-[10px] font-bold text-slate-300">{sourceLabel}</span>
+                {updatedLabel && <span className="ka-chip px-3 py-1.5 text-[10px] font-bold text-slate-400">{text.updated} {updatedLabel}</span>}
               </div>
-              <p className="mt-0.5 truncate text-[9px] ka-muted">
-                {coins.length.toLocaleString(language === 'en' ? 'en-US' : 'id-ID')} {text.assets} · {sourceLabel}
-                {updatedLabel ? ` · ${text.updated} ${updatedLabel}` : ''}
-              </p>
             </div>
-          </div>
 
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 sm:pb-0" style={{ scrollbarWidth: 'none' }}>
-            <LanguageSwitcher compact />
-            <button
-              onClick={() => setCurrency(c => c === 'idr' ? 'usd' : 'idr')}
-              className="ka-chip shrink-0 px-2.5 py-1.5 text-[10px] font-bold ka-muted hover:text-white transition-colors"
-            >
-              {currency === 'idr' ? 'IDR 🇮🇩' : 'USD 🇺🇸'}
-            </button>
-            <div className={`shrink-0 rounded-lg border p-1.5 ${marketAvailable ? 'bg-ka-emerald/10 border-ka-emerald/20' : 'ka-chip'}`}>
-              {marketAvailable ? <Wifi className="h-3.5 w-3.5 text-ka-emerald" /> : <WifiOff className="h-3.5 w-3.5 text-yellow-400" />}
+            <div className="grid grid-cols-2 gap-2.5">
+              {[
+                [Activity, text.breadth, `${breadth}%`, breadth >= 50 ? 'text-emerald-300' : 'text-amber-300'],
+                [Radar, text.feeds, marketAvailable ? (connected ? 'LIVE' : 'SYNC') : 'WAIT', marketAvailable ? 'text-sky-300' : 'text-amber-300'],
+                [Layers3, text.universe, coins.length.toLocaleString(language === 'en' ? 'en-US' : 'id-ID'), 'text-white'],
+                [Sparkles, text.mode, language === 'en' ? 'REAL-TIME' : 'REAL-TIME', 'text-cyan-300'],
+              ].map(([Icon, label, value, color]) => (
+                <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.035] p-3.5 backdrop-blur-xl">
+                  <Icon className="h-4 w-4 text-sky-300" />
+                  <p className={`mt-3 text-lg font-black ${color}`}>{value}</p>
+                  <p className="mt-0.5 text-[9px] uppercase tracking-[0.14em] text-slate-500">{label}</p>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        </section>
 
         {isStale && dataAvailable && (
-          <div role="status" className="mb-3 rounded-xl border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-[10px] leading-relaxed text-amber-200">
+          <div role="status" className="rounded-2xl border border-amber-400/25 bg-amber-400/10 px-4 py-3 text-[11px] leading-relaxed text-amber-200">
             {text.stale}{ageLabel ? ` (${ageLabel})` : ''}
           </div>
         )}
 
-        <div className="relative mb-2.5">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 ka-muted" />
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder={`${text.search} (${coins.length})… BTC, ETH, SOL`}
-            className="w-full ka-surface rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-ka-emerald placeholder:ka-muted"
-          />
-        </div>
+        <section className="ka-surface p-3 sm:p-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-sky-300" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder={`${text.search} (${coins.length})… BTC, ETH, SOL`}
+                className="w-full rounded-2xl border border-white/10 bg-slate-950/55 py-3 pl-10 pr-4 text-sm text-white outline-none transition focus:border-sky-400/45 placeholder:text-slate-600"
+              />
+            </div>
+            <div className="flex items-center gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+              <LanguageSwitcher compact />
+              <button
+                onClick={() => setCurrency(c => c === 'idr' ? 'usd' : 'idr')}
+                className="ka-chip shrink-0 px-3 py-2 text-[10px] font-bold text-slate-300 hover:text-white transition-colors"
+              >
+                {currency === 'idr' ? 'IDR 🇮🇩' : 'USD 🇺🇸'}
+              </button>
+              <div className={`shrink-0 rounded-xl border p-2 ${marketAvailable ? 'border-emerald-400/20 bg-emerald-400/10' : 'border-amber-400/20 bg-amber-400/10'}`}>
+                {marketAvailable ? <Wifi className="h-4 w-4 text-emerald-300" /> : <WifiOff className="h-4 w-4 text-amber-300" />}
+              </div>
+            </div>
+          </div>
 
-        <div className="grid grid-cols-4 gap-1.5 mb-2.5">
-          {[['all', text.all], ['gainers', text.gainers], ['losers', text.losers], ['watchlist', text.watchlist]].map(([key, label]) => (
-            <button
-              key={key}
-              onClick={() => setTab(key)}
-              className={`min-w-0 rounded-lg px-2 py-2 text-[11px] font-semibold transition-all ${tab === key ? 'bg-ka-emerald text-black' : 'ka-chip ka-muted hover:text-white'}`}
-            >
-              <span className="block truncate">{label}</span>
-            </button>
-          ))}
-        </div>
+          <div className="mt-3 grid grid-cols-4 gap-1.5 sm:gap-2">
+            {[['all', text.all], ['gainers', text.gainers], ['losers', text.losers], ['watchlist', text.watchlist]].map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => setTab(key)}
+                className={`min-w-0 rounded-xl px-2 py-2.5 text-[11px] font-bold transition-all ${tab === key ? 'border border-sky-300/30 bg-sky-400/15 text-sky-200 shadow-[0_0_18px_rgba(56,189,248,.12)]' : 'border border-white/8 bg-white/[0.025] text-slate-400 hover:text-white'}`}
+              >
+                <span className="block truncate">{label}</span>
+              </button>
+            ))}
+          </div>
+        </section>
 
-        <div className="grid grid-cols-3 gap-1.5 mb-2.5">
+        <div className="grid grid-cols-3 gap-2.5">
           {[
-            { label: text.gainers, value: coins.filter(c => ((liveData[c.sym]?.change24h ?? markets[c.sym]?.change24h) || 0) > 0).length, color: 'text-ka-emerald' },
-            { label: text.losers, value: coins.filter(c => ((liveData[c.sym]?.change24h ?? markets[c.sym]?.change24h) || 0) < 0).length, color: 'text-[#e74c3c]' },
-            { label: 'Total', value: coins.length, color: 'text-white' },
+            { label: text.gainers, value: gainersCount, color: 'text-emerald-300', icon: TrendingUp },
+            { label: text.losers, value: losersCount, color: 'text-red-300', icon: TrendingDown },
+            { label: 'Total', value: coins.length, color: 'text-white', icon: Globe },
           ].map(stat => (
-            <div key={stat.label} className="ka-surface rounded-xl px-2 py-2 text-center">
-              <p className={`text-sm font-bold ka-num ${stat.color}`}>{stat.value}</p>
-              <p className="ka-muted text-[9px] truncate">{stat.label}</p>
+            <div key={stat.label} className="ka-surface p-3 sm:p-4">
+              <stat.icon className={`h-4 w-4 ${stat.color}`} />
+              <p className={`mt-2 text-xl font-black ka-num ${stat.color}`}>{stat.value}</p>
+              <p className="mt-0.5 truncate text-[9px] uppercase tracking-[0.14em] text-slate-500">{stat.label}</p>
             </div>
           ))}
         </div>
 
-        <details className="mb-2.5 rounded-xl border border-sky-400/15 bg-sky-400/[0.04] px-3 py-2">
+        <details className="rounded-2xl border border-sky-400/15 bg-sky-400/[0.04] px-4 py-3">
           <summary className="cursor-pointer select-none text-[10px] font-bold text-sky-300">{text.methodology}</summary>
-          <div className="pt-2 text-[9px] leading-relaxed text-slate-400">
-            <div className="grid gap-2 sm:grid-cols-3">
+          <div className="pt-3 text-[10px] leading-relaxed text-slate-400">
+            <div className="grid gap-3 sm:grid-cols-3">
               <div><span className="font-bold text-sky-300">{text.source}: </span>{sourceLabel}</div>
               <div><span className="font-bold text-sky-300">{text.cadence}: </span>{text.cadenceValue}</div>
               <div><span className="font-bold text-sky-300">{text.scope}: </span>{text.scopeValue}</div>
             </div>
-            <p className="mt-2 border-t border-white/10 pt-2 text-slate-500">{text.disclaimer}</p>
+            <p className="mt-3 border-t border-white/10 pt-3 text-slate-500">{text.disclaimer}</p>
           </div>
         </details>
 
-        <div className="grid gap-1.5 xl:grid-cols-2">
+        <div className="grid gap-2 xl:grid-cols-2">
           {visibleCoins.map((c, index) => {
             const d = liveData[c.sym] || markets[c.sym];
             const chg = d?.change24h;
@@ -305,50 +341,53 @@ export default function Market() {
             return (
               <div
                 key={c.id}
-                className="flex items-center gap-2 ka-surface ka-surface-hover px-2.5 py-2.5"
+                className="group flex items-center gap-3 ka-surface ka-surface-hover px-3.5 py-3.5 cursor-pointer"
                 onClick={() => setChartCoin(c)}
               >
                 <div className="relative shrink-0">
                   <img
                     src={coinImage(c.id, c.image, c.sym)}
                     alt={c.name}
-                    className="h-8 w-8 rounded-full object-cover"
+                    className="h-10 w-10 rounded-2xl object-cover ring-1 ring-white/10"
                     loading="lazy"
                     onError={(e) => handleCoinImageError(e, c.sym)}
                   />
                   <span
                     aria-hidden="true"
-                    className="h-8 w-8 rounded-full items-center justify-center border border-ka-emerald/30 bg-ka-emerald/10 text-[8px] font-extrabold text-ka-emerald"
+                    className="h-10 w-10 rounded-2xl items-center justify-center border border-sky-400/30 bg-sky-400/10 text-[9px] font-extrabold text-sky-300"
                     style={{ display: 'none' }}
                   >
                     {c.sym.slice(0, 4)}
                   </span>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-white">{c.sym}</p>
-                  <p className="max-w-[100px] truncate text-[9px] ka-muted">#{c.rank || index + 1} · {c.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-extrabold text-white">{c.sym}</p>
+                    <span className="rounded-md border border-white/8 bg-white/[0.035] px-1.5 py-0.5 text-[8px] text-slate-500">#{c.rank || index + 1}</span>
+                  </div>
+                  <p className="mt-0.5 max-w-[120px] truncate text-[10px] text-slate-500">{c.name}</p>
                 </div>
-                <div className="ml-auto flex min-w-0 items-center gap-2">
-                  <div className="hidden xs:block sm:block">
+                <div className="ml-auto flex min-w-0 items-center gap-2.5">
+                  <div className="hidden sm:block">
                     {chartData.length > 1 ? (
-                      <InteractiveSparkline data={chartData} up={isUp} height={24} width={52} />
+                      <InteractiveSparkline data={chartData} up={isUp} height={28} width={64} />
                     ) : null}
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className={`text-[13px] font-bold ka-num transition-colors ${d?.tick === 'up' ? 'text-ka-emerald' : d?.tick === 'down' ? 'text-[#e74c3c]' : 'text-white'}`}>
+                    <p className={`text-[13px] font-extrabold ka-num transition-colors ${d?.tick === 'up' ? 'text-emerald-300' : d?.tick === 'down' ? 'text-red-300' : 'text-white'}`}>
                       {formatPrice(c.sym)}
                     </p>
-                    <div className={`flex items-center justify-end gap-1 text-[10px] font-semibold ${isUp ? 'text-ka-emerald' : 'text-[#e74c3c]'}`}>
+                    <div className={`mt-0.5 flex items-center justify-end gap-1 text-[10px] font-bold ${isUp ? 'text-emerald-300' : 'text-red-300'}`}>
                       {isUp ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                       {chg != null ? `${isUp ? '+' : ''}${chg.toFixed(2)}%` : '—'}
                     </div>
                   </div>
                   <button
                     onClick={e => { e.stopPropagation(); toggleWatchlist(c.sym); }}
-                    className={`shrink-0 rounded-lg p-1.5 transition-all tap-reset ${inWatchlist ? 'text-yellow-400' : 'ka-muted hover:text-white'}`}
+                    className={`shrink-0 rounded-xl border p-2 transition-all tap-reset ${inWatchlist ? 'border-yellow-400/25 bg-yellow-400/10 text-yellow-300' : 'border-white/8 bg-white/[0.025] text-slate-500 hover:text-white'}`}
                     aria-label="Watchlist"
                   >
-                    <Star className={`h-4 w-4 ${inWatchlist ? 'fill-yellow-400' : ''}`} />
+                    <Star className={`h-4 w-4 ${inWatchlist ? 'fill-yellow-300' : ''}`} />
                   </button>
                 </div>
               </div>
