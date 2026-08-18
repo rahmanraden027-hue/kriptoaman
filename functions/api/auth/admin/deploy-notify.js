@@ -1,7 +1,9 @@
 import { json, requireBindings, requireSameOrigin } from '../../../../server/auth/http.js';
+import { ensureAuthSchema } from '../../../../server/auth/schema.js';
 import { getSessionToken, verifySessionToken } from '../../../../server/auth/session.js';
 import { getActiveSession } from '../../../../server/auth/sessions.js';
 import { getUserById } from '../../../../server/auth/users.js';
+import { recordAdminAudit } from '../../../../server/auth/adminAudit.js';
 
 async function requireAdmin(request, env) {
   const session = await verifySessionToken(env.SESSION_SECRET, getSessionToken(request));
@@ -17,6 +19,7 @@ export async function onRequestPost({ request, env }) {
   try {
     requireBindings(env, ['AUTH_DB', 'SESSION_SECRET', 'RESEND_API_KEY', 'AUTH_EMAIL_FROM', 'ADMIN_EMAILS']);
     requireSameOrigin(request, env);
+    await ensureAuthSchema(env.AUTH_DB);
 
     const admin = await requireAdmin(request, env);
     if (!admin) return json({ error: 'Admin access required' }, { status: 403 });
@@ -61,6 +64,13 @@ export async function onRequestPost({ request, env }) {
     });
 
     if (!response.ok) throw new Error(`Email delivery failed with status ${response.status}`);
+
+    await recordAdminAudit(env.AUTH_DB, request, admin, 'deploy.notification', {
+      targetType: 'deployment',
+      targetId: version || 'unspecified',
+      metadata: { version: version || null, noteLength: note.length, recipientCount: recipients.length },
+    });
+
     return json({ sent: true });
   } catch (error) {
     console.error('Admin deploy notification failed', error);
