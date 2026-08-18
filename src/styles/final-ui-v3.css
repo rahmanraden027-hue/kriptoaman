@@ -1,0 +1,188 @@
+/* KriptoAman Final UI v3 — detail polish for core product surfaces.
+   Presentation-only: no auth, KYC, wallet-provider, market-data, transaction, or admin behavior changes. */
+
+:root {
+  --ka-v3-edge: rgba(99, 205, 255, .22);
+  --ka-v3-edge-strong: rgba(99, 205, 255, .38);
+  --ka-v3-panel: rgba(7, 18, 32, .82);
+  --ka-v3-panel-2: rgba(10, 25, 44, .88);
+  --ka-v3-glow: 0 28px 78px -34px rgba(36, 156, 255, .50);
+  --ka-v3-glow-soft: 0 18px 52px -32px rgba(87, 215, 255, .34);
+}
+
+/* Core dashboard composition */
+.ka-bg > .max-w-7xl,
+.ka-workspace-page > .max-w-7xl,
+.ka-bg > .max-w-6xl {
+  position: relative;
+}
+
+.ka-bg section[class*="rounded-[28px]"],
+.ka-command-hero {
+  background:
+    radial-gradient(circle at 86% 8%, rgba(36,156,255,.15), transparent 30%),
+    radial-gradient(circle at 8% 100%, rgba(124,108,255,.07), transparent 28%),
+    linear-gradient(145deg, rgba(7,19,35,.96), rgba(5,14,27,.91)) !important;
+  border-color: var(--ka-v3-edge) !important;
+  box-shadow: var(--ka-v3-glow), inset 0 1px 0 rgba(255,255,255,.045) !important;
+}
+
+.ka-bg section[class*="rounded-[28px]"]::after,
+.ka-command-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(120deg, rgba(255,255,255,.025), transparent 28%, transparent 72%, rgba(87,215,255,.025));
+}
+
+/* Financial cards and widgets */
+.ka-surface,
+.ka-command-panel,
+.ka-command-tile {
+  border-color: rgba(90, 177, 235, .17) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03), var(--ka-v3-glow-soft) !important;
+}
+
+.ka-surface:hover,
+.ka-command-tile:hover {
+  border-color: var(--ka-v3-edge-strong) !important;
+}
+
+.ka-num,
+.ka-bg [class*="font-extrabold"],
+.ka-bg [class*="font-black"] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Market rows: stronger scanability, terminal-like density */
+.ka-bg table thead th {
+  color: rgb(148 163 184) !important;
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  background: rgba(4, 13, 24, .52);
+}
+
+.ka-bg table tbody td {
+  border-bottom-color: rgba(71, 117, 151, .12) !important;
+}
+
+.ka-bg table tbody tr {
+  background: linear-gradient(90deg, transparent, rgba(36,156,255,.012), transparent);
+}
+
+.ka-bg table tbody tr:hover {
+  background: linear-gradient(90deg, rgba(36,156,255,.06), rgba(87,215,255,.025), rgba(36,156,255,.02)) !important;
+}
+
+.ka-bg table img {
+  filter: drop-shadow(0 5px 10px rgba(0,0,0,.25));
+}
+
+/* Search / filter bars feel like one command strip */
+.ka-bg input[type='search'],
+.ka-bg input[placeholder*='Cari'],
+.ka-bg input[placeholder*='Search'] {
+  border-color: rgba(87,215,255,.22) !important;
+  background: rgba(4,14,27,.88) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025), 0 12px 34px rgba(0,0,0,.16);
+}
+
+/* Portfolio analytics */
+.ka-workspace-page .ka-command-panel {
+  background:
+    linear-gradient(180deg, rgba(9,22,39,.82), rgba(5,15,29,.76)) !important;
+}
+
+.ka-workspace-page .ka-command-panel canvas,
+.ka-workspace-page .ka-command-panel svg {
+  filter: drop-shadow(0 10px 24px rgba(36,156,255,.06));
+}
+
+/* Wallet: elevate connected-wallet and admin-balance presentation */
+.ka-bg [aria-label='Portofolio admin'],
+.ka-bg [aria-label='Admin portfolio'] {
+  border-color: rgba(217,166,77,.22) !important;
+  background:
+    radial-gradient(circle at 92% 0%, rgba(217,166,77,.055), transparent 34%),
+    linear-gradient(145deg, rgba(9,20,36,.92), rgba(5,14,26,.86)) !important;
+}
+
+.ka-bg [aria-label='Portofolio admin'] > div + div > div,
+.ka-bg [aria-label='Admin portfolio'] > div + div > div {
+  border-color: rgba(87,215,255,.16) !important;
+  background: linear-gradient(160deg, rgba(7,20,35,.88), rgba(4,13,25,.82)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025), 0 14px 34px rgba(0,0,0,.18);
+}
+
+/* Connected wallet panels */
+.ka-bg [class*='wallet'] [class*='rounded-2xl'][class*='border'],
+.ka-bg [class*='Wallet'] [class*='rounded-2xl'][class*='border'] {
+  backdrop-filter: blur(18px) saturate(125%);
+}
+
+/* Security center: device/session cards and actionable controls */
+.ka-bg .ka-emerald-glow {
+  box-shadow:
+    0 0 0 1px rgba(87,215,255,.22),
+    0 0 36px -12px rgba(87,215,255,.32),
+    0 22px 56px -32px rgba(36,156,255,.50) !important;
+}
+
+.ka-bg button[class*='border-red-500'] {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.ka-bg button[class*='border-red-500']:hover {
+  border-color: rgba(248,113,113,.50) !important;
+  background: rgba(239,68,68,.14) !important;
+}
+
+/* Improve list/card separation inside security and wallet pages */
+.ka-bg .space-y-2 > [class*='rounded-2xl'][class*='border'],
+.ka-bg .space-y-3 > [class*='rounded-2xl'][class*='border'] {
+  background: linear-gradient(145deg, rgba(8,20,35,.78), rgba(4,13,24,.72));
+}
+
+/* Mobile: tighter information hierarchy without shrinking tap targets */
+@media (max-width: 767px) {
+  .ka-bg > .max-w-7xl,
+  .ka-workspace-page > .max-w-7xl,
+  .ka-bg > .max-w-6xl {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .ka-bg section[class*="rounded-[28px]"],
+  .ka-command-hero {
+    border-radius: 23px !important;
+  }
+
+  .ka-bg h1 {
+    line-height: 1.05;
+  }
+
+  .ka-bg table {
+    font-size: 12px;
+  }
+
+  .ka-surface,
+  .ka-command-panel {
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.025), 0 16px 44px -30px rgba(36,156,255,.38) !important;
+  }
+}
+
+@media (min-width: 1280px) {
+  .ka-bg > .max-w-7xl,
+  .ka-workspace-page > .max-w-7xl {
+    max-width: 86rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ka-bg table tbody tr,
+  .ka-surface,
+  .ka-command-tile { transition: none !important; }
+}
