@@ -6,10 +6,10 @@ const mobileHeader = await readFile(new URL('../src/components/mobile/MobileHead
 const bottomNav = await readFile(new URL('../src/components/mobile/PrimaryBottomNav.jsx', import.meta.url), 'utf8');
 
 test('five primary mobile pages never render a back header', () => {
-  for (const page of ['Home', 'Market', 'Wallet', 'Alerts', 'Profile']) {
+  for (const page of ['Home', 'Market', 'PortfolioOverview', 'Wallet', 'SecurityHub']) {
     assert.match(mobileHeader, new RegExp(`['\"]${page}['\"]`));
   }
-  for (const path of ['/dashboard', '/market', '/wallet', '/alerts', '/profile']) {
+  for (const path of ['/dashboard', '/market', '/portfoliooverview', '/wallet', '/securityhub']) {
     assert.ok(mobileHeader.toLowerCase().includes(path), `Missing root path ${path}`);
   }
   assert.match(mobileHeader, /if \(isRoot\) return null/);
@@ -19,9 +19,9 @@ test('primary bottom navigation keeps approved routes and active-state behavior'
   const requiredRoutes = [
     ["Home", "/dashboard"],
     ["Market", "/Market"],
+    ["PortfolioOverview", "/PortfolioOverview"],
     ["Wallet", "/Wallet"],
-    ["Alerts", "/Alerts"],
-    ["Profile", "/Profile"],
+    ["SecurityHub", "/SecurityHub"],
   ];
 
   for (const [page, route] of requiredRoutes) {
