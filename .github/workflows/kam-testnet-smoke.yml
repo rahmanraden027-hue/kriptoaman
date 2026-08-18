@@ -1,0 +1,115 @@
+name: KAM Testnet Smoke
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/kam-testnet-smoke.yml'
+      - 'chain/kam-testnet/**'
+  workflow_dispatch:
+
+jobs:
+  qbft-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq curl openssl
+
+      - name: Download and verify Besu 26.7.1
+        run: |
+          curl -L --fail --retry 3 -o /tmp/besu.tar.gz https://github.com/besu-eth/besu/releases/download/26.7.1/besu-26.7.1.tar.gz
+          echo '7311ba20a585a016543a12417d2c822e850c6a6fc58e5128cdf770653951f6c7  /tmp/besu.tar.gz' | sha256sum -c -
+          mkdir -p /tmp/besu
+          tar -xzf /tmp/besu.tar.gz -C /tmp/besu --strip-components=1
+          echo '/tmp/besu/bin' >> "$GITHUB_PATH"
+
+      - name: Generate ephemeral validator and treasury keys
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/kam/keys /tmp/kam/nodes
+          for i in 1 2 3 4; do
+            openssl rand -hex 32 > "/tmp/kam/keys/validator${i}.key"
+            besu public-key export-address --node-private-key-file="/tmp/kam/keys/validator${i}.key" --to="/tmp/kam/keys/validator${i}.address"
+          done
+          openssl rand -hex 32 > /tmp/kam/keys/treasury.key
+          besu public-key export-address --node-private-key-file=/tmp/kam/keys/treasury.key --to=/tmp/kam/keys/treasury.address
+          printf '[\n' > /tmp/kam/validators.json
+          for i in 1 2 3 4; do
+            addr=$(tr -d '\n\r' < "/tmp/kam/keys/validator${i}.address")
+            printf '  "%s"' "$addr" >> /tmp/kam/validators.json
+            if [[ "$i" != "4" ]]; then printf ',\n' >> /tmp/kam/validators.json; else printf '\n' >> /tmp/kam/validators.json; fi
+          done
+          printf ']\n' >> /tmp/kam/validators.json
+          besu rlp encode --from=/tmp/kam/validators.json --type=QBFT_EXTRA_DATA > /tmp/kam/extradata.txt
+
+      - name: Build genesis with 1 billion KAM test allocation
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXTRA=$(tr -d '\n\r' < /tmp/kam/extradata.txt)
+          TREASURY=$(tr -d '\n\r' < /tmp/kam/keys/treasury.address | sed 's/^0x//')
+          BALANCE_HEX=$(python3 - <<'PY'
+print(hex(1_000_000_000 * 10**18))
+PY
+)
+          jq -n --arg extra "$EXTRA" --arg treasury "$TREASURY" --arg balance "$BALANCE_HEX" '{config:{chainId:22027,berlinBlock:0,londonBlock:0,zeroBaseFee:true,qbft:{blockperiodseconds:3,epochlength:30000,requesttimeoutseconds:6}},nonce:"0x0",timestamp:"0x0",extraData:$extra,gasLimit:"0x1fffffffffffff",difficulty:"0x1",mixHash:"0x63746963616c2062797a616e74696e65206661756c7420746f6c6572616e6365",coinbase:"0x0000000000000000000000000000000000000000",alloc:{($treasury):{balance:$balance}},number:"0x0",gasUsed:"0x0",parentHash:"0x0000000000000000000000000000000000000000000000000000000000000000"}' > /tmp/kam/genesis.json
+
+      - name: Start four QBFT validators
+        shell: bash
+        run: |
+          set -euo pipefail
+          for i in 1 2 3 4; do mkdir -p "/tmp/kam/nodes/node${i}"; done
+          besu --data-path=/tmp/kam/nodes/node1 --genesis-file=/tmp/kam/genesis.json --node-private-key-file=/tmp/kam/keys/validator1.key --p2p-host=127.0.0.1 --p2p-port=30301 --rpc-http-enabled --rpc-http-host=127.0.0.1 --rpc-http-port=8545 --rpc-http-api=ETH,NET,WEB3,QBFT,ADMIN --host-allowlist='*' --rpc-http-cors-origins='*' > /tmp/kam/node1.log 2>&1 &
+          for n in $(seq 1 30); do if curl -s --fail -H 'Content-Type: application/json' --data '{"jsonrpc":"2.0","method":"admin_nodeInfo","params":[],"id":1}' http://127.0.0.1:8545 > /tmp/kam/nodeinfo.json; then break; fi; sleep 1; done
+          BOOTNODE=$(jq -r '.result.enode' /tmp/kam/nodeinfo.json)
+          test -n "$BOOTNODE"
+          for i in 2 3 4; do
+            P2P=$((30300+i)); RPC=$((8544+i))
+            besu --data-path="/tmp/kam/nodes/node${i}" --genesis-file=/tmp/kam/genesis.json --node-private-key-file="/tmp/kam/keys/validator${i}.key" --p2p-host=127.0.0.1 --p2p-port="$P2P" --bootnodes="$BOOTNODE" --rpc-http-enabled --rpc-http-host=127.0.0.1 --rpc-http-port="$RPC" --rpc-http-api=ETH,NET,WEB3,QBFT --host-allowlist='*' > "/tmp/kam/node${i}.log" 2>&1 &
+          done
+
+      - name: Verify chain, validators, blocks and KAM treasury balance
+        shell: bash
+        run: |
+          set -euo pipefail
+          RPC=http://127.0.0.1:8545
+          rpc() { curl -s --fail -H 'Content-Type: application/json' --data "$1" "$RPC"; }
+          for n in $(seq 1 40); do
+            BLOCK_HEX=$(rpc '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' | jq -r '.result // "0x0"')
+            BLOCK=$((16#${BLOCK_HEX#0x}))
+            if (( BLOCK >= 2 )); then break; fi
+            sleep 2
+          done
+          CHAIN=$(rpc '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' | jq -r '.result')
+          [[ "$CHAIN" == "0x560b" ]]
+          VALIDATORS=$(rpc '{"jsonrpc":"2.0","method":"qbft_getValidatorsByBlockNumber","params":["latest"],"id":1}' | jq '.result | length')
+          [[ "$VALIDATORS" == "4" ]]
+          BLOCK_HEX=$(rpc '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' | jq -r '.result')
+          BLOCK=$((16#${BLOCK_HEX#0x}))
+          (( BLOCK >= 2 ))
+          TREASURY=$(tr -d '\n\r' < /tmp/kam/keys/treasury.address)
+          BALANCE=$(rpc "{\"jsonrpc\":\"2.0\",\"method\":\"eth_getBalance\",\"params\":[\"${TREASURY}\",\"latest\"],\"id\":1}" | jq -r '.result')
+          EXPECTED=$(python3 - <<'PY'
+print(hex(1_000_000_000 * 10**18))
+PY
+)
+          [[ "${BALANCE,,}" == "${EXPECTED,,}" ]]
+          echo "KAM_TESTNET_CHAIN_ID=$CHAIN"
+          echo "KAM_TESTNET_VALIDATORS=$VALIDATORS"
+          echo "KAM_TESTNET_LATEST_BLOCK=$BLOCK"
+          echo "KAM_TESTNET_TREASURY=$TREASURY"
+          echo "KAM_TESTNET_BALANCE_WEI=$BALANCE"
+          echo 'KAM_TESTNET_SMOKE=PASS'
+
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          for f in /tmp/kam/node*.log; do echo "===== $f ====="; tail -n 120 "$f" || true; done
