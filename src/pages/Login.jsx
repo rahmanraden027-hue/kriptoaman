@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { kriptoAuth } from "@/lib/kriptoAuth";
+import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +17,7 @@ const COPY = {
 
 export default function Login() {
   const { language } = useLanguage();
+  const { isAuthenticated } = useAuth();
   const text = COPY[language] || COPY.id;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,6 +27,10 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [adminLinkSent, setAdminLinkSent] = useState(false);
   const isAdminEmail = email.trim().toLowerCase() === "kriptoaman@gmail.com";
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
