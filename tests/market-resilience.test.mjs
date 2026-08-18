@@ -76,7 +76,7 @@ test('market disaster recovery monitoring and UI fallbacks are release-gated', a
   assert.match(health, /MIN_ASSETS = 2001/);
   assert.match(health, /MAX_AGE_MS/);
   assert.match(market, /fallbackSparkline/);
-  assert.match(market, /max-w-6xl/);
+  assert.match(market, /max-w-7xl/);
   assert.match(market, /xl:grid-cols-2/);
   assert.match(install, /left-1\/2/);
 });
