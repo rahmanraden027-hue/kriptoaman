@@ -5,17 +5,12 @@ import { useAuth } from '@/lib/AuthContext';
 import { logAudit } from '@/lib/auditLog';
 import { useToast } from '@/components/ui/use-toast';
 
-/**
- * AdminRoute — melindungi semua halaman admin dengan verifikasi server-side.
- * Browser tidak dipercaya sebagai sumber otoritas role. Sebelum halaman admin
- * dirender, server memverifikasi cookie bertanda tangan, session ID aktif,
- * dan role admin dari database first-party KriptoAman.
- */
 export default function AdminRoute({ children }) {
   const { isAuthenticated, isLoadingAuth } = useAuth();
   const { toast } = useToast();
   const [checkingAdmin, setCheckingAdmin] = useState(true);
   const [serverAdmin, setServerAdmin] = useState(false);
+  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -25,6 +20,7 @@ export default function AdminRoute({ children }) {
       if (!isAuthenticated) {
         if (!cancelled) {
           setServerAdmin(false);
+          setTwoFactorRequired(false);
           setCheckingAdmin(false);
         }
         return;
@@ -40,8 +36,10 @@ export default function AdminRoute({ children }) {
         });
         const data = await response.json().catch(() => null);
         const allowed = response.ok && data?.admin === true;
+        const needs2FA = allowed && data?.two_factor_setup_required === true;
         if (!cancelled) {
           setServerAdmin(allowed);
+          setTwoFactorRequired(needs2FA);
           setCheckingAdmin(false);
         }
         if (!allowed) {
@@ -51,10 +49,17 @@ export default function AdminRoute({ children }) {
             description: 'Halaman ini hanya tersedia untuk sesi admin yang terverifikasi.',
             variant: 'destructive',
           });
+        } else if (needs2FA) {
+          logAudit('admin_route_2fa_required', { path: window.location.pathname });
+          toast({
+            title: '2FA admin wajib',
+            description: 'Aktifkan autentikasi dua faktor sebelum membuka kontrol admin.',
+          });
         }
-      } catch (error) {
+      } catch {
         if (!cancelled) {
           setServerAdmin(false);
+          setTwoFactorRequired(false);
           setCheckingAdmin(false);
         }
         logAudit('admin_route_verification_failed', { path: window.location.pathname });
@@ -78,12 +83,10 @@ export default function AdminRoute({ children }) {
     );
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (!serverAdmin) {
-    return <Navigate to="/" replace />;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!serverAdmin) return <Navigate to="/" replace />;
+  if (twoFactorRequired && window.location.pathname !== '/SecurityCenter') {
+    return <Navigate to="/SecurityCenter" replace />;
   }
 
   return children;
