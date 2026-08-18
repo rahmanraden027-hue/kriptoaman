@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Activity, CheckCircle2, XCircle, Clock, RefreshCw, AlertTriangle, Wifi, WifiOff } from 'lucide-react';
+import AdminAuditLogPanel from './AdminAuditLogPanel';
 
 const ENDPOINTS = [
   { label: 'App (Base44)', url: 'https://kriptoaman.base44.app', key: 'app' },
@@ -108,6 +109,12 @@ export default function ServerMonitorPanel() {
           </div>
         </div>
       )}
+
+      {/* Server-side Admin Audit Log */}
+      <div className="pt-4 border-t border-slate-700/40">
+        <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-3">Audit Log Admin</p>
+        <AdminAuditLogPanel />
+      </div>
     </div>
   );
 }
