@@ -1,0 +1,220 @@
+/* KriptoAman Final UI v2 — page-level refinement only.
+   Presentation layer: no auth, KYC, wallet-provider, market-data or admin behavior changes. */
+
+:root {
+  --ka-v2-panel: rgba(6, 16, 29, .78);
+  --ka-v2-panel-strong: rgba(7, 19, 34, .94);
+  --ka-v2-line: rgba(92, 194, 255, .16);
+  --ka-v2-line-hot: rgba(92, 194, 255, .34);
+  --ka-v2-blue: #35a7ff;
+  --ka-v2-cyan: #68e4ff;
+  --ka-v2-gold: #e0b25f;
+  --ka-v2-soft-shadow: 0 24px 70px -38px rgba(0, 132, 255, .58);
+  --ka-v2-deep-shadow: 0 32px 90px -42px rgba(0, 0, 0, .82);
+}
+
+/* Stronger hierarchy across the five primary product surfaces. */
+.ka-bg > .max-w-7xl,
+.ka-bg > .max-w-6xl,
+.ka-workspace-page > .max-w-7xl {
+  position: relative;
+  z-index: 1;
+}
+
+.ka-bg > .max-w-7xl::before,
+.ka-bg > .max-w-6xl::before,
+.ka-workspace-page > .max-w-7xl::before {
+  content: '';
+  position: absolute;
+  top: -24px;
+  left: 6%;
+  right: 6%;
+  height: 170px;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(53, 167, 255, .08), transparent 70%);
+  filter: blur(28px);
+}
+
+/* Hero surfaces feel like one coherent premium product family. */
+.ka-bg section[class*="rounded-[28px]"],
+.ka-command-hero {
+  isolation: isolate;
+  border-color: var(--ka-v2-line) !important;
+  background:
+    radial-gradient(circle at 88% 8%, rgba(53,167,255,.14), transparent 26%),
+    radial-gradient(circle at 18% 100%, rgba(104,228,255,.055), transparent 28%),
+    linear-gradient(138deg, rgba(7,20,36,.97), rgba(4,12,24,.93)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.045),
+    var(--ka-v2-deep-shadow),
+    0 0 0 1px rgba(53,167,255,.025) !important;
+}
+
+.ka-bg section[class*="rounded-[28px]"]::after,
+.ka-command-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  opacity: .36;
+  background-image:
+    linear-gradient(rgba(104,228,255,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(104,228,255,.035) 1px, transparent 1px);
+  background-size: 38px 38px;
+  mask-image: linear-gradient(135deg, rgba(0,0,0,.8), transparent 74%);
+}
+
+/* Final card language: darker centers, brighter edges, quieter clutter. */
+.ka-surface,
+.ka-command-panel,
+.ka-command-tile {
+  border-color: var(--ka-v2-line) !important;
+  background:
+    linear-gradient(155deg, rgba(10,25,44,.86), rgba(5,14,26,.80)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035),
+    0 18px 46px -32px rgba(0,0,0,.8),
+    0 0 28px -24px rgba(53,167,255,.65) !important;
+}
+
+.ka-surface-hover:hover,
+.ka-command-tile:hover {
+  border-color: var(--ka-v2-line-hot) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.055),
+    0 24px 58px -34px rgba(0,0,0,.9),
+    0 0 36px -22px rgba(53,167,255,.72) !important;
+}
+
+/* More readable financial figures and compact metadata. */
+.ka-bg [class*="text-lg"][class*="font-extrabold"],
+.ka-bg [class*="text-xl"][class*="font-black"],
+.ka-command-panel [class*="font-black"] {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+.ka-bg p[class*="uppercase"],
+.ka-command-kicker {
+  letter-spacing: .16em !important;
+}
+
+/* Market + portfolio density refinement. */
+.ka-bg table thead th {
+  border-bottom: 1px solid rgba(92,194,255,.10);
+  background: rgba(3,10,20,.42);
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.ka-bg table tbody tr {
+  position: relative;
+  background: rgba(3,10,20,.10);
+}
+
+.ka-bg table tbody tr:hover {
+  background: linear-gradient(90deg, rgba(53,167,255,.06), rgba(104,228,255,.018)) !important;
+}
+
+/* Portfolio workspace gets a terminal-like cadence without changing content. */
+.ka-workspace-page .ka-command-panel {
+  overflow: hidden;
+}
+
+.ka-workspace-page .ka-command-panel::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(104,228,255,.42), transparent);
+  opacity: .6;
+}
+
+/* Wallet admin balances: cleaner financial-terminal presentation. */
+[aria-label="Portofolio admin"],
+[aria-label="Admin portfolio"] {
+  background:
+    radial-gradient(circle at 88% 10%, rgba(124,108,255,.10), transparent 24%),
+    linear-gradient(155deg, rgba(9,20,38,.94), rgba(5,13,25,.90)) !important;
+}
+
+[aria-label="Portofolio admin"] > div:last-child > div,
+[aria-label="Admin portfolio"] > div:last-child > div {
+  border-color: rgba(92,194,255,.12) !important;
+  background: linear-gradient(180deg, rgba(3,10,20,.72), rgba(7,18,32,.78)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025), 0 12px 30px -24px rgba(53,167,255,.5) !important;
+}
+
+/* Security cards feel more like a unified defense center. */
+.ka-bg .ka-emerald-glow {
+  box-shadow:
+    0 0 0 1px rgba(104,228,255,.20),
+    0 20px 52px -30px rgba(53,167,255,.65),
+    inset 0 1px 0 rgba(255,255,255,.04) !important;
+}
+
+.ka-bg button[class*="border-red-500"] {
+  background: rgba(127,29,29,.18) !important;
+  border-color: rgba(248,113,113,.28) !important;
+}
+
+/* Premium compact chips/statuses. */
+.ka-chip,
+.ka-command-status {
+  backdrop-filter: blur(16px) saturate(130%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 10px 26px -22px rgba(53,167,255,.72);
+}
+
+/* Desktop: wider visual rhythm, less crowded command center. */
+@media (min-width: 1024px) {
+  .ka-bg > .max-w-7xl,
+  .ka-workspace-page > .max-w-7xl { padding-top: 1.5rem !important; }
+
+  .ka-bg > .max-w-6xl { padding-top: 1.5rem !important; }
+
+  .ka-command-panel,
+  .ka-surface { backdrop-filter: blur(24px) saturate(125%); }
+}
+
+/* Mobile: retain five-tab dock, tighten cards, improve one-hand readability. */
+@media (max-width: 767px) {
+  .ka-bg > .max-w-7xl,
+  .ka-bg > .max-w-6xl,
+  .ka-workspace-page > .max-w-7xl {
+    padding-left: .875rem !important;
+    padding-right: .875rem !important;
+    gap: .875rem;
+  }
+
+  .ka-bg section[class*="rounded-[28px]"],
+  .ka-command-hero {
+    border-radius: 22px !important;
+  }
+
+  .ka-surface,
+  .ka-command-panel,
+  .ka-command-tile { border-radius: 18px !important; }
+
+  .ka-bg h1 { line-height: 1.08; }
+
+  nav.fixed.bottom-0 {
+    box-shadow:
+      0 18px 60px rgba(0,0,0,.52),
+      inset 0 1px 0 rgba(255,255,255,.045),
+      0 0 34px -24px rgba(53,167,255,.75) !important;
+  }
+
+  nav.fixed.bottom-0 a {
+    font-weight: 700;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ka-surface-hover:hover,
+  .ka-command-tile:hover { transform: none !important; }
+}
