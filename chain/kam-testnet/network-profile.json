@@ -12,5 +12,6 @@
   "rpcUrl": "SET_AT_DEPLOYMENT",
   "explorerUrl": "SET_AFTER_INDEXER_DEPLOYMENT",
   "commercialValue": "none-guaranteed-testnet",
-  "mainnetEnabled": false
+  "mainnetEnabled": false,
+  "ciSmokeVerification": "enabled"
 }
