@@ -43,7 +43,7 @@ test('PWA and responsive market contracts are present', async () => {
   const parsed = JSON.parse(manifest);
   assert.ok(['standalone', 'minimal-ui'].includes(parsed.display));
   assert.ok(parsed.icons.some(icon => String(icon.sizes).includes('512')));
-  assert.match(market, /max-w-6xl/);
+  assert.match(market, /max-w-7xl/);
   assert.match(market, /sm:px-6/);
   assert.match(index, /hrefLang="en"|hreflang="en"/i);
 });
