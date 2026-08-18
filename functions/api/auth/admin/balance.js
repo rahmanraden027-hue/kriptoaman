@@ -3,6 +3,7 @@ import { ensureAuthSchema } from '../../../../server/auth/schema.js';
 import { getSessionToken, verifySessionToken } from '../../../../server/auth/session.js';
 import { getActiveSession } from '../../../../server/auth/sessions.js';
 import { getUserById } from '../../../../server/auth/users.js';
+import { recordAdminAudit } from '../../../../server/auth/adminAudit.js';
 
 const COINS = ['BTC', 'ETH', 'SOL', 'USDT'];
 const EMPTY_BALANCES = Object.freeze({ BTC: 0, ETH: 0, SOL: 0, USDT: 0 });
@@ -74,6 +75,12 @@ export async function onRequestPut({ request, env }) {
     const balances = validateBalances(body?.balances);
     if (!balances) return json({ error: 'Invalid balance values' }, { status: 400 });
 
+    const previousRow = await env.AUTH_DB.prepare(
+      'SELECT balances_json FROM auth_balances WHERE user_id = ? LIMIT 1',
+    ).bind(admin.id).first();
+    const previous = previousRow ? parseStoredBalances(previousRow.balances_json) : { ...EMPTY_BALANCES };
+    const changed = COINS.filter((coin) => previous[coin] !== balances[coin]);
+
     const now = new Date().toISOString();
     await env.AUTH_DB.prepare(`
       INSERT INTO auth_balances (user_id, balances_json, updated_by, created_at, updated_at)
@@ -83,6 +90,16 @@ export async function onRequestPut({ request, env }) {
         updated_by = excluded.updated_by,
         updated_at = excluded.updated_at
     `).bind(admin.id, JSON.stringify(balances), admin.id, now, now).run();
+
+    await recordAdminAudit(env.AUTH_DB, request, admin, 'balance.update', {
+      targetType: 'admin_portfolio',
+      targetId: admin.id,
+      metadata: {
+        changedCoins: changed,
+        before: Object.fromEntries(changed.map((coin) => [coin, previous[coin]])),
+        after: Object.fromEntries(changed.map((coin) => [coin, balances[coin]])),
+      },
+    });
 
     return json({ balances, updated_at: now });
   } catch (error) {
