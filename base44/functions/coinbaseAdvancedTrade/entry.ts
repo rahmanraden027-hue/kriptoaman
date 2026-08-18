@@ -129,11 +129,10 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // Only admins can execute trades/transfers; all users can view market data
     const body = await req.json().catch(() => ({}));
     const { action } = body;
 
-    // ── Market Data (public, no auth restrictions) ──
+    // ── Market Data (safe for authenticated users) ──
     if (action === 'get_product') {
       const { product_id } = body;
       if (!product_id) return Response.json({ error: 'product_id required' }, { status: 400 });
@@ -169,8 +168,29 @@ Deno.serve(async (req) => {
       return Response.json(await apiCall('GET', '/best_bid_ask', { product_ids: Array.isArray(product_ids) ? product_ids.join(',') : product_ids }));
     }
 
-    // ── Authenticated actions (admin only for trade/transfer) ──
     const isAdmin = user.role === 'admin';
+    const adminOnlyActions = new Set([
+      'get_balance',
+      'list_portfolios',
+      'get_portfolio',
+      'get_fees',
+      'list_orders',
+      'get_order',
+      'list_fills',
+      'preview_order',
+      'create_order',
+      'cancel_orders',
+      'convert_quote',
+      'convert_execute',
+      'convert_get',
+      'transfer',
+      'get_accounts_v2',
+      'run_sql',
+    ]);
+
+    if (adminOnlyActions.has(action) && !isAdmin) {
+      return Response.json({ error: 'Admin required for this operation' }, { status: 403 });
+    }
 
     if (action === 'get_balance') {
       return Response.json(await apiCall('GET', '/accounts'));
@@ -208,17 +228,14 @@ Deno.serve(async (req) => {
 
     // ── Trade actions (admin only) ──
     if (action === 'preview_order') {
-      if (!isAdmin) return Response.json({ error: 'Admin required for trade operations' }, { status: 403 });
       return Response.json(await apiCall('POST', '/orders/preview', null, body.order_config || body));
     }
 
     if (action === 'create_order') {
-      if (!isAdmin) return Response.json({ error: 'Admin required for trade operations' }, { status: 403 });
       return Response.json(await apiCall('POST', '/orders', null, body.order_config || body));
     }
 
     if (action === 'cancel_orders') {
-      if (!isAdmin) return Response.json({ error: 'Admin required for trade operations' }, { status: 403 });
       const { order_ids } = body;
       if (!order_ids) return Response.json({ error: 'order_ids required' }, { status: 400 });
       return Response.json(await apiCall('POST', '/orders/batch_cancel', null, { order_ids: Array.isArray(order_ids) ? order_ids : [order_ids] }));
@@ -226,14 +243,12 @@ Deno.serve(async (req) => {
 
     // ── Conversion actions (admin only) ──
     if (action === 'convert_quote') {
-      if (!isAdmin) return Response.json({ error: 'Admin required for conversion operations' }, { status: 403 });
       const { from_account_id, to_account_id, amount } = body;
       if (!from_account_id || !to_account_id || amount === undefined) return Response.json({ error: 'from_account_id, to_account_id, and amount required' }, { status: 400 });
       return Response.json(await apiCall('POST', '/convert/quote', null, { from_account_id, to_account_id, amount: String(amount) }));
     }
 
     if (action === 'convert_execute') {
-      if (!isAdmin) return Response.json({ error: 'Admin required for conversion operations' }, { status: 403 });
       const { conversion_id, from_account_id, to_account_id, amount } = body;
       if (!conversion_id) return Response.json({ error: 'conversion_id required' }, { status: 400 });
       return Response.json(await apiCall('POST', `/convert/execute/${conversion_id}`, null, { from_account_id, to_account_id, amount: String(amount) }));
@@ -247,13 +262,12 @@ Deno.serve(async (req) => {
 
     // ── Transfer (admin only) ──
     if (action === 'transfer') {
-      if (!isAdmin) return Response.json({ error: 'Admin required for transfer operations' }, { status: 403 });
       const { amount, currency, from, to } = body;
       if (!amount || !currency || !from || !to) return Response.json({ error: 'amount, currency, from, and to required' }, { status: 400 });
       return Response.json(await apiCall('POST', '/portfolios/transfer', null, { amount: String(amount), currency, from, to }));
     }
 
-    // ── Coinbase v2 Accounts ──
+    // ── Coinbase v2 Accounts (admin only) ──
     if (action === 'get_accounts_v2') {
       const jwt = await generateJwt('GET', '/v2/accounts');
       console.log('[Coinbase v2] GET /v2/accounts');
@@ -268,7 +282,7 @@ Deno.serve(async (req) => {
       return Response.json(JSON.parse(text));
     }
 
-    // ── Base SQL API via CDP (read-only onchain data) ──
+    // ── Base SQL API via CDP (admin only) ──
     if (action === 'run_sql') {
       const { sql } = body;
       if (!sql) return Response.json({ error: 'sql required' }, { status: 400 });
