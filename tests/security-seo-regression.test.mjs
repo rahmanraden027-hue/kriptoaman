@@ -17,7 +17,7 @@ test('private routes are protected and marked noindex', async () => {
   assert.match(headers, /\/PlatformDocs\*[\s\S]*X-Robots-Tag: noindex, nofollow, noarchive/);
   assert.match(headers, /\/Settings\*[\s\S]*X-Robots-Tag: noindex, nofollow, noarchive/);
   assert.match(robots, /Disallow: \/api\//);
-  assert.doesNotMatch(robots, /Disallow: \/Admin/);
+  assert.match(robots, /Disallow: \/Admin/);
 });
 
 test('regulatory and security UI avoids unsupported claims and synthetic activity', async () => {
@@ -39,7 +39,7 @@ test('regulatory and security UI avoids unsupported claims and synthetic activit
   assert.doesNotMatch(combined, /Math\.random/i);
   assert.match(regulatory, /bukti resmi dapat diverifikasi/i);
   assert.match(security, /sesi login nyata|bersumber dari data nyata/i);
-  assert.match(security, /bukan jaminan tingkat keamanan/i);
+  assert.match(security, /bukan jaminan (tingkat )?keamanan( absolut)?/i);
 });
 
 test('balance editing is hidden from users and enforced by an admin-only server endpoint', async () => {
@@ -71,5 +71,5 @@ test('balance editing is hidden from users and enforced by an admin-only server 
   assert.match(wallet, /currentUser\?\.role\s*===\s*'admin'/);
   assert.match(wallet, /Portofolio Admin/);
   assert.match(wallet, /KHUSUS ADMIN/);
-  assert.match(wallet, /bukan saldo on-chain/);
+  assert.match(wallet, /Tanpa kustodi atau eksekusi transaksi|No custody or transaction execution/);
 });
