@@ -21,8 +21,8 @@ export default function AccountDeletion() {
         <section className="rounded-2xl border border-slate-700/50 bg-slate-900/50 p-5 text-sm">
           <ShieldCheck className="mb-3 h-5 w-5 text-sky-400" />
           <h2 className="font-semibold">Apa yang dihapus</h2>
-          <p className="mt-2 leading-relaxed text-slate-400">Penghapusan dalam aplikasi menghapus profil akun pada sistem autentikasi, sesi login, konfigurasi 2FA, persetujuan akun, challenge autentikasi terkait email, serta catatan saldo internal yang terhubung ke akun. Build publik tidak menerima dokumen KYC baru.</p>
-          <p className="mt-3 leading-relaxed text-slate-400">Jika akun lama pernah mengirim data ke layanan verifikasi/penyimpanan pihak ketiga sebelum mode watch-only diberlakukan, hubungi <strong className="text-slate-200">privacy@kriptoaman.com</strong> agar data residual yang masih berlaku dapat ditelusuri dan dihapus sesuai kewajiban yang berlaku.</p>
+          <p className="mt-2 leading-relaxed text-slate-400">Penghapusan dalam aplikasi menghapus profil akun pada sistem autentikasi, sesi login, konfigurasi 2FA, persetujuan akun, challenge autentikasi terkait email, serta catatan saldo internal yang terhubung ke akun.</p>
+          <p className="mt-3 leading-relaxed text-slate-400">Jika Anda pernah menggunakan verifikasi identitas Didit, dokumen identitas dan selfie/live capture diproses melalui alur resmi penyedia tersebut, sementara KriptoAman menyimpan referensi sesi dan status yang diperlukan. Hubungi <strong className="text-slate-200">privacy@kriptoaman.com</strong> agar data residual yang berada dalam cakupan pengendalian KriptoAman atau permintaan penghapusan kepada penyedia terkait dapat ditelusuri dan ditangani sesuai kewajiban yang berlaku.</p>
         </section>
 
         <p className="text-xs leading-relaxed text-slate-500">Data yang wajib dipertahankan karena kewajiban hukum, keamanan, pencegahan penipuan, atau penyelesaian sengketa dapat disimpan secara terbatas sesuai tujuan tersebut. Data blockchain publik yang bukan dikendalikan KriptoAman tidak dapat dihapus dari jaringan publik.</p>

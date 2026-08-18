@@ -19,7 +19,7 @@ export default function PrivacyPolicy() {
 
         <header className="pb-3">
           <div className="flex items-center gap-3"><div className="p-2 rounded-xl bg-indigo-500/20 border border-indigo-500/30"><Lock className="w-5 h-5 text-indigo-400" /></div><h1 className="text-2xl font-bold">Kebijakan Privasi</h1></div>
-          <p className="text-slate-400 text-sm mt-2">PT Kripto Aman Indonesia · Terakhir diperbarui: 17 Agustus 2026</p>
+          <p className="text-slate-400 text-sm mt-2">PT Kripto Aman Indonesia · Terakhir diperbarui: 18 Agustus 2026</p>
           <p className="text-slate-300 text-sm mt-3">KriptoAman versi publik adalah platform pemantauan dan market intelligence. Versi publik bukan kustodian dan tidak mengeksekusi deposit, penarikan, swap, lending, staking, atau perdagangan aset.</p>
         </header>
 
@@ -27,16 +27,18 @@ export default function PrivacyPolicy() {
           <p>Untuk membuat dan mengamankan akun, kami dapat memproses alamat email, nama/profil yang Anda isi, password dalam bentuk hash satu arah, status verifikasi email, preferensi, serta metadata sesi.</p>
           <p>Untuk keamanan sesi, kami dapat memproses user-agent/browser dan sistem operasi, waktu aktivitas, alamat IP dalam bentuk hash dan tampilan tersamarkan, serta perkiraan negara/kota hanya bila disediakan oleh infrastruktur jaringan.</p>
           <p>Jika Anda mengaktifkan 2FA, secret TOTP disimpan dalam bentuk terenkripsi di server dan backup code disimpan sebagai hash. KriptoAman tidak meminta seed phrase atau private key.</p>
-          <p>Alamat dompet publik yang Anda hubungkan dapat diproses untuk fungsi watch-only dan pemantauan portofolio. Build publik saat ini tidak menerima foto identitas, selfie, atau nomor identitas baru melalui halaman KYC.</p>
+          <p>Alamat dompet publik yang Anda hubungkan dapat diproses untuk fungsi watch-only dan pemantauan portofolio.</p>
+          <p>Jika Anda memilih memulai verifikasi identitas, dokumen identitas dan selfie/live capture diproses melalui alur resmi Didit. KriptoAman memulai sesi verifikasi dan menyimpan referensi sesi serta status verifikasi yang diperlukan untuk menampilkan hasil. KriptoAman tidak meminta pengguna mengirim dokumen identitas atau selfie melalui chat.</p>
         </Section>
 
         <Section title="2. Tujuan penggunaan">
-          <p>Data digunakan untuk autentikasi, keamanan akun, pemeliharaan sesi, menjalankan fitur yang diminta pengguna, menampilkan data pemantauan, dukungan, pencegahan penyalahgunaan, serta peningkatan keandalan layanan.</p>
+          <p>Data digunakan untuk autentikasi, keamanan akun, pemeliharaan sesi, menjalankan fitur yang diminta pengguna, menampilkan data pemantauan, verifikasi identitas ketika dipilih pengguna, dukungan, pencegahan penyalahgunaan, serta peningkatan keandalan layanan.</p>
           <p>Kami tidak menjual informasi pribadi pengguna.</p>
         </Section>
 
         <Section title="3. Penyedia dan transfer data">
-          <p>KriptoAman menggunakan infrastruktur hosting, database, RPC/blockchain, serta penyedia data pasar yang diperlukan untuk menjalankan layanan. Permintaan jaringan ke penyedia tersebut dapat membawa metadata teknis standar seperti alamat IP sesuai cara kerja internet.</p>
+          <p>KriptoAman menggunakan infrastruktur hosting, database, RPC/blockchain, penyedia data pasar, dan penyedia verifikasi identitas yang diperlukan untuk menjalankan fitur layanan. Permintaan jaringan ke penyedia tersebut dapat membawa metadata teknis standar seperti alamat IP sesuai cara kerja internet.</p>
+          <p>Untuk verifikasi identitas, dokumen identitas dan selfie/live capture diproses pada alur resmi Didit sesuai kebutuhan verifikasi. KriptoAman menyimpan referensi sesi dan status yang diperlukan; perlakuan data oleh Didit juga tunduk pada kebijakan dan ketentuan penyedia tersebut.</p>
           <p>Credential autentikasi, secret TOTP, seed phrase, dan private key tidak dibagikan kepada penyedia data pasar.</p>
         </Section>
 
@@ -48,7 +50,8 @@ export default function PrivacyPolicy() {
         <Section title="5. Penghapusan akun dan retensi">
           <div className="flex gap-2"><Trash2 className="w-4 h-4 text-red-400 shrink-0 mt-0.5"/><p>Pengguna dapat menghapus akun langsung melalui <strong>Profil/Pengaturan → Hapus Akun</strong> atau menggunakan halaman publik <Link className="text-indigo-400" to={createPageUrl('AccountDeletion')}>Penghapusan Akun</Link>.</p></div>
           <p>Penghapusan dalam aplikasi menghapus data akun pada sistem autentikasi, sesi login, 2FA, persetujuan akun, challenge autentikasi terkait email, dan catatan saldo internal terkait akun.</p>
-          <p>Data tertentu dapat dipertahankan secara terbatas bila diperlukan untuk kewajiban hukum, keamanan, pencegahan penipuan, atau penyelesaian sengketa. Akun lama yang pernah menggunakan layanan verifikasi pihak ketiga sebelum mode watch-only dapat meminta penelusuran dan penghapusan data residual melalui privacy@kriptoaman.com.</p>
+          <p>Jika data telah diproses oleh penyedia verifikasi identitas, pengguna dapat menghubungi privacy@kriptoaman.com untuk meminta penelusuran dan penghapusan data residual yang berada dalam cakupan pengendalian atau permintaan penghapusan KriptoAman kepada penyedia terkait, sepanjang tidak diwajibkan untuk dipertahankan berdasarkan hukum atau kewajiban keamanan yang berlaku.</p>
+          <p>Data tertentu dapat dipertahankan secara terbatas bila diperlukan untuk kewajiban hukum, keamanan, pencegahan penipuan, atau penyelesaian sengketa.</p>
         </Section>
 
         <Section title="6. Hak dan kontak privasi">
