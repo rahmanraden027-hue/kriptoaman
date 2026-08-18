@@ -2,6 +2,7 @@ import { json, requireBindings, requireSameOrigin } from '../../../../server/aut
 import { ensureAuthSchema } from '../../../../server/auth/schema.js';
 import { getSessionToken, verifySessionToken } from '../../../../server/auth/session.js';
 import { getActiveSession } from '../../../../server/auth/sessions.js';
+import { getTotpSettings } from '../../../../server/auth/totp.js';
 import { getUserById } from '../../../../server/auth/users.js';
 import { recordAdminAudit } from '../../../../server/auth/adminAudit.js';
 
@@ -16,6 +17,8 @@ async function requireAdmin(request, env) {
   if (!activeSession) return null;
   const user = await getUserById(env.AUTH_DB, session.sub);
   if (!user || user.role !== 'admin') return null;
+  const totp = await getTotpSettings(env.AUTH_DB, user.id);
+  if (!totp?.enabled || !totp?.secret_enc) return null;
   return user;
 }
 
@@ -47,7 +50,7 @@ export async function onRequestGet({ request, env }) {
     requireBindings(env, ['AUTH_DB', 'SESSION_SECRET']);
     await ensureAuthSchema(env.AUTH_DB);
     const admin = await requireAdmin(request, env);
-    if (!admin) return json({ error: 'Admin access required' }, { status: 403 });
+    if (!admin) return json({ error: 'Admin access with 2FA required' }, { status: 403 });
 
     const row = await env.AUTH_DB.prepare(
       'SELECT balances_json, updated_at FROM auth_balances WHERE user_id = ? LIMIT 1',
@@ -69,7 +72,7 @@ export async function onRequestPut({ request, env }) {
     requireSameOrigin(request, env);
     await ensureAuthSchema(env.AUTH_DB);
     const admin = await requireAdmin(request, env);
-    if (!admin) return json({ error: 'Admin access required' }, { status: 403 });
+    if (!admin) return json({ error: 'Admin access with 2FA required' }, { status: 403 });
 
     const body = await request.json();
     const balances = validateBalances(body?.balances);
