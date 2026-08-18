@@ -1,6 +1,7 @@
 import { isAdminEmail, requireBindings } from '../../../../server/auth/http.js';
 import { createSessionToken, sessionCookie } from '../../../../server/auth/session.js';
 import { createVerifiedSession } from '../../../../server/auth/sessions.js';
+import { getTotpSettings } from '../../../../server/auth/totp.js';
 import { consumeOneTimeToken, verifySignedToken } from '../../../../server/auth/tokens.js';
 import { getUserByEmail } from '../../../../server/auth/users.js';
 
@@ -33,6 +34,19 @@ export async function onRequestGet({ request, env }) {
     const user = await getUserByEmail(env.AUTH_DB, payload.email);
     if (!user?.email_verified || user.role !== 'admin') return redirect('/login?admin_link=invalid');
 
+    const totp = await getTotpSettings(env.AUTH_DB, user.id);
+    const twoFactorEnabled = Boolean(totp?.enabled && totp?.secret_enc);
+
+    // A magic link proves control of the admin mailbox, but it must never satisfy
+    // the second factor once TOTP is enrolled. Require the normal password + TOTP
+    // flow to mint a privileged admin session.
+    if (twoFactorEnabled) {
+      return redirect('/login?admin_link=verified&two_factor_required=1');
+    }
+
+    // The only exception is initial 2FA enrollment: create a short-lived session so
+    // the already-authorized admin can reach the enrollment screen. Protected admin
+    // operations still reject the session until TOTP is enabled.
     const activeSession = await createVerifiedSession(
       env.AUTH_DB,
       env.SESSION_SECRET,
