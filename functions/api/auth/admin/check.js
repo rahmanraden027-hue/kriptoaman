@@ -2,6 +2,7 @@ import { json, requireBindings } from '../../../../server/auth/http.js';
 import { ensureAuthSchema } from '../../../../server/auth/schema.js';
 import { getSessionToken, verifySessionToken } from '../../../../server/auth/session.js';
 import { getActiveSession } from '../../../../server/auth/sessions.js';
+import { getTotpSettings } from '../../../../server/auth/totp.js';
 import { getUserById } from '../../../../server/auth/users.js';
 
 export async function onRequestGet({ request, env }) {
@@ -24,7 +25,15 @@ export async function onRequestGet({ request, env }) {
       return json({ admin: false, error: 'Admin access required' }, { status: 403 });
     }
 
-    return json({ admin: true, user: { id: user.id, email: user.email, role: user.role } });
+    const totp = await getTotpSettings(env.AUTH_DB, user.id);
+    const twoFactorEnabled = Boolean(totp?.enabled && totp?.secret_enc);
+
+    return json({
+      admin: true,
+      two_factor_enabled: twoFactorEnabled,
+      two_factor_setup_required: !twoFactorEnabled,
+      user: { id: user.id, email: user.email, role: user.role },
+    });
   } catch (error) {
     console.error('Admin access check failed', error);
     return json({ admin: false, error: 'Admin verification unavailable' }, { status: 503 });
