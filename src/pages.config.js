@@ -17,9 +17,18 @@ const PAGE_NAMES = [
   'TxHistory', 'Wallet', 'Web3Wallet', 'ReadinessCheck', 'AccountDeletion',
 ];
 
+const PAGE_OVERRIDES = {
+  AMLDashboard: 'AMLDashboardModern',
+  AdminKYCManagement: 'AdminKYCManagementModern',
+  AdminPlatformAssets: 'AdminPlatformAssetsModern',
+  AdminUserBalances: 'AdminUserBalancesModern',
+  ServerControl: 'ServerControlModern',
+};
+
 function loadPage(name) {
-  const loader = pageModules[`./pages/${name}.jsx`];
-  if (!loader) throw new Error(`Page module not found: ${name}`);
+  const moduleName = PAGE_OVERRIDES[name] || name;
+  const loader = pageModules[`./pages/${moduleName}.jsx`];
+  if (!loader) throw new Error(`Page module not found: ${moduleName}`);
   return lazy(loader);
 }
 
