@@ -5,7 +5,7 @@ import { Building2, CheckCircle2, Clock, Globe, RefreshCw, Wifi, WifiOff, XCircl
 const CATEGORIES = {
   blockchain: [
     'Ethereum RPC','BNB Chain RPC','Polygon RPC','Arbitrum RPC','Optimism RPC','Base RPC','Avalanche RPC','Fantom RPC',
-    'Solana RPC','BlockCypher BTC','BlockCypher LTC','BlockCypher DOGE','TRON Grid','XRP Ledger',
+    'Solana RPC','Bitcoin Network','Litecoin Network','Dogecoin Network','TRON Grid','XRP Ledger',
   ],
   market: ['Binance Market Data','CoinGecko'],
   banking: ['ExchangeRate API','Open ER API','Frankfurter'],
@@ -13,7 +13,7 @@ const CATEGORIES = {
 
 const ICONS = {
   'Ethereum RPC':'⟠','BNB Chain RPC':'🔶','Polygon RPC':'🟣','Arbitrum RPC':'🔵','Optimism RPC':'🔴','Base RPC':'🔷',
-  'Avalanche RPC':'🔺','Fantom RPC':'👻','Solana RPC':'🟢','BlockCypher BTC':'₿','BlockCypher LTC':'Ł','BlockCypher DOGE':'Ð',
+  'Avalanche RPC':'🔺','Fantom RPC':'👻','Solana RPC':'🟢','Bitcoin Network':'₿','Litecoin Network':'Ł','Dogecoin Network':'Ð',
   'TRON Grid':'⚡','XRP Ledger':'✕','Binance Market Data':'🟡','CoinGecko':'🦎','ExchangeRate API':'🏦','Open ER API':'💱','Frankfurter':'🇩🇪',
 };
 
@@ -26,7 +26,10 @@ function Row({ item }) {
     <div className="flex items-center justify-between gap-3 py-2">
       <div className="flex min-w-0 items-center gap-2">
         <span className="text-base leading-none">{ICONS[item.name] || '🌐'}</span>
-        <span className="truncate text-xs text-slate-300">{item.name}</span>
+        <div className="min-w-0">
+          <span className="block truncate text-xs text-slate-300">{item.name}</span>
+          {item.provider && <span className="block truncate text-[9px] text-slate-600">via {item.provider}</span>}
+        </div>
       </div>
       <div className="flex shrink-0 items-center gap-2">
         {item.latency != null && <span className="font-mono text-[10px] text-slate-500">{item.latency}ms</span>}
@@ -107,7 +110,7 @@ export default function NetworkStatusPanel({ compact = false }) {
         {tab === 'networks' && <div className="space-y-4">
           <div><p className="mb-2 text-[10px] font-bold uppercase text-slate-500">Blockchain Networks</p><div className="divide-y divide-slate-800">{byCategory('blockchain').map(item => <Row key={item.name} item={item} />)}</div></div>
           <div><p className="mb-2 text-[10px] font-bold uppercase text-slate-500">Market Data</p><div className="divide-y divide-slate-800">{byCategory('market').map(item => <Row key={item.name} item={item} />)}</div></div>
-          <p className="text-[9px] leading-relaxed text-slate-600">Status memakai pemeriksaan sesuai protokol jaringan. RPC JSON-RPC diuji dengan POST, bukan sekadar HEAD request.</p>
+          <p className="text-[9px] leading-relaxed text-slate-600">Status memakai pemeriksaan sesuai protokol jaringan dan failover multi-provider. Sebuah jaringan baru ditandai offline setelah seluruh endpoint cadangannya gagal.</p>
         </div>}
 
         {tab === 'banking' && <div className="space-y-3">
