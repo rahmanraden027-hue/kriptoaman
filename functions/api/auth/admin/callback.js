@@ -2,12 +2,22 @@ import { isAdminEmail, requireBindings } from '../../../../server/auth/http.js';
 import { createSessionToken, sessionCookie } from '../../../../server/auth/session.js';
 import { createVerifiedSession } from '../../../../server/auth/sessions.js';
 import { consumeOneTimeToken, verifySignedToken } from '../../../../server/auth/tokens.js';
-import { getUserByEmail, promoteConfiguredAdmin } from '../../../../server/auth/users.js';
+import { getUserByEmail } from '../../../../server/auth/users.js';
 
-const ADMIN_SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
+const ADMIN_MAGIC_LINK_SESSION_TTL_SECONDS = 60 * 60;
 
 function redirect(location, headers = {}) {
-  return new Response(null, { status: 302, headers: { Location: location, 'Cache-Control': 'no-store', ...headers } });
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: location,
+      'Cache-Control': 'no-store, no-cache, must-revalidate, private',
+      'Referrer-Policy': 'no-referrer',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      ...headers,
+    },
+  });
 }
 
 export async function onRequestGet({ request, env }) {
@@ -21,12 +31,24 @@ export async function onRequestGet({ request, env }) {
     if (!oneTime) return redirect('/login?admin_link=used');
 
     const user = await getUserByEmail(env.AUTH_DB, payload.email);
-    if (!user?.email_verified) return redirect('/login?admin_link=invalid');
+    if (!user?.email_verified || user.role !== 'admin') return redirect('/login?admin_link=invalid');
 
-    const admin = user.role === 'admin' ? user : await promoteConfiguredAdmin(env.AUTH_DB, user.id);
-    const activeSession = await createVerifiedSession(env.AUTH_DB, env.SESSION_SECRET, admin.id, request, ADMIN_SESSION_TTL_SECONDS);
-    const session = await createSessionToken(env.SESSION_SECRET, admin, activeSession.id, ADMIN_SESSION_TTL_SECONDS);
-    return redirect('/ServerControl', { 'Set-Cookie': sessionCookie(session, ADMIN_SESSION_TTL_SECONDS) });
+    const activeSession = await createVerifiedSession(
+      env.AUTH_DB,
+      env.SESSION_SECRET,
+      user.id,
+      request,
+      ADMIN_MAGIC_LINK_SESSION_TTL_SECONDS,
+    );
+    const session = await createSessionToken(
+      env.SESSION_SECRET,
+      user,
+      activeSession.id,
+      ADMIN_MAGIC_LINK_SESSION_TTL_SECONDS,
+    );
+    return redirect('/ServerControl', {
+      'Set-Cookie': sessionCookie(session, ADMIN_MAGIC_LINK_SESSION_TTL_SECONDS),
+    });
   } catch (error) {
     console.error('Admin magic link login failed', error);
     return redirect('/login?admin_link=unavailable');
