@@ -24,7 +24,7 @@ export async function onRequestGet({ request, env }) {
 
     const admin = user.role === 'admin' ? user : await promoteConfiguredAdmin(env.AUTH_DB, user.id);
     const session = await createSessionToken(env.SESSION_SECRET, admin, ADMIN_SESSION_TTL_SECONDS);
-    return redirect('/dashboard', { 'Set-Cookie': sessionCookie(session, ADMIN_SESSION_TTL_SECONDS) });
+    return redirect('/ServerControl', { 'Set-Cookie': sessionCookie(session, ADMIN_SESSION_TTL_SECONDS) });
   } catch (error) {
     console.error('Admin magic link login failed', error);
     return redirect('/login?admin_link=unavailable');
