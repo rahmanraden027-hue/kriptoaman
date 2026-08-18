@@ -5,167 +5,323 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --background: 222 53% 5%;
+    --foreground: 210 40% 98%;
+    --card: 220 48% 8%;
+    --card-foreground: 210 40% 98%;
+    --popover: 220 48% 8%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 203 94% 56%;
+    --primary-foreground: 222 53% 5%;
+    --secondary: 218 34% 14%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 218 34% 14%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 193 95% 55%;
+    --accent-foreground: 222 53% 5%;
+    --destructive: 0 74% 56%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 210 72% 22%;
+    --input: 213 46% 15%;
+    --ring: 203 94% 56%;
+    --chart-1: 203 94% 56%;
+    --chart-2: 170 78% 43%;
+    --chart-3: 39 92% 56%;
+    --chart-4: 267 85% 68%;
+    --chart-5: 326 82% 62%;
+    --radius: 1rem;
+    --sidebar-background: 222 53% 5%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 203 94% 56%;
+    --sidebar-primary-foreground: 222 53% 5%;
+    --sidebar-accent: 216 44% 12%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 210 72% 22%;
+    --sidebar-ring: 203 94% 56%;
   }
 
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --background: 222 53% 5%;
+    --foreground: 210 40% 98%;
+    --card: 220 48% 8%;
+    --card-foreground: 210 40% 98%;
+    --popover: 220 48% 8%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 203 94% 56%;
+    --primary-foreground: 222 53% 5%;
+    --secondary: 218 34% 14%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 218 34% 14%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 193 95% 55%;
+    --accent-foreground: 222 53% 5%;
+    --destructive: 0 74% 56%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 210 72% 22%;
+    --input: 213 46% 15%;
+    --ring: 203 94% 56%;
+    --sidebar-background: 222 53% 5%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 203 94% 56%;
+    --sidebar-primary-foreground: 222 53% 5%;
+    --sidebar-accent: 216 44% 12%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 210 72% 22%;
+    --sidebar-ring: 203 94% 56%;
   }
 }
 
-/* ===== KriptoAman Official — Navy, Blue & Gold Design System ===== */
+/* ===== KriptoAman Quantum UI — global premium fintech design system ===== */
 :root {
-  --ka-bg: #050b14;
-  --ka-bg-2: #07111d;
-  --ka-card: rgba(10, 24, 38, 0.82);
-  --ka-card-border: rgba(43, 84, 122, 0.62);
-  --ka-emerald: #2f8cff;
-  --ka-emerald-2: #0ea5e9;
-  --ka-teal: #00b8d9;
-  --ka-gold: #f4b942;
-  --ka-positive: #2ecc71;
-  --ka-negative: #e74c3c;
-  --ka-text: #ffffff;
-  --ka-muted: #a0b3a9;
+  --ka-bg: #030812;
+  --ka-bg-2: #06111f;
+  --ka-bg-3: #09192a;
+  --ka-card: linear-gradient(145deg, rgba(10, 27, 47, 0.88), rgba(5, 15, 29, 0.82));
+  --ka-card-solid: #081523;
+  --ka-card-border: rgba(77, 154, 214, 0.24);
+  --ka-card-border-hot: rgba(63, 178, 255, 0.52);
+  --ka-emerald: #37a8ff;
+  --ka-emerald-2: #1597f6;
+  --ka-teal: #18d6e8;
+  --ka-cyan: #69e7ff;
+  --ka-violet: #7c6cff;
+  --ka-gold: #f6c453;
+  --ka-positive: #35d07f;
+  --ka-negative: #ff5e72;
+  --ka-text: #f7fbff;
+  --ka-muted: #8fa8bf;
+  --ka-shadow: 0 24px 70px -34px rgba(0, 116, 255, .48);
+  --ka-shadow-strong: 0 30px 90px -36px rgba(23, 153, 255, .7);
 }
 
-html { background: var(--ka-bg); }
+html {
+  background: var(--ka-bg);
+  color-scheme: dark;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
 
 body {
-  background: var(--ka-bg);
+  margin: 0;
+  min-width: 320px;
+  overflow-x: hidden;
+  background:
+    radial-gradient(900px 620px at 8% -8%, rgba(35, 117, 255, .17), transparent 62%),
+    radial-gradient(720px 520px at 96% 3%, rgba(25, 214, 232, .10), transparent 58%),
+    linear-gradient(180deg, #02070f 0%, #04101c 45%, #030914 100%);
   color: var(--ka-text);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
+#root {
+  min-height: 100dvh;
+  isolation: isolate;
+  position: relative;
+}
+
+#root::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  opacity: .16;
+  background-image:
+    linear-gradient(rgba(103, 186, 255, .055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(103, 186, 255, .055) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,.8), transparent 72%);
+}
+
 @layer components {
   .ka-bg {
+    position: relative;
     background:
-      radial-gradient(1200px 600px at 50% -10%, rgba(14, 165, 233, 0.13), transparent 60%),
-      radial-gradient(900px 500px at 100% 0%, rgba(244, 185, 66, 0.07), transparent 55%),
-linear-gradient(180deg, #050b14 0%, #07111d 100%);
+      radial-gradient(1100px 640px at 50% -10%, rgba(47, 140, 255, .17), transparent 62%),
+      radial-gradient(760px 500px at 100% 14%, rgba(24, 214, 232, .08), transparent 62%),
+      radial-gradient(680px 460px at 0% 65%, rgba(124, 108, 255, .06), transparent 66%),
+      linear-gradient(180deg, #030812 0%, #06111f 54%, #030914 100%);
   }
+
   .ka-surface {
-    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 22px;
     border: 1px solid var(--ka-card-border);
     background: var(--ka-card);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    box-shadow: var(--ka-shadow), inset 0 1px 0 rgba(255,255,255,.035);
+    backdrop-filter: blur(22px) saturate(125%);
+    -webkit-backdrop-filter: blur(22px) saturate(125%);
   }
+
+  .ka-surface::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(125deg, rgba(255,255,255,.035), transparent 25%, transparent 74%, rgba(55,168,255,.025));
+  }
+
   .ka-surface-hover {
-    transition: border-color .2s ease, box-shadow .2s ease, transform .15s ease;
+    transition: border-color .22s ease, box-shadow .22s ease, transform .18s ease, background-color .22s ease;
   }
+
   .ka-surface-hover:hover {
-    border-color: rgba(47, 140, 255, 0.5);
-    box-shadow: 0 10px 30px -12px rgba(47, 140, 255, 0.3);
+    border-color: var(--ka-card-border-hot);
+    box-shadow: var(--ka-shadow-strong), inset 0 1px 0 rgba(255,255,255,.055);
+    transform: translateY(-2px);
   }
-  .ka-surface-hover:active { transform: scale(0.985); }
+
+  .ka-surface-hover:active { transform: translateY(0) scale(.988); }
+
   .ka-emerald-glow {
-    box-shadow: 0 0 0 1px rgba(47, 140, 255, 0.25), 0 0 22px -6px rgba(47, 140, 255, 0.42);
+    box-shadow:
+      0 0 0 1px rgba(55, 168, 255, .28),
+      0 0 34px -8px rgba(55, 168, 255, .5),
+      0 18px 50px -28px rgba(24, 214, 232, .45);
   }
+
   .ka-chip {
     border-radius: 9999px;
-    border: 1px solid var(--ka-card-border);
-    background: rgba(10, 29, 48, 0.72);
+    border: 1px solid rgba(82, 156, 214, .28);
+    background: linear-gradient(180deg, rgba(16, 40, 66, .82), rgba(8, 24, 41, .72));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    backdrop-filter: blur(14px);
+  }
+
+  .ka-glass {
+    border: 1px solid rgba(95, 181, 245, .2);
+    background: rgba(5, 17, 31, .7);
+    box-shadow: 0 18px 50px -32px rgba(40, 157, 255, .55);
+    backdrop-filter: blur(20px) saturate(130%);
+  }
+
+  .ka-gradient-text {
+    color: transparent;
+    background: linear-gradient(90deg, #f7fbff 0%, #7ed8ff 48%, #43a9ff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+
+  .ka-neon-line {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(55,168,255,.75), rgba(24,214,232,.5), transparent);
+    box-shadow: 0 0 18px rgba(55,168,255,.45);
   }
 }
 
 @layer utilities {
   .ka-muted { color: var(--ka-muted); }
-  .ka-num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
-  .ka-pulse-dot { animation: ka-pulse-emerald 2s infinite; }
-  .ka-fade-up { animation: ka-fade-up 0.5s ease both; }
+  .ka-num { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; letter-spacing: -.02em; }
+  .ka-pulse-dot { animation: ka-pulse-blue 2s infinite; }
+  .ka-fade-up { animation: ka-fade-up .48s cubic-bezier(.2,.8,.2,1) both; }
   .ka-shimmer {
-    background: linear-gradient(90deg, rgba(160,179,169,0.06) 25%, rgba(160,179,169,0.14) 37%, rgba(160,179,169,0.06) 63%);
+    background: linear-gradient(90deg, rgba(109,184,235,.06) 25%, rgba(109,184,235,.18) 37%, rgba(109,184,235,.06) 63%);
     background-size: 400% 100%;
-    animation: ka-shimmer 1.4s ease infinite;
+    animation: ka-shimmer 1.35s ease infinite;
   }
 }
 
-@keyframes ka-fade-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-@keyframes ka-pulse-emerald { 0%,100% { box-shadow: 0 0 0 0 rgba(46,204,113,0.5); } 50% { box-shadow: 0 0 0 6px rgba(46,204,113,0); } }
-@keyframes ka-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+/* Common controls automatically inherit the modern visual language. */
+button, input, select, textarea {
+  font: inherit;
+}
 
-/* ===== Mobile UX — Branded 44 Guidelines ===== */
+input:not([type='checkbox']):not([type='radio']), select, textarea {
+  border-color: rgba(76, 145, 201, .26) !important;
+  background-color: rgba(5, 17, 31, .78) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+  transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+
+input:not([type='checkbox']):not([type='radio']):focus, select:focus, textarea:focus {
+  border-color: rgba(55,168,255,.65) !important;
+  box-shadow: 0 0 0 3px rgba(55,168,255,.1), 0 12px 36px -22px rgba(55,168,255,.6);
+}
+
+button:not(:disabled), a, [role='button'] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled) {
+  transition: transform .16s ease, filter .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+button:not(:disabled):active { transform: scale(.98); }
+
+/* Refine generic cards used throughout existing pages without rewriting each screen. */
+[class*='rounded-2xl'][class*='border'],
+[class*='rounded-xl'][class*='border'] {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.02);
+}
+
+/* Modern scrollbars for desktop dashboards. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(67, 169, 255, .42) rgba(4, 13, 24, .4);
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track { background: rgba(4, 13, 24, .4); }
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(#258ee8, #1bc8d7);
+  border-radius: 999px;
+  border: 2px solid rgba(4, 13, 24, .55);
+}
+
+::selection { background: rgba(55,168,255,.28); color: #fff; }
+img { max-width: 100%; }
+
+:focus-visible {
+  outline: 2px solid #37a8ff;
+  outline-offset: 3px;
+}
+
+@keyframes ka-fade-up {
+  from { opacity: 0; transform: translateY(12px) scale(.995); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes ka-pulse-blue {
+  0%,100% { box-shadow: 0 0 0 0 rgba(55,168,255,.46); }
+  50% { box-shadow: 0 0 0 7px rgba(55,168,255,0); }
+}
+
+@keyframes ka-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
 @media (pointer: coarse) {
-  button:not(:disabled), a, [role="button"] { min-height: 44px; min-width: 44px; }
+  button:not(:disabled), a, [role='button'] { min-height: 44px; min-width: 44px; }
   .tap-reset, .tap-reset * { min-height: 0; min-width: 0; }
 }
-.tap-target { min-height: 44px; min-width: 44px; }
-* { -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
-/* Stable app viewport across Android, iOS, tablets and desktop mode. */
-#root { min-height: 100dvh; isolation: isolate; }
-body { min-width: 320px; overflow-x: hidden; }
-img { max-width: 100%; }
-:focus-visible { outline: 2px solid #2f8cff; outline-offset: 2px; }
+.tap-target { min-height: 44px; min-width: 44px; }
+
+/* Mobile polish: richer depth, tighter typography and safe-area support. */
+@media (max-width: 639px) {
+  .ka-surface { border-radius: 20px; }
+  .ka-bg { background-attachment: scroll; }
+  h1, h2 { letter-spacing: -.025em; }
+  body { background-color: #030812; }
+}
+
+@media (min-width: 1024px) {
+  .ka-surface { border-radius: 24px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @layer base {
