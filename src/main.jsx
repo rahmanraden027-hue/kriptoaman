@@ -6,6 +6,7 @@ import '@/index.css'
 import '@/styles/workspace-polish.css'
 import '@/styles/admin-suite.css'
 import '@/styles/final-ui-2026.css'
+import '@/styles/final-ui-v2.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <>
