@@ -143,3 +143,105 @@
     animation-iteration-count: 1 !important;
   }
 }
+
+/* Mobile home/footer/nav precision pass — keeps the final five-tab IA while
+   removing the oversized dock/overflow seen on tall Android viewports. */
+html,
+body,
+#root,
+.ka-global-shell {
+  max-width: 100%;
+  overflow-x: hidden !important;
+}
+
+@media (max-width: 1023px) {
+  .ka-global-shell > nav.fixed.bottom-0 {
+    left: 8px !important;
+    right: 8px !important;
+    bottom: max(6px, env(safe-area-inset-bottom, 0px)) !important;
+    border: 1px solid rgba(56, 189, 248, .18) !important;
+    border-radius: 22px !important;
+    padding-bottom: 0 !important;
+    background: rgba(4, 13, 24, .96) !important;
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255,255,255,.025) !important;
+    overflow: hidden;
+  }
+
+  .ka-global-shell > nav.fixed.bottom-0 > div {
+    padding: 4px 4px 5px !important;
+  }
+
+  .ka-global-shell > nav.fixed.bottom-0 a {
+    min-height: 54px !important;
+    gap: 3px !important;
+    border-radius: 14px !important;
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+  }
+
+  .ka-global-shell > nav.fixed.bottom-0 a svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .ka-global-shell > nav.fixed.bottom-0 a span:last-child {
+    font-size: 10px !important;
+    line-height: 1.1 !important;
+  }
+
+  /* Home founder card: allow the complete role/name instead of ellipsis. */
+  section[aria-labelledby="founder-leadership-title"] {
+    margin-top: 24px !important;
+    padding: 14px 16px !important;
+  }
+
+  section[aria-labelledby="founder-leadership-title"] #founder-leadership-title,
+  section[aria-labelledby="founder-leadership-title"] p.truncate {
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+  }
+
+  section[aria-labelledby="founder-leadership-title"] #founder-leadership-title {
+    line-height: 1.22 !important;
+  }
+
+  section[aria-labelledby="founder-leadership-title"] p.truncate {
+    margin-top: 2px;
+    line-height: 1.25 !important;
+  }
+
+  /* Footer: denser visual rhythm and less dead space before the fixed dock. */
+  section[aria-labelledby="founder-leadership-title"] + footer.ka-surface {
+    margin-top: 14px !important;
+    margin-bottom: 0 !important;
+    padding: 16px !important;
+  }
+
+  section[aria-labelledby="founder-leadership-title"] + footer.ka-surface > div:first-child {
+    margin-bottom: 12px !important;
+  }
+
+  section[aria-labelledby="founder-leadership-title"] + footer.ka-surface [aria-label="Media sosial resmi KriptoAman"] {
+    gap: 10px 14px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .ka-bg:has(#founder-leadership-title) {
+    padding-bottom: 82px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  section[aria-labelledby="founder-leadership-title"] {
+    align-items: stretch;
+  }
+
+  section[aria-labelledby="founder-leadership-title"] > div {
+    flex-wrap: wrap;
+  }
+
+  section[aria-labelledby="founder-leadership-title"] a {
+    margin-left: 52px;
+  }
+}
