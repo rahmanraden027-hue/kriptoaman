@@ -41,7 +41,7 @@ export default function Wallet() {
       .catch(() => {
         if (!active) return;
         setAdminBalances(null);
-        setAdminBalanceError(en ? 'Admin balance could not be loaded.' : 'Saldo admin belum dapat dimuat.');
+        setAdminBalanceError(en ? 'Internal administrative balance could not be loaded.' : 'Saldo administrasi internal KriptoAman belum dapat dimuat.');
       });
 
     return () => { active = false; };
@@ -58,9 +58,9 @@ export default function Wallet() {
                 <KriptoAmanLogo size={42} showText={false} />
               </div>
               <div>
-                <p className="text-[10px] font-extrabold tracking-[0.22em] text-sky-300">KRIPTOAMAN WALLET INTELLIGENCE</p>
-                <h1 className="mt-1 text-xl font-extrabold sm:text-2xl">{en ? 'Portfolio & Wallet Monitor' : 'Portofolio & Pemantauan Wallet'}</h1>
-                <p className="mt-1 text-xs text-slate-400">{en ? 'Live visibility, security context, and connected-address intelligence.' : 'Visibilitas live, konteks keamanan, dan intelijen alamat terhubung.'}</p>
+                <p className="text-[10px] font-extrabold tracking-[0.22em] text-sky-300">KRIPTOAMAN PORTFOLIO INTELLIGENCE</p>
+                <h1 className="mt-1 text-xl font-extrabold sm:text-2xl">{en ? 'Portfolio & Public Address Monitor' : 'Portofolio & Pemantauan Alamat Publik'}</h1>
+                <p className="mt-1 text-xs text-slate-400">{en ? 'Live visibility, security context, and public-address intelligence.' : 'Visibilitas live, konteks keamanan, dan intelijen alamat publik.'}</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -73,14 +73,14 @@ export default function Wallet() {
         <WalletProfileCard user={currentUser} address="" coin="" />
 
         {currentUser?.role === 'admin' && (
-          <section className="ka-surface overflow-hidden p-5 shadow-[0_20px_60px_rgba(0,0,0,.18)]" aria-label={en ? 'Admin portfolio' : 'Portofolio admin'}>
+          <section className="ka-surface overflow-hidden p-5 shadow-[0_20px_60px_rgba(0,0,0,.18)]" aria-label={en ? 'Internal administrative balance' : 'Saldo administrasi internal KriptoAman'}>
             <div className="flex items-start gap-3">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-violet-500/25 bg-violet-500/10 shadow-[0_0_28px_rgba(139,92,246,.14)]">
                 <WalletCards className="h-5 w-5 text-violet-300" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="font-bold">{en ? 'Admin Portfolio' : 'Portofolio Admin'}</h2>
+                  <h2 className="font-bold">{en ? 'KriptoAman Internal Administrative Balance' : 'Saldo administrasi internal KriptoAman'}</h2>
                   <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-bold text-emerald-300">
                     {en ? 'ADMIN ONLY' : 'KHUSUS ADMIN'}
                   </span>
@@ -119,7 +119,7 @@ export default function Wallet() {
                 <h2 className="mt-1 font-bold">{en ? 'Watch-only portfolio' : 'Portofolio dalam mode pemantauan'}</h2>
                 <p className="mt-1 text-sm leading-relaxed text-slate-400">
                   {en
-                    ? 'The public version monitors public wallet and asset information. Sending, swapping, deposits, withdrawals, trading, lending, staking, bridging, and CEX execution are not enabled.'
+                    ? 'The public version monitors public address and asset information. Sending, swapping, deposits, withdrawals, trading, lending, staking, bridging, and CEX execution are not enabled.'
                     : 'Versi publik digunakan untuk memantau informasi alamat publik dan aset. Pengiriman, swap, deposit, penarikan, perdagangan, lending, staking, bridge, dan eksekusi CEX tidak diaktifkan.'}
                 </p>
               </div>
@@ -152,9 +152,9 @@ export default function Wallet() {
 
         <section className="grid gap-3 sm:grid-cols-3" aria-label={en ? 'Monitoring status' : 'Status pemantauan'}>
           {[
-            [en ? 'Connected addresses' : 'Alamat terhubung', String(connectedAddressCount), connectedAddressCount ? (en ? 'Public wallet connection active' : 'Koneksi alamat publik aktif') : (en ? 'Connect a public wallet when available' : 'Hubungkan alamat publik saat tersedia')],
+            [en ? 'Connected public addresses' : 'Alamat publik terhubung', String(connectedAddressCount), connectedAddressCount ? (en ? 'Public address connection active' : 'Koneksi alamat publik aktif') : (en ? 'Connect a public address when available' : 'Hubungkan alamat publik saat tersedia')],
             [en ? 'Recent activity' : 'Aktivitas terbaru', '—', en ? 'No monitored transactions' : 'Belum ada transaksi yang dipantau'],
-            [en ? 'Wallet mode' : 'Mode wallet', en ? 'Watch-only' : 'Pemantauan', en ? 'No custody or transaction execution' : 'Tanpa kustodi atau eksekusi transaksi'],
+            [en ? 'Monitoring mode' : 'Mode pemantauan', en ? 'Watch-only' : 'Pemantauan', en ? 'No custody or transaction execution' : 'Tanpa kustodi atau eksekusi transaksi'],
           ].map(([label, value, description]) => (
             <div key={label} className="ka-surface p-4">
               <p className="text-xs font-semibold text-slate-400">{label}</p>
