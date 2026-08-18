@@ -2,10 +2,13 @@ const encoder = new TextEncoder();
 
 const SESSION_COOKIE = 'ka_session';
 const OAUTH_STATE_COOKIE = 'ka_oauth_state';
-// Persistent login: keep the browser signed in for 30 days at a time.
-// The /api/auth/me endpoint renews this window whenever the app is opened/used,
-// so active users stay connected until they explicitly log out or revoke the session.
+
 export const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
+export const ADMIN_SESSION_TTL_SECONDS = 60 * 60 * 8;
+
+function sessionTtlForUser(user) {
+  return user?.role === 'admin' ? ADMIN_SESSION_TTL_SECONDS : SESSION_TTL_SECONDS;
+}
 
 function base64UrlEncode(bytes) {
   let binary = '';
@@ -47,7 +50,7 @@ async function sign(secret, message) {
   return base64UrlEncode(new Uint8Array(signature));
 }
 
-export async function createSessionToken(secret, user, sessionId = null, ttlSeconds = SESSION_TTL_SECONDS) {
+export async function createSessionToken(secret, user, sessionId = null, ttlSeconds = sessionTtlForUser(user)) {
   const now = Math.floor(Date.now() / 1000);
   const payload = {
     sub: user.id,
@@ -89,11 +92,11 @@ export function getSessionToken(request) {
 }
 
 export function sessionCookie(token, maxAge = SESSION_TTL_SECONDS) {
-  return `${SESSION_COOKIE}=${token}; Path=/; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=Lax`;
+  return `${SESSION_COOKIE}=${token}; Path=/; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=Strict; Priority=High`;
 }
 
 export function clearSessionCookie() {
-  return `${SESSION_COOKIE}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax`;
+  return `${SESSION_COOKIE}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict; Priority=High`;
 }
 
 export function createOAuthState() {
@@ -101,11 +104,11 @@ export function createOAuthState() {
 }
 
 export function oauthStateCookie(state) {
-  return `${OAUTH_STATE_COOKIE}=${state}; Path=/api/auth/google; Max-Age=600; HttpOnly; Secure; SameSite=Lax`;
+  return `${OAUTH_STATE_COOKIE}=${state}; Path=/api/auth/google; Max-Age=600; HttpOnly; Secure; SameSite=Lax; Priority=High`;
 }
 
 export function clearOAuthStateCookie() {
-  return `${OAUTH_STATE_COOKIE}=; Path=/api/auth/google; Max-Age=0; HttpOnly; Secure; SameSite=Lax`;
+  return `${OAUTH_STATE_COOKIE}=; Path=/api/auth/google; Max-Age=0; HttpOnly; Secure; SameSite=Lax; Priority=High`;
 }
 
 export function getOAuthState(request) {
