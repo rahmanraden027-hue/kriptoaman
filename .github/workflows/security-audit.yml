@@ -1,0 +1,63 @@
+name: Security Audit
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    - cron: '43 1 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Security regression tests
+        run: npm run test
+
+      - name: Lint application
+        run: npm run lint
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Verify no private keys are committed
+        shell: bash
+        run: |
+          if git grep -n -E -- '-----BEGIN (RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----' -- ':!package-lock.json'; then
+            echo 'Private key material detected in tracked files.' >&2
+            exit 1
+          fi
+
+      - name: Verify security headers contract
+        shell: bash
+        run: |
+          grep -q 'Strict-Transport-Security' public/_headers
+          grep -q 'Content-Security-Policy' public/_headers
+          grep -q "frame-ancestors 'none'" public/_headers
+          grep -q 'X-Frame-Options: DENY' public/_headers
