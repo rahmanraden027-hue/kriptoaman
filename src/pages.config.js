@@ -38,7 +38,9 @@ export const PAGES = Object.fromEntries(
 );
 
 export const pagesConfig = {
-  mainPage: 'Wallet',
+  // Final UX: land authenticated users on the intelligence dashboard first.
+  // Wallet remains a dedicated monitoring module instead of the app entry point.
+  mainPage: 'Home',
   Pages: PAGES,
   Layout: __Layout,
 };

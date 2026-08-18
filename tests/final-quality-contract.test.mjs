@@ -19,7 +19,8 @@ test('mobile and desktop primary actions follow the selected language', async ()
     read('src/components/home/HomeQuickActions.jsx'),
   ]);
   assert.match(layout, /DESKTOP_LABELS/);
-  assert.match(layout, /Phase 1 · Watch-only/);
+  assert.match(layout, /Global intelligence · Watch-only/);
+  assert.match(layout, /Intelijen global · Pemantauan/);
   assert.match(actions, /Watch Wallet/);
   assert.match(actions, /useLanguage/);
 });

@@ -17,7 +17,7 @@ test('home is focused and avoids duplicate mobile market surfaces', async () => 
   assert.doesNotMatch(home, /HomeLiveMarket/);
   assert.doesNotMatch(home, /HomeTrendingCoins/);
   assert.match(home, /hidden md:block/);
-  assert.match(home, /max-w-6xl/);
+  assert.match(home, /max-w-7xl/);
 });
 
 test('market trust widgets disclose source time and asset quality', async () => {
