@@ -11,6 +11,9 @@ KAM is the native test asset for the KriptoAman EVM test network. This directory
 - EVM Chain ID: 22027
 - Native decimals: 18
 - Working testnet genesis supply: 1,000,000,000 KAM
+- Consensus: QBFT proof-of-authority
+- Initial validator topology: 4 validators
+- Target block period: 3 seconds
 - JSON-RPC: configured by the operator at deployment time
 - Public transaction execution: testnet only
 
@@ -24,7 +27,7 @@ KAM is the native test asset for the KriptoAman EVM test network. This directory
 
 ## Testnet goals
 
-1. Start a KriptoAman EVM-compatible local/test network.
+1. Start a 4-validator KriptoAman EVM-compatible QBFT test network.
 2. Verify Chain ID 22027 and native KAM balances over JSON-RPC.
 3. Connect a test wallet using a custom EVM network configuration.
 4. Verify basic native KAM transfers using test-only accounts.
@@ -34,10 +37,12 @@ KAM is the native test asset for the KriptoAman EVM test network. This directory
 
 - [ ] Dedicated testnet validator keys generated outside the repository.
 - [ ] Genesis allocation addresses reviewed.
+- [ ] QBFT extraData generated from the four validator addresses.
 - [ ] RPC bound safely; public exposure uses TLS/reverse proxy and rate limiting.
 - [ ] Chain ID returns `0x560b` (22027 decimal).
+- [ ] All 4 validators are participating and blocks advance continuously.
 - [ ] Test KAM transfer succeeds between dedicated test accounts.
 - [ ] Explorer indexes blocks correctly.
 - [ ] No production wallet keys or user funds are involved.
 
-See `network-profile.json` and `check-rpc.sh` in this directory.
+See `network-profile.json`, `qbft-genesis.template.json`, `RUNBOOK.md`, and `check-rpc.sh` in this directory.
