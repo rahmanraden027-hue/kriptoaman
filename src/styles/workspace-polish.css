@@ -124,7 +124,7 @@
   box-shadow: 0 12px 30px rgba(14,165,233,.12);
 }
 
-/* Global shell refinement: works with current Layout without changing routing logic */
+/* Global shell refinement */
 @media (min-width: 1024px) {
   aside.fixed.left-0 {
     background: linear-gradient(180deg, rgba(5,15,27,.965), rgba(6,18,31,.94)) !important;
@@ -143,12 +143,51 @@ nav.fixed.bottom-0 {
   border-top-color: rgba(56,189,248,.18) !important;
 }
 
-/* Bring older admin pages into the new system without altering their behavior */
-.ka-bg .bg-slate-800\/40,
-.ka-bg .bg-slate-800\/50,
-.ka-bg .bg-slate-800\/60,
-.ka-bg .bg-slate-900\/60 {
+/* Legacy admin/data-page modernization without altering behavior */
+[class*="bg-gradient-to-br"][class*="from-slate-950"] {
+  background:
+    radial-gradient(circle at 15% 8%, rgba(14,165,233,.08), transparent 26%),
+    radial-gradient(circle at 88% 12%, rgba(99,102,241,.08), transparent 22%),
+    linear-gradient(145deg, #050d18 0%, #07111d 48%, #06101b 100%) !important;
+}
+
+.bg-slate-800\/40,
+.bg-slate-800\/50,
+.bg-slate-800\/60,
+.bg-slate-900\/60 {
   backdrop-filter: blur(16px);
+  border-color: rgba(56,189,248,.12) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.02);
+}
+
+.bg-slate-800\/40.rounded-xl,
+.bg-slate-800\/50.rounded-xl,
+.bg-slate-800\/60.rounded-xl,
+.bg-slate-800\/40.rounded-2xl,
+.bg-slate-800\/50.rounded-2xl,
+.bg-slate-800\/60.rounded-2xl {
+  border-radius: 20px !important;
+}
+
+.max-w-7xl > h1,
+.max-w-6xl > h1,
+.max-w-5xl > h1,
+.max-w-2xl > h1 {
+  letter-spacing: -.025em;
+}
+
+button.bg-blue-600,
+a.bg-blue-600 {
+  border: 1px solid rgba(56,189,248,.28) !important;
+  background: linear-gradient(135deg, rgb(2 132 199), rgb(37 99 235)) !important;
+  box-shadow: 0 10px 28px rgba(14,165,233,.12);
+}
+
+input.bg-slate-800,
+textarea.bg-slate-800,
+select.bg-slate-800 {
+  background: rgba(7,17,29,.72) !important;
+  border-color: rgba(56,189,248,.14) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
