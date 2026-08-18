@@ -1,8 +1,16 @@
 export function json(data, init = {}) {
   const headers = new Headers(init.headers || {});
   headers.set('Content-Type', 'application/json; charset=utf-8');
-  headers.set('Cache-Control', 'no-store');
+  headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  headers.set('Pragma', 'no-cache');
+  headers.set('Expires', '0');
   headers.set('X-Content-Type-Options', 'nosniff');
+  headers.set('X-Frame-Options', 'DENY');
+  headers.set('Referrer-Policy', 'no-referrer');
+  headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=()');
+  headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+  headers.set('Cross-Origin-Resource-Policy', 'same-origin');
+  headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
   return new Response(JSON.stringify(data), { ...init, headers });
 }
 
@@ -20,7 +28,9 @@ export function requireBindings(env, names) {
 export function requireSameOrigin(request, env) {
   const origin = request.headers.get('Origin');
   const expected = authOrigin(request, env);
-  if (!origin || origin !== expected) {
+  const fetchSite = request.headers.get('Sec-Fetch-Site');
+
+  if (!origin || origin !== expected || (fetchSite && !['same-origin', 'same-site', 'none'].includes(fetchSite))) {
     const error = new Error('Invalid request origin');
     error.status = 403;
     throw error;
