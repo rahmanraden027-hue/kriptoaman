@@ -39,7 +39,7 @@ export const AdminProfitAnalytics = lazy(() => import('../../pages/AdminProfitAn
 export const AdminPlatformAssets  = lazy(() => import('../../pages/AdminPlatformAssets'));
 export const SecureVault          = lazy(() => import('../../pages/SecureVault'));
 export const SecurityCenter       = lazy(() => import('../../pages/SecurityCenter'));
-export const ServerControl        = lazy(() => import('../../pages/ServerControl'));
+export const ServerControl        = lazy(() => import('../../pages/ServerControlModern'));
 export const PlatformDocs         = lazy(() => import('../../pages/PlatformDocs'));
 export const RegulatoryDocs       = lazy(() => import('../../pages/RegulatoryDocs'));
 export const KYC                  = lazy(() => import('../../pages/KYC'));
