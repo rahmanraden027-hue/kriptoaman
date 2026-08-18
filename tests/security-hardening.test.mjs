@@ -37,16 +37,27 @@ test('admin sessions have a shorter cryptographic lifetime than normal sessions'
   assert.match(session, /HttpOnly; Secure; SameSite=Lax; Priority=High/);
 });
 
-test('admin UI remains protected by a server-side admin verification endpoint', async () => {
-  const [route, endpoint] = await Promise.all([
+test('admin UI remains protected by server verification and mandatory TOTP enrollment', async () => {
+  const [route, guard, endpoint, balance] = await Promise.all([
     source('../src/components/security/AdminRoute.jsx'),
+    source('../src/components/security/AdminGuard.jsx'),
     source('../functions/api/auth/admin/check.js'),
+    source('../functions/api/auth/admin/balance.js'),
   ]);
   assert.match(route, /\/api\/auth\/admin\/check/);
   assert.match(route, /credentials:\s*'same-origin'/);
+  assert.match(route, /two_factor_setup_required/);
+  assert.match(route, /SecurityCenter/);
+  assert.match(guard, /TOTPSetup/);
+  assert.match(guard, /admin_2fa_enrollment_required/);
   assert.match(endpoint, /verifySessionToken/);
   assert.match(endpoint, /getActiveSession/);
+  assert.match(endpoint, /getTotpSettings/);
+  assert.match(endpoint, /two_factor_setup_required/);
   assert.match(endpoint, /user\.role !== 'admin'/);
+  assert.match(balance, /getTotpSettings/);
+  assert.match(balance, /totp\?\.enabled/);
+  assert.match(balance, /Admin access with 2FA required/);
 });
 
 test('admin magic links are short-lived, rate limited, one-time, and never auto-promote accounts', async () => {
