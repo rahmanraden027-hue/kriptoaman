@@ -1,0 +1,159 @@
+/* KriptoAman Intelligence Workspace — shared polish layer */
+:root {
+  --ka-workspace-line: rgba(56,189,248,.14);
+  --ka-workspace-line-strong: rgba(56,189,248,.24);
+  --ka-workspace-panel: rgba(7,17,29,.72);
+  --ka-workspace-panel-strong: rgba(9,20,36,.9);
+  --ka-workspace-glow: 0 22px 70px rgba(14,165,233,.08);
+}
+
+.ka-workspace-page {
+  position: relative;
+  isolation: isolate;
+  overflow-x: clip;
+}
+
+.ka-workspace-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(14,165,233,.10), transparent 28%),
+    radial-gradient(circle at 84% 16%, rgba(99,102,241,.10), transparent 24%),
+    linear-gradient(rgba(56,189,248,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56,189,248,.035) 1px, transparent 1px);
+  background-size: auto, auto, 42px 42px, 42px 42px;
+  mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,.7) 60%, transparent 100%);
+}
+
+.ka-command-hero {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--ka-workspace-line-strong);
+  border-radius: 28px;
+  background: linear-gradient(135deg, rgba(6,18,32,.94), rgba(9,24,44,.80));
+  box-shadow: var(--ka-workspace-glow), inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.ka-command-hero::after {
+  content: '';
+  position: absolute;
+  width: 230px;
+  height: 230px;
+  right: -82px;
+  top: -104px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(56,189,248,.20), transparent 68%);
+  pointer-events: none;
+}
+
+.ka-command-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgb(125 211 252);
+}
+
+.ka-command-status {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  border: 1px solid rgba(16,185,129,.22);
+  background: rgba(16,185,129,.08);
+  color: rgb(110 231 183);
+  border-radius: 999px;
+  padding: .45rem .7rem;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.ka-command-status::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgb(52 211 153);
+  box-shadow: 0 0 14px rgba(52,211,153,.75);
+}
+
+.ka-command-panel {
+  border: 1px solid var(--ka-workspace-line);
+  background: linear-gradient(180deg, rgba(9,20,36,.72), rgba(6,14,26,.66));
+  border-radius: 22px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+  backdrop-filter: blur(18px);
+}
+
+.ka-command-tile {
+  border: 1px solid rgba(71,85,105,.45);
+  background: linear-gradient(145deg, rgba(15,23,42,.72), rgba(7,15,27,.72));
+  border-radius: 18px;
+  transition: transform .2s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease;
+}
+
+.ka-command-tile:hover {
+  transform: translateY(-2px);
+  border-color: rgba(56,189,248,.32);
+  background: linear-gradient(145deg, rgba(15,32,52,.82), rgba(7,18,31,.80));
+  box-shadow: 0 16px 34px rgba(2,8,23,.32);
+}
+
+.ka-command-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  border-radius: 14px;
+  border: 1px solid rgba(56,189,248,.28);
+  background: linear-gradient(135deg, rgba(14,165,233,.22), rgba(59,130,246,.18));
+  color: white;
+  font-weight: 800;
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+
+.ka-command-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(125,211,252,.48);
+  box-shadow: 0 12px 30px rgba(14,165,233,.12);
+}
+
+/* Global shell refinement: works with current Layout without changing routing logic */
+@media (min-width: 1024px) {
+  aside.fixed.left-0 {
+    background: linear-gradient(180deg, rgba(5,15,27,.965), rgba(6,18,31,.94)) !important;
+    border-right-color: rgba(56,189,248,.14) !important;
+    box-shadow: 14px 0 48px rgba(2,8,23,.18);
+  }
+
+  aside.fixed.left-0 nav a {
+    min-height: 42px;
+    letter-spacing: .01em;
+  }
+}
+
+nav.fixed.bottom-0 {
+  background: linear-gradient(180deg, rgba(7,17,29,.92), rgba(5,13,24,.985)) !important;
+  border-top-color: rgba(56,189,248,.18) !important;
+}
+
+/* Bring older admin pages into the new system without altering their behavior */
+.ka-bg .bg-slate-800\/40,
+.ka-bg .bg-slate-800\/50,
+.ka-bg .bg-slate-800\/60,
+.ka-bg .bg-slate-900\/60 {
+  backdrop-filter: blur(16px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ka-command-tile,
+  .ka-command-button { transition: none; }
+  .ka-command-tile:hover,
+  .ka-command-button:hover { transform: none; }
+}
