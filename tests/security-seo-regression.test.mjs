@@ -63,13 +63,29 @@ test('balance editing is hidden from users and enforced by an admin-only server 
   assert.match(endpoint, /requireSameOrigin/);
   assert.match(endpoint, /Invalid balance values/);
 
-  // The portfolio reads the protected admin balance endpoint only after the
-  // authenticated user has been verified as an admin and renders the section
-  // behind the same role condition.
   assert.match(wallet, /currentUser\?\.role\s*!==\s*'admin'/);
   assert.match(wallet, /kriptoAuth\.getAdminBalance\(\)/);
   assert.match(wallet, /currentUser\?\.role\s*===\s*'admin'/);
   assert.match(wallet, /Portofolio Admin/);
   assert.match(wallet, /KHUSUS ADMIN/);
   assert.match(wallet, /bukan saldo on-chain/);
+});
+
+test('admin user management uses first-party server data and contains no synthetic account counts', async () => {
+  const [page, endpoint, authClient] = await Promise.all([
+    read('src/pages/AdminUserBalances.jsx'),
+    read('functions/api/auth/admin/users.js'),
+    read('src/lib/kriptoAuth.js'),
+  ]);
+
+  assert.doesNotMatch(page, /asServiceRole/);
+  assert.doesNotMatch(page, /PLATFORM_TOTAL_USERS|PLATFORM_KYC_PENDING|SAMPLE_EMAILS|SAMPLE_KYC_EMAILS/);
+  assert.match(page, /kriptoAuth\.getAdminUsers/);
+  assert.match(page, /kriptoAuth\.updateAdminUserKyc/);
+  assert.match(endpoint, /getActiveSession/);
+  assert.match(endpoint, /user\.role\s*!==\s*'admin'/);
+  assert.match(endpoint, /requireSameOrigin/);
+  assert.match(endpoint, /recordAdminAudit/);
+  assert.match(endpoint, /user\.kyc\.update/);
+  assert.match(authClient, /\/api\/auth\/admin\/users/);
 });
