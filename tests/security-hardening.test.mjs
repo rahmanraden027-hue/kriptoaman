@@ -49,6 +49,21 @@ test('admin UI remains protected by a server-side admin verification endpoint', 
   assert.match(endpoint, /user\.role !== 'admin'/);
 });
 
+test('Coinbase account, order, transfer, conversion and SQL actions are admin-only', async () => {
+  const coinbase = await source('../base44/functions/coinbaseAdvancedTrade/entry.ts');
+  assert.match(coinbase, /const adminOnlyActions = new Set/);
+  for (const action of [
+    'get_balance', 'list_portfolios', 'get_portfolio', 'get_fees',
+    'list_orders', 'get_order', 'list_fills', 'preview_order', 'create_order',
+    'cancel_orders', 'convert_quote', 'convert_execute', 'convert_get', 'transfer',
+    'get_accounts_v2', 'run_sql',
+  ]) {
+    assert.match(coinbase, new RegExp(`'${action}'`));
+  }
+  assert.match(coinbase, /adminOnlyActions\.has\(action\) && !isAdmin/);
+  assert.match(coinbase, /status:\s*403/);
+});
+
 test('static security policy enables HSTS, CSP, anti-framing and noindex for admin surfaces', async () => {
   const headers = await source('../public/_headers');
   assert.match(headers, /Strict-Transport-Security/);
