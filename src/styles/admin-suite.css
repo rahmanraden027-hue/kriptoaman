@@ -1,0 +1,188 @@
+/* KriptoAman Admin Intelligence Suite */
+.ka-suite-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .75rem 1rem;
+  border: 1px solid rgba(56,189,248,.12);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(7,17,29,.78), rgba(5,13,24,.72));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+  backdrop-filter: blur(18px);
+}
+
+.ka-suite-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: 30px;
+  padding: .38rem .68rem;
+  border: 1px solid rgba(56,189,248,.16);
+  border-radius: 999px;
+  background: rgba(14,165,233,.055);
+  color: rgb(186 230 253);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .045em;
+  white-space: nowrap;
+}
+
+.ka-suite-badge-indigo {
+  border-color: rgba(99,102,241,.22);
+  background: rgba(99,102,241,.09);
+  color: rgb(199 210 254);
+}
+
+.ka-suite-nav {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: .5rem;
+  padding: .55rem;
+  border: 1px solid rgba(56,189,248,.13);
+  border-radius: 20px;
+  background: rgba(3,11,22,.70);
+  backdrop-filter: blur(18px);
+}
+
+.ka-suite-nav-item {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: .55rem .7rem;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  color: rgb(148 163 184);
+  font-size: 10px;
+  font-weight: 800;
+  transition: .2s ease;
+}
+
+.ka-suite-nav-item:hover {
+  color: white;
+  border-color: rgba(56,189,248,.16);
+  background: rgba(14,165,233,.06);
+}
+
+.ka-suite-nav-item.is-active {
+  color: rgb(125 211 252);
+  border-color: rgba(56,189,248,.28);
+  background: linear-gradient(135deg, rgba(14,165,233,.16), rgba(37,99,235,.10));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025), 0 10px 30px rgba(14,165,233,.08);
+}
+
+.ka-suite-icon-tile {
+  display: flex;
+  width: 52px;
+  height: 52px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  border: 1px solid rgba(56,189,248,.25);
+  background:
+    radial-gradient(circle at 30% 20%, rgba(56,189,248,.18), transparent 56%),
+    rgba(14,165,233,.075);
+  box-shadow: 0 0 38px rgba(14,165,233,.10), inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.ka-suite-footer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: .8rem 1rem;
+  border: 1px solid rgba(56,189,248,.12);
+  border-radius: 18px;
+  background: rgba(4,12,22,.74);
+  color: rgb(100 116 139);
+  font-size: 10px;
+}
+
+.ka-suite-footer > div {
+  display: inline-flex;
+  align-items: center;
+  gap: .42rem;
+}
+
+.ka-suite-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  box-shadow: 0 0 12px currentColor;
+}
+
+/* Make legacy admin statistics resemble the four-up intelligence cards in the concept. */
+.ka-admin-modern .ka-admin-legacy .grid.grid-cols-2.md\:grid-cols-4 > div,
+.ka-admin-modern .ka-admin-legacy .grid.grid-cols-1.md\:grid-cols-4 > div {
+  border-radius: 18px !important;
+  min-height: 104px;
+  background:
+    linear-gradient(180deg, rgba(10,24,42,.82), rgba(6,15,28,.78)) !important;
+  border-color: rgba(56,189,248,.14) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025), 0 12px 30px rgba(2,8,23,.14);
+}
+
+.ka-admin-modern .ka-admin-legacy table th {
+  color: rgb(125 211 252) !important;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.ka-admin-modern .ka-admin-legacy table td {
+  border-color: rgba(51,65,85,.28) !important;
+}
+
+.ka-admin-modern .ka-admin-legacy table tbody tr:hover {
+  background: linear-gradient(90deg, rgba(14,165,233,.06), rgba(59,130,246,.035)) !important;
+}
+
+.ka-admin-modern .ka-admin-legacy [class*="rounded-xl"],
+.ka-admin-modern .ka-admin-legacy [class*="rounded-2xl"] {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.018);
+}
+
+@media (min-width: 1280px) {
+  .ka-admin-modern .ka-admin-legacy > div > .max-w-7xl,
+  .ka-admin-modern .ka-admin-legacy > .max-w-7xl {
+    max-width: 1480px !important;
+  }
+}
+
+@media (max-width: 1023px) {
+  .ka-suite-nav {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 639px) {
+  .ka-suite-topline {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ka-suite-nav {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .ka-suite-nav::-webkit-scrollbar { display: none; }
+
+  .ka-suite-nav-item {
+    min-width: 132px;
+  }
+
+  .ka-suite-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: .55rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ka-suite-nav-item { transition: none; }
+}
