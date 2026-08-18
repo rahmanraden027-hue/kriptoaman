@@ -67,7 +67,7 @@ jobs:
 
       - name: Upload Android preflight AAB
         if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: kriptoaman-preflight-aab
           path: android/app/build/outputs/bundle/release/app-release.aab
@@ -75,7 +75,7 @@ jobs:
 
       - name: Upload Android preflight APK
         if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: kriptoaman-preflight-apk
           path: android/app/build/outputs/apk/release/app-release-unsigned.apk
@@ -133,7 +133,7 @@ jobs:
 
       - name: Upload signed Play AAB
         if: github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: kriptoaman-play-aab
           path: android/app/build/outputs/bundle/release/app-release.aab
@@ -141,7 +141,7 @@ jobs:
 
       - name: Upload signed direct APK
         if: github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: kriptoaman-direct-apk
           path: |
