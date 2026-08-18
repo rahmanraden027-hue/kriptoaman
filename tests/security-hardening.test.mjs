@@ -49,6 +49,20 @@ test('admin UI remains protected by a server-side admin verification endpoint', 
   assert.match(endpoint, /user\.role !== 'admin'/);
 });
 
+test('admin magic links are short-lived, rate limited, one-time, and never auto-promote accounts', async () => {
+  const [requestLink, callback] = await Promise.all([
+    source('../functions/api/auth/admin/request-link.js'),
+    source('../functions/api/auth/admin/callback.js'),
+  ]);
+  assert.match(requestLink, /user\.role === 'admin'/);
+  assert.match(requestLink, /'admin-link',[\s\S]*2,[\s\S]*60 \* 60/);
+  assert.match(requestLink, /exp:\s*now \+ 5 \* 60/);
+  assert.match(callback, /consumeOneTimeToken/);
+  assert.match(callback, /user\.role !== 'admin'/);
+  assert.match(callback, /ADMIN_MAGIC_LINK_SESSION_TTL_SECONDS = 60 \* 60/);
+  assert.doesNotMatch(callback, /promoteConfiguredAdmin/);
+});
+
 test('Coinbase account, order, transfer, conversion and SQL actions are admin-only', async () => {
   const coinbase = await source('../base44/functions/coinbaseAdvancedTrade/entry.ts');
   assert.match(coinbase, /const adminOnlyActions = new Set/);
