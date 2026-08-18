@@ -77,6 +77,19 @@ export const kriptoAuth = {
     });
   },
 
+  async getAdminUsers(limit = 200) {
+    const data = await request(`/api/auth/admin/users?limit=${encodeURIComponent(limit)}`);
+    return data.users || [];
+  },
+
+  async updateAdminUserKyc(userId, kycStatus) {
+    const data = await request('/api/auth/admin/users', {
+      method: 'PATCH',
+      body: JSON.stringify({ userId, kycStatus }),
+    });
+    return data.user;
+  },
+
   async requestAdminLink(email) {
     return request('/api/auth/admin/request-link', { method: 'POST', body: JSON.stringify({ email }) });
   },
