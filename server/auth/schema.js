@@ -86,6 +86,22 @@ const statements = [
     FOREIGN KEY (updated_by) REFERENCES auth_users(id) ON DELETE RESTRICT
   )`,
   'CREATE INDEX IF NOT EXISTS idx_auth_balances_updated_at ON auth_balances(updated_at DESC)',
+  `CREATE TABLE IF NOT EXISTS auth_admin_audit (
+    id TEXT PRIMARY KEY,
+    admin_user_id TEXT NOT NULL,
+    admin_email TEXT NOT NULL COLLATE NOCASE,
+    action TEXT NOT NULL,
+    target_type TEXT,
+    target_id TEXT,
+    metadata_json TEXT NOT NULL DEFAULT '{}',
+    ip_masked TEXT,
+    user_agent TEXT,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (admin_user_id) REFERENCES auth_users(id) ON DELETE RESTRICT
+  )`,
+  'CREATE INDEX IF NOT EXISTS idx_auth_admin_audit_created_at ON auth_admin_audit(created_at DESC)',
+  'CREATE INDEX IF NOT EXISTS idx_auth_admin_audit_admin ON auth_admin_audit(admin_user_id, created_at DESC)',
+  'CREATE INDEX IF NOT EXISTS idx_auth_admin_audit_action ON auth_admin_audit(action, created_at DESC)',
 ];
 
 async function initializeSchema(db) {
