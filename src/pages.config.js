@@ -21,6 +21,7 @@ const PAGE_OVERRIDES = {
   AMLDashboard: 'AMLDashboardModern',
   AdminKYCManagement: 'AdminKYCManagementModern',
   AdminPlatformAssets: 'AdminPlatformAssetsModern',
+  AdminProfitAnalytics: 'AdminProfitAnalyticsModern',
   AdminUserBalances: 'AdminUserBalancesModern',
   ServerControl: 'ServerControlModern',
 };
