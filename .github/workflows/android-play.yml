@@ -2,6 +2,18 @@ name: Android Release Artifacts
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'android/**'
+      - 'src/**'
+      - 'public/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'capacitor.config.*'
+      - '.github/workflows/android-play.yml'
   push:
     branches:
       - main
@@ -38,7 +50,39 @@ jobs:
         run: npm run test
       - name: Build web app and sync Capacitor
         run: npm run android:sync
+
+      - name: Build unsigned Android preflight artifacts
+        if: github.event_name == 'pull_request'
+        working-directory: android
+        run: ./gradlew bundleRelease assembleRelease
+
+      - name: Verify unsigned preflight artifacts
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s android/app/build/outputs/bundle/release/app-release.aab
+          test -s android/app/build/outputs/apk/release/app-release-unsigned.apk
+          ls -lh android/app/build/outputs/bundle/release/app-release.aab android/app/build/outputs/apk/release/app-release-unsigned.apk
+
+      - name: Upload Android preflight AAB
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: kriptoaman-preflight-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+
+      - name: Upload Android preflight APK
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: kriptoaman-preflight-apk
+          path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+          if-no-files-found: error
+
       - name: Validate Play signing configuration
+        if: github.event_name != 'pull_request'
         shell: bash
         env:
           PLAY_KEYSTORE_BASE64: ${{ secrets.PLAY_KEYSTORE_BASE64 }}
@@ -51,7 +95,9 @@ jobs:
           : "${PLAY_KEYSTORE_PASSWORD:?Missing PLAY_KEYSTORE_PASSWORD secret}"
           : "${PLAY_KEY_ALIAS:?Missing PLAY_KEY_ALIAS secret}"
           : "${PLAY_KEY_PASSWORD:?Missing PLAY_KEY_PASSWORD secret}"
+
       - name: Restore and verify Play signing key
+        if: github.event_name != 'pull_request'
         shell: bash
         env:
           PLAY_KEYSTORE_BASE64: ${{ secrets.PLAY_KEYSTORE_BASE64 }}
@@ -62,28 +108,40 @@ jobs:
           echo "$PLAY_KEYSTORE_BASE64" | base64 --decode > android/app/kriptoaman-release.jks
           test -s android/app/kriptoaman-release.jks
           keytool -list -keystore android/app/kriptoaman-release.jks -storepass "$PLAY_KEYSTORE_PASSWORD" -alias "$PLAY_KEY_ALIAS" >/dev/null
+
       - name: Build signed release AAB and APK
+        if: github.event_name != 'pull_request'
         working-directory: android
         env:
           PLAY_KEYSTORE_PASSWORD: ${{ secrets.PLAY_KEYSTORE_PASSWORD }}
           PLAY_KEY_ALIAS: ${{ secrets.PLAY_KEY_ALIAS }}
           PLAY_KEY_PASSWORD: ${{ secrets.PLAY_KEY_PASSWORD }}
         run: ./gradlew bundleRelease assembleRelease -PKRIPTOAMAN_KEYSTORE_FILE=kriptoaman-release.jks -PKRIPTOAMAN_KEYSTORE_PASSWORD="$PLAY_KEYSTORE_PASSWORD" -PKRIPTOAMAN_KEY_ALIAS="$PLAY_KEY_ALIAS" -PKRIPTOAMAN_KEY_PASSWORD="$PLAY_KEY_PASSWORD"
-      - name: Verify release artifacts
+
+      - name: Verify signed release artifacts
+        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
           test -s android/app/build/outputs/bundle/release/app-release.aab
           test -s android/app/build/outputs/apk/release/app-release.apk
           ls -lh android/app/build/outputs/bundle/release/app-release.aab android/app/build/outputs/apk/release/app-release.apk
+
       - name: Create APK checksum
+        if: github.event_name != 'pull_request'
         run: sha256sum android/app/build/outputs/apk/release/app-release.apk > android/app/build/outputs/apk/release/app-release.apk.sha256
-      - uses: actions/upload-artifact@v4
+
+      - name: Upload signed Play AAB
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
         with:
           name: kriptoaman-play-aab
           path: android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
-      - uses: actions/upload-artifact@v4
+
+      - name: Upload signed direct APK
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
         with:
           name: kriptoaman-direct-apk
           path: |
