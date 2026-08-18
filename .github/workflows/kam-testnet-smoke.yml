@@ -7,6 +7,12 @@ on:
     paths:
       - '.github/workflows/kam-testnet-smoke.yml'
       - 'chain/kam-testnet/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/kam-testnet-smoke.yml'
+      - 'chain/kam-testnet/**'
   workflow_dispatch:
 
 jobs:
