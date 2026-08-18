@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, CheckCircle2, Clock, ExternalLink, Loader2, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Clock, ExternalLink, Loader2, ShieldAlert, ShieldCheck, ScanFace, LockKeyhole, DatabaseZap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { startKyc } from '@/lib/kriptoKyc';
@@ -67,60 +67,83 @@ export default function KYC() {
   const checking = readiness === null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 pt-6 pb-24">
-      <div className="max-w-lg mx-auto space-y-5">
-        <header className="ka-surface flex items-center gap-3 p-4">
-          <Link to={createPageUrl('Profile')} className="p-2 bg-slate-800 border border-slate-700 rounded-xl" aria-label={en ? 'Back to profile' : 'Kembali ke profil'}>
-            <ArrowLeft className="w-4 h-4 text-slate-400" />
-          </Link>
-          <KriptoAmanLogo size={38} showText={false} animate={false} />
-          <div className="min-w-0 flex-1">
-            <p className="text-[9px] font-extrabold tracking-[0.18em] text-sky-300">KRIPTOAMAN IDENTITY</p>
-            <h1 className="truncate text-white font-bold text-lg">{en ? 'Identity verification' : 'Verifikasi Identitas'}</h1>
-            <p className="text-slate-500 text-xs">{en ? 'Real KYC through Didit' : 'KYC nyata melalui Didit'}</p>
+    <div className="ka-bg ka-workspace-page min-h-screen px-4 pt-5 pb-28 text-white">
+      <div className="mx-auto max-w-5xl space-y-5">
+        <section className="ka-command-hero p-5 sm:p-7">
+          <div className="relative z-10 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-start gap-3">
+              <Link to={createPageUrl('Profile')} className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-500/20 bg-sky-500/8 text-slate-400 transition hover:text-white" aria-label={en ? 'Back to profile' : 'Kembali ke profil'}>
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+              <KriptoAmanLogo size={48} showText={false} animate={false} />
+              <div>
+                <p className="ka-command-kicker"><ScanFace className="h-3.5 w-3.5" /> KRIPTOAMAN IDENTITY INTELLIGENCE</p>
+                <h1 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">{en ? 'Identity Verification Center' : 'Pusat Verifikasi Identitas'}</h1>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">{en ? 'Secure identity verification through the official Didit flow with server-side readiness checks.' : 'Verifikasi identitas melalui alur resmi Didit dengan pemeriksaan kesiapan server dan perlindungan data.'}</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <span className="ka-command-status">{readiness?.ready ? (en ? 'Verification ready' : 'Verifikasi siap') : (en ? 'Readiness check' : 'Pemeriksaan kesiapan')}</span>
+              <span className="rounded-full border border-blue-500/25 bg-blue-500/10 px-3 py-2 text-[10px] font-bold text-blue-300">DIDIT VERIFIED FLOW</span>
+            </div>
           </div>
-          <span className="hidden sm:inline-flex rounded-full border border-blue-500/25 bg-blue-500/10 px-3 py-1 text-[10px] font-bold text-blue-300">DIDIT</span>
-        </header>
+        </section>
 
-        <div className={`flex items-start gap-3 rounded-2xl border p-4 ${readiness?.ready ? 'border-emerald-500/25 bg-emerald-500/10' : 'border-amber-500/25 bg-amber-500/10'}`}>
-          {checking ? <Loader2 className="w-5 h-5 animate-spin text-blue-400" /> : readiness?.ready ? <CheckCircle2 className="w-5 h-5 text-emerald-400" /> : <ShieldAlert className="w-5 h-5 text-amber-400" />}
-          <div>
-            <p className="text-sm font-bold text-white">{checking ? (en ? 'Checking KYC server…' : 'Memeriksa server KYC…') : readiness?.ready ? (en ? 'KYC server ready' : 'Server KYC siap') : (en ? 'KYC configuration incomplete' : 'Konfigurasi KYC belum lengkap')}</p>
-            <p className="mt-1 text-xs text-slate-400">{en ? 'Secrets are checked server-side and are never displayed in the browser.' : 'Secret diperiksa di server dan tidak pernah ditampilkan di browser.'}</p>
+        <div className="grid gap-4 lg:grid-cols-12">
+          <div className="lg:col-span-8 space-y-4">
+            <div className={`ka-command-panel flex items-start gap-3 p-4 ${readiness?.ready ? 'border-emerald-500/25' : 'border-amber-500/25'}`}>
+              {checking ? <Loader2 className="h-5 w-5 animate-spin text-sky-400" /> : readiness?.ready ? <CheckCircle2 className="h-5 w-5 text-emerald-400" /> : <ShieldAlert className="h-5 w-5 text-amber-400" />}
+              <div>
+                <p className="text-sm font-bold text-white">{checking ? (en ? 'Checking KYC infrastructure…' : 'Memeriksa infrastruktur KYC…') : readiness?.ready ? (en ? 'KYC infrastructure ready' : 'Infrastruktur KYC siap') : (en ? 'KYC configuration incomplete' : 'Konfigurasi KYC belum lengkap')}</p>
+                <p className="mt-1 text-xs leading-relaxed text-slate-400">{en ? 'Secrets remain server-side and are never exposed in the browser.' : 'Secret tetap berada di sisi server dan tidak pernah ditampilkan di browser.'}</p>
+              </div>
+            </div>
+
+            <div className="ka-command-panel p-6 text-center sm:p-8">
+              {loading ? <Loader2 className="mx-auto h-10 w-10 animate-spin text-sky-400" /> : approved ? (
+                <>
+                  <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border border-emerald-500/25 bg-emerald-500/10"><CheckCircle2 className="h-10 w-10 text-emerald-400" /></div>
+                  <h2 className="mt-5 text-2xl font-black">{en ? 'Identity verified' : 'Identitas Terverifikasi'}</h2>
+                  <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-slate-400">{en ? 'Your identity was approved by the verification provider.' : 'Identitas Anda telah disetujui oleh penyedia verifikasi.'}</p>
+                </>
+              ) : pending ? (
+                <>
+                  <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border border-amber-500/25 bg-amber-500/10"><Clock className="h-10 w-10 text-amber-400" /></div>
+                  <h2 className="mt-5 text-2xl font-black">{en ? 'Verification in progress' : 'Verifikasi Sedang Berjalan'}</h2>
+                  <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-slate-400">{en ? 'Complete the Didit flow or wait for the review result.' : 'Selesaikan proses Didit atau tunggu hasil pemeriksaan.'}</p>
+                  <button onClick={beginVerification} disabled={starting || !readiness?.ready} className="ka-command-button mt-5 min-h-12 w-full px-5 disabled:opacity-50">{starting ? (en ? 'Opening Didit…' : 'Membuka Didit…') : (en ? 'Continue verification' : 'Lanjutkan Verifikasi')}</button>
+                </>
+              ) : (
+                <>
+                  <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border border-sky-500/25 bg-sky-500/10"><ShieldCheck className="h-10 w-10 text-sky-400" /></div>
+                  <h2 className="mt-5 text-2xl font-black">{en ? 'Verify with Didit' : 'Verifikasi dengan Didit'}</h2>
+                  <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-slate-400">{en ? 'Your identity document and live selfie are processed in Didit’s official flow. KriptoAman stores only the session reference and required status.' : 'Dokumen identitas dan selfie langsung diproses dalam alur resmi Didit. KriptoAman hanya menyimpan referensi sesi dan status yang diperlukan.'}</p>
+                  <button onClick={beginVerification} disabled={starting || !readiness?.ready} className="ka-command-button mt-5 min-h-12 w-full px-5 disabled:opacity-50">
+                    {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />}
+                    {starting ? (en ? 'Preparing session…' : 'Menyiapkan sesi…') : (en ? 'Start identity verification' : 'Mulai Verifikasi Identitas')}
+                  </button>
+                </>
+              )}
+              {error && <p role="alert" className="mt-4 text-xs text-red-400">{error}</p>}
+            </div>
           </div>
+
+          <aside className="lg:col-span-4 space-y-3">
+            {[
+              [LockKeyhole, en ? 'Private by design' : 'Privasi terjaga', en ? 'Sensitive credentials stay outside the browser.' : 'Kredensial sensitif tidak ditampilkan di browser.'],
+              [DatabaseZap, en ? 'Server verified' : 'Diverifikasi server', en ? 'Readiness is checked before a verification session starts.' : 'Kesiapan diperiksa sebelum sesi verifikasi dimulai.'],
+              [ShieldCheck, en ? 'Official domain only' : 'Hanya domain resmi', en ? 'The app accepts HTTPS verification URLs on approved Didit domains.' : 'Aplikasi hanya menerima URL HTTPS pada domain Didit yang disetujui.'],
+            ].map(([Icon, title, body]) => (
+              <div key={title} className="ka-command-tile p-4">
+                <Icon className="h-5 w-5 text-sky-400" />
+                <p className="mt-3 text-sm font-bold">{title}</p>
+                <p className="mt-1 text-xs leading-relaxed text-slate-500">{body}</p>
+              </div>
+            ))}
+          </aside>
         </div>
 
-        <div className="bg-slate-800/60 border border-slate-700/50 rounded-3xl p-6 text-center space-y-4">
-          {loading ? <Loader2 className="w-10 h-10 text-blue-400 animate-spin mx-auto" /> : approved ? (
-            <>
-              <CheckCircle2 className="w-14 h-14 text-emerald-400 mx-auto" />
-              <h2 className="text-xl font-bold text-white">{en ? 'KYC verified' : 'KYC Terverifikasi'}</h2>
-              <p className="text-slate-400 text-sm">{en ? 'Your identity was approved by the verification provider.' : 'Identitas Anda telah disetujui oleh penyedia verifikasi.'}</p>
-            </>
-          ) : pending ? (
-            <>
-              <Clock className="w-14 h-14 text-amber-400 mx-auto" />
-              <h2 className="text-xl font-bold text-white">{en ? 'Verification in progress' : 'Verifikasi Sedang Berjalan'}</h2>
-              <p className="text-slate-400 text-sm">{en ? 'Complete the Didit flow or wait for the review result.' : 'Selesaikan proses Didit atau tunggu hasil pemeriksaan.'}</p>
-              <button onClick={beginVerification} disabled={starting || !readiness?.ready} className="w-full py-3.5 bg-blue-600 disabled:opacity-50 text-white font-bold rounded-2xl">
-                {starting ? (en ? 'Opening Didit…' : 'Membuka Didit…') : (en ? 'Continue verification' : 'Lanjutkan Verifikasi')}
-              </button>
-            </>
-          ) : (
-            <>
-              <ShieldCheck className="w-14 h-14 text-blue-400 mx-auto" />
-              <h2 className="text-xl font-bold text-white">{en ? 'Verify with Didit' : 'Verifikasi dengan Didit'}</h2>
-              <p className="text-slate-400 text-sm">{en ? 'Your identity document and live selfie are processed in Didit’s official flow. KriptoAman stores only the session reference and required status.' : 'Dokumen identitas dan selfie langsung diproses dalam alur resmi Didit. KriptoAman hanya menyimpan referensi sesi dan status yang diperlukan.'}</p>
-              <button onClick={beginVerification} disabled={starting || !readiness?.ready} className="w-full py-3.5 bg-blue-600 disabled:opacity-50 text-white font-bold rounded-2xl flex items-center justify-center gap-2">
-                {starting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
-                {starting ? (en ? 'Preparing session…' : 'Menyiapkan sesi…') : (en ? 'Start real KYC test' : 'Mulai Uji KYC Nyata')}
-              </button>
-            </>
-          )}
-          {error && <p role="alert" className="text-red-400 text-xs">{error}</p>}
-        </div>
-
-        <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4 text-xs leading-relaxed text-slate-400">
+        <div className="ka-command-panel p-4 text-xs leading-relaxed text-slate-400">
           {en ? 'Prepare your original identity document and camera. Continue only on an HTTPS Didit domain. Never send documents, OTPs, seed phrases, or private keys through chat.' : 'Siapkan dokumen identitas asli dan kamera. Lanjutkan hanya pada domain HTTPS Didit. Jangan pernah mengirim dokumen, OTP, seed phrase, atau private key melalui chat.'}
         </div>
       </div>
