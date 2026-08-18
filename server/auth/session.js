@@ -92,11 +92,11 @@ export function getSessionToken(request) {
 }
 
 export function sessionCookie(token, maxAge = SESSION_TTL_SECONDS) {
-  return `${SESSION_COOKIE}=${token}; Path=/; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=Strict; Priority=High`;
+  return `${SESSION_COOKIE}=${token}; Path=/; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=Lax; Priority=High`;
 }
 
 export function clearSessionCookie() {
-  return `${SESSION_COOKIE}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict; Priority=High`;
+  return `${SESSION_COOKIE}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax; Priority=High`;
 }
 
 export function createOAuthState() {
