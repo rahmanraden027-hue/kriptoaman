@@ -10,18 +10,18 @@ export async function onRequestPost({ request, env }) {
     requireSameOrigin(request, env);
     const body = await request.json();
     const email = String(body.email || '').trim().toLowerCase();
-    const allowed = await checkRateLimit(env.AUTH_DB, request, 'admin-link', email || 'invalid', 3, 60 * 60);
+    const allowed = await checkRateLimit(env.AUTH_DB, request, 'admin-link', email || 'invalid', 2, 60 * 60);
     if (!allowed) return json({ sent: true });
 
     const user = email ? await getUserByEmail(env.AUTH_DB, email) : null;
-    if (user?.email_verified && isAdminEmail(env, email)) {
+    if (user?.email_verified && user.role === 'admin' && isAdminEmail(env, email)) {
       const now = Math.floor(Date.now() / 1000);
       const token = await createSignedToken(env.SESSION_SECRET, {
         purpose: 'admin_magic_link',
         email,
         jti: crypto.randomUUID(),
         iat: now,
-        exp: now + 10 * 60,
+        exp: now + 5 * 60,
       });
       const loginUrl = authOrigin(request, env) + '/api/auth/admin/callback?token=' + encodeURIComponent(token);
       await sendAdminMagicLinkEmail(env, email, loginUrl);
