@@ -21,14 +21,14 @@ import { useLanguage } from './lib/LanguageContext';
 const BOTTOM_NAV = [
   { id: 'home', page: 'Home', icon: Home },
   { id: 'markets', page: 'Market', icon: TrendingUp },
+  { id: 'portfolio', page: 'PortfolioOverview', icon: BarChart3 },
   { id: 'wallet', page: 'Wallet', icon: Wallet },
-  { id: 'alerts', page: 'Alerts', icon: Bell },
-  { id: 'profile', page: 'Profile', icon: User },
+  { id: 'security', page: 'SecurityHub', icon: ShieldCheck },
 ];
 
 const NAV_LABELS = {
-  id: { home: 'Beranda', markets: 'Pasar', wallet: 'Pantau', alerts: 'Peringatan', profile: 'Profil' },
-  en: { home: 'Home', markets: 'Markets', wallet: 'Watch', alerts: 'Alerts', profile: 'Profile' },
+  id: { home: 'Beranda', markets: 'Pasar', portfolio: 'Portofolio', wallet: 'Pantau', security: 'Keamanan' },
+  en: { home: 'Home', markets: 'Markets', portfolio: 'Portfolio', wallet: 'Watch', security: 'Security' },
 };
 
 const DESKTOP_NAV = [
