@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { RefreshCw, CheckCircle2, AlertTriangle, Upload, Zap, Clock, User, Settings } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { RefreshCw, CheckCircle2, AlertTriangle, Upload, Zap, Clock, User } from 'lucide-react';
 
 const CURRENT_VERSION = '1.0.0';
 const CHANGELOG = [
@@ -30,14 +29,18 @@ export default function AppUpdatePanel() {
     setDeploying(true);
     setDeployResult(null);
     try {
-      await base44.integrations.Core.SendEmail({
-        to: 'rahmanraden027@gmail.com',
-        subject: `[KriptoAman] Manual Deploy Triggered — v${CURRENT_VERSION}`,
-        body: `Admin melakukan manual deploy.\n\nCatatan: ${manualNote}\nWaktu: ${new Date().toLocaleString('id-ID')}\n\nLogin ke Base44 Dashboard untuk konfirmasi.`,
+      const response = await fetch('/api/auth/admin/deploy-notify', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ note: manualNote.trim(), version: CURRENT_VERSION }),
       });
-      setDeployResult({ ok: true, msg: 'Notifikasi deploy terkirim ke email Anda. Publish ulang via Base44 Dashboard.' });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data?.error || 'Permintaan ditolak');
+      setDeployResult({ ok: true, msg: 'Catatan deploy tervalidasi oleh server dan notifikasi admin telah dikirim.' });
+      setManualNote('');
     } catch (e) {
-      setDeployResult({ ok: false, msg: 'Gagal kirim notifikasi: ' + e.message });
+      setDeployResult({ ok: false, msg: 'Gagal memproses notifikasi deploy: ' + e.message });
     }
     setDeploying(false);
   };
@@ -50,25 +53,23 @@ export default function AppUpdatePanel() {
 
   return (
     <div className="space-y-5">
-      {/* Current Version */}
       <div className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-4 flex items-center justify-between">
         <div>
           <p className="text-slate-400 text-xs">Versi Aktif</p>
           <p className="text-white font-bold text-xl font-mono">{CURRENT_VERSION}</p>
-          <p className="text-slate-500 text-xs">Platform: Base44 | Environment: Production</p>
+          <p className="text-slate-500 text-xs">Platform: Production</p>
         </div>
         <div className="w-10 h-10 rounded-xl bg-green-500/20 border border-green-500/30 flex items-center justify-center">
           <CheckCircle2 className="w-5 h-5 text-green-400" />
         </div>
       </div>
 
-      {/* Auto Update Toggle */}
       <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Zap className="w-5 h-5 text-blue-400" />
           <div>
-            <p className="text-white text-sm font-semibold">Update Otomatis</p>
-            <p className="text-slate-500 text-xs">Platform Base44 otomatis push update saat ada perubahan kode</p>
+            <p className="text-white text-sm font-semibold">Preferensi Update Otomatis</p>
+            <p className="text-slate-500 text-xs">Pengaturan lokal untuk notifikasi/status update aplikasi.</p>
           </div>
         </div>
         <button onClick={toggleAutoUpdate}
@@ -77,7 +78,6 @@ export default function AppUpdatePanel() {
         </button>
       </div>
 
-      {/* Check for Updates */}
       <div className="space-y-2">
         <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Cek Update Platform</p>
         <button onClick={checkForUpdates} disabled={checking}
@@ -93,30 +93,29 @@ export default function AppUpdatePanel() {
         )}
       </div>
 
-      {/* Manual Deploy (Admin) */}
       <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl p-4 space-y-3">
         <div className="flex items-center gap-2">
           <User className="w-4 h-4 text-orange-400" />
-          <p className="text-orange-300 font-semibold text-sm">Update Manual oleh Admin</p>
+          <p className="text-orange-300 font-semibold text-sm">Catatan Deploy oleh Admin</p>
         </div>
-        <p className="text-slate-500 text-xs">Untuk deploy kode baru secara manual: buka Base44 Dashboard → klik "Publish". Gunakan form ini untuk mencatat dan notifikasi.</p>
+        <p className="text-slate-500 text-xs">Permintaan ini diverifikasi ulang di server. Hanya sesi admin aktif yang dapat mengirim catatan deploy.</p>
         <textarea
           value={manualNote}
           onChange={e => setManualNote(e.target.value)}
-          placeholder="Catatan update (contoh: Fix bug withdrawal, tambah fitur grid bot, update UI...)"
+          placeholder="Catatan perubahan yang akan dipublikasikan..."
+          maxLength={2000}
           className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs placeholder-slate-600 resize-none h-20 focus:outline-none focus:border-orange-500/50"
         />
         <button onClick={triggerManualDeploy} disabled={deploying || !manualNote.trim()}
           className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-60 text-white rounded-lg text-xs font-semibold transition-colors">
           <Upload className={`w-3.5 h-3.5 ${deploying ? 'animate-bounce' : ''}`} />
-          {deploying ? 'Memproses...' : 'Kirim Notifikasi Deploy'}
+          {deploying ? 'Memverifikasi...' : 'Kirim Catatan Deploy Aman'}
         </button>
         {deployResult && (
           <p className={`text-xs ${deployResult.ok ? 'text-green-400' : 'text-red-400'}`}>{deployResult.msg}</p>
         )}
       </div>
 
-      {/* Changelog */}
       <div>
         <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Riwayat Update</p>
         <div className="space-y-2">
@@ -135,15 +134,14 @@ export default function AppUpdatePanel() {
         </div>
       </div>
 
-      {/* Cara Deploy */}
       <div className="bg-slate-800/40 border border-slate-700/40 rounded-xl p-4 space-y-2">
-        <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Cara Update / Deploy Aplikasi</p>
+        <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Prosedur Deploy Aman</p>
         <ol className="space-y-1.5 text-xs text-slate-400">
-          <li className="flex gap-2"><span className="text-indigo-400 font-bold">1.</span> Edit kode di Base44 AI Builder (chat dengan AI)</li>
-          <li className="flex gap-2"><span className="text-indigo-400 font-bold">2.</span> Preview perubahan di panel kanan</li>
-          <li className="flex gap-2"><span className="text-indigo-400 font-bold">3.</span> Klik tombol <span className="text-white font-semibold">Publish</span> di Base44 Dashboard</li>
-          <li className="flex gap-2"><span className="text-indigo-400 font-bold">4.</span> Update langsung aktif dalam 30-60 detik</li>
-          <li className="flex gap-2"><span className="text-indigo-400 font-bold">5.</span> Catat versi & changelog di form Manual Deploy di atas</li>
+          <li className="flex gap-2"><span className="text-indigo-400 font-bold">1.</span> Siapkan perubahan kode pada repository resmi.</li>
+          <li className="flex gap-2"><span className="text-indigo-400 font-bold">2.</span> Pastikan build dan pemeriksaan keamanan berhasil.</li>
+          <li className="flex gap-2"><span className="text-indigo-400 font-bold">3.</span> Publikasikan melalui pipeline deployment resmi.</li>
+          <li className="flex gap-2"><span className="text-indigo-400 font-bold">4.</span> Verifikasi versi live setelah deployment.</li>
+          <li className="flex gap-2"><span className="text-indigo-400 font-bold">5.</span> Catat perubahan melalui form admin di atas.</li>
         </ol>
       </div>
     </div>
