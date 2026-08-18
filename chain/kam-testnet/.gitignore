@@ -1,0 +1,14 @@
+# Never commit validator/node secrets or generated chain data
+secrets/
+keys/
+validator*/key
+validator*/key.pub
+validator*/data/
+data/
+networkFiles/
+*.keystore
+*.mnemonic
+*.seed
+.env
+.env.*
+!network-profile.json
