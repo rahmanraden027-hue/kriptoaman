@@ -28,11 +28,12 @@ export async function onRequest(context) {
   }
 
   const response = await context.next();
-  const hardened = new Response(response.body, response);
+  const headers = new Headers(response.headers);
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) headers.set(name, value);
 
-  for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
-    hardened.headers.set(name, value);
-  }
-
-  return hardened;
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 }
