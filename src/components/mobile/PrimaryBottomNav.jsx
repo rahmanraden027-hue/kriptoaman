@@ -1,19 +1,19 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Home, TrendingUp, Wallet, Bell, User } from 'lucide-react';
+import { Home, TrendingUp, Wallet, BarChart3, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
 
 const PRIMARY_NAV = [
   { id: 'home', page: 'Home', to: '/dashboard', icon: Home },
   { id: 'markets', page: 'Market', to: '/Market', icon: TrendingUp },
+  { id: 'portfolio', page: 'PortfolioOverview', to: '/PortfolioOverview', icon: BarChart3 },
   { id: 'wallet', page: 'Wallet', to: '/Wallet', icon: Wallet },
-  { id: 'alerts', page: 'Alerts', to: '/Alerts', icon: Bell },
-  { id: 'profile', page: 'Profile', to: '/Profile', icon: User },
+  { id: 'security', page: 'SecurityHub', to: '/SecurityHub', icon: ShieldCheck },
 ];
 
 const LABELS = {
-  id: { home: 'Beranda', markets: 'Pasar', wallet: 'Pantau', alerts: 'Peringatan', profile: 'Profil' },
-  en: { home: 'Home', markets: 'Markets', wallet: 'Watch', alerts: 'Alerts', profile: 'Profile' },
+  id: { home: 'Beranda', markets: 'Pasar', portfolio: 'Portofolio', wallet: 'Pantau', security: 'Keamanan' },
+  en: { home: 'Home', markets: 'Markets', portfolio: 'Portfolio', wallet: 'Watch', security: 'Security' },
 };
 
 export default function PrimaryBottomNav({ currentPageName }) {
