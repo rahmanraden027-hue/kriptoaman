@@ -17,7 +17,7 @@ const ASSETS = [
   { sym: 'avaxusdt',  id: 'AVAX' },
   { sym: 'dotusdt',   id: 'DOT'  },
   { sym: 'linkusdt',  id: 'LINK' },
-  { sym: 'polusdt', id: 'MATIC' },
+  { sym: 'polusdt',   id: 'MATIC' },
   { sym: 'ltcusdt',   id: 'LTC'  },
   { sym: 'uniusdt',   id: 'UNI'  },
   { sym: 'shibusdt',  id: 'SHIB' },
@@ -36,6 +36,9 @@ ASSETS.forEach(a => { SYM_MAP[a.sym] = a.id; });
 const STREAMS = ASSETS.map(a => `${a.sym}@ticker`).join('/');
 const WS_URL = `wss://stream.binance.com:9443/stream?streams=${STREAMS}`;
 const LIVE_CACHE_KEY = 'ka_live_prices_v1';
+const RECONNECT_DELAY_MS = 5000;
+const STALE_AFTER_MS = 30000;
+const WATCHDOG_INTERVAL_MS = 10000;
 
 const loadLiveCache = () => {
   try {
@@ -69,6 +72,7 @@ export default function useLivePrices() {
   const reconnectRef = useRef(null);
   const mountedRef = useRef(true);
   const lastPersistRef = useRef(0);
+  const lastMessageRef = useRef(0);
 
   useEffect(() => {
     const now = Date.now();
@@ -102,81 +106,91 @@ export default function useLivePrices() {
       arbitrum: 'ARB', optimism: 'OP', sui: 'SUI', aptos: 'APT',
     };
 
-    // Try CoinGecko first
     fetch(
-  `https://api.coingecko.com/api/v3/simple/price?ids=${geckoIds}&vs_currencies=usd&include_24hr_change=true&include_high_24hr=true&include_low_24hr=true`,
-  {
-    method: "GET",
-    headers: {
-      "x-cg-pro-api-key": import.meta.env.COINGECKO_API_KEY
-    }
-  }
-)
-  .then(r => r.json())
-  .then(data => {
-    if (!mountedRef.current) return;
-
-    const initial = {};
-
-    Object.entries(data).forEach(([gid, d]) => {
-      const id = geckoMap[gid];
-
-      if (id) {
-        initial[id] = {
-          price: d.usd,
-          change24h: d.usd_24h_change,
-          volume24h: d.usd_24h_vol,
-          high24h: d.usd_24h_high,
-          low24h: d.usd_24h_low
-        };
+      `https://api.coingecko.com/api/v3/simple/price?ids=${geckoIds}&vs_currencies=usd&include_24hr_change=true&include_high_24hr=true&include_low_24hr=true`,
+      {
+        method: 'GET',
+        headers: {
+          'x-cg-pro-api-key': import.meta.env.COINGECKO_API_KEY,
+        },
       }
-    });
-
-    if (Object.keys(initial).length > 0) {
-      setPrices(initial);
-    }
-  })
-  .catch(() => {
-    // Fallback ke database cache
-    import("@/api/base44Client").then(({ base44 }) => {
-      base44.entities.CachedPrice.list().then(cached => {
-        if (!mountedRef.current || !cached?.length) return;
+    )
+      .then(r => r.json())
+      .then(data => {
+        if (!mountedRef.current) return;
 
         const initial = {};
-
-        cached.forEach(c => {
-          initial[c.symbol] = {
-            price: c.price,
-            change24h: c.change24h,
-            volume24h: c.volume24h,
-            high24h: c.high24h,
-            low24h: c.low24h
-          };
-
-          if (c.idrRate) {
-            cachedIDR = c.idrRate;
-            setIdrRate(c.idrRate);
+        Object.entries(data).forEach(([gid, d]) => {
+          const id = geckoMap[gid];
+          if (id) {
+            initial[id] = {
+              price: d.usd,
+              change24h: d.usd_24h_change,
+              volume24h: d.usd_24h_vol,
+              high24h: d.usd_24h_high,
+              low24h: d.usd_24h_low,
+            };
           }
         });
 
-        setPrices(initial);
-      });
-    });
-  });
-}, []);
+        if (Object.keys(initial).length > 0) setPrices(initial);
+      })
+      .catch(() => {
+        import('@/api/base44Client').then(({ base44 }) => {
+          base44.entities.CachedPrice.list().then(cached => {
+            if (!mountedRef.current || !cached?.length) return;
 
-  // Binance WebSocket — persistent 24/7 connection
+            const initial = {};
+            cached.forEach(c => {
+              initial[c.symbol] = {
+                price: c.price,
+                change24h: c.change24h,
+                volume24h: c.volume24h,
+                high24h: c.high24h,
+                low24h: c.low24h,
+              };
+
+              if (c.idrRate) {
+                cachedIDR = c.idrRate;
+                setIdrRate(c.idrRate);
+              }
+            });
+
+            setPrices(initial);
+          });
+        });
+      });
+  }, []);
+
+  // Binance WebSocket — persistent live connection with stale-data watchdog.
   useEffect(() => {
     mountedRef.current = true;
 
+    function scheduleReconnect() {
+      clearTimeout(reconnectRef.current);
+      if (!mountedRef.current) return;
+      reconnectRef.current = setTimeout(connect, RECONNECT_DELAY_MS);
+    }
+
     function connect() {
       if (!mountedRef.current) return;
+      clearTimeout(reconnectRef.current);
+
+      const current = wsRef.current;
+      if (current && (current.readyState === WebSocket.OPEN || current.readyState === WebSocket.CONNECTING)) return;
+
       const ws = new WebSocket(WS_URL);
       wsRef.current = ws;
+      lastMessageRef.current = 0;
 
-      ws.onopen = () => { if (mountedRef.current) setConnected(true); };
+      ws.onopen = () => {
+        if (!mountedRef.current) return;
+        setConnected(true);
+        lastMessageRef.current = Date.now();
+      };
 
       ws.onmessage = (e) => {
+        lastMessageRef.current = Date.now();
         try {
           const msg = JSON.parse(e.data);
           const d = msg?.data;
@@ -185,6 +199,7 @@ export default function useLivePrices() {
           if (!id) return;
           const price = parseFloat(d.c);
           if (isNaN(price)) return;
+
           setPrices(prev => ({
             ...prev,
             [id]: {
@@ -196,56 +211,78 @@ export default function useLivePrices() {
               tick: prev[id]?.price ? (price > prev[id].price ? 'up' : price < prev[id].price ? 'down' : null) : null,
             },
           }));
-        } catch { /* ignore malformed */ }
-      };
-
-      ws.onclose = () => {
-        if (mountedRef.current) {
-          setConnected(false);
-          // Exponential backoff: 3s → 5s → 10s
-          reconnectRef.current = setTimeout(connect, 5000);
+        } catch {
+          // Ignore malformed messages; the watchdog still tracks socket activity.
         }
       };
 
-      ws.onerror = () => ws.close();
+      ws.onclose = () => {
+        if (wsRef.current === ws) wsRef.current = null;
+        if (!mountedRef.current) return;
+        setConnected(false);
+        scheduleReconnect();
+      };
+
+      ws.onerror = () => {
+        if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) ws.close();
+      };
     }
+
+    const reconnectIfNeeded = () => {
+      if (!mountedRef.current) return;
+      const ws = wsRef.current;
+      if (!ws || ws.readyState === WebSocket.CLOSED) connect();
+    };
 
     connect();
 
-    // Keepalive ping every 3 minutes to prevent timeout
-    const pingInterval = setInterval(() => {
-      if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({ method: 'PING' }));
+    // Browser WebSocket handles protocol ping/pong internally. Detect stale data instead.
+    const watchdogInterval = setInterval(() => {
+      const ws = wsRef.current;
+      if (!ws || ws.readyState !== WebSocket.OPEN || !lastMessageRef.current) return;
+      if (Date.now() - lastMessageRef.current > STALE_AFTER_MS) {
+        setConnected(false);
+        ws.close();
       }
-    }, 3 * 60 * 1000);
+    }, WATCHDOG_INTERVAL_MS);
+
+    window.addEventListener('online', reconnectIfNeeded);
+    window.addEventListener('focus', reconnectIfNeeded);
+    document.addEventListener('visibilitychange', reconnectIfNeeded);
 
     return () => {
       mountedRef.current = false;
       clearTimeout(reconnectRef.current);
-      clearInterval(pingInterval);
+      clearInterval(watchdogInterval);
+      window.removeEventListener('online', reconnectIfNeeded);
+      window.removeEventListener('focus', reconnectIfNeeded);
+      document.removeEventListener('visibilitychange', reconnectIfNeeded);
       wsRef.current?.close();
+      wsRef.current = null;
     };
   }, []);
-if (!prices.USDT) {
-  prices.USDT = {
-    price: 1,
-    change24h: 0,
-    high24h: 1,
-    low24h: 1,
-    volume24h: 0,
-    tick: 'same'
-  };
-}
 
-if (!prices.USDC) {
-  prices.USDC = {
-    price: 1,
-    change24h: 0,
-    high24h: 1,
-    low24h: 1,
-    volume24h: 0,
-    tick: 'same'
-  };
-}
+  if (!prices.USDT) {
+    prices.USDT = {
+      price: 1,
+      change24h: 0,
+      high24h: 1,
+      low24h: 1,
+      volume24h: 0,
+      tick: 'same',
+    };
+  }
+
+  if (!prices.USDC) {
+    prices.USDC = {
+      price: 1,
+      change24h: 0,
+      high24h: 1,
+      low24h: 1,
+      volume24h: 0,
+      tick: 'same',
+    };
+  }
+
   return { prices, connected, idrRate };
 }
