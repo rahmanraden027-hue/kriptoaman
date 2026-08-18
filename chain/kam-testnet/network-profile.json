@@ -13,5 +13,6 @@
   "explorerUrl": "SET_AFTER_INDEXER_DEPLOYMENT",
   "commercialValue": "none-guaranteed-testnet",
   "mainnetEnabled": false,
-  "ciSmokeVerification": "enabled"
+  "ciSmokeVerification": "enabled",
+  "ciTriggerRevision": 2
 }
