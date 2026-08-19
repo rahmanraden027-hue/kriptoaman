@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, CheckCircle2, Database, Fingerprint, RefreshCw, ShieldCheck, Snowflake, Users } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Database, Fingerprint, RefreshCw, ShieldCheck, Snowflake } from 'lucide-react';
 import { kriptoAuth } from '@/lib/kriptoAuth';
 import { useLanguage } from '@/lib/LanguageContext';
 
