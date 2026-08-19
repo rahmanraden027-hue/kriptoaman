@@ -1,238 +1,152 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Gift, Copy, Share2, Users, TrendingUp, Check, ArrowLeft, Star, Zap } from 'lucide-react';
+import { kriptoAuth } from '@/lib/kriptoAuth';
+import { Gift, Copy, Share2, Check, ArrowLeft, ShieldCheck, UserPlus, BadgeCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-
-const TIERS = [
-  { min: 0, max: 2, label: 'Starter', color: 'from-slate-500 to-slate-600', bonus: 25000, icon: '🌱' },
-  { min: 3, max: 9, label: 'Bronze', color: 'from-amber-700 to-amber-600', bonus: 35000, icon: '🥉' },
-  { min: 10, max: 24, label: 'Silver', color: 'from-slate-400 to-slate-300', bonus: 50000, icon: '🥈' },
-  { min: 25, max: 999, label: 'Gold', color: 'from-yellow-500 to-amber-400', bonus: 75000, icon: '🥇' },
-];
-
-const SHARE_CHANNELS = [
-  { name: 'WhatsApp', icon: '💬', color: 'bg-green-600 hover:bg-green-700' },
-  { name: 'Telegram', icon: '✈️', color: 'bg-blue-500 hover:bg-blue-600' },
-  { name: 'Twitter/X', icon: '🐦', color: 'bg-slate-700 hover:bg-slate-600' },
-  { name: 'Instagram', icon: '📸', color: 'bg-gradient-to-br from-purple-600 to-pink-500 hover:opacity-90' },
-];
 
 export default function Referral() {
   const [user, setUser] = useState(null);
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [incomingCode, setIncomingCode] = useState('');
+  const [referral, setReferral] = useState(null);
+  const [statusMessage, setStatusMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    base44.auth.me().then(u => {
-      setUser(u);
+    base44.auth.me().then(async (u) => {
+      let nextUser = u;
       if (!u.referralCode) {
-        const code = 'KA' + (u.id?.slice(-6) || Math.random().toString(36).slice(-6)).toUpperCase();
-        base44.auth.updateMe({ referralCode: code });
-        setUser(uu => ({ ...uu, referralCode: code }));
+        const code = `KA${(u.id?.replace(/[^a-zA-Z0-9]/g, '').slice(-6) || Math.random().toString(36).slice(-6)).toUpperCase().padEnd(6, '0')}`.slice(0, 8);
+        try {
+          nextUser = await base44.auth.updateMe({ referralCode: code });
+        } catch {
+          nextUser = { ...u, referralCode: code };
+        }
+      }
+      setUser(nextUser);
+      try {
+        const data = await kriptoAuth.getReferral();
+        setReferral(data?.referral || null);
+      } catch {
+        setReferral(null);
       }
     }).catch(() => {});
   }, []);
 
-  const referralCode = user?.referralCode || ('KA' + (user?.id?.slice(-6) || '------').toUpperCase());
-  const referralLink = `https://kriptoaman.app/register?ref=${referralCode}`;
-  const referralCount = Number(user?.referralCount || 0);
-  const referralVerified = Number(user?.referralVerified || 0);
-  const rewardAvailable = Number(user?.referralRewardAvailable || 0);
+  const referralCode = user?.referralCode || 'KA------';
+  const referralLink = `${window.location.origin}/register?ref=${encodeURIComponent(referralCode)}`;
 
-  const currentTier = TIERS.find(t => referralCount >= t.min && referralCount <= t.max) || TIERS[0];
-  const nextTier = TIERS[TIERS.indexOf(currentTier) + 1];
-  const progress = nextTier ? ((referralCount - currentTier.min) / (nextTier.min - currentTier.min)) * 100 : 100;
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(referralLink);
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(referralLink);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+    setTimeout(() => setCopied(false), 2200);
   };
 
-  const handleShare = (channel) => {
-    const msg = encodeURIComponent(`🚀 Kenalkan KriptoAman kepada teman Anda. Program referral menyediakan reward hingga Rp 25.000 sesuai syarat dan verifikasi program.\nKode: ${referralCode}\n${referralLink}`);
-    const urls = {
-      'WhatsApp': `https://wa.me/?text=${msg}`,
-      'Telegram': `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${msg}`,
-      'Twitter/X': `https://twitter.com/intent/tweet?text=${msg}`,
-      'Instagram': null,
-    };
-    if (urls[channel]) window.open(urls[channel], '_blank');
-    else handleCopy();
+  const handleShare = async () => {
+    const text = `Kenalkan KriptoAman kepada teman Anda. Kode referral: ${referralCode}. Reward KAM Points hanya tersedia jika syarat campaign dan verifikasi terpenuhi.`;
+    if (navigator.share) {
+      await navigator.share({ title: 'KriptoAman Referral', text, url: referralLink }).catch(() => null);
+    } else {
+      await handleCopy();
+    }
   };
+
+  async function registerIncomingReferral(event) {
+    event.preventDefault();
+    setSubmitting(true);
+    setStatusMessage('');
+    try {
+      const result = await kriptoAuth.registerReferral(incomingCode.trim().toUpperCase());
+      setStatusMessage(result?.created ? 'Kode referral berhasil didaftarkan.' : 'Kode referral sebelumnya sudah tercatat pada akun ini.');
+      const latest = await kriptoAuth.getReferral();
+      setReferral(latest?.referral || null);
+    } catch (error) {
+      setStatusMessage(error?.message || 'Kode referral belum dapat didaftarkan.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 pb-24">
-      <div className="max-w-lg mx-auto px-4 pt-4 space-y-5">
-
+    <div className="ka-bg min-h-screen pb-28 text-white">
+      <div className="mx-auto max-w-2xl space-y-5 px-4 py-5 sm:px-6">
         <div className="flex items-center gap-3">
-          <Link to={createPageUrl('Profile')} className="p-2 bg-slate-800 border border-slate-700 rounded-xl">
-            <ArrowLeft className="w-4 h-4 text-slate-400" />
+          <Link to={createPageUrl('Profile')} className="rounded-xl border border-slate-700 bg-slate-900/70 p-2.5 text-slate-400">
+            <ArrowLeft className="h-4 w-4" />
           </Link>
           <div>
-            <h1 className="text-white font-bold text-lg">Program Referral</h1>
-            <p className="text-slate-500 text-xs">Bagikan KriptoAman dan ikuti program reward sesuai ketentuan yang berlaku.</p>
+            <p className="text-[10px] font-extrabold tracking-[0.18em] text-cyan-300">KAM REFERRAL</p>
+            <h1 className="text-xl font-extrabold">Program Referral KriptoAman</h1>
+            <p className="mt-1 text-xs text-slate-500">Program berbasis KAM Points dengan verifikasi kelayakan dan perlindungan anti-duplikasi.</p>
           </div>
         </div>
 
-        <div className="relative rounded-3xl overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-pink-500/30 via-rose-500/20 to-orange-500/20" />
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
-          <div className="relative p-6 text-center">
-            <div className={`w-16 h-16 bg-gradient-to-br ${currentTier.color} rounded-3xl flex items-center justify-center mx-auto text-3xl shadow-2xl`}>
-              {currentTier.icon}
-            </div>
-            <p className="text-slate-400 text-xs mt-2">Tier Anda</p>
-            <h2 className="text-white text-xl font-bold">{currentTier.label}</h2>
-            <p className="text-slate-300 text-sm mt-1">
-              Reward hingga <strong className="text-yellow-400">Rp {currentTier.bonus.toLocaleString('id-ID')}</strong>
-            </p>
-            <p className="text-slate-500 text-[10px] mt-1">Per referral yang memenuhi syarat dan telah diverifikasi program.</p>
-            {nextTier && (
-              <div className="mt-3">
-                <div className="flex justify-between text-[10px] text-slate-500 mb-1">
-                  <span>{referralCount} diundang</span>
-                  <span>Target {nextTier.min} → {nextTier.label} {nextTier.icon}</span>
-                </div>
-                <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-pink-500 to-orange-400 rounded-full transition-all" style={{ width: `${Math.min(progress, 100)}%` }} />
-                </div>
+        <section className="relative overflow-hidden rounded-3xl border border-cyan-400/15 bg-[#071423]/90 p-6 shadow-xl shadow-black/20">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_85%_15%,rgba(34,211,238,.15),transparent_30%),radial-gradient(circle_at_5%_100%,rgba(139,92,246,.10),transparent_30%)]" />
+          <div className="relative">
+            <div className="flex items-start gap-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10"><Gift className="h-5 w-5 text-cyan-300" /></div>
+              <div>
+                <p className="text-xs font-semibold text-slate-400">Kode referral Anda</p>
+                <p className="mt-1 text-2xl font-black tracking-[0.16em] text-cyan-200">{referralCode}</p>
               </div>
-            )}
+            </div>
+            <div className="mt-4 rounded-xl border border-slate-700/70 bg-slate-950/50 px-3 py-3 text-xs text-slate-400 break-all">{referralLink}</div>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <button onClick={handleCopy} className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900/70 text-sm font-bold">
+                {copied ? <Check className="h-4 w-4 text-emerald-300" /> : <Copy className="h-4 w-4" />}{copied ? 'Tersalin' : 'Salin Link'}
+              </button>
+              <button onClick={handleShare} className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-cyan-500 text-sm font-extrabold text-slate-950">
+                <Share2 className="h-4 w-4" /> Bagikan
+              </button>
+            </div>
           </div>
-        </div>
+        </section>
 
-        <div className="grid grid-cols-3 gap-3">
+        <section className="ka-surface p-5">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-violet-400/20 bg-violet-400/10"><UserPlus className="h-4 w-4 text-violet-300" /></div>
+            <div>
+              <h2 className="font-bold">Punya kode referral dari teman?</h2>
+              <p className="mt-1 text-xs leading-relaxed text-slate-400">Satu akun hanya dapat mencatat satu referrer. Self-referral dan kode yang tidak valid akan ditolak.</p>
+            </div>
+          </div>
+
+          {referral ? (
+            <div className="mt-4 rounded-xl border border-emerald-400/15 bg-emerald-400/5 p-4">
+              <div className="flex items-center gap-2"><BadgeCheck className="h-4 w-4 text-emerald-300" /><p className="text-sm font-bold text-emerald-200">Referral tercatat</p></div>
+              <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                <div><p className="text-slate-600">Campaign</p><p className="font-semibold text-slate-300">{referral.campaignCode}</p></div>
+                <div><p className="text-slate-600">Status</p><p className="font-semibold text-slate-300">{referral.status}</p></div>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={registerIncomingReferral} className="mt-4 flex gap-2">
+              <input required maxLength={8} value={incomingCode} onChange={(e) => setIncomingCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))} placeholder="KA123456" className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-950/60 px-3 py-3 text-sm tracking-widest outline-none focus:border-violet-400" />
+              <button disabled={submitting} className="rounded-xl bg-violet-500 px-4 text-sm font-extrabold disabled:opacity-50">{submitting ? '...' : 'Daftarkan'}</button>
+            </form>
+          )}
+          {statusMessage && <p className="mt-3 text-xs text-slate-400">{statusMessage}</p>}
+        </section>
+
+        <section className="grid gap-3 sm:grid-cols-3">
           {[
-            { icon: Users, label: 'Diundang', value: referralCount, color: 'text-blue-400' },
-            { icon: TrendingUp, label: 'Terverifikasi', value: referralVerified, color: 'text-green-400' },
-            { icon: Star, label: 'Reward Tersedia', value: `Rp ${rewardAvailable.toLocaleString('id-ID')}`, color: 'text-yellow-400' },
-          ].map(stat => (
-            <div key={stat.label} className="bg-slate-800/50 border border-slate-700/40 rounded-2xl p-3 text-center">
-              <stat.icon className={`w-4 h-4 ${stat.color} mx-auto mb-1.5`} />
-              <p className={`text-sm font-bold ${stat.color}`}>{stat.value}</p>
-              <p className="text-slate-500 text-[10px]">{stat.label}</p>
+            ['1', 'Kode tercatat', 'Invitee mendaftarkan kode referral yang valid saat campaign referral aktif.'],
+            ['2', 'Verifikasi', 'Email invitee harus terverifikasi dan KYC harus berstatus approved.'],
+            ['3', 'Reward ledger', 'Jika memenuhi syarat dan budget tersedia, Reward Engine mencatat KAM Points satu kali.'],
+          ].map(([num, title, body]) => (
+            <div key={num} className="ka-surface p-4">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-400/10 text-xs font-black text-cyan-300">{num}</div>
+              <p className="mt-3 text-sm font-bold">{title}</p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-500">{body}</p>
             </div>
           ))}
-        </div>
+        </section>
 
-        <div className="flex gap-2">
-          {[['overview', 'Kode & Share'], ['tiers', 'Tier Reward'], ['how', 'Cara Kerja']].map(([key, label]) => (
-            <button key={key} onClick={() => setActiveTab(key)}
-              className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${activeTab === key ? 'bg-pink-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}>
-              {label}
-            </button>
-          ))}
-        </div>
-
-        {activeTab === 'overview' && (
-          <div className="space-y-4">
-            <div className="bg-slate-800/50 border border-slate-700/40 rounded-2xl p-5 space-y-4">
-              <h3 className="text-white font-semibold">Kode Referral Anda</h3>
-              <div className="bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 flex items-center justify-between">
-                <div>
-                  <p className="text-yellow-400 text-2xl font-bold tracking-widest">{referralCode}</p>
-                  <p className="text-slate-500 text-xs mt-0.5">Kode unik Anda</p>
-                </div>
-                <button onClick={handleCopy} className={`p-2.5 rounded-xl border transition-all ${copied ? 'bg-green-500/20 border-green-500 text-green-400' : 'bg-slate-700 border-slate-600 text-slate-400 hover:text-white'}`}>
-                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                </button>
-              </div>
-              <div className="bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-[11px] text-slate-400 break-all select-all">
-                {referralLink}
-              </div>
-
-              <button onClick={handleCopy}
-                className={`w-full flex items-center justify-center gap-2 py-3 border rounded-xl text-sm font-semibold transition-all ${copied ? 'bg-green-500/15 border-green-500/40 text-green-400' : 'bg-slate-700 border-slate-600 text-white hover:bg-slate-600'}`}>
-                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                {copied ? 'Link Tersalin! ✓' : 'Salin Link Referral'}
-              </button>
-            </div>
-
-            <div className="bg-slate-800/50 border border-slate-700/40 rounded-2xl p-4 space-y-3">
-              <h3 className="text-white font-semibold text-sm">Bagikan Via</h3>
-              <div className="grid grid-cols-2 gap-2">
-                {SHARE_CHANNELS.map(ch => (
-                  <button key={ch.name} onClick={() => handleShare(ch.name)}
-                    className={`flex items-center justify-center gap-2 py-3 ${ch.color} text-white font-semibold rounded-xl text-sm transition-all`}>
-                    <span>{ch.icon}</span>
-                    {ch.name}
-                  </button>
-                ))}
-              </div>
-              <button onClick={() => navigator.share ? navigator.share({ title: 'KriptoAman Referral', text: `Kode: ${referralCode}. Reward mengikuti syarat program.`, url: referralLink }) : handleCopy()}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-pink-600 to-orange-500 text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity">
-                <Share2 className="w-4 h-4" />
-                Bagikan Sekarang
-              </button>
-              <p className="text-slate-500 text-[10px] leading-relaxed text-center">Membagikan kode tidak menjamin reward. Kelayakan ditentukan setelah verifikasi sesuai ketentuan program.</p>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'tiers' && (
-          <div className="space-y-3">
-            {TIERS.map(tier => {
-              const isActive = currentTier.label === tier.label;
-              return (
-                <div key={tier.label} className={`border rounded-2xl p-4 transition-all ${isActive ? 'border-yellow-500/40 bg-yellow-500/5' : 'border-slate-700/40 bg-slate-800/40'}`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${tier.color} flex items-center justify-center text-xl`}>{tier.icon}</div>
-                      <div>
-                        <p className={`font-bold text-sm ${isActive ? 'text-yellow-300' : 'text-white'}`}>{tier.label} {isActive && '← Anda'}</p>
-                        <p className="text-slate-500 text-xs">{tier.min}–{tier.max === 999 ? '∞' : tier.max} teman diundang</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-green-400 font-bold text-sm">Hingga Rp {tier.bonus.toLocaleString('id-ID')}</p>
-                      <p className="text-slate-500 text-[10px]">per referral memenuhi syarat</p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-            <p className="text-slate-500 text-[10px] leading-relaxed px-1">Nilai tier adalah batas reward program dan bukan janji pembayaran otomatis. Reward hanya tersedia setelah kelayakan referral diverifikasi.</p>
-          </div>
-        )}
-
-        {activeTab === 'how' && (
-          <div className="space-y-4">
-            <div className="bg-slate-800/50 border border-slate-700/40 rounded-2xl p-5 space-y-4">
-              <h3 className="text-white font-semibold">Cara Kerja</h3>
-              {[
-                { num: '1', text: 'Bagikan kode atau link referral Anda kepada teman', icon: Share2, color: 'bg-blue-500' },
-                { num: '2', text: 'Teman mendaftar menggunakan kode atau link referral Anda', icon: Users, color: 'bg-indigo-500' },
-                { num: '3', text: 'Teman menyelesaikan verifikasi akun/KYC sesuai persyaratan program', icon: Zap, color: 'bg-purple-500' },
-                { num: '4', text: 'Sistem memeriksa kelayakan; reward tersedia jika seluruh syarat terpenuhi', icon: Gift, color: 'bg-yellow-500' },
-              ].map(step => (
-                <div key={step.num} className="flex items-center gap-3">
-                  <div className={`w-8 h-8 ${step.color} rounded-xl flex items-center justify-center text-white text-sm font-bold shrink-0`}>
-                    {step.num}
-                  </div>
-                  <p className="text-slate-300 text-sm">{step.text}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4 space-y-2">
-              <p className="text-blue-300 font-semibold text-sm">💡 Berbagi secara bertanggung jawab</p>
-              <ul className="space-y-1.5 text-slate-400 text-xs leading-relaxed">
-                <li>• Bagikan informasi program secara akurat tanpa menjanjikan keuntungan.</li>
-                <li>• Jelaskan bahwa reward bergantung pada verifikasi dan syarat program.</li>
-                <li>• Hindari spam dan hanya bagikan kepada pihak yang memang tertarik.</li>
-              </ul>
-            </div>
-
-            <div className="bg-slate-800/30 border border-slate-700/30 rounded-xl p-4">
-              <p className="text-slate-500 text-[11px] leading-relaxed">
-                <strong className="text-slate-400">Syarat & Ketentuan:</strong> Referral dan reward hanya dihitung setelah persyaratan program serta status verifikasi terpenuhi dan dikonfirmasi sistem. Satu akun hanya dapat menggunakan satu kode referral. Nilai reward, masa berlaku, dan kriteria kelayakan dapat berubah sesuai ketentuan program yang berlaku. KriptoAman dapat menahan atau membatalkan reward apabila ditemukan penyalahgunaan atau kecurangan. Program referral bukan jaminan keuntungan dan tidak mewajibkan investasi atau deposit kecuali dinyatakan secara jelas dalam ketentuan program yang berlaku.
-              </p>
-            </div>
-          </div>
-        )}
-
+        <section className="rounded-2xl border border-emerald-400/15 bg-emerald-400/5 p-4">
+          <div className="flex gap-3"><ShieldCheck className="h-5 w-5 shrink-0 text-emerald-300" /><p className="text-xs leading-relaxed text-slate-400">KAM Points masih off-chain, tidak dapat dipindahtangankan, dan belum dapat ditukar menjadi token KAM. Besaran reward mengikuti campaign aktif yang dibuat admin; tidak ada nilai rupiah atau harga token yang dijanjikan pada halaman ini.</p></div>
+        </section>
       </div>
     </div>
   );
