@@ -6,7 +6,7 @@ const __Layout = lazy(() => import('./Layout.jsx'));
 const pageModules = import.meta.glob('./pages/*.jsx');
 
 const PAGE_NAMES = [
-  'AMLDashboard', 'AboutUs', 'AdminKYCManagement', 'AdminPlatformAssets',
+  'AMLDashboard', 'AboutUs', 'AdminKAMRewards', 'AdminKYCManagement', 'AdminPlatformAssets',
   'AdminProfitAnalytics', 'AdminUserBalances', 'Alerts', 'AppBuildAnalytics',
   'AssetManager', 'AutoTrading', 'Contact', 'DEXSavings', 'Disclaimer', 'Edukasi',
   'Founder', 'Home', 'KYC', 'KYCVerificationPage', 'LandingPage', 'Market', 'MarketResearch',
