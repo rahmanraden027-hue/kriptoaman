@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 280" role="img" aria-labelledby="title">
+  <title id="title">KriptoAman Explorer — KAM Mainnet</title>
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff0a6"/><stop offset=".32" stop-color="#f5c75a"/><stop offset=".7" stop-color="#d4af37"/><stop offset="1" stop-color="#8a5a12"/></linearGradient>
+    <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8ffcff"/><stop offset=".4" stop-color="#00e5ff"/><stop offset="1" stop-color="#007a86"/></linearGradient>
+    <linearGradient id="edge" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f5c75a"/><stop offset=".5" stop-color="#d4af37"/><stop offset=".51" stop-color="#00e5ff"/><stop offset="1" stop-color="#0097a7"/></linearGradient>
+  </defs>
+  <rect width="1200" height="280" rx="40" fill="#070b0d"/>
+  <g transform="translate(38 28) scale(.43)">
+    <path d="M256 45 424 111v143c0 111-65 171-168 213C153 425 88 365 88 254V111z" fill="#071014" stroke="url(#edge)" stroke-width="18"/>
+    <path d="M164 151h62v89l87-89h78l-109 111 116 104h-84l-88-78v78h-62z" fill="url(#gold)"/>
+    <path d="M226 240 313 151h78L282 262l116 104h-84l-88-78z" fill="url(#cyan)" opacity=".96"/>
+    <path d="M256 78 291 127 256 177 221 127z" fill="url(#cyan)"/>
+  </g>
+  <text x="292" y="116" font-family="Inter,Arial,sans-serif" font-size="76" font-weight="800" letter-spacing="5" fill="url(#gold)">KRIPTO</text>
+  <text x="622" y="116" font-family="Inter,Arial,sans-serif" font-size="76" font-weight="800" letter-spacing="5" fill="url(#cyan)">AMAN</text>
+  <line x1="300" y1="154" x2="390" y2="154" stroke="#00e5ff" stroke-width="4"/>
+  <text x="420" y="171" font-family="Inter,Arial,sans-serif" font-size="35" font-weight="600" letter-spacing="13" fill="#e9eef0">EXPLORER</text>
+  <line x1="795" y1="154" x2="885" y2="154" stroke="#00e5ff" stroke-width="4"/>
+  <text x="420" y="218" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" letter-spacing="8" fill="#d4af37">KAM MAINNET</text>
+</svg>
