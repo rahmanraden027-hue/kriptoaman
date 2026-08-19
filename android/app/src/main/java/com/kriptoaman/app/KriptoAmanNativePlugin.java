@@ -72,23 +72,30 @@ public class KriptoAmanNativePlugin extends Plugin {
     }
 
     @PluginMethod
+    @SuppressWarnings("deprecation")
     public void haptic(PluginCall call) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 VibratorManager manager = (VibratorManager) getContext().getSystemService(Context.VIBRATOR_MANAGER_SERVICE);
                 Vibrator vibrator = manager != null ? manager.getDefaultVibrator() : null;
-                if (vibrator != null && vibrator.hasVibrator()) {
-                    vibrator.vibrate(VibrationEffect.createOneShot(28, VibrationEffect.DEFAULT_AMPLITUDE));
-                }
+                vibrate(vibrator);
             } else {
                 Vibrator vibrator = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
-                if (vibrator != null && vibrator.hasVibrator()) {
-                    vibrator.vibrate(VibrationEffect.createOneShot(28, VibrationEffect.DEFAULT_AMPLITUDE));
-                }
+                vibrate(vibrator);
             }
             call.resolve();
         } catch (Exception error) {
             call.reject("Haptic feedback unavailable", error);
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private void vibrate(Vibrator vibrator) {
+        if (vibrator == null || !vibrator.hasVibrator()) return;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createOneShot(28, VibrationEffect.DEFAULT_AMPLITUDE));
+        } else {
+            vibrator.vibrate(28);
         }
     }
 
