@@ -13,6 +13,7 @@ import '@/styles/final-ui-v5.css'
 import '@/styles/final-ui-v6.css'
 import '@/styles/final-ui-v7.css'
 import '@/styles/final-ui-v8.css'
+import '@/styles/final-ui-v9.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <>
