@@ -117,6 +117,40 @@ const statements = [
   `CREATE UNIQUE INDEX IF NOT EXISTS idx_kam_points_reference
    ON kam_points_ledger(source, reference_id)
    WHERE reference_id IS NOT NULL`,
+  `CREATE TABLE IF NOT EXISTS kam_reward_campaigns (
+    id TEXT PRIMARY KEY,
+    code TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    campaign_type TEXT NOT NULL CHECK (campaign_type IN ('COMMUNITY', 'REFERRAL')),
+    status TEXT NOT NULL DEFAULT 'PAUSED' CHECK (status IN ('ACTIVE', 'PAUSED', 'CLOSED')),
+    budget_points INTEGER NOT NULL CHECK (budget_points >= 0),
+    distributed_points INTEGER NOT NULL DEFAULT 0 CHECK (distributed_points >= 0),
+    reward_points INTEGER NOT NULL CHECK (reward_points > 0),
+    invitee_reward_points INTEGER NOT NULL DEFAULT 0 CHECK (invitee_reward_points >= 0),
+    starts_at TEXT,
+    ends_at TEXT,
+    created_by TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (created_by) REFERENCES auth_users(id) ON DELETE RESTRICT
+  )`,
+  'CREATE INDEX IF NOT EXISTS idx_kam_campaign_status ON kam_reward_campaigns(status, starts_at, ends_at)',
+  `CREATE TABLE IF NOT EXISTS kam_referrals (
+    id TEXT PRIMARY KEY,
+    invitee_user_id TEXT NOT NULL UNIQUE,
+    referrer_user_id TEXT NOT NULL,
+    referral_code TEXT NOT NULL,
+    campaign_id TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'QUALIFIED', 'REWARDED', 'REJECTED')),
+    created_at TEXT NOT NULL,
+    qualified_at TEXT,
+    rewarded_at TEXT,
+    FOREIGN KEY (invitee_user_id) REFERENCES auth_users(id) ON DELETE CASCADE,
+    FOREIGN KEY (referrer_user_id) REFERENCES auth_users(id) ON DELETE CASCADE,
+    FOREIGN KEY (campaign_id) REFERENCES kam_reward_campaigns(id) ON DELETE RESTRICT
+  )`,
+  'CREATE INDEX IF NOT EXISTS idx_kam_referrals_referrer ON kam_referrals(referrer_user_id, created_at DESC)',
+  'CREATE INDEX IF NOT EXISTS idx_kam_referrals_campaign ON kam_referrals(campaign_id, status)',
 ];
 
 async function initializeSchema(db) {
