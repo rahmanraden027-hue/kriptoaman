@@ -27,55 +27,31 @@ export async function onRequestGet({ request, env }) {
     if (!admin) return json({ error: 'Admin access with 2FA required' }, { status: 403 });
 
     const totals = await env.AUTH_DB.prepare(`
-      SELECT
-        COALESCE(SUM(amount), 0) AS total_points,
-        COUNT(*) AS total_entries,
-        COUNT(DISTINCT user_id) AS rewarded_users,
-        COUNT(DISTINCT CASE WHEN source = 'reward.campaign' THEN reference_id END) AS campaign_grants
+      SELECT COALESCE(SUM(amount), 0) AS total_points, COUNT(*) AS total_entries,
+             COUNT(DISTINCT user_id) AS rewarded_users,
+             COUNT(DISTINCT CASE WHEN source = 'reward.campaign' THEN reference_id END) AS campaign_grants
       FROM kam_points_ledger
     `).first();
 
     const recent = await env.AUTH_DB.prepare(`
       SELECT l.id, l.user_id, u.email, u.full_name, l.amount, l.reason, l.source,
              l.reference_id, l.metadata_json, l.created_at
-      FROM kam_points_ledger l
-      JOIN auth_users u ON u.id = l.user_id
-      ORDER BY l.created_at DESC
-      LIMIT 50
+      FROM kam_points_ledger l JOIN auth_users u ON u.id = l.user_id
+      ORDER BY l.created_at DESC LIMIT 50
     `).all();
 
     const rows = (recent?.results || []).map((row) => {
       let metadata = {};
       try { metadata = row.metadata_json ? JSON.parse(row.metadata_json) : {}; } catch { metadata = {}; }
-      return {
-        id: row.id,
-        userId: row.user_id,
-        email: row.email,
-        fullName: row.full_name || null,
-        amount: Number(row.amount || 0),
-        reason: row.reason,
-        source: row.source,
-        referenceId: row.reference_id || null,
-        metadata,
-        createdAt: row.created_at,
-      };
+      return { id: row.id, userId: row.user_id, email: row.email, fullName: row.full_name || null,
+        amount: Number(row.amount || 0), reason: row.reason, source: row.source,
+        referenceId: row.reference_id || null, metadata, createdAt: row.created_at };
     });
 
     return json({
-      totals: {
-        totalPoints: Number(totals?.total_points || 0),
-        totalEntries: Number(totals?.total_entries || 0),
-        rewardedUsers: Number(totals?.rewarded_users || 0),
-        campaignGrants: Number(totals?.campaign_grants || 0),
-      },
+      totals: { totalPoints: Number(totals?.total_points || 0), totalEntries: Number(totals?.total_entries || 0), rewardedUsers: Number(totals?.rewarded_users || 0), campaignGrants: Number(totals?.campaign_grants || 0) },
       recent: rows,
-      policy: {
-        unit: 'KAM_POINTS',
-        onChain: false,
-        transferable: false,
-        redeemable: false,
-        maxCampaignGrant: 100000,
-      },
+      policy: { unit: 'KAM_POINTS', onChain: false, transferable: false, redeemable: false, maxCampaignGrant: 100000 },
     }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     console.error('KAM rewards dashboard lookup failed', error);
@@ -88,7 +64,6 @@ export async function onRequestPost({ request, env }) {
     requireBindings(env, ['AUTH_DB', 'SESSION_SECRET']);
     requireSameOrigin(request, env);
     await ensureAuthSchema(env.AUTH_DB);
-
     const admin = await requireAdmin(request, env);
     if (!admin) return json({ error: 'Admin access with 2FA required' }, { status: 403 });
 
@@ -97,41 +72,40 @@ export async function onRequestPost({ request, env }) {
     const campaignId = String(body?.campaignId || '').trim().toUpperCase();
     const reason = String(body?.reason || '').trim();
     const amount = Math.trunc(Number(body?.amount));
-
     if (!email || !email.includes('@')) return json({ error: 'Valid target email required' }, { status: 400 });
     if (!/^[A-Z0-9_-]{3,64}$/.test(campaignId)) return json({ error: 'Invalid campaign ID' }, { status: 400 });
     if (!reason || reason.length > 160) return json({ error: 'Invalid reward reason' }, { status: 400 });
-    if (!Number.isSafeInteger(amount) || amount < 1 || amount > 100000) {
-      return json({ error: 'Reward amount must be between 1 and 100000 KAM Points' }, { status: 400 });
+    if (!Number.isSafeInteger(amount) || amount < 1 || amount > 100000) return json({ error: 'Reward amount must be between 1 and 100000 KAM Points' }, { status: 400 });
+
+    const campaign = await env.AUTH_DB.prepare(`SELECT id, campaign_type, status, budget_points, distributed_points, starts_at, ends_at FROM kam_reward_campaigns WHERE code = ? LIMIT 1`).bind(campaignId).first();
+    if (!campaign) return json({ error: 'Campaign not found' }, { status: 404 });
+    const nowMs = Date.now();
+    if (campaign.status !== 'ACTIVE' || (campaign.starts_at && Date.parse(campaign.starts_at) > nowMs) || (campaign.ends_at && Date.parse(campaign.ends_at) < nowMs)) {
+      return json({ error: 'Campaign is not active' }, { status: 409 });
     }
+    if (campaign.campaign_type !== 'COMMUNITY') return json({ error: 'Manual grants are only allowed for COMMUNITY campaigns' }, { status: 409 });
+    if ((Number(campaign.budget_points) - Number(campaign.distributed_points)) < amount) return json({ error: 'Campaign budget is insufficient' }, { status: 409 });
 
     const target = await getUserByEmail(env.AUTH_DB, email);
     if (!target) return json({ error: 'Target user not found' }, { status: 404 });
-
     const referenceId = `campaign:${campaignId}:user:${target.id}`;
     const grant = await awardKamPointsOnce(env.AUTH_DB, {
-      userId: target.id,
-      amount,
-      reason,
-      source: 'reward.campaign',
-      referenceId,
+      userId: target.id, amount, reason, source: 'reward.campaign', referenceId,
       metadata: { campaignId, grantedBy: admin.id, ruleVersion: 1 },
     });
 
+    if (grant.awarded) {
+      const now = new Date().toISOString();
+      await env.AUTH_DB.prepare(`UPDATE kam_reward_campaigns SET distributed_points = distributed_points + ?, updated_at = ? WHERE id = ?`).bind(amount, now, campaign.id).run();
+    }
+
     await recordAdminAudit(env.AUTH_DB, request, admin, 'kam_points.campaign_grant', {
-      targetType: 'user',
-      targetId: target.id,
-      metadata: { campaignId, amount, reason, awarded: grant.awarded },
+      targetType: 'user', targetId: target.id, metadata: { campaignId, amount, reason, awarded: grant.awarded },
     });
 
     const points = await getKamPointsSummary(env.AUTH_DB, target.id, { limit: 5 });
-    return json({
-      awarded: grant.awarded,
-      duplicatePrevented: !grant.awarded,
-      campaignId,
-      target: { id: target.id, email: target.email },
-      points,
-    }, { headers: { 'Cache-Control': 'no-store' } });
+    return json({ awarded: grant.awarded, duplicatePrevented: !grant.awarded, campaignId,
+      target: { id: target.id, email: target.email }, points }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     console.error('KAM campaign reward failed', error);
     return json({ error: 'KAM reward service unavailable' }, { status: 503 });
