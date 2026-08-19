@@ -5,6 +5,7 @@ import { getActiveSession } from '../../../../server/auth/sessions.js';
 import { getTotpSettings } from '../../../../server/auth/totp.js';
 import { getUserById } from '../../../../server/auth/users.js';
 import { recordAdminAudit } from '../../../../server/auth/adminAudit.js';
+import { autoApproveKamPointsAuditSnapshot } from '../../../../server/auth/kamSnapshotAutoApproval.js';
 import {
   approveKamPointsAuditSnapshot,
   buildKamPointsAuditPreview,
@@ -51,7 +52,18 @@ export async function onRequestGet({ request, env }) {
 
     const [preview, snapshots] = await Promise.all([buildKamPointsAuditPreview(env.AUTH_DB), listKamPointsAuditSnapshots(env.AUTH_DB)]);
     const latestEntries = snapshots[0] ? await getKamPointsAuditSnapshotEntries(env.AUTH_DB, snapshots[0].id, { limit: 100 }) : [];
-    return json({ preview, snapshots, latestEntries }, { headers: { 'Cache-Control': 'no-store' } });
+    return json({
+      preview,
+      snapshots,
+      latestEntries,
+      approvalPolicy: {
+        mode: 'INTEGRITY_GATED_AUTO_APPROVAL',
+        automatic: true,
+        requiresIntegrity: true,
+        dualControl: false,
+        auditOnly: true,
+      },
+    }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     console.error('KAM snapshot readiness lookup failed', error);
     const message = String(error?.message || '');
@@ -69,15 +81,34 @@ export async function onRequestPost({ request, env }) {
     if (!admin) return json({ error: 'Admin access with 2FA required' }, { status: 403 });
     const body = await request.json();
     const snapshot = await freezeKamPointsAuditSnapshot(env.AUTH_DB, admin.id, body?.code);
-    await recordAdminAudit(env.AUTH_DB, request, admin, 'kam_points.audit_snapshot.freeze', {
-      targetType: 'kam_points_audit_snapshot', targetId: snapshot.id,
-      metadata: { code: snapshot.code, totalUsers: snapshot.totalUsers, totalPoints: snapshot.totalPoints, manifestHash: snapshot.manifestHash, approvalStatus: 'DRAFT', auditOnly: true },
+    const approval = await autoApproveKamPointsAuditSnapshot(env.AUTH_DB, admin.id, snapshot.id);
+
+    await recordAdminAudit(env.AUTH_DB, request, admin, 'kam_points.audit_snapshot.freeze_auto_approve', {
+      targetType: 'kam_points_audit_snapshot',
+      targetId: snapshot.id,
+      metadata: {
+        code: snapshot.code,
+        totalUsers: snapshot.totalUsers,
+        totalPoints: snapshot.totalPoints,
+        manifestHash: snapshot.manifestHash,
+        approvalStatus: approval.status,
+        automatic: true,
+        integrityOk: approval.integrity.integrityOk,
+        dualControl: false,
+        auditOnly: true,
+      },
     });
-    return json({ frozen: true, snapshot }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
+
+    return json({
+      frozen: true,
+      autoApproved: true,
+      snapshot: { ...snapshot, approvalStatus: approval.status, lockedAt: approval.lockedAt },
+      approval,
+    }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
-    console.error('KAM snapshot freeze failed', error);
+    console.error('KAM snapshot freeze/auto-approval failed', error);
     const message = String(error?.message || '');
-    const status = message.includes('Invalid') || message.includes('exists') || message.includes('No eligible') ? 400 : 503;
+    const status = /Invalid|exists|No eligible|integrity|required|not found/i.test(message) ? 400 : 503;
     return json({ error: message || 'Snapshot readiness service unavailable' }, { status });
   }
 }
@@ -94,6 +125,16 @@ export async function onRequestPatch({ request, env }) {
     const snapshotId = String(body?.snapshotId || '').trim();
     const notes = String(body?.notes || '').trim();
     if (!snapshotId) return json({ error: 'snapshotId required' }, { status: 400 });
+
+    if (action === 'auto-approve') {
+      const approval = await autoApproveKamPointsAuditSnapshot(env.AUTH_DB, admin.id, snapshotId);
+      await recordAdminAudit(env.AUTH_DB, request, admin, 'kam_points.audit_snapshot.auto_approve', {
+        targetType: 'kam_points_audit_snapshot',
+        targetId: snapshotId,
+        metadata: { integrityOk: approval.integrity.integrityOk, automatic: true, dualControl: false, auditOnly: true },
+      });
+      return json({ updated: true, approval, snapshots: await listKamPointsAuditSnapshots(env.AUTH_DB) }, { headers: { 'Cache-Control': 'no-store' } });
+    }
 
     if (action === 'review') {
       const review = await reviewKamPointsAuditSnapshot(env.AUTH_DB, admin.id, snapshotId, notes);
@@ -115,7 +156,7 @@ export async function onRequestPatch({ request, env }) {
   } catch (error) {
     console.error('KAM snapshot approval action failed', error);
     const message = String(error?.message || '');
-    const status = /required|not found|must be reviewed|different approver|integrity|locked/i.test(message) ? 400 : 503;
+    const status = /required|not found|must be reviewed|different approver|integrity|locked|auto approval/i.test(message) ? 400 : 503;
     return json({ error: message || 'Snapshot approval service unavailable' }, { status });
   }
 }
