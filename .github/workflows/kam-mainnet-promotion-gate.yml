@@ -1,0 +1,77 @@
+name: KAM Mainnet Promotion Gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      strict:
+        description: 'Fail the run unless public RPC/explorer checks pass'
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    - cron: '17 * * * *'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/kam-mainnet-promotion-gate.yml'
+      - 'chain/kam-mainnet/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kam-mainnet-promotion-gate
+  cancel-in-progress: false
+
+jobs:
+  public-readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify candidate status is not prematurely promoted
+        shell: bash
+        run: |
+          set -euo pipefail
+          STATUS=$(node -e "const p=require('./chain/kam-mainnet/network-profile.json'); process.stdout.write(p.status)")
+          test "$STATUS" = "mainnet-candidate-not-public"
+          echo "KAM_NETWORK_STATUS=$STATUS"
+
+      - name: Verify public RPC and explorer
+        id: verify
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p artifacts
+          node chain/kam-mainnet/scripts/verify-public-endpoints.mjs 2>&1 | tee artifacts/kam-mainnet-public-readiness.json
+
+      - name: Upload readiness evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kam-mainnet-public-readiness
+          path: artifacts/kam-mainnet-public-readiness.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Record candidate-not-ready status
+        if: steps.verify.outcome != 'success'
+        run: |
+          echo 'KAM_PUBLIC_ENDPOINT_GATE=NOT_READY'
+          echo 'KAM Mainnet remains a candidate. Scheduled and pull-request checks record evidence without treating an expected not-yet-live endpoint as a CI failure.'
+
+      - name: Enforce strict manual promotion gate
+        if: github.event_name == 'workflow_dispatch' && inputs.strict == true && steps.verify.outcome != 'success'
+        run: |
+          echo 'Strict promotion gate failed: public RPC/explorer checks are not ready.'
+          exit 1
+
+      - name: Promotion endpoint gate passed
+        if: steps.verify.outcome == 'success'
+        run: |
+          echo 'KAM_PUBLIC_ENDPOINT_GATE=PASS'
+          echo 'This is necessary but not sufficient for public-mainnet promotion; Issue #115 infrastructure, 24-hour stability, backup/restore, monitoring, validator-set, and final Chain ID checks must also pass.'
