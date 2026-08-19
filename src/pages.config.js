@@ -1,12 +1,10 @@
 import { lazy } from 'react';
 const __Layout = lazy(() => import('./Layout.jsx'));
 
-// Vite creates a separate chunk for every page. This keeps admin, trading,
-// wallet, analytics, and KYC code out of the public landing-page bundle.
 const pageModules = import.meta.glob('./pages/*.jsx');
 
 const PAGE_NAMES = [
-  'AMLDashboard', 'AboutUs', 'AdminKAMRewards', 'AdminKYCManagement', 'AdminPlatformAssets',
+  'AMLDashboard', 'AboutUs', 'AdminKAMAnalytics', 'AdminKAMRewards', 'AdminKYCManagement', 'AdminPlatformAssets',
   'AdminProfitAnalytics', 'AdminUserBalances', 'Alerts', 'AppBuildAnalytics',
   'AssetManager', 'AutoTrading', 'Contact', 'DEXSavings', 'Disclaimer', 'Edukasi',
   'Founder', 'Home', 'KYC', 'KYCVerificationPage', 'LandingPage', 'Market', 'MarketResearch',
@@ -33,13 +31,9 @@ function loadPage(name) {
   return lazy(loader);
 }
 
-export const PAGES = Object.fromEntries(
-  PAGE_NAMES.map((name) => [name, loadPage(name)])
-);
+export const PAGES = Object.fromEntries(PAGE_NAMES.map((name) => [name, loadPage(name)]));
 
 export const pagesConfig = {
-  // Final UX: land authenticated users on the intelligence dashboard first.
-  // Wallet remains a dedicated monitoring module instead of the app entry point.
   mainPage: 'Home',
   Pages: PAGES,
   Layout: __Layout,
