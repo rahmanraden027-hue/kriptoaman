@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cloudflare/workers-sdk/main/packages/wrangler/config-schema.json",
+  "name": "kam-mainnet-public-rpc",
+  "main": "worker.js",
+  "compatibility_date": "2026-08-20",
+  "workers_dev": false,
+  "routes": [
+    { "pattern": "rpc.kriptoaman.com/*", "zone_name": "kriptoaman.com" }
+  ],
+  "vars": {
+    "KAM_NETWORK_STATUS": "mainnet-candidate-not-public",
+    "KAM_EXPECTED_CHAIN_ID": "0x560c"
+  }
+}
