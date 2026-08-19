@@ -8,13 +8,14 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#020817",
-  "theme_color": "#07111d",
+  "background_color": "#0B0F14",
+  "theme_color": "#0B0F14",
   "lang": "id-ID",
   "dir": "ltr",
   "categories": ["finance", "utilities"],
   "prefer_related_applications": false,
   "icons": [
+    { "src": "/brand/kriptoaman-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
     { "src": "/icons/kriptoaman-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
     { "src": "/icons/kriptoaman-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icons/kriptoaman-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
@@ -27,21 +28,21 @@
       "short_name": "Pasar",
       "description": "Pantau data pasar dan aset digital.",
       "url": "/Market",
-      "icons": [{ "src": "/icons/kriptoaman-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [{ "src": "/brand/kriptoaman-mark.svg", "sizes": "any", "type": "image/svg+xml" }]
     },
     {
       "name": "Pantau Wallet",
       "short_name": "Wallet",
       "description": "Buka pemantauan wallet dan alamat publik.",
       "url": "/Wallet",
-      "icons": [{ "src": "/icons/kriptoaman-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [{ "src": "/brand/kriptoaman-mark.svg", "sizes": "any", "type": "image/svg+xml" }]
     },
     {
       "name": "Pusat Keamanan",
       "short_name": "Keamanan",
       "description": "Buka pengaturan dan status keamanan akun.",
       "url": "/SecurityHub",
-      "icons": [{ "src": "/icons/kriptoaman-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [{ "src": "/brand/kriptoaman-mark.svg", "sizes": "any", "type": "image/svg+xml" }]
     }
   ]
 }
