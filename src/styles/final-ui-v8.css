@@ -1,0 +1,135 @@
+/* KriptoAman Final UI v8 — portfolio + watch precision polish.
+   Presentation only: no portfolio calculations, wallet providers, auth, KAM data, or admin behavior changes. */
+
+/* Portfolio: tighter command-center rhythm and stronger empty state. */
+.ka-workspace-page .ka-command-hero {
+  border-color: rgba(87,215,255,.18) !important;
+  background: linear-gradient(145deg, rgba(7,20,36,.94), rgba(5,14,27,.88)) !important;
+  box-shadow: 0 18px 52px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.035) !important;
+}
+
+.ka-workspace-page .ka-command-panel {
+  border-color: rgba(87,215,255,.14) !important;
+  background: linear-gradient(180deg, rgba(8,20,36,.82), rgba(5,14,26,.74)) !important;
+  box-shadow: 0 14px 42px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.025) !important;
+}
+
+.ka-workspace-page .ka-command-tile {
+  border-color: rgba(87,215,255,.13) !important;
+  background: linear-gradient(145deg, rgba(8,22,39,.72), rgba(5,15,28,.72)) !important;
+}
+
+.ka-workspace-page .ka-command-panel[class*="min-h-[420px]"] {
+  min-height: 330px !important;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(56,189,248,.08), transparent 30%),
+    linear-gradient(180deg, rgba(8,20,36,.78), rgba(5,14,26,.72)) !important;
+}
+
+/* WalletConnect / external providers: read like one secure connection matrix. */
+section[aria-labelledby="external-wallet-title"] {
+  border-color: rgba(87,215,255,.18) !important;
+  background: linear-gradient(180deg, rgba(8,20,36,.86), rgba(5,14,26,.80)) !important;
+  box-shadow: 0 18px 52px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.03) !important;
+}
+
+section[aria-labelledby="external-wallet-title"] button,
+section[aria-labelledby="external-wallet-title"] a[target="_blank"] {
+  min-height: 62px;
+  border-color: rgba(87,215,255,.13) !important;
+  background: linear-gradient(145deg, rgba(9,24,42,.76), rgba(5,16,30,.78)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+  transition: border-color .18s ease, background .18s ease, transform .16s ease;
+}
+
+section[aria-labelledby="external-wallet-title"] button:active,
+section[aria-labelledby="external-wallet-title"] a[target="_blank"]:active {
+  transform: scale(.992);
+}
+
+/* KAM card: reduce promotional feel, emphasize verified-data posture. */
+section[aria-labelledby="kam-token-title"] > div:first-child {
+  border-color: rgba(87,215,255,.20) !important;
+  background:
+    radial-gradient(circle at 88% 0%, rgba(217,166,77,.13), transparent 30%),
+    radial-gradient(circle at 10% 100%, rgba(36,156,255,.16), transparent 32%),
+    linear-gradient(145deg, #081b30, #0a2947 60%, #132238) !important;
+  box-shadow: 0 20px 58px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.04) !important;
+}
+
+section[aria-labelledby="kam-token-title"] > div:nth-child(2) {
+  border-color: rgba(87,215,255,.14) !important;
+  background: linear-gradient(180deg, rgba(8,20,36,.80), rgba(5,14,26,.76)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.02);
+}
+
+/* Admin-only balance surface: clear but restrained authority cue. */
+section[aria-label*="administr"] {
+  border-color: rgba(139,92,246,.18) !important;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(139,92,246,.07), transparent 30%),
+    linear-gradient(180deg, rgba(8,19,34,.86), rgba(5,14,26,.80)) !important;
+}
+
+section[aria-label*="administr"] .grid > div {
+  border-color: rgba(87,215,255,.10) !important;
+  background: rgba(3,10,20,.46) !important;
+}
+
+@media (max-width: 639px) {
+  .ka-workspace-page > div,
+  section[aria-labelledby="external-wallet-title"],
+  section[aria-labelledby="kam-token-title"] > div {
+    border-radius: 18px !important;
+  }
+
+  .ka-workspace-page .ka-command-hero {
+    padding: 16px !important;
+  }
+
+  .ka-workspace-page .ka-command-hero h1 {
+    font-size: 1.55rem !important;
+    line-height: 1.08 !important;
+  }
+
+  .ka-workspace-page .ka-command-panel {
+    padding: 14px !important;
+  }
+
+  .ka-workspace-page .ka-command-panel[class*="min-h-[420px]"] {
+    min-height: 280px !important;
+    padding: 24px 18px !important;
+  }
+
+  section[aria-labelledby="external-wallet-title"] {
+    padding: 14px !important;
+    gap: 12px !important;
+  }
+
+  section[aria-labelledby="external-wallet-title"] button,
+  section[aria-labelledby="external-wallet-title"] a[target="_blank"] {
+    min-height: 58px;
+    padding: 10px 11px !important;
+    border-radius: 14px !important;
+  }
+
+  section[aria-labelledby="kam-token-title"] > div:first-child {
+    padding: 16px !important;
+  }
+
+  section[aria-labelledby="kam-token-title"] > div:first-child > div:nth-child(2) {
+    gap: 8px !important;
+  }
+
+  section[aria-labelledby="kam-token-title"] > div:first-child > div:nth-child(2) > div {
+    padding: 11px !important;
+  }
+
+  section[aria-labelledby="kam-token-title"] > div:nth-child(2) {
+    padding: 14px !important;
+  }
+
+  section[aria-label*="administr"] {
+    padding: 14px !important;
+  }
+}
