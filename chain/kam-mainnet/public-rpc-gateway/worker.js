@@ -18,6 +18,12 @@ const ALLOWED_METHODS = new Set([
 ]);
 
 const MAX_BODY_BYTES = 64 * 1024;
+const CORS_HEADERS = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-methods': 'POST, OPTIONS',
+  'access-control-allow-headers': 'content-type',
+  'access-control-max-age': '86400',
+};
 
 function json(body, status = 200, headers = {}) {
   return new Response(JSON.stringify(body), {
@@ -26,6 +32,7 @@ function json(body, status = 200, headers = {}) {
       'content-type': 'application/json; charset=utf-8',
       'cache-control': 'no-store',
       'x-content-type-options': 'nosniff',
+      ...CORS_HEADERS,
       ...headers,
     },
   });
@@ -43,6 +50,10 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { status: 204, headers: CORS_HEADERS });
+    }
+
     if (url.pathname === '/health') {
       return json({
         service: 'kam-public-rpc-gateway',
@@ -53,7 +64,7 @@ export default {
     }
 
     if (request.method !== 'POST' || url.pathname !== '/') {
-      return json({ error: 'JSON-RPC POST only' }, 405, { allow: 'POST' });
+      return json({ error: 'JSON-RPC POST only' }, 405, { allow: 'POST, OPTIONS' });
     }
 
     const contentLength = Number(request.headers.get('content-length') || 0);
@@ -94,8 +105,8 @@ export default {
       headers: {
         'content-type': 'application/json; charset=utf-8',
         'cache-control': 'no-store',
-        'access-control-allow-origin': '*',
         'x-content-type-options': 'nosniff',
+        ...CORS_HEADERS,
       },
     });
   },
