@@ -1,0 +1,139 @@
+/* KriptoAman Final UI v7 — precision polish for Market and Security.
+   Presentation only: no auth, KYC, wallet, market-data, transaction, or admin logic changes. */
+
+/* MARKET — identified by the stable BTC/ETH/SOL search hint. */
+.ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) {
+  --ka-v7-market-line: rgba(96, 202, 255, .18);
+  --ka-v7-market-panel: rgba(6, 18, 32, .82);
+}
+
+.ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) .ka-surface {
+  border-color: var(--ka-v7-market-line) !important;
+  background: linear-gradient(180deg, rgba(8, 22, 38, .88), rgba(5, 15, 27, .78)) !important;
+}
+
+.ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) .ka-surface.ka-surface-hover {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 12px 30px rgba(0,0,0,.16) !important;
+}
+
+@media (hover:hover) and (pointer:fine) {
+  .ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) .ka-surface.ka-surface-hover:hover {
+    border-color: rgba(96, 202, 255, .32) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.045), 0 18px 38px rgba(0,0,0,.22), 0 0 28px rgba(36,156,255,.055) !important;
+  }
+}
+
+.ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) .ka-surface img.h-10.w-10 {
+  border-radius: 14px !important;
+  box-shadow: 0 8px 20px rgba(0,0,0,.20);
+}
+
+.ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) .ka-num {
+  letter-spacing: -.025em;
+}
+
+.ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) details {
+  backdrop-filter: blur(16px);
+}
+
+/* SECURITY — SecurityHub uniquely contains the score glow panel. */
+.ka-bg:has(.ka-emerald-glow) {
+  --ka-v7-security-line: rgba(78, 214, 255, .17);
+}
+
+.ka-bg:has(.ka-emerald-glow) .ka-surface {
+  border-color: var(--ka-v7-security-line) !important;
+  background: linear-gradient(180deg, rgba(7, 21, 36, .90), rgba(5, 15, 28, .82)) !important;
+}
+
+.ka-bg:has(.ka-emerald-glow) .ka-emerald-glow {
+  border-color: rgba(52, 211, 153, .20) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 16px 40px rgba(0,0,0,.20), 0 0 28px rgba(52,211,153,.055) !important;
+}
+
+.ka-bg:has(.ka-emerald-glow) .ka-surface.ka-surface-hover {
+  transition: border-color .18s ease, background .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.ka-bg:has(.ka-emerald-glow) button.tap-reset,
+.ka-bg:has(.ka-emerald-glow) a .ka-surface {
+  touch-action: manipulation;
+}
+
+.ka-bg:has(.ka-emerald-glow) [class*="border-red-500"] {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.02);
+}
+
+@media (max-width: 639px) {
+  /* Market: compact high-signal list; retain generous touch targets. */
+  .ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) > .max-w-7xl {
+    padding-top: 12px !important;
+  }
+
+  .ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) .ka-surface.px-3\.5.py-3\.5 {
+    min-height: 68px;
+    padding: 11px 12px !important;
+    gap: 10px !important;
+    border-radius: 17px !important;
+  }
+
+  .ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) .ka-surface.px-3\.5.py-3\.5 img,
+  .ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) .ka-surface.px-3\.5.py-3\.5 img + span {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) .ka-surface.px-3\.5.py-3\.5 p.text-sm {
+    font-size: 13px !important;
+  }
+
+  .ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) .ka-surface.px-3\.5.py-3\.5 p.text-\[13px\] {
+    font-size: 12.5px !important;
+  }
+
+  .ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) .ka-surface.px-3\.5.py-3\.5 button {
+    padding: 7px !important;
+    border-radius: 10px !important;
+  }
+
+  /* Security: reduce visual fragmentation while keeping every control legible. */
+  .ka-bg:has(.ka-emerald-glow) > .max-w-6xl {
+    gap: 14px !important;
+    padding-top: 14px !important;
+  }
+
+  .ka-bg:has(.ka-emerald-glow) .ka-surface.ka-surface-hover {
+    border-radius: 17px !important;
+  }
+
+  .ka-bg:has(.ka-emerald-glow) .grid.grid-cols-2.gap-2\.5 > .ka-surface,
+  .ka-bg:has(.ka-emerald-glow) .grid.grid-cols-2.gap-2\.5 > button .ka-surface,
+  .ka-bg:has(.ka-emerald-glow) .grid.grid-cols-2.gap-2\.5 > a .ka-surface {
+    min-height: 102px !important;
+    padding: 11px !important;
+  }
+
+  .ka-bg:has(.ka-emerald-glow) .ka-emerald-glow {
+    padding: 14px !important;
+    gap: 12px !important;
+  }
+
+  .ka-bg:has(.ka-emerald-glow) .rounded-2xl.border.border-slate-700\/55.bg-slate-950\/35 {
+    padding: 11px !important;
+    border-radius: 15px !important;
+  }
+
+  .ka-bg:has(.ka-emerald-glow) h1 {
+    font-size: clamp(1.55rem, 7vw, 1.9rem) !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) .ka-surface.px-3\.5.py-3\.5 {
+    gap: 8px !important;
+  }
+
+  .ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) .ka-surface.px-3\.5.py-3\.5 .ml-auto {
+    gap: 6px !important;
+  }
+}
