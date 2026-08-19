@@ -2,6 +2,12 @@ name: KAM Mainnet Promotion Gate
 
 on:
   workflow_dispatch:
+    inputs:
+      strict:
+        description: 'Fail the run unless public RPC/explorer checks pass'
+        required: false
+        default: false
+        type: boolean
   schedule:
     - cron: '17 * * * *'
   pull_request:
@@ -52,13 +58,19 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Enforce readiness result
+      - name: Record candidate-not-ready status
         if: steps.verify.outcome != 'success'
         run: |
-          echo 'KAM Mainnet remains a candidate: public RPC/explorer promotion gate did not pass.'
+          echo 'KAM_PUBLIC_ENDPOINT_GATE=NOT_READY'
+          echo 'KAM Mainnet remains a candidate. Scheduled and pull-request checks record evidence without treating an expected not-yet-live endpoint as a CI failure.'
+
+      - name: Enforce strict manual promotion gate
+        if: github.event_name == 'workflow_dispatch' && inputs.strict == true && steps.verify.outcome != 'success'
+        run: |
+          echo 'Strict promotion gate failed: public RPC/explorer checks are not ready.'
           exit 1
 
-      - name: Promotion gate passed
+      - name: Promotion endpoint gate passed
         if: steps.verify.outcome == 'success'
         run: |
           echo 'KAM_PUBLIC_ENDPOINT_GATE=PASS'
