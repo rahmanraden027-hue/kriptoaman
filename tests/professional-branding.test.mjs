@@ -20,8 +20,8 @@ test('public and account entry screens use the official KriptoAman logo', async 
   assert.match(authLayout, /Digital Asset Monitoring/);
   assert.match(kyc, /KRIPTOAMAN IDENTITY/);
   assert.match(market, /text\.identity/);
-  assert.match(logo, /kriptoaman-logo-primary\.png/);
-  assert.match(logo, /alt="Logo KriptoAman"/);
+  assert.match(logo, /\/brand\/kriptoaman-mark\.svg/);
+  assert.match(logo, /alt="KriptoAman"/);
 });
 
 test('authentication branding remains responsive and accessible', async () => {
