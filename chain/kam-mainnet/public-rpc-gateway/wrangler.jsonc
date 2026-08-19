@@ -5,7 +5,7 @@
   "compatibility_date": "2026-08-20",
   "workers_dev": false,
   "routes": [
-    { "pattern": "rpc.kriptoaman.com/*", "zone_name": "kriptoaman.com" }
+    { "pattern": "rpc.kriptoaman.com", "custom_domain": true }
   ],
   "vars": {
     "KAM_NETWORK_STATUS": "mainnet-candidate-not-public",
