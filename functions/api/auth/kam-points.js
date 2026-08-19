@@ -5,6 +5,7 @@ import { getActiveSession } from '../../../server/auth/sessions.js';
 import { getUserById } from '../../../server/auth/users.js';
 import { getKamPointsSummary } from '../../../server/auth/kamPoints.js';
 import { KAM_REWARD_RULES, syncEligibleKamRewards } from '../../../server/auth/kamRewards.js';
+import { evaluateReferralReward } from '../../../server/auth/kamCampaigns.js';
 
 export async function onRequestGet({ request, env }) {
   try {
@@ -27,6 +28,7 @@ export async function onRequestGet({ request, env }) {
     }
 
     const newlyGranted = await syncEligibleKamRewards(env.AUTH_DB, user);
+    const referralReward = await evaluateReferralReward(env.AUTH_DB, user);
     const points = await getKamPointsSummary(env.AUTH_DB, user.id);
     return json({
       unit: 'KAM_POINTS',
@@ -35,6 +37,7 @@ export async function onRequestGet({ request, env }) {
       redeemable: false,
       rewardRules: KAM_REWARD_RULES,
       newlyGranted,
+      referralReward,
       ...points,
     }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
