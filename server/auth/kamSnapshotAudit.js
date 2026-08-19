@@ -122,6 +122,101 @@ export async function getKamPointsAuditSnapshotEntries(db, snapshotId, { limit =
   }));
 }
 
+async function getAllSnapshotEntries(db, snapshotId) {
+  const rows = await db.prepare(`
+    SELECT user_id, points, rule_version
+    FROM kam_points_audit_snapshot_entries
+    WHERE snapshot_id = ?
+    ORDER BY user_id ASC
+  `).bind(snapshotId).all();
+  return (rows?.results || []).map((row) => ({
+    userId: row.user_id,
+    points: Number(row.points || 0),
+    ruleVersion: Number(row.rule_version || 1),
+  }));
+}
+
+async function getSnapshotById(db, snapshotId) {
+  if (!snapshotId) return null;
+  return db.prepare(`
+    SELECT id, code, status, rule_version, total_users, total_points, manifest_hash, created_at
+    FROM kam_points_audit_snapshots
+    WHERE id = ?
+    LIMIT 1
+  `).bind(snapshotId).first();
+}
+
+function canonicalManifest(code, ruleVersion, entries) {
+  const ordered = [...entries].sort((a, b) => a.userId.localeCompare(b.userId));
+  const canonical = ordered.map((item) => `${item.userId}:${item.points}`).join('|');
+  return `KAM_POINTS_AUDIT|${ruleVersion}|${code}|${canonical}`;
+}
+
+export async function verifyKamPointsAuditSnapshot(db, snapshotId) {
+  const snapshot = await getSnapshotById(db, snapshotId);
+  if (!snapshot) throw new Error('Snapshot not found');
+  const entries = await getAllSnapshotEntries(db, snapshot.id);
+  const calculatedHash = await sha256(canonicalManifest(snapshot.code, Number(snapshot.rule_version || 1), entries));
+  const calculatedPoints = entries.reduce((sum, row) => sum + row.points, 0);
+  const checks = {
+    hashMatch: calculatedHash === snapshot.manifest_hash,
+    userCountMatch: entries.length === Number(snapshot.total_users || 0),
+    pointsMatch: calculatedPoints === Number(snapshot.total_points || 0),
+  };
+  return {
+    snapshotId: snapshot.id,
+    code: snapshot.code,
+    storedHash: snapshot.manifest_hash,
+    calculatedHash,
+    storedUsers: Number(snapshot.total_users || 0),
+    calculatedUsers: entries.length,
+    storedPoints: Number(snapshot.total_points || 0),
+    calculatedPoints,
+    checks,
+    integrityOk: checks.hashMatch && checks.userCountMatch && checks.pointsMatch,
+    verifiedAt: new Date().toISOString(),
+  };
+}
+
+export async function compareKamPointsAuditSnapshots(db, baseSnapshotId, targetSnapshotId) {
+  if (!baseSnapshotId || !targetSnapshotId || baseSnapshotId === targetSnapshotId) throw new Error('Two different snapshots are required');
+  const [base, target] = await Promise.all([
+    getSnapshotById(db, baseSnapshotId),
+    getSnapshotById(db, targetSnapshotId),
+  ]);
+  if (!base || !target) throw new Error('Snapshot not found');
+
+  const [baseEntries, targetEntries] = await Promise.all([
+    getAllSnapshotEntries(db, base.id),
+    getAllSnapshotEntries(db, target.id),
+  ]);
+  const baseMap = new Map(baseEntries.map((row) => [row.userId, row.points]));
+  const targetMap = new Map(targetEntries.map((row) => [row.userId, row.points]));
+  const added = [];
+  const removed = [];
+  const changed = [];
+
+  for (const [userId, points] of targetMap) {
+    if (!baseMap.has(userId)) added.push({ userId, points });
+    else if (baseMap.get(userId) !== points) changed.push({ userId, fromPoints: baseMap.get(userId), toPoints: points, deltaPoints: points - baseMap.get(userId) });
+  }
+  for (const [userId, points] of baseMap) {
+    if (!targetMap.has(userId)) removed.push({ userId, points });
+  }
+
+  const deltaUsers = Number(target.total_users || 0) - Number(base.total_users || 0);
+  const deltaPoints = Number(target.total_points || 0) - Number(base.total_points || 0);
+
+  return {
+    base: { id: base.id, code: base.code, totalUsers: Number(base.total_users || 0), totalPoints: Number(base.total_points || 0), createdAt: base.created_at },
+    target: { id: target.id, code: target.code, totalUsers: Number(target.total_users || 0), totalPoints: Number(target.total_points || 0), createdAt: target.created_at },
+    delta: { users: deltaUsers, points: deltaPoints, addedAccounts: added.length, removedAccounts: removed.length, changedAccounts: changed.length },
+    added: added.slice(0, 200),
+    removed: removed.slice(0, 200),
+    changed: changed.sort((a, b) => Math.abs(b.deltaPoints) - Math.abs(a.deltaPoints)).slice(0, 200),
+  };
+}
+
 export async function freezeKamPointsAuditSnapshot(db, adminId, codeValue) {
   const code = String(codeValue || '').trim().toUpperCase();
   if (!/^[A-Z0-9_-]{3,64}$/.test(code)) throw new Error('Invalid snapshot code');
@@ -133,8 +228,7 @@ export async function freezeKamPointsAuditSnapshot(db, adminId, codeValue) {
   if (!preview.eligible.length) throw new Error('No eligible KAM Points accounts');
 
   const ordered = [...preview.eligible].sort((a, b) => a.userId.localeCompare(b.userId));
-  const canonical = ordered.map((item) => `${item.userId}:${item.points}`).join('|');
-  const manifestHash = await sha256(`KAM_POINTS_AUDIT|${RULE_VERSION}|${code}|${canonical}`);
+  const manifestHash = await sha256(canonicalManifest(code, RULE_VERSION, ordered));
   const snapshotId = crypto.randomUUID();
   const createdAt = new Date().toISOString();
 
