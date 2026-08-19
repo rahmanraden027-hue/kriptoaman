@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
+import NativeMobileUtility from '@/components/mobile/NativeMobileUtility';
 import {
   ShieldCheck, GraduationCap, Info, BarChart3,
   TrendingUp, Sparkles, MessageCircle, Settings, Mail, AlertTriangle, ChevronRight, ArrowLeft,
@@ -99,6 +100,8 @@ export default function Services() {
           </div>
 
           <aside className="lg:col-span-4 space-y-4">
+            <NativeMobileUtility />
+
             {user?.role === 'admin' ? (
               <section className="ka-command-panel border-emerald-500/20 p-4 sm:p-5">
                 <div className="flex items-center gap-3">
