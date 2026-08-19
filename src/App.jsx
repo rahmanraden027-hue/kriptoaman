@@ -36,15 +36,13 @@ const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
 const DashboardPage = Pages.Home ?? MainPage;
 
 const ADMIN_PAGE_KEYS = new Set([
-  'AdminKAMRewards', 'AdminKYCManagement', 'AdminPlatformAssets', 'AdminProfitAnalytics', 'AdminUserBalances',
+  'AdminKAMAnalytics', 'AdminKAMRewards', 'AdminKYCManagement', 'AdminPlatformAssets', 'AdminProfitAnalytics', 'AdminUserBalances',
   'ServerControl', 'BigQueryKYCReports', 'RegulatoryDocs', 'AppBuildAnalytics',
   'AssetManager', 'SecureVault', 'AMLDashboard', 'SecurityCenter',
   'FeatureUpdateBroadcast',
 ]);
 
-const STORE_RESTRICTED_PAGE_KEYS = new Set([
-  'AutoTrading', 'DEXSavings', 'P2PLending', 'TradingAnalytics',
-]);
+const STORE_RESTRICTED_PAGE_KEYS = new Set(['AutoTrading', 'DEXSavings', 'P2PLending', 'TradingAnalytics']);
 
 const StoreAvailabilityNotice = () => (
   <div className="ka-bg min-h-screen flex items-center justify-center px-5 text-white">
@@ -59,43 +57,19 @@ const StoreAvailabilityNotice = () => (
   </div>
 );
 
-const PublicMarketWithNav = ({ Page }) => (
-  <div className="min-h-screen">
-    <Page />
-    <PrimaryBottomNav currentPageName="Market" />
-  </div>
-);
+const PublicMarketWithNav = ({ Page }) => <div className="min-h-screen"><Page /><PrimaryBottomNav currentPageName="Market" /></div>;
 
-const PUBLIC_PAGE_KEYS = new Set([
-  'AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'TermsOfService',
-  'AccountDeletion', 'Market',
-]);
+const PUBLIC_PAGE_KEYS = new Set(['AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'TermsOfService', 'AccountDeletion', 'Market']);
 
-const LayoutWrapper = ({ children, currentPageName }) => Layout ?
-  <Layout currentPageName={currentPageName}>{children}</Layout>
-  : <>{children}</>;
+const LayoutWrapper = ({ children, currentPageName }) => Layout ? <Layout currentPageName={currentPageName}>{children}</Layout> : <>{children}</>;
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
-
-  if (isLoadingPublicSettings || isLoadingAuth) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  if (authError && authError.type === 'user_not_registered') {
-    return <UserNotRegisteredError />;
-  }
+  if (isLoadingPublicSettings || isLoadingAuth) return <div className="fixed inset-0 flex items-center justify-center"><div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div></div>;
+  if (authError && authError.type === 'user_not_registered') return <UserNotRegisteredError />;
 
   return (
-    <Suspense fallback={
-      <div className="fixed inset-0 flex items-center justify-center bg-slate-950">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-700 border-t-sky-400" />
-      </div>
-    }>
+    <Suspense fallback={<div className="fixed inset-0 flex items-center justify-center bg-slate-950"><div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-700 border-t-sky-400" /></div>}>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -108,74 +82,25 @@ const AuthenticatedApp = () => {
 
         {Object.entries(Pages).map(([path, Page]) => {
           if (!PUBLIC_PAGE_KEYS.has(path)) return null;
-          return (
-            <Route
-              key={path}
-              path={`/${path}`}
-              element={path === 'Market' ? <PublicMarketWithNav Page={Page} /> : <Page />}
-            />
-          );
+          return <Route key={path} path={`/${path}`} element={path === 'Market' ? <PublicMarketWithNav Page={Page} /> : <Page />} />;
         })}
 
         <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-          <Route path="/dashboard" element={
-            <LayoutWrapper currentPageName="Home">
-              <DashboardPage />
-            </LayoutWrapper>
-          } />
+          <Route path="/dashboard" element={<LayoutWrapper currentPageName="Home"><DashboardPage /></LayoutWrapper>} />
 
           {Object.entries(Pages).map(([path, Page]) => {
             if (PUBLIC_PAGE_KEYS.has(path)) return null;
-            const wrapped = (
-              <LayoutWrapper currentPageName={path}>
-                {STORE_RESTRICTED_PAGE_KEYS.has(path) ? <StoreAvailabilityNotice /> : <Page />}
-              </LayoutWrapper>
-            );
-            return (
-              <Route
-                key={path}
-                path={`/${path}`}
-                element={ADMIN_PAGE_KEYS.has(path) ? <AdminRoute>{wrapped}</AdminRoute> : wrapped}
-              />
-            );
+            const wrapped = <LayoutWrapper currentPageName={path}>{STORE_RESTRICTED_PAGE_KEYS.has(path) ? <StoreAvailabilityNotice /> : <Page />}</LayoutWrapper>;
+            return <Route key={path} path={`/${path}`} element={ADMIN_PAGE_KEYS.has(path) ? <AdminRoute>{wrapped}</AdminRoute> : wrapped} />;
           })}
 
-          <Route path="/FeatureUpdateBroadcast" element={
-            <AdminRoute>
-              <LayoutWrapper currentPageName="FeatureUpdateBroadcast">
-                <FeatureUpdateBroadcast />
-              </LayoutWrapper>
-            </AdminRoute>
-          } />
-          <Route path="/AMLAssistant" element={
-            <LayoutWrapper currentPageName="AMLAssistant">
-              <AMLAssistant />
-            </LayoutWrapper>
-          } />
-          <Route path="/Services" element={
-            <LayoutWrapper currentPageName="Services">
-              <Services />
-            </LayoutWrapper>
-          } />
-          <Route path="/MultiChainWallet" element={
-            <LayoutWrapper currentPageName="MultiChainWallet">
-              <MultiChainWallet />
-            </LayoutWrapper>
-          } />
-          <Route path="/SecurityHub" element={
-            <LayoutWrapper currentPageName="SecurityHub">
-              <SecurityHub />
-            </LayoutWrapper>
-          } />
-          <Route path="/BigQueryKYCReports" element={
-            <AdminRoute>
-              <LayoutWrapper currentPageName="BigQueryKYCReports">
-                <BigQueryKYCReports />
-              </LayoutWrapper>
-            </AdminRoute>
-          } />
+          <Route path="/FeatureUpdateBroadcast" element={<AdminRoute><LayoutWrapper currentPageName="FeatureUpdateBroadcast"><FeatureUpdateBroadcast /></LayoutWrapper></AdminRoute>} />
+          <Route path="/AMLAssistant" element={<LayoutWrapper currentPageName="AMLAssistant"><AMLAssistant /></LayoutWrapper>} />
+          <Route path="/Services" element={<LayoutWrapper currentPageName="Services"><Services /></LayoutWrapper>} />
+          <Route path="/MultiChainWallet" element={<LayoutWrapper currentPageName="MultiChainWallet"><MultiChainWallet /></LayoutWrapper>} />
+          <Route path="/SecurityHub" element={<LayoutWrapper currentPageName="SecurityHub"><SecurityHub /></LayoutWrapper>} />
+          <Route path="/BigQueryKYCReports" element={<AdminRoute><LayoutWrapper currentPageName="BigQueryKYCReports"><BigQueryKYCReports /></LayoutWrapper></AdminRoute>} />
         </Route>
-
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </Suspense>
@@ -184,21 +109,7 @@ const AuthenticatedApp = () => {
 
 function App() {
   return (
-    <LanguageProvider>
-      <AuthProvider>
-        <QueryClientProvider client={queryClientInstance}>
-          <Router>
-            <NavigationTracker />
-            <NativeConnectivityBanner />
-            <AppErrorBoundary>
-              <AuthenticatedApp />
-            </AppErrorBoundary>
-          </Router>
-          <Toaster />
-          <PWAInstallPrompt />
-        </QueryClientProvider>
-      </AuthProvider>
-    </LanguageProvider>
+    <LanguageProvider><AuthProvider><QueryClientProvider client={queryClientInstance}><Router><NavigationTracker /><NativeConnectivityBanner /><AppErrorBoundary><AuthenticatedApp /></AppErrorBoundary></Router><Toaster /><PWAInstallPrompt /></QueryClientProvider></AuthProvider></LanguageProvider>
   )
 }
 
