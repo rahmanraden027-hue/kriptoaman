@@ -145,7 +145,7 @@
 }
 
 /* Mobile home/footer/nav precision pass — keeps the final five-tab IA while
-   removing the oversized dock/overflow seen on tall Android viewports. */
+   anchoring it as a native-style fixed bar instead of a floating dock. */
 html,
 body,
 #root,
@@ -156,14 +156,16 @@ body,
 
 @media (max-width: 1023px) {
   .ka-global-shell > nav.fixed.bottom-0 {
-    left: 8px !important;
-    right: 8px !important;
-    bottom: max(6px, env(safe-area-inset-bottom, 0px)) !important;
-    border: 1px solid rgba(56, 189, 248, .18) !important;
-    border-radius: 22px !important;
-    padding-bottom: 0 !important;
-    background: rgba(4, 13, 24, .96) !important;
-    box-shadow: 0 -8px 30px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255,255,255,.025) !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-bottom: 0 !important;
+    border-radius: 0 !important;
+    padding-bottom: max(3px, env(safe-area-inset-bottom, 0px)) !important;
+    background: rgba(4, 13, 24, .98) !important;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, .30), inset 0 1px 0 rgba(255,255,255,.025) !important;
     overflow: hidden;
   }
 
@@ -174,7 +176,7 @@ body,
   .ka-global-shell > nav.fixed.bottom-0 a {
     min-height: 54px !important;
     gap: 3px !important;
-    border-radius: 14px !important;
+    border-radius: 12px !important;
     padding-top: 4px !important;
     padding-bottom: 4px !important;
   }
@@ -211,7 +213,7 @@ body,
     line-height: 1.25 !important;
   }
 
-  /* Footer: denser visual rhythm and less dead space before the fixed dock. */
+  /* Footer: denser visual rhythm and enough content clearance for the fixed bar. */
   section[aria-labelledby="founder-leadership-title"] + footer.ka-surface {
     margin-top: 14px !important;
     margin-bottom: 0 !important;
@@ -228,7 +230,7 @@ body,
   }
 
   .ka-bg:has(#founder-leadership-title) {
-    padding-bottom: 82px !important;
+    padding-bottom: max(92px, calc(76px + env(safe-area-inset-bottom, 0px))) !important;
   }
 }
 
