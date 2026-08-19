@@ -4,6 +4,7 @@ import { getSessionToken, verifySessionToken } from '../../../server/auth/sessio
 import { getActiveSession } from '../../../server/auth/sessions.js';
 import { getUserById } from '../../../server/auth/users.js';
 import { getKamPointsSummary } from '../../../server/auth/kamPoints.js';
+import { KAM_REWARD_RULES, syncEligibleKamRewards } from '../../../server/auth/kamRewards.js';
 
 export async function onRequestGet({ request, env }) {
   try {
@@ -25,12 +26,15 @@ export async function onRequestGet({ request, env }) {
       return json({ authenticated: false }, { status: 401, headers: { 'Cache-Control': 'no-store' } });
     }
 
+    const newlyGranted = await syncEligibleKamRewards(env.AUTH_DB, user);
     const points = await getKamPointsSummary(env.AUTH_DB, user.id);
     return json({
       unit: 'KAM_POINTS',
       onChain: false,
       transferable: false,
       redeemable: false,
+      rewardRules: KAM_REWARD_RULES,
+      newlyGranted,
       ...points,
     }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
