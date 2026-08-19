@@ -1,0 +1,23 @@
+{
+  "name": "KriptoAman Mainnet",
+  "shortName": "KriptoAman",
+  "chainId": 22028,
+  "chainIdHex": "0x560c",
+  "nativeCurrency": {
+    "name": "KriptoAman",
+    "symbol": "KAM",
+    "decimals": 18
+  },
+  "rpcUrls": [
+    "https://rpc.kriptoaman.com"
+  ],
+  "blockExplorerUrls": [
+    "https://explorer.kriptoaman.com"
+  ],
+  "iconUrls": [
+    "https://kriptoaman.com/brand/kriptoaman-mark.svg"
+  ],
+  "status": "active",
+  "transactionModel": "EVM-compatible",
+  "gasPolicy": "Current network configuration accepts zero-effective-gas transactions; production gas economics remain subject to final network policy."
+}
