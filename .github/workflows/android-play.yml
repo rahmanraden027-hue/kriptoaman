@@ -2,6 +2,12 @@ name: Android Release Artifacts
 
 on:
   workflow_dispatch:
+    inputs:
+      signed_release:
+        description: 'Build signed Play AAB/APK'
+        required: false
+        default: true
+        type: boolean
   pull_request:
     branches:
       - main
@@ -35,6 +41,8 @@ jobs:
     permissions:
       contents: read
       statuses: write
+    env:
+      SIGNED_RELEASE: ${{ startsWith(github.ref, 'refs/tags/android-v') || (github.event_name == 'workflow_dispatch' && inputs.signed_release) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -47,18 +55,20 @@ jobs:
           java-version: '21'
           cache: gradle
       - run: npm ci --legacy-peer-deps
+
       - name: Run release regression tests
         run: npm run test
+
       - name: Build web app and sync Capacitor
         run: npm run android:sync
 
       - name: Build unsigned Android preflight artifacts
-        if: github.event_name == 'pull_request'
+        if: env.SIGNED_RELEASE != 'true'
         working-directory: android
         run: ./gradlew bundleRelease assembleRelease
 
       - name: Verify unsigned preflight artifacts
-        if: github.event_name == 'pull_request'
+        if: env.SIGNED_RELEASE != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -67,7 +77,7 @@ jobs:
           ls -lh android/app/build/outputs/bundle/release/app-release.aab android/app/build/outputs/apk/release/app-release-unsigned.apk
 
       - name: Upload Android preflight AAB
-        if: github.event_name == 'pull_request'
+        if: env.SIGNED_RELEASE != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: kriptoaman-preflight-aab
@@ -75,7 +85,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload Android preflight APK
-        if: github.event_name == 'pull_request'
+        if: env.SIGNED_RELEASE != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: kriptoaman-preflight-apk
@@ -83,7 +93,7 @@ jobs:
           if-no-files-found: error
 
       - name: Validate Play signing configuration
-        if: github.event_name != 'pull_request'
+        if: env.SIGNED_RELEASE == 'true'
         shell: bash
         env:
           PLAY_KEYSTORE_BASE64: ${{ secrets.PLAY_KEYSTORE_BASE64 }}
@@ -98,7 +108,7 @@ jobs:
           : "${PLAY_KEY_PASSWORD:?Missing PLAY_KEY_PASSWORD secret}"
 
       - name: Restore and verify Play signing key
-        if: github.event_name != 'pull_request'
+        if: env.SIGNED_RELEASE == 'true'
         shell: bash
         env:
           PLAY_KEYSTORE_BASE64: ${{ secrets.PLAY_KEYSTORE_BASE64 }}
@@ -111,7 +121,7 @@ jobs:
           keytool -list -keystore android/app/kriptoaman-release.jks -storepass "$PLAY_KEYSTORE_PASSWORD" -alias "$PLAY_KEY_ALIAS" >/dev/null
 
       - name: Build signed release AAB and APK
-        if: github.event_name != 'pull_request'
+        if: env.SIGNED_RELEASE == 'true'
         working-directory: android
         env:
           PLAY_KEYSTORE_PASSWORD: ${{ secrets.PLAY_KEYSTORE_PASSWORD }}
@@ -120,7 +130,7 @@ jobs:
         run: ./gradlew bundleRelease assembleRelease -PKRIPTOAMAN_KEYSTORE_FILE=kriptoaman-release.jks -PKRIPTOAMAN_KEYSTORE_PASSWORD="$PLAY_KEYSTORE_PASSWORD" -PKRIPTOAMAN_KEY_ALIAS="$PLAY_KEY_ALIAS" -PKRIPTOAMAN_KEY_PASSWORD="$PLAY_KEY_PASSWORD"
 
       - name: Verify signed release artifacts
-        if: github.event_name != 'pull_request'
+        if: env.SIGNED_RELEASE == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -129,11 +139,11 @@ jobs:
           ls -lh android/app/build/outputs/bundle/release/app-release.aab android/app/build/outputs/apk/release/app-release.apk
 
       - name: Create APK checksum
-        if: github.event_name != 'pull_request'
+        if: env.SIGNED_RELEASE == 'true'
         run: sha256sum android/app/build/outputs/apk/release/app-release.apk > android/app/build/outputs/apk/release/app-release.apk.sha256
 
       - name: Upload signed Play AAB
-        if: github.event_name != 'pull_request'
+        if: env.SIGNED_RELEASE == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: kriptoaman-play-aab
@@ -141,7 +151,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload signed direct APK
-        if: github.event_name != 'pull_request'
+        if: env.SIGNED_RELEASE == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: kriptoaman-direct-apk
@@ -150,20 +160,21 @@ jobs:
             android/app/build/outputs/apk/release/app-release.apk.sha256
           if-no-files-found: error
 
-      - name: Publish signed Android release status
-        if: always() && github.event_name != 'pull_request'
+      - name: Publish Android build status
+        if: always()
         uses: actions/github-script@v7
         with:
           script: |
             const succeeded = '${{ job.status }}' === 'success';
+            const signed = '${{ env.SIGNED_RELEASE }}' === 'true';
             await github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
               sha: context.sha,
               state: succeeded ? 'success' : 'failure',
-              context: 'kriptoaman/android-signed-release',
+              context: signed ? 'kriptoaman/android-signed-release' : 'kriptoaman/android-preflight',
               description: succeeded
-                ? 'Signed Android AAB/APK release artifacts built successfully'
-                : 'Signed Android release failed; inspect the Actions run',
+                ? (signed ? 'Signed Android AAB/APK built successfully' : 'Unsigned Android preflight AAB/APK built successfully')
+                : (signed ? 'Signed Android release failed; inspect Actions' : 'Android preflight failed; inspect Actions'),
               target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
             });
