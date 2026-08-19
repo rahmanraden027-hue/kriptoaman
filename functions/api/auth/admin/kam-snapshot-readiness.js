@@ -7,9 +7,11 @@ import { getUserById } from '../../../../server/auth/users.js';
 import { recordAdminAudit } from '../../../../server/auth/adminAudit.js';
 import {
   buildKamPointsAuditPreview,
+  compareKamPointsAuditSnapshots,
   freezeKamPointsAuditSnapshot,
   getKamPointsAuditSnapshotEntries,
   listKamPointsAuditSnapshots,
+  verifyKamPointsAuditSnapshot,
 } from '../../../../server/auth/kamSnapshotAudit.js';
 
 async function requireAdmin(request, env) {
@@ -31,6 +33,20 @@ export async function onRequestGet({ request, env }) {
     const admin = await requireAdmin(request, env);
     if (!admin) return json({ error: 'Admin access with 2FA required' }, { status: 403 });
 
+    const url = new URL(request.url);
+    const action = String(url.searchParams.get('action') || '').toLowerCase();
+    if (action === 'verify') {
+      const snapshotId = url.searchParams.get('snapshotId');
+      if (!snapshotId) return json({ error: 'snapshotId required' }, { status: 400 });
+      return json({ verification: await verifyKamPointsAuditSnapshot(env.AUTH_DB, snapshotId) }, { headers: { 'Cache-Control': 'no-store' } });
+    }
+    if (action === 'compare') {
+      const baseSnapshotId = url.searchParams.get('baseSnapshotId');
+      const targetSnapshotId = url.searchParams.get('targetSnapshotId');
+      if (!baseSnapshotId || !targetSnapshotId) return json({ error: 'baseSnapshotId and targetSnapshotId required' }, { status: 400 });
+      return json({ comparison: await compareKamPointsAuditSnapshots(env.AUTH_DB, baseSnapshotId, targetSnapshotId) }, { headers: { 'Cache-Control': 'no-store' } });
+    }
+
     const [preview, snapshots] = await Promise.all([
       buildKamPointsAuditPreview(env.AUTH_DB),
       listKamPointsAuditSnapshots(env.AUTH_DB),
@@ -42,7 +58,9 @@ export async function onRequestGet({ request, env }) {
     return json({ preview, snapshots, latestEntries }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     console.error('KAM snapshot readiness lookup failed', error);
-    return json({ error: 'Snapshot readiness service unavailable' }, { status: 503 });
+    const message = String(error?.message || '');
+    const status = message.includes('not found') || message.includes('required') ? 400 : 503;
+    return json({ error: message || 'Snapshot readiness service unavailable' }, { status });
   }
 }
 
