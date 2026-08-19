@@ -1,0 +1,132 @@
+/* KriptoAman Final UI v6 — cross-page mobile consistency for Market, Portfolio, Watch and Security.
+   Presentation-only: no auth, KYC, wallet, market-data or admin behavior changes. */
+
+:root {
+  --ka-v6-panel: rgba(7, 18, 32, .86);
+  --ka-v6-panel-strong: rgba(7, 20, 36, .96);
+  --ka-v6-line: rgba(87, 215, 255, .15);
+  --ka-v6-line-strong: rgba(87, 215, 255, .28);
+}
+
+/* One vertical rhythm across primary mobile destinations. */
+@media (max-width: 1023px) {
+  .ka-bg > .mx-auto.max-w-7xl,
+  .ka-bg > .mx-auto.max-w-6xl,
+  .ka-workspace-page > .mx-auto.max-w-7xl {
+    padding-top: 14px !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .ka-bg > .mx-auto.max-w-7xl.space-y-4,
+  .ka-bg > .mx-auto.max-w-7xl.space-y-5,
+  .ka-bg > .mx-auto.max-w-6xl.space-y-5,
+  .ka-workspace-page > .mx-auto.max-w-7xl.space-y-5 {
+    row-gap: 14px !important;
+  }
+
+  /* Primary hero cards: denser, calmer, consistent with the native bottom bar. */
+  .ka-bg > .mx-auto.max-w-7xl > section:first-child,
+  .ka-bg > .mx-auto.max-w-6xl > section:first-child,
+  .ka-workspace-page > .mx-auto.max-w-7xl > section:first-child {
+    border-radius: 22px !important;
+    border-color: var(--ka-v6-line) !important;
+    box-shadow: 0 18px 48px -28px rgba(0, 0, 0, .72), inset 0 1px 0 rgba(255,255,255,.03) !important;
+  }
+
+  .ka-workspace-page .ka-command-hero {
+    padding: 18px !important;
+    border-radius: 22px !important;
+  }
+
+  .ka-workspace-page .ka-command-hero h1,
+  .ka-bg > .mx-auto.max-w-7xl > section:first-child h1,
+  .ka-bg > .mx-auto.max-w-6xl > section:first-child h1 {
+    font-size: clamp(1.35rem, 6vw, 1.85rem) !important;
+    line-height: 1.08 !important;
+    letter-spacing: -.035em !important;
+  }
+
+  .ka-workspace-page .ka-command-hero p,
+  .ka-bg > .mx-auto.max-w-7xl > section:first-child p,
+  .ka-bg > .mx-auto.max-w-6xl > section:first-child p {
+    line-height: 1.55;
+  }
+
+  /* Command surfaces and standard cards now share a common edge language. */
+  .ka-command-panel,
+  .ka-command-tile,
+  .ka-surface {
+    border-color: var(--ka-v6-line) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.025), 0 14px 40px -30px rgba(0,0,0,.8) !important;
+  }
+
+  .ka-command-panel { border-radius: 18px !important; }
+  .ka-command-tile { border-radius: 16px !important; }
+  .ka-surface { border-radius: 18px !important; }
+
+  /* Small status / metric tiles become compact and more readable. */
+  .ka-bg [class*="grid-cols-3"] > [class*="rounded-2xl"],
+  .ka-bg [class*="grid-cols-2"] > [class*="rounded-2xl"] {
+    min-width: 0;
+  }
+
+  .ka-bg [class*="grid-cols-3"] > [class*="rounded-2xl"] p,
+  .ka-bg [class*="grid-cols-2"] > [class*="rounded-2xl"] p {
+    overflow-wrap: anywhere;
+  }
+
+  /* Buttons/links align visually across Market, Portfolio, Watch and Security. */
+  .ka-bg a[class*="rounded-xl"],
+  .ka-bg button[class*="rounded-xl"],
+  .ka-bg a[class*="rounded-2xl"],
+  .ka-bg button[class*="rounded-2xl"] {
+    min-height: 42px;
+  }
+
+  /* Bottom clearance is normalized for the fixed native-style nav. */
+  .ka-bg.min-h-screen,
+  .ka-workspace-page.min-h-screen {
+    padding-bottom: max(96px, calc(82px + env(safe-area-inset-bottom, 0px))) !important;
+  }
+}
+
+/* Market: search/filter area stays compact on narrow Android screens. */
+@media (max-width: 639px) {
+  .ka-bg input[type="search"],
+  .ka-bg input[placeholder*="Cari"],
+  .ka-bg input[placeholder*="Search"] {
+    min-height: 42px !important;
+    border-radius: 13px !important;
+  }
+
+  .ka-bg table th,
+  .ka-bg table td {
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+  }
+
+  .ka-workspace-page .ka-command-hero {
+    padding: 16px !important;
+  }
+
+  .ka-command-panel {
+    padding: 15px !important;
+  }
+
+  /* Security feature grid: reduce vertical bulk while preserving 44px touch targets. */
+  .ka-bg button.w-full .ka-surface,
+  .ka-bg a > .ka-surface {
+    min-height: 96px;
+  }
+}
+
+/* Active / interactive card states remain subtle rather than glowing excessively. */
+@media (hover:hover) and (pointer:fine) {
+  .ka-command-tile:hover,
+  .ka-command-panel:hover,
+  .ka-surface-hover:hover {
+    border-color: var(--ka-v6-line-strong) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 18px 46px -30px rgba(36,156,255,.24) !important;
+  }
+}
