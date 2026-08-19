@@ -38,6 +38,8 @@ export const kriptoAuth = {
   async getKamCampaigns() { return request('/api/auth/admin/kam-campaigns'); },
   async getKamAnalytics() { return request('/api/auth/admin/kam-analytics'); },
   async getKamSnapshotReadiness() { return request('/api/auth/admin/kam-snapshot-readiness'); },
+  async verifyKamAuditSnapshot(snapshotId) { return request(`/api/auth/admin/kam-snapshot-readiness?action=verify&snapshotId=${encodeURIComponent(snapshotId)}`); },
+  async compareKamAuditSnapshots(baseSnapshotId, targetSnapshotId) { return request(`/api/auth/admin/kam-snapshot-readiness?action=compare&baseSnapshotId=${encodeURIComponent(baseSnapshotId)}&targetSnapshotId=${encodeURIComponent(targetSnapshotId)}`); },
   async freezeKamPointsAuditSnapshot(code) { return request('/api/auth/admin/kam-snapshot-readiness', { method: 'POST', body: JSON.stringify({ code }) }); },
   async createKamCampaign(campaign) { return request('/api/auth/admin/kam-campaigns', { method: 'POST', body: JSON.stringify(campaign) }); },
   async updateKamCampaignStatus(code, status) { return request('/api/auth/admin/kam-campaigns', { method: 'PATCH', body: JSON.stringify({ code, status }) }); },
