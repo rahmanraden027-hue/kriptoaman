@@ -19,6 +19,70 @@ async function requireAdmin(request, env) {
   return user;
 }
 
+export async function onRequestGet({ request, env }) {
+  try {
+    requireBindings(env, ['AUTH_DB', 'SESSION_SECRET']);
+    await ensureAuthSchema(env.AUTH_DB);
+    const admin = await requireAdmin(request, env);
+    if (!admin) return json({ error: 'Admin access with 2FA required' }, { status: 403 });
+
+    const totals = await env.AUTH_DB.prepare(`
+      SELECT
+        COALESCE(SUM(amount), 0) AS total_points,
+        COUNT(*) AS total_entries,
+        COUNT(DISTINCT user_id) AS rewarded_users,
+        COUNT(DISTINCT CASE WHEN source = 'reward.campaign' THEN reference_id END) AS campaign_grants
+      FROM kam_points_ledger
+    `).first();
+
+    const recent = await env.AUTH_DB.prepare(`
+      SELECT l.id, l.user_id, u.email, u.full_name, l.amount, l.reason, l.source,
+             l.reference_id, l.metadata_json, l.created_at
+      FROM kam_points_ledger l
+      JOIN auth_users u ON u.id = l.user_id
+      ORDER BY l.created_at DESC
+      LIMIT 50
+    `).all();
+
+    const rows = (recent?.results || []).map((row) => {
+      let metadata = {};
+      try { metadata = row.metadata_json ? JSON.parse(row.metadata_json) : {}; } catch { metadata = {}; }
+      return {
+        id: row.id,
+        userId: row.user_id,
+        email: row.email,
+        fullName: row.full_name || null,
+        amount: Number(row.amount || 0),
+        reason: row.reason,
+        source: row.source,
+        referenceId: row.reference_id || null,
+        metadata,
+        createdAt: row.created_at,
+      };
+    });
+
+    return json({
+      totals: {
+        totalPoints: Number(totals?.total_points || 0),
+        totalEntries: Number(totals?.total_entries || 0),
+        rewardedUsers: Number(totals?.rewarded_users || 0),
+        campaignGrants: Number(totals?.campaign_grants || 0),
+      },
+      recent: rows,
+      policy: {
+        unit: 'KAM_POINTS',
+        onChain: false,
+        transferable: false,
+        redeemable: false,
+        maxCampaignGrant: 100000,
+      },
+    }, { headers: { 'Cache-Control': 'no-store' } });
+  } catch (error) {
+    console.error('KAM rewards dashboard lookup failed', error);
+    return json({ error: 'KAM reward service unavailable' }, { status: 503 });
+  }
+}
+
 export async function onRequestPost({ request, env }) {
   try {
     requireBindings(env, ['AUTH_DB', 'SESSION_SECRET']);
