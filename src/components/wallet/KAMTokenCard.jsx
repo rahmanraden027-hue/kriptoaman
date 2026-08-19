@@ -1,12 +1,42 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ShieldCheck, Clock3, Sparkles, Users, Gift, ArrowRight, X } from 'lucide-react';
 import KriptoAmanLogo from '../brand/KriptoAmanLogo';
 import { useLanguage } from '@/lib/LanguageContext';
 
-export default function KAMTokenCard({ userBalance = 0 }) {
+export default function KAMTokenCard() {
   const { language } = useLanguage();
   const [showAcquireFlow, setShowAcquireFlow] = useState(false);
+  const [points, setPoints] = useState({ balance: 0, history: [] });
+  const [pointsLoading, setPointsLoading] = useState(true);
+  const [pointsError, setPointsError] = useState('');
   const en = language === 'en';
+
+  useEffect(() => {
+    let active = true;
+    setPointsLoading(true);
+    setPointsError('');
+    fetch('/api/auth/kam-points', { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('KAM Points unavailable');
+        return response.json();
+      })
+      .then((data) => {
+        if (!active) return;
+        setPoints({
+          balance: Number(data?.balance || 0),
+          history: Array.isArray(data?.history) ? data.history : [],
+        });
+      })
+      .catch(() => {
+        if (!active) return;
+        setPointsError(en ? 'KAM Points could not be loaded.' : 'KAM Points belum dapat dimuat.');
+      })
+      .finally(() => {
+        if (active) setPointsLoading(false);
+      });
+
+    return () => { active = false; };
+  }, [en]);
 
   const paths = [
     {
@@ -52,15 +82,21 @@ export default function KAMTokenCard({ userBalance = 0 }) {
 
         <div className="mt-5 grid grid-cols-2 gap-3">
           <div className="rounded-xl bg-black/15 p-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-sky-100">{en ? 'Account record' : 'Catatan akun'}</p>
-            <p className="mt-1 text-2xl font-bold">{Number(userBalance || 0).toLocaleString(en ? 'en-US' : 'id-ID')} KAM</p>
-            <p className="mt-1 text-[10px] text-sky-100/70">{en ? 'Not an on-chain or custodial balance.' : 'Bukan saldo on-chain atau aset kustodian.'}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-sky-100">KAM Points</p>
+            <p className="mt-1 text-2xl font-bold">
+              {pointsLoading ? '—' : Number(points.balance || 0).toLocaleString(en ? 'en-US' : 'id-ID')}
+            </p>
+            <p className="mt-1 text-[10px] text-sky-100/70">
+              {en ? 'Off-chain reward points. Not a token balance.' : 'Poin reward off-chain. Bukan saldo token.'}
+            </p>
           </div>
           <div className="rounded-xl bg-black/15 p-3">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-sky-100">{en ? 'Market price' : 'Harga pasar'}</p>
             <p className="mt-1 text-lg font-bold">{en ? 'Not available yet' : 'Belum tersedia'}</p>
           </div>
         </div>
+
+        {pointsError && <p className="mt-3 text-xs text-amber-200">{pointsError}</p>}
 
         <button
           type="button"
@@ -105,6 +141,20 @@ export default function KAMTokenCard({ userBalance = 0 }) {
               </div>
             ))}
           </div>
+
+          {points.history.length > 0 && (
+            <div className="mt-4 rounded-xl border border-sky-400/10 bg-slate-950/35 p-3">
+              <p className="text-xs font-bold text-white">{en ? 'Recent KAM Points activity' : 'Aktivitas KAM Points terbaru'}</p>
+              <div className="mt-2 space-y-2">
+                {points.history.slice(0, 5).map((item) => (
+                  <div key={item.id} className="flex items-center justify-between gap-3 text-xs">
+                    <span className="truncate text-slate-400">{item.reason}</span>
+                    <span className="shrink-0 font-bold text-emerald-300">+{Number(item.amount).toLocaleString(en ? 'en-US' : 'id-ID')}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="mt-4 rounded-xl border border-emerald-400/15 bg-emerald-400/5 p-3">
             <p className="text-xs font-semibold text-emerald-300">{en ? 'Mainnet migration' : 'Migrasi mainnet'}</p>
