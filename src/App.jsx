@@ -19,6 +19,7 @@ import AdminRoute from '@/components/security/AdminRoute';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt';
 import PrimaryBottomNav from '@/components/mobile/PrimaryBottomNav';
+import NativeConnectivityBanner from '@/components/mobile/NativeConnectivityBanner';
 import { LanguageProvider } from '@/lib/LanguageContext';
 
 const FeatureUpdateBroadcast = lazy(() => import('./pages/FeatureUpdateBroadcast'));
@@ -65,8 +66,6 @@ const PublicMarketWithNav = ({ Page }) => (
   </div>
 );
 
-// Hanya halaman yang memang ditujukan untuk publik boleh dilewati tanpa autentikasi.
-// Dokumentasi internal seperti PlatformDocs tetap berada di balik ProtectedRoute.
 const PUBLIC_PAGE_KEYS = new Set([
   'AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'TermsOfService',
   'AccountDeletion', 'Market',
@@ -190,6 +189,7 @@ function App() {
         <QueryClientProvider client={queryClientInstance}>
           <Router>
             <NavigationTracker />
+            <NativeConnectivityBanner />
             <AppErrorBoundary>
               <AuthenticatedApp />
             </AppErrorBoundary>
