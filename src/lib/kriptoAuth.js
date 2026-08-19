@@ -77,6 +77,17 @@ export const kriptoAuth = {
     });
   },
 
+  async getKamPoints() {
+    return request('/api/auth/kam-points');
+  },
+
+  async grantKamCampaignReward({ email, campaignId, amount, reason }) {
+    return request('/api/auth/admin/kam-rewards', {
+      method: 'POST',
+      body: JSON.stringify({ email, campaignId, amount, reason }),
+    });
+  },
+
   async requestAdminLink(email) {
     return request('/api/auth/admin/request-link', { method: 'POST', body: JSON.stringify({ email }) });
   },
