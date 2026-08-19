@@ -36,7 +36,7 @@ const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
 const DashboardPage = Pages.Home ?? MainPage;
 
 const ADMIN_PAGE_KEYS = new Set([
-  'AdminKYCManagement', 'AdminPlatformAssets', 'AdminProfitAnalytics', 'AdminUserBalances',
+  'AdminKAMRewards', 'AdminKYCManagement', 'AdminPlatformAssets', 'AdminProfitAnalytics', 'AdminUserBalances',
   'ServerControl', 'BigQueryKYCReports', 'RegulatoryDocs', 'AppBuildAnalytics',
   'AssetManager', 'SecureVault', 'AMLDashboard', 'SecurityCenter',
   'FeatureUpdateBroadcast',
