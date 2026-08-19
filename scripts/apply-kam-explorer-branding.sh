@@ -30,6 +30,9 @@ sed -i \
   -e '/^NEXT_PUBLIC_AD_BANNER_PROVIDER=/d' \
   -e '/^NEXT_PUBLIC_AD_TEXT_PROVIDER=/d' \
   -e '/^NEXT_PUBLIC_OG_DESCRIPTION=/d' \
+  -e '/^NEXT_PUBLIC_NAVIGATION_LAYOUT=/d' \
+  -e '/^NEXT_PUBLIC_SEO_ENHANCED_DATA_ENABLED=/d' \
+  -e '/^NEXT_PUBLIC_OG_ENHANCED_DATA_ENABLED=/d' \
   "$ENV_FILE"
 
 cat >> "$ENV_FILE" <<'EOF'
@@ -50,7 +53,10 @@ FAVICON_MASTER_URL=https://kriptoaman.com/brand/kriptoaman-mark.svg
 NEXT_PUBLIC_PROMOTE_BLOCKSCOUT_IN_TITLE=false
 NEXT_PUBLIC_AD_BANNER_PROVIDER=none
 NEXT_PUBLIC_AD_TEXT_PROVIDER=none
-NEXT_PUBLIC_OG_DESCRIPTION=KriptoAman Explorer - Official explorer for KriptoAman Mainnet, KAM blocks, transactions, addresses and network activity.
+NEXT_PUBLIC_NAVIGATION_LAYOUT=horizontal
+NEXT_PUBLIC_SEO_ENHANCED_DATA_ENABLED=true
+NEXT_PUBLIC_OG_ENHANCED_DATA_ENABLED=false
+NEXT_PUBLIC_OG_DESCRIPTION=KriptoAman Explorer adalah penjelajah resmi KriptoAman Mainnet untuk blok, transaksi, alamat, dan aktivitas jaringan KAM.
 EOF
 
 # Validate public brand assets before restarting frontend.
@@ -73,10 +79,13 @@ sleep 5
 echo "=== SERVICES ==="
 docker compose ps frontend proxy backend db
 
+echo "=== EFFECTIVE BRAND ENV ==="
+docker compose exec -T frontend sh -c 'env | grep -E "NEXT_PUBLIC_NETWORK_(NAME|SHORT_NAME|ID|CURRENCY|LOGO|ICON)|NEXT_PUBLIC_NAVIGATION_LAYOUT|NEXT_PUBLIC_PROMOTE_BLOCKSCOUT_IN_TITLE|NEXT_PUBLIC_OG_DESCRIPTION|FAVICON_MASTER_URL" | sort' || true
+
 echo "=== LOCAL EXPLORER ==="
 curl -sSI http://127.0.0.1:8080 | head -n 1 || true
 
 echo "=== PUBLIC EXPLORER ==="
 curl -sSI https://explorer.kriptoaman.com | head -n 1 || true
 
-echo "KriptoAman Explorer branding applied."
+echo "KriptoAman Explorer final branding applied."
