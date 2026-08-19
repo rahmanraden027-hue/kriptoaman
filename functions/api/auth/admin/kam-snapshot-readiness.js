@@ -6,11 +6,13 @@ import { getTotpSettings } from '../../../../server/auth/totp.js';
 import { getUserById } from '../../../../server/auth/users.js';
 import { recordAdminAudit } from '../../../../server/auth/adminAudit.js';
 import {
+  approveKamPointsAuditSnapshot,
   buildKamPointsAuditPreview,
   compareKamPointsAuditSnapshots,
   freezeKamPointsAuditSnapshot,
   getKamPointsAuditSnapshotEntries,
   listKamPointsAuditSnapshots,
+  reviewKamPointsAuditSnapshot,
   verifyKamPointsAuditSnapshot,
 } from '../../../../server/auth/kamSnapshotAudit.js';
 
@@ -47,14 +49,8 @@ export async function onRequestGet({ request, env }) {
       return json({ comparison: await compareKamPointsAuditSnapshots(env.AUTH_DB, baseSnapshotId, targetSnapshotId) }, { headers: { 'Cache-Control': 'no-store' } });
     }
 
-    const [preview, snapshots] = await Promise.all([
-      buildKamPointsAuditPreview(env.AUTH_DB),
-      listKamPointsAuditSnapshots(env.AUTH_DB),
-    ]);
-    const latestEntries = snapshots[0]
-      ? await getKamPointsAuditSnapshotEntries(env.AUTH_DB, snapshots[0].id, { limit: 100 })
-      : [];
-
+    const [preview, snapshots] = await Promise.all([buildKamPointsAuditPreview(env.AUTH_DB), listKamPointsAuditSnapshots(env.AUTH_DB)]);
+    const latestEntries = snapshots[0] ? await getKamPointsAuditSnapshotEntries(env.AUTH_DB, snapshots[0].id, { limit: 100 }) : [];
     return json({ preview, snapshots, latestEntries }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     console.error('KAM snapshot readiness lookup failed', error);
@@ -71,26 +67,55 @@ export async function onRequestPost({ request, env }) {
     await ensureAuthSchema(env.AUTH_DB);
     const admin = await requireAdmin(request, env);
     if (!admin) return json({ error: 'Admin access with 2FA required' }, { status: 403 });
-
     const body = await request.json();
     const snapshot = await freezeKamPointsAuditSnapshot(env.AUTH_DB, admin.id, body?.code);
     await recordAdminAudit(env.AUTH_DB, request, admin, 'kam_points.audit_snapshot.freeze', {
-      targetType: 'kam_points_audit_snapshot',
-      targetId: snapshot.id,
-      metadata: {
-        code: snapshot.code,
-        totalUsers: snapshot.totalUsers,
-        totalPoints: snapshot.totalPoints,
-        manifestHash: snapshot.manifestHash,
-        auditOnly: true,
-      },
+      targetType: 'kam_points_audit_snapshot', targetId: snapshot.id,
+      metadata: { code: snapshot.code, totalUsers: snapshot.totalUsers, totalPoints: snapshot.totalPoints, manifestHash: snapshot.manifestHash, approvalStatus: 'DRAFT', auditOnly: true },
     });
-
     return json({ frozen: true, snapshot }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     console.error('KAM snapshot freeze failed', error);
     const message = String(error?.message || '');
     const status = message.includes('Invalid') || message.includes('exists') || message.includes('No eligible') ? 400 : 503;
     return json({ error: message || 'Snapshot readiness service unavailable' }, { status });
+  }
+}
+
+export async function onRequestPatch({ request, env }) {
+  try {
+    requireBindings(env, ['AUTH_DB', 'SESSION_SECRET']);
+    requireSameOrigin(request, env);
+    await ensureAuthSchema(env.AUTH_DB);
+    const admin = await requireAdmin(request, env);
+    if (!admin) return json({ error: 'Admin access with 2FA required' }, { status: 403 });
+    const body = await request.json();
+    const action = String(body?.action || '').trim().toLowerCase();
+    const snapshotId = String(body?.snapshotId || '').trim();
+    const notes = String(body?.notes || '').trim();
+    if (!snapshotId) return json({ error: 'snapshotId required' }, { status: 400 });
+
+    if (action === 'review') {
+      const review = await reviewKamPointsAuditSnapshot(env.AUTH_DB, admin.id, snapshotId, notes);
+      await recordAdminAudit(env.AUTH_DB, request, admin, 'kam_points.audit_snapshot.review', {
+        targetType: 'kam_points_audit_snapshot', targetId: snapshotId, metadata: { notes, integrityOk: review.integrity.integrityOk, auditOnly: true },
+      });
+      return json({ updated: true, review, snapshots: await listKamPointsAuditSnapshots(env.AUTH_DB) }, { headers: { 'Cache-Control': 'no-store' } });
+    }
+
+    if (action === 'approve') {
+      const approval = await approveKamPointsAuditSnapshot(env.AUTH_DB, admin.id, snapshotId, notes);
+      await recordAdminAudit(env.AUTH_DB, request, admin, 'kam_points.audit_snapshot.approve', {
+        targetType: 'kam_points_audit_snapshot', targetId: snapshotId, metadata: { notes, integrityOk: approval.integrity.integrityOk, lockedAt: approval.lockedAt, dualControl: true, auditOnly: true },
+      });
+      return json({ updated: true, approval, snapshots: await listKamPointsAuditSnapshots(env.AUTH_DB) }, { headers: { 'Cache-Control': 'no-store' } });
+    }
+
+    return json({ error: 'Unsupported approval action' }, { status: 400 });
+  } catch (error) {
+    console.error('KAM snapshot approval action failed', error);
+    const message = String(error?.message || '');
+    const status = /required|not found|must be reviewed|different approver|integrity|locked/i.test(message) ? 400 : 503;
+    return json({ error: message || 'Snapshot approval service unavailable' }, { status });
   }
 }
