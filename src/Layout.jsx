@@ -134,6 +134,18 @@ export default function Layout({ children, currentPageName }) {
             body { overflow: auto; height: 100%; }
             .safe-area-pb { padding-bottom: env(safe-area-inset-bottom, 16px); }
             .safe-area-pt { padding-top: env(safe-area-inset-top, 0px); }
+            .ka-embedded-nav {
+              bottom: calc(0.65rem + env(safe-area-inset-bottom, 0px));
+              box-shadow: 0 18px 50px rgba(0,0,0,.58), 0 0 0 1px rgba(56,189,248,.04) inset;
+            }
+            .ka-embedded-nav::before {
+              content: '';
+              position: absolute;
+              inset: 0;
+              border-radius: inherit;
+              pointer-events: none;
+              background: linear-gradient(180deg, rgba(56,189,248,.06), transparent 38%);
+            }
           `}</style>
 
           <PWAUpdateNotification />
@@ -247,17 +259,20 @@ export default function Layout({ children, currentPageName }) {
             </Suspense>
           </div>
 
-          <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#06101b]/97 backdrop-blur-xl border-t border-sky-500/20 safe-area-pb shadow-[0_-12px_32px_rgba(0,0,0,0.35)]">
-            <div className="flex justify-around items-center py-2 px-1">
+          <nav className="ka-embedded-nav lg:hidden fixed left-3 right-3 z-40 rounded-[28px] border border-sky-400/20 bg-[#071321]/94 backdrop-blur-2xl p-1.5">
+            <div className="relative z-10 grid grid-cols-5 gap-1.5">
               {BOTTOM_NAV.map(({ id, page, icon: Icon }) => {
                 const label = navLabels[id];
                 const active = currentPageName === page;
                 return (
                   <Link key={page} to={createPageUrl(page)}
-                    className={`relative flex flex-1 flex-col items-center justify-center gap-1.5 min-h-[58px] min-w-[56px] rounded-xl transition-all ${active ? 'text-sky-400 bg-sky-500/8' : 'text-slate-400 hover:text-white'}`}>
-                    {active && <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-sky-400 rounded-full shadow-[0_0_12px_rgba(56,189,248,.75)]" />}
-                    <Icon className={`w-5 h-5 ${active ? 'text-sky-400' : ''}`} />
-                    <span className={`text-[11px] font-semibold ${active ? 'text-sky-300' : ''}`}>{label}</span>
+                    aria-current={active ? 'page' : undefined}
+                    className={`relative flex min-w-0 flex-col items-center justify-center gap-1 min-h-[62px] rounded-[20px] border px-1 transition-all duration-200 ${active ? 'border-sky-400/45 bg-gradient-to-b from-sky-400/20 to-blue-500/10 text-sky-300 shadow-[0_8px_24px_rgba(14,165,233,.16),inset_0_1px_0_rgba(255,255,255,.08)]' : 'border-white/[0.06] bg-slate-950/35 text-slate-400 hover:border-sky-400/20 hover:bg-sky-500/[0.07] hover:text-slate-200'}`}>
+                    {active && <span className="absolute top-1 left-1/2 -translate-x-1/2 w-7 h-[2px] bg-sky-300 rounded-full shadow-[0_0_12px_rgba(125,211,252,.85)]" />}
+                    <span className={`flex h-7 w-7 items-center justify-center rounded-xl ${active ? 'bg-sky-400/12 ring-1 ring-sky-300/20' : 'bg-white/[0.025]'}`}>
+                      <Icon className={`w-[18px] h-[18px] ${active ? 'text-sky-300' : ''}`} />
+                    </span>
+                    <span className={`w-full truncate text-center text-[10px] leading-none font-bold ${active ? 'text-sky-200' : ''}`}>{label}</span>
                   </Link>
                 );
               })}
@@ -286,7 +301,7 @@ export default function Layout({ children, currentPageName }) {
             </div>
           )}
 
-          <div className="h-20 lg:h-6" />
+          <div className="h-28 lg:h-6" />
         </div>
       </Web3Provider>
     </DisclaimerGate>
