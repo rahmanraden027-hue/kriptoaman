@@ -1,0 +1,20 @@
+{
+  "status": "mainnet-candidate-not-public",
+  "networkName": "KriptoAman Mainnet",
+  "nativeCurrency": {
+    "name": "KriptoAman",
+    "symbol": "KAM",
+    "decimals": 18
+  },
+  "candidateChainId": 22028,
+  "candidateChainIdHex": "0x560c",
+  "genesisSupplyKAM": "1000000000",
+  "consensus": "QBFT",
+  "validatorCount": 4,
+  "blockPeriodSeconds": 3,
+  "rpcTarget": "https://rpc.kriptoaman.com",
+  "explorerTarget": "https://explorer.kriptoaman.com",
+  "reuseTestnetKeys": false,
+  "publicRpcDirectValidatorExposure": false,
+  "commercialLaunchEnabled": false
+}
