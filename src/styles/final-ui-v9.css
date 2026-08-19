@@ -1,0 +1,161 @@
+/* KriptoAman Final UI v9 — final mobile micro-polish.
+   Presentation only: no auth, market data, portfolio calculations, wallet, KYC, security, or admin behavior changes. */
+
+:root {
+  --ka-v9-line: rgba(87, 215, 255, .14);
+  --ka-v9-line-soft: rgba(148, 163, 184, .10);
+  --ka-v9-panel: rgba(7, 18, 32, .82);
+}
+
+/* Consistent page rhythm across Home, Market, Portfolio, Watch and Security. */
+.ka-bg > .max-w-7xl,
+.ka-bg > .max-w-6xl,
+.ka-workspace-page > .max-w-7xl {
+  scroll-padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+}
+
+.ka-bg h1,
+.ka-command-hero h1 {
+  letter-spacing: -.035em !important;
+}
+
+.ka-bg h2,
+.ka-command-panel h2,
+.ka-surface h2 {
+  letter-spacing: -.018em;
+}
+
+.ka-bg p,
+.ka-command-panel p,
+.ka-surface p {
+  text-rendering: optimizeLegibility;
+}
+
+/* Icon and label alignment. */
+.ka-bg svg,
+.ka-global-shell svg {
+  flex-shrink: 0;
+}
+
+.ka-chip,
+.ka-command-kicker,
+.ka-command-status {
+  align-items: center;
+}
+
+/* Surfaces share one restrained divider and edge language. */
+.ka-surface,
+.ka-command-panel,
+.ka-command-tile {
+  border-color: var(--ka-v9-line) !important;
+}
+
+.ka-surface hr,
+.ka-command-panel hr,
+.ka-bg hr {
+  border-color: var(--ka-v9-line-soft) !important;
+}
+
+/* Buttons and interactive rows remain readable/tappable without looking oversized. */
+.ka-bg button,
+.ka-bg a[class*="rounded"],
+.ka-global-shell nav a {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Mobile bottom navigation — native fixed bar, precise optical alignment. */
+@media (max-width: 1023px) {
+  .ka-global-shell > nav.fixed.bottom-0 {
+    min-height: calc(62px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid rgba(87,215,255,.15) !important;
+    background: rgba(4, 13, 24, .985) !important;
+    backdrop-filter: blur(24px) saturate(125%);
+    -webkit-backdrop-filter: blur(24px) saturate(125%);
+  }
+
+  .ka-global-shell > nav.fixed.bottom-0 > div {
+    min-height: 58px;
+    align-items: stretch !important;
+  }
+
+  .ka-global-shell > nav.fixed.bottom-0 a {
+    min-height: 54px !important;
+    justify-content: center !important;
+  }
+
+  .ka-global-shell > nav.fixed.bottom-0 a svg {
+    stroke-width: 2;
+  }
+
+  .ka-global-shell > nav.fixed.bottom-0 a[aria-current="page"] svg {
+    stroke-width: 2.25;
+  }
+
+  .ka-global-shell > nav.fixed.bottom-0 a span:last-child {
+    letter-spacing: -.01em !important;
+  }
+}
+
+/* Final mobile density pass. */
+@media (max-width: 639px) {
+  .ka-bg > .max-w-7xl,
+  .ka-bg > .max-w-6xl,
+  .ka-workspace-page > .max-w-7xl {
+    padding-left: 13px !important;
+    padding-right: 13px !important;
+  }
+
+  .ka-bg > .max-w-7xl[class*="space-y-5"],
+  .ka-bg > .max-w-6xl[class*="space-y-5"],
+  .ka-workspace-page > .max-w-7xl[class*="space-y-5"] {
+    row-gap: 16px !important;
+  }
+
+  .ka-bg h1,
+  .ka-command-hero h1 {
+    line-height: 1.08 !important;
+  }
+
+  .ka-bg h2,
+  .ka-command-panel h2,
+  .ka-surface h2 {
+    line-height: 1.16;
+  }
+
+  .ka-bg p[class*="text-xs"],
+  .ka-bg p[class*="text-sm"] {
+    line-height: 1.55;
+  }
+
+  .ka-surface,
+  .ka-command-panel,
+  .ka-command-tile,
+  .ka-command-hero,
+  .ka-bg section[class*="rounded-[28px]"] {
+    border-radius: 18px !important;
+  }
+
+  /* Avoid tiny icon/text baselines drifting between cards. */
+  .ka-bg [class*="flex items-center"] > svg + span,
+  .ka-bg [class*="flex items-center"] > svg + p {
+    margin-top: 0;
+  }
+
+  /* Last content block remains fully visible above Android/iOS navigation. */
+  .ka-bg,
+  .ka-workspace-page {
+    padding-bottom: max(96px, calc(78px + env(safe-area-inset-bottom, 0px))) !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .ka-global-shell > nav.fixed.bottom-0 a span:last-child {
+    font-size: 9px !important;
+  }
+
+  .ka-global-shell > nav.fixed.bottom-0 a svg {
+    width: 19px !important;
+    height: 19px !important;
+  }
+}
