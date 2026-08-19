@@ -9,7 +9,7 @@ test('primary navigation is bilingual and meets mobile touch sizing', async () =
   assert.match(layout, /NAV_LABELS/);
   assert.match(layout, /Beranda/);
   assert.match(layout, /Peringatan/);
-  assert.match(layout, /min-h-\[58px\]/);
+  assert.match(layout, /min-h-\[62px\]/);
 });
 
 test('home is focused and avoids duplicate mobile market surfaces', async () => {

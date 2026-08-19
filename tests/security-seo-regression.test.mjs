@@ -63,13 +63,15 @@ test('balance editing is hidden from users and enforced by an admin-only server 
   assert.match(endpoint, /requireSameOrigin/);
   assert.match(endpoint, /Invalid balance values/);
 
-  // The portfolio reads the protected admin balance endpoint only after the
+  // The wallet reads the protected admin balance endpoint only after the
   // authenticated user has been verified as an admin and renders the section
-  // behind the same role condition.
+  // behind the same role condition. The legacy "Portofolio Admin" label must
+  // remain removed from the final user-facing interface.
   assert.match(wallet, /currentUser\?\.role\s*!==\s*'admin'/);
   assert.match(wallet, /kriptoAuth\.getAdminBalance\(\)/);
   assert.match(wallet, /currentUser\?\.role\s*===\s*'admin'/);
-  assert.match(wallet, /Portofolio Admin/);
+  assert.doesNotMatch(wallet, /Portofolio Admin/);
+  assert.match(wallet, /Saldo administrasi internal KriptoAman/);
   assert.match(wallet, /KHUSUS ADMIN/);
   assert.match(wallet, /Tanpa kustodi atau eksekusi transaksi|No custody or transaction execution/);
 });
