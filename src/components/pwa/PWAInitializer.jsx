@@ -88,33 +88,34 @@ export function usePWAInitializer() {
   }, []);
 
   useEffect(() => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return;
 
-    navigator.serviceWorker.ready.then(registration => {
-      registration.pushManager.getSubscription().then(sub => {
-        if (!sub && Notification.permission === 'granted') {
-          subscribeToPushNotifications(registration);
-        }
-      });
-    });
+    // Never request notification permission automatically on startup. Browsers
+    // increasingly require notification permission to follow a clear user action,
+    // and an unsolicited prompt degrades first-run/install experience.
+    if (Notification.permission !== 'granted') return;
 
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission().catch(() => {
-        console.log('Notification permission denied');
+    const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
+    if (!vapidPublicKey) return;
+
+    navigator.serviceWorker.ready
+      .then(registration => registration.pushManager.getSubscription().then(sub => {
+        if (!sub) return subscribeToPushNotifications(registration, vapidPublicKey);
+        return undefined;
+      }))
+      .catch(err => {
+        console.warn('Push subscription readiness check failed:', err);
       });
-    }
   }, []);
 
   return { swReady, updateAvailable };
 }
 
-async function subscribeToPushNotifications(swReg) {
+async function subscribeToPushNotifications(swReg, vapidPublicKey) {
   try {
     const subscription = await swReg.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(
-        import.meta.env.VITE_VAPID_PUBLIC_KEY || ''
-      ),
+      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
     });
 
     await fetch('/api/push-subscribe', {
