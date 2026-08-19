@@ -39,7 +39,9 @@ body { color: #f8fbff; }
   mask-image: linear-gradient(to bottom, rgba(0,0,0,.8), transparent 85%);
 }
 
-.ka-global-shell > * { position: relative; }
+/* Keep normal shell children in the visual stacking context without overriding
+   elements that intentionally use fixed/sticky/absolute positioning. */
+.ka-global-shell > :not(.fixed):not(.sticky):not(.absolute) { position: relative; }
 
 .ka-surface,
 .ka-command-panel {
@@ -119,25 +121,28 @@ body { color: #f8fbff; }
 .ka-admin-modern .ka-command-kicker { color: #78dfff; }
 .ka-admin-modern .ka-suite-badge { backdrop-filter: blur(14px); }
 
-/* Mobile bottom navigation: floating premium dock visual. */
+/* Mobile bottom navigation baseline. The last-loaded release stylesheet owns
+   exact edge positioning; this layer intentionally does not create a floating dock. */
 @media (max-width: 1023px) {
   nav.fixed.bottom-0 {
-    left: 10px !important;
-    right: 10px !important;
-    bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important;
-    border: 1px solid rgba(87,215,255,.16) !important;
-    border-radius: 22px !important;
-    background: rgba(4, 12, 23, .94) !important;
-    box-shadow: 0 18px 54px rgba(0,0,0,.46), inset 0 1px 0 rgba(255,255,255,.035) !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-bottom: 0 !important;
+    border-radius: 0 !important;
+    background: rgba(4, 12, 23, .97) !important;
+    box-shadow: 0 -12px 32px rgba(0,0,0,.35) !important;
     overflow: hidden;
   }
 
   nav.fixed.bottom-0 a {
     min-height: 52px;
-    border-radius: 16px;
+    border-radius: 12px;
   }
 
-  .ka-bg { padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px)) !important; }
+  .ka-bg { padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px)) !important; }
 }
 
 @media (max-width: 640px) {
