@@ -59,3 +59,12 @@ test('public copy avoids unverified custody and security claims', async () => {
   assert.doesNotMatch(privacy, /Enkripsi end-to-end/);
   assert.doesNotMatch(privacy, /Dukungan autentikasi multi-faktor/);
 });
+
+test('production monitor accepts supporting-provider degradation but rejects outages', async () => {
+  const monitor = await read('scripts/check-system-health.mjs');
+
+  assert.match(monitor, /payload\.ok !== true \|\| payload\.overall === 'outage'/);
+  assert.match(monitor, /\['ok', 'degraded'\]\.includes\(payload\.overall\)/);
+  assert.match(monitor, /healthy_with_fallback/);
+  assert.match(monitor, /requiredServices = \['app', 'database', 'coinlore'\]/);
+});
