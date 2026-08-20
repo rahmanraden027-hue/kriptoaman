@@ -68,3 +68,13 @@ test('production monitor accepts supporting-provider degradation but rejects out
   assert.match(monitor, /healthy_with_fallback/);
   assert.match(monitor, /requiredServices = \['app', 'database', 'coinlore'\]/);
 });
+
+test('Android signing restore safely normalizes and validates Base64 secrets', async () => {
+  const workflow = await read('.github/workflows/android-play.yml');
+
+  assert.match(workflow, /printf '%s' "\$PLAY_KEYSTORE_BASE64" \| tr -d/);
+  assert.match(workflow, /\^\[A-Za-z0-9\+\/\]\+\=\{0,2\}\$/);
+  assert.match(workflow, /normalized_keystore_base64\} % 4 != 0/);
+  assert.match(workflow, /printf '%s' "\$normalized_keystore_base64" \| base64 --decode/);
+  assert.doesNotMatch(workflow, /echo "\$PLAY_KEYSTORE_BASE64" \| base64 --decode/);
+});

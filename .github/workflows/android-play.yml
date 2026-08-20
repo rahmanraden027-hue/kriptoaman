@@ -131,7 +131,16 @@ jobs:
           PLAY_KEY_ALIAS: ${{ secrets.PLAY_KEY_ALIAS }}
         run: |
           set -euo pipefail
-          echo "$PLAY_KEYSTORE_BASE64" | base64 --decode > android/app/kriptoaman-release.jks
+          normalized_keystore_base64="$(printf '%s' "$PLAY_KEYSTORE_BASE64" | tr -d '\r\n\t ')"
+          if ! printf '%s' "$normalized_keystore_base64" | grep -Eq '^[A-Za-z0-9+/]+={0,2}$'; then
+            echo 'PLAY_KEYSTORE_BASE64 contains characters outside standard Base64.' >&2
+            exit 1
+          fi
+          if (( ${#normalized_keystore_base64} % 4 != 0 )); then
+            echo 'PLAY_KEYSTORE_BASE64 has an invalid encoded length.' >&2
+            exit 1
+          fi
+          printf '%s' "$normalized_keystore_base64" | base64 --decode > android/app/kriptoaman-release.jks
           test -s android/app/kriptoaman-release.jks
           keytool -list -keystore android/app/kriptoaman-release.jks -storepass "$PLAY_KEYSTORE_PASSWORD" -alias "$PLAY_KEY_ALIAS" >/dev/null
 
