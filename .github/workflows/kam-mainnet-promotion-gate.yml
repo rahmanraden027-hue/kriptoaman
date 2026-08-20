@@ -30,7 +30,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Verify candidate status is not prematurely promoted
         shell: bash
@@ -51,7 +51,7 @@ jobs:
 
       - name: Upload readiness evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: kam-mainnet-public-readiness
           path: artifacts/kam-mainnet-public-readiness.json
