@@ -78,3 +78,21 @@ test('Android signing restore safely normalizes and validates Base64 secrets', a
   assert.match(workflow, /printf '%s' "\$normalized_keystore_base64" \| base64 --decode/);
   assert.doesNotMatch(workflow, /echo "\$PLAY_KEYSTORE_BASE64" \| base64 --decode/);
 });
+
+test('world-class visual layer loads last and preserves responsive app navigation', async () => {
+  const [entry, worldUi] = await Promise.all([
+    read('src/main.jsx'),
+    read('src/styles/world-class-ui.css'),
+  ]);
+
+  const v9Import = entry.indexOf("import '@/styles/final-ui-v9.css'");
+  const worldImport = entry.indexOf("import '@/styles/world-class-ui.css'");
+  assert.ok(v9Import >= 0 && worldImport > v9Import);
+  assert.match(worldUi, /\.ka-global-topbar/);
+  assert.match(worldUi, /\.ka-global-sidebar/);
+  assert.match(worldUi, /\.ka-command-hero/);
+  assert.match(worldUi, /\.ka-command-panel/);
+  assert.match(worldUi, /\.ka-embedded-nav/);
+  assert.match(worldUi, /env\(safe-area-inset-bottom/);
+  assert.match(worldUi, /prefers-reduced-motion/);
+});
