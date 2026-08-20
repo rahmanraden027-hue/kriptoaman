@@ -96,3 +96,21 @@ test('world-class visual layer loads last and preserves responsive app navigatio
   assert.match(worldUi, /env\(safe-area-inset-bottom/);
   assert.match(worldUi, /prefers-reduced-motion/);
 });
+
+
+test('GitHub workflows use the reviewed current action majors', async () => {
+  const workflows = await Promise.all([
+    read('.github/workflows/android-play.yml'),
+    read('.github/workflows/codeql.yml'),
+    read('.github/workflows/deno.yml'),
+    read('.github/workflows/kam-mainnet-promotion-gate.yml'),
+    read('.github/workflows/kam-testnet-smoke.yml'),
+    read('.github/workflows/market-health.yml'),
+    read('.github/workflows/security-audit.yml'),
+  ]);
+  const combined = workflows.join('\n');
+  assert.doesNotMatch(combined, /actions\/(checkout|setup-node|upload-artifact)@v4/);
+  assert.match(combined, /actions\/checkout@v7/);
+  assert.match(combined, /actions\/setup-node@v7/);
+  assert.match(combined, /actions\/upload-artifact@v7/);
+});
