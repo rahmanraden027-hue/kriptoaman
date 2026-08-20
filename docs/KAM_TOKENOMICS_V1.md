@@ -1,8 +1,8 @@
 # KAM Tokenomics v1
 
-Status: **Proposed v1 — pending final approval**
+Status: **Adopted v1 — project economic baseline, pre-commercial launch**
 
-KAM is the native asset of the KriptoAman network. This document establishes a transparent first-version economic framework for review before any commercial launch, public distribution, exchange activity, or promotional use.
+KAM is the native asset of the KriptoAman network. This document establishes the approved project baseline for KAM economic parameters. Adoption of this document does not by itself declare a public/commercial mainnet launch, exchange listing, guaranteed liquidity, regulatory approval, or guaranteed token price.
 
 ## Core parameters
 
@@ -14,7 +14,7 @@ KAM is the native asset of the KriptoAman network. This document establishes a t
 - Guaranteed price: No
 - Automatic daily tokenomics changes: No
 
-## Proposed allocation
+## Allocation v1
 
 | Category | Allocation | KAM | Purpose |
 | --- | ---: | ---: | --- |
@@ -27,7 +27,7 @@ KAM is the native asset of the KriptoAman network. This document establishes a t
 
 Total: **100% / 1,000,000,000 KAM**.
 
-## Proposed vesting framework
+## Vesting framework
 
 - Team & Contributors: 12-month cliff, then linear vesting over 36 months.
 - Strategic Partnerships: 6-month cliff, then linear vesting over 24 months.
@@ -38,7 +38,7 @@ Total: **100% / 1,000,000,000 KAM**.
 
 ## Utility direction
 
-KAM is intended to support the KriptoAman ecosystem. Proposed utility areas include network transaction fees, application and developer ecosystem participation, infrastructure services, ecosystem incentives, and future governance functions where technically and legally appropriate.
+KAM is intended to support the KriptoAman ecosystem. Utility direction includes network transaction fees, application and developer ecosystem participation, infrastructure services, ecosystem incentives, and future governance functions where technically and legally appropriate.
 
 No utility in this document should be interpreted as a promise of financial return, price appreciation, guaranteed listing, or guaranteed liquidity.
 
@@ -52,4 +52,4 @@ No utility in this document should be interpreted as a promise of financial retu
 
 ## Publication policy
 
-Until this proposal is explicitly adopted, public campaign material should describe these figures as **proposed tokenomics**, not final tokenomics. Network status must also be described accurately and must not imply a public commercial mainnet before that state is independently verified.
+Public material may describe these figures as **KAM Tokenomics v1 / project economic baseline**. Network status must still be described independently and accurately. Until all launch-readiness gates are verified, the network must not be represented as a final public/commercial mainnet solely because tokenomics v1 has been adopted.
