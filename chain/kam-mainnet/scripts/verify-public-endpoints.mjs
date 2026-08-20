@@ -1,3 +1,5 @@
+import { isAdminRpcBlocked } from './rpc-security.mjs';
+
 const rpcUrl = process.env.KAM_RPC_URL || 'https://rpc.kriptoaman.com';
 const explorerUrl = process.env.KAM_EXPLORER_URL || 'https://explorer.kriptoaman.com';
 const expectedChainId = '0x560c';
@@ -46,7 +48,13 @@ async function main() {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'admin_peers', params: [] }),
     });
-    result.checks.adminBlocked = { ok: forbiddenResponse.status === 403, status: forbiddenResponse.status };
+    const forbiddenPayload = await forbiddenResponse.json().catch(() => null);
+    result.checks.adminBlocked = {
+      ok: isAdminRpcBlocked(forbiddenResponse.status, forbiddenPayload),
+      status: forbiddenResponse.status,
+      rpcErrorCode: forbiddenPayload?.error?.code ?? null,
+      rpcErrorMessage: forbiddenPayload?.error?.message ?? null,
+    };
 
     result.checks.explorer = await checkExplorer();
     result.ready = Object.values(result.checks).every((check) => check.ok === true);
