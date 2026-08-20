@@ -1,6 +1,6 @@
 # KAM Roadmap 2026–2027
 
-Status: **Working roadmap — aligned to technical readiness gates**
+Status: **Adopted roadmap baseline — aligned to technical readiness gates**
 
 This roadmap is designed to keep KriptoAman and KAM communications factual, auditable and globally presentable. Milestones are readiness targets, not guarantees of exchange listing, token price, regulatory approval or commercial launch timing.
 
@@ -20,7 +20,7 @@ Target: 2026 Q3
 
 Target: 2026 Q3–Q4
 
-- Adopt final KAM tokenomics after explicit approval.
+- KAM Tokenomics v1 adopted as the project economic baseline.
 - Publish allocation, vesting and treasury controls.
 - Define governance/change-control policy for material economic parameters.
 - Establish public treasury transparency policy.
@@ -85,4 +85,4 @@ Target: Post-launch-readiness
 
 ## Daily campaign operating rule
 
-Daily campaign content may evolve, but the following economic parameters must never change automatically: total supply, allocation percentages, vesting, treasury controls, burn policy, or guaranteed/target price claims. Any proposed change must be versioned, reviewed and explicitly approved before publication as final.
+Daily campaign content may evolve, but total supply, allocation percentages, vesting, treasury controls, burn policy and price claims must never change automatically. Any proposed material change must be versioned, reviewed and explicitly approved before replacing this baseline.
