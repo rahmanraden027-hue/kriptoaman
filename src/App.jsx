@@ -59,7 +59,7 @@ const StoreAvailabilityNotice = () => (
 
 const PublicMarketWithNav = ({ Page }) => <div className="min-h-screen"><Page /><PrimaryBottomNav currentPageName="Market" /></div>;
 
-const PUBLIC_PAGE_KEYS = new Set(['AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'TermsOfService', 'AccountDeletion', 'Market']);
+const PUBLIC_PAGE_KEYS = new Set(['AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'TermsOfService', 'AccountDeletion', 'Market', 'KAM']);
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ? <Layout currentPageName={currentPageName}>{children}</Layout> : <>{children}</>;
 
