@@ -4,22 +4,53 @@ const rpcUrl = process.env.KAM_RPC_URL || 'https://rpc.kriptoaman.com';
 const explorerUrl = process.env.KAM_EXPLORER_URL || 'https://explorer.kriptoaman.com';
 const expectedChainId = '0x560c';
 
+const SENSITIVE_METHOD_PROBES = [
+  { namespace: 'admin', method: 'admin_peers', params: [] },
+  { namespace: 'debug', method: 'debug_traceTransaction', params: [`0x${'0'.repeat(64)}`, {}] },
+  { namespace: 'personal', method: 'personal_listAccounts', params: [] },
+  { namespace: 'qbft', method: 'qbft_getValidatorsByBlockNumber', params: ['latest'] },
+];
+
 async function rpc(method, params = []) {
+  const startedAt = performance.now();
   const response = await fetch(rpcUrl, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+    body: JSON.stringify({ jsonrpc: '2.0', id: method, method, params }),
   });
+  const latencyMs = Math.round(performance.now() - startedAt);
   if (!response.ok) throw new Error(`${method}: HTTP ${response.status}`);
   const data = await response.json();
   if (data.error) throw new Error(`${method}: ${data.error.message || 'RPC error'}`);
-  return data.result;
+  return { result: data.result, latencyMs };
+}
+
+async function probeBlockedMethod({ namespace, method, params }) {
+  const startedAt = performance.now();
+  const response = await fetch(rpcUrl, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: method, method, params }),
+  });
+  const latencyMs = Math.round(performance.now() - startedAt);
+  const payload = await response.json().catch(() => null);
+  return {
+    namespace,
+    method,
+    ok: isAdminRpcBlocked(response.status, payload),
+    status: response.status,
+    rpcErrorCode: payload?.error?.code ?? null,
+    rpcErrorMessage: payload?.error?.message ?? null,
+    latencyMs,
+  };
 }
 
 async function checkExplorer() {
+  const startedAt = performance.now();
   const response = await fetch(explorerUrl, { redirect: 'follow' });
+  const latencyMs = Math.round(performance.now() - startedAt);
   if (!response.ok) throw new Error(`Explorer HTTP ${response.status}`);
-  return { ok: true, finalUrl: response.url };
+  return { ok: true, finalUrl: response.url, latencyMs };
 }
 
 async function main() {
@@ -34,26 +65,29 @@ async function main() {
 
   try {
     const chainId = await rpc('eth_chainId');
-    result.checks.chainId = { ok: chainId === expectedChainId, value: chainId };
+    result.checks.chainId = {
+      ok: chainId.result === expectedChainId,
+      value: chainId.result,
+      latencyMs: chainId.latencyMs,
+    };
 
     const block1 = await rpc('eth_blockNumber');
     await new Promise((resolve) => setTimeout(resolve, 4000));
     const block2 = await rpc('eth_blockNumber');
-    const n1 = Number.parseInt(block1, 16);
-    const n2 = Number.parseInt(block2, 16);
-    result.checks.blockProgress = { ok: Number.isFinite(n1) && Number.isFinite(n2) && n2 > n1, from: block1, to: block2 };
+    const n1 = Number.parseInt(block1.result, 16);
+    const n2 = Number.parseInt(block2.result, 16);
+    result.checks.blockProgress = {
+      ok: Number.isFinite(n1) && Number.isFinite(n2) && n2 > n1,
+      from: block1.result,
+      to: block2.result,
+      firstLatencyMs: block1.latencyMs,
+      secondLatencyMs: block2.latencyMs,
+    };
 
-    const forbiddenResponse = await fetch(rpcUrl, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'admin_peers', params: [] }),
-    });
-    const forbiddenPayload = await forbiddenResponse.json().catch(() => null);
-    result.checks.adminBlocked = {
-      ok: isAdminRpcBlocked(forbiddenResponse.status, forbiddenPayload),
-      status: forbiddenResponse.status,
-      rpcErrorCode: forbiddenPayload?.error?.code ?? null,
-      rpcErrorMessage: forbiddenPayload?.error?.message ?? null,
+    const sensitiveMethods = await Promise.all(SENSITIVE_METHOD_PROBES.map(probeBlockedMethod));
+    result.checks.sensitiveMethodsBlocked = {
+      ok: sensitiveMethods.every((probe) => probe.ok),
+      methods: sensitiveMethods,
     };
 
     result.checks.explorer = await checkExplorer();
