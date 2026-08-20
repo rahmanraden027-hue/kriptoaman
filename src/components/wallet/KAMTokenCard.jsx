@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { ShieldCheck, Clock3, Sparkles, Users, Gift, ArrowRight, X } from 'lucide-react';
+import { ShieldCheck, Clock3, Sparkles, Users, Gift, ArrowRight, X, Activity, Database } from 'lucide-react';
 import KriptoAmanLogo from '../brand/KriptoAmanLogo';
 import { useLanguage } from '@/lib/LanguageContext';
+import { useWeb3 } from '../web3/Web3Provider';
 
 export default function KAMTokenCard() {
   const { language } = useLanguage();
+  const web3 = useWeb3();
   const [showAcquireFlow, setShowAcquireFlow] = useState(false);
   const [points, setPoints] = useState({ balance: 0, history: [] });
   const [pointsLoading, setPointsLoading] = useState(true);
   const [pointsError, setPointsError] = useState('');
+  const [network, setNetwork] = useState({ loading: true, live: false, verified: false });
   const en = language === 'en';
 
   useEffect(() => {
@@ -37,6 +40,35 @@ export default function KAMTokenCard() {
 
     return () => { active = false; };
   }, [en]);
+
+  useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+    const loadNetwork = async () => {
+      try {
+        const query = web3?.account ? `?address=${encodeURIComponent(web3.account)}` : '';
+        const response = await fetch(`/api/kam/network-status${query}`, {
+          headers: { Accept: 'application/json' },
+          signal: controller.signal,
+          cache: 'no-store',
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data?.error || 'KAM network unavailable');
+        if (active) setNetwork({ ...data, loading: false });
+      } catch (error) {
+        if (active && error?.name !== 'AbortError') {
+          setNetwork({ loading: false, live: false, verified: false, status: 'unavailable' });
+        }
+      }
+    };
+    loadNetwork();
+    const interval = window.setInterval(loadNetwork, 30_000);
+    return () => {
+      active = false;
+      controller.abort();
+      window.clearInterval(interval);
+    };
+  }, [web3?.account]);
 
   const paths = [
     {
@@ -75,8 +107,8 @@ export default function KAMTokenCard() {
               <p className="text-sm text-sky-100">KriptoAman Token</p>
             </div>
           </div>
-          <span className="rounded-full border border-amber-300/25 bg-amber-300/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-200">
-            {en ? 'PRE-RELEASE' : 'PERSIAPAN'}
+          <span className={`rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${network.verified ? 'border-emerald-300/30 bg-emerald-300/10 text-emerald-200' : 'border-amber-300/25 bg-amber-300/10 text-amber-200'}`}>
+            {network.verified ? (en ? 'RPC VERIFIED' : 'RPC TERVERIFIKASI') : (en ? 'MAINNET CANDIDATE' : 'KANDIDAT MAINNET')}
           </span>
         </div>
 
@@ -91,8 +123,32 @@ export default function KAMTokenCard() {
             </p>
           </div>
           <div className="rounded-xl bg-black/15 p-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-sky-100">{en ? 'Market price' : 'Harga pasar'}</p>
-            <p className="mt-1 text-lg font-bold">{en ? 'Not available yet' : 'Belum tersedia'}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-sky-100">{en ? 'On-chain KAM' : 'KAM on-chain'}</p>
+            <p className="mt-1 text-lg font-bold">
+              {network.verified && web3?.account && network.wallet?.balanceKAM != null
+                ? Number(network.wallet.balanceKAM).toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 8 })
+                : '—'}
+            </p>
+            <p className="mt-1 text-[10px] text-sky-100/70">
+              {web3?.account
+                ? (network.verified ? (en ? 'Verified from KAM RPC.' : 'Terverifikasi dari RPC KAM.') : (en ? 'RPC not publicly verified.' : 'RPC belum terverifikasi publik.'))
+                : (en ? 'Connect an EVM public address.' : 'Hubungkan alamat publik EVM.')}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+          <div className="rounded-xl border border-white/10 bg-black/10 p-2">
+            <p className="text-[9px] uppercase tracking-wide text-sky-100/60">Chain ID</p>
+            <p className="mt-1 text-xs font-bold">{network.chainId || 22028}</p>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-black/10 p-2">
+            <p className="text-[9px] uppercase tracking-wide text-sky-100/60">{en ? 'Block' : 'Blok'}</p>
+            <p className="mt-1 text-xs font-bold">{network.verified && network.blockNumber != null ? Number(network.blockNumber).toLocaleString(en ? 'en-US' : 'id-ID') : '—'}</p>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-black/10 p-2">
+            <p className="text-[9px] uppercase tracking-wide text-sky-100/60">{en ? 'Source' : 'Sumber'}</p>
+            <p className={`mt-1 text-xs font-bold ${network.verified ? 'text-emerald-200' : 'text-amber-200'}`}>{network.verified ? 'RPC LIVE' : 'CANDIDATE'}</p>
           </div>
         </div>
 
@@ -169,19 +225,25 @@ export default function KAMTokenCard() {
 
       <div className="rounded-2xl border border-sky-500/20 bg-[#0b1728] p-4">
         <div className="flex gap-3">
-          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-sky-400" />
+          {network.verified ? <Activity className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" /> : <Database className="mt-0.5 h-5 w-5 shrink-0 text-sky-400" />}
           <div>
-            <p className="font-semibold text-white">{en ? 'On-chain data has not been published' : 'Data on-chain belum dipublikasikan'}</p>
+            <p className="font-semibold text-white">
+              {network.verified
+                ? (en ? 'Verified KAM on-chain data' : 'Data on-chain KAM terverifikasi')
+                : (en ? 'KAM mainnet candidate — not public' : 'Kandidat mainnet KAM — belum publik')}
+            </p>
             <p className="mt-1 text-sm leading-relaxed text-slate-400">
-              {en
-                ? 'Price, supply, volume, contract, and official addresses will appear only after verification and publication through official KriptoAman channels.'
-                : 'Harga, supply, volume, kontrak, dan alamat resmi akan ditampilkan hanya setelah data tersebut diverifikasi dan diumumkan melalui kanal resmi KriptoAman.'}
+              {network.verified
+                ? (en ? `Chain ID ${network.chainIdHex} and current block are read directly from the official RPC.` : `Chain ID ${network.chainIdHex} dan blok terkini dibaca langsung dari RPC resmi.`)
+                : (en ? 'The app shows verified configuration only. Block height, wallet balance, market price, volume, and circulating supply remain blank until a matching public RPC is live.' : 'Aplikasi hanya menampilkan konfigurasi yang telah diverifikasi. Tinggi blok, saldo wallet, harga pasar, volume, dan suplai beredar tetap kosong sampai RPC publik yang sesuai aktif.')}
             </p>
           </div>
         </div>
-        <div className="mt-3 flex items-center gap-2 rounded-xl bg-amber-400/8 px-3 py-2 text-xs text-amber-200">
-          <Clock3 className="h-4 w-4 shrink-0" />
-          {en ? 'Do not send assets to an address that has not been officially announced.' : 'Jangan mengirim aset ke alamat yang belum diumumkan resmi.'}
+        <div className={`mt-3 flex items-center gap-2 rounded-xl px-3 py-2 text-xs ${network.verified ? 'bg-emerald-400/8 text-emerald-200' : 'bg-amber-400/8 text-amber-200'}`}>
+          {network.verified ? <ShieldCheck className="h-4 w-4 shrink-0" /> : <Clock3 className="h-4 w-4 shrink-0" />}
+          {network.verified
+            ? (en ? 'Read-only verification. Transactions remain disabled.' : 'Verifikasi read-only. Transaksi tetap dinonaktifkan.')
+            : (en ? 'Do not send assets until public activation is formally announced.' : 'Jangan mengirim aset sampai aktivasi publik diumumkan resmi.')}
         </div>
       </div>
     </section>
