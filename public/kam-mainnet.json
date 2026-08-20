@@ -17,7 +17,13 @@
   "iconUrls": [
     "https://kriptoaman.com/brand/kriptoaman-mark.svg"
   ],
-  "status": "active",
+  "status": "mainnet-candidate-not-public",
   "transactionModel": "EVM-compatible",
-  "gasPolicy": "Current network configuration accepts zero-effective-gas transactions; production gas economics remain subject to final network policy."
+  "gasPolicy": "Current network configuration accepts zero-effective-gas transactions; production gas economics remain subject to final network policy.",
+  "commercialLaunchEnabled": false,
+  "dataPolicy": {
+    "marketPrice": "unavailable-until-verified-market-source",
+    "onChain": "live-only-after-rpc-chain-id-verification",
+    "kamPoints": "off-chain-ledger-not-token-balance"
+  }
 }
