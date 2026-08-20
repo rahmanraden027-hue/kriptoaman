@@ -1,0 +1,9 @@
+{
+  "status": "pending",
+  "testedAt": "2026-08-21T00:00:00.000Z",
+  "snapshotBlock": 0,
+  "restoredBlock": 0,
+  "backupChecksumSha256": "REPLACE_WITH_64_HEX_SHA256",
+  "restoredDataChecksumSha256": "REPLACE_WITH_64_HEX_SHA256",
+  "restoreTarget": "isolated-non-production"
+}
