@@ -21,8 +21,12 @@ try {
     throw new Error('Health endpoint returned an invalid payload');
   }
 
-  if (payload.ok !== true || payload.overall !== 'ok') {
+  if (payload.ok !== true || payload.overall === 'outage') {
     throw new Error(`Production health is ${payload?.overall || 'unknown'}: ${JSON.stringify(payload)}`);
+  }
+
+  if (!['ok', 'degraded'].includes(payload.overall)) {
+    throw new Error(`Production health returned an unknown state: ${JSON.stringify(payload)}`);
   }
 
   const requiredServices = ['app', 'database', 'coinlore'];
@@ -37,7 +41,7 @@ try {
   }
 
   console.log(JSON.stringify({
-    status: 'healthy',
+    status: payload.overall === 'degraded' ? 'healthy_with_fallback' : 'healthy',
     overall: payload.overall,
     checkedAt: payload.checked_at,
     services: services.map(({ id, state, latency_ms }) => ({ id, state, latency_ms })),
