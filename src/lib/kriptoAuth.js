@@ -45,6 +45,8 @@ export const kriptoAuth = {
   async approveKamAuditSnapshot(snapshotId, notes) { return request('/api/auth/admin/kam-snapshot-readiness', { method: 'PATCH', body: JSON.stringify({ action: 'approve', snapshotId, notes }) }); },
   async createKamCampaign(campaign) { return request('/api/auth/admin/kam-campaigns', { method: 'POST', body: JSON.stringify(campaign) }); },
   async updateKamCampaignStatus(code, status) { return request('/api/auth/admin/kam-campaigns', { method: 'PATCH', body: JSON.stringify({ code, status }) }); },
+  async getAdminUsers(limit = 200) { const data = await request(`/api/auth/admin/users?limit=${encodeURIComponent(limit)}`); return data.users || []; },
+  async updateAdminUserKyc(userId, kycStatus) { const data = await request('/api/auth/admin/users', { method: 'PATCH', body: JSON.stringify({ userId, kycStatus }) }); return data.user; },
   async requestAdminLink(email) { return request('/api/auth/admin/request-link', { method: 'POST', body: JSON.stringify({ email }) }); },
   async register({ email, password, termsAccepted }) { return request('/api/auth/register', { method: 'POST', body: JSON.stringify({ email, password, termsAccepted }) }); },
   async verifyOtp({ email, otpCode }) { return request('/api/auth/verify-email', { method: 'POST', body: JSON.stringify({ email, code: otpCode }) }); },

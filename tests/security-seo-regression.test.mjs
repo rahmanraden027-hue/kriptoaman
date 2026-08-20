@@ -75,3 +75,20 @@ test('balance editing is hidden from users and enforced by an admin-only server 
   assert.match(wallet, /KHUSUS ADMIN/);
   assert.match(wallet, /Tanpa kustodi atau eksekusi transaksi|No custody or transaction execution/);
 });
+
+
+test('admin user management is first-party and server-authorized', async () => {
+  const [page, endpoint, authClient] = await Promise.all([
+    read('src/pages/AdminUserBalances.jsx'),
+    read('functions/api/auth/admin/users.js'),
+    read('src/lib/kriptoAuth.js'),
+  ]);
+  assert.doesNotMatch(page, /asServiceRole/);
+  assert.match(page, /kriptoAuth\.getAdminUsers/);
+  assert.match(page, /kriptoAuth\.updateAdminUserKyc/);
+  assert.match(endpoint, /getActiveSession/);
+  assert.match(endpoint, /user\.role !== 'admin'/);
+  assert.match(endpoint, /requireSameOrigin/);
+  assert.match(endpoint, /recordAdminAudit/);
+  assert.match(authClient, /\/api\/auth\/admin\/users/);
+});

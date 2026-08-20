@@ -60,7 +60,7 @@ test('admin UI remains protected by server verification and mandatory TOTP enrol
   assert.match(balance, /Admin access with 2FA required/);
 });
 
-test('admin magic links are short-lived, rate limited, one-time, and never auto-promote accounts', async () => {
+test('admin magic links are short-lived, one-time, and cannot bypass enrolled TOTP', async () => {
   const [requestLink, callback] = await Promise.all([
     source('../functions/api/auth/admin/request-link.js'),
     source('../functions/api/auth/admin/callback.js'),
@@ -70,6 +70,9 @@ test('admin magic links are short-lived, rate limited, one-time, and never auto-
   assert.match(requestLink, /exp:\s*now \+ 5 \* 60/);
   assert.match(callback, /consumeOneTimeToken/);
   assert.match(callback, /user\.role !== 'admin'/);
+  assert.match(callback, /getTotpSettings/);
+  assert.match(callback, /twoFactorEnabled/);
+  assert.match(callback, /two_factor_required=1/);
   assert.match(callback, /ADMIN_MAGIC_LINK_SESSION_TTL_SECONDS = 60 \* 60/);
   assert.doesNotMatch(callback, /promoteConfiguredAdmin/);
 });

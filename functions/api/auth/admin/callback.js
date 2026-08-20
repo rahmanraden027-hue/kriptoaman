@@ -1,6 +1,7 @@
 import { isAdminEmail, requireBindings } from '../../../../server/auth/http.js';
 import { createSessionToken, sessionCookie } from '../../../../server/auth/session.js';
 import { createVerifiedSession } from '../../../../server/auth/sessions.js';
+import { getTotpSettings } from '../../../../server/auth/totp.js';
 import { consumeOneTimeToken, verifySignedToken } from '../../../../server/auth/tokens.js';
 import { getUserByEmail } from '../../../../server/auth/users.js';
 
@@ -32,6 +33,14 @@ export async function onRequestGet({ request, env }) {
 
     const user = await getUserByEmail(env.AUTH_DB, payload.email);
     if (!user?.email_verified || user.role !== 'admin') return redirect('/login?admin_link=invalid');
+
+    const totp = await getTotpSettings(env.AUTH_DB, user.id);
+    const twoFactorEnabled = Boolean(totp?.enabled && totp?.secret_enc);
+
+    // Mailbox control is not a substitute for the enrolled second factor.
+    if (twoFactorEnabled) {
+      return redirect('/login?admin_link=verified&two_factor_required=1');
+    }
 
     const activeSession = await createVerifiedSession(
       env.AUTH_DB,

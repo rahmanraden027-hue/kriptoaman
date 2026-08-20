@@ -1,221 +1,122 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  AlertCircle,
-  CheckCircle2,
-  Clock,
-  ExternalLink,
-  FileSpreadsheet,
-  Loader2,
-  User,
-  Users,
-  Wallet,
-  XCircle,
-} from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock, Loader2, ShieldCheck, Users, XCircle } from 'lucide-react';
+import { useAuth } from '@/lib/AuthContext';
+import { kriptoAuth } from '@/lib/kriptoAuth';
 import GitHubSecurityReview from '../components/admin/GitHubSecurityReview';
 
 export default function AdminUserBalances() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [exporting, setExporting] = useState(false);
-  const [exportResult, setExportResult] = useState(null);
+  const { user, isLoadingAuth } = useAuth();
   const [kycUpdating, setKycUpdating] = useState(null);
+  const [actionError, setActionError] = useState('');
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    base44.auth.me()
-      .then(setUser)
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const { data: users = [] } = useQuery({
-    queryKey: ['allUsers'],
-    queryFn: () => base44.entities.User.list(),
+  const { data: users = [], isLoading, error } = useQuery({
+    queryKey: ['adminFirstPartyUsers'],
+    queryFn: () => kriptoAuth.getAdminUsers(500),
     enabled: user?.role === 'admin',
+    staleTime: 30_000,
   });
-
-  const { data: liveTrades = [] } = useQuery({
-    queryKey: ['allLiveTrades'],
-    queryFn: () => base44.asServiceRole.entities.LivePaperTrade.list(),
-    enabled: user?.role === 'admin',
-    refetchInterval: 10000,
-  });
-
-  const { data: strategies = [] } = useQuery({
-    queryKey: ['allStrategies'],
-    queryFn: () => base44.asServiceRole.entities.AutoTradingStrategy.list(),
-    enabled: user?.role === 'admin',
-  });
-
-  const userBalances = useMemo(() => users.map((account) => {
-    const userTrades = liveTrades.filter((trade) => trade.created_by === account.email);
-    const userStrategies = strategies.filter((strategy) => strategy.created_by === account.email);
-
-    const portfolioValue = userTrades.reduce((sum, trade) => {
-      if (trade.status !== 'open') return sum;
-      return sum + ((trade.currentPrice || 0) * (trade.quantity || 0));
-    }, 0);
-
-    const realizedPL = userTrades.reduce((sum, trade) => (
-      trade.status === 'closed' ? sum + (trade.realizedPL || 0) : sum
-    ), 0);
-
-    const unrealizedPL = userTrades.reduce((sum, trade) => (
-      trade.status === 'open' ? sum + (trade.unrealizedPL || 0) : sum
-    ), 0);
-
-    return {
-      ...account,
-      portfolioValue,
-      realizedPL,
-      unrealizedPL,
-      totalBalance: portfolioValue + realizedPL + unrealizedPL,
-      openTrades: userTrades.filter((trade) => trade.status === 'open').length,
-      strategies: userStrategies.length,
-      activeStrategies: userStrategies.filter((strategy) => strategy.isActive).length,
-    };
-  }), [users, liveTrades, strategies]);
-
-  const sortedUsers = useMemo(
-    () => [...userBalances].sort((a, b) => b.totalBalance - a.totalBalance),
-    [userBalances],
-  );
-
-  const pendingKYC = users.filter((account) => account.kycStatus === 'pending');
-  const totalPortfolioValue = sortedUsers.reduce((sum, account) => sum + account.portfolioValue, 0);
-  const totalRealizedPL = sortedUsers.reduce((sum, account) => sum + account.realizedPL, 0);
 
   const handleKYCUpdate = async (targetUser, newStatus) => {
+    setActionError('');
     setKycUpdating(targetUser.id);
     try {
-      await base44.asServiceRole.entities.User.update(targetUser.id, { kycStatus: newStatus });
-      const kycPayload = {
-        event: { type: 'update', entity_name: 'User', entity_id: targetUser.id },
-        data: {
-          email: targetUser.email,
-          full_name: targetUser.full_name,
-          kycStatus: newStatus,
-          role: targetUser.role,
-        },
-        old_data: { kycStatus: targetUser.kycStatus || 'pending' },
-      };
-      await Promise.all([
-        base44.functions.invoke('sendKYCStatusEmail', kycPayload),
-        base44.functions.invoke('syncKYCToNotion', kycPayload),
-      ]);
-      await queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+      await kriptoAuth.updateAdminUserKyc(targetUser.id, newStatus);
+      await queryClient.invalidateQueries({ queryKey: ['adminFirstPartyUsers'] });
+    } catch (err) {
+      setActionError(err?.message || 'Perubahan status KYC gagal disimpan.');
     } finally {
       setKycUpdating(null);
     }
   };
 
-  const handleExportToSheets = async () => {
-    setExporting(true);
-    setExportResult(null);
-    try {
-      const res = await base44.functions.invoke('exportKYCToSheets', {});
-      setExportResult(res.data);
-    } finally {
-      setExporting(false);
-    }
-  };
-
-  if (loading) {
+  if (isLoadingAuth || isLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-sky-400" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
       </div>
     );
   }
 
   if (!user || user.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-slate-950 p-6 flex items-center justify-center">
-        <div className="max-w-md w-full bg-red-500/10 border border-red-500/30 rounded-2xl p-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6 flex items-center justify-center">
+        <div className="max-w-md w-full bg-red-500/10 border border-red-500/30 rounded-xl p-6">
           <div className="flex items-center gap-3 mb-3">
             <AlertCircle className="w-6 h-6 text-red-400" />
             <h2 className="text-lg font-bold text-red-400">Akses Ditolak</h2>
           </div>
-          <p className="text-slate-300">Hanya sesi admin terverifikasi yang dapat mengakses data pengguna.</p>
+          <p className="text-slate-300">Hanya sesi admin yang terverifikasi server yang dapat mengakses halaman ini.</p>
         </div>
       </div>
     );
   }
 
+  const pending = users.filter((item) => item.kycStatus === 'pending').length;
+  const approved = users.filter((item) => item.kycStatus === 'approved').length;
+  const rejected = users.filter((item) => item.kycStatus === 'rejected').length;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 sm:p-6 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6 pb-20">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <div className="flex items-center gap-3 mb-1">
-              <Users className="w-8 h-8 text-sky-400" />
-              <h1 className="text-2xl sm:text-3xl font-bold text-white">Admin · User Balances</h1>
+            <div className="flex items-center gap-3 mb-2">
+              <Users className="w-8 h-8 text-blue-400" />
+              <h1 className="text-3xl font-bold text-white">Admin — Pengguna & KYC</h1>
             </div>
-            <p className="text-slate-400 text-sm">Data nyata dari akun, aktivitas trading, strategi, dan status KYC yang tersedia pada sistem.</p>
+            <p className="text-slate-400">Data nyata dari database first-party KriptoAman. Tidak menggunakan data contoh atau angka sintetis.</p>
           </div>
-
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={handleExportToSheets}
-              disabled={exporting}
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white rounded-xl text-sm font-semibold transition-colors"
-            >
-              {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileSpreadsheet className="w-4 h-4" />}
-              {exporting ? 'Mengekspor...' : 'Export ke Google Sheets'}
-            </button>
-            {exportResult?.spreadsheetUrl && (
-              <a
-                href={exportResult.spreadsheetUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 rounded-xl text-sm font-semibold"
-              >
-                <ExternalLink className="w-4 h-4" />
-                Buka Spreadsheet ({exportResult.totalExported || 0})
-              </a>
-            )}
+          <div className="flex items-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
+            <ShieldCheck className="w-4 h-4" />
+            Server verified
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          <StatCard label="Pengguna terdaftar" value={users.length.toLocaleString('id-ID')} icon={Users} />
-          <StatCard label="KYC menunggu review" value={pendingKYC.length.toLocaleString('id-ID')} icon={Clock} tone="warning" />
-          <StatCard label="Saldo administrasi internal KriptoAman" value={`$${totalPortfolioValue.toLocaleString('en-US', { maximumFractionDigits: 2 })}`} icon={Wallet} tone="positive" />
-          <StatCard label="Realized P&L" value={`$${totalRealizedPL.toLocaleString('en-US', { maximumFractionDigits: 2 })}`} icon={User} tone="info" />
+        {(error || actionError) && (
+          <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
+            {actionError || error?.message || 'Data admin tidak dapat dimuat.'}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard label="Total Pengguna" value={users.length} />
+          <StatCard label="KYC Pending" value={pending} tone="yellow" />
+          <StatCard label="KYC Approved" value={approved} tone="green" />
+          <StatCard label="KYC Rejected" value={rejected} tone="red" />
         </div>
 
-        <div className="bg-slate-800/60 border border-slate-700/40 rounded-2xl overflow-hidden">
+        <div className="bg-slate-800/60 border border-slate-700/40 rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-700/40 bg-slate-900/80">
-                  <th className="px-4 py-3 text-left text-slate-400 font-semibold">User</th>
-                  <th className="px-4 py-3 text-right text-slate-400 font-semibold">Portfolio</th>
-                  <th className="px-4 py-3 text-right text-slate-400 font-semibold">Realized P&L</th>
-                  <th className="px-4 py-3 text-right text-slate-400 font-semibold">Unrealized P&L</th>
-                  <th className="px-4 py-3 text-right text-slate-400 font-semibold">Total</th>
-                  <th className="px-4 py-3 text-center text-slate-400 font-semibold">Trades</th>
-                  <th className="px-4 py-3 text-center text-slate-400 font-semibold">Strategies</th>
+                  <th className="px-4 py-3 text-left text-slate-400 font-semibold">Pengguna</th>
+                  <th className="px-4 py-3 text-left text-slate-400 font-semibold">Role</th>
+                  <th className="px-4 py-3 text-center text-slate-400 font-semibold">Email</th>
                   <th className="px-4 py-3 text-center text-slate-400 font-semibold">KYC</th>
+                  <th className="px-4 py-3 text-left text-slate-400 font-semibold">Terdaftar</th>
                 </tr>
               </thead>
               <tbody>
-                {sortedUsers.map((account) => (
-                  <tr key={account.id} className="border-b border-slate-700/20 hover:bg-sky-500/5 transition-colors">
+                {users.map((item) => (
+                  <tr key={item.id} className="border-b border-slate-700/20 hover:bg-slate-700/20 transition-colors">
                     <td className="px-4 py-3">
-                      <p className="text-white font-semibold">{account.full_name || 'Pengguna'}</p>
-                      <p className="text-xs text-slate-500">{account.email}</p>
+                      <p className="text-white font-semibold">{item.full_name || 'Belum diisi'}</p>
+                      <p className="text-xs text-slate-500">{item.email}</p>
                     </td>
-                    <MoneyCell value={account.portfolioValue} />
-                    <MoneyCell value={account.realizedPL} signed />
-                    <MoneyCell value={account.unrealizedPL} signed />
-                    <td className="px-4 py-3 text-right text-white font-bold">${account.totalBalance.toLocaleString('en-US', { maximumFractionDigits: 2 })}</td>
-                    <td className="px-4 py-3 text-center"><Badge>{account.openTrades}</Badge></td>
-                    <td className="px-4 py-3 text-center"><Badge>{account.activeStrategies}/{account.strategies}</Badge></td>
+                    <td className="px-4 py-3 text-slate-300">{item.role}</td>
                     <td className="px-4 py-3 text-center">
-                      <KycControl account={account} updating={kycUpdating === account.id} onUpdate={handleKYCUpdate} />
+                      <span className={item.email_verified ? 'text-emerald-400' : 'text-slate-500'}>
+                        {item.email_verified ? 'Terverifikasi' : 'Belum'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <KycControl user={item} updating={kycUpdating === item.id} onChange={handleKYCUpdate} />
+                    </td>
+                    <td className="px-4 py-3 text-slate-400">
+                      {item.created_date ? new Date(item.created_date).toLocaleString('id-ID') : '—'}
                     </td>
                   </tr>
                 ))}
@@ -224,11 +125,8 @@ export default function AdminUserBalances() {
           </div>
         </div>
 
-        {sortedUsers.length === 0 && (
-          <div className="text-center py-12 border border-slate-800 rounded-2xl bg-slate-900/30">
-            <Wallet className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-            <p className="text-slate-400">Belum ada data pengguna yang tersedia.</p>
-          </div>
+        {users.length === 0 && !error && (
+          <div className="text-center py-12 text-slate-400">Belum ada pengguna pada database first-party.</div>
         )}
 
         <GitHubSecurityReview />
@@ -237,81 +135,52 @@ export default function AdminUserBalances() {
   );
 }
 
-function StatCard({ label, value, icon: Icon, tone = 'default' }) {
-  const tones = {
-    default: 'text-white border-sky-500/15',
-    warning: 'text-amber-300 border-amber-500/20',
-    positive: 'text-emerald-300 border-emerald-500/20',
-    info: 'text-sky-300 border-sky-500/20',
-  };
+function StatCard({ label, value, tone = 'default' }) {
+  const toneClass = {
+    default: 'text-white border-slate-700/40',
+    yellow: 'text-yellow-400 border-yellow-500/25',
+    green: 'text-emerald-400 border-emerald-500/25',
+    red: 'text-red-400 border-red-500/25',
+  }[tone];
+
   return (
-    <div className={`bg-slate-800/60 border rounded-2xl p-4 ${tones[tone]}`}>
-      <div className="flex items-center justify-between gap-3 mb-2">
-        <p className="text-slate-400 text-xs font-semibold uppercase tracking-wide">{label}</p>
-        <Icon className="w-4 h-4 text-slate-500" />
-      </div>
-      <p className={`text-2xl font-bold ${tone === 'default' ? 'text-white' : tones[tone].split(' ')[0]}`}>{value}</p>
+    <div className={`bg-slate-800/60 border rounded-xl p-4 ${toneClass.split(' ').slice(1).join(' ')}`}>
+      <p className="text-slate-400 text-sm mb-1">{label}</p>
+      <p className={`text-3xl font-bold ${toneClass.split(' ')[0]}`}>{value.toLocaleString('id-ID')}</p>
     </div>
   );
 }
 
-function Badge({ children }) {
-  return <span className="inline-flex min-w-8 justify-center px-2 py-1 rounded-lg bg-sky-500/10 text-sky-300 text-xs font-semibold">{children}</span>;
-}
-
-function MoneyCell({ value, signed = false }) {
-  const color = !signed ? 'text-white' : value >= 0 ? 'text-emerald-400' : 'text-red-400';
-  return (
-    <td className={`px-4 py-3 text-right font-semibold ${color}`}>
-      ${value.toLocaleString('en-US', { maximumFractionDigits: 2 })}
-    </td>
-  );
-}
-
-function KycControl({ account, updating, onUpdate }) {
+function KycControl({ user, updating, onChange }) {
   if (updating) return <Loader2 className="w-4 h-4 animate-spin text-slate-400 mx-auto" />;
 
-  if (account.kycStatus === 'approved') {
-    return (
-      <div className="flex items-center justify-center gap-1">
-        <span className="px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 text-xs font-semibold flex items-center gap-1">
-          <CheckCircle2 className="w-3 h-3" /> Approved
-        </span>
-        <button onClick={() => onUpdate(account, 'rejected')} title="Tolak KYC" className="p-1 rounded hover:bg-red-500/20 text-red-400">
-          <XCircle className="w-3.5 h-3.5" />
-        </button>
-      </div>
-    );
-  }
+  const status = user.kycStatus || 'none';
+  const badge = status === 'approved'
+    ? <span className="px-2 py-1 rounded bg-green-500/20 text-green-400 text-xs font-semibold flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Approved</span>
+    : status === 'pending'
+      ? <span className="px-2 py-1 rounded bg-yellow-500/20 text-yellow-400 text-xs font-semibold flex items-center gap-1"><Clock className="w-3 h-3" /> Pending</span>
+      : status === 'rejected'
+        ? <span className="px-2 py-1 rounded bg-red-500/20 text-red-400 text-xs font-semibold flex items-center gap-1"><XCircle className="w-3 h-3" /> Rejected</span>
+        : <span className="px-2 py-1 rounded bg-slate-700 text-slate-400 text-xs font-semibold">None</span>;
 
-  if (account.kycStatus === 'pending') {
-    return (
-      <div className="flex items-center justify-center gap-1">
-        <span className="px-2 py-1 rounded-lg bg-amber-500/15 text-amber-400 text-xs font-semibold flex items-center gap-1">
-          <Clock className="w-3 h-3" /> Pending
-        </span>
-        <button onClick={() => onUpdate(account, 'approved')} title="Approve KYC" className="p-1 rounded hover:bg-emerald-500/20 text-emerald-400">
-          <CheckCircle2 className="w-3.5 h-3.5" />
+  return (
+    <div className="flex items-center justify-center gap-1">
+      {badge}
+      {status !== 'approved' && (
+        <button onClick={() => onChange(user, 'approved')} title="Setujui KYC" className="p-1 rounded hover:bg-green-500/20 text-green-400 transition-colors">
+          <CheckCircle2 className="w-4 h-4" />
         </button>
-        <button onClick={() => onUpdate(account, 'rejected')} title="Tolak KYC" className="p-1 rounded hover:bg-red-500/20 text-red-400">
-          <XCircle className="w-3.5 h-3.5" />
+      )}
+      {status !== 'rejected' && (
+        <button onClick={() => onChange(user, 'rejected')} title="Tolak KYC" className="p-1 rounded hover:bg-red-500/20 text-red-400 transition-colors">
+          <XCircle className="w-4 h-4" />
         </button>
-      </div>
-    );
-  }
-
-  if (account.kycStatus === 'rejected') {
-    return (
-      <div className="flex items-center justify-center gap-1">
-        <span className="px-2 py-1 rounded-lg bg-red-500/15 text-red-400 text-xs font-semibold flex items-center gap-1">
-          <XCircle className="w-3 h-3" /> Rejected
-        </span>
-        <button onClick={() => onUpdate(account, 'approved')} title="Approve KYC" className="p-1 rounded hover:bg-emerald-500/20 text-emerald-400">
-          <CheckCircle2 className="w-3.5 h-3.5" />
+      )}
+      {status !== 'pending' && (
+        <button onClick={() => onChange(user, 'pending')} title="Kembalikan ke pending" className="p-1 rounded hover:bg-yellow-500/20 text-yellow-400 transition-colors">
+          <Clock className="w-4 h-4" />
         </button>
-      </div>
-    );
-  }
-
-  return <span className="text-slate-600 text-xs">—</span>;
+      )}
+    </div>
+  );
 }
