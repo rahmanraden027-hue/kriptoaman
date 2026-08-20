@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "status": "proposed-v1-pending-final-approval",
+  "network": "KriptoAman Mainnet",
+  "asset": {
+    "name": "KriptoAman",
+    "symbol": "KAM",
+    "decimals": 18,
+    "genesisSupplyKAM": "1000000000"
+  },
+  "allocation": [
+    {"category":"Ecosystem & Development","percent":35,"amountKAM":"350000000","purpose":"Protocol development, ecosystem applications, developer programs and long-term network growth"},
+    {"category":"Treasury & Strategic Reserve","percent":20,"amountKAM":"200000000","purpose":"Long-term treasury, infrastructure resilience and strategic ecosystem initiatives"},
+    {"category":"Liquidity & Market Infrastructure","percent":15,"amountKAM":"150000000","purpose":"Planned liquidity and market infrastructure subject to legal, exchange and governance requirements"},
+    {"category":"Team & Contributors","percent":15,"amountKAM":"150000000","purpose":"Long-term contributor alignment with vesting"},
+    {"category":"Community & Adoption","percent":10,"amountKAM":"100000000","purpose":"Education, community programs, adoption initiatives and ecosystem participation"},
+    {"category":"Strategic Partnerships","percent":5,"amountKAM":"50000000","purpose":"Qualified partnerships, integrations and ecosystem expansion"}
+  ],
+  "vesting": {
+    "teamAndContributors": {"cliffMonths":12,"vestingMonths":36,"method":"linear-after-cliff"},
+    "strategicPartnerships": {"cliffMonths":6,"vestingMonths":24,"method":"linear-after-cliff"},
+    "ecosystemAndDevelopment": {"releasePolicy":"milestone-and-governance-controlled"},
+    "treasuryAndStrategicReserve": {"releasePolicy":"governance-controlled"},
+    "communityAndAdoption": {"releasePolicy":"program-and-milestone-controlled"},
+    "liquidityAndMarketInfrastructure": {"releasePolicy":"launch-readiness-and-compliance-controlled"}
+  },
+  "economicPolicy": {
+    "guaranteedReturn": false,
+    "guaranteedPrice": false,
+    "automaticDailyParameterChanges": false,
+    "burnPolicy": "not-enabled-until-separately-approved",
+    "governancePolicy": "to-be-finalized-before-commercial-launch"
+  },
+  "notes": [
+    "Genesis supply and decimals mirror the current KAM mainnet network profile.",
+    "Allocation and vesting values are proposed-v1 and are not final until explicitly approved and adopted.",
+    "Commercial launch remains disabled until technical, legal, governance and launch-readiness gates are satisfied."
+  ]
+}
