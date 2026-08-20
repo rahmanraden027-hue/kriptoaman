@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "status": "proposed-v1-pending-final-approval",
+  "status": "adopted-v1-project-baseline-pre-commercial-launch",
   "network": "KriptoAman Mainnet",
   "asset": {
     "name": "KriptoAman",
@@ -29,11 +29,12 @@
     "guaranteedPrice": false,
     "automaticDailyParameterChanges": false,
     "burnPolicy": "not-enabled-until-separately-approved",
-    "governancePolicy": "to-be-finalized-before-commercial-launch"
+    "governancePolicy": "versioned-change-control-required"
   },
   "notes": [
     "Genesis supply and decimals mirror the current KAM mainnet network profile.",
-    "Allocation and vesting values are proposed-v1 and are not final until explicitly approved and adopted.",
+    "Allocation and vesting values are adopted as the KAM project baseline v1 and remain subject to versioned governance change-control.",
+    "Adoption of tokenomics v1 is not a declaration of public/commercial mainnet launch, exchange listing, guaranteed liquidity, regulatory approval or guaranteed price.",
     "Commercial launch remains disabled until technical, legal, governance and launch-readiness gates are satisfied."
   ]
 }
