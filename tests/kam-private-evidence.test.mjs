@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('private KAM evidence redacts endpoints and proves four unique valid validators', async () => {
+test('private KAM evidence proves four unique valid intended production validators', async () => {
   const collector = await read('chain/kam-mainnet/scripts/collect-private-evidence.mjs');
   assert.match(collector, /expectedValidatorCount = 4/);
   assert.match(collector, /qbft_getValidatorsByBlockNumber/);
@@ -12,7 +12,9 @@ test('private KAM evidence redacts endpoints and proves four unique valid valida
   assert.match(collector, /uniqueValidators\.size === expectedValidatorCount/);
   assert.match(collector, /validatorAddressPattern/);
   assert.match(collector, /addressesValid/);
-  assert.match(collector, /fingerprintSha256/);
+  assert.match(collector, /expectedValidatorFingerprint/);
+  assert.match(collector, /fingerprintMatchesExpectedProductionSet/);
+  assert.match(collector, /expected-validator-fingerprint\.txt/);
   assert.match(collector, /validatorAddressesRedacted: true/);
   assert.match(collector, /endpointRedacted: true/);
   assert.doesNotMatch(collector, /console\.log\([^)]*rpcUrl/);
