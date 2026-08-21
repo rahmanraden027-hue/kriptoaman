@@ -25,3 +25,5 @@ jobs:
         run: node scripts/check-system-health.mjs
       - name: Verify 2,001+ assets and snapshot freshness
         run: node scripts/check-market-health.mjs
+      - name: Verify login and password recovery surfaces
+        run: node scripts/check-auth-surface.mjs
