@@ -1,0 +1,50 @@
+name: KAM Private Mainnet Evidence
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kam-private-mainnet-evidence
+  cancel-in-progress: false
+
+jobs:
+  collect-private-evidence:
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Collect private QBFT evidence
+        shell: bash
+        env:
+          KAM_PRIVATE_RPC_URL: http://127.0.0.1:8545
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          node chain/kam-mainnet/scripts/collect-private-evidence.mjs | tee artifacts/kam-private-mainnet-evidence.json
+
+      - name: Verify backup and isolated restore evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          node chain/kam-mainnet/scripts/verify-backup-restore-evidence.mjs \
+            /var/lib/kam-evidence/backup-restore-evidence.json \
+            | tee artifacts/kam-backup-restore-verification.json
+
+      - name: Upload redacted evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: kam-private-mainnet-evidence
+          path: artifacts/*.json
+          if-no-files-found: error
+          retention-days: 30
