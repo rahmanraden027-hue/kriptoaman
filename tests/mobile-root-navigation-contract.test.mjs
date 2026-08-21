@@ -30,6 +30,6 @@ test('primary bottom navigation keeps approved routes and active-state behavior'
   }
 
   assert.match(bottomNav, /const active = currentPageName === page/);
-  assert.match(bottomNav, /min-h-\[58px\]/);
+  assert.match(bottomNav, /min-h-\[52px\]/);
   assert.match(bottomNav, /safe-area-inset-bottom/);
 });
