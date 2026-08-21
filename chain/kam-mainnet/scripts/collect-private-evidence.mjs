@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 const rpcUrl = process.env.KAM_PRIVATE_RPC_URL || 'http://127.0.0.1:8545';
 const expectedChainId = '0x560c';
 const expectedValidatorCount = 4;
+const validatorAddressPattern = /^0x[0-9a-f]{40}$/i;
 
 async function rpc(method, params = []) {
   const response = await fetch(rpcUrl, {
@@ -18,9 +19,12 @@ async function rpc(method, params = []) {
   return payload.result;
 }
 
+function normalizeValidators(validators) {
+  return validators.map((value) => String(value).toLowerCase()).sort();
+}
+
 function validatorFingerprint(validators) {
-  const normalized = [...validators].map((value) => String(value).toLowerCase()).sort();
-  return createHash('sha256').update(normalized.join('\n')).digest('hex');
+  return createHash('sha256').update(normalizeValidators(validators).join('\n')).digest('hex');
 }
 
 async function main() {
@@ -34,6 +38,9 @@ async function main() {
 
   if (!Array.isArray(validators)) throw new Error('QBFT validator result is not an array');
 
+  const normalizedValidators = normalizeValidators(validators);
+  const uniqueValidators = new Set(normalizedValidators);
+  const addressesValid = normalizedValidators.every((address) => validatorAddressPattern.test(address));
   const peerCount = Number.parseInt(peerCountHex, 16);
   const firstBlock = Number.parseInt(block1, 16);
   const secondBlock = Number.parseInt(block2, 16);
@@ -41,9 +48,14 @@ async function main() {
   const checks = {
     chainId: { ok: chainId === expectedChainId, value: chainId },
     validatorSet: {
-      ok: validators.length === expectedValidatorCount,
+      ok:
+        validators.length === expectedValidatorCount &&
+        uniqueValidators.size === expectedValidatorCount &&
+        addressesValid,
       count: validators.length,
+      uniqueCount: uniqueValidators.size,
       expectedCount: expectedValidatorCount,
+      addressesValid,
       fingerprintSha256: validatorFingerprint(validators),
     },
     privatePeers: { ok: Number.isFinite(peerCount) && peerCount >= 3, count: peerCount, minimum: 3 },
@@ -55,11 +67,12 @@ async function main() {
   };
 
   const evidence = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     checkedAt,
     network: 'KriptoAman Mainnet Candidate',
     source: 'private-self-hosted-runner',
     endpointRedacted: true,
+    validatorAddressesRedacted: true,
     checks,
     ready: Object.values(checks).every((check) => check.ok === true),
   };
@@ -70,10 +83,11 @@ async function main() {
 
 main().catch((error) => {
   console.error(JSON.stringify({
-    schemaVersion: 1,
+    schemaVersion: 2,
     checkedAt: new Date().toISOString(),
     source: 'private-self-hosted-runner',
     endpointRedacted: true,
+    validatorAddressesRedacted: true,
     ready: false,
     error: String(error?.message || error),
   }, null, 2));
