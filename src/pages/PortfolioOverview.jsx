@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Activity, BarChart3, Layers3, Radar, ShieldCheck, Sparkles } from 'lucide-react';
+import { Activity, BarChart3, Layers3, Radar, ShieldCheck, Sparkles, Zap, RefreshCw } from 'lucide-react';
 import PortfolioStats from '../components/portfolio/PortfolioStats';
 import AssetAllocationChart from '../components/portfolio/AssetAllocationChart';
 import StrategyOverviewCard from '../components/portfolio/StrategyOverviewCard';
@@ -67,8 +67,8 @@ export default function PortfolioOverview() {
   const empty = !strategies.length && !liveTrades.length && !paperTrades.length;
 
   return (
-    <div className="ka-bg ka-workspace-page min-h-screen pb-28 text-white">
-      <div className="mx-auto max-w-7xl space-y-5 px-4 pt-5 sm:px-6 lg:px-8">
+    <div className="ka-bg ka-workspace-page min-h-screen pb-24 text-white sm:pb-28">
+      <div className="mx-auto max-w-7xl space-y-4 px-4 pt-4 sm:space-y-5 sm:px-6 sm:pt-5 lg:px-8">
         <section className="ka-command-hero p-5 sm:p-7">
           <div className="relative z-10 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div>
@@ -78,16 +78,46 @@ export default function PortfolioOverview() {
             </div>
             <div className="flex flex-wrap gap-2">
               <span className="ka-command-status">LIVE WORKSPACE</span>
-              <span className="rounded-full border border-sky-500/20 bg-sky-500/8 px-3 py-2 text-[10px] font-bold text-sky-300">{portfolioMetrics.totalStrategies} STRATEGIES</span>
+              <span className="rounded-full border border-sky-500/20 bg-sky-500/8 px-3 py-2 text-[10px] font-bold text-sky-300">{portfolioMetrics.totalStrategies} STRATEGI</span>
             </div>
           </div>
         </section>
 
         {empty ? (
-          <section className="ka-command-panel flex min-h-[420px] flex-col items-center justify-center p-8 text-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-3xl border border-sky-500/20 bg-sky-500/10"><BarChart3 className="h-9 w-9 text-sky-400" /></div>
-            <h2 className="mt-5 text-xl font-black">Belum ada data portofolio</h2>
-            <p className="mt-2 max-w-lg text-sm leading-relaxed text-slate-500">Data akan muncul ketika strategi atau simulasi portofolio tersedia.</p>
+          <section className="ka-command-panel overflow-hidden p-5 sm:p-7">
+            <div className="mx-auto max-w-3xl text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-sky-500/20 bg-sky-500/10 sm:h-20 sm:w-20 sm:rounded-3xl">
+                <BarChart3 className="h-8 w-8 text-sky-400 sm:h-9 sm:w-9" />
+              </div>
+              <h2 className="mt-4 text-xl font-black sm:mt-5">Workspace portofolio siap digunakan</h2>
+              <p className="mx-auto mt-2 max-w-lg text-sm leading-relaxed text-slate-400">Metrik, alokasi aset, dan performa akan tampil otomatis ketika strategi atau simulasi mulai tersedia.</p>
+
+              <div className="mt-5 grid gap-3 text-left sm:grid-cols-2">
+                <div className="ka-command-tile p-4">
+                  <div className="flex items-start gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-500/20 bg-sky-500/10">
+                      <Zap className="h-5 w-5 text-sky-300" />
+                    </span>
+                    <div>
+                      <p className="text-sm font-black text-white">Siap menerima strategi</p>
+                      <p className="mt-1 text-xs leading-relaxed text-slate-500">Data strategi aktif akan langsung masuk ke ringkasan performa dan eksposur aset.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="ka-command-tile p-4">
+                  <div className="flex items-start gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10">
+                      <RefreshCw className="h-5 w-5 text-emerald-300" />
+                    </span>
+                    <div>
+                      <p className="text-sm font-black text-white">Sinkronisasi otomatis</p>
+                      <p className="mt-1 text-xs leading-relaxed text-slate-500">Perubahan transaksi dan simulasi diperbarui secara berkala tanpa memenuhi layar dengan data placeholder.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </section>
         ) : (
           <>
@@ -115,7 +145,7 @@ export default function PortfolioOverview() {
                     <div className="flex items-start justify-between gap-3"><div><p className="font-black text-white">{strategy.name}</p><p className="mt-1 text-xs text-slate-500">{strategy.pair} • {strategy.assetClass}</p></div><span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] font-bold text-emerald-300">ACTIVE</span></div>
                     <div className="mt-4 grid grid-cols-2 gap-2"><div className="rounded-xl border border-slate-700/50 bg-slate-950/35 p-3"><p className="text-[9px] text-slate-500">P/L</p><p className="mt-1 text-sm font-black text-emerald-400">+{strategy.stats?.totalPL || 0}</p></div><div className="rounded-xl border border-slate-700/50 bg-slate-950/35 p-3"><p className="text-[9px] text-slate-500">WIN RATE</p><p className="mt-1 text-sm font-black">{strategy.stats?.winRate || 0}%</p></div></div>
                   </div>
-                )) : <div className="md:col-span-2 xl:col-span-3 rounded-2xl border border-dashed border-slate-700 p-8 text-center text-sm text-slate-500">No active strategies</div>}
+                )) : <div className="md:col-span-2 xl:col-span-3 rounded-2xl border border-dashed border-slate-700 p-8 text-center text-sm text-slate-500">Belum ada strategi aktif</div>}
               </div>
             </section>
           </>
