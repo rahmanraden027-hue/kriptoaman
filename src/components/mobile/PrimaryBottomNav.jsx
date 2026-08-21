@@ -23,23 +23,23 @@ export default function PrimaryBottomNav({ currentPageName }) {
   return (
     <nav
       aria-label={language === 'en' ? 'Primary navigation' : 'Navigasi utama'}
-      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#07111d]/97 backdrop-blur-xl border-t border-sky-500/20 shadow-[0_-12px_32px_rgba(0,0,0,0.35)]"
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-sky-500/20 bg-[#07111d]/97 shadow-[0_-10px_28px_rgba(0,0,0,0.32)] backdrop-blur-xl"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
-      <div className="flex items-center justify-around px-1 py-2">
+      <div className="flex items-center justify-around px-1 py-1.5">
         {PRIMARY_NAV.map(({ id, page, to, icon: Icon }) => {
           const active = currentPageName === page;
           return (
             <Link
               key={page}
               to={to}
-              className={`relative flex min-h-[58px] min-w-[56px] flex-1 flex-col items-center justify-center gap-1.5 rounded-xl transition-all ${active ? 'bg-sky-500/8 text-sky-400' : 'text-slate-400 hover:text-white'}`}
+              className={`relative flex min-h-[52px] min-w-[54px] flex-1 flex-col items-center justify-center gap-1 rounded-xl transition-all ${active ? 'bg-sky-500/8 text-sky-400' : 'text-slate-400 hover:text-white'}`}
             >
               {active && (
-                <span className="absolute -top-0.5 left-1/2 h-0.5 w-6 -translate-x-1/2 rounded-full bg-sky-400" />
+                <span className="absolute top-0 left-1/2 h-0.5 w-5 -translate-x-1/2 rounded-full bg-sky-400" />
               )}
-              <Icon className={`h-5 w-5 ${active ? 'text-sky-400' : ''}`} />
-              <span className={`text-[11px] font-semibold ${active ? 'text-sky-300' : ''}`}>
+              <Icon className={`h-[18px] w-[18px] ${active ? 'text-sky-400' : ''}`} />
+              <span className={`text-[10px] font-semibold leading-none ${active ? 'text-sky-300' : ''}`}>
                 {labels[id]}
               </span>
             </Link>
