@@ -33,14 +33,8 @@ export default function Wallet() {
     }
 
     kriptoAuth.getKamPoints()
-      .then((data) => {
-        if (!active) return;
-        setKamPoints(data);
-      })
-      .catch(() => {
-        if (!active) return;
-        setKamPoints(null);
-      });
+      .then((data) => { if (active) setKamPoints(data); })
+      .catch(() => { if (active) setKamPoints(null); });
 
     return () => { active = false; };
   }, [currentUser?.id, currentUser?.email_verified, currentUser?.kycStatus, currentUser?.full_name, currentUser?.phone]);
@@ -55,10 +49,7 @@ export default function Wallet() {
 
     setAdminBalanceError('');
     kriptoAuth.getAdminBalance()
-      .then((data) => {
-        if (!active) return;
-        setAdminBalances(data?.balances || {});
-      })
+      .then((data) => { if (active) setAdminBalances(data?.balances || {}); })
       .catch(() => {
         if (!active) return;
         setAdminBalances(null);
@@ -68,10 +59,14 @@ export default function Wallet() {
     return () => { active = false; };
   }, [currentUser?.id, currentUser?.role, en]);
 
+  const connectionState = connectedAddressCount > 0
+    ? (en ? 'CONNECTED' : 'TERHUBUNG')
+    : (en ? 'READY' : 'SIAP');
+
   return (
     <div className="ka-bg min-h-screen pb-28 text-white">
       <div className="mx-auto max-w-6xl space-y-5 px-4 pt-5 sm:px-6 lg:px-8">
-        <section className="relative overflow-hidden rounded-[28px] border border-sky-400/15 bg-[#071423]/85 p-5 shadow-[0_24px_80px_rgba(0,0,0,.28)] sm:p-6">
+        <section className="relative overflow-hidden rounded-[28px] border border-sky-400/15 bg-[#071423]/85 p-5 shadow-[0_24px_80px_rgba(0,0,0,.28)] sm:p-6" aria-labelledby="wallet-monitor-title">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(56,189,248,.16),transparent_28%),radial-gradient(circle_at_10%_100%,rgba(99,102,241,.12),transparent_30%)]" />
           <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
@@ -80,13 +75,13 @@ export default function Wallet() {
               </div>
               <div>
                 <p className="text-[10px] font-extrabold tracking-[0.22em] text-sky-300">KRIPTOAMAN PORTFOLIO INTELLIGENCE</p>
-                <h1 className="mt-1 text-xl font-extrabold sm:text-2xl">{en ? 'Portfolio & Public Address Monitor' : 'Portofolio & Pemantauan Alamat Publik'}</h1>
-                <p className="mt-1 text-xs text-slate-400">{en ? 'Live visibility, security context, and public-address intelligence.' : 'Visibilitas live, konteks keamanan, dan intelijen alamat publik.'}</p>
+                <h1 id="wallet-monitor-title" className="mt-1 text-xl font-extrabold sm:text-2xl">{en ? 'Portfolio & Public Address Monitor' : 'Portofolio & Pemantauan Alamat Publik'}</h1>
+                <p className="mt-1 text-xs text-slate-400">{en ? 'Public-address visibility, security context, and watch-only portfolio intelligence.' : 'Visibilitas alamat publik, konteks keamanan, dan intelijen portofolio dalam mode pemantauan.'}</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
               <span className="ka-chip inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-cyan-300"><Radar className="h-3 w-3" /> {en ? 'WATCH ONLY' : 'PEMANTAUAN'}</span>
-              <span className="ka-chip inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-emerald-300"><ShieldCheck className="h-3 w-3" /> {en ? 'SECURE SESSION' : 'SESI AMAN'}</span>
+              <span className="ka-chip inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-emerald-300"><ShieldCheck className="h-3 w-3" /> {en ? 'NO CUSTODY' : 'TANPA KUSTODI'}</span>
             </div>
           </div>
         </section>
@@ -94,34 +89,25 @@ export default function Wallet() {
         <WalletProfileCard user={currentUser} address="" coin="" />
 
         {currentUser?.role === 'admin' && (
-          <section className="ka-surface overflow-hidden p-5 shadow-[0_20px_60px_rgba(0,0,0,.18)]" aria-label={en ? 'Internal administrative balance' : 'Saldo administrasi internal KriptoAman'}>
+          <section className="ka-surface overflow-hidden p-5 shadow-[0_20px_60px_rgba(0,0,0,.18)]" aria-labelledby="admin-balance-title">
             <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-violet-500/25 bg-violet-500/10 shadow-[0_0_28px_rgba(139,92,246,.14)]">
-                <WalletCards className="h-5 w-5 text-violet-300" />
-              </div>
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-violet-500/25 bg-violet-500/10 shadow-[0_0_28px_rgba(139,92,246,.14)]"><WalletCards className="h-5 w-5 text-violet-300" /></div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="font-bold">{en ? 'KriptoAman Internal Administrative Balance' : 'Saldo administrasi internal KriptoAman'}</h2>
-                  <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-bold text-emerald-300">
-                    {en ? 'ADMIN ONLY' : 'KHUSUS ADMIN'}
-                  </span>
+                  <h2 id="admin-balance-title" className="font-bold">{en ? 'KriptoAman Internal Administrative Balance' : 'Saldo administrasi internal KriptoAman'}</h2>
+                  <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-bold text-emerald-300">{en ? 'ADMIN ONLY' : 'KHUSUS ADMIN'}</span>
                 </div>
               </div>
             </div>
 
             {adminBalanceError ? (
-              <div className="mt-4 flex items-start gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-300">
-                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                <p>{adminBalanceError}</p>
-              </div>
+              <div role="alert" className="mt-4 flex items-start gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-300"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /><p>{adminBalanceError}</p></div>
             ) : (
               <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {ADMIN_BALANCE_COINS.map((coin) => (
                   <div key={coin} className="rounded-2xl border border-sky-400/10 bg-slate-950/45 p-4 shadow-inner shadow-sky-500/5">
                     <p className="text-[10px] font-semibold tracking-[0.12em] text-slate-500">{coin}</p>
-                    <p className="mt-1 truncate text-lg font-extrabold text-white">
-                      {adminBalances ? Number(adminBalances?.[coin] || 0).toLocaleString('en-US', { maximumFractionDigits: 8 }) : '—'}
-                    </p>
+                    <p className="mt-1 truncate text-lg font-extrabold text-white">{adminBalances ? Number(adminBalances?.[coin] || 0).toLocaleString('en-US', { maximumFractionDigits: 8 }) : '—'}</p>
                   </div>
                 ))}
               </div>
@@ -130,42 +116,30 @@ export default function Wallet() {
         )}
 
         <div className="grid gap-4 lg:grid-cols-12">
-          <section className="ka-surface overflow-hidden p-5 lg:col-span-8">
+          <section className="ka-surface overflow-hidden p-5 lg:col-span-8" aria-labelledby="watch-only-title">
             <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-cyan-500/25 bg-cyan-500/10">
-                <Wifi className="h-5 w-5 text-cyan-300" />
-              </div>
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-cyan-500/25 bg-cyan-500/10"><Wifi className="h-5 w-5 text-cyan-300" /></div>
               <div>
-                <p className="text-[10px] font-extrabold tracking-[0.18em] text-cyan-300">LIVE MONITORING</p>
-                <h2 className="mt-1 font-bold">{en ? 'Watch-only portfolio' : 'Portofolio dalam mode pemantauan'}</h2>
-                <p className="mt-1 text-sm leading-relaxed text-slate-400">
-                  {en
-                    ? 'The public version monitors public address and asset information. Sending, swapping, deposits, withdrawals, trading, lending, staking, bridging, and CEX execution are not enabled.'
-                    : 'Versi publik digunakan untuk memantau informasi alamat publik dan aset. Pengiriman, swap, deposit, penarikan, perdagangan, lending, staking, bridge, dan eksekusi CEX tidak diaktifkan.'}
-                </p>
+                <p className="text-[10px] font-extrabold tracking-[0.18em] text-cyan-300">WATCH-ONLY MONITORING</p>
+                <h2 id="watch-only-title" className="mt-1 font-bold">{en ? 'Public-address portfolio monitor' : 'Pemantau portofolio alamat publik'}</h2>
+                <p className="mt-1 text-sm leading-relaxed text-slate-400">{en ? 'The public version reads public account information for monitoring. Sending, swapping, deposits, withdrawals, trading, lending, staking, bridging, and CEX execution are not enabled.' : 'Versi publik membaca informasi akun publik untuk pemantauan. Pengiriman, swap, deposit, penarikan, perdagangan, lending, staking, bridge, dan eksekusi CEX tidak diaktifkan.'}</p>
               </div>
             </div>
           </section>
 
-          <section className="ka-surface p-5 lg:col-span-4">
-            <div className="flex items-center gap-2 text-sky-300"><Activity className="h-4 w-4" /><span className="text-[10px] font-extrabold tracking-[0.18em]">STATUS GRID</span></div>
+          <section className="ka-surface p-5 lg:col-span-4" aria-labelledby="monitor-status-title">
+            <div className="flex items-center gap-2 text-sky-300"><Activity className="h-4 w-4" /><span id="monitor-status-title" className="text-[10px] font-extrabold tracking-[0.18em]">{en ? 'MONITOR STATUS' : 'STATUS PEMANTAUAN'}</span></div>
             <div className="mt-4 grid grid-cols-3 gap-2 text-center lg:grid-cols-1">
               <div className="rounded-xl border border-sky-400/10 bg-slate-950/35 p-3"><p className="text-lg font-extrabold">{connectedAddressCount}</p><p className="text-[10px] text-slate-500">{en ? 'Addresses' : 'Alamat'}</p></div>
-              <div className="rounded-xl border border-sky-400/10 bg-slate-950/35 p-3"><p className="text-lg font-extrabold text-emerald-300">LIVE</p><p className="text-[10px] text-slate-500">{en ? 'Monitor' : 'Pantau'}</p></div>
-              <div className="rounded-xl border border-sky-400/10 bg-slate-950/35 p-3"><p className="text-lg font-extrabold text-cyan-300">ON</p><p className="text-[10px] text-slate-500">{en ? 'Security' : 'Keamanan'}</p></div>
+              <div className="rounded-xl border border-sky-400/10 bg-slate-950/35 p-3"><p className="text-lg font-extrabold text-emerald-300">{connectionState}</p><p className="text-[10px] text-slate-500">{en ? 'Provider state' : 'Status provider'}</p></div>
+              <div className="rounded-xl border border-sky-400/10 bg-slate-950/35 p-3"><p className="text-lg font-extrabold text-cyan-300">READ</p><p className="text-[10px] text-slate-500">{en ? 'Public data' : 'Data publik'}</p></div>
             </div>
           </section>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <Link to={createPageUrl('Market')} className="ka-surface ka-surface-hover flex min-h-24 flex-col items-center justify-center gap-2 p-4 text-center">
-            <BarChart3 className="h-6 w-6 text-cyan-300" />
-            <span className="text-sm font-semibold">{en ? 'Watch Markets' : 'Pantau Pasar'}</span>
-          </Link>
-          <Link to={createPageUrl('SecurityHub')} className="ka-surface ka-surface-hover flex min-h-24 flex-col items-center justify-center gap-2 p-4 text-center">
-            <Settings2 className="h-6 w-6 text-violet-300" />
-            <span className="text-sm font-semibold">{en ? 'Security Center' : 'Pusat Keamanan'}</span>
-          </Link>
+          <Link to={createPageUrl('Market')} className="ka-surface ka-surface-hover flex min-h-24 flex-col items-center justify-center gap-2 p-4 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70"><BarChart3 className="h-6 w-6 text-cyan-300" /><span className="text-sm font-semibold">{en ? 'Watch Markets' : 'Pantau Pasar'}</span></Link>
+          <Link to={createPageUrl('SecurityHub')} className="ka-surface ka-surface-hover flex min-h-24 flex-col items-center justify-center gap-2 p-4 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/70"><Settings2 className="h-6 w-6 text-violet-300" /><span className="text-sm font-semibold">{en ? 'Security Center' : 'Pusat Keamanan'}</span></Link>
         </div>
 
         <WalletConnectPanel onConnectionCountChange={setConnectedAddressCount} />
@@ -173,26 +147,16 @@ export default function Wallet() {
 
         <section className="grid gap-3 sm:grid-cols-3" aria-label={en ? 'Monitoring status' : 'Status pemantauan'}>
           {[
-            [en ? 'Connected public addresses' : 'Alamat publik terhubung', String(connectedAddressCount), connectedAddressCount ? (en ? 'Public address connection active' : 'Koneksi alamat publik aktif') : (en ? 'Connect a public address when available' : 'Hubungkan alamat publik saat tersedia')],
-            [en ? 'Recent activity' : 'Aktivitas terbaru', '—', en ? 'No monitored transactions' : 'Belum ada transaksi yang dipantau'],
+            [en ? 'Connected public addresses' : 'Alamat publik terhubung', String(connectedAddressCount), connectedAddressCount ? (en ? 'A public provider connection is available' : 'Koneksi provider publik tersedia') : (en ? 'No public provider is connected yet' : 'Belum ada provider publik yang terhubung')],
+            [en ? 'Recent monitored activity' : 'Aktivitas pemantauan terbaru', '—', en ? 'No monitored transaction data available' : 'Belum ada data transaksi yang dipantau'],
             [en ? 'Monitoring mode' : 'Mode pemantauan', en ? 'Watch-only' : 'Pemantauan', en ? 'No custody or transaction execution' : 'Tanpa kustodi atau eksekusi transaksi'],
           ].map(([label, value, description]) => (
-            <div key={label} className="ka-surface p-4">
-              <p className="text-xs font-semibold text-slate-400">{label}</p>
-              <p className="mt-2 text-lg font-extrabold text-white">{value}</p>
-              <p className="mt-1 text-xs leading-relaxed text-slate-500">{description}</p>
-            </div>
+            <div key={label} className="ka-surface p-4"><p className="text-xs font-semibold text-slate-400">{label}</p><p className="mt-2 text-lg font-extrabold text-white">{value}</p><p className="mt-1 text-xs leading-relaxed text-slate-500">{description}</p></div>
           ))}
         </section>
 
-        <section className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
-          <div className="flex gap-3">
-            <ShieldCheck className="h-5 w-5 shrink-0 text-emerald-400" />
-            <div>
-              <p className="text-sm font-semibold text-white">{en ? 'Public-address monitoring only' : 'Hanya pemantauan alamat publik'}</p>
-              <p className="mt-1 text-xs leading-relaxed text-slate-400">{en ? 'KriptoAman does not ask for a seed phrase or private key. Do not enter private credentials into any monitoring form.' : 'KriptoAman tidak meminta seed phrase atau private key. Jangan memasukkan kredensial privat ke formulir pemantauan apa pun.'}</p>
-            </div>
-          </div>
+        <section className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4" aria-labelledby="wallet-safety-note">
+          <div className="flex gap-3"><ShieldCheck className="h-5 w-5 shrink-0 text-emerald-400" /><div><p id="wallet-safety-note" className="text-sm font-semibold text-white">{en ? 'Public-address monitoring only' : 'Hanya pemantauan alamat publik'}</p><p className="mt-1 text-xs leading-relaxed text-slate-400">{en ? 'KriptoAman does not ask for a seed phrase or private key. Do not enter private credentials into any monitoring form.' : 'KriptoAman tidak meminta seed phrase atau private key. Jangan memasukkan kredensial privat ke formulir pemantauan apa pun.'}</p></div></div>
         </section>
 
         <div className="flex items-center justify-center gap-2 text-[10px] text-slate-600"><Sparkles className="h-3 w-3" /> KRIPTOAMAN INTELLIGENCE WORKSPACE</div>
