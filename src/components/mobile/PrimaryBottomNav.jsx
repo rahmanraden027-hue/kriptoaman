@@ -29,18 +29,21 @@ export default function PrimaryBottomNav({ currentPageName }) {
       <div className="flex items-center justify-around px-1 py-1.5">
         {PRIMARY_NAV.map(({ id, page, to, icon: Icon }) => {
           const active = currentPageName === page;
+          const label = labels[id];
           return (
             <Link
               key={page}
               to={to}
-              className={`relative flex min-h-[52px] min-w-[54px] flex-1 flex-col items-center justify-center gap-1 rounded-xl transition-all ${active ? 'bg-sky-500/8 text-sky-400' : 'text-slate-400 hover:text-white'}`}
+              aria-current={active ? 'page' : undefined}
+              aria-label={label}
+              className={`relative flex min-h-[56px] min-w-[56px] flex-1 flex-col items-center justify-center gap-1 rounded-xl outline-none transition-all focus-visible:ring-2 focus-visible:ring-sky-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#07111d] ${active ? 'bg-sky-500/8 text-sky-400' : 'text-slate-400 hover:text-white'}`}
             >
               {active && (
-                <span className="absolute top-0 left-1/2 h-0.5 w-5 -translate-x-1/2 rounded-full bg-sky-400" />
+                <span aria-hidden="true" className="absolute top-0 left-1/2 h-0.5 w-5 -translate-x-1/2 rounded-full bg-sky-400" />
               )}
-              <Icon className={`h-[18px] w-[18px] ${active ? 'text-sky-400' : ''}`} />
-              <span className={`text-[10px] font-semibold leading-none ${active ? 'text-sky-300' : ''}`}>
-                {labels[id]}
+              <Icon aria-hidden="true" className={`h-[18px] w-[18px] ${active ? 'text-sky-400' : ''}`} />
+              <span className={`max-w-full truncate px-1 text-[10px] font-semibold leading-none ${active ? 'text-sky-300' : ''}`}>
+                {label}
               </span>
             </Link>
           );
