@@ -44,7 +44,7 @@ test('empty and sparse pages provide useful next actions', async () => {
     read('src/pages/Profile.jsx'),
   ]);
   assert.match(wallet, /Status pemantauan/);
-  assert.match(wallet, /Aktivitas terbaru/);
+  assert.match(wallet, /Aktivitas pemantauan terbaru/);
   assert.match(alerts, /Cara kerja peringatan/);
   assert.match(alerts, /Notification' in window/);
   assert.match(news, /Umpan berita sedang tidak tersedia/);

@@ -19,7 +19,7 @@ test('external wallet UI uses real providers and contains no synthetic wallet da
   assert.match(provider, /eip6963:requestProvider/);
   assert.match(provider, /eth_requestAccounts/);
   assert.match(provider, /options\.silent \? 'eth_accounts'/);
-  assert.match(external, /Signing and transactions remain disabled/);
+  assert.match(external, /Transaction execution is not exposed by this surface/);
 });
 
 test('WalletConnect uses the official provider and public release blocks signing and transactions', async () => {
@@ -38,7 +38,8 @@ test('WalletConnect uses the official provider and public release blocks signing
   assert.match(provider, /READ_ONLY_RELEASE\) throw new Error\('Transaksi dinonaktifkan/);
   assert.match(provider, /READ_ONLY_RELEASE\) throw new Error\('Penandatanganan dinonaktifkan/);
   assert.match(external, /connectWalletConnect/);
-  assert.match(external, /600\+ dompet kompatibel/);
+  assert.match(external, /dompet WalletConnect yang kompatibel/);
+  assert.doesNotMatch(external, /600\+ dompet kompatibel/);
   assert.doesNotMatch(page, /Web3SendModal|Web3DEXSwap|Buka Form Kirim/);
   const walletPage = await read('src/pages/Wallet.jsx');
   assert.match(walletPage, /connectedAddressCount/);
