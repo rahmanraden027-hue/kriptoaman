@@ -1,4 +1,4 @@
-const MARKET_ASSET_LIMIT = 2500;
+const MARKET_ASSET_LIMIT = 5000;
 const MIN_ACCEPTED_ASSETS = 2001;
 const SNAPSHOT_FRESH_MS = 15 * 60 * 1000;
 const REQUEST_TIMEOUT_MS = 12 * 1000;
@@ -140,6 +140,7 @@ export async function onRequestGet(context) {
       healthy: snapshot.asset_count >= MIN_ACCEPTED_ASSETS && ageMs <= SNAPSHOT_FRESH_MS * 4,
       source: snapshot.source,
       assetCount: snapshot.asset_count,
+      collectionLimit: MARKET_ASSET_LIMIT,
       capturedAt: snapshot.captured_at,
       ageMs,
       stale,
