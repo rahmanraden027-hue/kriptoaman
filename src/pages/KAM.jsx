@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowRight, CheckCircle2, Globe2, Network, ShieldCheck, Sparkles } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
 
@@ -11,6 +11,13 @@ const ALLOCATION = [
   ['Strategic Partnerships', '5%', '50,000,000 KAM'],
 ];
 
+const FALLBACK_REFERENCE = {
+  value: 2.84,
+  currency: 'USD',
+  type: 'internal-estimate',
+  isLiveMarketPrice: false,
+};
+
 const COPY = {
   id: {
     badge: 'KAM Economic Framework v1',
@@ -21,6 +28,10 @@ const COPY = {
     chain: 'Chain ID 22028',
     chainMeta: 'Hex 0x560c · EVM-compatible · Target QBFT · Target 4 validator',
     caution: 'Status public/commercial mainnet tidak dinyatakan sebelum seluruh launch-readiness gate memiliki bukti produksi yang lengkap dan ditinjau.',
+    referenceLabel: 'Referensi Indikatif Listing',
+    referenceMeta: 'Estimasi perencanaan internal · Bukan harga pasar live',
+    referenceDisclosure: 'US$2.84 adalah referensi indikatif untuk perencanaan listing. Nilai ini bukan harga listing resmi, bukan jaminan nilai, dan tidak digunakan untuk market cap, P/L, nilai portofolio, atau ticker live. Harga pasar hanya akan berasal dari perdagangan dan likuiditas nyata.',
+    marketStatus: 'Harga pasar: Belum diperdagangkan',
     allocation: 'Allocation v1',
     total: 'Total 100%',
     safeguards: 'Vesting & Economic Safeguards',
@@ -28,7 +39,7 @@ const COPY = {
     roadmapLabel: 'Roadmap 2026–2027',
     roadmapTitle: 'Dari Candidate Network menuju Global Ecosystem',
     transparency: 'Transparency First',
-    transparencyBody: 'Tokenomics v1 adalah baseline ekonomi proyek. Perubahan material terhadap supply, allocation, vesting, treasury, burn policy, atau utility harus memiliki versioned change record dan persetujuan eksplisit sebelum dinyatakan final.',
+    transparencyBody: 'Tokenomics v1 adalah baseline ekonomi proyek. Perubahan material terhadap supply, allocation, vesting, treasury, burn policy, utility, atau referensi indikatif harus memiliki versioned change record dan persetujuan eksplisit sebelum dinyatakan final.',
     statusCta: 'Lihat System Status',
     roadmap: [
       ['Q3 2026', 'Foundation & Mainnet Candidate', 'Stabilitas jaringan, validator QBFT, RPC gateway, explorer, backup/restore, dan observability.'],
@@ -56,6 +67,10 @@ const COPY = {
     chain: 'Chain ID 22028',
     chainMeta: 'Hex 0x560c · EVM-compatible · QBFT target · 4-validator target',
     caution: 'Public or commercial mainnet status will not be claimed until all launch-readiness gates are backed by complete production evidence and review.',
+    referenceLabel: 'Indicative Listing Reference',
+    referenceMeta: 'Internal planning estimate · Not a live market price',
+    referenceDisclosure: 'US$2.84 is an indicative planning reference for a potential listing. It is not an official listing price, guaranteed value, or live market price, and it is excluded from market cap, P/L, portfolio valuation, and live tickers. Any market price must come from actual trading and liquidity.',
+    marketStatus: 'Market price: Not yet trading',
     allocation: 'Allocation v1',
     total: 'Total 100%',
     safeguards: 'Vesting & Economic Safeguards',
@@ -63,7 +78,7 @@ const COPY = {
     roadmapLabel: 'Roadmap 2026–2027',
     roadmapTitle: 'From Candidate Network to Global Ecosystem',
     transparency: 'Transparency First',
-    transparencyBody: 'Tokenomics v1 is the project economic baseline. Material changes to supply, allocation, vesting, treasury, burn policy, or utility require a versioned change record and explicit approval before being presented as final.',
+    transparencyBody: 'Tokenomics v1 is the project economic baseline. Material changes to supply, allocation, vesting, treasury, burn policy, utility, or indicative references require a versioned change record and explicit approval before being presented as final.',
     statusCta: 'View System Status',
     roadmap: [
       ['Q3 2026', 'Foundation & Mainnet Candidate', 'Network stability, QBFT validators, RPC gateway, explorer, backup/restore, and observability.'],
@@ -87,6 +102,27 @@ const COPY = {
 export default function KAM() {
   const { language } = useLanguage();
   const text = COPY[language] || COPY.id;
+  const [reference, setReference] = useState(FALLBACK_REFERENCE);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/kam/network-status', { headers: { Accept: 'application/json' } })
+      .then(response => response.ok ? response.json() : null)
+      .then(payload => {
+        if (!cancelled && payload?.indicativeListingReference?.isLiveMarketPrice === false) {
+          setReference(payload.indicativeListingReference);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  const formattedReference = new Intl.NumberFormat(language === 'en' ? 'en-US' : 'id-ID', {
+    style: 'currency',
+    currency: reference.currency || 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number(reference.value ?? 2.84));
 
   return (
     <div className="ka-bg min-h-screen pb-24 text-white">
@@ -105,12 +141,27 @@ export default function KAM() {
                 <span className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-amber-300">{text.status}</span>
               </div>
             </div>
-            <div className="rounded-[26px] border border-sky-500/20 bg-gradient-to-br from-sky-500/12 via-slate-950/20 to-indigo-500/8 p-6 shadow-[0_24px_70px_-44px_rgba(14,165,233,.8)]">
-              <Network className="h-9 w-9 text-sky-300" />
-              <p className="mt-5 text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">{text.candidate}</p>
-              <p className="mt-1 text-2xl font-black">{text.chain}</p>
-              <p className="mt-1 text-xs leading-5 text-slate-400">{text.chainMeta}</p>
-              <p className="mt-5 rounded-2xl border border-amber-500/15 bg-amber-500/5 p-3 text-[10px] leading-5 text-amber-200/80">{text.caution}</p>
+            <div className="space-y-3">
+              <div className="rounded-[26px] border border-sky-500/20 bg-gradient-to-br from-sky-500/12 via-slate-950/20 to-indigo-500/8 p-6 shadow-[0_24px_70px_-44px_rgba(14,165,233,.8)]">
+                <Network className="h-9 w-9 text-sky-300" />
+                <p className="mt-5 text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">{text.candidate}</p>
+                <p className="mt-1 text-2xl font-black">{text.chain}</p>
+                <p className="mt-1 text-xs leading-5 text-slate-400">{text.chainMeta}</p>
+                <p className="mt-5 rounded-2xl border border-amber-500/15 bg-amber-500/5 p-3 text-[10px] leading-5 text-amber-200/80">{text.caution}</p>
+              </div>
+
+              <div className="rounded-[26px] border border-emerald-400/20 bg-emerald-500/5 p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">{text.referenceLabel}</p>
+                    <p className="mt-2 text-3xl font-black tracking-[-0.03em] text-white">{formattedReference}</p>
+                    <p className="mt-1 text-[10px] font-bold text-slate-400">{text.referenceMeta}</p>
+                  </div>
+                  <span className="rounded-full border border-slate-700 bg-slate-950/60 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-slate-300">Estimate</span>
+                </div>
+                <p className="mt-4 text-[10px] leading-5 text-slate-400">{text.referenceDisclosure}</p>
+                <p className="mt-3 text-[10px] font-bold text-amber-300">{text.marketStatus}</p>
+              </div>
             </div>
           </div>
         </section>
