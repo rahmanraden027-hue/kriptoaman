@@ -6,6 +6,15 @@ const RPC_URL = 'https://rpc.kriptoaman.com';
 const EXPLORER_URL = 'https://explorer.kriptoaman.com';
 const ADDRESS_PATTERN = /^0x[0-9a-fA-F]{40}$/;
 
+const KAM_INDICATIVE_LISTING_REFERENCE = Object.freeze({
+  value: 2.84,
+  currency: 'USD',
+  type: 'internal-estimate',
+  label: 'Indicative Listing Reference',
+  isLiveMarketPrice: false,
+  disclaimer: 'Internal planning estimate only. Not a live market price, guaranteed listing price, offer, or valuation. Any future market price must come from actual trading and liquidity.',
+});
+
 async function rpc(method, params = [], signal) {
   const response = await fetch(RPC_URL, {
     method: 'POST',
@@ -46,6 +55,8 @@ export async function onRequestGet({ request }) {
     explorerUrl: EXPLORER_URL,
     marketPrice: null,
     marketPriceSource: null,
+    marketPriceStatus: 'not-yet-trading',
+    indicativeListingReference: KAM_INDICATIVE_LISTING_REFERENCE,
     commercialLaunchEnabled: false,
     checkedAt: new Date().toISOString(),
   };
