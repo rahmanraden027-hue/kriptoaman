@@ -27,6 +27,7 @@ const STEPS = [
 ];
 
 const NETWORKS = [
+  { name: 'KAM Network', status: 'expanding' },
   { name: 'Bitcoin', status: 'active' },
   { name: 'Ethereum', status: 'active' },
   { name: 'BNB Chain', status: 'active' },
