@@ -8,9 +8,12 @@ test('paged market endpoint caps responses at 500 assets', async () => {
   const source = await read('functions/api/market-snapshot-page.js');
   assert.match(source, /const DEFAULT_PAGE_SIZE = 500;/);
   assert.match(source, /const MAX_PAGE_SIZE = 500;/);
+  assert.match(source, /const MIN_PAGE_SIZE = 100;/);
   assert.match(source, /all\.slice\(start, start \+ pageSize\)/);
   assert.match(source, /hasMore:/);
   assert.match(source, /totalAssets/);
+  assert.match(source, /totalPages/);
+  assert.match(source, /pageSize/);
   assert.match(source, /stale-while-revalidate=840/);
 });
 
