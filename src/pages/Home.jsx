@@ -44,13 +44,15 @@ const COPY = {
     aboutFounder: 'Tentang Founder',
     heroEyebrow: 'GLOBAL CRYPTO INTELLIGENCE',
     heroTitle: 'KriptoAman Intelligence Workspace',
-    heroBody: 'Pantau pasar, aset, risiko, dan keamanan dari satu pusat kendali modern untuk keputusan yang lebih cepat dan terukur.',
+    heroBody: 'Pantau pasar, aset, risiko, dan keamanan dalam satu pusat kendali untuk keputusan yang cepat dan terukur.',
     openMarket: 'Buka Intelijen Pasar',
     openSecurity: 'Pusat Keamanan',
     statusGlobal: 'Pasar Global',
     statusGlobalDetail: 'Data pasar & aset',
+    statusGlobalState: 'LIVE · BTC ETH SOL',
     statusSecurity: 'Keamanan',
     statusSecurityDetail: 'Kontrol risiko',
+    statusSecurityState: 'AKTIF · WATCH-ONLY',
     statusAI: 'AI Insight',
     statusAIDetail: 'Analisis berbasis data',
     statusPortfolio: 'Portofolio',
@@ -67,13 +69,15 @@ const COPY = {
     aboutFounder: 'About the Founder',
     heroEyebrow: 'GLOBAL CRYPTO INTELLIGENCE',
     heroTitle: 'KriptoAman Intelligence Workspace',
-    heroBody: 'Monitor markets, assets, risk, and security from one modern command center for faster, more measured decisions.',
+    heroBody: 'Monitor markets, assets, risk, and security from one command center for faster, measured decisions.',
     openMarket: 'Open Market Intelligence',
     openSecurity: 'Security Center',
     statusGlobal: 'Global Market',
     statusGlobalDetail: 'Market & asset data',
+    statusGlobalState: 'LIVE · BTC ETH SOL',
     statusSecurity: 'Security',
     statusSecurityDetail: 'Risk controls',
+    statusSecurityState: 'ACTIVE · WATCH-ONLY',
     statusAI: 'AI Insight',
     statusAIDetail: 'Data-driven analysis',
     statusPortfolio: 'Portfolio',
@@ -109,7 +113,7 @@ export default function Home() {
 
   return (
     <div className="ka-bg min-h-screen text-white pb-28">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 space-y-5">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 space-y-4 sm:pt-5 sm:space-y-5">
         <section className="relative overflow-hidden rounded-[28px] border border-sky-400/20 bg-[#07111d]/90 shadow-[0_28px_80px_-36px_rgba(14,165,233,0.7)]">
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute -top-32 right-[-5%] h-80 w-80 rounded-full bg-sky-500/15 blur-3xl" />
@@ -117,28 +121,28 @@ export default function Home() {
             <div className="absolute inset-0 opacity-[0.13]" style={{ backgroundImage: 'linear-gradient(rgba(56,189,248,.18) 1px, transparent 1px), linear-gradient(90deg, rgba(56,189,248,.18) 1px, transparent 1px)', backgroundSize: '34px 34px' }} />
           </div>
 
-          <div className="relative grid gap-5 p-5 sm:gap-6 sm:p-7 lg:grid-cols-[1.45fr_.9fr] lg:p-8">
+          <div className="relative grid gap-4 p-4 sm:gap-5 sm:p-6 lg:grid-cols-[1.45fr_.9fr] lg:p-7">
             <div className="min-w-0">
               <div className="inline-flex items-center gap-2 rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-1.5 text-[10px] font-extrabold tracking-[0.18em] text-sky-300">
                 <Sparkles className="h-3.5 w-3.5" /> {text.heroEyebrow}
               </div>
 
-              <div className="mt-3.5 sm:mt-4">
+              <div className="mt-3 sm:mt-3.5">
                 <p className="text-xs font-semibold text-slate-400">{greeting()}, {user?.full_name?.split(' ')[0] || (language === 'en' ? 'User' : 'Pengguna')}</p>
                 <h1 className="mt-1 max-w-3xl text-3xl font-black tracking-[-0.04em] text-white sm:text-4xl lg:text-5xl">
                   {text.heroTitle}
                 </h1>
-                <p className="mt-2.5 max-w-2xl text-sm leading-5 text-slate-300 sm:mt-3 sm:text-base sm:leading-6">
+                <p className="mt-2 max-w-2xl text-sm leading-5 text-slate-300 sm:text-base sm:leading-6">
                   {text.heroBody}
                 </p>
               </div>
 
-              <div className="mt-3.5 flex flex-wrap gap-2 sm:mt-4">
+              <div className="mt-3 flex flex-wrap gap-2 sm:mt-3.5">
                 <span className="ka-chip inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-sky-300"><Radio className="h-3 w-3" /> {text.live}</span>
                 <span className="ka-chip inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-cyan-300"><Eye className="h-3 w-3" /> {text.watch}</span>
               </div>
 
-              <div className="mt-4 flex flex-col gap-2 sm:mt-5 sm:flex-row">
+              <div className="mt-3.5 flex flex-col gap-2 sm:mt-4 sm:flex-row">
                 <Link to={createPageUrl('Market')} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-sky-300/30 bg-gradient-to-r from-blue-600 to-sky-500 px-4 py-3 text-sm font-extrabold text-white shadow-[0_14px_30px_-14px_rgba(14,165,233,.75)] transition hover:-translate-y-0.5 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/70">
                   <TrendingUp className="h-4 w-4" /> {text.openMarket}
                 </Link>
@@ -148,16 +152,19 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 self-end" aria-label={language === 'en' ? 'Workspace capabilities' : 'Kapabilitas workspace'}>
+            <div className="grid grid-cols-2 gap-2.5 self-end sm:gap-3" aria-label={language === 'en' ? 'Workspace capabilities' : 'Kapabilitas workspace'}>
               {[
-                [Globe2, text.statusGlobal, text.statusGlobalDetail, 'text-sky-300', 'bg-sky-500/[0.08] border-sky-400/20'],
-                [ShieldCheck, text.statusSecurity, text.statusSecurityDetail, 'text-emerald-300', 'bg-emerald-500/[0.08] border-emerald-400/20'],
-                [BrainCircuit, text.statusAI, text.statusAIDetail, 'text-violet-300', 'bg-violet-500/[0.08] border-violet-400/20'],
-                [Wallet, text.statusPortfolio, text.statusPortfolioDetail, 'text-cyan-300', 'bg-cyan-500/[0.08] border-cyan-400/20'],
-              ].map(([Icon, label, detail, iconClass, cardClass]) => (
-                <div key={label} className={`rounded-2xl border p-4 backdrop-blur-xl ${cardClass}`}>
-                  <Icon className={`h-5 w-5 ${iconClass}`} aria-hidden="true" />
-                  <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-300">{label}</p>
+                [Globe2, text.statusGlobal, text.statusGlobalDetail, text.statusGlobalState, 'text-sky-300', 'bg-sky-500/[0.08] border-sky-400/20'],
+                [ShieldCheck, text.statusSecurity, text.statusSecurityDetail, text.statusSecurityState, 'text-emerald-300', 'bg-emerald-500/[0.08] border-emerald-400/20'],
+                [BrainCircuit, text.statusAI, text.statusAIDetail, null, 'text-violet-300', 'bg-violet-500/[0.08] border-violet-400/20'],
+                [Wallet, text.statusPortfolio, text.statusPortfolioDetail, null, 'text-cyan-300', 'bg-cyan-500/[0.08] border-cyan-400/20'],
+              ].map(([Icon, label, detail, state, iconClass, cardClass]) => (
+                <div key={label} className={`rounded-2xl border p-3.5 backdrop-blur-xl sm:p-4 ${cardClass}`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <Icon className={`h-5 w-5 ${iconClass}`} aria-hidden="true" />
+                    {state && <span className="rounded-full border border-white/[0.08] bg-slate-950/35 px-2 py-1 text-[8px] font-extrabold tracking-[0.08em] text-slate-300">{state}</span>}
+                  </div>
+                  <p className="mt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-300 sm:mt-4">{label}</p>
                   <p className="mt-1 text-[9px] leading-4 text-slate-500">{detail}</p>
                 </div>
               ))}
