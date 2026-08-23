@@ -101,45 +101,37 @@ const COPY = {
   id: {
     title: 'Pasar Kripto', identity: 'KRIPTOAMAN MARKET INTELLIGENCE', live: 'Live 24/7',
     available: 'Data pasar tersedia', connecting: 'Menghubungkan…', assets: 'aset',
-    updated: 'diperbarui', fallback: 'Sumber cadangan', search: 'Cari aset',
+    updated: 'diperbarui', sourceUnavailable: 'Sumber belum tersedia', search: 'Cari aset',
     all: 'Semua', gainers: 'Naik', losers: 'Turun', watchlist: 'Watchlist',
     today: 'hari ini', methodology: 'Sumber & metodologi', source: 'Sumber pasar',
     cadence: 'Pembaruan', cadenceValue: 'Setiap 15 menit + harga live untuk aset utama',
+    freshness: 'Freshness', freshnessFresh: 'Snapshot aktif', freshnessStale: 'Snapshot tersimpan',
     scope: 'Cakupan', scopeValue: 'Informasi pasar—bukan harga eksekusi bursa',
     disclaimer: 'Harga dapat berbeda antar bursa dan mengalami keterlambatan. KriptoAman tidak mengubah data harga sumber dan tidak menjamin keuntungan.',
     load: 'Muat 100 aset berikutnya', remaining: 'tersisa', empty: 'Tidak ada hasil',
     emptyWatch: 'Belum ada aset di watchlist. Tekan bintang untuk menambahkan.',
     stale: 'Menampilkan snapshot terakhir yang berhasil disimpan. Pembaruan otomatis akan dilanjutkan saat koneksi pulih.',
-    cachedSource: 'Snapshot tersimpan',
+    cachedSource: 'Snapshot tersimpan', chartUnavailable: 'Grafik belum tersedia',
     hero: 'Pusat intelijen pasar multi-aset untuk memantau momentum, tren, dan perubahan harga secara real-time.',
     breadth: 'Market breadth', feeds: 'Data feeds', universe: 'Asset universe', mode: 'Intelligence mode',
   },
   en: {
     title: 'Crypto Market', identity: 'KRIPTOAMAN MARKET INTELLIGENCE', live: 'Live 24/7',
     available: 'Market data available', connecting: 'Connecting…', assets: 'assets',
-    updated: 'updated', fallback: 'Fallback source', search: 'Search assets',
+    updated: 'updated', sourceUnavailable: 'Source unavailable', search: 'Search assets',
     all: 'All', gainers: 'Gainers', losers: 'Losers', watchlist: 'Watchlist',
     today: 'today', methodology: 'Source & methodology', source: 'Market source',
     cadence: 'Refresh', cadenceValue: 'Every 15 minutes + live prices for major assets',
+    freshness: 'Freshness', freshnessFresh: 'Active snapshot', freshnessStale: 'Saved snapshot',
     scope: 'Scope', scopeValue: 'Market information—not exchange execution prices',
     disclaimer: 'Prices may vary by exchange and may be delayed. KriptoAman does not alter source prices and does not guarantee returns.',
     load: 'Load next 100 assets', remaining: 'remaining', empty: 'No results',
     emptyWatch: 'Your watchlist is empty. Press the star to add an asset.',
     stale: 'Showing the last successfully saved snapshot. Automatic updates will resume when connectivity returns.',
-    cachedSource: 'Saved snapshot',
+    cachedSource: 'Saved snapshot', chartUnavailable: 'Chart unavailable',
     hero: 'A multi-asset market intelligence center for monitoring momentum, trends, and price changes in real time.',
     breadth: 'Market breadth', feeds: 'Data feeds', universe: 'Asset universe', mode: 'Intelligence mode',
   },
-};
-
-const fallbackSparkline = (change24h) => {
-  const change = Number(change24h);
-  if (!Number.isFinite(change)) return [];
-  const direction = change >= 0 ? 1 : -1;
-  const amplitude = Math.max(0.8, Math.min(18, Math.abs(change)));
-  return [0, 0.18, 0.1, 0.42, 0.34, 0.72, 1].map(
-    (step, index) => 100 + direction * amplitude * step + (index % 2 ? direction * 0.15 : 0),
-  );
 };
 
 export default function Market() {
@@ -162,7 +154,7 @@ export default function Market() {
     cryptocompare: 'CryptoCompare',
     cache: text.cachedSource,
     server: language === 'en' ? 'KriptoAman server snapshot' : 'Snapshot server KriptoAman',
-  }[source] || text.fallback;
+  }[source] || text.sourceUnavailable;
   const ageLabel = cacheAgeMs == null ? null : cacheAgeMs < 60 * 60 * 1000
     ? `${Math.max(1, Math.round(cacheAgeMs / 60000))} ${language === 'en' ? 'min ago' : 'menit lalu'}`
     : `${Math.round(cacheAgeMs / 3600000)} ${language === 'en' ? 'hours ago' : 'jam lalu'}`;
@@ -240,6 +232,7 @@ export default function Market() {
                 </span>
                 <span className="ka-chip px-3 py-1.5 text-[10px] font-bold text-slate-300">{sourceLabel}</span>
                 {updatedLabel && <span className="ka-chip px-3 py-1.5 text-[10px] font-bold text-slate-400">{text.updated} {updatedLabel}</span>}
+                {ageLabel && <span className={`ka-chip px-3 py-1.5 text-[10px] font-bold ${isStale ? 'text-amber-300' : 'text-emerald-300'}`}>{ageLabel}</span>}
               </div>
             </div>
 
@@ -321,9 +314,10 @@ export default function Market() {
         <details className="rounded-2xl border border-sky-400/15 bg-sky-400/[0.04] px-4 py-3">
           <summary className="cursor-pointer select-none text-[10px] font-bold text-sky-300">{text.methodology}</summary>
           <div className="pt-3 text-[10px] leading-relaxed text-slate-400">
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-4">
               <div><span className="font-bold text-sky-300">{text.source}: </span>{sourceLabel}</div>
               <div><span className="font-bold text-sky-300">{text.cadence}: </span>{text.cadenceValue}</div>
+              <div><span className="font-bold text-sky-300">{text.freshness}: </span>{isStale ? text.freshnessStale : text.freshnessFresh}{ageLabel ? ` · ${ageLabel}` : ''}</div>
               <div><span className="font-bold text-sky-300">{text.scope}: </span>{text.scopeValue}</div>
             </div>
             <p className="mt-3 border-t border-white/10 pt-3 text-slate-500">{text.disclaimer}</p>
@@ -337,7 +331,7 @@ export default function Market() {
             const isUp = (chg || 0) >= 0;
             const inWatchlist = watchlist.includes(c.sym);
             const spark = markets[c.sym]?.sparkline;
-            const chartData = Array.isArray(spark) && spark.length > 1 ? spark : fallbackSparkline(chg);
+            const chartData = Array.isArray(spark) && spark.length > 1 ? spark : [];
             return (
               <div
                 key={c.id}
@@ -371,7 +365,9 @@ export default function Market() {
                   <div className="hidden sm:block">
                     {chartData.length > 1 ? (
                       <InteractiveSparkline data={chartData} up={isUp} height={28} width={64} />
-                    ) : null}
+                    ) : (
+                      <span className="inline-flex w-16 justify-center text-[8px] font-semibold text-slate-600">{text.chartUnavailable}</span>
+                    )}
                   </div>
                   <div className="shrink-0 text-right">
                     <p className={`text-[13px] font-extrabold ka-num transition-colors ${d?.tick === 'up' ? 'text-emerald-300' : d?.tick === 'down' ? 'text-red-300' : 'text-white'}`}>
