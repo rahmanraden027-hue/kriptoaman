@@ -25,3 +25,15 @@ test('KAM UI labels US$29.37 as a scenario estimate and excludes it from live va
   assert.match(page, /market cap, P\/L, portfolio valuation, and live tickers/);
   assert.match(page, /market cap, P\/L, nilai portofolio, atau ticker live/);
 });
+
+test('KAM scenario drivers roadmap uses evidence-based milestones without price promises', async () => {
+  const page = await read('src/pages/KAM.jsx');
+  assert.match(page, /KAM SCENARIO DRIVERS/);
+  assert.match(page, /Public mainnet with distributed validators/);
+  assert.match(page, /Transparent liquidity infrastructure/);
+  assert.match(page, /Market-based price discovery/);
+  assert.match(page, /tidak secara otomatis menghasilkan harga tertentu/);
+  assert.match(page, /do not automatically produce any specific price/);
+  assert.match(page, /Harga pasar hanya terbentuk melalui perdagangan nyata/);
+  assert.match(page, /Market price is formed only by real trading/);
+});
