@@ -1,0 +1,12 @@
+# Security-sensitive ownership
+* @rahmanraden027-hue
+
+/functions/ @rahmanraden027-hue
+/server/ @rahmanraden027-hue
+/migrations/ @rahmanraden027-hue
+/.github/workflows/ @rahmanraden027-hue
+/public/_headers @rahmanraden027-hue
+/public/sw.js @rahmanraden027-hue
+/android/ @rahmanraden027-hue
+/package.json @rahmanraden027-hue
+/package-lock.json @rahmanraden027-hue
