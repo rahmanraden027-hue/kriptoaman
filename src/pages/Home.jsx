@@ -51,8 +51,6 @@ const COPY = {
     statusSecurity: 'Keamanan',
     statusAI: 'AI Insight',
     statusPortfolio: 'Portofolio',
-    online: 'Aktif',
-    monitored: 'Terpantau',
   },
   en: {
     summary: 'Market intelligence, portfolio, security, and asset monitoring in one workspace.',
@@ -72,8 +70,6 @@ const COPY = {
     statusSecurity: 'Security',
     statusAI: 'AI Insight',
     statusPortfolio: 'Portfolio',
-    online: 'Active',
-    monitored: 'Monitored',
   },
 };
 
@@ -135,29 +131,25 @@ export default function Home() {
               </div>
 
               <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-                <Link to={createPageUrl('Market')} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-sky-300/30 bg-gradient-to-r from-blue-600 to-sky-500 px-4 py-3 text-sm font-extrabold text-white shadow-[0_14px_30px_-14px_rgba(14,165,233,.75)] transition hover:-translate-y-0.5 hover:brightness-110">
+                <Link to={createPageUrl('Market')} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-sky-300/30 bg-gradient-to-r from-blue-600 to-sky-500 px-4 py-3 text-sm font-extrabold text-white shadow-[0_14px_30px_-14px_rgba(14,165,233,.75)] transition hover:-translate-y-0.5 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/70">
                   <TrendingUp className="h-4 w-4" /> {text.openMarket}
                 </Link>
-                <Link to={createPageUrl('SecurityHub')} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 text-sm font-bold text-slate-200 transition hover:border-sky-400/25 hover:bg-sky-400/10 hover:text-white">
+                <Link to={createPageUrl('SecurityHub')} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 text-sm font-bold text-slate-200 transition hover:border-sky-400/25 hover:bg-sky-400/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/70">
                   <ShieldCheck className="h-4 w-4 text-sky-300" /> {text.openSecurity}
                 </Link>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 self-end">
+            <div className="grid grid-cols-2 gap-3 self-end" aria-label={language === 'en' ? 'Workspace capabilities' : 'Kapabilitas workspace'}>
               {[
-                [Globe2, text.statusGlobal, text.online, 'text-sky-300', 'bg-sky-500/10 border-sky-400/20'],
-                [ShieldCheck, text.statusSecurity, text.online, 'text-emerald-300', 'bg-emerald-500/10 border-emerald-400/20'],
-                [BrainCircuit, text.statusAI, text.monitored, 'text-violet-300', 'bg-violet-500/10 border-violet-400/20'],
-                [Wallet, text.statusPortfolio, text.monitored, 'text-cyan-300', 'bg-cyan-500/10 border-cyan-400/20'],
-              ].map(([Icon, label, value, iconClass, cardClass]) => (
+                [Globe2, text.statusGlobal, 'text-sky-300', 'bg-sky-500/[0.08] border-sky-400/20'],
+                [ShieldCheck, text.statusSecurity, 'text-emerald-300', 'bg-emerald-500/[0.08] border-emerald-400/20'],
+                [BrainCircuit, text.statusAI, 'text-violet-300', 'bg-violet-500/[0.08] border-violet-400/20'],
+                [Wallet, text.statusPortfolio, 'text-cyan-300', 'bg-cyan-500/[0.08] border-cyan-400/20'],
+              ].map(([Icon, label, iconClass, cardClass]) => (
                 <div key={label} className={`rounded-2xl border p-4 backdrop-blur-xl ${cardClass}`}>
-                  <div className="flex items-center justify-between gap-2">
-                    <Icon className={`h-5 w-5 ${iconClass}`} />
-                    <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_14px_rgba(52,211,153,.9)]" />
-                  </div>
-                  <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">{label}</p>
-                  <p className="mt-1 text-sm font-extrabold text-white">{value}</p>
+                  <Icon className={`h-5 w-5 ${iconClass}`} aria-hidden="true" />
+                  <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">{label}</p>
                 </div>
               ))}
             </div>

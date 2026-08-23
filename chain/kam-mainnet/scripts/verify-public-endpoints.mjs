@@ -3,6 +3,7 @@ import { isAdminRpcBlocked } from './rpc-security.mjs';
 const rpcUrl = process.env.KAM_RPC_URL || 'https://rpc.kriptoaman.com';
 const explorerUrl = process.env.KAM_EXPLORER_URL || 'https://explorer.kriptoaman.com';
 const expectedChainId = '0x560c';
+const maxExplorerDistanceBlocks = Number.parseInt(process.env.KAM_EXPLORER_MAX_DISTANCE_BLOCKS || '5', 10);
 
 const SENSITIVE_METHOD_PROBES = [
   { namespace: 'admin', method: 'admin_peers', params: [] },
@@ -53,6 +54,36 @@ async function checkExplorer() {
   return { ok: true, finalUrl: response.url, latencyMs };
 }
 
+async function checkExplorerHeight(rpcBlockHex) {
+  const apiUrl = `${explorerUrl.replace(/\/$/, '')}/api/v2/blocks`;
+  const startedAt = performance.now();
+  const response = await fetch(apiUrl, {
+    headers: { accept: 'application/json' },
+    redirect: 'follow',
+  });
+  const latencyMs = Math.round(performance.now() - startedAt);
+  if (!response.ok) throw new Error(`Explorer blocks API HTTP ${response.status}`);
+
+  const payload = await response.json();
+  const explorerHeight = Number(payload?.items?.[0]?.height);
+  const rpcHeight = Number.parseInt(rpcBlockHex, 16);
+  const distanceBlocks = Math.abs(rpcHeight - explorerHeight);
+
+  return {
+    ok: Number.isFinite(explorerHeight)
+      && Number.isFinite(rpcHeight)
+      && Number.isFinite(maxExplorerDistanceBlocks)
+      && maxExplorerDistanceBlocks >= 0
+      && distanceBlocks <= maxExplorerDistanceBlocks,
+    apiUrl,
+    rpcHeight,
+    explorerHeight,
+    distanceBlocks,
+    maxDistanceBlocks: maxExplorerDistanceBlocks,
+    latencyMs,
+  };
+}
+
 async function main() {
   const result = {
     checkedAt: new Date().toISOString(),
@@ -91,6 +122,7 @@ async function main() {
     };
 
     result.checks.explorer = await checkExplorer();
+    result.checks.explorerHeight = await checkExplorerHeight(block2.result);
     result.ready = Object.values(result.checks).every((check) => check.ok === true);
   } catch (error) {
     result.error = String(error?.message || error);

@@ -128,7 +128,7 @@ export default function AboutUs() {
             <ExternalLink className="w-4 h-4" />
             <span className="text-sm font-medium">Pusat Bantuan</span>
           </Link>
-          <p className="text-slate-600 text-xs pt-1">© 2026 PT KRIPTO AMAN INDONESIA · Jakarta Barat, DKI Jakarta</p>
+          <p className="text-slate-600 text-xs pt-1">© 2026 PT KRIPTO AMAN INDONESIA · Batam, Kepulauan Riau, Indonesia</p>
         </div>
 
       </div>

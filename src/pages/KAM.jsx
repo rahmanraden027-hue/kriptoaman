@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowRight, CheckCircle2, Globe2, Network, ShieldCheck, Sparkles } from 'lucide-react';
+import { useLanguage } from '@/lib/LanguageContext';
 
 const ALLOCATION = [
   ['Ecosystem & Development', '35%', '350,000,000 KAM'],
@@ -10,103 +11,155 @@ const ALLOCATION = [
   ['Strategic Partnerships', '5%', '50,000,000 KAM'],
 ];
 
-const ROADMAP = [
-  ['Q3 2026', 'Foundation & Mainnet Candidate', 'Stabilitas jaringan, validator QBFT, RPC gateway, explorer, backup/restore, dan observability.'],
-  ['Q3–Q4 2026', 'Tokenomics & Governance', 'Tokenomics v1, kontrol treasury, change-control, risk disclosure, dan metadata integrasi.'],
-  ['Q4 2026', 'Developer & Wallet Ecosystem', 'Dokumentasi developer, konfigurasi wallet, contoh integrasi dApp, dan monitoring jaringan.'],
-  ['Q4 2026', 'Community & Global Campaign', 'Edukasi teknologi, utility, transparansi, AMA, developer content, dan pertumbuhan komunitas.'],
-  ['Gate-based', 'Public Launch Readiness', 'Peluncuran publik hanya setelah stabilitas, keamanan RPC, explorer, validator, governance, dan review yang diperlukan terpenuhi.'],
-  ['2027', 'Ecosystem Expansion', 'SDK, aplikasi ekosistem, penguatan infrastruktur, governance bertahap, dan kemitraan internasional.'],
-];
+const COPY = {
+  id: {
+    badge: 'KAM Economic Framework v1',
+    title: 'KAM — Aset Native KriptoAman Network',
+    intro: 'KAM dirancang sebagai aset native untuk mendukung infrastruktur dan ekosistem KriptoAman. Halaman ini menyajikan parameter ekonomi v1, arah utility, vesting, dan roadmap dengan pendekatan transparansi.',
+    status: 'Status jaringan: Mainnet Candidate',
+    candidate: 'Candidate Network',
+    chain: 'Chain ID 22028',
+    chainMeta: 'Hex 0x560c · EVM-compatible · Target QBFT · Target 4 validator',
+    caution: 'Status public/commercial mainnet tidak dinyatakan sebelum seluruh launch-readiness gate memiliki bukti produksi yang lengkap dan ditinjau.',
+    allocation: 'Allocation v1',
+    total: 'Total 100%',
+    safeguards: 'Vesting & Economic Safeguards',
+    utility: 'Arah Utility',
+    roadmapLabel: 'Roadmap 2026–2027',
+    roadmapTitle: 'Dari Candidate Network menuju Global Ecosystem',
+    transparency: 'Transparency First',
+    transparencyBody: 'Tokenomics v1 adalah baseline ekonomi proyek. Perubahan material terhadap supply, allocation, vesting, treasury, burn policy, atau utility harus memiliki versioned change record dan persetujuan eksplisit sebelum dinyatakan final.',
+    statusCta: 'Lihat System Status',
+    roadmap: [
+      ['Q3 2026', 'Foundation & Mainnet Candidate', 'Stabilitas jaringan, validator QBFT, RPC gateway, explorer, backup/restore, dan observability.'],
+      ['Q3–Q4 2026', 'Tokenomics & Governance', 'Tokenomics v1, kontrol treasury, change-control, risk disclosure, dan metadata integrasi.'],
+      ['Q4 2026', 'Developer & Wallet Ecosystem', 'Dokumentasi developer, konfigurasi wallet, contoh integrasi dApp, dan monitoring jaringan.'],
+      ['Q4 2026', 'Community & Global Campaign', 'Edukasi teknologi, utility, transparansi, AMA, developer content, dan pertumbuhan komunitas.'],
+      ['Gate-based', 'Public Launch Readiness', 'Peluncuran publik hanya setelah stabilitas, keamanan RPC, explorer, validator, governance, dan review yang diperlukan terpenuhi.'],
+      ['2027', 'Ecosystem Expansion', 'SDK, aplikasi ekosistem, penguatan infrastruktur, governance bertahap, dan kemitraan internasional.'],
+    ],
+    vesting: [
+      'Team & Contributors: 12-month cliff, lalu linear vesting 36 bulan.',
+      'Strategic Partnerships: 6-month cliff, lalu linear vesting 24 bulan.',
+      'Treasury, ecosystem, community, dan liquidity mengikuti kontrol milestone/governance.',
+      'Tidak ada guaranteed return atau guaranteed price.',
+      'Burn mechanism belum aktif dan membutuhkan persetujuan terpisah.',
+    ],
+    utilities: ['Network transaction fees.','Application & developer ecosystem participation.','Infrastructure services.','Ecosystem incentives.','Future governance functions where technically and legally appropriate.'],
+  },
+  en: {
+    badge: 'KAM Economic Framework v1',
+    title: 'KAM — Native Asset of the KriptoAman Network',
+    intro: 'KAM is designed as the native asset supporting KriptoAman infrastructure and ecosystem development. This page presents the v1 economic framework, utility direction, vesting, and roadmap with a transparency-first approach.',
+    status: 'Network status: Mainnet Candidate',
+    candidate: 'Candidate Network',
+    chain: 'Chain ID 22028',
+    chainMeta: 'Hex 0x560c · EVM-compatible · QBFT target · 4-validator target',
+    caution: 'Public or commercial mainnet status will not be claimed until all launch-readiness gates are backed by complete production evidence and review.',
+    allocation: 'Allocation v1',
+    total: 'Total 100%',
+    safeguards: 'Vesting & Economic Safeguards',
+    utility: 'Utility Direction',
+    roadmapLabel: 'Roadmap 2026–2027',
+    roadmapTitle: 'From Candidate Network to Global Ecosystem',
+    transparency: 'Transparency First',
+    transparencyBody: 'Tokenomics v1 is the project economic baseline. Material changes to supply, allocation, vesting, treasury, burn policy, or utility require a versioned change record and explicit approval before being presented as final.',
+    statusCta: 'View System Status',
+    roadmap: [
+      ['Q3 2026', 'Foundation & Mainnet Candidate', 'Network stability, QBFT validators, RPC gateway, explorer, backup/restore, and observability.'],
+      ['Q3–Q4 2026', 'Tokenomics & Governance', 'Tokenomics v1, treasury controls, change control, risk disclosure, and integration metadata.'],
+      ['Q4 2026', 'Developer & Wallet Ecosystem', 'Developer documentation, wallet configuration, dApp integration examples, and network monitoring.'],
+      ['Q4 2026', 'Community & Global Campaign', 'Technology education, utility, transparency, AMA, developer content, and community growth.'],
+      ['Gate-based', 'Public Launch Readiness', 'Public launch only after stability, RPC security, explorer, validator, governance, and required review gates are satisfied.'],
+      ['2027', 'Ecosystem Expansion', 'SDKs, ecosystem applications, infrastructure strengthening, progressive governance, and international partnerships.'],
+    ],
+    vesting: [
+      'Team & Contributors: 12-month cliff followed by 36 months of linear vesting.',
+      'Strategic Partnerships: 6-month cliff followed by 24 months of linear vesting.',
+      'Treasury, ecosystem, community, and liquidity allocations follow milestone/governance controls.',
+      'No guaranteed return or guaranteed price.',
+      'No burn mechanism is active; any future mechanism requires separate approval.',
+    ],
+    utilities: ['Network transaction fees.','Application & developer ecosystem participation.','Infrastructure services.','Ecosystem incentives.','Future governance functions where technically and legally appropriate.'],
+  },
+};
 
 export default function KAM() {
+  const { language } = useLanguage();
+  const text = COPY[language] || COPY.id;
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-950 to-blue-950 text-white pb-24">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 space-y-8">
-        <section className="relative overflow-hidden rounded-3xl border border-blue-500/20 bg-slate-900/70 p-6 sm:p-10">
-          <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
-          <div className="relative grid gap-8 lg:grid-cols-[1.35fr_.65fr] lg:items-center">
+    <div className="ka-bg min-h-screen pb-24 text-white">
+      <div className="mx-auto max-w-6xl space-y-8 px-4 pt-6 sm:px-6 sm:pt-10 lg:px-8">
+        <section className="ka-command-hero overflow-hidden p-6 sm:p-9">
+          <div className="relative z-10 grid gap-8 lg:grid-cols-[1.35fr_.65fr] lg:items-center">
             <div>
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-400/25 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-300">
-                <Sparkles className="h-4 w-4" /> KAM Economic Framework v1
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-sky-400/20 bg-sky-500/10 px-3 py-1.5 text-[10px] font-black tracking-[0.12em] text-sky-300">
+                <Sparkles className="h-4 w-4" /> {text.badge}
               </div>
-              <h1 className="text-4xl font-black tracking-tight sm:text-5xl">KAM — Native Asset of the KriptoAman Network</h1>
-              <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
-                KAM dirancang sebagai aset native untuk mendukung infrastruktur dan ekosistem KriptoAman. Halaman ini menampilkan parameter ekonomi v1, vesting, utility direction, dan roadmap secara transparan.
-              </p>
-              <div className="mt-6 flex flex-wrap gap-3 text-xs sm:text-sm">
-                <span className="rounded-xl border border-slate-700 bg-slate-800/70 px-3 py-2">Supply: 1,000,000,000 KAM</span>
-                <span className="rounded-xl border border-slate-700 bg-slate-800/70 px-3 py-2">Decimals: 18</span>
-                <span className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-amber-300">Network status: Mainnet candidate</span>
+              <h1 className="max-w-4xl text-4xl font-black tracking-[-0.04em] sm:text-5xl">{text.title}</h1>
+              <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">{text.intro}</p>
+              <div className="mt-6 flex flex-wrap gap-2 text-[10px] font-bold sm:text-xs">
+                <span className="rounded-xl border border-slate-700 bg-slate-950/45 px-3 py-2">Supply: 1,000,000,000 KAM</span>
+                <span className="rounded-xl border border-slate-700 bg-slate-950/45 px-3 py-2">Decimals: 18</span>
+                <span className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-amber-300">{text.status}</span>
               </div>
             </div>
-            <div className="rounded-3xl border border-blue-500/20 bg-gradient-to-br from-blue-500/15 to-indigo-500/5 p-6">
-              <Network className="h-9 w-9 text-blue-300" />
-              <p className="mt-5 text-xs uppercase tracking-[0.18em] text-slate-400">Candidate Network</p>
-              <p className="mt-1 text-2xl font-black">Chain ID 22028</p>
-              <p className="mt-1 text-sm text-slate-400">Hex 0x560c · QBFT · 4 validators</p>
-              <p className="mt-5 text-xs leading-5 text-slate-500">Status publik/commercial mainnet tidak akan dinyatakan sebelum seluruh launch-readiness gate terverifikasi.</p>
+            <div className="rounded-[26px] border border-sky-500/20 bg-gradient-to-br from-sky-500/12 via-slate-950/20 to-indigo-500/8 p-6 shadow-[0_24px_70px_-44px_rgba(14,165,233,.8)]">
+              <Network className="h-9 w-9 text-sky-300" />
+              <p className="mt-5 text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">{text.candidate}</p>
+              <p className="mt-1 text-2xl font-black">{text.chain}</p>
+              <p className="mt-1 text-xs leading-5 text-slate-400">{text.chainMeta}</p>
+              <p className="mt-5 rounded-2xl border border-amber-500/15 bg-amber-500/5 p-3 text-[10px] leading-5 text-amber-200/80">{text.caution}</p>
             </div>
           </div>
         </section>
 
         <section>
           <div className="mb-4 flex items-end justify-between gap-4">
-            <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-400">Tokenomics</p><h2 className="mt-1 text-2xl font-black">Allocation v1</h2></div>
-            <div className="text-right text-sm text-slate-400">Total 100%</div>
+            <div><p className="ka-command-kicker">TOKENOMICS</p><h2 className="mt-1 text-2xl font-black">{text.allocation}</h2></div>
+            <div className="text-right text-xs font-semibold text-slate-500">{text.total}</div>
           </div>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {ALLOCATION.map(([name, percent, amount]) => (
-              <div key={name} className="rounded-2xl border border-slate-800 bg-slate-900/65 p-5">
-                <div className="flex items-start justify-between gap-3"><h3 className="font-bold text-slate-100">{name}</h3><span className="text-xl font-black text-blue-300">{percent}</span></div>
-                <p className="mt-4 text-sm font-semibold text-slate-300">{amount}</p>
+              <div key={name} className="ka-command-panel p-5">
+                <div className="flex items-start justify-between gap-3"><h3 className="font-bold text-slate-100">{name}</h3><span className="text-xl font-black text-sky-300">{percent}</span></div>
+                <p className="mt-4 text-sm font-semibold text-slate-400">{amount}</p>
               </div>
             ))}
           </div>
         </section>
 
         <section className="grid gap-4 lg:grid-cols-2">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/65 p-6">
+          <div className="ka-command-panel p-6">
             <ShieldCheck className="h-7 w-7 text-emerald-300" />
-            <h2 className="mt-4 text-xl font-black">Vesting & Economic Safeguards</h2>
-            <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-300">
-              <li>• Team & Contributors: 12-month cliff, lalu linear vesting 36 bulan.</li>
-              <li>• Strategic Partnerships: 6-month cliff, lalu linear vesting 24 bulan.</li>
-              <li>• Treasury, ecosystem, community, dan liquidity mengikuti kontrol milestone/governance.</li>
-              <li>• Tidak ada guaranteed return atau guaranteed price.</li>
-              <li>• Burn mechanism belum aktif dan membutuhkan persetujuan terpisah.</li>
-            </ul>
+            <h2 className="mt-4 text-xl font-black">{text.safeguards}</h2>
+            <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-300">{text.vesting.map(item => <li key={item}>• {item}</li>)}</ul>
           </div>
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/65 p-6">
-            <Globe2 className="h-7 w-7 text-blue-300" />
-            <h2 className="mt-4 text-xl font-black">Utility Direction</h2>
-            <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-300">
-              <li>• Network transaction fees.</li>
-              <li>• Application & developer ecosystem participation.</li>
-              <li>• Infrastructure services.</li>
-              <li>• Ecosystem incentives.</li>
-              <li>• Future governance functions where technically and legally appropriate.</li>
-            </ul>
+          <div className="ka-command-panel p-6">
+            <Globe2 className="h-7 w-7 text-sky-300" />
+            <h2 className="mt-4 text-xl font-black">{text.utility}</h2>
+            <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-300">{text.utilities.map(item => <li key={item}>• {item}</li>)}</ul>
           </div>
         </section>
 
         <section>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-400">Roadmap 2026–2027</p>
-          <h2 className="mt-1 text-2xl font-black">From Candidate Network to Global Ecosystem</h2>
+          <p className="ka-command-kicker">{text.roadmapLabel}</p>
+          <h2 className="mt-1 text-2xl font-black">{text.roadmapTitle}</h2>
           <div className="mt-5 space-y-3">
-            {ROADMAP.map(([time, title, desc], index) => (
-              <div key={`${time}-${title}`} className="grid gap-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-5 sm:grid-cols-[120px_1fr]">
-                <div className="flex items-center gap-2 text-sm font-black text-blue-300"><CheckCircle2 className="h-4 w-4" />{time}</div>
+            {text.roadmap.map(([time, title, desc], index) => (
+              <div key={`${time}-${title}`} className="ka-command-panel grid gap-3 p-5 sm:grid-cols-[130px_1fr]">
+                <div className="flex items-center gap-2 text-sm font-black text-sky-300"><CheckCircle2 className="h-4 w-4" />{time}</div>
                 <div><h3 className="font-bold text-white">{index + 1}. {title}</h3><p className="mt-1 text-sm leading-6 text-slate-400">{desc}</p></div>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="rounded-2xl border border-blue-500/20 bg-blue-500/5 p-6">
-          <h2 className="text-lg font-black">Transparency First</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-300">Tokenomics v1 berfungsi sebagai baseline ekonomi proyek. Perubahan material terhadap supply, allocation, vesting, treasury, burn policy, atau utility harus melalui versioned change record dan persetujuan eksplisit sebelum dipublikasikan sebagai final.</p>
-          <a href="/SystemStatus" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold hover:bg-blue-500">Lihat System Status <ArrowRight className="h-4 w-4" /></a>
+        <section className="rounded-[26px] border border-sky-500/20 bg-sky-500/5 p-6">
+          <h2 className="text-lg font-black">{text.transparency}</h2>
+          <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-300">{text.transparencyBody}</p>
+          <a href="/SystemStatus" className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-bold hover:bg-sky-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/70">{text.statusCta} <ArrowRight className="h-4 w-4" /></a>
         </section>
       </div>
     </div>

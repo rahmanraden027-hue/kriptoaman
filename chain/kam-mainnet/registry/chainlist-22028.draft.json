@@ -1,6 +1,7 @@
 {
   "name": "KriptoAman Mainnet",
   "chain": "KAM",
+  "icon": "kam",
   "rpc": [
     "https://rpc.kriptoaman.com"
   ],

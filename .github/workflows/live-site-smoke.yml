@@ -1,0 +1,117 @@
+name: Live Site Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 * * * *'
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Allow production deployment to settle
+        if: github.event_name == 'push'
+        run: sleep 60
+
+      - name: Wait for homepage readiness
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5 6; do
+            if curl --fail --location --silent --show-error \
+              --connect-timeout 10 --max-time 25 \
+              https://kriptoaman.com/ >/dev/null; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 6 ]; then
+              sleep 15
+            fi
+          done
+          echo "Production homepage was not ready after retries."
+          exit 1
+
+      - name: Check homepage response and security headers
+        shell: bash
+        run: |
+          set -euo pipefail
+          headers="$(mktemp)"
+          body="$(mktemp)"
+          code="$(curl --fail-with-body --location --silent --show-error \
+            --connect-timeout 10 --max-time 25 \
+            -D "$headers" -o "$body" -w '%{http_code}' \
+            https://kriptoaman.com/)"
+          test "$code" = "200"
+          grep -qi '^strict-transport-security:' "$headers"
+          grep -qi '^x-content-type-options:.*nosniff' "$headers"
+          grep -qi 'KriptoAman' "$body"
+
+      - name: Check English route
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          code="$(curl --fail-with-body --location --silent --show-error \
+            --connect-timeout 10 --max-time 25 \
+            -o "$body" -w '%{http_code}' \
+            https://kriptoaman.com/en)"
+          test "$code" = "200"
+          grep -qi 'KriptoAman' "$body"
+
+      - name: Check public system status route
+        shell: bash
+        run: |
+          set -euo pipefail
+          code="$(curl --fail-with-body --location --silent --show-error \
+            --connect-timeout 10 --max-time 25 \
+            -o /tmp/system-status.html -w '%{http_code}' \
+            https://kriptoaman.com/SystemStatus)"
+          test "$code" = "200"
+
+      - name: Check first-party health endpoint contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          headers="$(mktemp)"
+          body="$(mktemp)"
+          code="$(curl --location --silent --show-error \
+            --connect-timeout 10 --max-time 25 \
+            -D "$headers" -o "$body" -w '%{http_code}' \
+            https://kriptoaman.com/api/health)"
+          case "$code" in
+            200|503) ;;
+            *) echo "Unexpected /api/health HTTP status: $code"; cat "$body"; exit 1 ;;
+          esac
+          grep -qi '^cache-control:.*no-store' "$headers"
+          node -e "const fs=require('fs'); const p=JSON.parse(fs.readFileSync(process.argv[1],'utf8')); if (typeof p !== 'object' || p === null) process.exit(1)" "$body"
+
+      - name: Publish live-site commit status
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JOB_STATUS: ${{ job.status }}
+          SHA: ${{ github.sha }}
+          REPO: ${{ github.repository }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          state="failure"
+          description="Live production smoke failed"
+          if [ "$JOB_STATUS" = "success" ]; then
+            state="success"
+            description="Live production smoke passed"
+          fi
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$REPO/statuses/$SHA" \
+            -d "{\"state\":\"$state\",\"context\":\"kriptoaman/live-site-smoke\",\"description\":\"$description\",\"target_url\":\"$RUN_URL\"}" >/dev/null

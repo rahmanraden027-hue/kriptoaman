@@ -1,10 +1,22 @@
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useSystemDarkMode } from './hooks/useSystemDarkMode';
 import MobileHeader from './components/mobile/MobileHeader';
 import PageTransition from './components/mobile/PageTransition';
-import { Wallet, Coins, Clock, Zap, Settings, BarChart3, LayoutGrid, User, MessageCircle, Info, Mail, AlertTriangle, Home, TrendingUp, Bell, BookOpen, ShieldCheck, Lock } from 'lucide-react';
+import {
+  AlertTriangle,
+  BarChart3,
+  Bell,
+  BookOpen,
+  Home,
+  LayoutGrid,
+  Lock,
+  ShieldCheck,
+  TrendingUp,
+  User,
+  Wallet,
+} from 'lucide-react';
 import KriptoAmanLogo from './components/brand/KriptoAmanLogo';
 import { installCrashHandlers } from './components/utils/crashAnalytics';
 import { base44 } from '@/api/base44Client';
@@ -48,62 +60,59 @@ const DESKTOP_LABELS = {
 };
 
 const ADMIN_PRIMARY_NAV = [
-  { label: 'KYC Operations', page: 'AdminKYCManagement', icon: ShieldCheck },
-  { label: 'User Balances', page: 'AdminUserBalances', icon: User },
-  { label: 'Platform Assets', page: 'AdminPlatformAssets', icon: Wallet },
-  { label: 'AML Monitoring', page: 'AMLDashboard', icon: AlertTriangle },
-  { label: 'Security Center', page: 'SecurityCenter', icon: ShieldCheck },
-  { label: 'Server Control', page: 'ServerControl', icon: Lock },
+  { id: 'kycOps', page: 'AdminKYCManagement', icon: ShieldCheck },
+  { id: 'balances', page: 'AdminUserBalances', icon: User },
+  { id: 'assets', page: 'AdminPlatformAssets', icon: Wallet },
+  { id: 'aml', page: 'AMLDashboard', icon: AlertTriangle },
+  { id: 'securityCenter', page: 'SecurityCenter', icon: ShieldCheck },
+  { id: 'server', page: 'ServerControl', icon: Lock },
 ];
 
-const NAV = [
-  { label: 'KYC Verification', page: 'KYCVerificationPage', icon: ShieldCheck },
-  { label: 'Admin KYC Mgmt', page: 'AdminKYCManagement', icon: ShieldCheck, adminOnly: true },
-  { label: 'Portfolio', page: 'PortfolioOverview', icon: BarChart3 },
-  { label: 'DEX & Savings', page: 'DEXSavings', icon: Coins },
-  { label: 'P2P Lending', page: 'P2PLending', icon: Coins },
-  { label: 'Market Research', page: 'MarketResearch', icon: BarChart3 },
-  { label: 'Aset', page: 'AssetManager', icon: LayoutGrid },
-  { label: 'Auto-Trade', page: 'AutoTrading', icon: Zap },
-  { label: 'Premium', page: 'Premium', icon: Zap },
-  { label: 'Edukasi', page: 'Edukasi', icon: BookOpen },
-  { label: 'Riwayat', page: 'TxHistory', icon: Clock },
-  { label: 'Settings', page: 'Settings', icon: Settings },
-  { label: 'Support', page: 'Support', icon: MessageCircle },
-  { label: 'SEO Landing', page: 'SEOLanding', icon: TrendingUp },
-  { label: 'About', page: 'AboutUs', icon: Info },
-  { label: 'Kontak', page: 'Contact', icon: Mail },
-  { label: 'Disclaimer', page: 'Disclaimer', icon: AlertTriangle },
-  { label: 'Platform Docs', page: 'PlatformDocs', icon: BookOpen, adminOnly: true },
-  { label: 'Dok. Regulasi', page: 'RegulatoryDocs', icon: ShieldCheck, adminOnly: true },
-  { label: 'Admin Profit', page: 'AdminProfitAnalytics', icon: BarChart3, adminOnly: true },
-  { label: 'Aset Platform', page: 'AdminPlatformAssets', icon: Wallet, adminOnly: true },
-  { label: 'Secure Vault', page: 'SecureVault', icon: Lock, adminOnly: true },
-  { label: 'Security Center', page: 'SecurityCenter', icon: ShieldCheck, adminOnly: true },
-  { label: 'AML Screening', page: 'AMLDashboard', icon: AlertTriangle, adminOnly: true },
-  { label: 'BQ KYC Reports', page: 'BigQueryKYCReports', icon: BarChart3, adminOnly: true },
-  { label: 'AML Assistant', page: 'AMLAssistant', icon: ShieldCheck },
-  { label: 'Server Control', page: 'ServerControl', icon: Lock, adminOnly: true },
-  { label: 'Broadcast Fitur', page: 'FeatureUpdateBroadcast', icon: Mail, adminOnly: true },
+const ADMIN_SECONDARY_NAV = [
+  { id: 'kycMgmt', page: 'AdminKYCManagement', icon: ShieldCheck },
+  { id: 'platformDocs', page: 'PlatformDocs', icon: BookOpen },
+  { id: 'regulatoryDocs', page: 'RegulatoryDocs', icon: ShieldCheck },
+  { id: 'profit', page: 'AdminProfitAnalytics', icon: BarChart3 },
+  { id: 'platformAssets', page: 'AdminPlatformAssets', icon: Wallet },
+  { id: 'vault', page: 'SecureVault', icon: Lock },
+  { id: 'securityCenter', page: 'SecurityCenter', icon: ShieldCheck },
+  { id: 'amlScreening', page: 'AMLDashboard', icon: AlertTriangle },
+  { id: 'kycReports', page: 'BigQueryKYCReports', icon: BarChart3 },
+  { id: 'server', page: 'ServerControl', icon: Lock },
 ];
+
+const ADMIN_LABELS = {
+  id: {
+    heading: 'Operasi Admin', access: 'AKSES ADMIN', footer: 'ADMIN OPS', serviceMatrix: 'Matriks Layanan',
+    kycOps: 'Operasi KYC', balances: 'Saldo Pengguna', assets: 'Aset Platform', aml: 'Pemantauan AML', securityCenter: 'Pusat Keamanan', server: 'Kontrol Server',
+    kycMgmt: 'Kelola KYC', platformDocs: 'Dokumen Platform', regulatoryDocs: 'Dokumen Regulasi', profit: 'Analitik Admin', platformAssets: 'Aset Platform', vault: 'Vault Internal', amlScreening: 'Penyaringan AML', kycReports: 'Laporan KYC',
+  },
+  en: {
+    heading: 'Admin Operations', access: 'ADMIN ACCESS', footer: 'ADMIN OPS', serviceMatrix: 'Service Matrix',
+    kycOps: 'KYC Operations', balances: 'User Balances', assets: 'Platform Assets', aml: 'AML Monitoring', securityCenter: 'Security Center', server: 'Server Control',
+    kycMgmt: 'KYC Management', platformDocs: 'Platform Docs', regulatoryDocs: 'Regulatory Docs', profit: 'Admin Analytics', platformAssets: 'Platform Assets', vault: 'Internal Vault', amlScreening: 'AML Screening', kycReports: 'KYC Reports',
+  },
+};
 
 export default function Layout({ children, currentPageName }) {
   const { language } = useLanguage();
   const navLabels = NAV_LABELS[language] || NAV_LABELS.id;
   const desktopLabels = DESKTOP_LABELS[language] || DESKTOP_LABELS.id;
+  const adminLabels = ADMIN_LABELS[language] || ADMIN_LABELS.id;
   const [user, setUser] = useState(null);
   const { locked, unlock } = useAppLock(
-    parseInt(localStorage.getItem('cv_session_timeout_min') || '5') * 60 * 1000
+    parseInt(localStorage.getItem('cv_session_timeout_min') || '5', 10) * 60 * 1000,
   );
+
   usePWAInitializer();
   useSystemDarkMode();
 
   useEffect(() => {
     initAnalytics();
     installCrashHandlers();
-    base44.auth.me().then(u => {
-      setUser(u);
-      identifyUser(u);
+    base44.auth.me().then((account) => {
+      setUser(account);
+      identifyUser(account);
     }).catch(() => {});
   }, []);
 
@@ -112,8 +121,10 @@ export default function Layout({ children, currentPageName }) {
   }, [currentPageName]);
 
   const initials = user?.full_name
-    ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    ? user.full_name.split(' ').map((name) => name[0]).join('').toUpperCase().slice(0, 2)
     : user?.email?.[0]?.toUpperCase() || '';
+
+  const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050d18]';
 
   if (locked) {
     return <PinUnlock onUnlocked={unlock} onForgot={() => { localStorage.clear(); window.location.reload(); }} />;
@@ -152,31 +163,37 @@ export default function Layout({ children, currentPageName }) {
           {user?.role === 'admin' && <AdminDepositNotifier />}
 
           {user && (
-            <div className="ka-global-topbar fixed top-0 left-0 right-0 z-50 safe-area-pt border-b border-sky-500/15 bg-[#050d18]/92 backdrop-blur-xl">
-              <div className="min-h-10 px-3 sm:px-4 py-2 flex items-center justify-between gap-2">
-                <div className="min-w-0 shrink-0 flex items-center gap-3">
-                  <KriptoAmanLogo size={26} showText={true} textSize="text-xs" />
-                  <span className="hidden md:inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/8 px-2.5 py-1 text-[9px] font-extrabold text-emerald-300">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.8)]" />
+            <header className="ka-global-topbar fixed left-0 right-0 top-0 z-50 safe-area-pt border-b border-sky-500/15 bg-[#050d18]/92 backdrop-blur-xl">
+              <div className="flex min-h-10 items-center justify-between gap-2 px-3 py-2 sm:px-4">
+                <div className="flex min-w-0 shrink-0 items-center gap-3">
+                  <KriptoAmanLogo size={26} showText textSize="text-xs" />
+                  <span className="hidden items-center gap-1.5 rounded-full border border-sky-500/20 bg-sky-500/8 px-2.5 py-1 text-[9px] font-extrabold text-sky-300 md:inline-flex">
                     INTELLIGENCE WORKSPACE
                   </span>
                 </div>
-                <div className="flex items-center justify-end gap-1.5 sm:gap-2 min-w-0">
+                <div className="flex min-w-0 items-center justify-end gap-1.5 sm:gap-2">
                   <LanguageSwitcher compact />
-                  <Link to={createPageUrl('Services')} className="flex items-center justify-center w-8 h-8 shrink-0 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-300 hover:bg-sky-500/15 transition-colors tap-reset" aria-label={language === 'en' ? 'Services' : 'Layanan'}>
-                    <LayoutGrid className="w-4 h-4" />
+                  <Link
+                    to={createPageUrl('Services')}
+                    className={`tap-reset flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-500/20 bg-sky-500/10 text-sky-300 transition-colors hover:bg-sky-500/15 ${focusRing}`}
+                    aria-label={language === 'en' ? 'Open services' : 'Buka layanan'}
+                  >
+                    <LayoutGrid className="h-4 w-4" aria-hidden="true" />
                   </Link>
-                  <Link to={createPageUrl('Settings')}
-                    className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1 min-w-0 bg-slate-950/55 border border-sky-500/15 rounded-full hover:border-sky-400/35 transition-colors">
-                    <div className="w-5 h-5 rounded-full shrink-0 bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-slate-950 text-[9px] font-black">
+                  <Link
+                    to={createPageUrl('Settings')}
+                    className={`flex min-h-10 min-w-0 items-center gap-1.5 rounded-full border border-sky-500/15 bg-slate-950/55 px-2 py-1 transition-colors hover:border-sky-400/35 sm:gap-2 sm:px-2.5 ${focusRing}`}
+                    aria-label={language === 'en' ? 'Open account settings' : 'Buka pengaturan akun'}
+                  >
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-600 text-[9px] font-black text-slate-950" aria-hidden="true">
                       {initials}
                     </div>
-                    <span className="text-white text-[11px] font-semibold max-w-[72px] sm:max-w-[120px] truncate">{user.full_name || user.email}</span>
-                    <span className="hidden sm:inline text-sky-300 text-[9px] capitalize bg-sky-500/10 px-1.5 py-0.5 rounded-full">{user.role || 'user'}</span>
+                    <span className="max-w-[72px] truncate text-[11px] font-semibold text-white sm:max-w-[120px]">{user.full_name || user.email}</span>
+                    <span className="hidden rounded-full bg-sky-500/10 px-1.5 py-0.5 text-[9px] capitalize text-sky-300 sm:inline">{user.role || 'user'}</span>
                   </Link>
                 </div>
               </div>
-            </div>
+            </header>
           )}
 
           <div
@@ -187,26 +204,27 @@ export default function Layout({ children, currentPageName }) {
           </div>
 
           {user && (
-            <aside className="ka-global-sidebar hidden lg:flex fixed left-0 top-[72px] bottom-0 z-30 w-64 border-r border-sky-500/12 bg-[#06101b]/95 backdrop-blur-xl px-3 py-4 flex-col">
-              <div className="px-3 mb-3">
-                <p className="text-[9px] uppercase tracking-[0.2em] text-slate-500 font-black">Workspace</p>
-                <div className="mt-2 flex items-center gap-2 text-[10px] text-sky-300 bg-sky-400/8 border border-sky-400/15 rounded-xl px-3 py-2">
-                  <ShieldCheck className="w-3.5 h-3.5" />
+            <aside className="ka-global-sidebar fixed bottom-0 left-0 top-[72px] z-30 hidden w-64 flex-col border-r border-sky-500/12 bg-[#06101b]/95 px-3 py-4 backdrop-blur-xl lg:flex" aria-label={language === 'en' ? 'Desktop navigation' : 'Navigasi desktop'}>
+              <div className="mb-3 px-3">
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Workspace</p>
+                <div className="mt-2 flex items-center gap-2 rounded-xl border border-sky-400/15 bg-sky-400/8 px-3 py-2 text-[10px] text-sky-300">
+                  <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
                   {language === 'en' ? 'Global intelligence · Watch-only' : 'Intelijen global · Pemantauan'}
                 </div>
               </div>
 
-              <nav className="space-y-1">
+              <nav className="space-y-1" aria-label={language === 'en' ? 'Main workspace' : 'Ruang kerja utama'}>
                 {DESKTOP_NAV.map(({ id, page, icon: Icon, to }) => {
                   const label = desktopLabels[id];
                   const active = currentPageName === page;
                   return (
                     <Link
-                      key={label}
+                      key={page}
                       to={to || createPageUrl(page)}
-                      className={`ka-sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${active ? 'is-active' : ''}`}
+                      aria-current={active ? 'page' : undefined}
+                      className={`ka-sidebar-link flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all ${active ? 'is-active' : ''} ${focusRing}`}
                     >
-                      <Icon className="w-4 h-4" />
+                      <Icon className="h-4 w-4" aria-hidden="true" />
                       <span>{label}</span>
                     </Link>
                   );
@@ -214,22 +232,23 @@ export default function Layout({ children, currentPageName }) {
               </nav>
 
               {user?.role === 'admin' && (
-                <div className="mt-4 pt-4 border-t border-sky-500/10 min-h-0 flex flex-col">
-                  <div className="px-3 mb-2 flex items-center justify-between gap-2">
-                    <p className="text-[9px] uppercase tracking-[0.2em] text-slate-500 font-black">Owner Operations</p>
-                    <span className="text-[8px] font-black text-emerald-300">SECURE</span>
+                <div className="mt-4 flex min-h-0 flex-col border-t border-sky-500/10 pt-4">
+                  <div className="mb-2 flex items-center justify-between gap-2 px-3">
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">{adminLabels.heading}</p>
+                    <span className="text-[8px] font-black text-sky-300">{adminLabels.access}</span>
                   </div>
-                  <nav className="space-y-1 overflow-y-auto pr-1 ka-sidebar-admin-scroll">
-                    {ADMIN_PRIMARY_NAV.map(({ label, page, icon: Icon }) => {
+                  <nav className="ka-sidebar-admin-scroll space-y-1 overflow-y-auto pr-1" aria-label={adminLabels.heading}>
+                    {ADMIN_PRIMARY_NAV.map(({ id, page, icon: Icon }) => {
                       const active = currentPageName === page;
                       return (
                         <Link
                           key={page}
                           to={createPageUrl(page)}
-                          className={`ka-sidebar-link ka-sidebar-admin-link flex items-center gap-3 px-3 py-2 rounded-xl text-[11px] font-semibold transition-all ${active ? 'is-active' : ''}`}
+                          aria-current={active ? 'page' : undefined}
+                          className={`ka-sidebar-link ka-sidebar-admin-link flex min-h-10 items-center gap-3 rounded-xl px-3 py-2 text-[11px] font-semibold transition-all ${active ? 'is-active' : ''} ${focusRing}`}
                         >
-                          <Icon className="w-3.5 h-3.5" />
-                          <span>{label}</span>
+                          <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                          <span>{adminLabels[id]}</span>
                         </Link>
                       );
                     })}
@@ -237,10 +256,13 @@ export default function Layout({ children, currentPageName }) {
                 </div>
               )}
 
-              <div className="mt-auto pt-3 border-t border-sky-500/10">
-                <Link to={createPageUrl('Services')} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[11px] font-semibold text-slate-400 hover:text-white hover:bg-white/5 transition-all">
-                  <LayoutGrid className="w-4 h-4" />
-                  Service Matrix
+              <div className="mt-auto border-t border-sky-500/10 pt-3">
+                <Link
+                  to={createPageUrl('Services')}
+                  className={`flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-[11px] font-semibold text-slate-400 transition-all hover:bg-white/5 hover:text-white ${focusRing}`}
+                >
+                  <LayoutGrid className="h-4 w-4" aria-hidden="true" />
+                  {adminLabels.serviceMatrix}
                 </Link>
               </div>
             </aside>
@@ -249,30 +271,34 @@ export default function Layout({ children, currentPageName }) {
           {user && <div style={{ height: 'calc(2.5rem + env(safe-area-inset-top, 0px))' }} />}
           <div className="h-8" />
 
-          <div className={user ? 'lg:pl-64' : ''}>
+          <main className={user ? 'lg:pl-64' : ''}>
             <div className="lg:hidden">
               <MobileHeader currentPageName={currentPageName} />
             </div>
 
-            <Suspense fallback={<div className="min-h-screen ka-bg flex items-center justify-center"><div className="w-6 h-6 rounded-full border-2 border-sky-400 border-t-transparent animate-spin" /></div>}>
+            <Suspense fallback={<div className="flex min-h-screen items-center justify-center ka-bg" role="status" aria-label={language === 'en' ? 'Loading page' : 'Memuat halaman'}><div className="h-6 w-6 animate-spin rounded-full border-2 border-sky-400 border-t-transparent" /></div>}>
               <PageTransition>{children}</PageTransition>
             </Suspense>
-          </div>
+          </main>
 
-          <nav className="ka-embedded-nav lg:hidden fixed left-3 right-3 z-40 rounded-[28px] border border-sky-400/20 bg-[#071321]/94 backdrop-blur-2xl p-1.5">
+          <nav className="ka-embedded-nav fixed left-3 right-3 z-40 rounded-[28px] border border-sky-400/20 bg-[#071321]/94 p-1.5 backdrop-blur-2xl lg:hidden" aria-label={language === 'en' ? 'Primary navigation' : 'Navigasi utama'}>
             <div className="relative z-10 grid grid-cols-5 gap-1.5">
               {BOTTOM_NAV.map(({ id, page, icon: Icon }) => {
                 const label = navLabels[id];
                 const active = currentPageName === page;
                 return (
-                  <Link key={page} to={createPageUrl(page)}
+                  <Link
+                    key={page}
+                    to={createPageUrl(page)}
                     aria-current={active ? 'page' : undefined}
-                    className={`relative flex min-w-0 flex-col items-center justify-center gap-1 min-h-[62px] rounded-[20px] border px-1 transition-all duration-200 ${active ? 'border-sky-400/45 bg-gradient-to-b from-sky-400/20 to-blue-500/10 text-sky-300 shadow-[0_8px_24px_rgba(14,165,233,.16),inset_0_1px_0_rgba(255,255,255,.08)]' : 'border-white/[0.06] bg-slate-950/35 text-slate-400 hover:border-sky-400/20 hover:bg-sky-500/[0.07] hover:text-slate-200'}`}>
-                    {active && <span className="absolute top-1 left-1/2 -translate-x-1/2 w-7 h-[2px] bg-sky-300 rounded-full shadow-[0_0_12px_rgba(125,211,252,.85)]" />}
+                    aria-label={label}
+                    className={`relative flex min-h-[62px] min-w-0 flex-col items-center justify-center gap-1 rounded-[20px] border px-1 transition-all duration-200 ${active ? 'border-sky-400/45 bg-gradient-to-b from-sky-400/20 to-blue-500/10 text-sky-300 shadow-[0_8px_24px_rgba(14,165,233,.16),inset_0_1px_0_rgba(255,255,255,.08)]' : 'border-white/[0.06] bg-slate-950/35 text-slate-400 hover:border-sky-400/20 hover:bg-sky-500/[0.07] hover:text-slate-200'} ${focusRing}`}
+                  >
+                    {active && <span className="absolute left-1/2 top-1 h-[2px] w-7 -translate-x-1/2 rounded-full bg-sky-300 shadow-[0_0_12px_rgba(125,211,252,.85)]" aria-hidden="true" />}
                     <span className={`flex h-7 w-7 items-center justify-center rounded-xl ${active ? 'bg-sky-400/12 ring-1 ring-sky-300/20' : 'bg-white/[0.025]'}`}>
-                      <Icon className={`w-[18px] h-[18px] ${active ? 'text-sky-300' : ''}`} />
+                      <Icon className={`h-[18px] w-[18px] ${active ? 'text-sky-300' : ''}`} aria-hidden="true" />
                     </span>
-                    <span className={`w-full truncate text-center text-[10px] leading-none font-bold ${active ? 'text-sky-200' : ''}`}>{label}</span>
+                    <span className={`w-full truncate text-center text-[10px] font-bold leading-none ${active ? 'text-sky-200' : ''}`}>{label}</span>
                   </Link>
                 );
               })}
@@ -280,23 +306,30 @@ export default function Layout({ children, currentPageName }) {
           </nav>
 
           {user?.role === 'admin' && (
-            <div className="hidden lg:flex fixed bottom-0 left-64 right-0 z-30 bg-[#06101b]/94 backdrop-blur-xl border-t border-sky-500/15 px-4 py-1.5 items-center gap-3 overflow-x-auto">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              <span className="text-emerald-300 text-[9px] font-black tracking-wider shrink-0">OWNER OPS</span>
-              {NAV.filter(n => n.adminOnly).map(({ label, page, icon: Icon }) => {
+            <div className="fixed bottom-0 left-64 right-0 z-30 hidden items-center gap-3 overflow-x-auto border-t border-sky-500/15 bg-[#06101b]/94 px-4 py-1.5 backdrop-blur-xl lg:flex" aria-label={adminLabels.heading}>
+              <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-sky-400" aria-hidden="true" />
+              <span className="shrink-0 text-[9px] font-black tracking-wider text-sky-300">{adminLabels.footer}</span>
+              {ADMIN_SECONDARY_NAV.map(({ id, page, icon: Icon }) => {
                 const active = currentPageName === page;
                 return (
-                  <Link key={page} to={createPageUrl(page)}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9px] font-semibold whitespace-nowrap transition-all shrink-0 ${active ? 'bg-sky-400 text-slate-950' : 'bg-sky-500/8 text-sky-300 hover:bg-sky-500/14'}`}>
-                    <Icon className="w-3 h-3" />
-                    {label}
+                  <Link
+                    key={page}
+                    to={createPageUrl(page)}
+                    aria-current={active ? 'page' : undefined}
+                    className={`flex min-h-8 shrink-0 items-center gap-1 whitespace-nowrap rounded-lg px-2.5 py-1 text-[9px] font-semibold transition-all ${active ? 'bg-sky-400 text-slate-950' : 'bg-sky-500/8 text-sky-300 hover:bg-sky-500/14'} ${focusRing}`}
+                  >
+                    <Icon className="h-3 w-3" aria-hidden="true" />
+                    {adminLabels[id]}
                   </Link>
                 );
               })}
-              <Link to={createPageUrl('AdminUserBalances')}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9px] font-semibold whitespace-nowrap transition-all shrink-0 ${currentPageName === 'AdminUserBalances' ? 'bg-sky-400 text-slate-950' : 'bg-sky-500/8 text-sky-300 hover:bg-sky-500/14'}`}>
-                <User className="w-3 h-3" />
-                User Balances
+              <Link
+                to={createPageUrl('AdminUserBalances')}
+                aria-current={currentPageName === 'AdminUserBalances' ? 'page' : undefined}
+                className={`flex min-h-8 shrink-0 items-center gap-1 whitespace-nowrap rounded-lg px-2.5 py-1 text-[9px] font-semibold transition-all ${currentPageName === 'AdminUserBalances' ? 'bg-sky-400 text-slate-950' : 'bg-sky-500/8 text-sky-300 hover:bg-sky-500/14'} ${focusRing}`}
+              >
+                <User className="h-3 w-3" aria-hidden="true" />
+                {adminLabels.balances}
               </Link>
             </div>
           )}
