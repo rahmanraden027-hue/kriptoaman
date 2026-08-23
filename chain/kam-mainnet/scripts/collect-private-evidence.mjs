@@ -1,8 +1,13 @@
 import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
 
 const rpcUrl = process.env.KAM_PRIVATE_RPC_URL || 'http://127.0.0.1:8545';
 const expectedChainId = '0x560c';
 const expectedValidatorCount = 4;
+const validatorAddressPattern = /^0x[0-9a-f]{40}$/i;
+const expectedFingerprintPath =
+  process.env.KAM_EXPECTED_VALIDATOR_FINGERPRINT_FILE ||
+  '/var/lib/kam-evidence/expected-validator-fingerprint.txt';
 
 async function rpc(method, params = []) {
   const response = await fetch(rpcUrl, {
@@ -18,13 +23,27 @@ async function rpc(method, params = []) {
   return payload.result;
 }
 
+function normalizeValidators(validators) {
+  return validators.map((value) => String(value).toLowerCase()).sort();
+}
+
 function validatorFingerprint(validators) {
-  const normalized = [...validators].map((value) => String(value).toLowerCase()).sort();
-  return createHash('sha256').update(normalized.join('\n')).digest('hex');
+  return createHash('sha256').update(normalizeValidators(validators).join('\n')).digest('hex');
+}
+
+async function loadExpectedFingerprint() {
+  const fromEnv = String(process.env.KAM_EXPECTED_VALIDATOR_FINGERPRINT || '').trim().toLowerCase();
+  if (/^[0-9a-f]{64}$/.test(fromEnv)) return fromEnv;
+  const fromFile = String(await readFile(expectedFingerprintPath, 'utf8')).trim().toLowerCase();
+  if (!/^[0-9a-f]{64}$/.test(fromFile)) {
+    throw new Error('Expected production validator fingerprint is missing or invalid');
+  }
+  return fromFile;
 }
 
 async function main() {
   const checkedAt = new Date().toISOString();
+  const expectedValidatorFingerprint = await loadExpectedFingerprint();
   const chainId = await rpc('eth_chainId');
   const validators = await rpc('qbft_getValidatorsByBlockNumber', ['latest']);
   const peerCountHex = await rpc('net_peerCount');
@@ -34,6 +53,10 @@ async function main() {
 
   if (!Array.isArray(validators)) throw new Error('QBFT validator result is not an array');
 
+  const normalizedValidators = normalizeValidators(validators);
+  const uniqueValidators = new Set(normalizedValidators);
+  const addressesValid = normalizedValidators.every((address) => validatorAddressPattern.test(address));
+  const observedValidatorFingerprint = validatorFingerprint(validators);
   const peerCount = Number.parseInt(peerCountHex, 16);
   const firstBlock = Number.parseInt(block1, 16);
   const secondBlock = Number.parseInt(block2, 16);
@@ -41,10 +64,18 @@ async function main() {
   const checks = {
     chainId: { ok: chainId === expectedChainId, value: chainId },
     validatorSet: {
-      ok: validators.length === expectedValidatorCount,
+      ok:
+        validators.length === expectedValidatorCount &&
+        uniqueValidators.size === expectedValidatorCount &&
+        addressesValid &&
+        observedValidatorFingerprint === expectedValidatorFingerprint,
       count: validators.length,
+      uniqueCount: uniqueValidators.size,
       expectedCount: expectedValidatorCount,
-      fingerprintSha256: validatorFingerprint(validators),
+      addressesValid,
+      fingerprintMatchesExpectedProductionSet:
+        observedValidatorFingerprint === expectedValidatorFingerprint,
+      fingerprintSha256: observedValidatorFingerprint,
     },
     privatePeers: { ok: Number.isFinite(peerCount) && peerCount >= 3, count: peerCount, minimum: 3 },
     blockProgress: {
@@ -55,11 +86,13 @@ async function main() {
   };
 
   const evidence = {
-    schemaVersion: 1,
+    schemaVersion: 3,
     checkedAt,
     network: 'KriptoAman Mainnet Candidate',
     source: 'private-self-hosted-runner',
     endpointRedacted: true,
+    validatorAddressesRedacted: true,
+    expectedProductionSetBound: true,
     checks,
     ready: Object.values(checks).every((check) => check.ok === true),
   };
@@ -70,10 +103,12 @@ async function main() {
 
 main().catch((error) => {
   console.error(JSON.stringify({
-    schemaVersion: 1,
+    schemaVersion: 3,
     checkedAt: new Date().toISOString(),
     source: 'private-self-hosted-runner',
     endpointRedacted: true,
+    validatorAddressesRedacted: true,
+    expectedProductionSetBound: true,
     ready: false,
     error: String(error?.message || error),
   }, null, 2));
