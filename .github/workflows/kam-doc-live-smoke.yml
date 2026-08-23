@@ -1,0 +1,55 @@
+name: KAM Document Live Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '27 * * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  kam-doc-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Allow production deployment to settle
+        if: github.event_name == 'push'
+        run: sleep 60
+
+      - name: Check public KAM route
+        shell: bash
+        run: |
+          set -euo pipefail
+          code="$(curl --fail-with-body --location --silent --show-error --connect-timeout 10 --max-time 25 -o /tmp/kam.html -w '%{http_code}' https://kriptoaman.com/KAM)"
+          test "$code" = "200"
+          grep -qi 'KriptoAman' /tmp/kam.html
+
+      - name: Check public KAM Global Roadmap route
+        shell: bash
+        run: |
+          set -euo pipefail
+          code="$(curl --fail-with-body --location --silent --show-error --connect-timeout 10 --max-time 25 -o /tmp/kam-roadmap.html -w '%{http_code}' https://kriptoaman.com/KAMGlobalRoadmap)"
+          test "$code" = "200"
+
+      - name: Check public KAM roadmap PDF
+        shell: bash
+        run: |
+          set -euo pipefail
+          headers="$(mktemp)"
+          body="$(mktemp)"
+          code="$(curl --fail-with-body --location --silent --show-error --connect-timeout 10 --max-time 30 -D "$headers" -o "$body" -w '%{http_code}' https://kriptoaman.com/docs/KriptoAman_KAM_USD29_37_Positive_Confident_Roadmap.pdf)"
+          test "$code" = "200"
+          test -s "$body"
+          head -c 5 "$body" | grep -q '%PDF-'
+          grep -qi '^content-type:.*application/pdf' "$headers" || true
+
+      - name: Report verified endpoints
+        run: |
+          echo 'KAM route: PASS'
+          echo 'KAM Global Roadmap route: PASS'
+          echo 'KAM roadmap PDF: PASS'
