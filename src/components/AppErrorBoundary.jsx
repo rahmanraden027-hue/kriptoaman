@@ -3,28 +3,30 @@ import { logError } from '@/lib/errorHandler';
 
 /**
  * AppErrorBoundary — centralized React error boundary.
- * Catches render errors in the subtree, logs them via errorHandler, and shows a
- * minimal reload prompt. Normal UI is unaffected.
+ * Captures the actual runtime error so recovery can target the real cause.
  */
 export default class AppErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, recovering: false };
+    this.state = { hasError: false, recovering: false, errorMessage: '', errorId: '' };
   }
 
-  static getDerivedStateFromError() {
-    return { hasError: true };
+  static getDerivedStateFromError(error) {
+    return {
+      hasError: true,
+      errorMessage: error?.message || String(error || 'Unknown runtime error'),
+      errorId: `KA-${Date.now().toString(36).toUpperCase()}`,
+    };
   }
 
   componentDidCatch(error, info) {
     logError(error, {
       source: 'react_error_boundary',
-      info: info?.componentStack?.slice(0, 300),
+      info: info?.componentStack?.slice(0, 500),
     });
   }
 
-  handleReload = async () => {
-    this.setState({ recovering: true });
+  clearRuntimeCaches = async () => {
     try {
       if ('serviceWorker' in navigator) {
         const registrations = await navigator.serviceWorker.getRegistrations();
@@ -35,28 +37,51 @@ export default class AppErrorBoundary extends React.Component {
         await Promise.all(keys.map(key => window.caches.delete(key)));
       }
     } catch {
-      // A hard reload still proceeds when browser storage APIs are unavailable.
+      // Recovery still proceeds when browser storage APIs are unavailable.
     }
+  };
 
+  handleReload = async () => {
+    this.setState({ recovering: true });
+    await this.clearRuntimeCaches();
     const url = new URL(window.location.origin + window.location.pathname);
     url.searchParams.set('ka_recover', Date.now().toString());
     window.location.replace(url.toString());
+  };
+
+  handleSafeHome = async () => {
+    this.setState({ recovering: true });
+    await this.clearRuntimeCaches();
+    window.location.replace(`/?ka_safe=${Date.now()}`);
   };
 
   render() {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white p-6">
-          <div className="text-center space-y-3 max-w-sm">
+          <div className="w-full max-w-sm text-center space-y-3">
             <h2 className="text-xl font-bold">Terjadi kesalahan</h2>
-            <p className="text-slate-400 text-sm">Muat ulang halaman untuk memulihkan versi aplikasi terbaru.</p>
-            <button
-              onClick={this.handleReload}
-              disabled={this.state.recovering}
-              className="px-4 py-2 bg-blue-600 rounded-xl text-sm font-semibold disabled:opacity-60"
-            >
-              {this.state.recovering ? 'Memulihkan…' : 'Muat Ulang'}
-            </button>
+            <p className="text-slate-400 text-sm">Aplikasi menangkap kesalahan runtime. Detail di bawah membantu kami memperbaiki penyebabnya secara tepat.</p>
+            <div className="rounded-xl border border-slate-700 bg-slate-900/70 p-3 text-left">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-sky-300">{this.state.errorId}</p>
+              <p className="mt-1 break-words text-xs leading-5 text-slate-300">{this.state.errorMessage}</p>
+            </div>
+            <div className="grid grid-cols-1 gap-2">
+              <button
+                onClick={this.handleReload}
+                disabled={this.state.recovering}
+                className="min-h-11 px-4 py-2 bg-blue-600 rounded-xl text-sm font-semibold disabled:opacity-60"
+              >
+                {this.state.recovering ? 'Memulihkan…' : 'Muat Ulang'}
+              </button>
+              <button
+                onClick={this.handleSafeHome}
+                disabled={this.state.recovering}
+                className="min-h-11 px-4 py-2 rounded-xl border border-slate-700 bg-slate-900 text-sm font-semibold text-slate-200 disabled:opacity-60"
+              >
+                Buka Halaman Utama Aman
+              </button>
+            </div>
           </div>
         </div>
       );
