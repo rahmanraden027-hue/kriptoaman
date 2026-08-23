@@ -26,19 +26,20 @@ export default class AppErrorBoundary extends React.Component {
   handleReload = async () => {
     this.setState({ recovering: true });
     try {
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map(registration => registration.unregister()));
+      }
       if ('caches' in window) {
         const keys = await window.caches.keys();
-        await Promise.all(keys.filter(key => key.startsWith('kriptoaman-')).map(key => window.caches.delete(key)));
-      }
-      if ('serviceWorker' in navigator) {
-        const registration = await navigator.serviceWorker.getRegistration();
-        await registration?.update();
+        await Promise.all(keys.map(key => window.caches.delete(key)));
       }
     } catch {
-      // Reload still proceeds when cache or service-worker APIs are unavailable.
+      // A hard reload still proceeds when browser storage APIs are unavailable.
     }
-    const url = new URL(window.location.href);
-    url.searchParams.set('ka_refresh', Date.now().toString());
+
+    const url = new URL(window.location.origin + window.location.pathname);
+    url.searchParams.set('ka_recover', Date.now().toString());
     window.location.replace(url.toString());
   };
 
@@ -48,13 +49,13 @@ export default class AppErrorBoundary extends React.Component {
         <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white p-6">
           <div className="text-center space-y-3 max-w-sm">
             <h2 className="text-xl font-bold">Terjadi kesalahan</h2>
-            <p className="text-slate-400 text-sm">Muat ulang halaman untuk melanjutkan.</p>
+            <p className="text-slate-400 text-sm">Muat ulang halaman untuk memulihkan versi aplikasi terbaru.</p>
             <button
               onClick={this.handleReload}
               disabled={this.state.recovering}
-              className="px-4 py-2 bg-blue-600 rounded-xl text-sm font-semibold"
+              className="px-4 py-2 bg-blue-600 rounded-xl text-sm font-semibold disabled:opacity-60"
             >
-              {this.state.recovering ? 'Memperbarui…' : 'Muat Ulang'}
+              {this.state.recovering ? 'Memulihkan…' : 'Muat Ulang'}
             </button>
           </div>
         </div>
