@@ -1,7 +1,7 @@
 {
-  "name": "KriptoAman — Pemantauan Aset Digital",
+  "name": "KriptoAman — Digital Asset Intelligence",
   "short_name": "KriptoAman",
-  "description": "Platform informasi, pemantauan, verifikasi transaksi, dan analisis risiko aset kripto.",
+  "description": "Digital asset information, market monitoring, transaction verification, and crypto risk analysis platform.",
   "version": "1.3.0",
   "id": "/",
   "start_url": "/",
@@ -10,7 +10,7 @@
   "orientation": "portrait-primary",
   "background_color": "#0B0F14",
   "theme_color": "#0B0F14",
-  "lang": "id-ID",
+  "lang": "en",
   "dir": "ltr",
   "categories": ["finance", "utilities"],
   "prefer_related_applications": false,
@@ -24,23 +24,23 @@
   ],
   "shortcuts": [
     {
-      "name": "Intelijen Pasar",
-      "short_name": "Pasar",
-      "description": "Pantau data pasar dan aset digital.",
+      "name": "Market Intelligence",
+      "short_name": "Market",
+      "description": "Monitor digital asset and market data.",
       "url": "/Market",
       "icons": [{ "src": "/brand/kriptoaman-mark.svg", "sizes": "any", "type": "image/svg+xml" }]
     },
     {
-      "name": "Pantau Wallet",
+      "name": "Wallet Monitor",
       "short_name": "Wallet",
-      "description": "Buka pemantauan wallet dan alamat publik.",
+      "description": "Open wallet and public-address monitoring.",
       "url": "/Wallet",
       "icons": [{ "src": "/brand/kriptoaman-mark.svg", "sizes": "any", "type": "image/svg+xml" }]
     },
     {
-      "name": "Pusat Keamanan",
-      "short_name": "Keamanan",
-      "description": "Buka pengaturan dan status keamanan akun.",
+      "name": "Security Center",
+      "short_name": "Security",
+      "description": "Open account security settings and status.",
       "url": "/SecurityHub",
       "icons": [{ "src": "/brand/kriptoaman-mark.svg", "sizes": "any", "type": "image/svg+xml" }]
     }
