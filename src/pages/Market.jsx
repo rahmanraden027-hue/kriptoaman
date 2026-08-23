@@ -153,7 +153,7 @@ export default function Market() {
     coingecko: 'CoinGecko',
     cryptocompare: 'CryptoCompare',
     cache: text.cachedSource,
-    server: language === 'en' ? 'KriptoAman server snapshot' : 'Snapshot server KriptoAman',
+    server: language === 'en' ? 'KriptoAman Market Database' : 'Database Pasar KriptoAman',
   }[source] || text.sourceUnavailable;
   const ageLabel = cacheAgeMs == null ? null : cacheAgeMs < 60 * 60 * 1000
     ? `${Math.max(1, Math.round(cacheAgeMs / 60000))} ${language === 'en' ? 'min ago' : 'menit lalu'}`
