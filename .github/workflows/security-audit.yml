@@ -64,6 +64,16 @@ jobs:
             exit 1
           fi
 
+      - name: Verify secret files and signing material are not tracked
+        shell: bash
+        run: |
+          bad_files="$(git ls-files | grep -E '(^|/)(\.env($|\.)|.*\.(jks|keystore|p12|pfx|pem|key)$)' || true)"
+          if [ -n "$bad_files" ]; then
+            echo 'Sensitive file type detected in tracked files:' >&2
+            echo "$bad_files" >&2
+            exit 1
+          fi
+
       - name: Verify security headers contract
         shell: bash
         run: |
@@ -71,3 +81,9 @@ jobs:
           grep -q 'Content-Security-Policy' public/_headers
           grep -q "frame-ancestors 'none'" public/_headers
           grep -q 'X-Frame-Options: DENY' public/_headers
+          grep -q 'X-Content-Type-Options: nosniff' public/_headers
+          grep -q 'Permissions-Policy:' public/_headers
+          if grep -q "'unsafe-eval'" public/_headers; then
+            echo "CSP must not enable unsafe-eval." >&2
+            exit 1
+          fi
