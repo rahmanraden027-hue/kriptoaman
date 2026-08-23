@@ -82,6 +82,16 @@ test('admin magic links are short-lived, one-time, and cannot bypass enrolled TO
   assert.doesNotMatch(callback, /promoteConfiguredAdmin/);
 });
 
+test('KYC session creation is authenticated, same-origin, and rate limited', async () => {
+  const kycStart = await source('../functions/api/kyc/start.js');
+  assert.match(kycStart, /requireSameOrigin\(request, env\)/);
+  assert.match(kycStart, /verifySessionToken/);
+  assert.match(kycStart, /checkRateLimit/);
+  assert.match(kycStart, /'kyc-start'/);
+  assert.match(kycStart, /3, 10 \* 60/);
+  assert.match(kycStart, /status:\s*429/);
+});
+
 test('Coinbase account, order, transfer, conversion and SQL actions are admin-only', async () => {
   const coinbase = await source('../base44/functions/coinbaseAdvancedTrade/entry.ts');
   assert.match(coinbase, /const adminOnlyActions = new Set/);
