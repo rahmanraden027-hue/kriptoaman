@@ -1,11 +1,10 @@
 /**
- * KriptoAman Service Worker v2.3.1
+ * KriptoAman Service Worker v2.3.2
  * Strategy: Network-first untuk navigasi & UI bundles, cache fallback untuk offline.
  */
 
-const CACHE_NAME = 'kriptoaman-v2.3.1';
-const STATIC_CACHE = 'kriptoaman-static-v2.3.1';
-const DATA_CACHE = 'kriptoaman-data-v3';
+const STATIC_CACHE = 'kriptoaman-static-v2.3.2';
+const DATA_CACHE = 'kriptoaman-data-v4';
 
 const STATIC_ASSETS = [
   '/',
@@ -29,12 +28,11 @@ const API_DOMAINS = [
 const fetchWithDeadline = (request, timeoutMs = 10000) => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
-  return fetch(request, { signal: controller.signal })
-    .finally(() => clearTimeout(timeout));
+  return fetch(request, { signal: controller.signal }).finally(() => clearTimeout(timeout));
 };
 
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing KriptoAman Service Worker v2.3.1...');
+  console.log('[SW] Installing KriptoAman Service Worker v2.3.2...');
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then(cache => cache.addAll(STATIC_ASSETS))
@@ -44,7 +42,7 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating v2.3.1...');
+  console.log('[SW] Activating v2.3.2...');
   event.waitUntil(
     caches.keys()
       .then(keys => Promise.all(
@@ -63,7 +61,6 @@ self.addEventListener('fetch', (event) => {
   if (url.protocol === 'chrome-extension:') return;
   if (url.pathname.startsWith('/api/auth/')) return;
 
-  // Navigation must always prefer the newest deployed HTML.
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetchWithDeadline(new Request(event.request, { cache: 'no-store' }))
@@ -99,8 +96,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // UI bundles change on deployments. Prefer network so old navigation/layout
-  // code cannot remain stuck in an installed Android PWA.
   const isSameOriginUiBundle = url.origin === self.location.origin && (
     event.request.destination === 'script' ||
     event.request.destination === 'style' ||
@@ -123,7 +118,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Images/icons and other immutable resources may remain cache-first.
   event.respondWith(
     caches.match(event.request)
       .then(cached => cached || fetch(event.request).then(response => {
@@ -172,4 +166,4 @@ self.addEventListener('sync', (event) => {
   }
 });
 
-console.log('[SW] KriptoAman Service Worker v2.3.1 loaded ✅');
+console.log('[SW] KriptoAman Service Worker v2.3.2 loaded ✅');
