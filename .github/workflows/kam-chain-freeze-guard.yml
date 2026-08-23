@@ -1,0 +1,84 @@
+name: KAM Chain Freeze Guard
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - 'chain/kam-mainnet/**'
+      - '.github/workflows/kam-chain-freeze-guard.yml'
+  push:
+    branches: ["main"]
+    paths:
+      - 'chain/kam-mainnet/**'
+      - '.github/workflows/kam-chain-freeze-guard.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kam-chain-freeze-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+
+      - name: Verify KAM network remains in protected candidate state
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const p = JSON.parse(fs.readFileSync('chain/kam-mainnet/network-profile.json','utf8'));
+          const expected = {
+            status: 'mainnet-candidate-not-public',
+            candidateChainId: 22028,
+            candidateChainIdHex: '0x560c',
+            consensus: 'QBFT',
+            validatorCount: 4,
+            blockPeriodSeconds: 3,
+            rpcTarget: 'https://rpc.kriptoaman.com',
+            explorerTarget: 'https://explorer.kriptoaman.com',
+            reuseTestnetKeys: false,
+            publicRpcDirectValidatorExposure: false,
+            commercialLaunchEnabled: false,
+          };
+          const bad = Object.entries(expected).filter(([k,v]) => p[k] !== v);
+          if (bad.length) {
+            console.error('Protected KAM profile changed:', bad);
+            process.exit(1);
+          }
+          console.log('KAM protected profile unchanged.');
+          NODE
+
+      - name: Reject direct routine changes to KAM chain on main
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          BEFORE='${{ github.event.before }}'
+          AFTER='${{ github.sha }}'
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            exit 0
+          fi
+          CHANGED=$(git diff --name-only "$BEFORE" "$AFTER" -- 'chain/kam-mainnet/**' || true)
+          if [ -n "$CHANGED" ]; then
+            echo 'KAM chain files changed directly on main:' >&2
+            echo "$CHANGED" >&2
+            echo 'Use an isolated KAM-chain PR and promotion/security gates. See Issue #166.' >&2
+            exit 1
+          fi
+
+      - name: Confirm isolated review path for KAM changes
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          echo 'KAM chain changes require isolated review and promotion/security gates before merge.'
+          echo 'No genesis, validator, Chain ID, QBFT, RPC, explorer, or exposure change is approved by this guard alone.'
