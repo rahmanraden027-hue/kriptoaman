@@ -1,6 +1,8 @@
 import React from 'react';
-import { ArrowLeft, CheckCircle2, FileText, Globe2, Network, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, FileDown, FileText, Globe2, Network, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
+
+const PDF_URL = '/docs/KriptoAman_KAM_USD29_37_Positive_Confident_Roadmap.pdf';
 
 const COPY = {
   id: {
@@ -53,6 +55,10 @@ const COPY = {
     closing: 'KAM dibangun untuk tumbuh bersama kekuatan jaringan, utilitas nyata, akses global, adopsi, dan ekosistem yang berkelanjutan.',
     classification: 'Reference Classification: US$29.37 — Indicative Scenario Reference. Market price akan aktif saat data trading dan likuiditas nyata tersedia.',
     back: 'Kembali ke KAM',
+    pdf: 'Baca PDF Resmi',
+    milestone: 'Milestone',
+    indicator: 'Indikator Utama',
+    impact: 'Dampak Strategis',
   },
   en: {
     badge: 'KAM GLOBAL ROADMAP',
@@ -104,6 +110,10 @@ const COPY = {
     closing: 'KAM is built to grow with network strength, real utility, global access, adoption, and a sustainable ecosystem.',
     classification: 'Reference Classification: US$29.37 — Indicative Scenario Reference. Market price becomes active when real trading and liquidity data are available.',
     back: 'Back to KAM',
+    pdf: 'Read Official PDF',
+    milestone: 'Milestone',
+    indicator: 'Core Indicator',
+    impact: 'Strategic Impact',
   },
 };
 
@@ -114,9 +124,14 @@ export default function KAMGlobalRoadmap() {
   return (
     <div className="ka-bg min-h-screen pb-24 text-white">
       <main className="mx-auto max-w-6xl space-y-7 px-4 py-7 sm:px-6 lg:px-8">
-        <a href="/KAM" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-700 bg-slate-950/50 px-4 text-sm font-bold text-slate-200 hover:border-sky-400/40 hover:text-white">
-          <ArrowLeft className="h-4 w-4" /> {text.back}
-        </a>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <a href="/KAM" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-700 bg-slate-950/50 px-4 text-sm font-bold text-slate-200 transition hover:border-sky-400/40 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/70">
+            <ArrowLeft className="h-4 w-4" /> {text.back}
+          </a>
+          <a href={PDF_URL} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-4 text-sm font-bold text-emerald-100 transition hover:bg-emerald-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/70">
+            <FileDown className="h-4 w-4" /> {text.pdf}
+          </a>
+        </div>
 
         <section className="ka-command-hero overflow-hidden p-6 sm:p-9">
           <div className="grid gap-7 lg:grid-cols-[1.3fr_.7fr] lg:items-center">
@@ -176,14 +191,32 @@ export default function KAMGlobalRoadmap() {
           <p className="ka-command-kicker">KAM SCENARIO DRIVERS</p>
           <h2 className="mt-1 text-2xl font-black">{text.roadmapTitle}</h2>
           <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-400">{text.roadmapIntro}</p>
-          <div className="mt-5 overflow-x-auto rounded-[24px] border border-slate-800 bg-slate-950/35">
+
+          <div className="mt-5 grid gap-3 md:hidden">
+            {text.rows.map(([phase, milestone, indicator, impact], index) => (
+              <article key={phase} className="ka-command-panel p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-emerald-300">{phase}</span>
+                  <span className="text-[10px] font-black text-slate-600">{String(index + 1).padStart(2, '0')}</span>
+                </div>
+                <p className="mt-4 text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">{text.milestone}</p>
+                <h3 className="mt-1 text-base font-black text-white">{milestone}</h3>
+                <p className="mt-4 text-[10px] font-black uppercase tracking-[0.12em] text-sky-300">{text.indicator}</p>
+                <p className="mt-1 text-xs leading-5 text-slate-300">{indicator}</p>
+                <p className="mt-4 text-[10px] font-black uppercase tracking-[0.12em] text-emerald-300">{text.impact}</p>
+                <p className="mt-1 text-xs leading-5 text-slate-300">{impact}</p>
+              </article>
+            ))}
+          </div>
+
+          <div className="mt-5 hidden overflow-x-auto rounded-[24px] border border-slate-800 bg-slate-950/35 md:block">
             <table className="w-full min-w-[900px] text-left text-xs">
               <thead className="bg-sky-500/10 text-sky-200">
                 <tr>{text.columns.map(col => <th key={col} className="px-4 py-4 font-black">{col}</th>)}</tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
                 {text.rows.map(row => (
-                  <tr key={row[0]} className="align-top">
+                  <tr key={row[0]} className="align-top transition hover:bg-white/[0.02]">
                     {row.map((cell, index) => <td key={`${row[0]}-${index}`} className={`px-4 py-4 leading-5 ${index === 0 ? 'font-black text-emerald-300' : 'text-slate-300'}`}>{cell}</td>)}
                   </tr>
                 ))}
@@ -214,6 +247,9 @@ export default function KAMGlobalRoadmap() {
         <section className="ka-command-hero p-6 text-center sm:p-8">
           <p className="mx-auto max-w-4xl text-lg font-black leading-8 text-white">{text.closing}</p>
           <p className="mx-auto mt-4 max-w-4xl text-xs font-semibold leading-6 text-slate-400">{text.classification}</p>
+          <a href={PDF_URL} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-4 text-sm font-bold text-emerald-100 transition hover:bg-emerald-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/70">
+            <FileDown className="h-4 w-4" /> {text.pdf}
+          </a>
         </section>
       </main>
     </div>
