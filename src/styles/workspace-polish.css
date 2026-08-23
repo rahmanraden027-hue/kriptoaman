@@ -135,7 +135,18 @@
   box-shadow: 0 10px 34px rgba(2,8,23,.20), inset 0 -1px 0 rgba(56,189,248,.03);
 }
 
+/* The topbar is 56px tall before the device safe-area. Keep the live ticker and
+   page content below it so mobile header content cannot be clipped underneath. */
+.ka-global-topbar + div.fixed.left-0.right-0.z-40 {
+  top: calc(3.5rem + env(safe-area-inset-top, 0px)) !important;
+}
+
+.ka-global-topbar ~ main {
+  padding-top: 1rem;
+}
+
 .ka-global-sidebar {
+  top: calc(5.5rem + env(safe-area-inset-top, 0px)) !important;
   box-shadow: 18px 0 55px rgba(2,8,23,.20), inset -1px 0 0 rgba(56,189,248,.02);
 }
 
