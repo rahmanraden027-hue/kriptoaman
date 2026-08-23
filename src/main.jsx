@@ -15,6 +15,7 @@ import '@/styles/final-ui-v7.css'
 import '@/styles/final-ui-v8.css'
 import '@/styles/final-ui-v9.css'
 import '@/styles/world-class-ui.css'
+import '@/styles/mobile-overlap-final.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <>
