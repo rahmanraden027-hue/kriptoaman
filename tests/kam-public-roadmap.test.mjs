@@ -10,7 +10,9 @@ test('KAM global roadmap is registered as a public page', async () => {
   assert.match(pages, /'KAMGlobalRoadmap'/);
   assert.match(app, /'KAMGlobalRoadmap'/);
   assert.match(app, /href="\/KAMGlobalRoadmap"/);
-  assert.match(app, /Baca KAM Global Roadmap/);
+  assert.match(app, /KAM Global Roadmap/);
+  assert.match(app, /US\$29\.37 · Indicative Scenario Reference/);
+  assert.doesNotMatch(app, /fixed bottom-5 right-4/);
 });
 
 test('KAM roadmap keeps US$29.37 classified as an indicative scenario', async () => {
@@ -20,4 +22,14 @@ test('KAM roadmap keeps US$29.37 classified as an indicative scenario', async ()
   assert.match(page, /Belum Diperdagangkan/);
   assert.match(page, /Not Yet Trading/);
   assert.match(page, /Market price becomes active when real trading and liquidity data are available/);
+});
+
+test('KAM roadmap is polished for mobile and exposes the official PDF', async () => {
+  const page = await read('src/pages/KAMGlobalRoadmap.jsx');
+  assert.match(page, /PDF_URL/);
+  assert.match(page, /Read Official PDF/);
+  assert.match(page, /Baca PDF Resmi/);
+  assert.match(page, /md:hidden/);
+  assert.match(page, /hidden overflow-x-auto[\s\S]*md:block/);
+  assert.match(page, /focus-visible:ring-2/);
 });

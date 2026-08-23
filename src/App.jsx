@@ -60,15 +60,26 @@ const StoreAvailabilityNotice = () => (
 const PublicMarketWithNav = ({ Page }) => <div className="min-h-screen"><Page /><PrimaryBottomNav currentPageName="Market" /></div>;
 
 const PublicKAMWithDocument = ({ Page }) => (
-  <div className="min-h-screen">
+  <div className="min-h-screen bg-slate-950">
     <Page />
-    <a
-      href="/KAMGlobalRoadmap"
-      className="fixed bottom-5 right-4 z-40 inline-flex min-h-12 items-center justify-center rounded-2xl border border-sky-300/25 bg-sky-600 px-5 text-sm font-black text-white shadow-[0_18px_55px_-18px_rgba(14,165,233,.9)] hover:bg-sky-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 sm:bottom-6 sm:right-6"
-      aria-label="Baca KAM Global Roadmap"
-    >
-      Baca KAM Global Roadmap
-    </a>
+    <section className="mx-auto max-w-6xl px-4 pb-28 sm:px-6 lg:px-8">
+      <div className="overflow-hidden rounded-[28px] border border-sky-400/20 bg-gradient-to-r from-sky-500/10 via-slate-900/90 to-emerald-500/10 p-5 shadow-[0_24px_70px_-50px_rgba(14,165,233,.9)] sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-300">KAM GLOBAL ROADMAP</p>
+            <h2 className="mt-1 text-lg font-black text-white sm:text-xl">US$29.37 · Indicative Scenario Reference</h2>
+            <p className="mt-2 max-w-2xl text-xs leading-5 text-slate-400 sm:text-sm">Infrastructure · Utility · Adoption · Liquidity · Global Access · Governance · Market Readiness</p>
+          </div>
+          <a
+            href="/KAMGlobalRoadmap"
+            className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-2xl bg-sky-600 px-5 text-sm font-black text-white shadow-[0_16px_42px_-20px_rgba(14,165,233,.85)] transition hover:bg-sky-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+            aria-label="Open KAM Global Roadmap"
+          >
+            KAM Global Roadmap
+          </a>
+        </div>
+      </div>
+    </section>
   </div>
 );
 
