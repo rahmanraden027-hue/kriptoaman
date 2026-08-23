@@ -20,5 +20,6 @@ test('market UI exposes source and freshness metadata', async () => {
   assert.match(source, /sourceUnavailable/);
   assert.match(source, /cacheAgeMs/);
   assert.match(source, /sourceLabel/);
-  assert.match(source, /Snapshot server KriptoAman/);
+  assert.match(source, /Database Pasar KriptoAman/);
+  assert.match(source, /KriptoAman Market Database/);
 });
