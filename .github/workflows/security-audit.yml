@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  statuses: write
 
 concurrency:
   group: security-audit-${{ github.ref }}
@@ -19,7 +20,7 @@ concurrency:
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     steps:
       - name: Checkout repository
@@ -74,6 +75,16 @@ jobs:
             exit 1
           fi
 
+      - name: Verify API cross-origin write protection
+        shell: bash
+        run: |
+          grep -q "SAFE_METHODS" functions/api/_middleware.js
+          grep -q "Cross-origin request blocked" functions/api/_middleware.js
+          grep -q "capacitor://localhost" functions/api/_middleware.js
+          grep -q "TRACE" functions/api/_middleware.js
+          grep -q "TRACK" functions/api/_middleware.js
+          grep -q "CONNECT" functions/api/_middleware.js
+
       - name: Verify security headers contract
         shell: bash
         run: |
@@ -87,3 +98,53 @@ jobs:
             echo "CSP must not enable unsafe-eval." >&2
             exit 1
           fi
+
+      - name: Verify KAM protected network profile
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const p = JSON.parse(fs.readFileSync('chain/kam-mainnet/network-profile.json', 'utf8'));
+          const expected = {
+            status: 'mainnet-candidate-not-public',
+            candidateChainId: 22028,
+            candidateChainIdHex: '0x560c',
+            consensus: 'QBFT',
+            validatorCount: 4,
+            blockPeriodSeconds: 3,
+            rpcTarget: 'https://rpc.kriptoaman.com',
+            explorerTarget: 'https://explorer.kriptoaman.com',
+            reuseTestnetKeys: false,
+            publicRpcDirectValidatorExposure: false,
+            commercialLaunchEnabled: false,
+          };
+          const changed = Object.entries(expected).filter(([key, value]) => p[key] !== value);
+          if (changed.length) {
+            console.error('Protected KAM network profile changed:', changed);
+            process.exit(1);
+          }
+          console.log('KAM protected network profile unchanged.');
+          NODE
+
+      - name: Publish production security status
+        if: always()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          if [ "$JOB_STATUS" = "success" ]; then
+            STATE=success
+            DESCRIPTION='Production security and KAM integrity gate passed'
+          else
+            STATE=failure
+            DESCRIPTION='Production security or KAM integrity gate failed'
+          fi
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+            -d "{\"state\":\"${STATE}\",\"context\":\"kriptoaman/production-security\",\"description\":\"${DESCRIPTION}\",\"target_url\":\"${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}"
