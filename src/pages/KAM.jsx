@@ -32,6 +32,21 @@ const COPY = {
     referenceMeta: 'Skenario perencanaan internal · Bukan harga pasar live',
     referenceDisclosure: 'US$29.37 adalah referensi skenario internal untuk perencanaan dan bukan harga listing resmi, target harga, jaminan nilai, penawaran, atau harga pasar live. Nilai ini tidak digunakan untuk market cap, P/L, nilai portofolio, atau ticker live. Harga pasar hanya akan berasal dari perdagangan dan likuiditas nyata.',
     marketStatus: 'Harga pasar: Belum diperdagangkan',
+    scenarioKicker: 'KAM SCENARIO DRIVERS',
+    scenarioTitle: 'Roadmap fundamental yang dapat memperkuat utilitas dan adopsi KAM',
+    scenarioIntro: 'Skenario US$29.37 dibaca sebagai referensi internal yang bergantung pada keberhasilan banyak milestone secara bersamaan. Fokus utama KriptoAman adalah membangun jaringan, utilitas, akses global, likuiditas sehat, dan kepercayaan berbasis bukti.',
+    scenarioColumns: ['Fase', 'Milestone', 'Bukti yang Dibutuhkan', 'Relevansi Ekonomi'],
+    scenarioNote: 'Milestone berikut dapat memperkuat fundamental KAM, tetapi tidak secara otomatis menghasilkan harga tertentu. Harga pasar hanya terbentuk melalui perdagangan nyata, permintaan, penawaran, dan likuiditas.',
+    scenarioDrivers: [
+      ['Foundation', 'Public mainnet dengan validator terdistribusi', '4 host produksi terpisah, RPC/explorer terlindungi, stabilitas 24 jam+', 'Meningkatkan ketahanan jaringan dan kredibilitas infrastruktur.'],
+      ['Utility', 'KAM digunakan untuk biaya dan layanan jaringan', 'Transaksi nyata, integrasi aplikasi, dokumentasi developer', 'Mendorong kebutuhan utilitas yang berasal dari penggunaan jaringan.'],
+      ['Access', 'Integrasi wallet dan metadata jaringan global', 'Wallet support, ChainList/registry metadata, kanal verifikasi resmi', 'Mempermudah akses pengguna dan developer lintas negara.'],
+      ['Liquidity', 'Infrastruktur likuiditas yang transparan', 'Pasar nyata, kedalaman order/liquidity, volume organik, sumber harga independen', 'Memungkinkan price discovery yang sehat; tidak menetapkan harga tertentu.'],
+      ['Adoption', 'Pertumbuhan pengguna dan developer', 'Aktivitas on-chain, aplikasi aktif, komunitas dan developer metrics', 'Memperluas penggunaan dan relevansi ekosistem.'],
+      ['Global', 'Kemitraan dan distribusi internasional', 'Integrasi terverifikasi, store releases, kemitraan teknologi', 'Memperluas jangkauan KAM sebagai aset native ekosistem.'],
+      ['Governance', 'Kontrol treasury dan governance bertahap', 'Kebijakan transparan, vesting, audit trail, change control', 'Memperkuat disiplin ekonomi dan kepercayaan jangka panjang.'],
+      ['Market', 'Price discovery berbasis pasar nyata', 'Trading dan likuiditas aktual dari venue yang terverifikasi', 'Hanya pada tahap ini harga pasar aktual dapat ditampilkan sebagai market price.'],
+    ],
     allocation: 'Allocation v1',
     total: 'Total 100%',
     safeguards: 'Vesting & Economic Safeguards',
@@ -71,6 +86,21 @@ const COPY = {
     referenceMeta: 'Internal planning scenario · Not a live market price',
     referenceDisclosure: 'US$29.37 is an internal scenario reference for planning only. It is not an official listing price, price target, guaranteed value, offer, or live market price, and it is excluded from market cap, P/L, portfolio valuation, and live tickers. Any market price must come from actual trading and liquidity.',
     marketStatus: 'Market price: Not yet trading',
+    scenarioKicker: 'KAM SCENARIO DRIVERS',
+    scenarioTitle: 'Fundamental roadmap that can strengthen KAM utility and adoption',
+    scenarioIntro: 'The US$29.37 scenario is an internal reference that depends on multiple milestones succeeding together. KriptoAman remains focused on network quality, real utility, global access, healthy liquidity, and evidence-based trust.',
+    scenarioColumns: ['Phase', 'Milestone', 'Evidence Required', 'Economic Relevance'],
+    scenarioNote: 'These milestones may strengthen KAM fundamentals, but they do not automatically produce any specific price. Market price is formed only by real trading, demand, supply, and liquidity.',
+    scenarioDrivers: [
+      ['Foundation', 'Public mainnet with distributed validators', '4 separate production hosts, protected RPC/explorer, 24h+ stability', 'Improves network resilience and infrastructure credibility.'],
+      ['Utility', 'KAM used for network fees and services', 'Real transactions, app integrations, developer documentation', 'Creates utility demand tied to actual network usage.'],
+      ['Access', 'Global wallet and network metadata integrations', 'Wallet support, ChainList/registry metadata, official verification channels', 'Reduces friction for users and developers internationally.'],
+      ['Liquidity', 'Transparent liquidity infrastructure', 'Real markets, liquidity depth, organic volume, independent price sources', 'Enables healthy price discovery; it does not set a specific price.'],
+      ['Adoption', 'User and developer growth', 'On-chain activity, active applications, community and developer metrics', 'Expands real ecosystem usage and relevance.'],
+      ['Global', 'International partnerships and distribution', 'Verified integrations, store releases, technology partnerships', 'Broadens KAM reach as the ecosystem native asset.'],
+      ['Governance', 'Progressive treasury and governance controls', 'Transparent policy, vesting, audit trail, change control', 'Strengthens long-term economic discipline and trust.'],
+      ['Market', 'Market-based price discovery', 'Actual trading and liquidity from verified venues', 'Only at this stage can an actual market price be displayed as market price.'],
+    ],
     allocation: 'Allocation v1',
     total: 'Total 100%',
     safeguards: 'Vesting & Economic Safeguards',
@@ -164,6 +194,30 @@ export default function KAM() {
               </div>
             </div>
           </div>
+        </section>
+
+        <section className="ka-command-panel overflow-hidden p-6">
+          <p className="ka-command-kicker">{text.scenarioKicker}</p>
+          <h2 className="mt-1 text-2xl font-black">{text.scenarioTitle}</h2>
+          <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-300">{text.scenarioIntro}</p>
+          <div className="mt-5 overflow-x-auto rounded-2xl border border-slate-800">
+            <table className="min-w-[900px] w-full text-left text-xs">
+              <thead className="bg-slate-950/70 text-slate-300">
+                <tr>{text.scenarioColumns.map(column => <th key={column} className="px-4 py-3 font-black">{column}</th>)}</tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800">
+                {text.scenarioDrivers.map(([phase, milestone, evidence, relevance]) => (
+                  <tr key={`${phase}-${milestone}`} className="align-top">
+                    <td className="px-4 py-4 font-black text-sky-300">{phase}</td>
+                    <td className="px-4 py-4 font-bold text-white">{milestone}</td>
+                    <td className="px-4 py-4 leading-5 text-slate-400">{evidence}</td>
+                    <td className="px-4 py-4 leading-5 text-slate-300">{relevance}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-[10px] leading-5 text-amber-100/80">{text.scenarioNote}</p>
         </section>
 
         <section>
