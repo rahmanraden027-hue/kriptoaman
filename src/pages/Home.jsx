@@ -48,9 +48,13 @@ const COPY = {
     openMarket: 'Buka Intelijen Pasar',
     openSecurity: 'Pusat Keamanan',
     statusGlobal: 'Pasar Global',
+    statusGlobalDetail: 'Data pasar & aset',
     statusSecurity: 'Keamanan',
+    statusSecurityDetail: 'Kontrol risiko',
     statusAI: 'AI Insight',
+    statusAIDetail: 'Analisis berbasis data',
     statusPortfolio: 'Portofolio',
+    statusPortfolioDetail: 'Ringkasan aset',
   },
   en: {
     summary: 'Market intelligence, portfolio, security, and asset monitoring in one workspace.',
@@ -67,9 +71,13 @@ const COPY = {
     openMarket: 'Open Market Intelligence',
     openSecurity: 'Security Center',
     statusGlobal: 'Global Market',
+    statusGlobalDetail: 'Market & asset data',
     statusSecurity: 'Security',
+    statusSecurityDetail: 'Risk controls',
     statusAI: 'AI Insight',
+    statusAIDetail: 'Data-driven analysis',
     statusPortfolio: 'Portfolio',
+    statusPortfolioDetail: 'Asset overview',
   },
 };
 
@@ -142,14 +150,15 @@ export default function Home() {
 
             <div className="grid grid-cols-2 gap-3 self-end" aria-label={language === 'en' ? 'Workspace capabilities' : 'Kapabilitas workspace'}>
               {[
-                [Globe2, text.statusGlobal, 'text-sky-300', 'bg-sky-500/[0.08] border-sky-400/20'],
-                [ShieldCheck, text.statusSecurity, 'text-emerald-300', 'bg-emerald-500/[0.08] border-emerald-400/20'],
-                [BrainCircuit, text.statusAI, 'text-violet-300', 'bg-violet-500/[0.08] border-violet-400/20'],
-                [Wallet, text.statusPortfolio, 'text-cyan-300', 'bg-cyan-500/[0.08] border-cyan-400/20'],
-              ].map(([Icon, label, iconClass, cardClass]) => (
+                [Globe2, text.statusGlobal, text.statusGlobalDetail, 'text-sky-300', 'bg-sky-500/[0.08] border-sky-400/20'],
+                [ShieldCheck, text.statusSecurity, text.statusSecurityDetail, 'text-emerald-300', 'bg-emerald-500/[0.08] border-emerald-400/20'],
+                [BrainCircuit, text.statusAI, text.statusAIDetail, 'text-violet-300', 'bg-violet-500/[0.08] border-violet-400/20'],
+                [Wallet, text.statusPortfolio, text.statusPortfolioDetail, 'text-cyan-300', 'bg-cyan-500/[0.08] border-cyan-400/20'],
+              ].map(([Icon, label, detail, iconClass, cardClass]) => (
                 <div key={label} className={`rounded-2xl border p-4 backdrop-blur-xl ${cardClass}`}>
                   <Icon className={`h-5 w-5 ${iconClass}`} aria-hidden="true" />
-                  <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">{label}</p>
+                  <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-300">{label}</p>
+                  <p className="mt-1 text-[9px] leading-4 text-slate-500">{detail}</p>
                 </div>
               ))}
             </div>
