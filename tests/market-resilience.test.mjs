@@ -6,7 +6,9 @@ const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('market preserves the last known-good snapshot without a hard expiry', async () => {
   const source = await read('src/components/home/useCoinMarkets.js');
-  assert.match(source, /Always render the last known-good snapshot first/);
+  assert.match(source, /const MARKET_CACHE_KEY = 'ka_market_snapshot_v4';/);
+  assert.match(source, /localStorage\.getItem\(MARKET_CACHE_KEY\)/);
+  assert.match(source, /applyData\(cached\.data, 'cache', cached\.savedAt\)/);
   assert.doesNotMatch(source, /MARKET_CACHE_MAX_AGE/);
   assert.match(source, /compactSnapshot/);
   assert.match(source, /isStale/);
@@ -52,8 +54,9 @@ test('live prices and market UI expose persistent fallback state', async () => {
 
 
 test('server snapshot survives total upstream provider failure', async () => {
-  const [endpoint, client, migration] = await Promise.all([
+  const [endpoint, pageEndpoint, client, migration] = await Promise.all([
     read('functions/api/market-snapshot.js'),
+    read('functions/api/market-snapshot-page.js'),
     read('src/components/home/useCoinMarkets.js'),
     read('migrations/0003_market_snapshot.sql'),
   ]);
@@ -61,7 +64,10 @@ test('server snapshot survives total upstream provider failure', async () => {
   assert.match(endpoint, /MIN_ACCEPTED_ASSETS = 2001/);
   assert.match(endpoint, /context\.waitUntil/);
   assert.match(endpoint, /env\.AUTH_DB/);
-  assert.match(client, /\['server', fetchServerSnapshot\]/);
+  assert.match(pageEndpoint, /FROM market_snapshots WHERE id = \?/);
+  assert.match(client, /const fetchServerPage = async \(page\)/);
+  assert.match(client, /const firstPayload = await fetchServerPage\(0\)/);
+  assert.match(client, /void hydrateServerPages\(firstPayload, generation\)/);
   assert.match(migration, /CHECK \(asset_count >= 2001\)/);
 });
 
