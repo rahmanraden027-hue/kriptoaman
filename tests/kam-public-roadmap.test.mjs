@@ -10,7 +10,9 @@ test('KAM global roadmap is registered as a public page', async () => {
   assert.match(pages, /'KAMGlobalRoadmap'/);
   assert.match(app, /'KAMGlobalRoadmap'/);
   assert.match(app, /href="\/KAMGlobalRoadmap"/);
-  assert.match(app, /Baca KAM Global Roadmap/);
+  assert.match(app, /KAM Global Roadmap/);
+  assert.match(app, /US\$29\.37 · Indicative Scenario Reference/);
+  assert.doesNotMatch(app, /fixed bottom-5 right-4/);
 });
 
 test('KAM roadmap keeps US$29.37 classified as an indicative scenario', async () => {
