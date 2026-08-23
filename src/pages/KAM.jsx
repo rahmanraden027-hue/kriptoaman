@@ -133,6 +133,8 @@ export default function KAM() {
   const { language } = useLanguage();
   const text = COPY[language] || COPY.id;
   const [reference, setReference] = useState(FALLBACK_REFERENCE);
+  const documentCta = language === 'en' ? 'Read KAM Roadmap PDF' : 'Baca PDF Roadmap KAM';
+  const documentMeta = language === 'en' ? 'Public document · 4 pages · Mobile optimized' : 'Dokumen publik · 4 halaman · Dioptimalkan untuk mobile';
 
   useEffect(() => {
     let cancelled = false;
@@ -264,7 +266,11 @@ export default function KAM() {
         <section className="rounded-[26px] border border-sky-500/20 bg-sky-500/5 p-6">
           <h2 className="text-lg font-black">{text.transparency}</h2>
           <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-300">{text.transparencyBody}</p>
-          <a href="/SystemStatus" className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-bold hover:bg-sky-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/70">{text.statusCta} <ArrowRight className="h-4 w-4" /></a>
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <a href="/SystemStatus" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-bold hover:bg-sky-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/70">{text.statusCta} <ArrowRight className="h-4 w-4" /></a>
+            <a href="/docs/KriptoAman_KAM_USD29_37_Positive_Confident_Roadmap.pdf" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-4 py-2.5 text-sm font-bold text-emerald-100 hover:bg-emerald-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/70">{documentCta} <ArrowRight className="h-4 w-4" /></a>
+          </div>
+          <p className="mt-3 text-[10px] font-semibold text-slate-500">{documentMeta}</p>
         </section>
       </div>
     </div>
