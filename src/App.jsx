@@ -59,7 +59,20 @@ const StoreAvailabilityNotice = () => (
 
 const PublicMarketWithNav = ({ Page }) => <div className="min-h-screen"><Page /><PrimaryBottomNav currentPageName="Market" /></div>;
 
-const PUBLIC_PAGE_KEYS = new Set(['AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'TermsOfService', 'AccountDeletion', 'Market', 'KAM']);
+const PublicKAMWithDocument = ({ Page }) => (
+  <div className="min-h-screen">
+    <Page />
+    <a
+      href="/KAMGlobalRoadmap"
+      className="fixed bottom-5 right-4 z-40 inline-flex min-h-12 items-center justify-center rounded-2xl border border-sky-300/25 bg-sky-600 px-5 text-sm font-black text-white shadow-[0_18px_55px_-18px_rgba(14,165,233,.9)] hover:bg-sky-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 sm:bottom-6 sm:right-6"
+      aria-label="Baca KAM Global Roadmap"
+    >
+      Baca KAM Global Roadmap
+    </a>
+  </div>
+);
+
+const PUBLIC_PAGE_KEYS = new Set(['AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'TermsOfService', 'AccountDeletion', 'Market', 'KAM', 'KAMGlobalRoadmap']);
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ? <Layout currentPageName={currentPageName}>{children}</Layout> : <>{children}</>;
 
@@ -82,7 +95,12 @@ const AuthenticatedApp = () => {
 
         {Object.entries(Pages).map(([path, Page]) => {
           if (!PUBLIC_PAGE_KEYS.has(path)) return null;
-          return <Route key={path} path={`/${path}`} element={path === 'Market' ? <PublicMarketWithNav Page={Page} /> : <Page />} />;
+          const element = path === 'Market'
+            ? <PublicMarketWithNav Page={Page} />
+            : path === 'KAM'
+              ? <PublicKAMWithDocument Page={Page} />
+              : <Page />;
+          return <Route key={path} path={`/${path}`} element={element} />;
         })}
 
         <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
