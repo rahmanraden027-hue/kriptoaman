@@ -19,12 +19,17 @@ test('API responses enforce defensive security headers', async () => {
   assert.match(http, /Sec-Fetch-Site/);
 });
 
-test('edge middleware blocks dangerous HTTP methods and disables API caching', async () => {
+test('edge middleware blocks dangerous HTTP methods, cross-origin writes, and disables API caching', async () => {
   const middleware = await source('../functions/api/_middleware.js');
   assert.match(middleware, /TRACE/);
   assert.match(middleware, /TRACK/);
   assert.match(middleware, /CONNECT/);
-  assert.match(middleware, /status:\s*405/);
+  assert.match(middleware, /status,?\s*405|405/);
+  assert.match(middleware, /SAFE_METHODS/);
+  assert.match(middleware, /request\.headers\.get\('Origin'\)/);
+  assert.match(middleware, /Cross-origin request blocked/);
+  assert.match(middleware, /status,?\s*403|403/);
+  assert.match(middleware, /capacitor:\/\/localhost/);
   assert.match(middleware, /no-store/);
   assert.match(middleware, /X-Frame-Options/);
 });
