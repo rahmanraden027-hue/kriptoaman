@@ -1,0 +1,66 @@
+/* Final mobile overlap hardening — preserves existing visual identity. */
+
+@media (max-width: 767px) {
+  /* Keep the live ticker fully below the fixed global header, including notch/safe-area. */
+  .ka-global-topbar + div.fixed.left-0.right-0.z-40 {
+    top: calc(3.75rem + env(safe-area-inset-top, 0px)) !important;
+  }
+
+  /* Reserve room for header + ticker before page content and for the floating bottom nav below it. */
+  .ka-global-topbar ~ main {
+    padding-top: 1.25rem !important;
+    padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Keep the floating nav clear of gesture/navigation areas on Android and iOS. */
+  .ka-embedded-nav {
+    bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Remove the bright custom page scrollbar on touch/mobile while preserving scrolling. */
+  html,
+  body {
+    scrollbar-width: none !important;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+  }
+
+  /* Compact only the Home hero rhythm; no typography, color, logo, or component identity changes. */
+  .ka-global-shell main .ka-bg > .max-w-7xl {
+    padding-top: 0.875rem !important;
+  }
+
+  .ka-global-shell main .ka-bg > .max-w-7xl > section:first-child > .relative.grid {
+    gap: 0.75rem !important;
+    padding: 0.875rem !important;
+  }
+
+  .ka-global-shell main .ka-bg > .max-w-7xl > section:first-child .mt-3,
+  .ka-global-shell main .ka-bg > .max-w-7xl > section:first-child .mt-3\.5,
+  .ka-global-shell main .ka-bg > .max-w-7xl > section:first-child .mt-4 {
+    margin-top: 0.625rem !important;
+  }
+
+  .ka-global-shell main .ka-bg > .max-w-7xl > section:first-child .grid.grid-cols-2 {
+    gap: 0.625rem !important;
+  }
+
+  .ka-global-shell main .ka-bg > .max-w-7xl > section:first-child .grid.grid-cols-2 > div {
+    padding: 0.75rem !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .ka-global-topbar + div.fixed.left-0.right-0.z-40 {
+    top: calc(3.625rem + env(safe-area-inset-top, 0px)) !important;
+  }
+
+  .ka-global-shell main .ka-bg > .max-w-7xl > section:first-child > .relative.grid {
+    padding: 0.75rem !important;
+  }
+}
