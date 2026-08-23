@@ -12,9 +12,9 @@ const ALLOCATION = [
 ];
 
 const FALLBACK_REFERENCE = {
-  value: 2.84,
+  value: 29.37,
   currency: 'USD',
-  type: 'internal-estimate',
+  type: 'internal-scenario-estimate',
   isLiveMarketPrice: false,
 };
 
@@ -28,9 +28,9 @@ const COPY = {
     chain: 'Chain ID 22028',
     chainMeta: 'Hex 0x560c · EVM-compatible · Target QBFT · Target 4 validator',
     caution: 'Status public/commercial mainnet tidak dinyatakan sebelum seluruh launch-readiness gate memiliki bukti produksi yang lengkap dan ditinjau.',
-    referenceLabel: 'Referensi Indikatif Listing',
-    referenceMeta: 'Estimasi perencanaan internal · Bukan harga pasar live',
-    referenceDisclosure: 'US$2.84 adalah referensi indikatif untuk perencanaan listing. Nilai ini bukan harga listing resmi, bukan jaminan nilai, dan tidak digunakan untuk market cap, P/L, nilai portofolio, atau ticker live. Harga pasar hanya akan berasal dari perdagangan dan likuiditas nyata.',
+    referenceLabel: 'Referensi Skenario Indikatif',
+    referenceMeta: 'Skenario perencanaan internal · Bukan harga pasar live',
+    referenceDisclosure: 'US$29.37 adalah referensi skenario internal untuk perencanaan dan bukan harga listing resmi, target harga, jaminan nilai, penawaran, atau harga pasar live. Nilai ini tidak digunakan untuk market cap, P/L, nilai portofolio, atau ticker live. Harga pasar hanya akan berasal dari perdagangan dan likuiditas nyata.',
     marketStatus: 'Harga pasar: Belum diperdagangkan',
     allocation: 'Allocation v1',
     total: 'Total 100%',
@@ -67,9 +67,9 @@ const COPY = {
     chain: 'Chain ID 22028',
     chainMeta: 'Hex 0x560c · EVM-compatible · QBFT target · 4-validator target',
     caution: 'Public or commercial mainnet status will not be claimed until all launch-readiness gates are backed by complete production evidence and review.',
-    referenceLabel: 'Indicative Listing Reference',
-    referenceMeta: 'Internal planning estimate · Not a live market price',
-    referenceDisclosure: 'US$2.84 is an indicative planning reference for a potential listing. It is not an official listing price, guaranteed value, or live market price, and it is excluded from market cap, P/L, portfolio valuation, and live tickers. Any market price must come from actual trading and liquidity.',
+    referenceLabel: 'Indicative Scenario Reference',
+    referenceMeta: 'Internal planning scenario · Not a live market price',
+    referenceDisclosure: 'US$29.37 is an internal scenario reference for planning only. It is not an official listing price, price target, guaranteed value, offer, or live market price, and it is excluded from market cap, P/L, portfolio valuation, and live tickers. Any market price must come from actual trading and liquidity.',
     marketStatus: 'Market price: Not yet trading',
     allocation: 'Allocation v1',
     total: 'Total 100%',
@@ -122,7 +122,7 @@ export default function KAM() {
     currency: reference.currency || 'USD',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(Number(reference.value ?? 2.84));
+  }).format(Number(reference.value ?? 29.37));
 
   return (
     <div className="ka-bg min-h-screen pb-24 text-white">
@@ -157,7 +157,7 @@ export default function KAM() {
                     <p className="mt-2 text-3xl font-black tracking-[-0.03em] text-white">{formattedReference}</p>
                     <p className="mt-1 text-[10px] font-bold text-slate-400">{text.referenceMeta}</p>
                   </div>
-                  <span className="rounded-full border border-slate-700 bg-slate-950/60 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-slate-300">Estimate</span>
+                  <span className="rounded-full border border-slate-700 bg-slate-950/60 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-slate-300">Scenario</span>
                 </div>
                 <p className="mt-4 text-[10px] leading-5 text-slate-400">{text.referenceDisclosure}</p>
                 <p className="mt-3 text-[10px] font-bold text-amber-300">{text.marketStatus}</p>
