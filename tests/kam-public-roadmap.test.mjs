@@ -23,3 +23,13 @@ test('KAM roadmap keeps US$29.37 classified as an indicative scenario', async ()
   assert.match(page, /Not Yet Trading/);
   assert.match(page, /Market price becomes active when real trading and liquidity data are available/);
 });
+
+test('KAM roadmap is polished for mobile and exposes the official PDF', async () => {
+  const page = await read('src/pages/KAMGlobalRoadmap.jsx');
+  assert.match(page, /PDF_URL/);
+  assert.match(page, /Read Official PDF/);
+  assert.match(page, /Baca PDF Resmi/);
+  assert.match(page, /md:hidden/);
+  assert.match(page, /hidden overflow-x-auto[\s\S]*md:block/);
+  assert.match(page, /focus-visible:ring-2/);
+});
