@@ -1,0 +1,78 @@
+name: KAM Landing Live Smoke
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-kam-landing-live:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Wait for production deployment
+        run: sleep 35
+
+      - name: Verify live landing bundle and KAM isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const base = 'https://kriptoaman.com';
+
+          async function get(path, options = {}) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 40000);
+            try {
+              const response = await fetch(base + path, {
+                redirect: 'follow',
+                signal: controller.signal,
+                headers: { 'User-Agent': 'KriptoAman-KAM-Landing-Smoke/1.0', ...(options.headers || {}) },
+              });
+              const text = await response.text();
+              return { response, text };
+            } finally {
+              clearTimeout(timer);
+            }
+          }
+
+          const kam = await get('/api/kam/network-status', { headers: { Accept: 'application/json' } });
+          if (!kam.response.ok) throw new Error(`KAM status HTTP ${kam.response.status}`);
+          const kamPayload = JSON.parse(kam.text);
+          if (kamPayload?.verified !== true || Number(kamPayload?.chainId) !== 22028) {
+            throw new Error('KAM RPC is not independently verified with Chain ID 22028');
+          }
+
+          const publicNetworks = await get('/api/network-health', { headers: { Accept: 'application/json' } });
+          if (!publicNetworks.response.ok) throw new Error(`network-health HTTP ${publicNetworks.response.status}`);
+          const networkPayload = JSON.parse(publicNetworks.text);
+          const online = Number(networkPayload?.summary?.online || 0);
+          const total = Number(networkPayload?.summary?.total || 0);
+          if (total !== 21 || online < 12) throw new Error(`public network probe set unhealthy: ${online}/${total}`);
+          if ((networkPayload?.networks || []).some((item) => item?.name === 'KAM Network')) {
+            throw new Error('KAM must remain isolated from the 21-network public probe set');
+          }
+
+          const home = await get('/');
+          if (!home.response.ok) throw new Error(`homepage HTTP ${home.response.status}`);
+          const scriptMatches = [...home.text.matchAll(/<script[^>]+src=["']([^"']+\.js(?:\?[^"']*)?)["']/gi)].map((m) => m[1]);
+          if (scriptMatches.length === 0) throw new Error('No JavaScript bundle discovered on homepage');
+
+          let foundKamNetwork = false;
+          for (const src of scriptMatches.slice(0, 20)) {
+            const url = src.startsWith('http') ? src : new URL(src, base).toString();
+            const response = await fetch(url, { headers: { 'User-Agent': 'KriptoAman-KAM-Landing-Smoke/1.0' } });
+            if (!response.ok) continue;
+            const js = await response.text();
+            if (js.includes('KAM Network') && js.includes('/api/kam/network-status')) {
+              foundKamNetwork = true;
+              break;
+            }
+          }
+          if (!foundKamNetwork) throw new Error('Production landing bundle does not yet include independently verified KAM Network support');
+
+          console.log(`KAM: VERIFIED | chainId=${kamPayload.chainId} block=${kamPayload.blockNumber} status=${kamPayload.status}`);
+          console.log(`PUBLIC_NETWORKS: HEALTHY | online=${online}/${total} | KAM isolated=true`);
+          console.log('LANDING_BUNDLE: VERIFIED | KAM Network support present=true');
+          NODE
