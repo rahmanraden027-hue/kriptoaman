@@ -34,8 +34,8 @@ test('home defers non-critical panels and exposes stable loading fallbacks', asy
 
 test('service worker final cache has an independent offline document', async () => {
   const worker = await read('public/sw.js');
-  assert.match(worker, /Service Worker v2\.3\.2/);
-  assert.match(worker, /kriptoaman-static-v2\.3\.2/);
+  assert.match(worker, /Service Worker v2\.3\.3/);
+  assert.match(worker, /kriptoaman-static-v2\.3\.3/);
   assert.match(worker, /cache: 'no-store'/);
   assert.match(worker, /KriptoAman Offline/);
   assert.match(worker, /Content-Type.*text\/html/);
