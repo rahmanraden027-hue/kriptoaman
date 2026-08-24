@@ -10,16 +10,15 @@ const INDICATORS = [
 ];
 
 const COINS = [
-  { sym: 'BTC', sub: 'Bitcoin', color: '#F7931A', pos: 'top-2 left-0' },
-  { sym: 'ETH', sub: 'Ethereum', color: '#627EEA', pos: 'top-2 right-0' },
-  { sym: 'SOL', sub: 'Solana', color: '#14F195', pos: 'bottom-6 left-2' },
-  { sym: 'TRX', sub: 'TRON', color: '#FF060A', pos: 'bottom-6 right-2' },
+  { sym: 'BTC', sub: 'Bitcoin', color: '#F7931A', className: 'ka-coin-btc' },
+  { sym: 'ETH', sub: 'Ethereum', color: '#627EEA', className: 'ka-coin-eth' },
+  { sym: 'SOL', sub: 'Solana', color: '#14F195', className: 'ka-coin-sol' },
+  { sym: 'TRX', sub: 'TRON', color: '#FF060A', className: 'ka-coin-trx' },
 ];
 
 function NetworkVisual() {
-  // Decorative blockchain network: nodes + connecting lines with blue glow.
   return (
-    <svg viewBox="0 0 400 400" className="absolute inset-0 w-full h-full" aria-hidden="true">
+    <svg viewBox="0 0 400 400" className="ka-hero-network absolute inset-0 w-full h-full" aria-hidden="true">
       <g className="ka-net-line" strokeWidth="1" fill="none">
         <line x1="200" y1="200" x2="80" y2="90" />
         <line x1="200" y1="200" x2="320" y2="90" />
@@ -46,9 +45,8 @@ export default function GLandingHero() {
     <section id="beranda" className="relative pt-28 pb-16 px-4 sm:px-6 overflow-hidden">
       <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[640px] h-[640px] rounded-full blur-3xl pointer-events-none"
         style={{ background: 'radial-gradient(circle, rgba(0,200,255,0.10), transparent 60%)' }} />
-      <div className="max-w-[1440px] mx-auto grid lg:grid-cols-2 gap-10 lg:gap-8 items-center">
-        {/* Left column */}
-        <div className="text-center lg:text-left">
+      <div className="ka-hero-grid max-w-[1440px] mx-auto grid lg:grid-cols-2 gap-10 lg:gap-8 items-center">
+        <div className="ka-hero-copy text-center lg:text-left">
           <span className="ka-chip inline-flex items-center gap-2 px-3.5 py-1.5 text-[11px] font-bold tracking-wide">
             <Shield className="w-3.5 h-3.5" /> KEAMANAN ASET DIGITAL ANDA, PRIORITAS KAMI
           </span>
@@ -60,7 +58,7 @@ export default function GLandingHero() {
             KriptoAman adalah platform keamanan aset digital yang membantu Anda melindungi,
             memantau, dan memverifikasi transaksi kripto secara real-time.
           </p>
-          <div className="mt-7 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+          <div className="ka-hero-actions mt-7 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
             <Link to="/login" className="ka-btn-primary inline-flex items-center justify-center gap-2 px-6 text-sm sm:text-base">
               Mulai Sekarang <ArrowRight className="w-4 h-4" />
             </Link>
@@ -68,7 +66,7 @@ export default function GLandingHero() {
               Pelajari Lebih Lanjut
             </a>
           </div>
-          <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 justify-center lg:justify-start">
+          <div className="ka-hero-indicators mt-8 flex flex-wrap gap-x-6 gap-y-3 justify-center lg:justify-start">
             {INDICATORS.map(({ label }) => (
               <div key={label} className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 ka-green" />
@@ -78,18 +76,17 @@ export default function GLandingHero() {
           </div>
         </div>
 
-        {/* Right column — illustration */}
-        <div className="relative mx-auto w-full max-w-[420px] aspect-square">
+        <div className="ka-hero-visual relative mx-auto w-full max-w-[420px] aspect-square" aria-label="Visual jaringan KriptoAman">
           <NetworkVisual />
-          <div className="absolute inset-0 flex items-center justify-center ka-glow-cyan rounded-full">
-            <div className="ka-glow-gold rounded-full">
-              <KriptoAmanLogo size={170} showText={false} animate={true} />
+          <div className="ka-hero-center absolute inset-0 flex items-center justify-center ka-glow-cyan rounded-full">
+            <div className="ka-hero-logo ka-glow-gold rounded-full">
+              <KriptoAmanLogo size={150} showText={false} animate={true} />
             </div>
           </div>
           {COINS.map((c) => (
-            <div key={c.sym} className={`absolute ${c.pos} ka-coin-badge ka-glow w-14 h-14 flex-col`}>
-              <span className="text-[13px] font-extrabold" style={{ color: c.color }}>{c.sym}</span>
-              <span className="text-[8px] ka-text2 -mt-0.5">{c.sub}</span>
+            <div key={c.sym} className={`ka-coin-badge ka-glow ${c.className}`}>
+              <span className="ka-coin-symbol" style={{ color: c.color }}>{c.sym}</span>
+              <span className="ka-coin-name ka-text2">{c.sub}</span>
             </div>
           ))}
         </div>
