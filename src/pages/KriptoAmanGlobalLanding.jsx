@@ -32,9 +32,10 @@ export default function KriptoAmanGlobalLanding() {
         networkCheckedAt: null,
       };
 
-      const [marketResult, networkResult] = await Promise.allSettled([
+      const [marketResult, networkResult, kamResult] = await Promise.allSettled([
         fetch('/api/market-snapshot?health=1', { cache: 'no-store', headers: { Accept: 'application/json' } }),
         fetch('/api/network-health', { cache: 'no-store', headers: { Accept: 'application/json' } }),
+        fetch('/api/kam/network-status', { cache: 'no-store', headers: { Accept: 'application/json' } }),
       ]);
 
       if (marketResult.status === 'fulfilled') {
@@ -60,7 +61,31 @@ export default function KriptoAmanGlobalLanding() {
             next.networkCheckedAt = payload.checked_at || null;
           }
         } catch {
-          // Network coverage is shown only when live verification succeeds.
+          // Public network coverage stays independent from KAM verification.
+        }
+      }
+
+      if (kamResult.status === 'fulfilled') {
+        try {
+          const payload = await kamResult.value.json();
+          const kamVerified = kamResult.value.ok && payload?.verified === true && Number(payload?.chainId) === 22028;
+          if (kamVerified) {
+            next.networks = [
+              ...next.networks,
+              {
+                name: 'KAM Network',
+                symbol: 'KAM',
+                status: 'online',
+                verification: 'rpc-chain-id',
+                chainId: 22028,
+                blockNumber: payload.blockNumber ?? null,
+              },
+            ];
+            next.networkActiveCount = (Number(next.networkActiveCount) || 0) + 1;
+            next.networkCheckedAt = payload.checkedAt || next.networkCheckedAt;
+          }
+        } catch {
+          // KAM is additive only; a KAM check failure never changes public network results.
         }
       }
 
