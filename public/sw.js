@@ -1,9 +1,9 @@
 /**
- * KriptoAman Service Worker v2.3.2
- * Strategy: Network-first untuk navigasi & UI bundles, cache fallback untuk offline.
+ * KriptoAman Service Worker v2.3.3
+ * Strategy: fresh navigation + fresh UI bundles; cache only stable shell/data fallbacks.
  */
 
-const STATIC_CACHE = 'kriptoaman-static-v2.3.2';
+const STATIC_CACHE = 'kriptoaman-static-v2.3.3';
 const DATA_CACHE = 'kriptoaman-data-v4';
 
 const STATIC_ASSETS = [
@@ -32,7 +32,6 @@ const fetchWithDeadline = (request, timeoutMs = 10000) => {
 };
 
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing KriptoAman Service Worker v2.3.2...');
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then(cache => cache.addAll(STATIC_ASSETS))
@@ -42,7 +41,6 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating v2.3.2...');
   event.waitUntil(
     caches.keys()
       .then(keys => Promise.all(
@@ -73,7 +71,7 @@ self.addEventListener('fetch', (event) => {
         .catch(async () => {
           const cached = await caches.match('/index.html');
           return cached || new Response(
-            '<!doctype html><html lang="id"><meta name="viewport" content="width=device-width"><title>KriptoAman Offline</title><body style="background:#050b14;color:white;font-family:system-ui;padding:32px"><h1>KriptoAman</h1><p>Aplikasi sedang offline. Data pasar terakhir akan tersedia setelah aplikasi pernah dibuka pada perangkat ini.</p></body></html>',
+            '<!doctype html><html lang="id"><meta name="viewport" content="width=device-width"><title>KriptoAman Offline</title><body style="background:#050b14;color:white;font-family:system-ui;padding:32px"><h1>KriptoAman</h1><p>Aplikasi sedang offline. Coba kembali saat koneksi tersedia.</p></body></html>',
             { headers: { 'Content-Type': 'text/html; charset=utf-8' } },
           );
         })
@@ -96,25 +94,17 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  const isSameOriginUiBundle = url.origin === self.location.origin && (
+  const isHashedUiBundle = url.origin === self.location.origin && url.pathname.startsWith('/assets/') && (
     event.request.destination === 'script' ||
     event.request.destination === 'style' ||
-    url.pathname.startsWith('/assets/') ||
     url.pathname.endsWith('.js') ||
     url.pathname.endsWith('.css')
   );
 
-  if (isSameOriginUiBundle) {
-    event.respondWith(
-      fetchWithDeadline(new Request(event.request, { cache: 'no-store' }))
-        .then(response => {
-          if (response && response.ok) {
-            caches.open(STATIC_CACHE).then(cache => cache.put(event.request, response.clone()));
-          }
-          return response;
-        })
-        .catch(() => caches.match(event.request))
-    );
+  if (isHashedUiBundle) {
+    // Hashed Vite chunks must never fall back to an old cached build.
+    // A stale HTML document requesting a removed chunk should fail fast so the app can recover.
+    event.respondWith(fetchWithDeadline(new Request(event.request, { cache: 'no-store' })));
     return;
   }
 
@@ -166,4 +156,4 @@ self.addEventListener('sync', (event) => {
   }
 });
 
-console.log('[SW] KriptoAman Service Worker v2.3.2 loaded ✅');
+console.log('[SW] KriptoAman Service Worker v2.3.3 loaded');
