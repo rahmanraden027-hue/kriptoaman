@@ -1,0 +1,81 @@
+name: Live Core Readiness Smoke
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-core-readiness-smoke
+  cancel-in-progress: true
+
+jobs:
+  verify-core-readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Wait for production deployment
+        run: sleep 35
+
+      - name: Audit five production checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const base = 'https://kriptoaman.com';
+          const checks = [];
+
+          async function get(path) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 40000);
+            try {
+              const response = await fetch(base + path, {
+                headers: { Accept: 'application/json', 'User-Agent': 'KriptoAman-Core-Readiness/1.0' },
+                signal: controller.signal,
+                redirect: 'follow',
+              });
+              const text = await response.text();
+              let payload = null;
+              try { payload = JSON.parse(text); } catch {}
+              return { status: response.status, ok: response.ok, payload };
+            } finally {
+              clearTimeout(timer);
+            }
+          }
+
+          const market = await get('/api/market-snapshot?health=1');
+          const marketVerified = market.ok && market.payload?.healthy === true && Number(market.payload?.assetCount) >= 4500;
+          checks.push(['market', marketVerified, `assetCount=${market.payload?.assetCount ?? 'unknown'} source=${market.payload?.source ?? 'unknown'} healthy=${market.payload?.healthy ?? false}`]);
+
+          const networks = await get('/api/network-health');
+          const online = Number(networks.payload?.summary?.online || 0);
+          const total = Number(networks.payload?.summary?.total || 0);
+          const networksVerified = networks.ok && online >= 12;
+          checks.push(['networks', networksVerified, `online=${online}/${total} checked_at=${networks.payload?.checked_at ?? 'unknown'}`]);
+
+          const auth = await get('/api/auth/me');
+          const authVerified = auth.status === 200 || auth.status === 401;
+          checks.push(['auth', authVerified, `status=${auth.status} expected=200-or-401`]);
+
+          const kyc = await get('/api/kyc/readiness');
+          const kycVerified = kyc.ok && kyc.payload?.ready === true;
+          const kycChecks = kyc.payload?.checks || {};
+          checks.push(['kyc', kycVerified, `status=${kyc.status} ready=${kyc.payload?.ready ?? false} database=${Boolean(kycChecks.database)} session=${Boolean(kycChecks.session)} api=${Boolean(kycChecks.api)} workflow=${Boolean(kycChecks.workflow)} webhook=${Boolean(kycChecks.webhook)}`]);
+
+          const kam = await get('/api/kam/network-status');
+          const kamVerified = kam.ok && kam.payload?.verified === true && Number(kam.payload?.chainId) === 22028;
+          checks.push(['kam', kamVerified, `status=${kam.status} verified=${kam.payload?.verified ?? false} chainId=${kam.payload?.chainId ?? 'unknown'} block=${kam.payload?.blockNumber ?? 'unknown'} publication=${kam.payload?.status ?? 'unknown'}`]);
+
+          let verified = 0;
+          for (const [name, ok, detail] of checks) {
+            if (ok) verified++;
+            console.log(`${name.toUpperCase()}: ${ok ? 'VERIFIED' : 'NOT_VERIFIED'} | ${detail}`);
+          }
+          console.log(`SUMMARY: verified=${verified}/5 score=${Math.round((verified / 5) * 100)}%`);
+
+          if (!marketVerified || !networksVerified || !authVerified || !kamVerified) process.exit(2);
+          NODE
