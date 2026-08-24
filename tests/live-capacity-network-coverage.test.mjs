@@ -26,6 +26,12 @@ test('public landing uses internal live health results for asset and network cou
   ]);
   assert.match(page, /\/api\/market-snapshot\?health=1/);
   assert.match(page, /\/api\/network-health/);
+  assert.match(page, /\/api\/kam\/network-status/);
+  assert.match(page, /payload\?\.verified === true/);
+  assert.match(page, /Number\(payload\?\.chainId\) === 22028/);
+  assert.match(page, /name: 'KAM Network'/);
+  assert.match(page, /verification: 'rpc-chain-id'/);
+  assert.match(page, /KAM is additive only/);
   assert.match(page, /assetCount/);
   assert.match(page, /networkActiveCount/);
   assert.match(body, /Cakupan Aset Pasar/);
