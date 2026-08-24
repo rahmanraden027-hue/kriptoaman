@@ -26,67 +26,40 @@ const STEPS = [
   { no: '04', title: 'Kelola Notifikasi', desc: 'Atur peringatan dan aset favorit sesuai kebutuhan Anda.' },
 ];
 
-const NETWORKS = [
-  { name: 'KAM Network', status: 'expanding' },
-  { name: 'Bitcoin', status: 'active' },
-  { name: 'Ethereum', status: 'active' },
-  { name: 'BNB Chain', status: 'active' },
-  { name: 'Polygon', status: 'active' },
-  { name: 'Arbitrum', status: 'active' },
-  { name: 'Optimism', status: 'active' },
-  { name: 'Base', status: 'active' },
-  { name: 'Avalanche', status: 'active' },
-  { name: 'Solana', status: 'active' },
-  { name: 'TRON', status: 'active' },
-  { name: 'Fantom', status: 'expanding' },
-  { name: 'Cronos', status: 'expanding' },
-  { name: 'Gnosis', status: 'expanding' },
-  { name: 'Celo', status: 'expanding' },
-  { name: 'Linea', status: 'expanding' },
-  { name: 'zkSync Era', status: 'expanding' },
-  { name: 'Scroll', status: 'expanding' },
-  { name: 'Mantle', status: 'expanding' },
-  { name: 'Aptos', status: 'expanding' },
-  { name: 'Sui', status: 'expanding' },
-  { name: 'NEAR', status: 'expanding' },
-  { name: 'Cosmos', status: 'expanding' },
-  { name: 'Cardano', status: 'expanding' },
-  { name: 'XRP Ledger', status: 'expanding' },
-  { name: 'Litecoin', status: 'expanding' },
-  { name: 'Dogecoin', status: 'expanding' },
-  { name: 'Polkadot', status: 'expanding' },
-];
-
-const ACTIVE_NETWORK_COUNT = NETWORKS.filter((network) => network.status === 'active').length;
-
 const FAQS = [
   { q: 'Apakah KriptoAman menjamin keamanan aset saya?', a: 'Tidak. KriptoAman adalah platform informasi, pemantauan, dan analisis risiko. Kami tidak menyimpan atau menjamin dana Anda. Selalu lakukan verifikasi mandiri.' },
-  { q: 'Apakah data statistik di halaman ini real-time?', a: 'Angka diambil dari database KriptoAman. Jika sumber belum tersedia atau gagal, kami menampilkan “—” atau “Data belum tersedia”.' },
+  { q: 'Apakah data statistik di halaman ini real-time?', a: 'Angka cakupan aset dan jaringan diambil dari health endpoint KriptoAman. Jika verifikasi belum tersedia atau gagal, aplikasi menampilkan “—” atau status terbatas.' },
   { q: 'Apakah verifikasi transaksi menyatakan transaksi aman?', a: 'Tidak. Verifikasi hanya memeriksa status transaksi dan alamat melalui blockchain explorer. Status keamanan akhir tetap penilaian Anda sendiri.' },
   { q: 'Apakah saya perlu KYC untuk mulai?', a: 'Anda dapat menjelajah informasi publik tanpa akun. Fitur pribadi seperti dashboard memerlukan login.' },
 ];
-
-function StatValue({ value, loading }) {
-  if (loading) return <span className="ka-text2">…</span>;
-  return <span className="ka-blue">{value}</span>;
-}
 
 export default function GLandingBody({ stats }) {
   const lastUpdated = stats?.lastUpdated
     ? new Date(stats.lastUpdated).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })
     : null;
+  const networkChecked = stats?.networkCheckedAt
+    ? new Date(stats.networkCheckedAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })
+    : null;
 
   const systemOk = Boolean(stats?.marketAvailable && stats.lastUpdated) &&
-    (Date.now() - new Date(stats.lastUpdated).getTime()) < 15 * 60 * 1000;
+    (Date.now() - new Date(stats.lastUpdated).getTime()) < 60 * 60 * 1000;
+  const verifiedNetworks = Array.isArray(stats?.networks)
+    ? stats.networks.filter((network) => network?.status === 'online')
+    : [];
+  const assetCountValue = Number(stats?.assetCount) > 0
+    ? Number(stats.assetCount).toLocaleString('id-ID')
+    : '—';
+  const networkCountValue = Number.isFinite(Number(stats?.networkActiveCount))
+    ? String(Number(stats.networkActiveCount))
+    : '—';
 
   return (
     <>
-      {/* FITUR RINGKAS */}
       <section id="fitur" className="px-4 sm:px-6 py-14">
         <div className="max-w-[1440px] mx-auto">
           <div className="ka-card ka-glow p-5 sm:p-7">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              {FEATURES.map((f, i) => (
+              {FEATURES.map((f) => (
                 <div key={f.title} className="flex flex-col items-start">
                   <div className="w-11 h-11 rounded-xl ka-card2 flex items-center justify-center mb-3">
                     <f.icon className="w-5 h-5 ka-blue" />
@@ -100,24 +73,22 @@ export default function GLandingBody({ stats }) {
         </div>
       </section>
 
-      {/* STATISTIK PLATFORM */}
-      <section className="px-4 sm:px-6 py-6">
-        <div className="max-w-[1440px] mx-auto ka-card p-5 sm:p-7">
-          <div className="flex items-center justify-between mb-5">
+      <section className="ka-stats-section px-4 sm:px-6 py-6">
+        <div className="ka-stats-card max-w-[1440px] mx-auto ka-card p-5 sm:p-7">
+          <div className="ka-stats-head flex items-center justify-between mb-5">
             <h2 className="font-bold text-sm ka-text">Statistik Platform</h2>
             <span className="text-[11px] ka-text2">Terakhir diperbarui: {lastUpdated || 'Data belum tersedia'}</span>
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="ka-stats-grid grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { label: 'Cakupan Aset Pasar', value: '2.000+' },
-              { label: 'Jaringan Aktif', value: String(ACTIVE_NETWORK_COUNT) },
+              { label: 'Cakupan Aset Pasar', value: assetCountValue },
+              { label: 'Jaringan Aktif', value: networkCountValue },
               { label: 'Mata Uang Tampilan', value: 'IDR / USD' },
               { label: 'Status Data Pasar', value: stats.loading ? '…' : (systemOk ? 'Operasional' : 'Terbatas') },
             ].map((s) => (
-              <div key={s.label} className="ka-card2 p-4">
-                <p className="text-2xl font-extrabold">
-                  {typeof s.value === 'number' ? <StatValue value={s.value.toLocaleString('id-ID')} /> :
-                   s.value === 'Operasional' ? <span className="ka-green">{s.value}</span> :
+              <div key={s.label} className="ka-stat-tile ka-card2 p-4">
+                <p className="ka-stat-value text-2xl font-extrabold">
+                  {s.value === 'Operasional' ? <span className="ka-green">{s.value}</span> :
                    s.value === 'Terbatas' ? <span className="ka-gold">{s.value}</span> :
                    <span className="ka-text2">{s.value}</span>}
                 </p>
@@ -126,15 +97,13 @@ export default function GLandingBody({ stats }) {
             ))}
           </div>
           <p className="text-[11px] ka-text2 mt-3 opacity-70">
-            Cakupan produk ditampilkan secara transparan. Status data diperiksa melalui sumber pasar publik yang digunakan KriptoAman.
+            Angka cakupan aset berasal dari snapshot Database Pasar KriptoAman. Jaringan Aktif hanya menghitung jaringan yang merespons pemeriksaan live terakhir.
           </p>
         </div>
       </section>
 
-      {/* DASHBOARD PREVIEW */}
-      <section id="keamanan" className="px-4 sm:px-6 py-14">
+      <section id="keamanan" className="ka-security-preview px-4 sm:px-6 py-14">
         <div className="max-w-[1440px] mx-auto grid lg:grid-cols-2 gap-5">
-          {/* Card 1 — Dashboard Keamanan */}
           <div className="ka-card ka-glow p-6 sm:p-8 flex flex-col">
             <h3 className="font-bold text-lg ka-text">Dashboard Keamanan</h3>
             <p className="text-sm ka-text2 mt-2">
@@ -163,12 +132,11 @@ export default function GLandingBody({ stats }) {
             <p className="text-[11px] ka-text2 mt-3 opacity-70">
               Preview ilustratif. Pengunjung yang belum login melihat tampilan tanpa data pribadi.
             </p>
-            <Link to="/" className="ka-btn-primary inline-flex items-center justify-center gap-2 px-5 mt-5 text-sm w-max">
-              Lihat Demo <ArrowRight className="w-4 h-4" />
+            <Link to="/login" className="ka-btn-primary inline-flex items-center justify-center gap-2 px-5 mt-5 text-sm w-max">
+              Buka Dashboard <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 
-          {/* Card 2 — Verifikasi Transaksi */}
           <div className="ka-card ka-glow p-6 sm:p-8 flex flex-col">
             <h3 className="font-bold text-lg ka-text">Verifikasi Transaksi</h3>
             <p className="text-sm ka-text2 mt-2">
@@ -194,7 +162,6 @@ export default function GLandingBody({ stats }) {
         </div>
       </section>
 
-      {/* CARA KERJA */}
       <section className="px-4 sm:px-6 py-14">
         <div className="max-w-[1440px] mx-auto">
           <SectionHead eyebrow="Cara Kerja" title="Cara Kerja KriptoAman" />
@@ -210,28 +177,27 @@ export default function GLandingBody({ stats }) {
         </div>
       </section>
 
-      {/* JARINGAN DIDUKUNG */}
       <section className="px-4 sm:px-6 py-14">
         <div className="max-w-[1440px] mx-auto">
-          <SectionHead eyebrow="Jaringan" title="Jaringan yang Didukung & Dalam Perluasan" />
+          <SectionHead eyebrow="Jaringan" title="Jaringan Terverifikasi Live" />
           <div className="flex flex-wrap gap-2.5 mt-8 justify-center">
-            {NETWORKS.map((network) => (
+            {verifiedNetworks.length > 0 ? verifiedNetworks.map((network) => (
               <span key={network.name} className="ka-card2 px-4 py-2 text-xs font-semibold ka-text2 inline-flex items-center gap-2">
                 <Network className="w-3.5 h-3.5 ka-blue" />
                 {network.name}
-                <span className={`text-[9px] rounded-full px-1.5 py-0.5 ${network.status === 'active' ? 'ka-green' : 'ka-gold'}`}>
-                  {network.status === 'active' ? 'Aktif' : 'Perluasan'}
-                </span>
+                <span className="text-[9px] rounded-full px-1.5 py-0.5 ka-green">Aktif · Live</span>
               </span>
-            ))}
+            )) : (
+              <span className="ka-card2 px-4 py-2 text-xs ka-text2">Verifikasi jaringan sedang diperbarui.</span>
+            )}
           </div>
           <p className="text-[11px] ka-text2 mt-4 text-center opacity-70 max-w-3xl mx-auto">
-            Jaringan berstatus Aktif memiliki konektor atau sumber data yang sudah digunakan KriptoAman. Jaringan berstatus Perluasan ditampilkan sebagai cakupan integrasi bertahap dan belum dianggap aktif sampai konektor/explorer-nya tersedia serta terverifikasi.
+            Hanya jaringan yang berhasil merespons RPC, explorer, atau endpoint publik pada pemeriksaan terakhir yang ditampilkan sebagai Aktif · Live.
+            {networkChecked ? ` Pemeriksaan terakhir: ${networkChecked}.` : ''}
           </p>
         </div>
       </section>
 
-      {/* FITUR PEMERIKSAAN RISIKO */}
       <section className="px-4 sm:px-6 py-14">
         <div className="max-w-[1440px] mx-auto">
           <SectionHead eyebrow="Risiko" title="Fitur Pemeriksaan Risiko" />
@@ -256,7 +222,6 @@ export default function GLandingBody({ stats }) {
         </div>
       </section>
 
-      {/* STATUS SISTEM */}
       <section className="px-4 sm:px-6 py-14">
         <div className="max-w-[1440px] mx-auto ka-card p-5 sm:p-7">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -273,12 +238,11 @@ export default function GLandingBody({ stats }) {
             </div>
           </div>
           <p className="text-[11px] ka-text2 mt-3 opacity-70">
-            Status ini memeriksa ketersediaan sumber data pasar publik. Gangguan penyedia tidak memengaruhi akses ke halaman informasi dan edukasi.
+            Status memeriksa snapshot pasar internal dan health jaringan publik. Gangguan provider tidak mengubah data tersimpan terakhir yang masih tersedia.
           </p>
         </div>
       </section>
 
-      {/* FAQ */}
       <section id="faq" className="px-4 sm:px-6 py-14">
         <div className="max-w-[860px] mx-auto">
           <SectionHead eyebrow="FAQ" title="Pertanyaan Umum" center />
@@ -296,7 +260,6 @@ export default function GLandingBody({ stats }) {
         </div>
       </section>
 
-      {/* CTA */}
       <section id="tentang" className="px-4 sm:px-6 py-16">
         <div className="max-w-[1440px] mx-auto ka-card ka-glow-cyan p-8 sm:p-12 text-center relative overflow-hidden">
           <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full blur-3xl pointer-events-none"
