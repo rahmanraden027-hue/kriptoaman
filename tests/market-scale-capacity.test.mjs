@@ -12,6 +12,7 @@ test('backend and client support a 5000-asset market universe through paging', a
   ]);
 
   assert.match(server, /const MARKET_ASSET_LIMIT = 5000;/);
+  assert.match(server, /const MIN_ACCEPTED_ASSETS = 4500;/);
   assert.match(server, /collectionLimit: MARKET_ASSET_LIMIT/);
   assert.match(client, /const MARKET_ASSET_LIMIT = 5000;/);
   assert.match(client, /const SERVER_PAGE_SIZE = 500;/);

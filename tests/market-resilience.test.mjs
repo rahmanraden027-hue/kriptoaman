@@ -52,7 +52,6 @@ test('live prices and market UI expose persistent fallback state', async () => {
   assert.match(market, /role="status"/);
 });
 
-
 test('server snapshot survives total upstream provider failure', async () => {
   const [endpoint, pageEndpoint, client, migration] = await Promise.all([
     read('functions/api/market-snapshot.js'),
@@ -61,7 +60,7 @@ test('server snapshot survives total upstream provider failure', async () => {
     read('migrations/0003_market_snapshot.sql'),
   ]);
   assert.match(endpoint, /CREATE TABLE IF NOT EXISTS market_snapshots/);
-  assert.match(endpoint, /MIN_ACCEPTED_ASSETS = 2001/);
+  assert.match(endpoint, /MIN_ACCEPTED_ASSETS = 4500/);
   assert.match(endpoint, /context\.waitUntil/);
   assert.match(endpoint, /env\.AUTH_DB/);
   assert.match(pageEndpoint, /FROM market_snapshots WHERE id = \?/);
@@ -79,7 +78,7 @@ test('market disaster recovery monitoring and UI fallbacks are release-gated', a
     read('src/components/pwa/PWAInstallPrompt.jsx'),
   ]);
   assert.match(workflow, /cron: '\*\/15 \* \* \* \*'/);
-  assert.match(health, /MIN_ASSETS = 2001/);
+  assert.match(health, /MIN_ASSETS = 4500/);
   assert.match(health, /MAX_AGE_MS/);
   assert.doesNotMatch(market, /fallbackSparkline/);
   assert.match(market, /chartUnavailable/);
