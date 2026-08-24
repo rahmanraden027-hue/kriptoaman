@@ -10,6 +10,7 @@ export default function GlobalLandingStyles() {
         --ka-radius:16px;
         color:var(--ka-text); background:linear-gradient(180deg,var(--ka-bg1),var(--ka-bg2));
         font-family:Inter,system-ui,-apple-system,sans-serif;
+        padding-bottom:max(24px,env(safe-area-inset-bottom));
       }
       .ka-landing.light{
         --ka-bg1:#F1F5F9; --ka-bg2:#E2E8F0; --ka-card:#FFFFFF; --ka-card2:#F8FAFC;
@@ -77,6 +78,20 @@ export default function GlobalLandingStyles() {
       #beranda .ka-coin-trx{bottom:18px;right:6px;}
       #beranda>p{text-align:center;margin-top:28px;font-size:11px;line-height:1.5;}
 
+      /* Landing body rhythm: compact on phones, comfortable on desktop. */
+      .ka-landing #fitur{padding-top:32px!important;padding-bottom:24px!important;}
+      .ka-landing #fitur + section{padding-top:16px!important;padding-bottom:24px!important;}
+      .ka-landing #fitur + section>div{padding:20px!important;}
+      .ka-landing #fitur + section>div>div:first-child{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px!important;}
+      .ka-landing #fitur + section>div>div:nth-child(2){gap:12px!important;}
+      .ka-landing #fitur + section .ka-card2{min-height:116px;padding:14px!important;display:flex;flex-direction:column;justify-content:center;}
+      .ka-landing #fitur + section .ka-card2>p:first-child{font-size:clamp(22px,7vw,34px);line-height:1.05;overflow-wrap:anywhere;}
+      .ka-landing #keamanan{padding-top:36px!important;padding-bottom:36px!important;}
+      .ka-landing #keamanan>div{gap:16px!important;}
+      .ka-landing #keamanan .ka-card{padding:20px!important;}
+      .ka-landing #keamanan .ka-card>p{line-height:1.6;}
+      .ka-landing #keamanan .ka-btn-primary{width:100%!important;max-width:320px;align-self:flex-start;}
+
       @media (max-width:420px){
         .ka-landing header>div:first-of-type{height:60px;padding-left:10px;padding-right:10px;}
         .ka-landing header>div:first-of-type>a:first-child span{letter-spacing:.08em!important;font-size:12px!important;}
@@ -87,6 +102,13 @@ export default function GlobalLandingStyles() {
         #beranda .ka-hero-visual{width:min(78vw,310px);height:min(78vw,310px);max-width:310px;max-height:310px;}
         #beranda .ka-hero-logo,#beranda .ka-hero-logo>div,#beranda .ka-hero-logo img{width:132px!important;height:132px!important;min-width:132px!important;max-width:132px!important;}
         #beranda .ka-coin-badge{width:52px!important;height:52px!important;}
+        .ka-landing #fitur + section{padding-left:14px!important;padding-right:14px!important;}
+        .ka-landing #fitur + section>div{padding:16px!important;}
+        .ka-landing #fitur + section>div>div:nth-child(2){grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+        .ka-landing #fitur + section .ka-card2{min-width:0;min-height:108px;padding:12px!important;}
+        .ka-landing #fitur + section .ka-card2>p:first-child{font-size:clamp(20px,6.6vw,30px);}
+        .ka-landing #keamanan{padding-left:14px!important;padding-right:14px!important;}
+        .ka-landing #keamanan .ka-card{padding:18px!important;}
       }
 
       @media (min-width:640px){
@@ -97,6 +119,8 @@ export default function GlobalLandingStyles() {
         #beranda .ka-hero-actions{flex-direction:row;}
         #beranda .ka-hero-actions>a{width:auto;min-width:190px;}
         #beranda .ka-hero-visual{width:400px;height:400px;max-width:400px;max-height:400px;}
+        .ka-landing #fitur{padding-top:44px!important;padding-bottom:36px!important;}
+        .ka-landing #keamanan{padding-top:48px!important;padding-bottom:48px!important;}
       }
 
       @media (min-width:1024px){
@@ -108,6 +132,7 @@ export default function GlobalLandingStyles() {
         #beranda .ka-hero-copy>p{margin-left:0;margin-right:0;}
         #beranda .ka-hero-actions,#beranda .ka-hero-indicators{justify-content:flex-start;}
         #beranda .ka-hero-visual{width:420px;height:420px;max-width:420px;max-height:420px;}
+        .ka-landing #fitur + section>div{padding:28px!important;}
       }
 
       @media (max-width:1023px){
