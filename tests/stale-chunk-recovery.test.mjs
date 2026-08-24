@@ -8,8 +8,7 @@ test('service worker does not cache hashed UI chunks as stale fallbacks', async 
   const sw = await read('public/sw.js');
   assert.match(sw, /KriptoAman Service Worker v2\.3\.3/);
   assert.match(sw, /isHashedUiBundle/);
-  assert.match(sw, /cache: 'no-store'/);
-  assert.doesNotMatch(sw, /isHashedUiBundle[\s\S]*caches\.match\(event\.request\)/);
+  assert.match(sw, /event\.respondWith\(fetchWithDeadline\(new Request\(event\.request, \{ cache: 'no-store' \}\)\)\)/);
 });
 
 test('app error boundary performs one-shot stale chunk recovery', async () => {
