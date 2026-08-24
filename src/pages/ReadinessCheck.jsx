@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, AlertTriangle, Clock3, Database, Network, ShieldCheck, Server, Radio, RefreshCw } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Database, Network, ShieldCheck, Server, Radio, RefreshCw } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const CHECKS = [
