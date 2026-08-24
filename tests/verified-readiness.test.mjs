@@ -12,7 +12,7 @@ test('admin readiness uses live evidence and avoids unsupported certification cl
     '/api/kyc/readiness',
     '/api/kam/network-status',
     '/api/auth/me',
-  ]) assert.match(page, new RegExp(endpoint.replace(/[?]/g, '\\?')));
+  ]) assert.equal(page.includes(endpoint), true, `missing endpoint: ${endpoint}`);
 
   for (const unsupported of [
     'OJK License',
@@ -21,7 +21,7 @@ test('admin readiness uses live evidence and avoids unsupported certification cl
     'PCI DSS Compliance',
     '98% of customer assets',
     '10K concurrent users',
-  ]) assert.doesNotMatch(page, new RegExp(unsupported));
+  ]) assert.equal(page.includes(unsupported), false, `unsupported claim returned: ${unsupported}`);
 
   assert.match(page, /Verified System Readiness/);
   assert.match(page, /Belum Diverifikasi/);
