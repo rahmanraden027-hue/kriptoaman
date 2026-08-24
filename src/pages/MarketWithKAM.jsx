@@ -3,7 +3,8 @@ import { Activity, ArrowRight, CircleDollarSign, Network, Sparkles } from 'lucid
 import Market from './Market.jsx';
 import { useLanguage } from '@/lib/LanguageContext';
 
-const INDICATIVE_MOTION = [29.24, 29.31, 29.28, 29.35, 29.37, 29.33, 29.36, 29.37];
+const INDICATIVE_REFERENCE = 29.37;
+const INDICATIVE_MOTION = [29.24, 29.31, 29.28, 29.35, INDICATIVE_REFERENCE, 29.33, 29.36, INDICATIVE_REFERENCE];
 
 const COPY = {
   id: {
@@ -11,6 +12,7 @@ const COPY = {
     title: 'KAM · Referensi Skenario Indikatif',
     status: 'Belum Diperdagangkan',
     motion: 'Simulasi indikatif · Bukan harga live',
+    reference: 'Acuan referensi · US$29.37',
     body: 'Pergerakan angka ini adalah visualisasi skenario indikatif KAM, bukan data trading. Nilainya tetap terpisah dari harga pasar live dan tidak digunakan untuk market cap, P/L, nilai portofolio, atau ticker live.',
     cta: 'Buka KAM Global Roadmap',
     chain: 'KriptoAman Network · Chain ID 22028',
@@ -20,6 +22,7 @@ const COPY = {
     title: 'KAM · Indicative Scenario Reference',
     status: 'Not Yet Trading',
     motion: 'Indicative simulation · Not a live price',
+    reference: 'Reference anchor · US$29.37',
     body: 'The moving figure is a visual KAM scenario simulation, not trading data. It remains separate from live market pricing and is excluded from market cap, P/L, portfolio valuation, and live tickers.',
     cta: 'Open KAM Global Roadmap',
     chain: 'KriptoAman Network · Chain ID 22028',
@@ -65,7 +68,7 @@ export default function MarketWithKAM() {
                     >
                       {displayValue}
                     </p>
-                    <span className="relative inline-flex h-2.5 w-2.5">
+                    <span className="relative inline-flex h-2.5 w-2.5" aria-hidden="true">
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-40" />
                       <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-300" />
                     </span>
@@ -76,8 +79,11 @@ export default function MarketWithKAM() {
                 </span>
               </div>
 
-              <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-sky-400/20 bg-sky-400/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.08em] text-sky-200">
-                <Activity className="h-3 w-3" /> {text.motion}
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-400/20 bg-sky-400/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.08em] text-sky-200">
+                  <Activity className="h-3 w-3" /> {text.motion}
+                </span>
+                <span className="text-[10px] font-bold text-emerald-200/90">{text.reference}</span>
               </div>
 
               <p className="mt-3 max-w-3xl text-xs leading-5 text-slate-300 sm:text-sm sm:leading-6">{text.body}</p>
