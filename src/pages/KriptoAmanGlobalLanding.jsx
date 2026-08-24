@@ -8,22 +8,63 @@ import GLandingFooter from '@/components/landing/GLandingFooter';
 export default function KriptoAmanGlobalLanding() {
   const [dark, setDark] = useState(true);
   const [active, setActive] = useState('Beranda');
-  const [stats, setStats] = useState({ loading: true, marketAvailable: false, lastUpdated: null });
+  const [stats, setStats] = useState({
+    loading: true,
+    marketAvailable: false,
+    lastUpdated: null,
+    assetCount: null,
+    marketSource: null,
+    networks: [],
+    networkActiveCount: null,
+    networkCheckedAt: null,
+  });
 
   useEffect(() => {
     (async () => {
-      const s = { loading: false, marketAvailable: false, lastUpdated: null };
-      try {
-        const response = await fetch('https://api.coinlore.net/api/tickers/?start=0&limit=1', {
-          headers: { Accept: 'application/json' },
-        });
-        const payload = await response.json();
-        s.marketAvailable = response.ok && Array.isArray(payload?.data) && payload.data.length > 0;
-        s.lastUpdated = s.marketAvailable ? Date.now() : null;
-      } catch {
-        // Public landing remains usable while the provider is temporarily unavailable.
+      const next = {
+        loading: false,
+        marketAvailable: false,
+        lastUpdated: null,
+        assetCount: null,
+        marketSource: null,
+        networks: [],
+        networkActiveCount: null,
+        networkCheckedAt: null,
+      };
+
+      const [marketResult, networkResult] = await Promise.allSettled([
+        fetch('/api/market-snapshot?health=1', { cache: 'no-store', headers: { Accept: 'application/json' } }),
+        fetch('/api/network-health', { cache: 'no-store', headers: { Accept: 'application/json' } }),
+      ]);
+
+      if (marketResult.status === 'fulfilled') {
+        try {
+          const payload = await marketResult.value.json();
+          if (marketResult.value.ok && Number(payload?.assetCount) > 0) {
+            next.marketAvailable = Boolean(payload.healthy);
+            next.assetCount = Number(payload.assetCount);
+            next.lastUpdated = Number(payload.capturedAt) || null;
+            next.marketSource = payload.source || null;
+          }
+        } catch {
+          // The public landing remains usable when market health data is unavailable.
+        }
       }
-      setStats(s);
+
+      if (networkResult.status === 'fulfilled') {
+        try {
+          const payload = await networkResult.value.json();
+          if (networkResult.value.ok && Array.isArray(payload?.networks)) {
+            next.networks = payload.networks;
+            next.networkActiveCount = Number(payload?.summary?.online) || 0;
+            next.networkCheckedAt = payload.checked_at || null;
+          }
+        } catch {
+          // Network coverage is shown only when live verification succeeds.
+        }
+      }
+
+      setStats(next);
     })();
 
     const onScroll = () => {
