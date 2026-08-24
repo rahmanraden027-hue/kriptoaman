@@ -42,47 +42,80 @@ export default function GlobalLandingStyles() {
       .ka-faq[open] .ka-faq-icon{transform:rotate(180deg);}
       .ka-sec-title{font-weight:800;letter-spacing:-0.02em;line-height:1.1;}
 
-      /* Landing layout safety net. These rules keep the public landing readable
-         if a responsive utility bundle is stale or only partially applied. */
+      /* Responsive safety net for stale/partial utility CSS. */
       .ka-landing header{position:fixed;top:0;left:0;right:0;z-index:50;}
       .ka-landing header>div:first-of-type{max-width:1440px;margin:0 auto;padding:0 12px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
       .ka-landing header>div:first-of-type>a:first-child{display:flex;align-items:center;gap:8px;min-width:0;text-decoration:none;}
       .ka-landing header nav{display:none;}
       .ka-landing header>div:first-of-type>div:last-child{display:flex;align-items:center;gap:6px;flex-shrink:0;}
       .ka-landing header button{display:flex;align-items:center;justify-content:center;}
+      .ka-landing header .ka-btn-primary{display:inline-flex;align-items:center;justify-content:center;height:36px;min-height:36px;padding:0 13px;line-height:1;border-radius:11px;white-space:nowrap;font-size:13px;}
 
-      #beranda{position:relative;padding:112px 16px 64px;overflow:hidden;}
-      #beranda>div:nth-of-type(2){max-width:1440px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:40px;align-items:center;}
-      #beranda>div:nth-of-type(2)>div:first-child{text-align:center;min-width:0;}
+      #beranda{position:relative;padding:112px 16px 56px;overflow:hidden;}
+      #beranda .ka-hero-grid{max-width:1440px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:36px;align-items:center;}
+      #beranda .ka-hero-copy{text-align:center;min-width:0;}
       #beranda .ka-sec-title{margin-top:20px;font-size:34px;overflow-wrap:anywhere;}
-      #beranda>div:nth-of-type(2)>div:first-child>p{max-width:576px;margin:20px auto 0;font-size:14px;line-height:1.65;}
-      #beranda>div:nth-of-type(2)>div:first-child>div:nth-of-type(1){margin-top:28px;display:flex;flex-direction:column;gap:12px;justify-content:center;}
-      #beranda>div:nth-of-type(2)>div:first-child>div:nth-of-type(2){margin-top:32px;display:flex;flex-wrap:wrap;gap:12px 24px;justify-content:center;}
-      #beranda>div:nth-of-type(2)>div:first-child>div:nth-of-type(2)>div{display:flex;align-items:center;gap:8px;}
-      #beranda>div:nth-of-type(2)>div:nth-child(2){position:relative;margin:0 auto;width:100%;max-width:420px;aspect-ratio:1/1;}
-      #beranda>p{text-align:center;margin-top:40px;font-size:11px;}
+      #beranda .ka-hero-copy>p{max-width:576px;margin:20px auto 0;font-size:14px;line-height:1.65;}
+      #beranda .ka-hero-actions{margin-top:28px;display:flex;flex-direction:column;gap:12px;justify-content:center;}
+      #beranda .ka-hero-actions>a{width:100%;min-height:48px;}
+      #beranda .ka-hero-indicators{margin-top:30px;display:flex;flex-wrap:wrap;gap:12px 22px;justify-content:center;}
+      #beranda .ka-hero-indicators>div{display:flex;align-items:center;gap:8px;}
+
+      /* Visual is completely self-contained so it cannot collapse into document flow. */
+      #beranda .ka-hero-visual{position:relative;margin:4px auto 0;width:min(82vw,340px);height:min(82vw,340px);max-width:340px;max-height:340px;aspect-ratio:1/1;isolation:isolate;}
+      #beranda .ka-hero-network{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0;}
+      #beranda .ka-hero-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border-radius:999px;z-index:1;pointer-events:none;}
+      #beranda .ka-hero-logo{display:flex;align-items:center;justify-content:center;width:150px;height:150px;border-radius:999px;overflow:visible;}
+      #beranda .ka-hero-logo>div{width:150px!important;height:150px!important;min-width:150px!important;display:flex!important;align-items:center!important;justify-content:center!important;}
+      #beranda .ka-hero-logo img{display:block!important;width:150px!important;height:150px!important;max-width:150px!important;object-fit:contain!important;}
+      #beranda .ka-coin-badge{position:absolute!important;width:58px!important;height:58px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;z-index:3;line-height:1.05;overflow:hidden;}
+      #beranda .ka-coin-symbol{font-size:12px;font-weight:800;}
+      #beranda .ka-coin-name{font-size:7px;margin-top:2px;white-space:nowrap;}
+      #beranda .ka-coin-btc{top:6px;left:4px;}
+      #beranda .ka-coin-eth{top:6px;right:4px;}
+      #beranda .ka-coin-sol{bottom:18px;left:6px;}
+      #beranda .ka-coin-trx{bottom:18px;right:6px;}
+      #beranda>p{text-align:center;margin-top:28px;font-size:11px;line-height:1.5;}
+
+      @media (max-width:420px){
+        .ka-landing header>div:first-of-type{height:60px;padding-left:10px;padding-right:10px;}
+        .ka-landing header>div:first-of-type>a:first-child span{letter-spacing:.08em!important;font-size:12px!important;}
+        .ka-landing header .ka-btn-primary{height:34px;min-height:34px;padding:0 11px;font-size:12px;}
+        #beranda{padding-top:96px;padding-left:14px;padding-right:14px;}
+        #beranda .ka-chip{max-width:100%;white-space:normal;text-align:center;justify-content:center;line-height:1.35;}
+        #beranda .ka-sec-title{font-size:31px;}
+        #beranda .ka-hero-visual{width:min(78vw,310px);height:min(78vw,310px);max-width:310px;max-height:310px;}
+        #beranda .ka-hero-logo,#beranda .ka-hero-logo>div,#beranda .ka-hero-logo img{width:132px!important;height:132px!important;min-width:132px!important;max-width:132px!important;}
+        #beranda .ka-coin-badge{width:52px!important;height:52px!important;}
+      }
 
       @media (min-width:640px){
         .ka-landing header>div:first-of-type{padding-left:24px;padding-right:24px;gap:16px;}
         #beranda{padding-left:24px;padding-right:24px;}
         #beranda .ka-sec-title{font-size:48px;}
-        #beranda>div:nth-of-type(2)>div:first-child>p{font-size:16px;}
-        #beranda>div:nth-of-type(2)>div:first-child>div:nth-of-type(1){flex-direction:row;}
+        #beranda .ka-hero-copy>p{font-size:16px;}
+        #beranda .ka-hero-actions{flex-direction:row;}
+        #beranda .ka-hero-actions>a{width:auto;min-width:190px;}
+        #beranda .ka-hero-visual{width:400px;height:400px;max-width:400px;max-height:400px;}
       }
 
       @media (min-width:1024px){
         .ka-landing header nav{display:flex;align-items:center;gap:28px;font-size:14px;}
         .ka-landing header button[aria-label="Menu"]{display:none;}
-        #beranda>div:nth-of-type(2){grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;}
-        #beranda>div:nth-of-type(2)>div:first-child{text-align:left;}
+        #beranda .ka-hero-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;}
+        #beranda .ka-hero-copy{text-align:left;}
         #beranda .ka-sec-title{font-size:54px;}
-        #beranda>div:nth-of-type(2)>div:first-child>p{margin-left:0;margin-right:0;}
-        #beranda>div:nth-of-type(2)>div:first-child>div:nth-of-type(1),
-        #beranda>div:nth-of-type(2)>div:first-child>div:nth-of-type(2){justify-content:flex-start;}
+        #beranda .ka-hero-copy>p{margin-left:0;margin-right:0;}
+        #beranda .ka-hero-actions,#beranda .ka-hero-indicators{justify-content:flex-start;}
+        #beranda .ka-hero-visual{width:420px;height:420px;max-width:420px;max-height:420px;}
       }
 
       @media (max-width:1023px){
         .ka-landing header nav{display:none!important;}
+      }
+
+      @media (prefers-reduced-motion:reduce){
+        .ka-landing *, .ka-landing *::before, .ka-landing *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;}
       }
     `}</style>
   );
