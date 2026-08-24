@@ -1,5 +1,5 @@
 const ENDPOINT = process.env.MARKET_HEALTH_URL || 'https://kriptoaman.com/api/market-snapshot?health=1';
-const MIN_ASSETS = 2001;
+const MIN_ASSETS = 4500;
 const MAX_AGE_MS = 60 * 60 * 1000;
 const controller = new AbortController();
 const timeout = setTimeout(() => controller.abort(), 30_000);
