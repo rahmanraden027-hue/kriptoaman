@@ -33,7 +33,7 @@ const COPY = {
     improve: 'Langkah Peningkatan', improveSub: 'Prioritas yang dapat dilengkapi secara bertahap', allComplete: 'Semua pengaturan yang tersedia telah dilengkapi.',
     thisDevice: 'Perangkat ini', ended: 'Sesi berakhir', lastActive: 'Terakhir aktif', revoke: 'Cabut', unavailable: 'Tidak tersedia',
     sessionLoadError: 'Riwayat sesi belum dapat dimuat.', revokeError: 'Sesi tersebut belum dapat dicabut. Silakan coba lagi.', revokeOthersError: 'Sesi perangkat lain belum dapat dicabut. Silakan coba lagi.',
-    rec2fa: 'Aktifkan autentikasi dua faktor (2FA)', recPin: 'Tambahkan PIN aplikasi', recIdentity: 'Lengkapi proses verifikasi identitas', recAnti: 'Tambahkan kode anti-phishing', recWithdrawal: 'Aktifkan perlindungan penarikan', recPhone: 'Tambahkan verifikasi nomor telepon',
+    rec2fa: 'Aktifkan autentikasi dua faktor (2FA)', recPin: 'Tambahkan PIN aplikasi', recIdentity: 'Lengkapi proses verifikasi identitas', recEmail: 'Verifikasi email akun', recAnti: 'Tambahkan kode anti-phishing', recWithdrawal: 'Aktifkan perlindungan penarikan', recPhone: 'Tambahkan verifikasi nomor telepon',
   },
   en: {
     center: 'Security Center',
@@ -50,7 +50,7 @@ const COPY = {
     improve: 'Security Improvements', improveSub: 'Priorities you can complete progressively', allComplete: 'All currently available settings have been completed.',
     thisDevice: 'This device', ended: 'Session ended', lastActive: 'Last active', revoke: 'Revoke', unavailable: 'Unavailable',
     sessionLoadError: 'Session history could not be loaded.', revokeError: 'That session could not be revoked. Please try again.', revokeOthersError: 'Other device sessions could not be revoked. Please try again.',
-    rec2fa: 'Enable two-factor authentication (2FA)', recPin: 'Add an app PIN', recIdentity: 'Complete identity verification', recAnti: 'Add an anti-phishing code', recWithdrawal: 'Enable withdrawal protection', recPhone: 'Add phone verification',
+    rec2fa: 'Enable two-factor authentication (2FA)', recPin: 'Add an app PIN', recIdentity: 'Complete identity verification', recEmail: 'Verify the account email', recAnti: 'Add an anti-phishing code', recWithdrawal: 'Enable withdrawal protection', recPhone: 'Add phone verification',
   },
 };
 
@@ -161,11 +161,11 @@ export default function SecurityHub() {
   };
 
   const kycVerified = kyc?.status === 'verified';
-  const emailAvailable = !!user?.email;
-  const factors = [tfa, pin, kycVerified, emailAvailable, phone, anti, wprot];
+  const emailVerified = user?.email_verified === true;
+  const factors = [tfa, pin, kycVerified, emailVerified, phone, anti, wprot];
   const score = Math.round((factors.filter(Boolean).length / factors.length) * 100);
   const recs = [
-    [tfa, text.rec2fa], [pin, text.recPin], [kycVerified, text.recIdentity], [anti, text.recAnti], [wprot, text.recWithdrawal], [phone, text.recPhone],
+    [tfa, text.rec2fa], [pin, text.recPin], [kycVerified, text.recIdentity], [emailVerified, text.recEmail], [anti, text.recAnti], [wprot, text.recWithdrawal], [phone, text.recPhone],
   ].filter(([ok]) => !ok);
   const activeOtherSessions = sessions.filter((session) => session.active && !session.current).length;
   const activeCount = sessions.filter((session) => session.active).length;
@@ -201,7 +201,7 @@ export default function SecurityHub() {
         <section className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6" aria-label={text.posture}>
           <MiniStat text={text} icon={ShieldCheck} label="2FA" ok={tfa} loading={loadingTfa} onClick={() => !tfa && !loadingTfa && setSetupTfa(true)} />
           <MiniStat text={text} icon={Fingerprint} label="Passkey" pending />
-          <MiniStat text={text} icon={Mail} label={text.accountEmail} ok={emailAvailable} />
+          <MiniStat text={text} icon={Mail} label={text.accountEmail} ok={emailVerified} />
           <MiniStat text={text} icon={Phone} label={text.phone} ok={phone} />
           <MiniStat text={text} icon={BadgeCheck} label={text.identity} ok={kycVerified} loading={loadingKyc} link="KYCVerificationPage" />
           <MiniStat text={text} icon={Key} label={text.appPin} ok={pin} onClick={() => !pin && setSetupPin(true)} />
@@ -215,7 +215,7 @@ export default function SecurityHub() {
           </Card>
 
           <Card icon={Server} title={text.defenseStatus} sub={text.defenseSub}>
-            <div className="grid grid-cols-2 gap-2.5">{[['Email', emailAvailable], [text.identity, kycVerified], ['PIN', pin], ['2FA', tfa]].map(([label, ok]) => <div key={label} className="rounded-2xl border border-slate-700/50 bg-slate-950/30 p-3"><p className="text-[9px] font-bold uppercase tracking-wide text-slate-500">{label}</p><p className={`mt-1 text-xs font-extrabold ${ok ? 'text-emerald-300' : 'text-slate-400'}`}>{ok ? text.active : text.notActive}</p></div>)}</div>
+            <div className="grid grid-cols-2 gap-2.5">{[['Email', emailVerified], [text.identity, kycVerified], ['PIN', pin], ['2FA', tfa]].map(([label, ok]) => <div key={label} className="rounded-2xl border border-slate-700/50 bg-slate-950/30 p-3"><p className="text-[9px] font-bold uppercase tracking-wide text-slate-500">{label}</p><p className={`mt-1 text-xs font-extrabold ${ok ? 'text-emerald-300' : 'text-slate-400'}`}>{ok ? text.active : text.notActive}</p></div>)}</div>
           </Card>
         </div>
 
