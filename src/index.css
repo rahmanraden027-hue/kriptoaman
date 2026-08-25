@@ -303,6 +303,15 @@ img { max-width: 100%; }
 
 .tap-target { min-height: 44px; min-width: 44px; }
 
+/* Mobile workspace pages use Layout for fixed bottom-navigation clearance. */
+@media (max-width: 1023px) {
+  .ka-global-shell main .ka-bg.min-h-screen.pb-28,
+  .ka-global-shell main .ka-bg.min-h-screen.pb-24 {
+    min-height: auto !important;
+    padding-bottom: 0 !important;
+  }
+}
+
 /* Mobile polish: richer depth, tighter typography and safe-area support. */
 @media (max-width: 639px) {
   .ka-surface { border-radius: 20px; }
