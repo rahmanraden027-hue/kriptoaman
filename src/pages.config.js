@@ -4,7 +4,7 @@ const __Layout = lazy(() => import('./Layout.jsx'));
 const pageModules = import.meta.glob('./pages/*.jsx');
 
 const PAGE_NAMES = [
-  'AMLDashboard', 'AboutUs', 'AdminKAMAnalytics', 'AdminKAMRewards', 'AdminKAMSnapshotApproval', 'AdminKAMSnapshotReadiness', 'AdminKYCManagement', 'AdminPlatformAssets',
+  'AMLDashboard', 'AboutUs', 'AdminKAMAnalytics', 'AdminKAMBulkRewards', 'AdminKAMRewards', 'AdminKAMSnapshotApproval', 'AdminKAMSnapshotReadiness', 'AdminKYCManagement', 'AdminPlatformAssets',
   'AdminProfitAnalytics', 'AdminUserBalances', 'Alerts', 'AppBuildAnalytics',
   'AssetManager', 'AutoTrading', 'Contact', 'DEXSavings', 'Disclaimer', 'Edukasi',
   'Founder', 'Home', 'KAM', 'KAMDeveloper', 'KAMGlobalRoadmap', 'KAMIncidentResponse', 'KAMLaunchReadiness', 'KAMNetwork', 'KYC', 'KYCVerificationPage', 'LandingPage', 'Market', 'MarketResearch',
