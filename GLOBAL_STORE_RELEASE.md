@@ -4,7 +4,7 @@ Release candidate: Android 1.5 (`versionCode 6`) / application ID `com.kriptoama
 
 ## Release objective
 
-Prepare one controlled KriptoAman release line for Google Play and Android stores that accept APK/AAB packages, while keeping Apple App Store work on a separate signed iOS pipeline.
+Prepare one controlled KriptoAman release line for Google Play and Android stores that accept APK/AAB packages, while keeping Apple App Store signing and publication on a separate protected iOS release path.
 
 ## Android production artifacts
 
@@ -19,13 +19,13 @@ The release pipeline must pass regression tests, Android identity validation, si
 
 | Store / channel | Package | Repository readiness | External publisher action |
 | --- | --- | --- | --- |
-| Google Play | AAB | Ready after CI passes | Upload release, complete Data safety/content declarations, submit for review |
-| Samsung Galaxy Store | APK or accepted Android package per portal | Signed APK available | Create/verify Seller Portal account, listing, compliance declarations, submit binary |
-| Xiaomi / GetApps | APK or package accepted by regional developer console | Signed APK available | Verify developer account/region eligibility, listing, declarations, submit binary |
-| Huawei AppGallery | APK/App Bundle format supported by console | Signed Android artifact available | AppGallery Connect account, listing/compliance, submit binary |
-| Amazon Appstore | APK | Signed APK available | Developer account, listing/compliance, device review, submit binary |
-| Other Android stores | APK/AAB depending on store | Package set available | Check each store's current package and policy requirements before upload |
-| Apple App Store | IPA/App Store archive | Not yet release-ready in this repository | Apple Developer membership, iOS Capacitor platform, bundle signing, provisioning, App Store Connect metadata and review |
+| Google Play | AAB | Signed AAB production path ready after green `main` CI | Upload release, complete Data safety/app-content declarations and submit for review |
+| Samsung Galaxy Store | APK or accepted Android package per portal | Signed APK production path available | Seller Portal verification, listing, compliance declarations and binary submission |
+| Xiaomi / GetApps | APK or package accepted by regional developer console | Signed APK production path available | Developer account/region eligibility, listing, declarations and binary submission |
+| Huawei AppGallery | Package format supported by AppGallery Connect | Signed Android artifact available | AppGallery Connect account, listing/compliance and binary submission |
+| Amazon Appstore | APK | Signed APK production path available | Developer account, listing/compliance, device review and binary submission |
+| Other Android stores | APK/AAB depending on store | Controlled Android package set available | Check current package and policy requirements before upload |
+| Apple App Store | Signed App Store archive / IPA | iOS project generation, sync, identity validation and unsigned Release compile pass in macOS CI | Apple signing/provisioning, App Store Connect metadata, TestFlight and App Review |
 
 ## Android release gate
 
@@ -42,19 +42,26 @@ A release is considered technically ready only when all of the following are tru
 - Privacy policy, account deletion path, support contact, screenshots, icon, feature graphic and bilingual listing copy are current.
 - Store declarations accurately describe KriptoAman as a market-intelligence / watch-only product where applicable; no listing text may claim custody, exchange execution, regulatory approval, or investment guarantees unless the product and approvals actually support those claims.
 
-## Apple App Store blocker
+## Apple App Store release gate
 
-The current repository contains the Android Capacitor platform but does not yet contain an iOS platform or `@capacitor/ios` dependency. Therefore an IPA/App Store archive cannot yet be produced from this repository. The iOS release requires a separate hardening step on macOS with Apple signing credentials and App Store Connect access.
+The repository now has an iOS App Store preflight workflow on macOS. The workflow installs the matching Capacitor iOS platform for CI, runs regression tests and the web build, generates and syncs the iOS project, validates the KriptoAman bundle identity, resolves Xcode build settings and successfully performs an unsigned Release compile for the iOS Simulator.
 
-Required iOS preparation:
+This proves the shared application can compile through the iOS preflight path, but it is not equivalent to a signed App Store archive.
 
-1. Add `@capacitor/ios` at the same Capacitor major/minor line used by the app.
-2. Generate and commit/safely manage the iOS Capacitor project.
-3. Set the iOS bundle identifier to the approved KriptoAman identifier.
-4. Configure app icons, launch assets, privacy usage descriptions and entitlements.
-5. Configure Apple Distribution certificate and App Store provisioning profile through protected CI secrets or App Store Connect API credentials.
-6. Build, archive, export and validate an App Store IPA.
-7. Run TestFlight validation before production submission.
+Required external iOS publication steps:
+
+1. Confirm Apple Developer membership and App Store Connect application record.
+2. Configure the final Apple bundle identifier and capabilities in the developer account.
+3. Configure Apple Distribution certificate and App Store provisioning through protected signing infrastructure.
+4. Produce an archive from the exact release commit for a physical-device/App Store destination.
+5. Export and validate the App Store build.
+6. Complete App Store Connect metadata, App Privacy declarations, age rating, screenshots and reviewer access.
+7. Validate through TestFlight before production submission.
+8. Submit to App Review and record the reviewed build number and outcome.
+
+## Submission package
+
+Use `STORE_SUBMISSION_PACKAGE.md` as the controlled source for bilingual listing copy, privacy/data declaration preparation, reviewer-account rules, screenshot planning and release evidence records.
 
 ## Publication discipline
 
