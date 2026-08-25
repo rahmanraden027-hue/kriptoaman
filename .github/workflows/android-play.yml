@@ -69,8 +69,8 @@ jobs:
           set -euo pipefail
           grep -q '"appId": "com.kriptoaman.app"' capacitor.config.json
           grep -q 'applicationId "com.kriptoaman.app"' android/app/build.gradle
-          grep -q 'versionCode 5' android/app/build.gradle
-          grep -q 'versionName "1.4"' android/app/build.gradle
+          grep -q 'versionCode 6' android/app/build.gradle
+          grep -q 'versionName "1.5"' android/app/build.gradle
           grep -q 'targetSdkVersion = 36' android/variables.gradle
           grep -q 'android:usesCleartextTraffic="false"' android/app/src/main/AndroidManifest.xml
 
