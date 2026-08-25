@@ -18,26 +18,11 @@ export default function Wallet() {
   const [connectedAddressCount, setConnectedAddressCount] = useState(0);
   const [adminBalances, setAdminBalances] = useState(null);
   const [adminBalanceError, setAdminBalanceError] = useState('');
-  const [kamPoints, setKamPoints] = useState(null);
   const en = language === 'en';
 
   useEffect(() => {
     base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
   }, []);
-
-  useEffect(() => {
-    let active = true;
-    if (!currentUser?.id) {
-      setKamPoints(null);
-      return () => { active = false; };
-    }
-
-    kriptoAuth.getKamPoints()
-      .then((data) => { if (active) setKamPoints(data); })
-      .catch(() => { if (active) setKamPoints(null); });
-
-    return () => { active = false; };
-  }, [currentUser?.id, currentUser?.email_verified, currentUser?.kycStatus, currentUser?.full_name, currentUser?.phone]);
 
   useEffect(() => {
     let active = true;
@@ -143,7 +128,7 @@ export default function Wallet() {
         </div>
 
         <WalletConnectPanel onConnectionCountChange={setConnectedAddressCount} />
-        <KAMTokenCard userBalance={kamPoints?.balance || 0} />
+        <KAMTokenCard />
 
         <section className="grid gap-3 sm:grid-cols-3" aria-label={en ? 'Monitoring status' : 'Status pemantauan'}>
           {[
