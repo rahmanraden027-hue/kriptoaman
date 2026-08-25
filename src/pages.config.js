@@ -7,7 +7,7 @@ const PAGE_NAMES = [
   'AMLDashboard', 'AboutUs', 'AdminKAMAnalytics', 'AdminKAMBulkRewards', 'AdminKAMRewards', 'AdminKAMSnapshotApproval', 'AdminKAMSnapshotReadiness', 'AdminKYCManagement', 'AdminPlatformAssets',
   'AdminProfitAnalytics', 'AdminUserBalances', 'Alerts', 'AppBuildAnalytics',
   'AssetManager', 'AutoTrading', 'Contact', 'DEXSavings', 'Disclaimer', 'Edukasi',
-  'Founder', 'Home', 'KAM', 'KAMDeveloper', 'KAMGlobalRoadmap', 'KAMIncidentResponse', 'KAMLaunchReadiness', 'KAMNetwork', 'KYC', 'KYCVerificationPage', 'LandingPage', 'Market', 'MarketResearch',
+  'Founder', 'Home', 'IntelligenceHub', 'KAM', 'KAMDeveloper', 'KAMGlobalRoadmap', 'KAMIncidentResponse', 'KAMLaunchReadiness', 'KAMNetwork', 'KYC', 'KYCVerificationPage', 'LandingPage', 'Market', 'MarketResearch',
   'P2PLending', 'PWAValidation', 'PlatformDocs', 'PortfolioOverview', 'Premium',
   'PriceTracker', 'PrivacyPolicy', 'Profile', 'Referral', 'RegulatoryDocs',
   'SEOLanding', 'SecureVault', 'SecurityCenter', 'ServerControl', 'Settings', 'SystemStatus',
@@ -21,6 +21,7 @@ const PAGE_OVERRIDES = {
   AdminPlatformAssets: 'AdminPlatformAssetsModern',
   AdminProfitAnalytics: 'AdminProfitAnalyticsModern',
   AdminUserBalances: 'AdminUserBalancesModern',
+  Home: 'HomeV2',
   Market: 'MarketWithKAM',
   ServerControl: 'ServerControlModern',
 };
