@@ -3,15 +3,16 @@ import { ArrowRight, BrainCircuit, CircleDollarSign, Network, ShieldCheck } from
 import Market from './Market.jsx';
 import { useLanguage } from '@/lib/LanguageContext';
 
-const INDICATIVE_REFERENCE = 'US$29.37';
+const INDICATIVE_REFERENCE = 29.37;
+const formatIndicativeReference = () => `US$${INDICATIVE_REFERENCE.toFixed(2)}`;
 
 const COPY = {
   id: {
     eyebrow: 'KAM NETWORK REFERENCE',
     title: 'KAM · Referensi Ekosistem',
     status: 'BELUM DIPERDAGANGKAN',
-    reference: 'Skenario indikatif',
-    body: 'US$29.37 adalah acuan skenario internal, bukan harga pasar live. Nilai ini tidak digunakan untuk market cap, P/L, valuasi portofolio, atau ticker pasar.',
+    reference: 'Skenario indikatif · bukan harga live',
+    body: 'US$29.37 adalah acuan skenario internal yang terpisah dari harga pasar live. Nilai ini tidak digunakan untuk market cap, P/L, valuasi portofolio, atau ticker pasar.',
     network: 'KriptoAman Network · Chain ID 22028',
     networkState: 'Mainnet candidate · belum dipromosikan sebagai jaringan publik',
     roadmap: 'Roadmap KAM',
@@ -21,8 +22,8 @@ const COPY = {
     eyebrow: 'KAM NETWORK REFERENCE',
     title: 'KAM · Ecosystem Reference',
     status: 'NOT YET TRADING',
-    reference: 'Indicative scenario',
-    body: 'US$29.37 is an internal scenario reference, not a live market price. It is excluded from market cap, P/L, portfolio valuation, and market tickers.',
+    reference: 'Indicative scenario · not a live price',
+    body: 'US$29.37 is an internal scenario reference kept separate from live market pricing. It is excluded from market cap, P/L, portfolio valuation, and market tickers.',
     network: 'KriptoAman Network · Chain ID 22028',
     networkState: 'Mainnet candidate · not promoted as a public network',
     roadmap: 'KAM Roadmap',
@@ -53,8 +54,8 @@ export default function MarketWithKAM() {
               <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:gap-4">
                 <div>
                   <h2 className="text-lg font-black tracking-[-0.025em] text-white sm:text-xl">{text.title}</h2>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-2xl font-black tracking-[-0.04em] text-sky-300 sm:text-3xl">{INDICATIVE_REFERENCE}</span>
+                  <div className="mt-1 flex flex-wrap items-baseline gap-2">
+                    <span className="text-2xl font-black tracking-[-0.04em] text-sky-300 sm:text-3xl">{formatIndicativeReference()}</span>
                     <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-500">{text.reference}</span>
                   </div>
                 </div>
