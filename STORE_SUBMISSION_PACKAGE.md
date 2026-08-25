@@ -5,6 +5,17 @@ Android package: `com.kriptoaman.app`
 Android `versionCode`: `6`
 Product position: digital-asset intelligence, public-address monitoring, market data, portfolio simulation, security and risk-analysis workspace. Public release must not claim custody, exchange execution, guaranteed investment returns, or regulatory approval unless separately supported.
 
+## Organization verification readiness
+
+Current verified preparation state for publisher onboarding:
+
+- Indonesian business identity: NIB available to the publisher.
+- D-U-N-S: not yet available; treat as an external organization-verification blocker where a store requires D-U-N-S.
+- Do not place NIB numbers, D-U-N-S numbers, tax identifiers, signing secrets, personal identity documents, or publisher-console credentials in the public repository.
+- Keep legal entity name, registered address, support contact, privacy-policy identity, payments profile and D-U-N-S record consistent when the organization-verification flow is completed.
+- NIB may be used as supporting Indonesian business documentation when a publisher requests legal-entity evidence, but it must not be represented as a substitute for a D-U-N-S number where the publisher explicitly requires D-U-N-S.
+- Until organization verification is complete, prepare binaries, listings, screenshots, declarations and reviewer materials without claiming that external store approval has already been obtained.
+
 ## Master listing identity
 
 **App name**
@@ -94,7 +105,10 @@ Required package: signed AAB from the latest green `main` build.
 
 Before submission:
 
-- Confirm Play developer identity and package registration.
+- Confirm Play organization/developer identity and package registration.
+- Keep NIB ready as supporting legal-entity documentation if requested.
+- Obtain and verify the D-U-N-S record before relying on an Organization account flow that requires it.
+- Ensure legal entity name and address match across D-U-N-S, Google Payments profile, Play Console and public support/privacy materials.
 - Complete store listing, category, tags and support contact details.
 - Complete Privacy Policy and Data safety declarations.
 - Complete App content declarations including ads, target audience, content rating and any restricted-access instructions.
@@ -182,4 +196,4 @@ For every submitted binary retain:
 
 ## Current release boundary
 
-Android 1.5 has a signed AAB and signed APK build path on `main`. iOS has a green unsigned App Store preflight path. Final publication remains complete only after each external publisher console accepts the metadata, binary, compliance declarations and review submission.
+Android 1.5 has a signed AAB and signed APK build path on `main`. iOS has a green unsigned App Store preflight path. NIB is available as supporting Indonesian business documentation, while D-U-N-S remains pending for publisher flows that require it. Final publication remains complete only after each external publisher console accepts the organization/developer identity, metadata, binary, compliance declarations and review submission.

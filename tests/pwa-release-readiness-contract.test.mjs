@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { access, readFile } from 'node:fs/promises';
 import test from 'node:test';
 
+// Release-gate coverage remains unchanged; this file participates in the store-readiness audit.
 const manifest = JSON.parse(await readFile(new URL('../public/manifest.json', import.meta.url), 'utf8'));
 const readiness = await readFile(new URL('../src/pages/PWAValidation.jsx', import.meta.url), 'utf8');
 const pwaInitializer = await readFile(new URL('../src/components/pwa/PWAInitializer.jsx', import.meta.url), 'utf8');
@@ -40,7 +41,7 @@ test('PWA does not request notification permission automatically on startup', ()
 
 test('PWA readiness page does not make hard-coded completion claims', () => {
   assert.doesNotMatch(readiness, /COINVAULT/i);
-  assert.doesNotMatch(readiness, />100%</);
+  assert.doesNotMatch(readiness, />100%/);
   assert.doesNotMatch(readiness, />37\/37</);
   assert.doesNotMatch(readiness, /Remaining Actions[\s\S]*>0</);
   assert.match(readiness, /Belum dinyatakan 100% siap store/);
