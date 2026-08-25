@@ -35,6 +35,8 @@ export const kriptoAuth = {
   async registerReferral(referralCode) { return request('/api/auth/referral', { method: 'POST', body: JSON.stringify({ referralCode }) }); },
   async getAdminKamRewards() { return request('/api/auth/admin/kam-rewards'); },
   async grantKamCampaignReward({ email, campaignId, amount, reason }) { return request('/api/auth/admin/kam-rewards', { method: 'POST', body: JSON.stringify({ email, campaignId, amount, reason }) }); },
+  async previewBulkKamCampaignReward({ campaignId, segment, cutoff }) { return request('/api/auth/admin/kam-rewards-bulk', { method: 'POST', body: JSON.stringify({ campaignId, segment, cutoff, execute: false }) }); },
+  async executeBulkKamCampaignReward({ campaignId, segment, cutoff, confirmation }) { return request('/api/auth/admin/kam-rewards-bulk', { method: 'POST', body: JSON.stringify({ campaignId, segment, cutoff, execute: true, confirmation }) }); },
   async getKamCampaigns() { return request('/api/auth/admin/kam-campaigns'); },
   async getKamAnalytics() { return request('/api/auth/admin/kam-analytics'); },
   async getKamSnapshotReadiness() { return request('/api/auth/admin/kam-snapshot-readiness'); },
