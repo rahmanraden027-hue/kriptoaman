@@ -3,10 +3,8 @@ import { Link } from 'react-router-dom';
 import {
   Activity,
   AtSign,
-  BookOpen,
   ChevronRight,
   CircleHelp,
-  Contact,
   FileText,
   Info,
   Instagram,
