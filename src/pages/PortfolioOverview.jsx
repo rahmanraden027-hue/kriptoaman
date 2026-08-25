@@ -14,6 +14,11 @@ const COPY = {
     subtitle: 'Ringkasan strategi, simulasi, eksposur aset, dan performa berdasarkan data yang tersedia di workspace.',
     dataWorkspace: 'DATA WORKSPACE',
     strategies: 'STRATEGI',
+    loadingTitle: 'Memuat data portofolio',
+    loadingBody: 'KriptoAman sedang membaca strategi dan simulasi yang tersedia. Tidak ada angka placeholder yang dibuat selama proses ini.',
+    errorTitle: 'Data portofolio belum dapat dimuat',
+    errorBody: 'Koneksi data strategi atau simulasi sedang tidak tersedia. Status ini tidak dianggap sebagai portofolio kosong.',
+    retry: 'Coba lagi',
     emptyTitle: 'Workspace portofolio siap digunakan',
     emptyBody: 'Metrik, alokasi aset, dan performa akan tampil ketika strategi atau simulasi tersedia.',
     readyTitle: 'Siap menerima strategi',
@@ -33,6 +38,11 @@ const COPY = {
     subtitle: 'A strategy, simulation, asset-exposure, and performance summary based on data available in the workspace.',
     dataWorkspace: 'DATA WORKSPACE',
     strategies: 'STRATEGIES',
+    loadingTitle: 'Loading portfolio data',
+    loadingBody: 'KriptoAman is reading available strategy and simulation data. No placeholder values are created while this is in progress.',
+    errorTitle: 'Portfolio data could not be loaded',
+    errorBody: 'Strategy or simulation data is temporarily unavailable. This state is not treated as an empty portfolio.',
+    retry: 'Try again',
     emptyTitle: 'Portfolio workspace is ready',
     emptyBody: 'Metrics, asset allocation, and performance appear when strategy or simulation data becomes available.',
     readyTitle: 'Ready for strategy data',
@@ -52,18 +62,33 @@ export default function PortfolioOverview() {
   const { language } = useLanguage();
   const text = COPY[language] || COPY.id;
 
-  const { data: strategies = [] } = useQuery({
+  const {
+    data: strategies = [],
+    isLoading: strategiesLoading,
+    isError: strategiesError,
+    refetch: refetchStrategies,
+  } = useQuery({
     queryKey: ['strategies'],
     queryFn: () => base44.entities.AutoTradingStrategy.list(),
   });
 
-  const { data: liveTrades = [] } = useQuery({
+  const {
+    data: liveTrades = [],
+    isLoading: liveTradesLoading,
+    isError: liveTradesError,
+    refetch: refetchLiveTrades,
+  } = useQuery({
     queryKey: ['liveTrades'],
     queryFn: () => base44.entities.LivePaperTrade.list(),
     refetchInterval: 5000,
   });
 
-  const { data: paperTrades = [] } = useQuery({
+  const {
+    data: paperTrades = [],
+    isLoading: paperTradesLoading,
+    isError: paperTradesError,
+    refetch: refetchPaperTrades,
+  } = useQuery({
     queryKey: ['paperTrades'],
     queryFn: () => base44.entities.PaperTrade.list(),
   });
@@ -110,7 +135,10 @@ export default function PortfolioOverview() {
   }, [liveTrades, paperTrades, strategies]);
 
   const activeStrategies = strategies.filter(strategy => strategy.isActive === true);
-  const empty = !strategies.length && !liveTrades.length && !paperTrades.length;
+  const loading = strategiesLoading || liveTradesLoading || paperTradesLoading;
+  const dataError = strategiesError || liveTradesError || paperTradesError;
+  const empty = !loading && !dataError && !strategies.length && !liveTrades.length && !paperTrades.length;
+  const retryAll = () => Promise.all([refetchStrategies(), refetchLiveTrades(), refetchPaperTrades()]);
 
   return (
     <div className="ka-bg ka-workspace-page min-h-screen pb-24 text-white sm:pb-28">
@@ -124,12 +152,35 @@ export default function PortfolioOverview() {
             </div>
             <div className="flex flex-wrap gap-2" aria-label={language === 'en' ? 'Portfolio data summary' : 'Ringkasan data portofolio'}>
               <span className="rounded-full border border-slate-700/60 bg-slate-900/55 px-3 py-2 text-[10px] font-bold text-slate-300">{text.dataWorkspace}</span>
-              <span className="rounded-full border border-sky-500/20 bg-sky-500/8 px-3 py-2 text-[10px] font-bold text-sky-300">{portfolioMetrics.totalStrategies} {text.strategies}</span>
+              <span className="rounded-full border border-sky-500/20 bg-sky-500/8 px-3 py-2 text-[10px] font-bold text-sky-300">{loading || dataError ? '—' : portfolioMetrics.totalStrategies} {text.strategies}</span>
             </div>
           </div>
         </section>
 
-        {empty ? (
+        {loading ? (
+          <section className="ka-command-panel overflow-hidden p-5 sm:p-7" role="status" aria-live="polite">
+            <div className="mx-auto max-w-2xl text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-sky-500/20 bg-sky-500/10">
+                <RefreshCw className="h-7 w-7 animate-spin text-sky-300" aria-hidden="true" />
+              </div>
+              <h2 className="mt-4 text-xl font-black">{text.loadingTitle}</h2>
+              <p className="mx-auto mt-2 max-w-lg text-sm leading-relaxed text-slate-400">{text.loadingBody}</p>
+            </div>
+          </section>
+        ) : dataError ? (
+          <section className="ka-command-panel overflow-hidden p-5 sm:p-7" role="alert">
+            <div className="mx-auto max-w-2xl text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-amber-500/20 bg-amber-500/10">
+                <Activity className="h-7 w-7 text-amber-300" aria-hidden="true" />
+              </div>
+              <h2 className="mt-4 text-xl font-black">{text.errorTitle}</h2>
+              <p className="mx-auto mt-2 max-w-lg text-sm leading-relaxed text-slate-400">{text.errorBody}</p>
+              <button type="button" onClick={retryAll} className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-sky-400/20 bg-sky-400/10 px-4 text-sm font-bold text-sky-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">
+                <RefreshCw className="h-4 w-4" aria-hidden="true" /> {text.retry}
+              </button>
+            </div>
+          </section>
+        ) : empty ? (
           <section className="ka-command-panel overflow-hidden p-5 sm:p-7">
             <div className="mx-auto max-w-3xl text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-sky-500/20 bg-sky-500/10 sm:h-20 sm:w-20 sm:rounded-3xl">
