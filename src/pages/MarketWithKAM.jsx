@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { ArrowRight, BrainCircuit, CircleDollarSign, Network, ShieldCheck } from 'lucide-react';
 import Market from './Market.jsx';
 import { useLanguage } from '@/lib/LanguageContext';
@@ -36,7 +37,19 @@ export default function MarketWithKAM() {
   const text = COPY[language] || COPY.id;
 
   return (
-    <div className="min-h-screen ka-bg text-white">
+    <div className="ka-market-shell ka-bg text-white">
+      <style>{`
+        /* Market owns no viewport spacer; Layout is the single source of mobile bottom-nav clearance. */
+        .ka-market-shell > .ka-bg.min-h-screen {
+          min-height: auto !important;
+          padding-bottom: 0.75rem !important;
+        }
+        @media (min-width: 1024px) {
+          .ka-market-shell > .ka-bg.min-h-screen {
+            padding-bottom: 1.5rem !important;
+          }
+        }
+      `}</style>
       <div className="mx-auto max-w-7xl px-3 pt-3 sm:px-6 sm:pt-5 lg:px-8">
         <section className="relative overflow-hidden rounded-[24px] border border-sky-400/15 bg-[#07111d]/82 px-4 py-4 shadow-[0_20px_60px_-38px_rgba(14,165,233,.65)] sm:px-5 sm:py-5">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(14,165,233,.12),transparent_38%),radial-gradient(circle_at_100%_100%,rgba(34,211,238,.07),transparent_34%)]" />
@@ -69,12 +82,12 @@ export default function MarketWithKAM() {
             </div>
 
             <div className="flex flex-col gap-2 sm:flex-row lg:flex-col xl:flex-row">
-              <a href="/IntelligenceHub" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-sky-400/20 bg-sky-400/10 px-4 text-xs font-bold text-sky-200 transition hover:border-sky-300/40 hover:bg-sky-400/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">
+              <Link to="/IntelligenceHub" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-sky-400/20 bg-sky-400/10 px-4 text-xs font-bold text-sky-200 transition hover:border-sky-300/40 hover:bg-sky-400/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">
                 <BrainCircuit className="h-4 w-4" /> {text.intelligence}
-              </a>
-              <a href="/KAMGlobalRoadmap" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-sky-500 px-4 text-xs font-black text-slate-950 transition hover:bg-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">
+              </Link>
+              <Link to="/KAMGlobalRoadmap" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-sky-500 px-4 text-xs font-black text-slate-950 transition hover:bg-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">
                 <CircleDollarSign className="h-4 w-4" /> {text.roadmap} <ArrowRight className="h-4 w-4" />
-              </a>
+              </Link>
             </div>
           </div>
         </section>
