@@ -7,6 +7,20 @@ import AssetAllocationChart from '../components/portfolio/AssetAllocationChart';
 import StrategyOverviewCard from '../components/portfolio/StrategyOverviewCard';
 import { useLanguage } from '../lib/LanguageContext';
 
+const QUERY_TIMEOUT_MS = 12000;
+
+function withTimeout(promise, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      const timer = window.setTimeout(() => {
+        window.clearTimeout(timer);
+        reject(new Error(`${label} request timed out`));
+      }, QUERY_TIMEOUT_MS);
+    }),
+  ]);
+}
+
 const COPY = {
   id: {
     kicker: 'KRIPTOAMAN PORTFOLIO INTELLIGENCE',
@@ -15,12 +29,12 @@ const COPY = {
     dataWorkspace: 'DATA WORKSPACE',
     strategies: 'STRATEGI',
     loadingTitle: 'Memuat data portofolio',
-    loadingBody: 'KriptoAman sedang membaca strategi dan simulasi yang tersedia. Tidak ada angka placeholder yang dibuat selama proses ini.',
+    loadingBody: 'KriptoAman sedang membaca strategi dan simulasi yang tersedia. Proses ini dibatasi waktu agar layar tidak berhenti pada status memuat.',
     errorTitle: 'Data portofolio belum dapat dimuat',
-    errorBody: 'Koneksi data strategi atau simulasi sedang tidak tersedia. Status ini tidak dianggap sebagai portofolio kosong.',
+    errorBody: 'Koneksi data strategi atau simulasi sedang tidak tersedia. Anda dapat mencoba lagi tanpa kehilangan data yang sudah tersimpan.',
     retry: 'Coba lagi',
-    emptyTitle: 'Workspace portofolio siap digunakan',
-    emptyBody: 'Metrik, alokasi aset, dan performa akan tampil ketika strategi atau simulasi tersedia.',
+    emptyTitle: 'Belum ada portofolio yang tersedia',
+    emptyBody: 'Workspace berfungsi normal. Metrik, alokasi aset, dan performa akan tampil ketika strategi atau simulasi tersedia.',
     readyTitle: 'Siap menerima strategi',
     readyBody: 'Strategi yang tersimpan akan masuk ke ringkasan performa dan eksposur sesuai data yang tersedia.',
     syncTitle: 'Pembaruan berkala',
@@ -39,12 +53,12 @@ const COPY = {
     dataWorkspace: 'DATA WORKSPACE',
     strategies: 'STRATEGIES',
     loadingTitle: 'Loading portfolio data',
-    loadingBody: 'KriptoAman is reading available strategy and simulation data. No placeholder values are created while this is in progress.',
+    loadingBody: 'KriptoAman is reading available strategy and simulation data. The request is time-limited so the screen cannot remain stuck loading.',
     errorTitle: 'Portfolio data could not be loaded',
-    errorBody: 'Strategy or simulation data is temporarily unavailable. This state is not treated as an empty portfolio.',
+    errorBody: 'Strategy or simulation data is temporarily unavailable. You can retry without losing stored data.',
     retry: 'Try again',
-    emptyTitle: 'Portfolio workspace is ready',
-    emptyBody: 'Metrics, asset allocation, and performance appear when strategy or simulation data becomes available.',
+    emptyTitle: 'No portfolio data available yet',
+    emptyBody: 'The workspace is operating normally. Metrics, allocation, and performance appear when strategy or simulation data becomes available.',
     readyTitle: 'Ready for strategy data',
     readyBody: 'Stored strategies flow into performance and exposure summaries according to the data available.',
     syncTitle: 'Periodic updates',
@@ -69,7 +83,8 @@ export default function PortfolioOverview() {
     refetch: refetchStrategies,
   } = useQuery({
     queryKey: ['strategies'],
-    queryFn: () => base44.entities.AutoTradingStrategy.list(),
+    queryFn: () => withTimeout(base44.entities.AutoTradingStrategy.list(), 'strategies'),
+    retry: 1,
   });
 
   const {
@@ -79,8 +94,9 @@ export default function PortfolioOverview() {
     refetch: refetchLiveTrades,
   } = useQuery({
     queryKey: ['liveTrades'],
-    queryFn: () => base44.entities.LivePaperTrade.list(),
-    refetchInterval: 5000,
+    queryFn: () => withTimeout(base44.entities.LivePaperTrade.list(), 'liveTrades'),
+    retry: 1,
+    refetchInterval: 15000,
   });
 
   const {
@@ -90,7 +106,8 @@ export default function PortfolioOverview() {
     refetch: refetchPaperTrades,
   } = useQuery({
     queryKey: ['paperTrades'],
-    queryFn: () => base44.entities.PaperTrade.list(),
+    queryFn: () => withTimeout(base44.entities.PaperTrade.list(), 'paperTrades'),
+    retry: 1,
   });
 
   const portfolioMetrics = useMemo(() => {
