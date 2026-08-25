@@ -52,8 +52,8 @@ jobs:
           node - "$body" <<'NODE'
           const fs = require('fs');
           const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
-          if (payload.version !== '1.4.0') {
-            console.error(`Expected production web version 1.4.0, got ${payload.version ?? 'missing'}`);
+          if (payload.version !== '1.5.0') {
+            console.error(`Expected production web version 1.5.0, got ${payload.version ?? 'missing'}`);
             process.exit(1);
           }
           NODE
