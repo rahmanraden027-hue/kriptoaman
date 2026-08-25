@@ -10,15 +10,22 @@ import { useLanguage } from '../lib/LanguageContext';
 const QUERY_TIMEOUT_MS = 12000;
 
 function withTimeout(promise, label) {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) => {
-      const timer = window.setTimeout(() => {
+  return new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => {
+      reject(new Error(`${label} request timed out`));
+    }, QUERY_TIMEOUT_MS);
+
+    Promise.resolve(promise).then(
+      value => {
         window.clearTimeout(timer);
-        reject(new Error(`${label} request timed out`));
-      }, QUERY_TIMEOUT_MS);
-    }),
-  ]);
+        resolve(value);
+      },
+      error => {
+        window.clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
 }
 
 const COPY = {
