@@ -192,4 +192,19 @@ input, textarea, select {
   .ka-global-shell {
     padding-bottom: max(5.75rem, calc(4.75rem + env(safe-area-inset-bottom, 0px)));
   }
+
+  /* The top bar is ~56px tall on phones. Keep the live ticker below it and
+     reserve matching content space so Portfolio, Watch and Security never
+     render underneath either fixed layer. */
+  .ka-global-topbar + .fixed.left-0.right-0.z-40 {
+    top: calc(3.5rem + env(safe-area-inset-top, 0px)) !important;
+  }
+
+  .ka-global-shell > main {
+    padding-top: 1rem;
+  }
+
+  .ka-workspace-page {
+    min-height: calc(100dvh - 8.5rem);
+  }
 }
