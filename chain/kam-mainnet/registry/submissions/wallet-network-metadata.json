@@ -1,0 +1,21 @@
+{
+  "networkName": "KriptoAman Mainnet",
+  "candidateLabel": "KriptoAman Mainnet Candidate",
+  "chainId": 22028,
+  "chainIdHex": "0x560c",
+  "nativeCurrency": {
+    "name": "KriptoAman",
+    "symbol": "KAM",
+    "decimals": 18
+  },
+  "rpcUrls": ["https://rpc.kriptoaman.com"],
+  "explorerUrls": ["https://explorer.kriptoaman.com"],
+  "website": "https://kriptoaman.com",
+  "logo": {
+    "png": "https://kriptoaman.com/icons/kriptoaman-512.png",
+    "svg": "https://kriptoaman.com/brand/kriptoaman-mark.svg"
+  },
+  "currentStatus": "mainnet-candidate-not-public",
+  "registryStatusRequested": "incubating",
+  "notes": "Use candidate/incubating wording until Issue #115 promotion gates pass. Do not represent this metadata as final public-mainnet status before promotion."
+}
