@@ -10,9 +10,9 @@ const androidBuild = await readFile(new URL('../android/app/build.gradle', impor
 const androidVariables = await readFile(new URL('../android/variables.gradle', import.meta.url), 'utf8');
 const capacitorConfig = JSON.parse(await readFile(new URL('../capacitor.config.json', import.meta.url), 'utf8'));
 
-test('PWA manifest is aligned with Android 1.3 release identity', () => {
+test('PWA manifest is aligned with Android 1.4 release identity', () => {
   assert.equal(manifest.short_name, 'KriptoAman');
-  assert.equal(manifest.version, '1.3.0');
+  assert.equal(manifest.version, '1.4.0');
   assert.equal(manifest.display, 'standalone');
   assert.equal(manifest.start_url, '/');
   assert.equal(manifest.scope, '/');
@@ -52,8 +52,8 @@ test('Android release identity and target SDK remain Play-ready', () => {
   assert.equal(capacitorConfig.appId, 'com.kriptoaman.app');
   assert.equal(capacitorConfig.appName, 'KriptoAman');
   assert.match(androidBuild, /applicationId\s+"com\.kriptoaman\.app"/);
-  assert.match(androidBuild, /versionCode\s+4/);
-  assert.match(androidBuild, /versionName\s+"1\.3"/);
+  assert.match(androidBuild, /versionCode\s+5/);
+  assert.match(androidBuild, /versionName\s+"1\.4"/);
   assert.match(androidVariables, /compileSdkVersion\s*=\s*36/);
   assert.match(androidVariables, /targetSdkVersion\s*=\s*36/);
 });
