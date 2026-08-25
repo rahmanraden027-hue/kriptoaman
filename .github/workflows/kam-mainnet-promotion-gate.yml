@@ -9,7 +9,10 @@ on:
         default: false
         type: boolean
   schedule:
+    # Redundant probes reduce false continuity resets when GitHub delays/skips one cron.
+    # Promotion readiness still requires at least one real ready=true evidence probe per UTC hour.
     - cron: '17 * * * *'
+    - cron: '47 * * * *'
   pull_request:
     branches:
       - main
@@ -74,4 +77,5 @@ jobs:
         if: steps.verify.outcome == 'success'
         run: |
           echo 'KAM_PUBLIC_ENDPOINT_GATE=PASS'
+          echo 'Hourly continuity is counted from validated artifact checkedAt timestamps: at least one ready=true probe must exist in every consecutive UTC hour bucket. Redundant :17/:47 schedules improve evidence continuity but do not waive any missing-hour or failed-probe requirement.'
           echo 'This is necessary but not sufficient for public-mainnet promotion; Issue #115 infrastructure, 24-hour stability, backup/restore, monitoring, validator-set, and final Chain ID checks must also pass.'
