@@ -38,7 +38,7 @@ const DashboardPage = Pages.Home ?? MainPage;
 const ADMIN_PAGE_KEYS = new Set([
   'AdminKAMAnalytics', 'AdminKAMRewards', 'AdminKAMSnapshotApproval', 'AdminKAMSnapshotReadiness', 'AdminKYCManagement', 'AdminPlatformAssets', 'AdminProfitAnalytics', 'AdminUserBalances',
   'ServerControl', 'BigQueryKYCReports', 'RegulatoryDocs', 'AppBuildAnalytics',
-  'AssetManager', 'SecureVault', 'AMLDashboard', 'SecurityCenter',
+  'AssetManager', 'SecureVault', 'AMLDashboard', 'SecurityCenter', 'KAMIncidentResponse',
   'FeatureUpdateBroadcast',
 ]);
 
@@ -83,7 +83,7 @@ const PublicKAMWithDocument = ({ Page }) => (
   </div>
 );
 
-const PUBLIC_PAGE_KEYS = new Set(['AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'TermsOfService', 'AccountDeletion', 'Market', 'KAM', 'KAMGlobalRoadmap', 'KAMNetwork']);
+const PUBLIC_PAGE_KEYS = new Set(['AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'TermsOfService', 'AccountDeletion', 'Market', 'KAM', 'KAMDeveloper', 'KAMGlobalRoadmap', 'KAMLaunchReadiness', 'KAMNetwork']);
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ? <Layout currentPageName={currentPageName}>{children}</Layout> : <>{children}</>;
 
