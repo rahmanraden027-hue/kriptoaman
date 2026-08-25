@@ -70,13 +70,13 @@ export default function HomeV2() {
   const firstName = user?.full_name?.split(' ')[0] || (language === 'en' ? 'User' : 'Pengguna');
 
   return (
-    <div className="ka-bg min-h-screen pb-28 text-white">
+    <div className="ka-bg pb-5 text-white sm:pb-6 lg:pb-8">
       <div className="mx-auto max-w-7xl space-y-5 px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8">
         <section className="relative overflow-hidden rounded-[30px] border border-sky-400/20 bg-[#050d17]/92 shadow-[0_34px_100px_-48px_rgba(14,165,233,.82)]">
           <div className="pointer-events-none absolute inset-0">
             <div className="absolute -right-28 -top-40 h-96 w-96 rounded-full bg-sky-500/16 blur-3xl" />
             <div className="absolute -bottom-44 left-[24%] h-80 w-80 rounded-full bg-cyan-500/8 blur-3xl" />
-            <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'linear-gradient(rgba(56,189,248,.22) 1px, transparent 1px),linear-gradient(90deg,rgba(56,189,248,.22) 1px,transparent 1px)', backgroundSize: '44px 44px' }} />
+            <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'linear-gradient(rgba(56,189,248,.22) 1px, transparent 1px),linear-gradient(90deg,rgba(56,189,248,.22) 1px, transparent 1px)', backgroundSize: '44px 44px' }} />
           </div>
 
           <div className="relative grid gap-6 p-5 sm:p-7 lg:grid-cols-[1.25fr_.75fr] lg:p-9">
