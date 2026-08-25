@@ -17,6 +17,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      - name: Set up Java 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+
       - name: Install tools
         run: |
           sudo apt-get update
@@ -56,10 +62,7 @@ jobs:
           set -euo pipefail
           EXTRA=$(tr -d '\n\r' < /tmp/kam/extradata.txt)
           TREASURY=$(tr -d '\n\r' < /tmp/kam/keys/treasury.address | sed 's/^0x//')
-          BALANCE_HEX=$(python3 - <<'PY'
-print(hex(1_000_000_000 * 10**18))
-PY
-)
+          BALANCE_HEX=$(python3 -c 'print(hex(1_000_000_000 * 10**18))')
           jq -n --arg extra "$EXTRA" --arg treasury "$TREASURY" --arg balance "$BALANCE_HEX" '{config:{chainId:22027,berlinBlock:0,londonBlock:0,zeroBaseFee:true,qbft:{blockperiodseconds:3,epochlength:30000,requesttimeoutseconds:6}},nonce:"0x0",timestamp:"0x0",extraData:$extra,gasLimit:"0x1fffffffffffff",difficulty:"0x1",mixHash:"0x63746963616c2062797a616e74696e65206661756c7420746f6c6572616e6365",coinbase:"0x0000000000000000000000000000000000000000",alloc:{($treasury):{balance:$balance}},number:"0x0",gasUsed:"0x0",parentHash:"0x0000000000000000000000000000000000000000000000000000000000000000"}' > /tmp/kam/genesis.json
 
       - name: Start four QBFT validators
@@ -97,10 +100,7 @@ PY
           (( BLOCK >= 2 ))
           TREASURY=$(tr -d '\n\r' < /tmp/kam/keys/treasury.address)
           BALANCE=$(rpc "{\"jsonrpc\":\"2.0\",\"method\":\"eth_getBalance\",\"params\":[\"${TREASURY}\",\"latest\"],\"id\":1}" | jq -r '.result')
-          EXPECTED=$(python3 - <<'PY'
-print(hex(1_000_000_000 * 10**18))
-PY
-)
+          EXPECTED=$(python3 -c 'print(hex(1_000_000_000 * 10**18))')
           [[ "${BALANCE,,}" == "${EXPECTED,,}" ]]
           echo "KAM_TESTNET_CHAIN_ID=$CHAIN"
           echo "KAM_TESTNET_VALIDATORS=$VALIDATORS"
