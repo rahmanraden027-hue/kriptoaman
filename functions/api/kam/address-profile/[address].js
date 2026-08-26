@@ -9,19 +9,25 @@ const json = (body, status = 200) => new Response(JSON.stringify(body), {
   },
 });
 
+const profile = (username = null) => ({
+  user_profile: {
+    username,
+  },
+});
+
 export async function onRequestGet({ params }) {
   const address = String(params?.address || '').toLowerCase();
 
   if (!/^0x[a-f0-9]{40}$/.test(address)) {
-    return json({ username: null, verified: false }, 400);
+    return json(profile(null), 400);
   }
 
   if (address !== TREASURY_ADDRESS) {
-    return json({ username: null, verified: false });
+    return json(profile(null));
   }
 
   return json({
-    username: 'KAM Treasury — PT Kripto Aman Indonesia',
+    ...profile('KAM Treasury — PT Kripto Aman Indonesia'),
     label: 'KAM Treasury',
     organization: 'PT Kripto Aman Indonesia',
     category: 'Official Treasury',
