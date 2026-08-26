@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ExternalLink, LockKeyhole, Network, PieChart, ShieldCheck, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import KriptoAmanLogo from '../components/brand/KriptoAmanLogo';
@@ -18,6 +18,35 @@ function Card({ icon: Icon, title, children }) {
 }
 
 export default function KAMTokenomics() {
+  useEffect(() => {
+    const previousTitle = document.title;
+    document.title = 'KAM Tokenomics & Roadmap | KriptoAman';
+
+    let description = document.querySelector('meta[name="description"]');
+    const previousDescription = description?.getAttribute('content') || '';
+    if (!description) {
+      description = document.createElement('meta');
+      description.setAttribute('name', 'description');
+      document.head.appendChild(description);
+    }
+    description.setAttribute('content', 'Canonical KAM tokenomics, supply model, allocation, vesting, KriptoAman Mainnet identity, and strategic KAM roadmap.');
+
+    let canonical = document.querySelector('link[rel="canonical"]');
+    const previousCanonical = canonical?.getAttribute('href') || '';
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute('href', 'https://kriptoaman.com/KAMTokenomics');
+
+    return () => {
+      document.title = previousTitle;
+      if (previousDescription) description?.setAttribute('content', previousDescription);
+      if (previousCanonical) canonical?.setAttribute('href', previousCanonical);
+    };
+  }, []);
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 pb-24 pt-6 text-white">
       <div className="mx-auto max-w-5xl space-y-5">
@@ -25,6 +54,10 @@ export default function KAMTokenomics() {
           <div className="flex items-center gap-3"><KriptoAmanLogo size={44} /><div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-300">KAM ECONOMIC DOCUMENTATION</p><h1 className="mt-1 text-3xl font-black">KAM Tokenomics v1</h1></div></div>
           <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-300">Canonical public presentation of the approved KAM economic baseline. This page does not change genesis or chain state and does not declare a commercial mainnet launch, exchange listing, guaranteed liquidity, or guaranteed price.</p>
           <div className="mt-4 inline-flex rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1.5 text-[11px] font-bold text-amber-200">PRE-COMMERCIAL LAUNCH · SUPPLY REQUIRES FINAL ON-CHAIN RECONCILIATION</div>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Link to="/KAMGlobalRoadmap" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-sky-600 px-4 text-sm font-black text-white hover:bg-sky-500">View KAM Strategic Roadmap</Link>
+            <Link to="/KAMNetworkDocs" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-700 bg-slate-950/50 px-4 text-sm font-bold text-slate-200 hover:border-sky-400/40">Network Documentation</Link>
+          </div>
         </header>
 
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -56,11 +89,15 @@ export default function KAMTokenomics() {
           </Card>
         </div>
 
+        <section className="rounded-2xl border border-sky-400/20 bg-sky-500/5 p-5 text-sm leading-6 text-slate-200">
+          <strong>KAM Roadmap:</strong> the strategic roadmap tracks infrastructure, utility, wallet/registry access, transparent liquidity, adoption, global integrations, governance, and eventual market-based price discovery. <Link to="/KAMGlobalRoadmap" className="font-bold text-sky-300">Open the KAM Global Roadmap →</Link>
+        </section>
+
         <section className="rounded-2xl border border-amber-400/20 bg-amber-400/10 p-5 text-sm leading-6 text-amber-100">
           <strong>Verification notice:</strong> maximum supply, circulating supply and allocation data must match final production genesis/on-chain evidence before being represented to CoinGecko, CoinMarketCap, exchanges, wallets, or other third parties as verified supply data. This page must never be used to fabricate price, volume, liquidity, exchange relationships, or market activity.
         </section>
 
-        <div className="flex flex-wrap gap-3 text-xs"><Link to="/KAMNetworkDocs" className="text-sky-300">Network Docs</Link><Link to="/KAMNetwork" className="text-sky-300">Network Status</Link><a href="https://github.com/rahmanraden027-hue/kriptoaman/blob/main/docs/KAM_TOKENOMICS_V1.md" target="_blank" rel="noreferrer" className="text-sky-300">Canonical Tokenomics Document</a></div>
+        <div className="flex flex-wrap gap-3 text-xs"><Link to="/KAMGlobalRoadmap" className="text-sky-300">KAM Roadmap</Link><Link to="/KAMNetworkDocs" className="text-sky-300">Network Docs</Link><Link to="/KAMNetwork" className="text-sky-300">Network Status</Link><a href="https://github.com/rahmanraden027-hue/kriptoaman/blob/main/docs/KAM_TOKENOMICS_V1.md" target="_blank" rel="noreferrer" className="text-sky-300">Canonical Tokenomics Document</a></div>
       </div>
     </main>
   );
