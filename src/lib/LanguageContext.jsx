@@ -3,12 +3,32 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 const STORAGE_KEY = 'ka_language';
 const LanguageContext = createContext(null);
 
+function safeReadLanguage() {
+  try {
+    return window.localStorage?.getItem(STORAGE_KEY) || null;
+  } catch {
+    return null;
+  }
+}
+
+function safeWriteLanguage(value) {
+  try {
+    window.localStorage?.setItem(STORAGE_KEY, value);
+  } catch {
+    // Storage may be blocked by privacy mode/browser policy. Language still works in memory.
+  }
+}
+
 function initialLanguage() {
   if (typeof window === 'undefined') return 'id';
-  const stored = localStorage.getItem(STORAGE_KEY);
+  const stored = safeReadLanguage();
   if (stored === 'id' || stored === 'en') return stored;
   if (window.location.pathname === '/en') return 'en';
-  return navigator.language?.toLowerCase().startsWith('id') ? 'id' : 'en';
+  try {
+    return window.navigator?.language?.toLowerCase().startsWith('id') ? 'id' : 'en';
+  } catch {
+    return 'id';
+  }
 }
 
 export function LanguageProvider({ children }) {
@@ -16,12 +36,16 @@ export function LanguageProvider({ children }) {
 
   const setLanguage = (next) => {
     if (next !== 'id' && next !== 'en') return;
-    localStorage.setItem(STORAGE_KEY, next);
+    safeWriteLanguage(next);
     setLanguageState(next);
   };
 
   useEffect(() => {
-    document.documentElement.lang = language;
+    try {
+      document.documentElement.lang = language;
+    } catch {
+      // DOM metadata must never block application rendering.
+    }
   }, [language]);
 
   const value = useMemo(() => ({ language, setLanguage, isEnglish: language === 'en' }), [language]);
