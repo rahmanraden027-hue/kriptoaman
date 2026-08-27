@@ -83,7 +83,7 @@ const PublicKAMWithDocument = ({ Page }) => (
   </div>
 );
 
-const PUBLIC_PAGE_KEYS = new Set(['AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'RPCPrivacyPolicy', 'TermsOfService', 'AccountDeletion', 'Market', 'KAM', 'KAMDeveloper', 'KAMGlobalRoadmap', 'KAMLaunchReadiness', 'KAMNetwork', 'KAMNetworkDocs', 'KAMTokenomics']);
+const PUBLIC_PAGE_KEYS = new Set(['AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'RPCPrivacyPolicy', 'TermsOfService', 'AccountDeletion', 'Market', 'KAM', 'KAMCampaignNews', 'KAMDeveloper', 'KAMGlobalRoadmap', 'KAMLaunchReadiness', 'KAMNetwork', 'KAMNetworkDocs', 'KAMTokenomics']);
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ? <Layout currentPageName={currentPageName}>{children}</Layout> : <>{children}</>;
 
@@ -111,7 +111,8 @@ const AuthenticatedApp = () => {
             : path === 'KAM'
               ? <PublicKAMWithDocument Page={Page} />
               : <Page />;
-          return <Route key={path} path={`/${path}`} element={element} />;
+          const routePath = path === 'KAMCampaignNews' ? '/news/kam-campaign-2026' : `/${path}`;
+          return <Route key={path} path={routePath} element={element} />;
         })}
 
         <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
