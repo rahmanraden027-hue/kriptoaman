@@ -4,11 +4,16 @@ import test from 'node:test';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('service worker does not cache hashed UI chunks as stale fallbacks', async () => {
+test('service worker prevents stale app-shell navigation and only caches fingerprinted UI assets', async () => {
   const sw = await read('public/sw.js');
-  assert.match(sw, /KriptoAman Service Worker v2\.3\.3/);
-  assert.match(sw, /isHashedUiBundle/);
-  assert.match(sw, /event\.respondWith\(fetchWithDeadline\(new Request\(event\.request, \{ cache: 'no-store' \}\)\)\)/);
+  assert.match(sw, /KriptoAman Service Worker v2\.4\.0/);
+  assert.match(sw, /isImmutableAsset/);
+  assert.match(sw, /IMMUTABLE_CACHE/);
+  assert.match(sw, /request\.mode === 'navigate'/);
+  assert.match(sw, /new Request\(request, \{ cache: 'no-store' \}\)/);
+  assert.match(sw, /offlineNavigationResponse/);
+  assert.doesNotMatch(sw, /caches\.match\('\/index\.html'\)/);
+  assert.doesNotMatch(sw, /cache\.put\('\/index\.html'/);
 });
 
 test('app error boundary performs one-shot stale chunk recovery', async () => {

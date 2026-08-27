@@ -1,15 +1,18 @@
 /**
- * KriptoAman Service Worker v2.3.3
- * Strategy: fresh navigation + fresh UI bundles; cache only stable shell/data fallbacks.
+ * KriptoAman Service Worker v2.4.0
+ * Fail-safe policy:
+ * - navigation is always network-first and never falls back to a cached app shell
+ * - internal APIs are never cached by the service worker
+ * - failed precache entries can never block worker installation
+ * - only immutable fingerprinted assets use long-lived cache-first behavior
  */
 
-const STATIC_CACHE = 'kriptoaman-static-v2.3.3';
-const DATA_CACHE = 'kriptoaman-data-v4';
+const CACHE_PREFIX = 'kriptoaman-';
+const STATIC_CACHE = `${CACHE_PREFIX}static-v2.4.0`;
+const IMMUTABLE_CACHE = `${CACHE_PREFIX}immutable-v2.4.0`;
+const CURRENT_CACHES = new Set([STATIC_CACHE, IMMUTABLE_CACHE]);
 
-const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
+const OPTIONAL_STATIC_ASSETS = [
   '/kriptoaman-logo-primary.png',
   '/icons/kriptoaman-192.png',
   '/icons/kriptoaman-512.png',
@@ -17,13 +20,12 @@ const STATIC_ASSETS = [
   '/icons/kriptoaman-maskable-512.png',
 ];
 
-const API_DOMAINS = [
-  'api.binance.com',
-  'api.coingecko.com',
-  'api.coinlore.net',
-  'min-api.cryptocompare.com',
-  'api.exchangerate-api.com',
-];
+const APP_METADATA_PATHS = new Set([
+  '/sw.js',
+  '/manifest.json',
+  '/manifest.webmanifest',
+  '/deploy-version.json',
+]);
 
 const fetchWithDeadline = (request, timeoutMs = 10000) => {
   const controller = new AbortController();
@@ -31,91 +33,114 @@ const fetchWithDeadline = (request, timeoutMs = 10000) => {
   return fetch(request, { signal: controller.signal }).finally(() => clearTimeout(timeout));
 };
 
+const offlineNavigationResponse = () => new Response(
+  '<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Cache-Control" content="no-store"><title>KriptoAman — Koneksi Terputus</title></head><body style="margin:0;background:#050b14;color:#fff;font-family:system-ui,-apple-system,sans-serif;display:grid;min-height:100vh;place-items:center;padding:24px;box-sizing:border-box"><main style="max-width:420px;text-align:center"><h1 style="margin:0 0 12px">KriptoAman</h1><p style="color:#a8b3c7;line-height:1.6">Koneksi ke layanan belum tersedia. Tidak ada versi aplikasi lama yang digunakan. Periksa koneksi lalu coba lagi.</p><button onclick="location.reload()" style="margin-top:12px;border:0;border-radius:12px;background:#2563eb;color:#fff;padding:12px 18px;font-weight:700">Coba Lagi</button></main></body></html>',
+  {
+    status: 503,
+    statusText: 'Offline',
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-store',
+    },
+  },
+);
+
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(STATIC_CACHE)
-      .then(cache => cache.addAll(STATIC_ASSETS))
-      .then(() => self.skipWaiting())
-      .catch(err => console.warn('[SW] Install cache failed:', err))
-  );
+  event.waitUntil((async () => {
+    try {
+      const cache = await caches.open(STATIC_CACHE);
+      await Promise.allSettled(
+        OPTIONAL_STATIC_ASSETS.map(asset => cache.add(new Request(asset, { cache: 'reload' }))),
+      );
+    } catch (err) {
+      console.warn('[SW] Optional precache unavailable; install continues:', err);
+    } finally {
+      await self.skipWaiting();
+    }
+  })());
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(
-        keys
-          .filter(key => key !== STATIC_CACHE && key !== DATA_CACHE)
-          .map(key => caches.delete(key))
-      ))
-      .then(() => self.clients.claim())
-  );
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(
+      keys
+        .filter(key => key.startsWith(CACHE_PREFIX) && !CURRENT_CACHES.has(key))
+        .map(key => caches.delete(key)),
+    );
+    await self.clients.claim();
+  })());
+});
+
+self.addEventListener('message', (event) => {
+  if (event.origin !== self.location.origin) return;
+  if (event.data === 'SKIP_WAITING' || event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
+  const request = event.request;
+  if (request.method !== 'GET') return;
 
-  if (event.request.method !== 'GET') return;
+  const url = new URL(request.url);
   if (url.protocol === 'chrome-extension:') return;
-  if (url.pathname.startsWith('/api/auth/')) return;
 
-  if (event.request.mode === 'navigate') {
+  // The service worker must never become an availability or staleness layer for
+  // application APIs, authentication, RPC-like endpoints, or deployment metadata.
+  if (url.origin === self.location.origin && (
+    url.pathname.startsWith('/api/') ||
+    APP_METADATA_PATHS.has(url.pathname)
+  )) return;
+
+  if (request.mode === 'navigate') {
     event.respondWith(
-      fetchWithDeadline(new Request(event.request, { cache: 'no-store' }))
-        .then(response => {
-          if (response && response.ok) {
-            caches.open(STATIC_CACHE).then(cache => cache.put('/index.html', response.clone()));
-          }
-          return response;
-        })
-        .catch(async () => {
-          const cached = await caches.match('/index.html');
-          return cached || new Response(
-            '<!doctype html><html lang="id"><meta name="viewport" content="width=device-width"><title>KriptoAman Offline</title><body style="background:#050b14;color:white;font-family:system-ui;padding:32px"><h1>KriptoAman</h1><p>Aplikasi sedang offline. Coba kembali saat koneksi tersedia.</p></body></html>',
-            { headers: { 'Content-Type': 'text/html; charset=utf-8' } },
-          );
-        })
+      fetchWithDeadline(new Request(request, { cache: 'no-store' }), 12000)
+        .then(response => response)
+        .catch(() => offlineNavigationResponse()),
     );
     return;
   }
 
-  const isApiCall = API_DOMAINS.some(d => url.hostname.includes(d)) || url.pathname.startsWith('/api/');
-  if (isApiCall) {
-    event.respondWith(
-      fetchWithDeadline(event.request)
-        .then(response => {
-          if (response && response.status === 200) {
-            caches.open(DATA_CACHE).then(cache => cache.put(event.request, response.clone()));
-          }
-          return response;
-        })
-        .catch(() => caches.match(event.request))
-    );
+  const isSameOrigin = url.origin === self.location.origin;
+  const isImmutableAsset = isSameOrigin && url.pathname.startsWith('/assets/') && /-[A-Za-z0-9_-]{6,}\.(?:js|css|woff2?|png|jpe?g|webp|svg)$/i.test(url.pathname);
+
+  if (isImmutableAsset) {
+    event.respondWith((async () => {
+      const cache = await caches.open(IMMUTABLE_CACHE);
+      const cached = await cache.match(request);
+      if (cached) return cached;
+
+      const response = await fetchWithDeadline(request);
+      if (response && response.ok && response.type !== 'opaque') {
+        await cache.put(request, response.clone());
+      }
+      return response;
+    })());
     return;
   }
 
-  const isHashedUiBundle = url.origin === self.location.origin && url.pathname.startsWith('/assets/') && (
-    event.request.destination === 'script' ||
-    event.request.destination === 'style' ||
-    url.pathname.endsWith('.js') ||
-    url.pathname.endsWith('.css')
+  const isStableImage = isSameOrigin && request.destination === 'image' && (
+    url.pathname.startsWith('/icons/') || url.pathname === '/kriptoaman-logo-primary.png'
   );
 
-  if (isHashedUiBundle) {
-    // Hashed Vite chunks must never fall back to an old cached build.
-    // A stale HTML document requesting a removed chunk should fail fast so the app can recover.
-    event.respondWith(fetchWithDeadline(new Request(event.request, { cache: 'no-store' })));
+  if (isStableImage) {
+    event.respondWith((async () => {
+      const cache = await caches.open(STATIC_CACHE);
+      const cached = await cache.match(request);
+      if (cached) return cached;
+      const response = await fetchWithDeadline(request);
+      if (response && response.ok && response.type !== 'opaque') {
+        await cache.put(request, response.clone());
+      }
+      return response;
+    })());
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request)
-      .then(cached => cached || fetch(event.request).then(response => {
-        if (!response || response.status !== 200 || response.type === 'opaque') return response;
-        caches.open(STATIC_CACHE).then(cache => cache.put(event.request, response.clone()));
-        return response;
-      }))
-  );
+  // Everything else is network-first. Cache failure is never allowed to block
+  // a valid response and no generic response is persisted as an app-shell fallback.
+  event.respondWith(fetchWithDeadline(new Request(request, { cache: 'no-store' })));
 });
 
 self.addEventListener('push', (event) => {
@@ -128,8 +153,8 @@ self.addEventListener('push', (event) => {
     data: { url: data.url || '/' },
     actions: [
       { action: 'open', title: 'Buka App' },
-      { action: 'dismiss', title: 'Tutup' }
-    ]
+      { action: 'dismiss', title: 'Tutup' },
+    ],
   };
 
   event.waitUntil(self.registration.showNotification(data.title || 'KriptoAman', options));
@@ -146,7 +171,8 @@ self.addEventListener('notificationclick', (event) => {
           if (client.url === url && 'focus' in client) return client.focus();
         }
         if (clients.openWindow) return clients.openWindow(url);
-      })
+        return undefined;
+      }),
   );
 });
 
@@ -156,4 +182,4 @@ self.addEventListener('sync', (event) => {
   }
 });
 
-console.log('[SW] KriptoAman Service Worker v2.3.3 loaded');
+console.log('[SW] KriptoAman Service Worker v2.4.0 loaded');
