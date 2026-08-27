@@ -1,0 +1,38 @@
+name: WKAM Contract
+
+on:
+  pull_request:
+    paths:
+      - 'chain/kam-mainnet/trading/**'
+      - '.github/workflows/wkam-contract.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'chain/kam-mainnet/trading/**'
+      - '.github/workflows/wkam-contract.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: chain/kam-mainnet/trading
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - name: Format check
+        run: forge fmt --check
+      - name: Build
+        run: forge build --sizes
+      - name: Test
+        run: forge test -vvv
+      - name: Assert no deployment secret is required in CI
+        run: |
+          test -z "${DEPLOYER_PRIVATE_KEY:-}"
