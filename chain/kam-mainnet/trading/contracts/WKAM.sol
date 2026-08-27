@@ -37,7 +37,7 @@ contract WKAM {
         balanceOf[msg.sender] -= amount;
         totalSupply -= amount;
 
-        (bool ok, ) = payable(msg.sender).call{value: amount}("");
+        (bool ok,) = payable(msg.sender).call{value: amount}("");
         require(ok, "WKAM: native transfer failed");
 
         emit Withdrawal(msg.sender, amount);
