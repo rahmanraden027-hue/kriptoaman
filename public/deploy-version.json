@@ -1,5 +1,5 @@
 {
-  "release": "android-ui-safearea-market-nav",
-  "version": "2026-08-17.1",
-  "expected_commit": "6e2ce02d806ed4c1ded44bb56769ed9c2850241a"
+  "release": "landing-router-runtime-fix",
+  "version": "2026-08-27.1",
+  "expected_commit": "dbfd8946358471ccef62eda4f769b74cf6da7298"
 }
