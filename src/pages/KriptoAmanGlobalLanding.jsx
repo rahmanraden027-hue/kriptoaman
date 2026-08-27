@@ -6,6 +6,9 @@ import GLandingNews from '@/components/landing/GLandingNews';
 import GLandingBody from '@/components/landing/GLandingBody';
 import GLandingFooter from '@/components/landing/GLandingFooter';
 
+const HEALTH_REFRESH_MS = 60 * 1000;
+const HEALTH_TIMEOUT_MS = 12 * 1000;
+
 export default function KriptoAmanGlobalLanding() {
   const [dark, setDark] = useState(true);
   const [active, setActive] = useState('Beranda');
@@ -18,10 +21,27 @@ export default function KriptoAmanGlobalLanding() {
     networks: [],
     networkActiveCount: null,
     networkCheckedAt: null,
+    healthCheckedAt: null,
   });
 
   useEffect(() => {
-    (async () => {
+    let cancelled = false;
+
+    const fetchWithTimeout = async (url) => {
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), HEALTH_TIMEOUT_MS);
+      try {
+        return await fetch(url, {
+          cache: 'no-store',
+          headers: { Accept: 'application/json' },
+          signal: controller.signal,
+        });
+      } finally {
+        window.clearTimeout(timeoutId);
+      }
+    };
+
+    const refreshHealth = async () => {
       const next = {
         loading: false,
         marketAvailable: false,
@@ -31,12 +51,13 @@ export default function KriptoAmanGlobalLanding() {
         networks: [],
         networkActiveCount: null,
         networkCheckedAt: null,
+        healthCheckedAt: Date.now(),
       };
 
       const [marketResult, networkResult, kamResult] = await Promise.allSettled([
-        fetch('/api/market-snapshot?health=1', { cache: 'no-store', headers: { Accept: 'application/json' } }),
-        fetch('/api/network-health', { cache: 'no-store', headers: { Accept: 'application/json' } }),
-        fetch('/api/kam/network-status', { cache: 'no-store', headers: { Accept: 'application/json' } }),
+        fetchWithTimeout('/api/market-snapshot?health=1'),
+        fetchWithTimeout('/api/network-health'),
+        fetchWithTimeout('/api/kam/network-status'),
       ]);
 
       if (marketResult.status === 'fulfilled') {
@@ -49,7 +70,7 @@ export default function KriptoAmanGlobalLanding() {
             next.marketSource = payload.source || null;
           }
         } catch {
-          // The public landing remains usable when market health data is unavailable.
+          // Market health is optional. Landing access must never depend on this response.
         }
       }
 
@@ -62,7 +83,7 @@ export default function KriptoAmanGlobalLanding() {
             next.networkCheckedAt = payload.checked_at || null;
           }
         } catch {
-          // Public network coverage stays independent from KAM verification.
+          // Public network health is optional and cannot block the landing page.
         }
       }
 
@@ -86,12 +107,23 @@ export default function KriptoAmanGlobalLanding() {
             next.networkCheckedAt = payload.checkedAt || next.networkCheckedAt;
           }
         } catch {
-          // KAM is additive only; a KAM check failure never changes public network results.
+          // KAM is additive only; a KAM check failure never blocks public access.
         }
       }
 
-      setStats(next);
-    })();
+      if (!cancelled) setStats(next);
+    };
+
+    refreshHealth();
+    const refreshId = window.setInterval(refreshHealth, HEALTH_REFRESH_MS);
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') refreshHealth();
+    };
+    const onOnline = () => refreshHealth();
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('online', onOnline);
 
     const onScroll = () => {
       const sections = ['beranda', 'berita', 'fitur', 'keamanan', 'tentang', 'faq', 'kontak'];
@@ -104,7 +136,14 @@ export default function KriptoAmanGlobalLanding() {
       setActive(cur);
     };
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(refreshId);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('scroll', onScroll);
+    };
   }, []);
 
   return (
