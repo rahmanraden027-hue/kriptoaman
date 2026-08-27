@@ -12,7 +12,10 @@ contract MockToken {
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
-    constructor(string memory n, string memory s) { name = n; symbol = s; }
+    constructor(string memory n, string memory s) {
+        name = n;
+        symbol = s;
+    }
 
     function mint(address to, uint256 amount) external {
         totalSupply += amount;
