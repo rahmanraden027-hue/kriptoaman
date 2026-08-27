@@ -15,8 +15,11 @@ concurrency:
 jobs:
   monitor:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
       - name: Verify KriptoAman network-status contract
         shell: bash
         run: |
@@ -34,44 +37,19 @@ jobs:
           if (!Number.isInteger(Number(p.blockNumber)) || Number(p.blockNumber) < 0) process.exit(7);
           NODE
 
-      - name: Verify public RPC chain ID and block progress
+      - name: Run full public RPC and explorer security audit
         shell: bash
         run: |
           set -euo pipefail
-          RPC='https://rpc.kriptoaman.com'
-          rpc() {
-            curl --fail --silent --show-error --max-time 15 \
-              -H 'Content-Type: application/json' \
-              --data "$1" "$RPC"
-          }
+          mkdir -p artifacts
+          node chain/kam-mainnet/scripts/verify-public-endpoints.mjs \
+            2>&1 | tee artifacts/kam-mainnet-24x7-audit.json
 
-          CHAIN=$(rpc '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' | jq -r '.result // empty')
-          test "${CHAIN,,}" = '0x560c'
-
-          B1_HEX=$(rpc '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":2}' | jq -r '.result // empty')
-          test -n "$B1_HEX"
-          B1=$((16#${B1_HEX#0x}))
-          sleep 15
-          B2_HEX=$(rpc '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":3}' | jq -r '.result // empty')
-          test -n "$B2_HEX"
-          B2=$((16#${B2_HEX#0x}))
-
-          echo "KAM_CHAIN_ID=$CHAIN"
-          echo "KAM_BLOCK_START=$B1"
-          echo "KAM_BLOCK_END=$B2"
-          if (( B2 <= B1 )); then
-            echo 'KAM block height did not advance during the observation window.' >&2
-            exit 8
-          fi
-
-      - name: Probe explorer availability
-        shell: bash
-        run: |
-          set -euo pipefail
-          code=$(curl --location --silent --show-error --max-time 20 -o /dev/null -w '%{http_code}' \
-            'https://explorer.kriptoaman.com/' || true)
-          echo "KAM_EXPLORER_HTTP=$code"
-          case "$code" in
-            200|301|302|307|308) ;;
-            *) echo 'Explorer is not currently reachable; RPC verification remains the authoritative chain check.' ;;
-          esac
+      - name: Upload KAM monitoring evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: kam-mainnet-24x7-audit
+          path: artifacts/kam-mainnet-24x7-audit.json
+          if-no-files-found: error
+          retention-days: 30
