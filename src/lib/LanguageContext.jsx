@@ -25,7 +25,7 @@ function initialLanguage() {
   if (stored === 'id' || stored === 'en') return stored;
   if (window.location.pathname === '/en') return 'en';
   try {
-    return window.navigator?.language?.toLowerCase().startsWith('id') ? 'id' : 'en';
+    return navigator.language?.toLowerCase().startsWith('id') ? 'id' : 'en';
   } catch {
     return 'id';
   }
