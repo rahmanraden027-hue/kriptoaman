@@ -1,5 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ArrowLeft, CalendarDays, Globe2, Network, ShieldCheck, Sparkles } from 'lucide-react';
+
+const ARTICLE_URL = 'https://kriptoaman.com/news/kam-campaign-2026';
+const ARTICLE_TITLE = 'KriptoAman Memulai Kampanye Global KAM: Technology, Transparency & Verifiable Progress';
+const ARTICLE_DESCRIPTION = 'Kampanye KAM 2026 berfokus pada teknologi, transparansi Tokenomics v1, governance, kesiapan jaringan, dan milestone yang dapat diverifikasi.';
 
 const allocations = [
   ['Ecosystem & Development', '35%'],
@@ -10,7 +14,62 @@ const allocations = [
   ['Strategic Partnerships', '5%'],
 ];
 
+function upsertMeta(selector, attrs) {
+  let node = document.head.querySelector(selector);
+  if (!node) {
+    node = document.createElement('meta');
+    document.head.appendChild(node);
+  }
+  Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value));
+}
+
 export default function KAMCampaignNews() {
+  useEffect(() => {
+    const previousTitle = document.title;
+    document.title = `${ARTICLE_TITLE} | KriptoAman News`;
+
+    upsertMeta('meta[name="description"]', { name: 'description', content: ARTICLE_DESCRIPTION });
+    upsertMeta('meta[property="og:title"]', { property: 'og:title', content: ARTICLE_TITLE });
+    upsertMeta('meta[property="og:description"]', { property: 'og:description', content: ARTICLE_DESCRIPTION });
+    upsertMeta('meta[property="og:type"]', { property: 'og:type', content: 'article' });
+    upsertMeta('meta[property="og:url"]', { property: 'og:url', content: ARTICLE_URL });
+    upsertMeta('meta[name="twitter:card"]', { name: 'twitter:card', content: 'summary_large_image' });
+    upsertMeta('meta[name="twitter:title"]', { name: 'twitter:title', content: ARTICLE_TITLE });
+    upsertMeta('meta[name="twitter:description"]', { name: 'twitter:description', content: ARTICLE_DESCRIPTION });
+
+    let canonical = document.head.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute('href', ARTICLE_URL);
+
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.dataset.kriptoamanNews = 'kam-campaign-2026';
+    script.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'NewsArticle',
+      headline: ARTICLE_TITLE,
+      description: ARTICLE_DESCRIPTION,
+      datePublished: '2026-08-27T00:00:00+07:00',
+      dateModified: '2026-08-27T00:00:00+07:00',
+      mainEntityOfPage: ARTICLE_URL,
+      publisher: {
+        '@type': 'Organization',
+        name: 'KriptoAman',
+        url: 'https://kriptoaman.com',
+      },
+    });
+    document.head.appendChild(script);
+
+    return () => {
+      document.title = previousTitle;
+      script.remove();
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-slate-950 text-white">
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
@@ -23,9 +82,7 @@ export default function KAMCampaignNews() {
             <div className="inline-flex items-center gap-2 rounded-full border border-sky-400/25 bg-sky-400/10 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-sky-300">
               <Sparkles className="h-4 w-4" /> KriptoAman News
             </div>
-            <h1 className="mt-5 text-3xl font-black leading-tight sm:text-5xl">
-              KriptoAman Memulai Kampanye Global KAM: Technology, Transparency & Verifiable Progress
-            </h1>
+            <h1 className="mt-5 text-3xl font-black leading-tight sm:text-5xl">{ARTICLE_TITLE}</h1>
             <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
               Kampanye KAM 2026 berfokus pada edukasi teknologi, transparansi tokenomics, kesiapan jaringan, dan milestone yang dapat diverifikasi—bukan pada janji harga atau keuntungan.
             </p>
