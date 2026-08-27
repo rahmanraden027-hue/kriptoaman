@@ -5,7 +5,7 @@ const LanguageContext = createContext(null);
 
 function safeReadLanguage() {
   try {
-    return window.localStorage?.getItem(STORAGE_KEY) || null;
+    return localStorage.getItem(STORAGE_KEY) || null;
   } catch {
     return null;
   }
@@ -13,7 +13,7 @@ function safeReadLanguage() {
 
 function safeWriteLanguage(value) {
   try {
-    window.localStorage?.setItem(STORAGE_KEY, value);
+    localStorage.setItem(STORAGE_KEY, value);
   } catch {
     // Storage may be blocked by privacy mode/browser policy. Language still works in memory.
   }
