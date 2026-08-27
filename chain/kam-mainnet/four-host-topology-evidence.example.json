@@ -1,0 +1,41 @@
+{
+  "checkedAt": "2026-08-27T00:00:00Z",
+  "validators": [
+    {
+      "hostFingerprint": "sha256-redacted-host-1",
+      "validatorFingerprint": "sha256-redacted-validator-1",
+      "failureDomain": "domain-a",
+      "persistentStorage": true,
+      "timeSync": true,
+      "managementRpcPrivate": true
+    },
+    {
+      "hostFingerprint": "sha256-redacted-host-2",
+      "validatorFingerprint": "sha256-redacted-validator-2",
+      "failureDomain": "domain-b",
+      "persistentStorage": true,
+      "timeSync": true,
+      "managementRpcPrivate": true
+    },
+    {
+      "hostFingerprint": "sha256-redacted-host-3",
+      "validatorFingerprint": "sha256-redacted-validator-3",
+      "failureDomain": "domain-c",
+      "persistentStorage": true,
+      "timeSync": true,
+      "managementRpcPrivate": true
+    },
+    {
+      "hostFingerprint": "sha256-redacted-host-4",
+      "validatorFingerprint": "sha256-redacted-validator-4",
+      "failureDomain": "domain-d",
+      "persistentStorage": true,
+      "timeSync": true,
+      "managementRpcPrivate": true
+    }
+  ],
+  "rpcSentry": {
+    "hostFingerprint": "sha256-redacted-rpc-sentry",
+    "separateFromValidators": true
+  }
+}
