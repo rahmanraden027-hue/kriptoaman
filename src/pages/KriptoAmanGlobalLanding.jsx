@@ -48,7 +48,9 @@ export default function KriptoAmanGlobalLanding() {
             next.lastUpdated = Number(payload.capturedAt) || null;
             next.marketSource = payload.source || null;
           }
-        } catch {}
+        } catch {
+          // The public landing remains usable when market health data is unavailable.
+        }
       }
 
       if (networkResult.status === 'fulfilled') {
@@ -59,7 +61,9 @@ export default function KriptoAmanGlobalLanding() {
             next.networkActiveCount = Number(payload?.summary?.online) || 0;
             next.networkCheckedAt = payload.checked_at || null;
           }
-        } catch {}
+        } catch {
+          // Public network coverage stays independent from KAM verification.
+        }
       }
 
       if (kamResult.status === 'fulfilled') {
@@ -71,7 +75,9 @@ export default function KriptoAmanGlobalLanding() {
             next.networkActiveCount = (Number(next.networkActiveCount) || 0) + 1;
             next.networkCheckedAt = payload.checkedAt || next.networkCheckedAt;
           }
-        } catch {}
+        } catch {
+          // KAM is additive only; a KAM check failure never changes public network results.
+        }
       }
 
       setStats(next);
