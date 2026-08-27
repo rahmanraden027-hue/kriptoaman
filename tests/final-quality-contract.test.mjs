@@ -32,11 +32,14 @@ test('home defers non-critical panels and exposes stable loading fallbacks', asy
   assert.match(home, /DeferredFallback/);
 });
 
-test('service worker final cache has an independent offline document', async () => {
+test('service worker navigation fails safe without a cached app shell', async () => {
   const worker = await read('public/sw.js');
-  assert.match(worker, /Service Worker v2\.3\.3/);
-  assert.match(worker, /kriptoaman-static-v2\.3\.3/);
+  assert.match(worker, /Service Worker v2\.4\.0/);
+  assert.match(worker, /Promise\.allSettled/);
   assert.match(worker, /cache: 'no-store'/);
-  assert.match(worker, /KriptoAman Offline/);
+  assert.match(worker, /offlineNavigationResponse/);
+  assert.match(worker, /status: 503/);
   assert.match(worker, /Content-Type.*text\/html/);
+  assert.doesNotMatch(worker, /caches\.match\('\/index\.html'\)/);
+  assert.doesNotMatch(worker, /cache\.put\('\/index\.html'/);
 });
