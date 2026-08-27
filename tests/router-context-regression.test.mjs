@@ -26,3 +26,9 @@ test('PWA install prompt continues to use the router location contract', async (
   assert.match(source, /import \{ useLocation \} from 'react-router-dom'/);
   assert.match(source, /const \{ pathname \} = useLocation\(\)/);
 });
+
+test('normal public landing exposes a browser-smoke readiness marker', async () => {
+  const source = await read('src/pages/KriptoAmanGlobalLanding.jsx');
+  assert.match(source, /data-ka-public-landing="ready"/);
+  assert.doesNotMatch(source, /data-ka-safe-public/);
+});
