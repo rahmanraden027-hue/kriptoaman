@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 
+const SW_RELOAD_GUARD = 'ka_sw_controller_reload_once';
+
 export function usePWAInitializer() {
   const [swReady, setSwReady] = useState(false);
   const [updateAvailable, setUpdateAvailable] = useState(false);
@@ -10,12 +12,14 @@ export function usePWAInitializer() {
 
     let reg;
     let updateInterval;
-    let reloading = false;
+    let disposed = false;
 
     const checkForUpdate = async () => {
       try {
         if (reg) await reg.update();
       } catch (err) {
+        // Service-worker maintenance must always fail open. The application stays usable
+        // even when update checks are unavailable.
         console.warn('Service Worker update check failed:', err);
       }
     };
@@ -27,13 +31,13 @@ export function usePWAInitializer() {
           updateViaCache: 'none',
         });
 
+        if (disposed) return;
         setSwReady(true);
         console.log('Service Worker registered:', reg);
 
-        // Always check immediately when the app starts. This is important for
-        // installed Android PWAs that may otherwise continue using an old UI bundle.
-        await reg.update();
-
+        // Fetch the worker directly from the network. Registration/update failure never
+        // blocks application startup or rendering.
+        checkForUpdate();
         updateInterval = window.setInterval(checkForUpdate, 5 * 60 * 1000);
 
         reg.addEventListener('updatefound', () => {
@@ -41,7 +45,7 @@ export function usePWAInitializer() {
           if (!newWorker) return;
 
           newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'activated') {
+            if (newWorker.state === 'activated' && !disposed) {
               setUpdateAvailable(true);
               base44.analytics.track({
                 eventName: 'pwa_update_available',
@@ -51,12 +55,11 @@ export function usePWAInitializer() {
           });
         });
       } catch (err) {
-        console.error('Service Worker registration failed:', err);
+        // PWA capability is optional. A registration failure must never prevent web access.
+        console.warn('Service Worker registration unavailable; continuing without PWA cache:', err);
       }
     };
 
-    // If the component mounts after window.load has already fired, register
-    // immediately instead of waiting for an event that will never fire again.
     if (document.readyState === 'complete') {
       registerWorker();
     } else {
@@ -68,10 +71,22 @@ export function usePWAInitializer() {
       if (document.visibilityState === 'visible') checkForUpdate();
     };
     const onControllerChange = () => {
-      if (reloading) return;
-      reloading = true;
-      console.log('New Service Worker activated; refreshing UI');
-      window.location.reload();
+      // One controlled refresh adopts the new worker. A session guard prevents a broken
+      // worker or browser quirk from creating an infinite reload loop.
+      try {
+        if (window.sessionStorage.getItem(SW_RELOAD_GUARD) === '1') {
+          setUpdateAvailable(true);
+          return;
+        }
+        window.sessionStorage.setItem(SW_RELOAD_GUARD, '1');
+      } catch {
+        setUpdateAvailable(true);
+        return;
+      }
+
+      const url = new URL(window.location.href);
+      url.searchParams.set('ka_sw_update', Date.now().toString());
+      window.location.replace(url.toString());
     };
 
     window.addEventListener('focus', onFocus);
@@ -79,6 +94,7 @@ export function usePWAInitializer() {
     navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
 
     return () => {
+      disposed = true;
       window.removeEventListener('load', registerWorker);
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibilityChange);
@@ -159,7 +175,12 @@ export function PWAUpdateNotification() {
           <p className="text-sm text-blue-100">Aplikasi akan diperbarui saat halaman dimuat ulang</p>
         </div>
         <button
-          onClick={() => window.location.reload()}
+          onClick={() => {
+            try { window.sessionStorage.removeItem(SW_RELOAD_GUARD); } catch { /* ignore */ }
+            const url = new URL(window.location.href);
+            url.searchParams.set('ka_manual_update', Date.now().toString());
+            window.location.replace(url.toString());
+          }}
           className="ml-4 bg-white text-blue-600 px-4 py-2 rounded font-medium hover:bg-blue-50"
         >
           Perbarui
