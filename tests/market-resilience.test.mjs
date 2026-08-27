@@ -22,7 +22,7 @@ test('market providers use bounded requests and automatic recovery events', asyn
   assert.match(source, /addEventListener\('online'/);
   assert.match(source, /visibilitychange/);
   for (const provider of ['coinlore', 'coingecko', 'cryptocompare']) {
-    assert.match(source, new RegExp(provider));
+    assert.ok(source.includes(provider), `expected market provider ${provider}`);
   }
 });
 
@@ -31,11 +31,15 @@ test('service worker cannot become a stale market or internal API layer', async 
   assert.match(source, /url\.pathname\.startsWith\('\/api\/'\)/);
   assert.match(source, /APP_METADATA_PATHS\.has\(url\.pathname\)/);
   assert.match(source, /fetchWithDeadline/);
-  assert.doesNotMatch(source, /DATA_CACHE/);
-  assert.doesNotMatch(source, /api\.coinlore\.net/);
-  assert.doesNotMatch(source, /api\.coingecko\.com/);
-  assert.doesNotMatch(source, /min-api\.cryptocompare\.com/);
-  assert.doesNotMatch(source, /api\.exchangerate-api\.com/);
+  assert.ok(!source.includes('DATA_CACHE'));
+  for (const domain of [
+    'api.coinlore.net',
+    'api.coingecko.com',
+    'min-api.cryptocompare.com',
+    'api.exchangerate-api.com',
+  ]) {
+    assert.ok(!source.includes(domain), `service worker must not cache ${domain}`);
+  }
 });
 
 test('live prices and market UI expose persistent fallback state', async () => {
