@@ -48,20 +48,26 @@ export default function KAMTokenomics() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 pb-24 pt-6 text-white">
+    <main className="min-h-screen overflow-x-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 pb-40 pt-6 text-white sm:pb-28">
       <div className="mx-auto max-w-5xl space-y-5">
-        <header className="rounded-[28px] border border-sky-400/20 bg-sky-500/5 p-6 sm:p-8">
-          <div className="flex items-center gap-3"><KriptoAmanLogo size={44} /><div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-300">KAM ECONOMIC DOCUMENTATION</p><h1 className="mt-1 text-3xl font-black">KAM Tokenomics v1</h1></div></div>
-          <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-300">Canonical public presentation of the approved KAM economic baseline. This page does not change genesis or chain state and does not declare a commercial mainnet launch, exchange listing, guaranteed liquidity, or guaranteed price.</p>
-          <div className="mt-4 inline-flex rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1.5 text-[11px] font-bold text-amber-200">PRE-COMMERCIAL LAUNCH · SUPPLY REQUIRES FINAL ON-CHAIN RECONCILIATION</div>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Link to="/KAMGlobalRoadmap" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-sky-600 px-4 text-sm font-black text-white hover:bg-sky-500">View KAM Strategic Roadmap</Link>
-            <Link to="/KAMNetworkDocs" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-700 bg-slate-950/50 px-4 text-sm font-bold text-slate-200 hover:border-sky-400/40">Network Documentation</Link>
+        <header className="overflow-hidden rounded-[28px] border border-sky-400/20 bg-sky-500/5 p-5 sm:p-8">
+          <div className="flex min-w-0 flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-4">
+            <KriptoAmanLogo size={44} textSize="text-base sm:text-lg" className="max-w-full shrink-0" />
+            <div className="min-w-0 max-w-full">
+              <p className="break-words text-[10px] font-black uppercase tracking-[0.15em] text-sky-300 sm:tracking-[0.18em]">KAM ECONOMIC DOCUMENTATION</p>
+              <h1 className="mt-1 max-w-full break-words text-[clamp(1.85rem,9vw,3rem)] font-black leading-[1.05] tracking-tight">KAM Tokenomics v1</h1>
+            </div>
+          </div>
+          <p className="mt-5 max-w-3xl text-sm leading-6 text-slate-300">Canonical public presentation of the approved KAM economic baseline. This page does not change genesis or chain state and does not declare a commercial mainnet launch, exchange listing, guaranteed liquidity, or guaranteed price.</p>
+          <div className="mt-4 inline-flex max-w-full rounded-2xl border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-[10px] font-bold leading-5 text-amber-200 sm:rounded-full sm:text-[11px]">PRE-COMMERCIAL LAUNCH · SUPPLY REQUIRES FINAL ON-CHAIN RECONCILIATION</div>
+          <div className="mt-5 grid gap-3 sm:flex sm:flex-wrap">
+            <Link to="/KAMGlobalRoadmap" className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-sky-600 px-4 text-center text-sm font-black text-white hover:bg-sky-500 sm:w-auto">View KAM Strategic Roadmap</Link>
+            <Link to="/KAMNetworkDocs" className="inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-slate-700 bg-slate-950/50 px-4 text-center text-sm font-bold text-slate-200 hover:border-sky-400/40 sm:w-auto">Network Documentation</Link>
           </div>
         </header>
 
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[['Maximum supply','1,000,000,000 KAM'],['Target initial circulating','50,000,000 KAM'],['Initial circulating target','5%'],['Decimals','18']].map(([label,value]) => <div key={label} className="rounded-2xl border border-slate-700/50 bg-slate-900/50 p-5"><p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{label}</p><p className="mt-2 text-xl font-black text-white">{value}</p></div>)}
+          {[['Maximum supply','1,000,000,000 KAM'],['Target initial circulating','50,000,000 KAM'],['Initial circulating target','5%'],['Decimals','18']].map(([label,value]) => <div key={label} className="min-w-0 rounded-2xl border border-slate-700/50 bg-slate-900/50 p-5"><p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{label}</p><p className="mt-2 break-words text-xl font-black text-white">{value}</p></div>)}
         </section>
 
         <section className="overflow-hidden rounded-2xl border border-slate-700/50 bg-slate-900/50">
