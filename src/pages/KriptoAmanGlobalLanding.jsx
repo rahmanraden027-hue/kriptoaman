@@ -98,7 +98,7 @@ export default function KriptoAmanGlobalLanding() {
   }, []);
 
   return (
-    <div className={`ka-landing min-h-screen ${dark ? '' : 'light'} overflow-x-hidden`}>
+    <div data-ka-public-landing="ready" className={`ka-landing min-h-screen ${dark ? '' : 'light'} overflow-x-hidden`}>
       <GlobalLandingStyles />
       <GLandingHeader dark={dark} onToggleTheme={() => setDark((d) => !d)} active={active} />
       <main>

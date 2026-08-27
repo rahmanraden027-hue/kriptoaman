@@ -139,7 +139,21 @@ const AuthenticatedApp = () => {
 
 function App() {
   return (
-    <LanguageProvider><AuthProvider><QueryClientProvider client={queryClientInstance}><Router><NavigationTracker /><NativeConnectivityBanner /><AppErrorBoundary><AuthenticatedApp /></AppErrorBoundary></Router><Toaster /><PWAInstallPrompt /></QueryClientProvider></AuthProvider></LanguageProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <QueryClientProvider client={queryClientInstance}>
+          <Router>
+            <NavigationTracker />
+            <NativeConnectivityBanner />
+            <AppErrorBoundary>
+              <AuthenticatedApp />
+              <PWAInstallPrompt />
+            </AppErrorBoundary>
+          </Router>
+          <Toaster />
+        </QueryClientProvider>
+      </AuthProvider>
+    </LanguageProvider>
   )
 }
 
