@@ -71,17 +71,7 @@ export default function KriptoAmanGlobalLanding() {
           const payload = await kamResult.value.json();
           const kamVerified = kamResult.value.ok && payload?.verified === true && Number(payload?.chainId) === 22028;
           if (kamVerified) {
-            next.networks = [
-              ...next.networks,
-              {
-                name: 'KAM Network',
-                symbol: 'KAM',
-                status: 'online',
-                verification: 'rpc-chain-id',
-                chainId: 22028,
-                blockNumber: payload.blockNumber ?? null,
-              },
-            ];
+            next.networks = [...next.networks, { name: 'KAM Network', symbol: 'KAM', status: 'online', verification: 'rpc-chain-id', chainId: 22028, blockNumber: payload.blockNumber ?? null }];
             next.networkActiveCount = (Number(next.networkActiveCount) || 0) + 1;
             next.networkCheckedAt = payload.checkedAt || next.networkCheckedAt;
           }
@@ -108,7 +98,7 @@ export default function KriptoAmanGlobalLanding() {
   }, []);
 
   return (
-    <div className={`ka-landing min-h-screen ${dark ? '' : 'light'} overflow-x-hidden`}>
+    <div data-ka-public-landing="ready" className={`ka-landing min-h-screen ${dark ? '' : 'light'} overflow-x-hidden`}>
       <GlobalLandingStyles />
       <GLandingHeader dark={dark} onToggleTheme={() => setDark((d) => !d)} active={active} />
       <main>
