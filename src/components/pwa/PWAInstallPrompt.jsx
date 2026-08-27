@@ -3,7 +3,14 @@ import { Download, Share2, X } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
 function isStandalone() {
-  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  try {
+    const displayMode = typeof window.matchMedia === 'function'
+      ? window.matchMedia('(display-mode: standalone)').matches
+      : false;
+    return displayMode || window.navigator?.standalone === true;
+  } catch {
+    return false;
+  }
 }
 
 export default function PWAInstallPrompt() {
@@ -12,12 +19,21 @@ export default function PWAInstallPrompt() {
   const [showIosHelp, setShowIosHelp] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const { pathname } = useLocation();
-  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  let isIos = false;
+  try {
+    isIos = /iphone|ipad|ipod/i.test(window.navigator?.userAgent || '');
+  } catch {
+    isIos = false;
+  }
   const isPublicKamDocument = pathname.startsWith('/KAM') || pathname.startsWith('/news/');
 
   useEffect(() => {
-    if ('serviceWorker' in navigator && import.meta.env.PROD) {
-      navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
+    try {
+      if ('serviceWorker' in navigator && import.meta.env.PROD) {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
+      }
+    } catch {
+      // PWA capability is optional and must never block the website.
     }
 
     const handlePrompt = (event) => {
@@ -48,10 +64,14 @@ export default function PWAInstallPrompt() {
       setShowIosHelp(true);
       return;
     }
-    await installEvent.prompt();
-    const choice = await installEvent.userChoice;
-    if (choice.outcome === 'accepted') setInstalled(true);
-    setInstallEvent(null);
+    if (!installEvent?.prompt) return;
+    try {
+      await installEvent.prompt();
+      const choice = await installEvent.userChoice;
+      if (choice?.outcome === 'accepted') setInstalled(true);
+    } finally {
+      setInstallEvent(null);
+    }
   };
 
   return (
