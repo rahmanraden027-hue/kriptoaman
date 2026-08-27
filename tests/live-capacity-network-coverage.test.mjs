@@ -19,6 +19,14 @@ test('network health probes a broad multi-chain set and reports live status only
   assert.doesNotMatch(health, /Math\.random/);
 });
 
+test('Base health check has an independent third provider for rate-limit recovery', async () => {
+  const health = await read('functions/api/network-health.js');
+  const baseConfig = health.match(/name: 'Base'[\s\S]*?\n\s*},/i)?.[0] || '';
+  assert.ok(baseConfig.includes("'https://mainnet.base.org'"));
+  assert.ok(baseConfig.includes("'https://base-rpc.publicnode.com'"));
+  assert.ok(baseConfig.includes("'https://base-mainnet.public.blastapi.io'"));
+});
+
 test('public landing uses internal live health results for asset and network counts', async () => {
   const [page, body] = await Promise.all([
     read('src/pages/KriptoAmanGlobalLanding.jsx'),

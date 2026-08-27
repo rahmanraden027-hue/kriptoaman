@@ -5,7 +5,15 @@ const NETWORKS = [
   { name: 'Polygon', type: 'evm', urls: ['https://polygon-bor-rpc.publicnode.com', 'https://polygon.drpc.org'] },
   { name: 'Arbitrum', type: 'evm', urls: ['https://arb1.arbitrum.io/rpc', 'https://arbitrum-one-rpc.publicnode.com'] },
   { name: 'Optimism', type: 'evm', urls: ['https://mainnet.optimism.io', 'https://optimism-rpc.publicnode.com'] },
-  { name: 'Base', type: 'evm', urls: ['https://mainnet.base.org', 'https://base-rpc.publicnode.com'] },
+  {
+    name: 'Base',
+    type: 'evm',
+    urls: [
+      'https://mainnet.base.org',
+      'https://base-rpc.publicnode.com',
+      'https://base-mainnet.public.blastapi.io',
+    ],
+  },
   { name: 'Avalanche', type: 'evm', urls: ['https://api.avax.network/ext/bc/C/rpc', 'https://avalanche-c-chain-rpc.publicnode.com'] },
   { name: 'Gnosis', type: 'evm', urls: ['https://rpc.gnosischain.com', 'https://gnosis-rpc.publicnode.com'] },
   { name: 'Celo', type: 'evm', urls: ['https://forno.celo.org', 'https://celo-rpc.publicnode.com'] },
