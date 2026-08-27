@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import GlobalLandingStyles from '@/components/landing/GlobalLandingStyles';
 import GLandingHeader from '@/components/landing/GLandingHeader';
 import GLandingHero from '@/components/landing/GLandingHero';
+import GLandingNews from '@/components/landing/GLandingNews';
 import GLandingBody from '@/components/landing/GLandingBody';
 import GLandingFooter from '@/components/landing/GLandingFooter';
 
@@ -93,8 +94,8 @@ export default function KriptoAmanGlobalLanding() {
     })();
 
     const onScroll = () => {
-      const sections = ['beranda', 'fitur', 'keamanan', 'tentang', 'faq', 'kontak'];
-      const labels = ['Beranda', 'Fitur', 'Keamanan', 'Tentang Kami', 'FAQ', 'Kontak'];
+      const sections = ['beranda', 'berita', 'fitur', 'keamanan', 'tentang', 'faq', 'kontak'];
+      const labels = ['Beranda', 'Berita', 'Fitur', 'Keamanan', 'Tentang Kami', 'FAQ', 'Kontak'];
       let cur = 'Beranda';
       for (let i = 0; i < sections.length; i++) {
         const el = document.getElementById(sections[i]);
@@ -112,6 +113,7 @@ export default function KriptoAmanGlobalLanding() {
       <GLandingHeader dark={dark} onToggleTheme={() => setDark((d) => !d)} active={active} />
       <main>
         <GLandingHero />
+        <GLandingNews />
         <GLandingBody stats={stats} />
       </main>
       <GLandingFooter />
