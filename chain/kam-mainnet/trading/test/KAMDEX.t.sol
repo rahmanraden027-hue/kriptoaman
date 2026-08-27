@@ -67,9 +67,8 @@ contract KAMDEXTest {
         KAMPair(pair).approve(address(router), liquidity);
         uint256 aBefore = tokenA.balanceOf(address(this));
         uint256 bBefore = tokenB.balanceOf(address(this));
-        (uint256 amountA, uint256 amountB) = router.removeLiquidity(
-            address(tokenA), address(tokenB), liquidity, 1, 1, address(this)
-        );
+        (uint256 amountA, uint256 amountB) =
+            router.removeLiquidity(address(tokenA), address(tokenB), liquidity, 1, 1, address(this));
         require(amountA > 0 && amountB > 0, "no assets returned");
         require(tokenA.balanceOf(address(this)) > aBefore, "A not returned");
         require(tokenB.balanceOf(address(this)) > bBefore, "B not returned");
