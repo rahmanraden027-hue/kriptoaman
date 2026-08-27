@@ -22,9 +22,9 @@ test('network health probes a broad multi-chain set and reports live status only
 test('Base health check has an independent third provider for rate-limit recovery', async () => {
   const health = await read('functions/api/network-health.js');
   const baseConfig = health.match(/name: 'Base'[\s\S]*?\n\s*},/i)?.[0] || '';
-  assert.match(baseConfig, /https:\/\/mainnet\.base\.org/);
-  assert.match(baseConfig, /https:\/\/base-rpc\.publicnode\.com/);
-  assert.match(baseConfig, /https:\/\/base-mainnet\.public\.blastapi\.io/);
+  assert.ok(baseConfig.includes("'https://mainnet.base.org'"));
+  assert.ok(baseConfig.includes("'https://base-rpc.publicnode.com'"));
+  assert.ok(baseConfig.includes("'https://base-mainnet.public.blastapi.io'"));
 });
 
 test('public landing uses internal live health results for asset and network counts', async () => {
