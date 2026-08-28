@@ -16,7 +16,7 @@ export default function KriptoAmanGlobalLanding() {
     assetCount: null,
     marketSource: null,
     networks: [],
-    networkActiveCount: null,
+    networkActiveCount: undefined,
     networkCheckedAt: null,
   });
 
@@ -29,7 +29,7 @@ export default function KriptoAmanGlobalLanding() {
         assetCount: null,
         marketSource: null,
         networks: [],
-        networkActiveCount: null,
+        networkActiveCount: undefined,
         networkCheckedAt: null,
       };
 
