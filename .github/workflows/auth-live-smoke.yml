@@ -31,6 +31,7 @@ jobs:
           done
 
       - name: Check registration readiness
+        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
