@@ -1,0 +1,106 @@
+name: Auth Live Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '37 * * * *'
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  auth-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check public auth pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in login register forgot-password; do
+            code="$(curl --fail-with-body --location --silent --show-error \
+              --connect-timeout 10 --max-time 25 \
+              -o "/tmp/${path}.html" -w '%{http_code}' \
+              "https://kriptoaman.com/${path}")"
+            test "$code" = "200"
+          done
+
+      - name: Check unauthenticated session contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          headers="$(mktemp)"
+          body="$(mktemp)"
+          code="$(curl --location --silent --show-error \
+            --connect-timeout 10 --max-time 25 \
+            -D "$headers" -o "$body" -w '%{http_code}' \
+            https://kriptoaman.com/api/auth/me)"
+          test "$code" = "401"
+          grep -qi '^cache-control:.*no-store' "$headers"
+          node - "$body" <<'NODE'
+          const fs = require('fs');
+          const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          if (payload.authenticated !== false) process.exit(1);
+          NODE
+
+      - name: Check logout endpoint contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          headers="$(mktemp)"
+          code="$(curl --silent --show-error \
+            --connect-timeout 10 --max-time 25 \
+            -X POST \
+            -H 'Origin: https://kriptoaman.com' \
+            -H 'Referer: https://kriptoaman.com/settings' \
+            -D "$headers" -o /tmp/logout-body -w '%{http_code}' \
+            https://kriptoaman.com/api/auth/logout)"
+          test "$code" = "204"
+          grep -qi '^cache-control:.*no-store' "$headers"
+          grep -qi '^set-cookie:' "$headers"
+
+      - name: Re-check session after logout
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          code="$(curl --location --silent --show-error \
+            --connect-timeout 10 --max-time 25 \
+            -o "$body" -w '%{http_code}' \
+            https://kriptoaman.com/api/auth/me)"
+          test "$code" = "401"
+          node - "$body" <<'NODE'
+          const fs = require('fs');
+          const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          if (payload.authenticated !== false) process.exit(1);
+          NODE
+
+      - name: Publish auth live-site commit status
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JOB_STATUS: ${{ job.status }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          REPO: ${{ github.repository }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          state="failure"
+          description="Live production auth smoke failed"
+          if [ "$JOB_STATUS" = "success" ]; then
+            state="success"
+            description="Live production auth smoke passed"
+          fi
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$REPO/statuses/$SHA" \
+            -d "{\"state\":\"$state\",\"context\":\"kriptoaman/auth-live-smoke\",\"description\":\"$description\",\"target_url\":\"$RUN_URL\"}" >/dev/null
