@@ -1,0 +1,54 @@
+name: Access Resilience
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 * * * *'
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  access-resilience:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PRIMARY_ORIGIN: https://kriptoaman.com
+      SECONDARY_ORIGIN: ${{ vars.SECONDARY_ORIGIN }}
+      REQUIRE_SECONDARY: ${{ vars.REQUIRE_SECONDARY_ORIGIN || 'false' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify primary and standby access
+        run: node scripts/check-access-resilience.mjs
+
+      - name: Publish access resilience status
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JOB_STATUS: ${{ job.status }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          REPO: ${{ github.repository }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          state="failure"
+          description="Web/auth resilience verification failed"
+          if [ "$JOB_STATUS" = "success" ]; then
+            state="success"
+            description="Web/auth resilience verification passed"
+          fi
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$REPO/statuses/$SHA" \
+            -d "{\"state\":\"$state\",\"context\":\"kriptoaman/access-resilience\",\"description\":\"$description\",\"target_url\":\"$RUN_URL\"}" >/dev/null
