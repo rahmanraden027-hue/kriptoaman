@@ -1,0 +1,36 @@
+{
+  "network": "KriptoAman Mainnet",
+  "chainId": 22028,
+  "rpc": "https://rpc.kriptoaman.com",
+  "explorer": "https://explorer.kriptoaman.com",
+  "deploymentStatus": "factory-router-wkam-verified-no-pool-yet",
+  "wkam": {
+    "address": "0x0d8848CE88BB09a81a4248Efdd574d50B98b544A",
+    "symbol": "WKAM",
+    "decimals": 18,
+    "deploymentBlock": 240024,
+    "deploymentTransaction": "0x571063f1f9d031ac9ae6f22b861ff6766c5c6ee78b2d49d0b93e151acde0e7cf"
+  },
+  "factory": {
+    "address": "0xFA4142d4968ed7A8356F543aDFaC5D5f72CEB260",
+    "deploymentBlock": 240866,
+    "deploymentTransaction": "0xb9d405db2f170f30ce043234ccace9d83e748f9ada0e31797a6787140352e711",
+    "receiptStatus": 1,
+    "runtimeBytesObserved": 7609,
+    "allPairsLengthAfterDeployment": 0
+  },
+  "router": {
+    "address": "0xA7E848d18c17fFf3355684F2BA62eC67599A63cD",
+    "deploymentBlock": 240952,
+    "deploymentTransaction": "0x2e6b48779abebd01cec6f5a03b290c401e4847b8a59d9413b532cc1e074b027a",
+    "receiptStatus": 1,
+    "runtimeBytesObserved": 8456,
+    "factoryObserved": "0xFA4142d4968ed7A8356F543aDFaC5D5f72CEB260",
+    "wkamObserved": "0x0d8848CE88BB09a81a4248Efdd574d50B98b544A"
+  },
+  "liquidity": {
+    "poolCreated": false,
+    "quoteAsset": null,
+    "note": "Do not create a KAM/WKAM pool. A production pool must pair WKAM with a legitimate ERC-20 quote asset. Do not deploy or represent an unbacked token as USDT or USDC."
+  }
+}
