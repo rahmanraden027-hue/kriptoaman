@@ -10,6 +10,10 @@ export default function PaperTradingMobilePolish() {
         }
 
         @media (max-width: 639px) {
+          .ka-global-shell:has(.ka-paper-trading-polish) > .h-8 {
+            height: 0.25rem !important;
+          }
+
           .ka-paper-trading-polish > .min-h-screen > .max-w-7xl {
             gap: 0.75rem;
             padding-top: 0.5rem;
