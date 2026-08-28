@@ -1,0 +1,16 @@
+{
+  "network": "KriptoAman Mainnet",
+  "chainId": 22028,
+  "nativeCurrency": "KAM",
+  "contract": "WKAM",
+  "name": "Wrapped KAM",
+  "symbol": "WKAM",
+  "decimals": 18,
+  "address": "0x0d8848CE88BB09a81a4248Efdd574d50B98b544A",
+  "deployer": "0x9D4b034758202cE555504d038F92A344540D47B0",
+  "deploymentBlock": 240024,
+  "deploymentTransaction": "0x571063f1f9d031ac9ae6f22b861ff6766c5c6ee78b2d49d0b93e151acde0e7cf",
+  "rpc": "https://rpc.kriptoaman.com",
+  "explorer": "https://explorer.kriptoaman.com",
+  "status": "deployed-and-wrap-unwrap-tested"
+}
