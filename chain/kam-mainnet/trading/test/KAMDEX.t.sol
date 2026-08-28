@@ -10,16 +10,23 @@ contract KAMDEXTest {
     KAMRouter router;
     MockToken tokenA;
     MockToken tokenB;
+    MockToken mockWKAM;
 
     function setUp() public {
         factory = new KAMFactory();
-        router = new KAMRouter(address(factory));
+        mockWKAM = new MockToken("Wrapped KAM", "WKAM");
+        router = new KAMRouter(address(factory), address(mockWKAM));
         tokenA = new MockToken("Token A", "TKA");
         tokenB = new MockToken("Token B", "TKB");
         tokenA.mint(address(this), 1_000_000 ether);
         tokenB.mint(address(this), 1_000_000 ether);
         tokenA.approve(address(router), type(uint256).max);
         tokenB.approve(address(router), type(uint256).max);
+    }
+
+    function testRouterPinsFactoryAndWKAM() public view {
+        require(router.factory() == address(factory), "factory mismatch");
+        require(router.WKAM() == address(mockWKAM), "WKAM mismatch");
     }
 
     function testCreatePairOnce() public {
