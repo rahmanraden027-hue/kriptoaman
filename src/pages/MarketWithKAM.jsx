@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BrainCircuit, CircleDollarSign, Network, ShieldCheck } from 'lucide-react';
+import { ArrowRight, BrainCircuit, CircleDollarSign, FlaskConical, Network, ShieldCheck } from 'lucide-react';
 import Market from './Market.jsx';
 import { useLanguage } from '@/lib/LanguageContext';
 
@@ -18,6 +18,7 @@ const COPY = {
     networkState: 'Mainnet candidate · belum dipromosikan sebagai jaringan publik',
     roadmap: 'Roadmap KAM',
     intelligence: 'Intelligence Hub',
+    paper: 'Paper Trading',
   },
   en: {
     eyebrow: 'KAM NETWORK REFERENCE',
@@ -29,6 +30,7 @@ const COPY = {
     networkState: 'Mainnet candidate · not promoted as a public network',
     roadmap: 'KAM Roadmap',
     intelligence: 'Intelligence Hub',
+    paper: 'Paper Trading',
   },
 };
 
@@ -39,7 +41,6 @@ export default function MarketWithKAM() {
   return (
     <div className="ka-market-shell ka-bg text-white">
       <style>{`
-        /* Market owns no viewport spacer; Layout is the single source of mobile bottom-nav clearance. */
         .ka-market-shell > .ka-bg.min-h-screen {
           min-height: auto !important;
           padding-bottom: 0.75rem !important;
@@ -81,7 +82,10 @@ export default function MarketWithKAM() {
               </div>
             </div>
 
-            <div className="flex flex-col gap-2 sm:flex-row lg:flex-col xl:flex-row">
+            <div className="flex flex-col gap-2 sm:flex-row lg:flex-col xl:flex-row xl:flex-wrap xl:justify-end">
+              <Link to="/PaperTrading" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-emerald-400/25 bg-emerald-400/10 px-4 text-xs font-black text-emerald-200 transition hover:border-emerald-300/45 hover:bg-emerald-400/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
+                <FlaskConical className="h-4 w-4" /> {text.paper}
+              </Link>
               <Link to="/IntelligenceHub" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-sky-400/20 bg-sky-400/10 px-4 text-xs font-bold text-sky-200 transition hover:border-sky-300/40 hover:bg-sky-400/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">
                 <BrainCircuit className="h-4 w-4" /> {text.intelligence}
               </Link>
