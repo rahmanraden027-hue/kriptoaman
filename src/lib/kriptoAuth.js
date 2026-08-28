@@ -1,20 +1,37 @@
+const AUTH_REQUEST_TIMEOUT_MS = 20000;
+
 async function request(path, options = {}) {
-  const response = await fetch(path, {
-    ...options,
-    credentials: 'same-origin',
-    headers: {
-      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
-      ...(options.headers || {}),
-    },
-  });
-  const data = response.status === 204 ? null : await response.json().catch(() => null);
-  if (!response.ok) {
-    const error = new Error(data?.error || 'Authentication request failed');
-    error.status = response.status;
-    error.data = data;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), AUTH_REQUEST_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(path, {
+      ...options,
+      signal: controller.signal,
+      credentials: 'same-origin',
+      headers: {
+        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        ...(options.headers || {}),
+      },
+    });
+    const data = response.status === 204 ? null : await response.json().catch(() => null);
+    if (!response.ok) {
+      const error = new Error(data?.error || 'Authentication request failed');
+      error.status = response.status;
+      error.data = data;
+      throw error;
+    }
+    return data;
+  } catch (cause) {
+    if (cause?.status) throw cause;
+    const error = new Error('Koneksi ke layanan autentikasi sementara tidak tersedia. Periksa jaringan lalu coba lagi.');
+    error.status = 0;
+    error.code = cause?.name === 'AbortError' ? 'AUTH_REQUEST_TIMEOUT' : 'AUTH_NETWORK_UNAVAILABLE';
+    error.cause = cause;
     throw error;
+  } finally {
+    clearTimeout(timeout);
   }
-  return data;
 }
 
 export const kriptoAuth = {

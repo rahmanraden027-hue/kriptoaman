@@ -30,6 +30,52 @@ jobs:
             test "$code" = "200"
           done
 
+      - name: Check registration readiness
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          headers="$(mktemp)"
+          body="$(mktemp)"
+          code="$(curl --location --silent --show-error \
+            --connect-timeout 10 --max-time 25 \
+            -D "$headers" -o "$body" -w '%{http_code}' \
+            https://kriptoaman.com/api/auth/readiness)"
+          test "$code" = "200"
+          grep -qi '^cache-control:.*no-store' "$headers"
+          node - "$body" <<'NODE'
+          const fs = require('fs');
+          const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          if (payload.ready !== true || payload.registration !== true) process.exit(1);
+          const checks = payload.checks || {};
+          for (const key of ['configuration', 'database', 'email', 'session']) {
+            if (checks[key] !== true) process.exit(1);
+          }
+          NODE
+
+      - name: Check registration route without creating an account
+        shell: bash
+        run: |
+          set -euo pipefail
+          headers="$(mktemp)"
+          body="$(mktemp)"
+          code="$(curl --location --silent --show-error \
+            --connect-timeout 10 --max-time 25 \
+            -X POST \
+            -H 'Origin: https://kriptoaman.com' \
+            -H 'Referer: https://kriptoaman.com/register' \
+            -H 'Content-Type: application/json' \
+            --data '{"email":"invalid","password":"not-a-real-registration","termsAccepted":true}' \
+            -D "$headers" -o "$body" -w '%{http_code}' \
+            https://kriptoaman.com/api/auth/register)"
+          test "$code" = "400"
+          grep -qi '^cache-control:.*no-store' "$headers"
+          node - "$body" <<'NODE'
+          const fs = require('fs');
+          const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          if (!/valid email/i.test(String(payload.error || ''))) process.exit(1);
+          NODE
+
       - name: Check unauthenticated session contract
         shell: bash
         run: |
@@ -95,7 +141,7 @@ jobs:
           description="Live production auth smoke failed"
           if [ "$JOB_STATUS" = "success" ]; then
             state="success"
-            description="Live production auth smoke passed"
+            description="Live production auth + registration smoke passed"
           fi
           curl --fail-with-body --silent --show-error \
             -X POST \
