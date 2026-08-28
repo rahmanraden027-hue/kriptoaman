@@ -16,7 +16,7 @@ permissions:
 jobs:
   auth-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     steps:
       - name: Check public auth pages
         shell: bash
@@ -35,15 +35,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          headers="$(mktemp)"
-          body="$(mktemp)"
-          code="$(curl --location --silent --show-error \
-            --connect-timeout 10 --max-time 25 \
-            -D "$headers" -o "$body" -w '%{http_code}' \
-            https://kriptoaman.com/api/auth/readiness)"
-          test "$code" = "200"
-          grep -qi '^cache-control:.*no-store' "$headers"
-          node - "$body" <<'NODE'
+          ready=0
+          for attempt in $(seq 1 18); do
+            headers="$(mktemp)"
+            body="$(mktemp)"
+            code="$(curl --location --silent --show-error \
+              --connect-timeout 10 --max-time 25 \
+              -D "$headers" -o "$body" -w '%{http_code}' \
+              https://kriptoaman.com/api/auth/readiness || true)"
+
+            if [ "$code" = "200" ] && grep -qi '^cache-control:.*no-store' "$headers"; then
+              if node - "$body" <<'NODE'
           const fs = require('fs');
           const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
           if (payload.ready !== true || payload.registration !== true) process.exit(1);
@@ -52,6 +54,16 @@ jobs:
             if (checks[key] !== true) process.exit(1);
           }
           NODE
+              then
+                ready=1
+                break
+              fi
+            fi
+
+            echo "Registration readiness not deployed/ready yet (attempt ${attempt}/18, HTTP ${code}); retrying..."
+            sleep 10
+          done
+          test "$ready" = "1"
 
       - name: Check registration route without creating an account
         shell: bash
