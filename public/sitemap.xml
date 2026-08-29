@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://kriptoaman.com/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://kriptoaman.com/</loc><lastmod>2026-08-29</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>
   <url><loc>https://kriptoaman.com/KAM</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
   <url><loc>https://kriptoaman.com/news/kam-campaign-2026</loc><lastmod>2026-08-27</lastmod><changefreq>monthly</changefreq><priority>0.9</priority></url>
   <url><loc>https://kriptoaman.com/KAMGlobalRoadmap</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
@@ -10,9 +10,9 @@
   <url><loc>https://kriptoaman.com/KAMLaunchReadiness</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
   <url><loc>https://kriptoaman.com/KAMDeveloper</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://kriptoaman.com/RPCPrivacyPolicy</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kriptoaman.com/AboutUs</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://kriptoaman.com/founder</loc><lastmod>2026-08-29</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://kriptoaman.com/LegalCorporateInformation</loc><lastmod>2026-08-29</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kriptoaman.com/AboutUs</loc><lastmod>2026-08-29</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kriptoaman.com/founder</loc><lastmod>2026-08-29</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://kriptoaman.com/LegalCorporateInformation</loc><lastmod>2026-08-29</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
   <url><loc>https://kriptoaman.com/Edukasi</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://kriptoaman.com/Contact</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
   <url><loc>https://kriptoaman.com/PrivacyPolicy</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
