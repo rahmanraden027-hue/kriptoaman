@@ -29,7 +29,7 @@ export default function LegalCorporateInformation() {
       robotsMeta.setAttribute('name', 'robots');
       document.head.appendChild(robotsMeta);
     }
-    robotsMeta.setAttribute('content', 'index, follow');
+    robotsMeta.setAttribute('content', 'index, follow, max-image-preview:large');
 
     let canonical = document.querySelector('link[rel="canonical"]');
     const canonicalCreated = !canonical;
@@ -41,8 +41,64 @@ export default function LegalCorporateInformation() {
     }
     canonical.setAttribute('href', canonicalUrl);
 
+    const schema = document.createElement('script');
+    schema.type = 'application/ld+json';
+    schema.id = 'kriptoaman-legal-organization-schema';
+    schema.text = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'Organization',
+          '@id': 'https://kriptoaman.com/#organization',
+          name: 'PT KRIPTO AMAN INDONESIA',
+          alternateName: 'KriptoAman',
+          url: 'https://kriptoaman.com/',
+          logo: 'https://kriptoaman.com/brand/kriptoaman-mark.svg',
+          founder: { '@id': 'https://kriptoaman.com/founder#raden-abdul-rahman' },
+          address: {
+            '@type': 'PostalAddress',
+            streetAddress: 'Soho Capital – Podomoro City, 25th Floor, Unit 2508, Jl. Letjen S. Parman Kav. 28',
+            addressLocality: 'Jakarta Barat',
+            addressRegion: 'DKI Jakarta',
+            postalCode: '11470',
+            addressCountry: 'ID'
+          },
+          email: 'hello@kriptoaman.com'
+        },
+        {
+          '@type': 'Person',
+          '@id': 'https://kriptoaman.com/founder#raden-abdul-rahman',
+          name: 'Raden Abdul Rahman',
+          jobTitle: 'Founder & CEO KriptoAman',
+          url: 'https://kriptoaman.com/founder',
+          worksFor: { '@id': 'https://kriptoaman.com/#organization' }
+        },
+        {
+          '@type': 'WebPage',
+          '@id': `${canonicalUrl}#webpage`,
+          url: canonicalUrl,
+          name: title,
+          description,
+          about: { '@id': 'https://kriptoaman.com/#organization' },
+          mainEntity: { '@id': 'https://kriptoaman.com/#organization' },
+          isPartOf: { '@id': 'https://kriptoaman.com/#website' },
+          inLanguage: 'id-ID'
+        },
+        {
+          '@type': 'BreadcrumbList',
+          '@id': `${canonicalUrl}#breadcrumb`,
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'KriptoAman', item: 'https://kriptoaman.com/' },
+            { '@type': 'ListItem', position: 2, name: 'Legal & Corporate Information', item: canonicalUrl }
+          ]
+        }
+      ]
+    });
+    document.head.appendChild(schema);
+
     return () => {
       document.title = previousTitle;
+      schema.remove();
       if (descriptionCreated) descriptionMeta.remove();
       else if (previousDescription !== null) descriptionMeta.setAttribute('content', previousDescription);
       if (robotsCreated) robotsMeta.remove();
