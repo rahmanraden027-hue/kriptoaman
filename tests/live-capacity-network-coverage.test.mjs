@@ -27,21 +27,27 @@ test('Base health check has an independent third provider for rate-limit recover
   assert.ok(baseConfig.includes("'https://base-mainnet.public.blastapi.io'"));
 });
 
-test('public landing uses internal live health results for asset and network counts', async () => {
-  const [page, body] = await Promise.all([
+test('public landing uses the stable platform health contract for asset and network counts', async () => {
+  const [page, body, platform] = await Promise.all([
     read('src/pages/KriptoAmanGlobalLanding.jsx'),
     read('src/components/landing/GLandingBody.jsx'),
+    read('functions/api/platform-status.js'),
   ]);
-  assert.match(page, /\/api\/market-snapshot\?health=1/);
+  assert.match(page, /\/api\/platform-status/);
   assert.match(page, /\/api\/network-health/);
-  assert.match(page, /\/api\/kam\/network-status/);
-  assert.match(page, /payload\?\.verified === true/);
-  assert.match(page, /Number\(payload\?\.chainId\) === 22028/);
+  assert.match(page, /platformPayload\.components\.market/);
+  assert.match(page, /platformPayload\.components\.networks/);
+  assert.match(page, /platformPayload\.components\.kam/);
+  assert.match(page, /Number\(kam\.chainId\) === 22028/);
   assert.match(page, /name: 'KAM Network'/);
-  assert.match(page, /verification: 'rpc-chain-id'/);
-  assert.match(page, /KAM is additive only/);
+  assert.match(page, /verification: 'platform-status'/);
+  assert.match(page, /kam\?\.status === 'operational'/);
   assert.match(page, /assetCount/);
   assert.match(page, /networkActiveCount/);
+  assert.match(platform, /\/api\/market-snapshot\?health=1/);
+  assert.match(platform, /\/api\/network-health/);
+  assert.match(platform, /\/api\/kam\/network-status/);
+  assert.match(platform, /fabricatedMetrics: false/);
   assert.match(body, /Cakupan Aset Pasar/);
   assert.match(body, /assetCountValue/);
   assert.match(body, /Jaringan Terverifikasi Live/);
