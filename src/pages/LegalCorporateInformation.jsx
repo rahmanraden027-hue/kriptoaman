@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Building2, MapPin, ShieldCheck, Scale, ExternalLink } from 'lucide-react';
+import { Building2, MapPin, ShieldCheck, Scale, ExternalLink, UserRound } from 'lucide-react';
 
 export default function LegalCorporateInformation() {
   useEffect(() => {
     const title = 'Legal & Corporate Information | PT Kripto Aman Indonesia';
-    const description = 'Informasi legal dan korporasi PT Kripto Aman Indonesia, Corporate Office Jakarta, ruang lingkup layanan KriptoAman, posisi regulasi, serta kanal verifikasi resmi.';
+    const description = 'Informasi legal dan korporasi PT Kripto Aman Indonesia, Corporate Office Jakarta, ruang lingkup layanan KriptoAman, posisi regulasi, kepemimpinan, serta kanal verifikasi resmi.';
     const canonicalUrl = 'https://kriptoaman.com/LegalCorporateInformation';
 
     const previousTitle = document.title;
@@ -101,6 +101,17 @@ export default function LegalCorporateInformation() {
             </p>
           </article>
         </div>
+
+        <section className="mt-8 rounded-2xl border p-6 bg-card">
+          <UserRound className="w-6 h-6 text-blue-500" />
+          <h2 className="mt-4 text-lg font-bold">Leadership</h2>
+          <p className="mt-3 text-sm text-muted-foreground leading-relaxed max-w-3xl">
+            KriptoAman dipimpin oleh <strong className="text-foreground">Raden Abdul Rahman, M.Sc.</strong> sebagai Founder & CEO KriptoAman dan CEO PT Kripto Aman Indonesia.
+          </p>
+          <Link to="/founder" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-blue-500 hover:underline">
+            Profil Founder & CEO <ExternalLink className="w-4 h-4" />
+          </Link>
+        </section>
 
         <section className="mt-8 rounded-2xl border p-6 bg-card">
           <h2 className="text-lg font-bold">Verifikasi & Transparansi</h2>
