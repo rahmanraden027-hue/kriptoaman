@@ -17,6 +17,7 @@ import KriptoAmanGlobalLanding from './pages/KriptoAmanGlobalLanding';
 import EnglishLanding from './pages/EnglishLanding';
 import LegalCorporateInformation from './pages/LegalCorporateInformation';
 import Founder from './pages/Founder';
+import CompanyFacts from './pages/CompanyFacts';
 import AdminRoute from '@/components/security/AdminRoute';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt';
@@ -100,6 +101,7 @@ const AuthenticatedApp = () => {
         <Route path="/KriptoAmanGlobalLanding" element={<KriptoAmanGlobalLanding />} />
         <Route path="/LegalCorporateInformation" element={<LegalCorporateInformation />} />
         <Route path="/founder" element={<Founder />} />
+        <Route path="/company" element={<CompanyFacts />} />
         <Route path="/SystemStatus" element={<SystemStatus />} />
 
         {Object.entries(Pages).map(([path, Page]) => {
