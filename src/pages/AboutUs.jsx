@@ -56,19 +56,28 @@ export default function AboutUs() {
           <div className="relative">
             <p className="text-blue-400 text-[11px] font-bold uppercase tracking-[0.18em] mb-2">Founder Leadership</p>
             <h2 id="founder-title" className="text-white font-black text-xl">Raden Abdul Rahman, M.Sc.</h2>
-            <p className="text-slate-300 text-sm font-semibold mt-1">Founder & CEO · KriptoAman</p>
+            <p className="text-sky-300 text-sm font-semibold mt-1">Founder & CEO · KriptoAman</p>
             <p className="text-slate-400 text-sm leading-relaxed mt-3">
               Memimpin pengembangan KriptoAman dengan fokus pada keamanan, transparansi informasi, edukasi aset digital, dan pengalaman pengguna yang profesional. Arah pengembangan platform menempatkan kejelasan status fitur dan keterbatasan data sebagai bagian penting dari kepercayaan pengguna.
             </p>
-            <a
-              href="https://radenabdulrahman.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-300 hover:bg-blue-600/30 transition-colors text-sm font-semibold"
-            >
-              Profil Founder
-              <ExternalLink className="w-4 h-4" />
-            </a>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Link
+                to="/founder"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-300 hover:bg-blue-600/30 transition-colors text-sm font-semibold"
+              >
+                Profil Founder & CEO
+                <ExternalLink className="w-4 h-4" />
+              </Link>
+              <a
+                href="https://radenabdulrahman.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/60 border border-slate-600/40 text-slate-300 hover:bg-slate-700/60 transition-colors text-sm font-semibold"
+              >
+                Website Profesional
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            </div>
           </div>
         </section>
 
@@ -128,7 +137,10 @@ export default function AboutUs() {
             <ExternalLink className="w-4 h-4" />
             <span className="text-sm font-medium">Pusat Bantuan</span>
           </Link>
-          <p className="text-slate-600 text-xs pt-1">© 2026 PT KRIPTO AMAN INDONESIA · Batam, Kepulauan Riau, Indonesia</p>
+          <Link to="/LegalCorporateInformation" className="inline-flex items-center justify-center gap-2 text-xs text-sky-300 hover:underline">
+            PT Kripto Aman Indonesia · Legal & Corporate Information
+          </Link>
+          <p className="text-slate-600 text-xs pt-1">© 2026 PT KRIPTO AMAN INDONESIA · Republik Indonesia</p>
         </div>
 
       </div>
