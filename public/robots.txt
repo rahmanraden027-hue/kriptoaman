@@ -1,34 +1,11 @@
 User-agent: *
 Allow: /
 Disallow: /api/
-Disallow: /dashboard
-Disallow: /Admin
-Disallow: /AdminKYCManagement
-Disallow: /AdminPlatformAssets
-Disallow: /AdminProfitAnalytics
-Disallow: /AdminUserBalances
-Disallow: /ServerControl
-Disallow: /SecureVault
-Disallow: /SecurityCenter
-Disallow: /AMLDashboard
-Disallow: /BigQueryKYCReports
-Disallow: /AppBuildAnalytics
-Disallow: /FeatureUpdateBroadcast
-Disallow: /PlatformDocs
-Disallow: /RegulatoryDocs
-Disallow: /Settings
-Disallow: /Profile
-Disallow: /Wallet
-Disallow: /Web3Wallet
-Disallow: /MultiChainWallet
-Disallow: /KYC
-Disallow: /KYCVerificationPage
-Disallow: /Alerts
-Disallow: /PortfolioOverview
-Disallow: /TxHistory
-Disallow: /login
-Disallow: /register
-Disallow: /forgot-password
-Disallow: /reset-password
+
+# Private and authenticated application routes are intentionally not blocked
+# here because they return X-Robots-Tag: noindex, nofollow, noarchive via
+# public/_headers. Crawlers must be able to request those URLs to observe
+# the noindex directive and remove legacy search results. Access control is
+# enforced by the application, not by robots.txt.
 
 Sitemap: https://kriptoaman.com/sitemap.xml
