@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Building2, MapPin, ShieldCheck, Scale, ExternalLink } from 'lucide-react';
+import { Building2, MapPin, ShieldCheck, Scale, ExternalLink, UserRound } from 'lucide-react';
 
 export default function LegalCorporateInformation() {
   useEffect(() => {
-    const title = 'Legal & Corporate Information | PT Kripto Aman Indonesia';
-    const description = 'Informasi legal dan korporasi PT Kripto Aman Indonesia, Corporate Office Jakarta, ruang lingkup layanan KriptoAman, posisi regulasi, serta kanal verifikasi resmi.';
+    const title = 'PT Kripto Aman Indonesia — Founder, Legal & Corporate Information';
+    const description = 'Informasi legal dan korporasi PT Kripto Aman Indonesia, Founder & CEO Raden Abdul Rahman, Corporate Office Jakarta, ruang lingkup layanan KriptoAman, posisi regulasi, serta kanal verifikasi resmi.';
     const canonicalUrl = 'https://kriptoaman.com/LegalCorporateInformation';
 
     const previousTitle = document.title;
@@ -41,6 +41,36 @@ export default function LegalCorporateInformation() {
     }
     canonical.setAttribute('href', canonicalUrl);
 
+    const structuredData = document.createElement('script');
+    structuredData.type = 'application/ld+json';
+    structuredData.id = 'kriptoaman-legal-organization-schema';
+    structuredData.text = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'PT Kripto Aman Indonesia',
+      alternateName: 'KriptoAman',
+      url: 'https://kriptoaman.com',
+      founder: {
+        '@type': 'Person',
+        name: 'Raden Abdul Rahman',
+        jobTitle: 'Founder & CEO'
+      },
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'Soho Capital – Podomoro City, 25th Floor, Unit 2508, Jl. Letjen S. Parman Kav. 28',
+        addressLocality: 'Jakarta Barat',
+        addressRegion: 'DKI Jakarta',
+        postalCode: '11470',
+        addressCountry: 'ID'
+      },
+      contactPoint: {
+        '@type': 'ContactPoint',
+        contactType: 'general inquiries',
+        email: 'hello@kriptoaman.com'
+      }
+    });
+    document.head.appendChild(structuredData);
+
     return () => {
       document.title = previousTitle;
       if (descriptionCreated) descriptionMeta.remove();
@@ -49,6 +79,7 @@ export default function LegalCorporateInformation() {
       else if (previousRobots !== null) robotsMeta.setAttribute('content', previousRobots);
       if (canonicalCreated) canonical.remove();
       else if (previousCanonical !== null) canonical.setAttribute('href', previousCanonical);
+      structuredData.remove();
     };
   }, []);
 
@@ -75,6 +106,14 @@ export default function LegalCorporateInformation() {
           </article>
 
           <article className="rounded-2xl border p-6 bg-card">
+            <UserRound className="w-6 h-6 text-blue-500" />
+            <h2 className="mt-4 text-lg font-bold">Founder & CEO</h2>
+            <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+              <strong className="text-foreground">Raden Abdul Rahman</strong> adalah Founder & CEO KriptoAman dan memimpin pengembangan PT Kripto Aman Indonesia.
+            </p>
+          </article>
+
+          <article className="rounded-2xl border p-6 bg-card">
             <MapPin className="w-6 h-6 text-blue-500" />
             <h2 className="mt-4 text-lg font-bold">Corporate Office</h2>
             <address className="mt-3 not-italic text-sm text-muted-foreground leading-relaxed">
@@ -93,7 +132,7 @@ export default function LegalCorporateInformation() {
             </p>
           </article>
 
-          <article className="rounded-2xl border p-6 bg-card">
+          <article className="rounded-2xl border p-6 bg-card md:col-span-2">
             <Scale className="w-6 h-6 text-blue-500" />
             <h2 className="mt-4 text-lg font-bold">Posisi Regulasi</h2>
             <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
