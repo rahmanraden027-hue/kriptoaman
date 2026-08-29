@@ -41,7 +41,7 @@ test('public landing uses the stable platform health contract for asset and netw
   assert.match(page, /Number\(kam\.chainId\) === 22028/);
   assert.match(page, /name: 'KAM Network'/);
   assert.match(page, /verification: 'platform-status'/);
-  assert.match(page, /KAM remains additive and verified-only/);
+  assert.match(page, /kam\?\.status === 'operational'/);
   assert.match(page, /assetCount/);
   assert.match(page, /networkActiveCount/);
   assert.match(platform, /\/api\/market-snapshot\?health=1/);
