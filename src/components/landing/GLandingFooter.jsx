@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, AlertTriangle } from 'lucide-react';
+import { Mail, MapPin, AlertTriangle } from 'lucide-react';
 import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
 
 const COLS = [
@@ -28,6 +28,16 @@ export default function GLandingFooter() {
             <p className="text-[11px] ka-text2 mt-2 leading-relaxed">
               Dioperasikan oleh PT Kripto Aman Indonesia · Republik Indonesia. Bukan bursa, kustodian, broker, atau penasihat investasi.
             </p>
+            <div className="flex items-start gap-2 text-[11px] ka-text2 mt-3 leading-relaxed">
+              <MapPin className="w-3.5 h-3.5 ka-blue shrink-0 mt-0.5" />
+              <address className="not-italic">
+                <span className="font-semibold ka-text">Corporate Office</span><br />
+                Soho Capital – Podomoro City, 25th Floor, Unit 2508<br />
+                Jl. Letjen S. Parman Kav. 28<br />
+                Tanjung Duren Selatan, Grogol Petamburan<br />
+                Jakarta Barat, DKI Jakarta 11470 · Indonesia
+              </address>
+            </div>
             <a href="mailto:hello@kriptoaman.com" className="inline-flex items-center gap-2 text-xs ka-blue mt-3">
               <Mail className="w-3.5 h-3.5" /> hello@kriptoaman.com
             </a>
