@@ -34,6 +34,7 @@ export default function KriptoAmanGlobalLanding() {
         networkActiveCount: undefined,
         networkCheckedAt: null,
       };
+      let platformPayload = null;
 
       const [statusResult, networkResult] = await Promise.allSettled([
         fetch('/api/platform-status', { cache: 'no-store', headers: { Accept: 'application/json' } }),
@@ -42,12 +43,12 @@ export default function KriptoAmanGlobalLanding() {
 
       if (statusResult.status === 'fulfilled') {
         try {
-          const payload = await statusResult.value.json();
-          if (payload?.components) {
-            next.overall = payload.overall || 'unavailable';
-            const market = payload.components.market || {};
-            const networks = payload.components.networks || {};
-            const kam = payload.components.kam || {};
+          platformPayload = await statusResult.value.json();
+          if (platformPayload?.components) {
+            next.overall = platformPayload.overall || 'unavailable';
+            const market = platformPayload.components.market || {};
+            const networks = platformPayload.components.networks || {};
+            const kam = platformPayload.components.kam || {};
 
             next.marketAvailable = market.status === 'operational';
             next.assetCount = Number.isFinite(Number(market.assetCount)) && Number(market.assetCount) > 0 ? Number(market.assetCount) : null;
@@ -77,23 +78,16 @@ export default function KriptoAmanGlobalLanding() {
         }
       }
 
-      if (statusResult.status === 'fulfilled') {
-        try {
-          const payload = await statusResult.value.clone().json();
-          const kam = payload?.components?.kam;
-          if (kam?.status === 'operational' && Number(kam.chainId) === 22028) {
-            next.networks = [...next.networks.filter((network) => network?.name !== 'KAM Network'), {
-              name: 'KAM Network',
-              symbol: 'KAM',
-              status: 'online',
-              verification: 'platform-status',
-              chainId: 22028,
-              blockNumber: kam.blockNumber ?? null,
-            }];
-          }
-        } catch {
-          // KAM remains additive and verified-only.
-        }
+      const kam = platformPayload?.components?.kam;
+      if (kam?.status === 'operational' && Number(kam.chainId) === 22028) {
+        next.networks = [...next.networks.filter((network) => network?.name !== 'KAM Network'), {
+          name: 'KAM Network',
+          symbol: 'KAM',
+          status: 'online',
+          verification: 'platform-status',
+          chainId: 22028,
+          blockNumber: kam.blockNumber ?? null,
+        }];
       }
 
       setStats(next);
