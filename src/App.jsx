@@ -15,6 +15,7 @@ import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import KriptoAmanGlobalLanding from './pages/KriptoAmanGlobalLanding';
 import EnglishLanding from './pages/EnglishLanding';
+import LegalCorporateInformation from './pages/LegalCorporateInformation';
 import AdminRoute from '@/components/security/AdminRoute';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt';
@@ -70,13 +71,7 @@ const PublicKAMWithDocument = ({ Page }) => (
             <h2 className="mt-1 text-lg font-black text-white sm:text-xl">US$29.37 · Indicative Scenario Reference</h2>
             <p className="mt-2 max-w-2xl text-xs leading-5 text-slate-400 sm:text-sm">Infrastructure · Utility · Adoption · Liquidity · Global Access · Governance · Market Readiness</p>
           </div>
-          <a
-            href="/KAMGlobalRoadmap"
-            className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-2xl bg-sky-600 px-5 text-sm font-black text-white shadow-[0_16px_42px_-20px_rgba(14,165,233,.85)] transition hover:bg-sky-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
-            aria-label="Open KAM Global Roadmap"
-          >
-            KAM Global Roadmap
-          </a>
+          <a href="/KAMGlobalRoadmap" className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-2xl bg-sky-600 px-5 text-sm font-black text-white shadow-[0_16px_42px_-20px_rgba(14,165,233,.85)] transition hover:bg-sky-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300" aria-label="Open KAM Global Roadmap">KAM Global Roadmap</a>
         </div>
       </div>
     </section>
@@ -102,28 +97,23 @@ const AuthenticatedApp = () => {
         <Route path="/" element={<KriptoAmanGlobalLanding />} />
         <Route path="/en" element={<EnglishLanding />} />
         <Route path="/KriptoAmanGlobalLanding" element={<KriptoAmanGlobalLanding />} />
+        <Route path="/LegalCorporateInformation" element={<LegalCorporateInformation />} />
         <Route path="/SystemStatus" element={<SystemStatus />} />
 
         {Object.entries(Pages).map(([path, Page]) => {
           if (!PUBLIC_PAGE_KEYS.has(path)) return null;
-          const element = path === 'Market'
-            ? <PublicMarketWithNav Page={Page} />
-            : path === 'KAM'
-              ? <PublicKAMWithDocument Page={Page} />
-              : <Page />;
+          const element = path === 'Market' ? <PublicMarketWithNav Page={Page} /> : path === 'KAM' ? <PublicKAMWithDocument Page={Page} /> : <Page />;
           const routePath = path === 'KAMCampaignNews' ? '/news/kam-campaign-2026' : `/${path}`;
           return <Route key={path} path={routePath} element={element} />;
         })}
 
         <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
           <Route path="/dashboard" element={<LayoutWrapper currentPageName="Home"><DashboardPage /></LayoutWrapper>} />
-
           {Object.entries(Pages).map(([path, Page]) => {
             if (PUBLIC_PAGE_KEYS.has(path)) return null;
             const wrapped = <LayoutWrapper currentPageName={path}>{STORE_RESTRICTED_PAGE_KEYS.has(path) ? <StoreAvailabilityNotice /> : <Page />}</LayoutWrapper>;
             return <Route key={path} path={`/${path}`} element={ADMIN_PAGE_KEYS.has(path) ? <AdminRoute>{wrapped}</AdminRoute> : wrapped} />;
           })}
-
           <Route path="/FeatureUpdateBroadcast" element={<AdminRoute><LayoutWrapper currentPageName="FeatureUpdateBroadcast"><FeatureUpdateBroadcast /></LayoutWrapper></AdminRoute>} />
           <Route path="/AMLAssistant" element={<LayoutWrapper currentPageName="AMLAssistant"><AMLAssistant /></LayoutWrapper>} />
           <Route path="/Services" element={<LayoutWrapper currentPageName="Services"><Services /></LayoutWrapper>} />
@@ -139,21 +129,7 @@ const AuthenticatedApp = () => {
 
 function App() {
   return (
-    <LanguageProvider>
-      <AuthProvider>
-        <QueryClientProvider client={queryClientInstance}>
-          <Router>
-            <NavigationTracker />
-            <NativeConnectivityBanner />
-            <AppErrorBoundary>
-              <AuthenticatedApp />
-              <PWAInstallPrompt />
-            </AppErrorBoundary>
-          </Router>
-          <Toaster />
-        </QueryClientProvider>
-      </AuthProvider>
-    </LanguageProvider>
+    <LanguageProvider><AuthProvider><QueryClientProvider client={queryClientInstance}><Router><NavigationTracker /><NativeConnectivityBanner /><AppErrorBoundary><AuthenticatedApp /><PWAInstallPrompt /></AppErrorBoundary></Router><Toaster /></QueryClientProvider></AuthProvider></LanguageProvider>
   )
 }
 
