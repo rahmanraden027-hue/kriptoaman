@@ -5,52 +5,55 @@ import { useLanguage } from '@/lib/LanguageContext';
 const FALLBACK_SERVICES = [
   { id: 'app', name: 'KriptoAman App', critical: true, state: 'unknown' },
   { id: 'database', name: 'Database & Account Sessions', critical: true, state: 'unknown' },
-  { id: 'coinlore', name: 'CoinLore Market Data', critical: true, state: 'unknown' },
-  { id: 'coingecko', name: 'CoinGecko Market Data', critical: false, state: 'unknown' },
-  { id: 'fear-greed', name: 'Fear & Greed Index', critical: false, state: 'unknown' },
+  { id: 'market', name: 'Market Data', critical: true, state: 'unknown' },
+  { id: 'networks', name: 'Verified Public Networks', critical: false, state: 'unknown' },
+  { id: 'kam', name: 'KAM Mainnet RPC', critical: true, state: 'unknown' },
 ];
 
 const COPY = {
   id: {
     title: 'Status Sistem',
-    subtitle: 'Pemeriksaan first-party dari server KriptoAman',
+    subtitle: 'Pemeriksaan first-party dan kontrak status publik KriptoAman',
     refresh: 'Periksa ulang',
     operational: 'Operasional',
+    degradedState: 'Terbatas',
     unreachable: 'Tidak terjangkau',
     unconfigured: 'Belum dikonfigurasi',
     pending: 'Menunggu pemeriksaan',
     allOk: 'Semua layanan utama operasional',
-    degraded: 'Layanan utama normal, sebagian penyedia pendukung terbatas',
+    degraded: 'Layanan tersedia, sebagian komponen sedang terbatas',
     attention: 'Salah satu layanan utama membutuhkan perhatian',
-    providerNote: 'Penyedia pihak ketiga dipisahkan dari kesehatan aplikasi dan database KriptoAman.',
+    providerNote: 'Status aplikasi, data pasar, jaringan publik, dan KAM ditampilkan dari endpoint server yang terukur.',
     loadError: 'Pemeriksaan server belum dapat dimuat. Status tidak akan ditebak dari browser.',
     lastChecked: 'Pemeriksaan terakhir',
     core: 'Layanan utama',
     support: 'Penyedia pendukung',
-    privacy: 'Status berasal dari endpoint server KriptoAman. Tidak ada secret, token, isi database, atau data pengguna yang dikirim ke halaman status.',
+    privacy: 'Status berasal dari endpoint server KriptoAman. Tidak ada secret, token, isi database, private key, atau data pengguna yang dikirim ke halaman status.',
   },
   en: {
     title: 'System Status',
-    subtitle: 'First-party health checks from KriptoAman servers',
+    subtitle: 'First-party checks and KriptoAman public status contract',
     refresh: 'Refresh status',
     operational: 'Operational',
+    degradedState: 'Degraded',
     unreachable: 'Unreachable',
     unconfigured: 'Not configured',
     pending: 'Awaiting check',
     allOk: 'All core services are operational',
-    degraded: 'Core services are healthy; some supporting providers are limited',
+    degraded: 'Services are available; some components are degraded',
     attention: 'A core service requires attention',
-    providerNote: 'Third-party providers are reported separately from KriptoAman application and database health.',
+    providerNote: 'Application, market, public-network, and KAM status are reported from measured server endpoints.',
     loadError: 'Server checks could not be loaded. Browser-side failures are not guessed as service outages.',
     lastChecked: 'Last checked',
     core: 'Core service',
     support: 'Supporting provider',
-    privacy: 'Status is sourced from the KriptoAman server health endpoint. No secrets, tokens, database contents, or user data are exposed on this page.',
+    privacy: 'Status is sourced from KriptoAman server endpoints. No secrets, tokens, database contents, private keys, or user data are exposed on this page.',
   },
 };
 
 function statusCopy(state, text) {
   if (state === 'ok') return text.operational;
+  if (state === 'degraded') return text.degradedState;
   if (state === 'error') return text.unreachable;
   if (state === 'unconfigured') return text.unconfigured;
   return text.pending;
@@ -58,9 +61,24 @@ function statusCopy(state, text) {
 
 function statusClass(state) {
   if (state === 'ok') return 'text-emerald-300';
-  if (state === 'error') return 'text-yellow-300';
+  if (state === 'degraded') return 'text-yellow-300';
+  if (state === 'error') return 'text-red-300';
   if (state === 'unconfigured') return 'text-red-300';
   return 'text-slate-400';
+}
+
+function componentState(status) {
+  if (status === 'operational') return 'ok';
+  if (status === 'degraded') return 'degraded';
+  if (status === 'unavailable') return 'error';
+  return 'unknown';
+}
+
+function overallState(firstParty, platform) {
+  if (firstParty === 'error' || firstParty === 'unconfigured' || platform === 'unavailable') return 'error';
+  if (firstParty === 'degraded' || platform === 'degraded') return 'degraded';
+  if (firstParty === 'ok' && platform === 'operational') return 'ok';
+  return 'unknown';
 }
 
 export default function SystemStatus() {
@@ -77,14 +95,57 @@ export default function SystemStatus() {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch('/api/health', { cache: 'no-store', headers: { accept: 'application/json' } });
-      const payload = await response.json().catch(() => null);
-      if (!response.ok || !payload?.services) throw new Error('Health endpoint unavailable');
-      setServices(payload.services);
-      setOverall(payload.overall || 'unknown');
-      setUpdated(payload.checked_at ? new Date(payload.checked_at) : new Date());
+      const [healthResult, platformResult] = await Promise.allSettled([
+        fetch('/api/health', { cache: 'no-store', headers: { accept: 'application/json' } }),
+        fetch('/api/platform-status', { cache: 'no-store', headers: { accept: 'application/json' } }),
+      ]);
+
+      let firstParty = null;
+      let platform = null;
+
+      if (healthResult.status === 'fulfilled') {
+        firstParty = await healthResult.value.json().catch(() => null);
+      }
+      if (platformResult.status === 'fulfilled') {
+        platform = await platformResult.value.json().catch(() => null);
+      }
+
+      if (!firstParty?.services && !platform?.components) throw new Error('Health endpoints unavailable');
+
+      const baseServices = Array.isArray(firstParty?.services) ? firstParty.services : [];
+      const components = platform?.components || {};
+      const platformServices = [
+        {
+          id: 'platform-market',
+          name: components.market?.assetCount ? `Market Data · ${Number(components.market.assetCount).toLocaleString(locale)} assets` : 'Market Data',
+          critical: true,
+          state: componentState(components.market?.status),
+        },
+        {
+          id: 'platform-networks',
+          name: Number.isFinite(Number(components.networks?.online)) ? `Verified Public Networks · ${Number(components.networks.online)} live` : 'Verified Public Networks',
+          critical: false,
+          state: componentState(components.networks?.status),
+        },
+        {
+          id: 'platform-kam',
+          name: components.kam?.blockNumber != null ? `KAM Mainnet RPC · block ${Number(components.kam.blockNumber).toLocaleString(locale)}` : 'KAM Mainnet RPC',
+          critical: true,
+          state: componentState(components.kam?.status),
+        },
+      ];
+
+      setServices([...baseServices, ...platformServices]);
+      setOverall(overallState(firstParty?.overall || 'unknown', platform?.overall || 'unknown'));
+
+      const timestamps = [firstParty?.checked_at, platform?.generatedAt]
+        .filter(Boolean)
+        .map((value) => new Date(value))
+        .filter((date) => !Number.isNaN(date.getTime()));
+      setUpdated(timestamps.length ? new Date(Math.max(...timestamps.map((date) => date.getTime()))) : new Date());
     } catch {
       setOverall('unknown');
+      setServices(FALLBACK_SERVICES);
       setError(text.loadError);
     } finally {
       setLoading(false);
@@ -139,7 +200,7 @@ export default function SystemStatus() {
                   <Loader2 className="h-4 w-4 shrink-0 animate-spin text-slate-500" />
                 ) : (
                   <span className={`flex shrink-0 items-center gap-1.5 text-xs font-bold ${statusClass(service.state)}`}>
-                    {service.state === 'ok' ? <CheckCircle2 className="h-4 w-4" /> : service.state === 'error' || service.state === 'unconfigured' ? <AlertTriangle className="h-4 w-4" /> : <Loader2 className="h-4 w-4" />}
+                    {service.state === 'ok' ? <CheckCircle2 className="h-4 w-4" /> : service.state === 'degraded' || service.state === 'error' || service.state === 'unconfigured' ? <AlertTriangle className="h-4 w-4" /> : <Loader2 className="h-4 w-4" />}
                     {statusCopy(service.state, text)}
                     {service.latency_ms != null && service.state === 'ok' ? ` · ${service.latency_ms} ms` : ''}
                   </span>
