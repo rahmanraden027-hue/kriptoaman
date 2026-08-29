@@ -1,0 +1,31 @@
+name: Blockscout Health Proof
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/diagnose-blockscout.mjs'
+      - 'docs/BLOCKSCOUT_RECOVERY.md'
+      - '.github/workflows/blockscout-health-proof.yml'
+      - 'tests/blockscout-diagnostic-safety.test.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: blockscout-health-proof-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Safety contract tests
+        run: node --test tests/blockscout-diagnostic-safety.test.mjs
+      - name: Read-only RPC and Blockscout diagnostic
+        run: node scripts/diagnose-blockscout.mjs
