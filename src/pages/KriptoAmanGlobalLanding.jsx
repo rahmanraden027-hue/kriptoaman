@@ -11,6 +11,7 @@ export default function KriptoAmanGlobalLanding() {
   const [active, setActive] = useState('Beranda');
   const [stats, setStats] = useState({
     loading: true,
+    overall: 'unavailable',
     marketAvailable: false,
     lastUpdated: null,
     assetCount: null,
@@ -24,6 +25,7 @@ export default function KriptoAmanGlobalLanding() {
     (async () => {
       const next = {
         loading: false,
+        overall: 'unavailable',
         marketAvailable: false,
         lastUpdated: null,
         assetCount: null,
@@ -33,23 +35,33 @@ export default function KriptoAmanGlobalLanding() {
         networkCheckedAt: null,
       };
 
-      const [marketResult, networkResult, kamResult] = await Promise.allSettled([
-        fetch('/api/market-snapshot?health=1', { cache: 'no-store', headers: { Accept: 'application/json' } }),
+      const [statusResult, networkResult] = await Promise.allSettled([
+        fetch('/api/platform-status', { cache: 'no-store', headers: { Accept: 'application/json' } }),
         fetch('/api/network-health', { cache: 'no-store', headers: { Accept: 'application/json' } }),
-        fetch('/api/kam/network-status', { cache: 'no-store', headers: { Accept: 'application/json' } }),
       ]);
 
-      if (marketResult.status === 'fulfilled') {
+      if (statusResult.status === 'fulfilled') {
         try {
-          const payload = await marketResult.value.json();
-          if (marketResult.value.ok && Number(payload?.assetCount) > 0) {
-            next.marketAvailable = Boolean(payload.healthy);
-            next.assetCount = Number(payload.assetCount);
-            next.lastUpdated = Number(payload.capturedAt) || null;
-            next.marketSource = payload.source || null;
+          const payload = await statusResult.value.json();
+          if (payload?.components) {
+            next.overall = payload.overall || 'unavailable';
+            const market = payload.components.market || {};
+            const networks = payload.components.networks || {};
+            const kam = payload.components.kam || {};
+
+            next.marketAvailable = market.status === 'operational';
+            next.assetCount = Number.isFinite(Number(market.assetCount)) && Number(market.assetCount) > 0 ? Number(market.assetCount) : null;
+            next.lastUpdated = market.capturedAt || null;
+            next.marketSource = market.source || null;
+            next.networkActiveCount = Number.isFinite(Number(networks.online)) ? Number(networks.online) : undefined;
+            next.networkCheckedAt = networks.checkedAt || kam.checkedAt || null;
+
+            if (kam.status === 'operational' && Number(kam.chainId) === 22028) {
+              next.networkActiveCount = (Number(next.networkActiveCount) || 0) + 1;
+            }
           }
         } catch {
-          // The public landing remains usable when market health data is unavailable.
+          // Public landing remains usable and never invents unavailable metrics.
         }
       }
 
@@ -58,25 +70,29 @@ export default function KriptoAmanGlobalLanding() {
           const payload = await networkResult.value.json();
           if (networkResult.value.ok && Array.isArray(payload?.networks)) {
             next.networks = payload.networks;
-            next.networkActiveCount = Number(payload?.summary?.online) || 0;
-            next.networkCheckedAt = payload.checked_at || null;
+            next.networkCheckedAt = payload.checked_at || next.networkCheckedAt;
           }
         } catch {
-          // Public network coverage stays independent from KAM verification.
+          // Detailed network badges are optional; the aggregate contract remains authoritative.
         }
       }
 
-      if (kamResult.status === 'fulfilled') {
+      if (statusResult.status === 'fulfilled') {
         try {
-          const payload = await kamResult.value.json();
-          const kamVerified = kamResult.value.ok && payload?.verified === true && Number(payload?.chainId) === 22028;
-          if (kamVerified) {
-            next.networks = [...next.networks, { name: 'KAM Network', symbol: 'KAM', status: 'online', verification: 'rpc-chain-id', chainId: 22028, blockNumber: payload.blockNumber ?? null }];
-            next.networkActiveCount = (Number(next.networkActiveCount) || 0) + 1;
-            next.networkCheckedAt = payload.checkedAt || next.networkCheckedAt;
+          const payload = await statusResult.value.clone().json();
+          const kam = payload?.components?.kam;
+          if (kam?.status === 'operational' && Number(kam.chainId) === 22028) {
+            next.networks = [...next.networks.filter((network) => network?.name !== 'KAM Network'), {
+              name: 'KAM Network',
+              symbol: 'KAM',
+              status: 'online',
+              verification: 'platform-status',
+              chainId: 22028,
+              blockNumber: kam.blockNumber ?? null,
+            }];
           }
         } catch {
-          // KAM is additive only; a KAM check failure never changes public network results.
+          // KAM remains additive and verified-only.
         }
       }
 
