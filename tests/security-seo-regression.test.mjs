@@ -13,11 +13,21 @@ test('private routes are protected and marked noindex', async () => {
 
   const publicSet = app.match(/const PUBLIC_PAGE_KEYS = new Set\(\[([\s\S]*?)\]\);/)?.[1] || '';
   assert.doesNotMatch(publicSet, /PlatformDocs/);
+
+  // Private application surfaces remain non-indexable at the response layer.
+  // This is the durable search directive because crawlers can actually read it.
   assert.match(headers, /\/Admin\*[\s\S]*X-Robots-Tag: noindex, nofollow, noarchive/);
   assert.match(headers, /\/PlatformDocs\*[\s\S]*X-Robots-Tag: noindex, nofollow, noarchive/);
   assert.match(headers, /\/Settings\*[\s\S]*X-Robots-Tag: noindex, nofollow, noarchive/);
+  assert.match(headers, /\/KYC\*[\s\S]*X-Robots-Tag: noindex, nofollow, noarchive/);
+
+  // Keep API endpoints out of crawl space, but do not block legacy private-page
+  // URLs that must be fetched so crawlers can observe X-Robots-Tag: noindex and
+  // remove already-indexed results. Authentication remains the access-control layer.
   assert.match(robots, /Disallow: \/api\//);
-  assert.match(robots, /Disallow: \/Admin/);
+  assert.doesNotMatch(robots, /Disallow: \/Admin/);
+  assert.doesNotMatch(robots, /Disallow: \/Settings/);
+  assert.doesNotMatch(robots, /Disallow: \/KYC/);
 });
 
 test('regulatory and security UI avoids unsupported claims and synthetic activity', async () => {
