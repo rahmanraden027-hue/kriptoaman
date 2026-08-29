@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Shield, Zap, Globe, Users, Lock, TrendingUp, Heart, Mail, ExternalLink } from 'lucide-react';
 import TrustBadges from '../components/trust/TrustBadges';
 import { createPageUrl } from '@/utils';
@@ -21,6 +21,83 @@ const STATS = [
 ];
 
 export default function AboutUs() {
+  useEffect(() => {
+    const title = 'Tentang KriptoAman | PT Kripto Aman Indonesia';
+    const description = 'Tentang KriptoAman, platform informasi, pemantauan, edukasi, dan analisis risiko indikatif aset digital yang dioperasikan oleh PT Kripto Aman Indonesia.';
+    const canonical = 'https://kriptoaman.com/AboutUs';
+    const previousTitle = document.title;
+
+    document.title = title;
+
+    const ensureMeta = (name, content) => {
+      let el = document.head.querySelector(`meta[name="${name}"]`);
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute('name', name);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', content);
+      return el;
+    };
+
+    const ensureLink = (rel, href) => {
+      let el = document.head.querySelector(`link[rel="${rel}"]`);
+      if (!el) {
+        el = document.createElement('link');
+        el.setAttribute('rel', rel);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('href', href);
+      return el;
+    };
+
+    ensureMeta('description', description);
+    ensureMeta('robots', 'index, follow, max-image-preview:large');
+    ensureLink('canonical', canonical);
+
+    const schema = document.createElement('script');
+    schema.type = 'application/ld+json';
+    schema.dataset.pageSchema = 'about-us';
+    schema.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'AboutPage',
+          '@id': `${canonical}#webpage`,
+          url: canonical,
+          name: title,
+          description,
+          about: { '@id': 'https://kriptoaman.com/#organization' },
+          isPartOf: { '@id': 'https://kriptoaman.com/#website' },
+          inLanguage: 'id-ID',
+        },
+        {
+          '@type': 'Organization',
+          '@id': 'https://kriptoaman.com/#organization',
+          name: 'PT KRIPTO AMAN INDONESIA',
+          alternateName: 'KriptoAman',
+          url: 'https://kriptoaman.com/',
+          logo: 'https://kriptoaman.com/brand/kriptoaman-mark.svg',
+          founder: { '@id': 'https://kriptoaman.com/founder#raden-abdul-rahman' },
+        },
+        {
+          '@type': 'BreadcrumbList',
+          '@id': `${canonical}#breadcrumb`,
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'KriptoAman', item: 'https://kriptoaman.com/' },
+            { '@type': 'ListItem', position: 2, name: 'Tentang Kami', item: canonical },
+          ],
+        },
+      ],
+    });
+    document.head.appendChild(schema);
+
+    return () => {
+      document.title = previousTitle;
+      schema.remove();
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 pb-32">
       <div className="max-w-lg mx-auto px-4 pt-6 space-y-6">
@@ -137,9 +214,14 @@ export default function AboutUs() {
             <ExternalLink className="w-4 h-4" />
             <span className="text-sm font-medium">Pusat Bantuan</span>
           </Link>
-          <Link to="/LegalCorporateInformation" className="inline-flex items-center justify-center gap-2 text-xs text-sky-300 hover:underline">
-            PT Kripto Aman Indonesia · Legal & Corporate Information
-          </Link>
+          <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 pt-1">
+            <Link to="/company" className="inline-flex items-center justify-center gap-2 text-xs text-sky-300 hover:underline">
+              Company Facts
+            </Link>
+            <Link to="/LegalCorporateInformation" className="inline-flex items-center justify-center gap-2 text-xs text-sky-300 hover:underline">
+              PT Kripto Aman Indonesia · Legal & Corporate Information
+            </Link>
+          </div>
           <p className="text-slate-600 text-xs pt-1">© 2026 PT KRIPTO AMAN INDONESIA · Republik Indonesia</p>
         </div>
 
