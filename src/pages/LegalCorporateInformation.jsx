@@ -1,8 +1,57 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Building2, MapPin, ShieldCheck, Scale, ExternalLink } from 'lucide-react';
 
 export default function LegalCorporateInformation() {
+  useEffect(() => {
+    const title = 'Legal & Corporate Information | PT Kripto Aman Indonesia';
+    const description = 'Informasi legal dan korporasi PT Kripto Aman Indonesia, Corporate Office Jakarta, ruang lingkup layanan KriptoAman, posisi regulasi, serta kanal verifikasi resmi.';
+    const canonicalUrl = 'https://kriptoaman.com/LegalCorporateInformation';
+
+    const previousTitle = document.title;
+    document.title = title;
+
+    let descriptionMeta = document.querySelector('meta[name="description"]');
+    const descriptionCreated = !descriptionMeta;
+    const previousDescription = descriptionMeta?.getAttribute('content') ?? null;
+    if (!descriptionMeta) {
+      descriptionMeta = document.createElement('meta');
+      descriptionMeta.setAttribute('name', 'description');
+      document.head.appendChild(descriptionMeta);
+    }
+    descriptionMeta.setAttribute('content', description);
+
+    let robotsMeta = document.querySelector('meta[name="robots"]');
+    const robotsCreated = !robotsMeta;
+    const previousRobots = robotsMeta?.getAttribute('content') ?? null;
+    if (!robotsMeta) {
+      robotsMeta = document.createElement('meta');
+      robotsMeta.setAttribute('name', 'robots');
+      document.head.appendChild(robotsMeta);
+    }
+    robotsMeta.setAttribute('content', 'index, follow');
+
+    let canonical = document.querySelector('link[rel="canonical"]');
+    const canonicalCreated = !canonical;
+    const previousCanonical = canonical?.getAttribute('href') ?? null;
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute('href', canonicalUrl);
+
+    return () => {
+      document.title = previousTitle;
+      if (descriptionCreated) descriptionMeta.remove();
+      else if (previousDescription !== null) descriptionMeta.setAttribute('content', previousDescription);
+      if (robotsCreated) robotsMeta.remove();
+      else if (previousRobots !== null) robotsMeta.setAttribute('content', previousRobots);
+      if (canonicalCreated) canonical.remove();
+      else if (previousCanonical !== null) canonical.setAttribute('href', previousCanonical);
+    };
+  }, []);
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <section className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
