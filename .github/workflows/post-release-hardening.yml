@@ -1,0 +1,70 @@
+name: Post-Release Hardening
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'scripts/release-budget.mjs'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.*'
+      - '.github/workflows/post-release-hardening.yml'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  readiness:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      statuses: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Regression tests
+        run: npm test
+
+      - name: Production build
+        run: npm run build
+
+      - name: Enforce release bundle budget
+        run: node scripts/release-budget.mjs
+
+      - name: Validate Play-ready public routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Rqi "AccountDeletion" src public
+          grep -Rqi "PrivacyPolicy" src public
+          grep -q '"appId": "com.kriptoaman.app"' capacitor.config.json
+          grep -q 'applicationId "com.kriptoaman.app"' android/app/build.gradle
+          grep -q 'android:usesCleartextTraffic="false"' android/app/src/main/AndroidManifest.xml
+
+      - name: Publish hardening status
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const succeeded = '${{ job.status }}' === 'success';
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: succeeded ? 'success' : 'failure',
+              context: 'kriptoaman/post-release-hardening',
+              description: succeeded
+                ? 'Regression, build, bundle budget, and Play readiness passed'
+                : 'Post-release hardening gate failed; inspect Actions',
+              target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+            });
