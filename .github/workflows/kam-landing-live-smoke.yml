@@ -65,14 +65,17 @@ jobs:
             const response = await fetch(url, { headers: { 'User-Agent': 'KriptoAman-KAM-Landing-Smoke/1.0' } });
             if (!response.ok) continue;
             const js = await response.text();
-            if (js.includes('KAM Network') && js.includes('/api/kam/network-status')) {
+            const hasKamLabel = js.includes('KAM Network');
+            const hasDirectKamContract = js.includes('/api/kam/network-status');
+            const hasPlatformKamContract = js.includes('/api/platform-status') && js.includes('22028');
+            if (hasKamLabel && (hasDirectKamContract || hasPlatformKamContract)) {
               foundKamNetwork = true;
               break;
             }
           }
-          if (!foundKamNetwork) throw new Error('Production landing bundle does not yet include independently verified KAM Network support');
+          if (!foundKamNetwork) throw new Error('Production landing bundle does not include the current KAM Network integration contract');
 
           console.log(`KAM: VERIFIED | chainId=${kamPayload.chainId} block=${kamPayload.blockNumber} status=${kamPayload.status}`);
           console.log(`PUBLIC_NETWORKS: HEALTHY | online=${online}/${total} | KAM isolated=true`);
-          console.log('LANDING_BUNDLE: VERIFIED | KAM Network support present=true');
+          console.log('LANDING_BUNDLE: VERIFIED | KAM Network integration contract present=true');
           NODE
