@@ -21,9 +21,11 @@ const PAGE_OVERRIDES = {
   AdminPlatformAssets: 'AdminPlatformAssetsModern',
   AdminProfitAnalytics: 'AdminProfitAnalyticsModern',
   AdminUserBalances: 'AdminUserBalancesModern',
+  Alerts: 'NotificationCenterV2',
   Home: 'HomeV3',
   Market: 'MarketWithKAM',
   PaperTrading: 'PaperTradingV3',
+  SecurityCenter: 'SecurityCenterV2',
   ServerControl: 'ServerControlModern',
 };
 
