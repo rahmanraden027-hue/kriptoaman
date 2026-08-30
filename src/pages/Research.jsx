@@ -1,10 +1,73 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
+const TITLE = 'KriptoAman Research | Blockchain & Digital Asset Research';
+const DESCRIPTION = 'KriptoAman Research by PT Kripto Aman Indonesia publishes evidence-oriented technical research on blockchain infrastructure, digital-asset intelligence, security, reliability, and network readiness.';
+const CANONICAL = 'https://kriptoaman.com/research';
+
+function upsertMeta(selector, attrs) {
+  let node = document.head.querySelector(selector);
+  if (!node) {
+    node = document.createElement('meta');
+    document.head.appendChild(node);
+  }
+  Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value));
+}
+
 export default function Research() {
   useEffect(() => {
-    document.title = 'KriptoAman Research | Blockchain & Digital Asset Research';
+    document.title = TITLE;
+    upsertMeta('meta[name="description"]', { name: 'description', content: DESCRIPTION });
+    upsertMeta('meta[name="robots"]', { name: 'robots', content: 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1' });
+    upsertMeta('meta[property="og:title"]', { property: 'og:title', content: TITLE });
+    upsertMeta('meta[property="og:description"]', { property: 'og:description', content: DESCRIPTION });
+    upsertMeta('meta[property="og:type"]', { property: 'og:type', content: 'website' });
+    upsertMeta('meta[property="og:url"]', { property: 'og:url', content: CANONICAL });
+
+    let canonical = document.head.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute('href', CANONICAL);
+
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.dataset.kriptoamanResearch = 'center';
+    script.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      '@id': `${CANONICAL}#research`,
+      url: CANONICAL,
+      name: 'KriptoAman Research',
+      description: DESCRIPTION,
+      isPartOf: { '@id': 'https://kriptoaman.com/#website' },
+      about: [
+        { '@type': 'Thing', name: 'Blockchain Infrastructure' },
+        { '@type': 'Thing', name: 'Digital Asset Intelligence' },
+        { '@type': 'Thing', name: 'Blockchain Security' }
+      ],
+      publisher: {
+        '@type': 'Organization',
+        '@id': 'https://kriptoaman.com/#organization',
+        name: 'PT Kripto Aman Indonesia',
+        url: 'https://kriptoaman.com/'
+      },
+      mainEntity: {
+        '@type': 'ItemList',
+        itemListElement: [{
+          '@type': 'ListItem',
+          position: 1,
+          url: 'https://kriptoaman.com/research/kam-mainnet-architecture',
+          name: 'KAM Mainnet: Architecture, Security and Public Readiness Framework'
+        }]
+      }
+    });
+    document.head.appendChild(script);
+    return () => script.remove();
   }, []);
+
   return <main className="min-h-screen bg-slate-950 text-white">
     <section className="mx-auto max-w-6xl px-6 py-20">
       <p className="text-sm font-bold uppercase tracking-[.22em] text-sky-400">PT Kripto Aman Indonesia</p>
