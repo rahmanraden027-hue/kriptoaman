@@ -2,10 +2,12 @@ import { isAdminEmail, requireBindings } from '../../../../server/auth/http.js';
 import { createSessionToken, sessionCookie } from '../../../../server/auth/session.js';
 import { createVerifiedSession } from '../../../../server/auth/sessions.js';
 import { getTotpSettings } from '../../../../server/auth/totp.js';
-import { consumeOneTimeToken, verifySignedToken } from '../../../../server/auth/tokens.js';
+import { consumeOneTimeToken, createSignedToken, verifySignedToken } from '../../../../server/auth/tokens.js';
 import { getUserByEmail } from '../../../../server/auth/users.js';
 
 const ADMIN_MAGIC_LINK_SESSION_TTL_SECONDS = 60 * 60;
+const ADMIN_2FA_CHALLENGE_TTL_SECONDS = 5 * 60;
+const ADMIN_2FA_COOKIE = 'ka_admin_2fa';
 
 function redirect(location, headers = {}) {
   return new Response(null, {
@@ -19,6 +21,10 @@ function redirect(location, headers = {}) {
       ...headers,
     },
   });
+}
+
+function admin2faCookie(token) {
+  return `${ADMIN_2FA_COOKIE}=${token}; Path=/api/auth/admin; Max-Age=${ADMIN_2FA_CHALLENGE_TTL_SECONDS}; HttpOnly; Secure; SameSite=Lax; Priority=High`;
 }
 
 export async function onRequestGet({ request, env }) {
@@ -37,9 +43,21 @@ export async function onRequestGet({ request, env }) {
     const totp = await getTotpSettings(env.AUTH_DB, user.id);
     const twoFactorEnabled = Boolean(totp?.enabled && totp?.secret_enc);
 
-    // Mailbox control is not a substitute for the enrolled second factor.
+    // Preserve passwordless admin sign-in while still requiring the enrolled TOTP.
+    // The mailbox link creates only a short-lived, HttpOnly second-factor challenge;
+    // no authenticated admin session exists until verify-2fa succeeds.
     if (twoFactorEnabled) {
-      return redirect('/login?admin_link=verified&two_factor_required=1');
+      const now = Math.floor(Date.now() / 1000);
+      const challenge = await createSignedToken(env.SESSION_SECRET, {
+        purpose: 'admin_2fa_challenge',
+        email: user.email,
+        jti: crypto.randomUUID(),
+        iat: now,
+        exp: now + ADMIN_2FA_CHALLENGE_TTL_SECONDS,
+      });
+      return redirect('/login?admin_2fa=1', {
+        'Set-Cookie': admin2faCookie(challenge),
+      });
     }
 
     const activeSession = await createVerifiedSession(
