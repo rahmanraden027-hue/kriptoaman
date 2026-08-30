@@ -53,6 +53,7 @@ export default function CompanyFacts() {
           url: canonicalUrl,
           name: 'PT Kripto Aman Indonesia — Company Facts',
           description,
+          isPartOf: { '@id': 'https://kriptoaman.com/#website' },
           about: { '@id': 'https://kriptoaman.com/#organization' },
           mainEntity: { '@id': 'https://kriptoaman.com/#organization' },
           inLanguage: 'id-ID'
@@ -64,9 +65,22 @@ export default function CompanyFacts() {
           legalName: 'PT KRIPTO AMAN INDONESIA',
           alternateName: 'KriptoAman',
           url: 'https://kriptoaman.com/',
-          logo: 'https://kriptoaman.com/brand/kriptoaman-mark.svg',
+          logo: {
+            '@type': 'ImageObject',
+            url: 'https://kriptoaman.com/icons/kriptoaman-512.png',
+            contentUrl: 'https://kriptoaman.com/icons/kriptoaman-512.png',
+            width: 512,
+            height: 512,
+            caption: 'PT KRIPTO AMAN INDONESIA logo'
+          },
+          image: 'https://kriptoaman.com/icons/kriptoaman-512.png',
           email: 'hello@kriptoaman.com',
           founder: { '@id': 'https://kriptoaman.com/founder#raden-abdul-rahman' },
+          sameAs: [
+            'https://x.com/KriptoAman',
+            'https://www.tiktok.com/@kriptoamanofficial',
+            'https://youtube.com/@kriptoamanofficial'
+          ],
           address: {
             '@type': 'PostalAddress',
             streetAddress: 'Soho Capital – Podomoro City, 25th Floor, Unit 2508, Jl. Letjen S. Parman Kav. 28',
@@ -174,7 +188,7 @@ export default function CompanyFacts() {
           </article>
         </div>
 
-        <p className="mt-8 text-xs text-muted-foreground leading-relaxed">Terakhir diperbarui: 29 Agustus 2026. Halaman ini hanya memuat informasi publik yang dimaksudkan sebagai ringkasan identitas korporasi; dokumen resmi tetap menjadi sumber utama untuk fakta hukum yang memerlukan verifikasi formal.</p>
+        <p className="mt-8 text-xs text-muted-foreground leading-relaxed">Terakhir diperbarui: 30 Agustus 2026. Halaman ini hanya memuat informasi publik yang dimaksudkan sebagai ringkasan identitas korporasi; dokumen resmi tetap menjadi sumber utama untuk fakta hukum yang memerlukan verifikasi formal.</p>
       </section>
     </main>
   );
