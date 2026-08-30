@@ -6,9 +6,12 @@ import path from 'node:path';
 const root = path.resolve(process.cwd(), 'dist');
 const MB = 1024 * 1024;
 const budgets = {
-  totalDistBytes: Number(process.env.KA_MAX_DIST_MB || 35) * MB,
-  totalJsBytes: Number(process.env.KA_MAX_JS_MB || 20) * MB,
-  largestJsBytes: Number(process.env.KA_MAX_JS_CHUNK_MB || 8) * MB,
+  // Calibrated from the validated 2026-08-30 production build:
+  // dist 7.78 MB, JS 5.48 MB, largest JS chunk 0.58 MB.
+  // These limits preserve practical release headroom while catching meaningful regressions.
+  totalDistBytes: Number(process.env.KA_MAX_DIST_MB || 10) * MB,
+  totalJsBytes: Number(process.env.KA_MAX_JS_MB || 7) * MB,
+  largestJsBytes: Number(process.env.KA_MAX_JS_CHUNK_MB || 1) * MB,
 };
 
 async function walk(dir) {
