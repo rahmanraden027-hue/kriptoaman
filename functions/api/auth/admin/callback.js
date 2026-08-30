@@ -53,7 +53,7 @@ export async function onRequestGet({ request, env }) {
         iat: now,
         exp: now + ADMIN_2FA_CHALLENGE_TTL_SECONDS,
       });
-      return redirect('/login?admin_2fa=1', {
+      return redirect('/login?admin_link=verified&two_factor_required=1&admin_2fa=1', {
         'Set-Cookie': admin2faCookie(challenge),
       });
     }
