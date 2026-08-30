@@ -39,6 +39,7 @@ export const kriptoAuth = {
   async isAuthenticated() { try { await this.me(); return true; } catch { return false; } },
   async loginViaEmailPassword(email, password) { return request('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }); },
   async loginWith2FA(email, password, code) { return request('/api/auth/login-2fa', { method: 'POST', body: JSON.stringify({ email, password, code }) }); },
+  async loginAdminWith2FA(code) { return request('/api/auth/admin/verify-2fa', { method: 'POST', body: JSON.stringify({ code }) }); },
   async get2FAStatus() { return request('/api/auth/2fa/status'); },
   async setup2FA() { return request('/api/auth/2fa/setup', { method: 'POST', body: JSON.stringify({}) }); },
   async verify2FASetup(code) { return request('/api/auth/2fa/verify', { method: 'POST', body: JSON.stringify({ code }) }); },
