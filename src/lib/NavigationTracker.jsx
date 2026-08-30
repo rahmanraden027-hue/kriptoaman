@@ -12,6 +12,7 @@ const INDEXABLE_PAGE_KEYS = new Set([
 
 const INDEXABLE_DIRECT_PATHS = new Set([
     '/', '/en', '/founder', '/company', '/LegalCorporateInformation', '/SystemStatus', '/news/kam-campaign-2026',
+    '/research', '/research/kam-mainnet-architecture',
 ]);
 
 const PUBLIC_ROUTE_SEO = {
@@ -106,6 +107,14 @@ const PUBLIC_ROUTE_SEO = {
     '/news/kam-campaign-2026': {
         title: 'Kampanye Global KAM 2026 | KriptoAman',
         description: 'Berita resmi mengenai kampanye global KAM 2026, dengan fokus pada teknologi, transparansi, dan perkembangan yang dapat diverifikasi.',
+    },
+    '/research': {
+        title: 'KriptoAman Research | Blockchain & Digital Asset Research',
+        description: 'KriptoAman Research by PT Kripto Aman Indonesia publishes evidence-oriented technical research on blockchain infrastructure, digital-asset intelligence, security, reliability, and network readiness.',
+    },
+    '/research/kam-mainnet-architecture': {
+        title: 'KAM Mainnet Architecture, Security & Public Readiness | KriptoAman Research',
+        description: 'Technical paper from KriptoAman Research documenting KAM Mainnet architecture, network identity, security controls, RPC and explorer integrity, reliability, and evidence-oriented public-readiness methodology.',
     },
 };
 
