@@ -18,6 +18,8 @@ import EnglishLanding from './pages/EnglishLanding';
 import LegalCorporateInformation from './pages/LegalCorporateInformation';
 import Founder from './pages/Founder';
 import CompanyFacts from './pages/CompanyFacts';
+import Research from './pages/Research';
+import KAMResearchPaper from './pages/KAMResearchPaper';
 import AdminRoute from '@/components/security/AdminRoute';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt';
@@ -102,6 +104,8 @@ const AuthenticatedApp = () => {
         <Route path="/LegalCorporateInformation" element={<LegalCorporateInformation />} />
         <Route path="/founder" element={<Founder />} />
         <Route path="/company" element={<CompanyFacts />} />
+        <Route path="/research" element={<Research />} />
+        <Route path="/research/kam-mainnet-architecture" element={<KAMResearchPaper />} />
         <Route path="/SystemStatus" element={<SystemStatus />} />
 
         {Object.entries(Pages).map(([path, Page]) => {
