@@ -71,7 +71,10 @@ test('admin magic links are short-lived, one-time, and cannot bypass enrolled TO
     source('../functions/api/auth/admin/callback.js'),
   ]);
   assert.match(requestLink, /user\.role === 'admin'/);
-  assert.match(requestLink, /'admin-link',[\s\S]*2,[\s\S]*60 \* 60/);
+  assert.match(requestLink, /'admin-link-v2'/);
+  assert.match(requestLink, /ADMIN_LINK_LIMIT\s*=\s*3/);
+  assert.match(requestLink, /ADMIN_LINK_WINDOW_SECONDS\s*=\s*10 \* 60/);
+  assert.match(requestLink, /status:\s*429/);
   assert.match(requestLink, /exp:\s*now \+ 5 \* 60/);
   assert.match(callback, /consumeOneTimeToken/);
   assert.match(callback, /user\.role !== 'admin'/);
