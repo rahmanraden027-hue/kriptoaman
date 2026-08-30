@@ -100,9 +100,12 @@ export default function AIInsightCard({ prices = {}, language = 'id' }) {
   }, [hasMarketData, language, snapshot]);
 
   useEffect(() => {
-    if (hasMarketData && !insight && !loading) load();
+    if (hasMarketData && sourceMode === 'waiting' && !loading) {
+      load();
+      return;
+    }
     if (!hasMarketData && !insight) setInsight(deterministicInsight(snapshot, language));
-  }, [hasMarketData, insight, language, load, loading, snapshot]);
+  }, [hasMarketData, insight, language, load, loading, snapshot, sourceMode]);
 
   const sentiment = insight?.sentiment || 'neutral';
   const sentimentTone = sentiment === 'positive'
