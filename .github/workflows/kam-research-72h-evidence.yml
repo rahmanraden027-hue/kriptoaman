@@ -1,0 +1,35 @@
+name: KAM Research 72h Evidence
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 * * * *'
+
+permissions:
+  contents: read
+
+env:
+  KAM_RESEARCH_OUT: research/kam-mainnet/data
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Collect read-only public KAM metrics
+        run: node research/kam-mainnet/collect-public-metrics.mjs
+
+      - name: Summarize current-run dataset
+        run: node research/kam-mainnet/summarize-metrics.mjs
+
+      - name: Upload research evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: kam-research-evidence-${{ github.run_id }}
+          path: research/kam-mainnet/data/
+          if-no-files-found: error
+          retention-days: 30
