@@ -141,7 +141,7 @@ export default function HomeV2() {
               </div>
               <Link to="/IntelligenceHub" className="inline-flex items-center gap-1 text-[10px] font-bold text-sky-300">{language === 'en' ? 'View all' : 'Lihat semua'}<ArrowRight className="h-3 w-3" /></Link>
             </div>
-            <Suspense fallback={<LoadingCard />}><AIInsightCard /></Suspense>
+            <Suspense fallback={<LoadingCard />}><AIInsightCard prices={prices} language={language} /></Suspense>
             <HomeMarketOverview />
             <Suspense fallback={<LoadingCard />}><HomeNews /></Suspense>
           </aside>

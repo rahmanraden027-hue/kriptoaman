@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   ArrowDownLeft, ArrowUpRight, ArrowLeftRight, Clock,
-  CheckCircle2, XCircle, Search, Filter, Trash2, RefreshCw
+  CheckCircle2, XCircle, Search, Trash2, RefreshCw, ShieldCheck
 } from 'lucide-react';
 
 const TX_KEY = 'app_tx_history';
@@ -24,32 +25,6 @@ export function loadTransactions() {
   try { return JSON.parse(localStorage.getItem(TX_KEY)) || []; } catch { return []; }
 }
 
-// ── Seed demo data if empty ───────────────────────────────────────────────────
-function seedDemoData() {
-  const existing = loadTransactions();
-  if (existing.length > 0) return;
-
-  const demos = [
-    { type: 'deposit', protocol: 'Aave', amount: 500, token: 'USDT', network: 'Ethereum', apy: 5.82, status: 'success' },
-    { type: 'swap', fromToken: 'ETH', toToken: 'USDT', fromAmount: 0.15, toAmount: 512.4, network: 'Ethereum', dex: '1inch', status: 'success' },
-    { type: 'withdraw', protocol: 'Compound', amount: 200, token: 'USDT', network: 'Ethereum', earned: 1.23, status: 'success' },
-    { type: 'swap', fromToken: 'BNB', toToken: 'USDC', fromAmount: 1.2, toAmount: 698.4, network: 'BNB Chain', dex: 'PancakeSwap', status: 'success' },
-    { type: 'deposit', protocol: 'Curve 3Pool', amount: 1000, token: 'USDT', network: 'Multi-chain', apy: 7.24, status: 'success' },
-    { type: 'swap', fromToken: 'SOL', toToken: 'USDC', fromAmount: 5, toAmount: 860, network: 'Solana', dex: 'Jupiter', status: 'pending' },
-    { type: 'withdraw', protocol: 'Yearn Finance', amount: 350, token: 'USDT', network: 'Ethereum', earned: 4.87, status: 'success' },
-    { type: 'deposit', protocol: 'Beefy Finance', amount: 250, token: 'USDT', network: 'BNB Chain', apy: 9.38, status: 'success' },
-    { type: 'swap', fromToken: 'MATIC', toToken: 'ETH', fromAmount: 500, toAmount: 0.212, network: 'Polygon', dex: 'QuickSwap', status: 'failed' },
-    { type: 'deposit', protocol: 'Kamino Finance', amount: 300, token: 'USDC', network: 'Solana', apy: 11.4, status: 'success' },
-  ].map((tx, i) => ({
-    ...tx,
-    id: Date.now() - i * 86400000 * (0.5 + Math.random()),
-    date: new Date(Date.now() - i * 86400000 * (0.5 + Math.random())).toISOString(),
-  }));
-
-  localStorage.setItem(TX_KEY, JSON.stringify(demos));
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
 const TYPE_CONFIG = {
   deposit:  { label: 'Deposit',   icon: ArrowDownLeft,  color: 'text-green-400',  bg: 'bg-green-500/10 border-green-500/20' },
   withdraw: { label: 'Penarikan', icon: ArrowUpRight,   color: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/20' },
@@ -75,84 +50,45 @@ function TxCard({ tx }) {
   const StatIcon = sta.icon;
 
   return (
-    <div className={`bg-slate-800/50 border rounded-2xl p-4 space-y-3`}>
+    <div className="space-y-3 rounded-2xl border border-slate-700/40 bg-slate-800/50 p-4">
       <div className="flex items-start justify-between gap-3">
-        {/* Left: type icon + title */}
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${cfg.bg}`}>
-            <Icon className={`w-4.5 h-4.5 ${cfg.color}`} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-white font-semibold text-sm">{cfg.label}</span>
-              <span className={`flex items-center gap-1 text-[10px] font-medium ${sta.color}`}>
-                <StatIcon className="w-3 h-3" />{sta.label}
-              </span>
-            </div>
-            <div className="text-slate-500 text-xs mt-0.5">{formatDate(tx.date)}</div>
-          </div>
+          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${cfg.bg}`}><Icon className={`h-4.5 w-4.5 ${cfg.color}`} /></div>
+          <div><div className="flex items-center gap-2"><span className="text-sm font-semibold text-white">{cfg.label}</span><span className={`flex items-center gap-1 text-[10px] font-medium ${sta.color}`}><StatIcon className="h-3 w-3" />{sta.label}</span></div><div className="mt-0.5 text-xs text-slate-500">{formatDate(tx.date)}</div></div>
         </div>
-
-        {/* Right: amount */}
-        <div className="text-right shrink-0">
-          {tx.type === 'swap' ? (
-            <>
-              <div className="text-white font-bold text-sm">
-                {parseFloat(tx.fromAmount).toLocaleString()} {tx.fromToken}
-              </div>
-              <div className="text-slate-400 text-xs">→ {parseFloat(tx.toAmount).toLocaleString()} {tx.toToken}</div>
-            </>
-          ) : (
-            <>
-              <div className={`font-bold text-sm ${tx.type === 'deposit' ? 'text-green-400' : 'text-orange-400'}`}>
-                {tx.type === 'deposit' ? '+' : '-'}{parseFloat(tx.amount).toLocaleString()} {tx.token}
-              </div>
-              {tx.earned && <div className="text-green-400 text-xs">+{tx.earned} reward</div>}
-            </>
-          )}
+        <div className="shrink-0 text-right">
+          {tx.type === 'swap' ? <><div className="text-sm font-bold text-white">{parseFloat(tx.fromAmount || 0).toLocaleString()} {tx.fromToken}</div><div className="text-xs text-slate-400">→ {parseFloat(tx.toAmount || 0).toLocaleString()} {tx.toToken}</div></> : <><div className={`text-sm font-bold ${tx.type === 'deposit' ? 'text-green-400' : 'text-orange-400'}`}>{tx.type === 'deposit' ? '+' : '-'}{parseFloat(tx.amount || 0).toLocaleString()} {tx.token}</div>{tx.earned && <div className="text-xs text-green-400">+{tx.earned} reward</div>}</>}
         </div>
       </div>
-
-      {/* Meta row */}
       <div className="flex flex-wrap gap-2 text-[10px]">
-        {tx.protocol && (
-          <span className="px-2 py-0.5 rounded-full bg-slate-700/60 text-slate-300">{tx.protocol}</span>
-        )}
-        {tx.dex && (
-          <span className="px-2 py-0.5 rounded-full bg-slate-700/60 text-slate-300">via {tx.dex}</span>
-        )}
-        {tx.network && (
-          <span className="px-2 py-0.5 rounded-full bg-slate-700/40 text-slate-400">{tx.network}</span>
-        )}
-        {tx.apy && (
-          <span className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">{tx.apy}% APY</span>
-        )}
+        {tx.protocol && <span className="rounded-full bg-slate-700/60 px-2 py-0.5 text-slate-300">{tx.protocol}</span>}
+        {tx.dex && <span className="rounded-full bg-slate-700/60 px-2 py-0.5 text-slate-300">via {tx.dex}</span>}
+        {tx.network && <span className="rounded-full bg-slate-700/40 px-2 py-0.5 text-slate-400">{tx.network}</span>}
+        {tx.hash && <span className="max-w-full truncate rounded-full bg-sky-500/10 px-2 py-0.5 font-mono text-sky-300">{tx.hash}</span>}
       </div>
     </div>
   );
 }
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
 const FILTER_TYPES = ['Semua', 'Deposit', 'Swap', 'Penarikan'];
 const FILTER_STATUS = ['Semua', 'Berhasil', 'Pending', 'Gagal'];
-const TYPE_MAP = { 'Deposit': 'deposit', 'Swap': 'swap', 'Penarikan': 'withdraw' };
-const STATUS_MAP = { 'Berhasil': 'success', 'Pending': 'pending', 'Gagal': 'failed' };
+const TYPE_MAP = { Deposit: 'deposit', Swap: 'swap', Penarikan: 'withdraw' };
+const STATUS_MAP = { Berhasil: 'success', Pending: 'pending', Gagal: 'failed' };
 
 export default function TxHistory() {
+  const [params] = useSearchParams();
+  const initialHash = params.get('hash') || '';
   const [txs, setTxs] = useState([]);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(initialHash);
   const [filterType, setFilterType] = useState('Semua');
   const [filterStatus, setFilterStatus] = useState('Semua');
 
-  const reload = useCallback(() => {
-    seedDemoData();
-    setTxs(loadTransactions());
-  }, []);
-
-  useEffect(() => { reload(); }, []);
+  const reload = useCallback(() => { setTxs(loadTransactions()); }, []);
+  useEffect(() => { reload(); }, [reload]);
+  useEffect(() => { if (initialHash) setSearch(initialHash); }, [initialHash]);
 
   const clearAll = () => {
-    if (!window.confirm('Hapus semua riwayat transaksi?')) return;
+    if (!window.confirm('Hapus semua riwayat transaksi lokal?')) return;
     localStorage.removeItem(TX_KEY);
     setTxs([]);
   };
@@ -162,6 +98,8 @@ export default function TxHistory() {
     const matchStatus = filterStatus === 'Semua' || tx.status === STATUS_MAP[filterStatus];
     const q = search.toLowerCase();
     const matchSearch = !search
+      || String(tx.hash || '').toLowerCase().includes(q)
+      || String(tx.id || '').toLowerCase().includes(q)
       || tx.protocol?.toLowerCase().includes(q)
       || tx.dex?.toLowerCase().includes(q)
       || tx.token?.toLowerCase().includes(q)
@@ -171,91 +109,32 @@ export default function TxHistory() {
     return matchType && matchStatus && matchSearch;
   });
 
-  // Stats
-  const totalDeposit = txs.filter(t => t.type === 'deposit' && t.status === 'success').reduce((s, t) => s + (t.amount || 0), 0);
-  const totalWithdraw = txs.filter(t => t.type === 'withdraw' && t.status === 'success').reduce((s, t) => s + (t.amount || 0), 0);
+  const totalDeposit = txs.filter(t => t.type === 'deposit' && t.status === 'success').reduce((s, t) => s + (Number(t.amount) || 0), 0);
+  const totalWithdraw = txs.filter(t => t.type === 'withdraw' && t.status === 'success').reduce((s, t) => s + (Number(t.amount) || 0), 0);
   const totalSwaps = txs.filter(t => t.type === 'swap' && t.status === 'success').length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      <div className="max-w-md mx-auto p-4 pb-24 space-y-4">
-
-        {/* Header */}
-        <div className="pt-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-              <Clock className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <h1 className="text-white font-bold">Riwayat Transaksi</h1>
-              <div className="text-slate-500 text-[10px]">{txs.length} aktivitas tercatat</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <button onClick={reload} className="p-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-white transition-colors">
-              <RefreshCw className="w-4 h-4" />
-            </button>
-            {txs.length > 0 && (
-              <button onClick={clearAll} className="p-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-red-400 transition-colors">
-                <Trash2 className="w-4 h-4" />
-              </button>
-            )}
-          </div>
+    <div className="ka-bg min-h-screen pb-28 text-white">
+      <div className="mx-auto max-w-3xl space-y-4 p-4">
+        <div className="flex items-center justify-between pt-4">
+          <div className="flex items-center gap-2"><div className="flex h-9 w-9 items-center justify-center rounded-xl border border-sky-400/20 bg-sky-400/10"><Clock className="h-4 w-4 text-sky-300" /></div><div><h1 className="font-bold text-white">Riwayat Transaksi Lokal</h1><div className="text-[10px] text-slate-500">{txs.length} aktivitas benar-benar tercatat pada perangkat ini</div></div></div>
+          <div className="flex items-center gap-1.5"><button onClick={reload} className="rounded-lg border border-slate-700 bg-slate-800 p-2 text-slate-400"><RefreshCw className="h-4 w-4" /></button>{txs.length > 0 && <button onClick={clearAll} className="rounded-lg border border-slate-700 bg-slate-800 p-2 text-slate-400 hover:text-red-400"><Trash2 className="h-4 w-4" /></button>}</div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { label: 'Total Deposit', value: `$${totalDeposit.toLocaleString()}`, color: 'text-green-400' },
-            { label: 'Total Tarik', value: `$${totalWithdraw.toLocaleString()}`, color: 'text-orange-400' },
-            { label: 'Total Swap', value: `${totalSwaps}x`, color: 'text-blue-400' },
-          ].map(s => (
-            <div key={s.label} className="bg-slate-800/50 border border-slate-700/30 rounded-xl p-3 text-center">
-              <div className={`text-base font-bold ${s.color}`}>{s.value}</div>
-              <div className="text-slate-500 text-[10px] mt-0.5">{s.label}</div>
-            </div>
-          ))}
-        </div>
+        <div className="flex items-start gap-2 rounded-xl border border-emerald-400/15 bg-emerald-400/5 p-3 text-[11px] leading-5 text-slate-400"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />Tidak ada data demo yang dibuat otomatis. Halaman ini hanya menampilkan aktivitas yang benar-benar tersimpan melalui aplikasi pada perangkat ini.</div>
 
-        {/* Search */}
-        <div className="flex items-center gap-2 bg-slate-800/60 border border-slate-700/50 rounded-xl px-3 py-2">
-          <Search className="w-4 h-4 text-slate-500 shrink-0" />
-          <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Cari protokol, token, jaringan..."
-            className="bg-transparent text-white text-sm outline-none flex-1 placeholder:text-slate-600" />
-        </div>
+        <div className="grid grid-cols-3 gap-2">{[
+          { label: 'Total Deposit', value: `$${totalDeposit.toLocaleString()}`, color: 'text-green-400' },
+          { label: 'Total Tarik', value: `$${totalWithdraw.toLocaleString()}`, color: 'text-orange-400' },
+          { label: 'Total Swap', value: `${totalSwaps}x`, color: 'text-blue-400' },
+        ].map(s => <div key={s.label} className="rounded-xl border border-slate-700/30 bg-slate-800/50 p-3 text-center"><div className={`text-base font-bold ${s.color}`}>{s.value}</div><div className="mt-0.5 text-[10px] text-slate-500">{s.label}</div></div>)}</div>
 
-        {/* Filter: type */}
-        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
-          {FILTER_TYPES.map(f => (
-            <button key={f} onClick={() => setFilterType(f)}
-              className={`px-3 py-1.5 rounded-xl border text-xs font-medium whitespace-nowrap transition-all shrink-0 ${filterType === f ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-300'}`}>
-              {f}
-            </button>
-          ))}
-          <div className="w-px bg-slate-700 shrink-0" />
-          {FILTER_STATUS.map(f => (
-            <button key={f} onClick={() => setFilterStatus(f)}
-              className={`px-3 py-1.5 rounded-xl border text-xs font-medium whitespace-nowrap transition-all shrink-0 ${filterStatus === f ? 'bg-slate-600 border-slate-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-300'}`}>
-              {f}
-            </button>
-          ))}
-        </div>
+        <div className="flex items-center gap-2 rounded-xl border border-slate-700/50 bg-slate-800/60 px-3 py-2"><Search className="h-4 w-4 shrink-0 text-slate-500" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari hash, protokol, token, jaringan..." className="min-h-11 flex-1 bg-transparent text-base text-white outline-none placeholder:text-slate-600" /></div>
 
-        {/* List */}
-        {filtered.length === 0 ? (
-          <div className="py-16 text-center space-y-3">
-            <Clock className="w-10 h-10 text-slate-700 mx-auto" />
-            <div className="text-slate-500 text-sm">Belum ada transaksi ditemukan</div>
-            <div className="text-slate-600 text-xs">Aktivitas dari Savings & DEX akan muncul di sini</div>
-          </div>
-        ) : (
-          <div className="space-y-2.5">
-            {filtered.map(tx => <TxCard key={tx.id} tx={tx} />)}
-          </div>
-        )}
+        <div className="flex gap-2 overflow-x-auto pb-1">{FILTER_TYPES.map(f => <button key={f} onClick={() => setFilterType(f)} className={`shrink-0 rounded-xl border px-3 py-1.5 text-xs ${filterType === f ? 'border-indigo-500 bg-indigo-600 text-white' : 'border-slate-700 bg-slate-800 text-slate-400'}`}>{f}</button>)}<div className="w-px shrink-0 bg-slate-700" />{FILTER_STATUS.map(f => <button key={f} onClick={() => setFilterStatus(f)} className={`shrink-0 rounded-xl border px-3 py-1.5 text-xs ${filterStatus === f ? 'border-slate-500 bg-slate-600 text-white' : 'border-slate-700 bg-slate-800 text-slate-400'}`}>{f}</button>)}</div>
 
-        <p className="text-center text-slate-600 text-xs">Riwayat tersimpan di perangkat lokal Anda</p>
+        {filtered.length === 0 ? <div className="space-y-3 py-16 text-center"><Clock className="mx-auto h-10 w-10 text-slate-700" /><div className="text-sm text-slate-500">Belum ada transaksi yang sesuai.</div><div className="text-xs text-slate-600">Riwayat kosong tetap kosong sampai aplikasi benar-benar mencatat aktivitas.</div></div> : <div className="space-y-2.5">{filtered.map(tx => <TxCard key={tx.id} tx={tx} />)}</div>}
+        <p className="text-center text-xs text-slate-600">Riwayat tersimpan secara lokal pada perangkat ini.</p>
       </div>
     </div>
   );

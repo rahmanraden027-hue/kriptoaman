@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Key, Lock, AlertTriangle, CheckCircle2, XCircle, RefreshCw, Loader2, Copy, CheckCheck, ExternalLink, Radar, Activity, ServerCog, Sparkles } from 'lucide-react';
+import { Shield, Key, Lock, AlertTriangle, CheckCircle2, XCircle, RefreshCw, Loader2, Copy, CheckCheck, ExternalLink, Radar, Activity, ServerCog, Sparkles, Gauge } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import AdminGuard, { OWNER_EMAIL } from '../components/security/AdminGuard';
 
@@ -66,6 +66,37 @@ const PRIVATE_KEY_RULES = [
   'Evaluasi rotasi wallet operasional setelah deployment selesai.',
 ];
 
+function buildSecurityScore(sec) {
+  const rogueAdmins = Number(sec.rogueAdminsFound || 0);
+  const pendingWithdrawals = Number(sec.pendingWithdrawals || 0);
+  const pendingDeposits = Number(sec.pendingDeposits || 0);
+  const completedChecks = SC_CHECKLIST.filter((item) => item.done).length;
+  const checklistScore = Math.round((completedChecks / SC_CHECKLIST.length) * 40);
+  const adminScore = rogueAdmins === 0 ? 30 : Math.max(0, 30 - rogueAdmins * 15);
+  const opsPenalty = Math.min(15, pendingWithdrawals * 5 + pendingDeposits * 2);
+  const operationsScore = Math.max(0, 15 - opsPenalty);
+  const baselineScore = 15;
+  const score = Math.max(0, Math.min(100, checklistScore + adminScore + operationsScore + baselineScore));
+
+  let label = 'Perlu perhatian';
+  let tone = 'text-amber-300';
+  if (score >= 85) { label = 'Kuat'; tone = 'text-emerald-300'; }
+  else if (score >= 70) { label = 'Baik'; tone = 'text-cyan-300'; }
+  else if (score < 50) { label = 'Risiko tinggi'; tone = 'text-red-300'; }
+
+  return {
+    score,
+    label,
+    tone,
+    factors: [
+      { label: 'Kontrol admin', value: `${adminScore}/30`, ok: rogueAdmins === 0 },
+      { label: 'Smart contract hardening', value: `${checklistScore}/40`, ok: completedChecks >= 8 },
+      { label: 'Operasi tertunda', value: `${operationsScore}/15`, ok: pendingWithdrawals === 0 },
+      { label: 'Baseline aplikasi', value: `${baselineScore}/15`, ok: true },
+    ],
+  };
+}
+
 export default function SecurityCenter() {
   const [securityReport, setSecurityReport] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -79,7 +110,7 @@ export default function SecurityCenter() {
       setLastChecked(new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }));
     } catch (err) {
       console.error('Security check error:', err);
-      setSecurityReport({ security: { rogueAdminsFound: 0, adminCount: 1, pendingWithdrawals: 0, pendingDeposits: 0 } });
+      setSecurityReport({ security: { rogueAdminsFound: 0, adminCount: 1, pendingWithdrawals: 0, pendingDeposits: 0 }, degraded: true });
       setLastChecked(new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }));
     }
     setLoading(false);
@@ -88,6 +119,7 @@ export default function SecurityCenter() {
   useEffect(() => { runSecurityCheck(); }, []);
 
   const sec = securityReport?.security || {};
+  const posture = buildSecurityScore(sec);
 
   return (
     <AdminGuard>
@@ -111,7 +143,31 @@ export default function SecurityCenter() {
               </button>
             </div>
 
-            <div className="relative mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+            <div className="relative mt-5 grid gap-3 lg:grid-cols-[1.1fr_.9fr]">
+              <div className="rounded-3xl border border-white/8 bg-white/[0.035] p-4 sm:p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.16em] text-slate-500"><Gauge className="h-4 w-4" /> Security Posture Score</div>
+                    <div className="mt-3 flex items-end gap-3"><span className="text-5xl font-black tracking-tight text-white">{posture.score}</span><span className="pb-1 text-sm font-bold text-slate-500">/100</span></div>
+                    <p className={`mt-1 text-sm font-extrabold ${posture.tone}`}>{posture.label}</p>
+                  </div>
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full border border-cyan-400/20 bg-cyan-400/8"><Shield className="h-7 w-7 text-cyan-300" /></div>
+                </div>
+                <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/5"><div className="h-full rounded-full bg-gradient-to-r from-cyan-500 via-sky-400 to-emerald-400 transition-all" style={{ width: `${posture.score}%` }} /></div>
+                <p className="mt-3 text-[10px] leading-relaxed text-slate-500">Skor ini adalah indikator posture internal berbasis kontrol yang terlihat di dashboard. Ini bukan sertifikasi audit, jaminan keamanan, atau pengganti penetration test dan audit independen.</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                {posture.factors.map((factor) => (
+                  <div key={factor.label} className="rounded-2xl border border-white/7 bg-white/[0.035] p-3 backdrop-blur">
+                    <div className="flex items-center justify-between gap-2">{factor.ok ? <CheckCircle2 className="h-4 w-4 text-emerald-400" /> : <AlertTriangle className="h-4 w-4 text-amber-400" />}<span className="text-xs font-black text-white">{factor.value}</span></div>
+                    <p className="mt-2 text-[9px] uppercase tracking-wide text-slate-500">{factor.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="relative mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
               {[
                 [Activity, 'Admin tidak sah', sec.rogueAdminsFound ?? 0],
                 [Shield, 'Total admin', sec.adminCount ?? 1],
@@ -150,6 +206,7 @@ export default function SecurityCenter() {
                   ].map(([label, value]) => <div key={label} className="rounded-2xl border border-slate-700/50 bg-slate-950/35 p-3"><p className="text-[10px] text-slate-500">{label}</p><p className="mt-1 text-2xl font-black text-white">{value}</p></div>)}
                 </div>
               )}
+              {securityReport?.degraded && <p className="mt-3 rounded-xl border border-amber-400/15 bg-amber-400/5 p-2.5 text-[10px] text-amber-200">Backend check tidak tersedia. Nilai yang tampil berasal dari fallback aman dan tidak boleh dianggap sebagai hasil audit real-time.</p>}
               {lastChecked && <p className="mt-3 text-right text-[10px] text-slate-500">Terakhir dicek: {lastChecked} WIB</p>}
             </Section>
           </div>

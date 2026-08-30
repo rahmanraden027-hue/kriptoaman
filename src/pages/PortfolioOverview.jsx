@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Activity, BarChart3, Layers3, Radar, Sparkles, Zap, RefreshCw } from 'lucide-react';
+import { Activity, BarChart3, Layers3, Radar, Sparkles, Zap, RefreshCw, ShieldAlert, Gauge, PieChart, TrendingUp } from 'lucide-react';
 import PortfolioStats from '../components/portfolio/PortfolioStats';
 import AssetAllocationChart from '../components/portfolio/AssetAllocationChart';
 import StrategyOverviewCard from '../components/portfolio/StrategyOverviewCard';
@@ -52,6 +52,20 @@ const COPY = {
     activeStrategies: 'Strategi Aktif',
     active: 'AKTIF',
     noActive: 'Belum ada strategi aktif',
+    riskKicker: 'PORTFOLIO RISK INTELLIGENCE',
+    riskTitle: 'Konteks Risiko & Eksposur',
+    concentration: 'Risiko Konsentrasi',
+    exposureQuality: 'Kualitas Diversifikasi',
+    pnlContext: 'Konteks P/L',
+    topExposure: 'Eksposur Terbesar',
+    concentrated: 'Terkonsentrasi',
+    balanced: 'Seimbang',
+    diversified: 'Lebih Terdiversifikasi',
+    positive: 'Positif',
+    negative: 'Negatif',
+    neutral: 'Netral',
+    noExposure: 'Belum ada eksposur yang dapat dihitung',
+    riskDisclaimer: 'Indikator ini dihitung dari data simulasi dan strategi yang tersedia. Bukan rekomendasi investasi, bukan VaR institusional, dan bukan jaminan performa.',
   },
   en: {
     kicker: 'KRIPTOAMAN PORTFOLIO INTELLIGENCE',
@@ -76,8 +90,67 @@ const COPY = {
     activeStrategies: 'Active Strategies',
     active: 'ACTIVE',
     noActive: 'No active strategies yet',
+    riskKicker: 'PORTFOLIO RISK INTELLIGENCE',
+    riskTitle: 'Risk & Exposure Context',
+    concentration: 'Concentration Risk',
+    exposureQuality: 'Diversification Quality',
+    pnlContext: 'P/L Context',
+    topExposure: 'Largest Exposure',
+    concentrated: 'Concentrated',
+    balanced: 'Balanced',
+    diversified: 'More Diversified',
+    positive: 'Positive',
+    negative: 'Negative',
+    neutral: 'Neutral',
+    noExposure: 'No measurable exposure yet',
+    riskDisclaimer: 'These indicators are calculated from available strategy and simulation data. They are not investment advice, institutional VaR, or a performance guarantee.',
   },
 };
+
+function buildPortfolioIntelligence(metrics) {
+  const entries = Object.entries(metrics.assetBreakdown || {})
+    .map(([asset, value]) => [asset, Math.max(0, Number(value) || 0)])
+    .filter(([, value]) => value > 0)
+    .sort((a, b) => b[1] - a[1]);
+
+  const totalExposure = entries.reduce((sum, [, value]) => sum + value, 0);
+  const top = entries[0] || null;
+  const topShare = totalExposure > 0 && top ? (top[1] / totalExposure) * 100 : 0;
+  const assetCount = entries.length;
+
+  let concentrationLabel = 'balanced';
+  let concentrationScore = 70;
+  if (topShare >= 70) {
+    concentrationLabel = 'concentrated';
+    concentrationScore = 35;
+  } else if (topShare >= 50) {
+    concentrationLabel = 'balanced';
+    concentrationScore = 55;
+  } else if (assetCount >= 4) {
+    concentrationLabel = 'diversified';
+    concentrationScore = 85;
+  }
+
+  const totalPL = Number(metrics.totalRealizedPL || 0) + Number(metrics.totalUnrealizedPL || 0);
+  const pnlState = totalPL > 0 ? 'positive' : totalPL < 0 ? 'negative' : 'neutral';
+
+  const diversificationScore = totalExposure === 0
+    ? 0
+    : Math.max(0, Math.min(100, Math.round((100 - topShare) * 0.7 + Math.min(assetCount, 6) * 5)));
+
+  return {
+    entries,
+    totalExposure,
+    top,
+    topShare,
+    assetCount,
+    concentrationLabel,
+    concentrationScore,
+    diversificationScore,
+    totalPL,
+    pnlState,
+  };
+}
 
 export default function PortfolioOverview() {
   const { language } = useLanguage();
@@ -158,11 +231,19 @@ export default function PortfolioOverview() {
     };
   }, [liveTrades, paperTrades, strategies]);
 
+  const intelligence = useMemo(() => buildPortfolioIntelligence(portfolioMetrics), [portfolioMetrics]);
   const activeStrategies = strategies.filter(strategy => strategy.isActive === true);
   const loading = strategiesLoading || liveTradesLoading || paperTradesLoading;
   const dataError = strategiesError || liveTradesError || paperTradesError;
   const empty = !loading && !dataError && !strategies.length && !liveTrades.length && !paperTrades.length;
   const retryAll = () => Promise.all([refetchStrategies(), refetchLiveTrades(), refetchPaperTrades()]);
+
+  const concentrationCopy = intelligence.concentrationLabel === 'concentrated'
+    ? text.concentrated
+    : intelligence.concentrationLabel === 'diversified'
+      ? text.diversified
+      : text.balanced;
+  const pnlCopy = intelligence.pnlState === 'positive' ? text.positive : intelligence.pnlState === 'negative' ? text.negative : text.neutral;
 
   return (
     <div className="ka-bg ka-workspace-page min-h-screen pb-24 text-white sm:pb-28">
@@ -236,6 +317,62 @@ export default function PortfolioOverview() {
                 <div><p className="ka-command-kicker"><Activity className="h-3.5 w-3.5" aria-hidden="true" /> {text.signals}</p><h2 id="portfolio-metrics-title" className="mt-2 text-lg font-black">{text.metrics}</h2></div>
               </div>
               <PortfolioStats metrics={portfolioMetrics} />
+            </section>
+
+            <section className="ka-command-panel p-4 sm:p-5" aria-labelledby="portfolio-risk-title">
+              <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div><p className="ka-command-kicker"><ShieldAlert className="h-3.5 w-3.5" aria-hidden="true" /> {text.riskKicker}</p><h2 id="portfolio-risk-title" className="mt-2 text-lg font-black">{text.riskTitle}</h2></div>
+                <span className="rounded-full border border-slate-700/60 bg-slate-950/45 px-3 py-1.5 text-[9px] font-bold uppercase tracking-wide text-slate-400">READ-ONLY</span>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="ka-command-tile p-4">
+                  <div className="flex items-center justify-between"><Gauge className="h-5 w-5 text-amber-300" /><span className="text-xl font-black text-white">{intelligence.concentrationScore}/100</span></div>
+                  <p className="mt-3 text-[10px] uppercase tracking-wide text-slate-500">{text.concentration}</p>
+                  <p className="mt-1 text-sm font-black text-white">{concentrationCopy}</p>
+                  <p className="mt-2 text-[10px] leading-relaxed text-slate-500">{intelligence.topShare > 0 ? `${intelligence.topShare.toFixed(1)}% ${language === 'en' ? 'in largest exposure' : 'pada eksposur terbesar'}` : text.noExposure}</p>
+                </div>
+
+                <div className="ka-command-tile p-4">
+                  <div className="flex items-center justify-between"><PieChart className="h-5 w-5 text-cyan-300" /><span className="text-xl font-black text-white">{intelligence.diversificationScore}/100</span></div>
+                  <p className="mt-3 text-[10px] uppercase tracking-wide text-slate-500">{text.exposureQuality}</p>
+                  <p className="mt-1 text-sm font-black text-white">{intelligence.assetCount} {language === 'en' ? 'exposure groups' : 'kelompok eksposur'}</p>
+                  <p className="mt-2 text-[10px] leading-relaxed text-slate-500">{language === 'en' ? 'Higher scores indicate lower single-exposure dominance.' : 'Skor lebih tinggi menunjukkan dominasi satu eksposur yang lebih rendah.'}</p>
+                </div>
+
+                <div className="ka-command-tile p-4">
+                  <div className="flex items-center justify-between"><TrendingUp className="h-5 w-5 text-emerald-300" /><span className={`text-xl font-black ${intelligence.totalPL > 0 ? 'text-emerald-300' : intelligence.totalPL < 0 ? 'text-red-300' : 'text-white'}`}>{intelligence.totalPL.toLocaleString()}</span></div>
+                  <p className="mt-3 text-[10px] uppercase tracking-wide text-slate-500">{text.pnlContext}</p>
+                  <p className="mt-1 text-sm font-black text-white">{pnlCopy}</p>
+                  <p className="mt-2 text-[10px] leading-relaxed text-slate-500">{language === 'en' ? 'Realized plus unrealized simulation P/L.' : 'Gabungan P/L realisasi dan belum terealisasi dari simulasi.'}</p>
+                </div>
+
+                <div className="ka-command-tile p-4">
+                  <div className="flex items-center justify-between"><Layers3 className="h-5 w-5 text-violet-300" /><span className="text-xl font-black text-white">{intelligence.top ? intelligence.top[0] : '—'}</span></div>
+                  <p className="mt-3 text-[10px] uppercase tracking-wide text-slate-500">{text.topExposure}</p>
+                  <p className="mt-1 text-sm font-black text-white">{intelligence.top ? intelligence.top[1].toLocaleString() : text.noExposure}</p>
+                  <p className="mt-2 text-[10px] leading-relaxed text-slate-500">{intelligence.top ? `${intelligence.topShare.toFixed(1)}% ${language === 'en' ? 'of measured exposure' : 'dari eksposur terukur'}` : ''}</p>
+                </div>
+              </div>
+
+              {intelligence.entries.length > 0 && (
+                <div className="mt-4 rounded-2xl border border-slate-700/50 bg-slate-950/35 p-4">
+                  <div className="flex items-center justify-between gap-3"><p className="text-[10px] font-black uppercase tracking-wide text-slate-500">{language === 'en' ? 'Exposure distribution' : 'Distribusi eksposur'}</p><span className="text-[10px] text-slate-500">{intelligence.totalExposure.toLocaleString()}</span></div>
+                  <div className="mt-3 space-y-3">
+                    {intelligence.entries.slice(0, 5).map(([asset, value]) => {
+                      const share = intelligence.totalExposure > 0 ? (value / intelligence.totalExposure) * 100 : 0;
+                      return (
+                        <div key={asset}>
+                          <div className="mb-1 flex items-center justify-between gap-3 text-xs"><span className="font-bold text-slate-300">{asset}</span><span className="text-slate-500">{share.toFixed(1)}%</span></div>
+                          <div className="h-1.5 overflow-hidden rounded-full bg-white/5"><div className="h-full rounded-full bg-gradient-to-r from-sky-500 to-cyan-300" style={{ width: `${Math.max(2, share)}%` }} /></div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <p className="mt-4 text-[10px] leading-relaxed text-slate-500">{text.riskDisclaimer}</p>
             </section>
 
             <div className="grid gap-5 lg:grid-cols-2">
