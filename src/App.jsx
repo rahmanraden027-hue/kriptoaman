@@ -26,6 +26,8 @@ import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt';
 import PrimaryBottomNav from '@/components/mobile/PrimaryBottomNav';
 import NativeConnectivityBanner from '@/components/mobile/NativeConnectivityBanner';
 import { LanguageProvider } from '@/lib/LanguageContext';
+import WorkspaceExperience from '@/components/workspace/WorkspaceExperience';
+import WorkspaceState from '@/components/workspace/WorkspaceState';
 
 const FeatureUpdateBroadcast = lazy(() => import('./pages/FeatureUpdateBroadcast'));
 const AMLAssistant = lazy(() => import('./pages/AMLAssistant'));
@@ -88,11 +90,11 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ? <Layout curren
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
-  if (isLoadingPublicSettings || isLoadingAuth) return <div className="fixed inset-0 flex items-center justify-center"><div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div></div>;
+  if (isLoadingPublicSettings || isLoadingAuth) return <WorkspaceState mode="loading" title="Menyiapkan KriptoAman" body="Memuat sesi dan workspace secara aman tanpa mengubah data akun." />;
   if (authError && authError.type === 'user_not_registered') return <UserNotRegisteredError />;
 
   return (
-    <Suspense fallback={<div className="fixed inset-0 flex items-center justify-center bg-slate-950"><div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-700 border-t-sky-400" /></div>}>
+    <Suspense fallback={<WorkspaceState mode="loading" title="Memuat workspace" body="Komponen sedang dimuat. Data tersimpan tidak berubah." />}>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -137,7 +139,7 @@ const AuthenticatedApp = () => {
 
 function App() {
   return (
-    <LanguageProvider><AuthProvider><QueryClientProvider client={queryClientInstance}><Router><NavigationTracker /><NativeConnectivityBanner /><AppErrorBoundary><AuthenticatedApp /><PWAInstallPrompt /></AppErrorBoundary></Router><Toaster /></QueryClientProvider></AuthProvider></LanguageProvider>
+    <LanguageProvider><AuthProvider><QueryClientProvider client={queryClientInstance}><Router><NavigationTracker /><NativeConnectivityBanner /><WorkspaceExperience /><AppErrorBoundary><AuthenticatedApp /><PWAInstallPrompt /></AppErrorBoundary></Router><Toaster /></QueryClientProvider></AuthProvider></LanguageProvider>
   )
 }
 
