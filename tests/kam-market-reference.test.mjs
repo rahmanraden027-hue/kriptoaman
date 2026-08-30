@@ -26,13 +26,16 @@ test('KAM indicative reference is static and explicitly not live trading data', 
   assert.doesNotMatch(page, /animate-ping/);
 });
 
-test('KAM scenario value remains outside live market accounting', async () => {
+test('KAM scenario value remains outside live market accounting while market intelligence may use verified live data', async () => {
   const page = await read('src/pages/MarketWithKAM.jsx');
   assert.match(page, /terpisah dari harga pasar live/);
   assert.match(page, /separate from live market pricing/);
   assert.match(page, /excluded from market cap, P\/L, portfolio valuation, and market tickers/);
-  assert.doesNotMatch(page, /change24h/);
-  assert.doesNotMatch(page, /marketCap/);
-  assert.doesNotMatch(page, /useLivePrices/);
-  assert.doesNotMatch(page, /useCoinMarkets/);
+  assert.match(page, /useLivePrices/);
+  assert.match(page, /change24h:\s*Number\(data\?\.change24h\)/);
+  assert.doesNotMatch(page, /market_cap:\s*INDICATIVE_REFERENCE/i);
+  assert.doesNotMatch(page, /current_price:\s*INDICATIVE_REFERENCE/i);
+  assert.doesNotMatch(page, /price:\s*INDICATIVE_REFERENCE/i);
+  assert.doesNotMatch(page, /change24h:\s*INDICATIVE_REFERENCE/i);
+  assert.doesNotMatch(page, /marketCap:\s*INDICATIVE_REFERENCE/i);
 });
