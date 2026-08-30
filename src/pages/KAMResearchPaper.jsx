@@ -1,6 +1,19 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
+const TITLE = 'KAM Mainnet Architecture, Security & Public Readiness | KriptoAman Research';
+const DESCRIPTION = 'Technical paper from KriptoAman Research documenting KAM Mainnet architecture, network identity, security controls, RPC and explorer integrity, reliability, and evidence-oriented public-readiness methodology.';
+const CANONICAL = 'https://kriptoaman.com/research/kam-mainnet-architecture';
+
+function upsertMeta(selector, attrs) {
+  let node = document.head.querySelector(selector);
+  if (!node) {
+    node = document.createElement('meta');
+    document.head.appendChild(node);
+  }
+  Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value));
+}
+
 const sections = [
 ['Abstract','This paper documents an evidence-oriented framework for describing and evaluating KAM Mainnet infrastructure. It separates observable technical facts from readiness conclusions and avoids treating publication, metadata submissions, or isolated successful probes as proof of final public-mainnet readiness.'],
 ['1. Network Identity','KAM uses an EVM-compatible network identity with Chain ID 22028 (0x560c). Network identity must remain consistent across RPC responses, explorer configuration, documentation and ecosystem metadata. A final collision review remains part of readiness governance.'],
@@ -16,7 +29,53 @@ const sections = [
 ];
 
 export default function KAMResearchPaper(){
- useEffect(()=>{document.title='KAM Mainnet Architecture, Security & Public Readiness | KriptoAman Research';},[]);
+ useEffect(()=>{
+  document.title = TITLE;
+  upsertMeta('meta[name="description"]', { name: 'description', content: DESCRIPTION });
+  upsertMeta('meta[name="robots"]', { name: 'robots', content: 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1' });
+  upsertMeta('meta[property="og:title"]', { property: 'og:title', content: TITLE });
+  upsertMeta('meta[property="og:description"]', { property: 'og:description', content: DESCRIPTION });
+  upsertMeta('meta[property="og:type"]', { property: 'og:type', content: 'article' });
+  upsertMeta('meta[property="og:url"]', { property: 'og:url', content: CANONICAL });
+
+  let canonical = document.head.querySelector('link[rel="canonical"]');
+  if (!canonical) {
+    canonical = document.createElement('link');
+    canonical.setAttribute('rel', 'canonical');
+    document.head.appendChild(canonical);
+  }
+  canonical.setAttribute('href', CANONICAL);
+
+  const script = document.createElement('script');
+  script.type = 'application/ld+json';
+  script.dataset.kriptoamanResearch = 'kam-mainnet-architecture';
+  script.textContent = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'TechArticle',
+    '@id': `${CANONICAL}#article`,
+    url: CANONICAL,
+    headline: 'KAM Mainnet: Architecture, Security and Public Readiness Framework',
+    description: DESCRIPTION,
+    datePublished: '2026-08-30',
+    dateModified: '2026-08-30',
+    version: '1.0',
+    isPartOf: { '@id': 'https://kriptoaman.com/research#research' },
+    publisher: {
+      '@type': 'Organization',
+      '@id': 'https://kriptoaman.com/#organization',
+      name: 'PT Kripto Aman Indonesia',
+      url: 'https://kriptoaman.com/'
+    },
+    about: [
+      { '@type': 'Thing', name: 'KAM Mainnet' },
+      { '@type': 'Thing', name: 'Blockchain Infrastructure' },
+      { '@type': 'Thing', name: 'Blockchain Security' }
+    ],
+    keywords: ['KAM Mainnet','blockchain architecture','public readiness','RPC security','network reliability']
+  });
+  document.head.appendChild(script);
+  return () => script.remove();
+ },[]);
  return <main className="min-h-screen bg-slate-950 text-white"><article className="mx-auto max-w-4xl px-6 py-16">
   <Link to="/research" className="text-sm font-bold text-sky-400">← KriptoAman Research</Link>
   <p className="mt-10 text-xs font-bold uppercase tracking-[.2em] text-sky-400">Technical Paper · Version 1.0 · 2026</p>
