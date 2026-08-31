@@ -165,7 +165,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git checkout '${{ steps.rollback.outputs.target }}'
+          target='${{ steps.rollback.outputs.target }}'
+          git fetch --no-tags --depth=1 origin "$target"
+          git checkout --detach "$target"
           npm ci --legacy-peer-deps
           npm test
           npm run build
