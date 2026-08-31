@@ -86,10 +86,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat > /tmp/pa11y-chrome.json <<'JSON'
-          {"args":["--no-sandbox","--disable-setuid-sandbox"]}
+          cat > /tmp/pa11y.json <<'JSON'
+          {
+            "standard": "WCAG2AA",
+            "chromeLaunchConfig": {
+              "args": ["--no-sandbox", "--disable-setuid-sandbox"]
+            }
+          }
           JSON
-          npx -y pa11y@9.0.0 --standard WCAG2AA --chrome-launch-config /tmp/pa11y-chrome.json --reporter json https://kriptoaman.com/ > viewport-evidence/pa11y-home.json
+          npx -y pa11y@9.0.0 --config /tmp/pa11y.json --reporter json https://kriptoaman.com/ > viewport-evidence/pa11y-home.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
