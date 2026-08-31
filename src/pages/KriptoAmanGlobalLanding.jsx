@@ -35,10 +35,12 @@ export default function KriptoAmanGlobalLanding() {
         networkCheckedAt: null,
       };
       let platformPayload = null;
+      let kamPayload = null;
 
-      const [statusResult, networkResult] = await Promise.allSettled([
+      const [statusResult, networkResult, kamResult] = await Promise.allSettled([
         fetch('/api/platform-status', { cache: 'no-store', headers: { Accept: 'application/json' } }),
         fetch('/api/network-health', { cache: 'no-store', headers: { Accept: 'application/json' } }),
+        fetch('/api/kam/network-status', { cache: 'no-store', headers: { Accept: 'application/json' } }),
       ]);
 
       if (statusResult.status === 'fulfilled') {
@@ -56,10 +58,6 @@ export default function KriptoAmanGlobalLanding() {
             next.marketSource = market.source || null;
             next.networkActiveCount = Number.isFinite(Number(networks.online)) ? Number(networks.online) : undefined;
             next.networkCheckedAt = networks.checkedAt || kam.checkedAt || null;
-
-            if (kam.status === 'operational' && Number(kam.chainId) === 22028) {
-              next.networkActiveCount = (Number(next.networkActiveCount) || 0) + 1;
-            }
           }
         } catch {
           // Public landing remains usable and never invents unavailable metrics.
@@ -72,22 +70,47 @@ export default function KriptoAmanGlobalLanding() {
           if (networkResult.value.ok && Array.isArray(payload?.networks)) {
             next.networks = payload.networks;
             next.networkCheckedAt = payload.checked_at || next.networkCheckedAt;
+            if (!Number.isFinite(Number(next.networkActiveCount))) {
+              const online = payload.networks.filter((network) => network?.status === 'online').length;
+              next.networkActiveCount = online;
+            }
           }
         } catch {
           // Detailed network badges are optional; the aggregate contract remains authoritative.
         }
       }
 
-      const kam = platformPayload?.components?.kam;
-      if (kam?.status === 'operational' && Number(kam.chainId) === 22028) {
+      if (kamResult.status === 'fulfilled') {
+        try {
+          kamPayload = await kamResult.value.json();
+        } catch {
+          kamPayload = null;
+        }
+      }
+
+      const kamFromPlatform = platformPayload?.components?.kam;
+      const kamVerified = Boolean(
+        (kamFromPlatform?.status === 'operational' && Number(kamFromPlatform.chainId) === 22028) ||
+        (kamPayload?.verified === true && Number(kamPayload.chainId) === 22028),
+      );
+      const kamBlockNumber = kamFromPlatform?.blockNumber ?? kamPayload?.blockNumber ?? null;
+      const kamCheckedAt = kamFromPlatform?.checkedAt || kamPayload?.checkedAt || null;
+
+      if (kamVerified) {
+        const hadKam = next.networks.some((network) => network?.name === 'KAM Network');
         next.networks = [...next.networks.filter((network) => network?.name !== 'KAM Network'), {
           name: 'KAM Network',
           symbol: 'KAM',
           status: 'online',
-          verification: 'platform-status',
+          verification: kamFromPlatform?.status === 'operational' ? 'platform-status' : 'kam-network-status',
           chainId: 22028,
-          blockNumber: kam.blockNumber ?? null,
+          blockNumber: kamBlockNumber,
         }];
+        next.networkCheckedAt = next.networkCheckedAt || kamCheckedAt;
+        if (!hadKam) {
+          next.networkActiveCount = (Number(next.networkActiveCount) || 0) + 1;
+        }
+        if (next.overall === 'unavailable') next.overall = 'degraded';
       }
 
       setStats(next);
