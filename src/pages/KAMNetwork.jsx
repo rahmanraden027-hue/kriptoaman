@@ -10,6 +10,8 @@ const NETWORK = {
   blockExplorerUrls: ['https://explorer.kriptoaman.com'],
 };
 
+const PROGRESSION_RETRY_DELAYS_MS = [4000, 4000];
+
 async function rpc(method, params = []) {
   const started = performance.now();
   const response = await fetch(NETWORK.rpcUrls[0], {
@@ -25,25 +27,92 @@ async function rpc(method, params = []) {
 
 export default function KAMNetwork() {
   const [checking, setChecking] = useState(true);
-  const [status, setStatus] = useState({ state: 'checking', block: null, latency: null, checkedAt: null, message: '' });
+  const [status, setStatus] = useState({
+    state: 'checking',
+    rpcReachable: false,
+    progression: 'checking',
+    block: null,
+    latency: null,
+    checkedAt: null,
+    message: '',
+  });
   const [walletMessage, setWalletMessage] = useState('');
 
   const chainOk = useMemo(() => status.state === 'operational', [status.state]);
+  const rpcReachable = status.rpcReachable === true;
 
   const checkNetwork = async () => {
     setChecking(true);
+    setStatus(previous => ({ ...previous, state: 'checking', progression: 'checking', message: '' }));
+
+    let latestBlock = status.block;
+    let latestLatency = status.latency;
+    let rpcWasReachable = false;
+
     try {
       const chain = await rpc('eth_chainId');
-      if (String(chain.result).toLowerCase() !== NETWORK.chainId) throw new Error(`Unexpected Chain ID: ${chain.result}`);
+      rpcWasReachable = true;
+      latestLatency = chain.latency;
+
+      if (String(chain.result).toLowerCase() !== NETWORK.chainId) {
+        throw new Error(`Unexpected Chain ID: ${chain.result}`);
+      }
+
       const first = await rpc('eth_blockNumber');
-      await new Promise(resolve => setTimeout(resolve, 3500));
-      const second = await rpc('eth_blockNumber');
-      const before = Number.parseInt(first.result, 16);
-      const after = Number.parseInt(second.result, 16);
-      if (!Number.isFinite(after) || after <= before) throw new Error('Block height did not advance during this probe');
-      setStatus({ state: 'operational', block: after, latency: second.latency, checkedAt: new Date(), message: '' });
+      latestLatency = first.latency;
+      const firstHeight = Number.parseInt(first.result, 16);
+      if (!Number.isFinite(firstHeight)) throw new Error('Invalid block height returned by public RPC');
+
+      latestBlock = firstHeight;
+      let previousHeight = firstHeight;
+      let progressed = false;
+
+      for (const delayMs of PROGRESSION_RETRY_DELAYS_MS) {
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+        const next = await rpc('eth_blockNumber');
+        latestLatency = next.latency;
+        const nextHeight = Number.parseInt(next.result, 16);
+        if (!Number.isFinite(nextHeight)) throw new Error('Invalid block height returned by public RPC');
+
+        latestBlock = nextHeight;
+        if (nextHeight > previousHeight) {
+          progressed = true;
+          break;
+        }
+        previousHeight = nextHeight;
+      }
+
+      if (progressed) {
+        setStatus({
+          state: 'operational',
+          rpcReachable: true,
+          progression: 'confirmed',
+          block: latestBlock,
+          latency: latestLatency,
+          checkedAt: new Date(),
+          message: 'RPC reachable dan block progression terkonfirmasi pada probe ini.',
+        });
+      } else {
+        setStatus({
+          state: 'degraded',
+          rpcReachable: true,
+          progression: 'pending',
+          block: latestBlock,
+          latency: latestLatency,
+          checkedAt: new Date(),
+          message: 'RPC reachable. Block progression belum teramati dalam jendela probe sekitar 8 detik; blok terakhir yang berhasil dibaca tetap ditampilkan. Coba periksa kembali untuk konfirmasi.',
+        });
+      }
     } catch (error) {
-      setStatus({ state: 'attention', block: null, latency: null, checkedAt: new Date(), message: error?.message || 'Network probe failed' });
+      setStatus({
+        state: 'attention',
+        rpcReachable: rpcWasReachable,
+        progression: 'unknown',
+        block: latestBlock,
+        latency: latestLatency,
+        checkedAt: new Date(),
+        message: error?.message || 'Network probe failed',
+      });
     } finally {
       setChecking(false);
     }
@@ -76,6 +145,30 @@ export default function KAMNetwork() {
     setWalletMessage('Disalin ke clipboard.');
   };
 
+  const rpcStatusLabel = checking
+    ? 'Checking'
+    : chainOk
+      ? 'Operational'
+      : status.state === 'degraded'
+        ? 'RPC reachable'
+        : 'Needs attention';
+
+  const rpcStatusTone = chainOk
+    ? 'text-emerald-300'
+    : status.state === 'degraded'
+      ? 'text-sky-300'
+      : status.state === 'attention'
+        ? 'text-amber-300'
+        : 'text-slate-300';
+
+  const progressionLabel = status.progression === 'confirmed'
+    ? 'Block progression confirmed'
+    : status.progression === 'pending'
+      ? 'Block progression pending'
+      : status.progression === 'unknown'
+        ? 'Block progression unavailable'
+        : 'Checking block progression';
+
   return (
     <main className="ka-bg min-h-screen px-4 pb-24 pt-6 text-white">
       <div className="mx-auto max-w-5xl space-y-5">
@@ -102,15 +195,15 @@ export default function KAMNetwork() {
 
         <section className="grid gap-4 md:grid-cols-3">
           <div className="ka-command-panel p-5">
-            <div className="flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-wider text-slate-500">Status RPC</span>{checking ? <Loader2 className="h-5 w-5 animate-spin text-slate-500" /> : chainOk ? <CheckCircle2 className="h-5 w-5 text-emerald-300" /> : <Network className="h-5 w-5 text-amber-300" />}</div>
-            <p className={`mt-3 text-xl font-black ${chainOk ? 'text-emerald-300' : status.state === 'attention' ? 'text-amber-300' : 'text-slate-300'}`}>{chainOk ? 'Operational' : status.state === 'attention' ? 'Needs attention' : 'Checking'}</p>
-            <p className="mt-1 text-xs text-slate-500">{status.latency != null ? `${status.latency} ms` : 'Live probe'}</p>
+            <div className="flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-wider text-slate-500">Status RPC</span>{checking ? <Loader2 className="h-5 w-5 animate-spin text-slate-500" /> : chainOk ? <CheckCircle2 className="h-5 w-5 text-emerald-300" /> : <Network className={`h-5 w-5 ${rpcReachable ? 'text-sky-300' : 'text-amber-300'}`} />}</div>
+            <p className={`mt-3 text-xl font-black ${rpcStatusTone}`}>{rpcStatusLabel}</p>
+            <p className="mt-1 text-xs text-slate-500">{status.latency != null ? `${status.latency} ms · ${progressionLabel}` : progressionLabel}</p>
           </div>
-          <div className="ka-command-panel p-5"><p className="text-xs font-bold uppercase tracking-wider text-slate-500">Latest block</p><p className="mt-3 text-xl font-black text-white">{status.block ?? '—'}</p><p className="mt-1 text-xs text-slate-500">Observed from public RPC</p></div>
+          <div className="ka-command-panel p-5"><p className="text-xs font-bold uppercase tracking-wider text-slate-500">Latest block</p><p className="mt-3 text-xl font-black text-white">{status.block ?? '—'}</p><p className="mt-1 text-xs text-slate-500">Observed from public RPC · retained if progression is pending</p></div>
           <div className="ka-command-panel p-5"><p className="text-xs font-bold uppercase tracking-wider text-slate-500">Chain ID</p><p className="mt-3 text-xl font-black text-white">22028</p><p className="mt-1 text-xs text-slate-500">0x560c · EVM compatible</p></div>
         </section>
 
-        {status.message && <div className="rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4 text-xs text-amber-100">{status.message}</div>}
+        {status.message && <div className={`rounded-2xl border p-4 text-xs leading-5 ${status.state === 'operational' ? 'border-emerald-400/20 bg-emerald-400/10 text-emerald-100' : status.state === 'degraded' ? 'border-sky-400/20 bg-sky-400/10 text-sky-100' : 'border-amber-400/20 bg-amber-400/10 text-amber-100'}`}>{status.message}</div>}
 
         <section className="grid gap-5 lg:grid-cols-[1.15fr_.85fr]">
           <div className="ka-command-panel p-5 sm:p-6">
