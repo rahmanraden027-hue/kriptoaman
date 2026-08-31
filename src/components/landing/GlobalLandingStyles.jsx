@@ -7,6 +7,7 @@ export default function GlobalLandingStyles() {
         --ka-bg1:#05070a; --ka-bg2:#0b1016; --ka-card:#111821; --ka-card2:#0b1016;
         --ka-border:#1f2a38; --ka-text:#ffffff; --ka-text2:#94a3b8;
         --ka-blue:#3b82f6; --ka-cyan:#3b82f6; --ka-gold:#F5B72E; --ka-green:#22C55E;
+        --ka-btn-primary-bg:#2563eb; --ka-btn-primary-bg-hover:#1d4ed8;
         --ka-radius:16px;
         color:var(--ka-text); background:linear-gradient(180deg,var(--ka-bg1),var(--ka-bg2));
         font-family:Inter,system-ui,-apple-system,sans-serif;
@@ -16,6 +17,7 @@ export default function GlobalLandingStyles() {
         --ka-bg1:#F1F5F9; --ka-bg2:#E2E8F0; --ka-card:#FFFFFF; --ka-card2:#F8FAFC;
         --ka-border:#CBD5E1; --ka-text:#0F172A; --ka-text2:#475569;
         --ka-blue:#2563eb; --ka-cyan:#0EA5E9; --ka-gold:#D97706; --ka-green:#16A34A;
+        --ka-btn-primary-bg:#2563eb; --ka-btn-primary-bg-hover:#1d4ed8;
       }
       .ka-card{background:var(--ka-card);border:1px solid var(--ka-border);border-radius:var(--ka-radius);}
       .ka-card2{background:var(--ka-card2);border:1px solid var(--ka-border);border-radius:12px;}
@@ -25,8 +27,8 @@ export default function GlobalLandingStyles() {
       .ka-glow{box-shadow:0 0 30px rgba(59,130,246,0.15);}
       .ka-glow-cyan{box-shadow:0 0 60px rgba(59,130,246,0.22);}
       .ka-glow-gold{box-shadow:0 0 40px rgba(245,183,46,0.18);}
-      .ka-btn-primary{background:var(--ka-blue);color:#fff;border-radius:12px;font-weight:700;min-height:44px;transition:all .2s;text-decoration:none;}
-      .ka-btn-primary:hover{filter:brightness(1.08);box-shadow:0 8px 24px rgba(59,130,246,0.35);}
+      .ka-btn-primary{background:var(--ka-btn-primary-bg);color:#fff;border-radius:12px;font-weight:700;min-height:44px;transition:all .2s;text-decoration:none;}
+      .ka-btn-primary:hover{background:var(--ka-btn-primary-bg-hover);filter:none;box-shadow:0 8px 24px rgba(29,78,216,0.35);}
       .ka-btn-outline{background:transparent;color:var(--ka-text);border:1px solid var(--ka-border);border-radius:12px;font-weight:700;min-height:44px;transition:all .2s;text-decoration:none;}
       .ka-btn-outline:hover{border-color:var(--ka-blue);color:var(--ka-blue);}
       .ka-divider{background:var(--ka-border);}
