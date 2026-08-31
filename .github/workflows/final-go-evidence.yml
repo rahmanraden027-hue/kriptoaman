@@ -1,5 +1,6 @@
 name: Final GO Evidence
 
+# Revalidated after production latency hardening merge on 2026-08-31.
 on:
   pull_request:
     branches: [main]
