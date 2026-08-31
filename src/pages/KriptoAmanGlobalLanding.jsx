@@ -99,14 +99,24 @@ export default function KriptoAmanGlobalLanding() {
 
       if (kamVerified) {
         const hadKam = next.networks.some((network) => network?.name === 'KAM Network');
-        next.networks = [...next.networks.filter((network) => network?.name !== 'KAM Network'), {
-          name: 'KAM Network',
-          symbol: 'KAM',
-          status: 'online',
-          verification: kam.status === 'operational' ? 'platform-status' : 'kam-network-status',
-          chainId: 22028,
-          blockNumber: kamBlockNumber,
-        }];
+        const kamNetworkEntry = kam.status === 'operational'
+          ? {
+              name: 'KAM Network',
+              symbol: 'KAM',
+              status: 'online',
+              verification: 'platform-status',
+              chainId: 22028,
+              blockNumber: kamBlockNumber,
+            }
+          : {
+              name: 'KAM Network',
+              symbol: 'KAM',
+              status: 'online',
+              verification: 'kam-network-status',
+              chainId: 22028,
+              blockNumber: kamBlockNumber,
+            };
+        next.networks = [...next.networks.filter((network) => network?.name !== 'KAM Network'), kamNetworkEntry];
         next.networkCheckedAt = next.networkCheckedAt || kamCheckedAt;
         if (!hadKam) {
           next.networkActiveCount = (Number(next.networkActiveCount) || 0) + 1;
