@@ -1,18 +1,17 @@
 const HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
-  'Cache-Control': 'no-store, max-age=0',
+  'Cache-Control': 'public, max-age=15, s-maxage=30, stale-while-revalidate=60',
   'X-Content-Type-Options': 'nosniff',
 };
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: HEADERS });
 
-async function readJson(url, timeoutMs = 8000) {
+async function readJson(url, timeoutMs = 1200) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetch(url, {
       headers: { Accept: 'application/json' },
-      cache: 'no-store',
       signal: controller.signal,
     });
     const payload = await response.json().catch(() => null);
@@ -28,9 +27,9 @@ export async function onRequestGet({ request }) {
   const origin = new URL(request.url).origin;
   const generatedAt = new Date().toISOString();
   const [market, networks, kam] = await Promise.all([
-    readJson(`${origin}/api/market-snapshot?health=1`, 14000),
-    readJson(`${origin}/api/network-health`, 10000),
-    readJson(`${origin}/api/kam/network-status`, 8000),
+    readJson(`${origin}/api/market-snapshot?health=1`, 1200),
+    readJson(`${origin}/api/network-health`, 1100),
+    readJson(`${origin}/api/kam/network-status`, 1000),
   ]);
 
   const marketHealthy = Boolean(market.ok && market.payload?.healthy && Number(market.payload?.assetCount) > 0);

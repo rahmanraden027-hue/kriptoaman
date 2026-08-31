@@ -30,15 +30,17 @@ const NETWORKS = [
   { name: 'Dogecoin', type: 'get-json', urls: ['https://api.blockchair.com/dogecoin/stats', 'https://api.blockcypher.com/v1/doge/main'] },
 ];
 
+const PROVIDER_TIMEOUT_MS = 950;
+
 function json(data, init = {}) {
   const headers = new Headers(init.headers || {});
   headers.set('Content-Type', 'application/json; charset=utf-8');
-  headers.set('Cache-Control', 'public, max-age=120, s-maxage=300');
+  headers.set('Cache-Control', 'public, max-age=120, s-maxage=300, stale-while-revalidate=300');
   headers.set('X-Content-Type-Options', 'nosniff');
   return new Response(JSON.stringify(data), { ...init, headers });
 }
 
-async function fetchWithTimeout(url, options = {}, timeoutMs = 4500) {
+async function fetchWithTimeout(url, options = {}, timeoutMs = PROVIDER_TIMEOUT_MS) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -142,27 +144,38 @@ async function probeUrl(item, url) {
   };
 }
 
+function providerFailure(url, error) {
+  const failure = new Error(error?.message || 'provider unavailable');
+  failure.provider = (() => { try { return new URL(url).hostname; } catch { return url; } })();
+  failure.reason = error?.name === 'AbortError' ? 'timeout' : error?.status ? `http_${error.status}` : 'unavailable';
+  return failure;
+}
+
 async function probe(item) {
-  const errors = [];
-  for (const url of item.urls) {
+  const attempts = item.urls.map(async (url) => {
     try {
       return await probeUrl(item, url);
     } catch (error) {
-      errors.push({
-        provider: (() => { try { return new URL(url).hostname; } catch { return url; } })(),
-        reason: error?.name === 'AbortError' ? 'timeout' : error?.status ? `http_${error.status}` : 'unavailable',
-      });
+      throw providerFailure(url, error);
     }
-  }
+  });
 
-  return {
-    name: item.name,
-    status: 'offline',
-    latency: null,
-    error: 'all_providers_unavailable',
-    providers_tried: errors,
-    checked_at: new Date().toISOString(),
-  };
+  try {
+    return await Promise.any(attempts);
+  } catch (aggregate) {
+    const errors = Array.isArray(aggregate?.errors)
+      ? aggregate.errors.map((error) => ({ provider: error?.provider || 'unknown', reason: error?.reason || 'unavailable' }))
+      : [];
+
+    return {
+      name: item.name,
+      status: 'offline',
+      latency: null,
+      error: 'all_providers_unavailable',
+      providers_tried: errors,
+      checked_at: new Date().toISOString(),
+    };
+  }
 }
 
 export async function onRequestGet() {
