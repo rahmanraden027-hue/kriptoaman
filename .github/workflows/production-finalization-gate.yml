@@ -1,0 +1,79 @@
+name: Production Finalization Gate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'scripts/release-budget.mjs'
+      - 'docs/PRODUCTION_FINALIZATION.md'
+      - 'docs/PRODUCTION_CAPACITY_MODEL.md'
+      - 'load/k6-production-readonly.js'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/production-finalization-gate.yml'
+  workflow_dispatch:
+
+jobs:
+  finalization:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      statuses: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Regression and finalization contracts
+        run: npm test
+
+      - name: Production build
+        run: npm run build
+
+      - name: Enforce release bundle budget
+        run: node scripts/release-budget.mjs
+
+      - name: Verify final style lock
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f src/styles/final-ui-v9.css
+          if find src/styles -maxdepth 1 -type f -regextype posix-extended -regex '.*/final-ui-v(1[0-9]|[2-9][0-9]+)\.css' | grep -q .; then
+            echo 'A new final-ui-v10+ layer was added; refactor the reviewed style stack instead.' >&2
+            exit 1
+          fi
+
+      - name: Verify load test stays read-only and guarded
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "ALLOW_PRODUCTION_LOAD_TEST === 'YES'" load/k6-production-readonly.js
+          if grep -Eqi 'http\.(post|put|patch|del|delete)\(|eth_sendRawTransaction|eth_sendTransaction|personal_sign|eth_signTypedData' load/k6-production-readonly.js; then
+            echo 'Load profile contains a forbidden state-changing operation.' >&2
+            exit 1
+          fi
+
+      - name: Publish production finalization status
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const succeeded = '${{ job.status }}' === 'success';
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: succeeded ? 'success' : 'failure',
+              context: 'kriptoaman/production-finalization',
+              description: succeeded
+                ? 'UI contract, build and bundle budget passed'
+                : 'Production finalization gate failed; inspect Actions',
+              target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+            });

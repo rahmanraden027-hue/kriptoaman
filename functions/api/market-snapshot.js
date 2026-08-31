@@ -117,20 +117,15 @@ export async function onRequestGet(context) {
     if (!snapshot) snapshot = await refreshSnapshot(env.AUTH_DB);
 
     const healthOnly = new URL(request.url).searchParams.get('health') === '1';
-    let ageMs = Math.max(0, Date.now() - Number(snapshot.captured_at));
-    let stale = ageMs > SNAPSHOT_FRESH_MS;
-    let refreshError = null;
+    const ageMs = Math.max(0, Date.now() - Number(snapshot.captured_at));
+    const stale = ageMs > SNAPSHOT_FRESH_MS;
 
-    if (stale && healthOnly) {
-      try {
-        snapshot = await refreshSnapshot(env.AUTH_DB);
-        ageMs = Math.max(0, Date.now() - Number(snapshot.captured_at));
-        stale = ageMs > SNAPSHOT_FRESH_MS;
-      } catch (error) {
-        refreshError = error instanceof Error ? error.message : String(error);
-        console.error('Synchronous market health refresh failed', { requestId, error });
-      }
-    } else if (stale && typeof context.waitUntil === 'function') {
+    // Health/status requests must stay fast and must never block on a full
+    // 5,000-asset upstream refresh when a persisted snapshot already exists.
+    // Serve the measured persisted metadata immediately and refresh in the
+    // background. Freshness remains explicit through `stale`, `ageMs`, and
+    // `healthy`, so no metric is invented or misrepresented as live.
+    if (stale && typeof context.waitUntil === 'function') {
       context.waitUntil(refreshSnapshot(env.AUTH_DB).catch((error) => {
         console.error('Background market snapshot refresh failed', { requestId, error });
       }));
@@ -144,8 +139,8 @@ export async function onRequestGet(context) {
       capturedAt: snapshot.captured_at,
       ageMs,
       stale,
+      refreshScheduled: Boolean(stale && typeof context.waitUntil === 'function'),
       requestId,
-      ...(refreshError ? { refreshError } : {}),
     };
     return json(healthOnly ? metadata : { ...metadata, data: snapshot.data });
   } catch (error) {
