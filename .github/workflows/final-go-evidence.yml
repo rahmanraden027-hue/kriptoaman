@@ -1,0 +1,153 @@
+name: Final GO Evidence
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/final-go-evidence.yml'
+      - 'docs/FINAL_GO_EVIDENCE.md'
+      - 'load/k6-production-readonly.js'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'src/**'
+  workflow_dispatch:
+    inputs:
+      load_stage:
+        description: 'Read-only load stage'
+        required: true
+        default: 'smoke'
+        type: choice
+        options:
+          - smoke
+          - '1000'
+          - '2500'
+          - '5000'
+          - '10000'
+      allow_production_high_load:
+        description: 'Explicit approval for high-load production run'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - name: Production dependency gate
+        run: npm audit --omit=dev --audit-level=high
+      - name: Record direct moderate-risk candidates
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'Checking whether known moderate-risk direct packages are referenced by application code.'
+          for pkg in react-quill '@solana/web3.js'; do
+            if grep -R --exclude='package*.json' --exclude-dir=node_modules -nF "$pkg" src functions server scripts tests 2>/dev/null; then
+              echo "$pkg is referenced and must be upgraded/migrated rather than removed."
+            else
+              echo "$pkg has no direct source reference; candidate for lockfile-safe removal in a dedicated dependency PR."
+            fi
+          done
+
+  viewport-browser-evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install Playwright CLI
+        run: npx -y playwright@1.55.0 install --with-deps chromium
+      - name: Capture production viewport matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p viewport-evidence
+          for width in 320 360 375 390 412 430 768 1024 1280 1440 1920; do
+            height=1000
+            if [ "$width" -ge 1024 ]; then height=1080; fi
+            npx -y playwright@1.55.0 screenshot \
+              --browser=chromium \
+              --viewport-size="${width},${height}" \
+              --full-page \
+              https://kriptoaman.com/ \
+              "viewport-evidence/home-${width}.png"
+          done
+      - name: Basic WCAG 2 AA automated scan
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx -y pa11y@9.0.0 --standard WCAG2AA --reporter json https://kriptoaman.com/ > viewport-evidence/pa11y-home.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: final-go-viewport-accessibility-evidence
+          path: viewport-evidence
+          retention-days: 30
+
+  controlled-readonly-load:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Resolve approved stage
+        id: stage
+        shell: bash
+        run: |
+          set -euo pipefail
+          stage='smoke'
+          allow='NO'
+          if [ '${{ github.event_name }}' = 'workflow_dispatch' ]; then
+            stage='${{ inputs.load_stage }}'
+            if [ "$stage" != 'smoke' ]; then
+              if [ '${{ inputs.allow_production_high_load }}' != 'true' ]; then
+                echo 'High-load production stage requires explicit workflow approval.' >&2
+                exit 1
+              fi
+              allow='YES'
+            fi
+          fi
+          echo "stage=$stage" >> "$GITHUB_OUTPUT"
+          echo "allow=$allow" >> "$GITHUB_OUTPUT"
+      - name: Run guarded k6 profile
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm -i \
+            -e BASE_URL=https://kriptoaman.com \
+            -e KA_LOAD_STAGE='${{ steps.stage.outputs.stage }}' \
+            -e ALLOW_PRODUCTION_LOAD_TEST='${{ steps.stage.outputs.allow }}' \
+            grafana/k6:latest run - < load/k6-production-readonly.js
+
+  rollback-build-rehearsal:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Resolve rollback target
+        id: rollback
+        shell: bash
+        run: |
+          set -euo pipefail
+          target='${{ github.event.pull_request.base.sha }}'
+          if [ -z "$target" ]; then target="$(git rev-parse HEAD^)"; fi
+          echo "target=$target" >> "$GITHUB_OUTPUT"
+          echo "Rollback rehearsal target: $target"
+      - name: Build rollback target in isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git checkout '${{ steps.rollback.outputs.target }}'
+          npm ci --legacy-peer-deps
+          npm test
+          npm run build
+          echo 'Rollback target is buildable and regression-tested. No production deployment was changed.'
