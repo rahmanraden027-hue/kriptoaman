@@ -89,12 +89,13 @@ export default function KriptoAmanGlobalLanding() {
       }
 
       const kamFromPlatform = platformPayload?.components?.kam;
+      const kam = kamFromPlatform || {};
       const kamVerified = Boolean(
-        (kamFromPlatform?.status === 'operational' && Number(kamFromPlatform.chainId) === 22028) ||
+        (kam.status === 'operational' && Number(kam.chainId) === 22028) ||
         (kamPayload?.verified === true && Number(kamPayload.chainId) === 22028),
       );
-      const kamBlockNumber = kamFromPlatform?.blockNumber ?? kamPayload?.blockNumber ?? null;
-      const kamCheckedAt = kamFromPlatform?.checkedAt || kamPayload?.checkedAt || null;
+      const kamBlockNumber = kam.blockNumber ?? kamPayload?.blockNumber ?? null;
+      const kamCheckedAt = kam.checkedAt || kamPayload?.checkedAt || null;
 
       if (kamVerified) {
         const hadKam = next.networks.some((network) => network?.name === 'KAM Network');
@@ -102,7 +103,7 @@ export default function KriptoAmanGlobalLanding() {
           name: 'KAM Network',
           symbol: 'KAM',
           status: 'online',
-          verification: kamFromPlatform?.status === 'operational' ? 'platform-status' : 'kam-network-status',
+          verification: kam.status === 'operational' ? 'platform-status' : 'kam-network-status',
           chainId: 22028,
           blockNumber: kamBlockNumber,
         }];
