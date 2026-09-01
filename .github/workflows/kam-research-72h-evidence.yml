@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 env:
   KAM_RESEARCH_OUT: research/kam-mainnet/data
@@ -14,16 +15,105 @@ env:
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
+      - name: Restore rolling evidence from prior artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$KAM_RESEARCH_OUT" /tmp/kam-evidence-restore
+          : > /tmp/kam-evidence-restore/combined.ndjson
+
+          # Backfill from recent non-expired artifacts. Historical runs created
+          # one sample per artifact, so combining them converts the workflow
+          # into a true rolling evidence window without mutating chain state.
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts?per_page=100" \
+            --jq '.artifacts[] | select(.expired == false and (.name | startswith("kam-research-evidence-"))) | [.id,.name] | @tsv' \
+            > /tmp/kam-evidence-restore/artifacts.tsv
+
+          while IFS=$'\t' read -r artifact_id artifact_name; do
+            [ -n "${artifact_id:-}" ] || continue
+            dir="/tmp/kam-evidence-restore/${artifact_id}"
+            mkdir -p "$dir"
+            if gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}/zip" > "$dir/artifact.zip" 2>/dev/null; then
+              unzip -qq -o "$dir/artifact.zip" -d "$dir/unpacked" || true
+              ndjson="$(find "$dir/unpacked" -type f -name samples.ndjson -print -quit 2>/dev/null || true)"
+              if [ -n "$ndjson" ]; then
+                cat "$ndjson" >> /tmp/kam-evidence-restore/combined.ndjson
+              fi
+            fi
+          done < /tmp/kam-evidence-restore/artifacts.tsv
+
+          node <<'NODE'
+          const fs = require('node:fs');
+          const outDir = process.env.KAM_RESEARCH_OUT;
+          const input = '/tmp/kam-evidence-restore/combined.ndjson';
+          const now = Date.now();
+          const cutoff = now - 72 * 60 * 60 * 1000;
+          const byTimestamp = new Map();
+          if (fs.existsSync(input)) {
+            for (const line of fs.readFileSync(input, 'utf8').split('\n')) {
+              if (!line.trim()) continue;
+              try {
+                const sample = JSON.parse(line);
+                const ts = Date.parse(sample.timestamp);
+                if (Number.isFinite(ts) && ts >= cutoff && ts <= now + 5 * 60 * 1000) {
+                  byTimestamp.set(sample.timestamp, sample);
+                }
+              } catch {}
+            }
+          }
+          const samples = [...byTimestamp.values()].sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
+          fs.mkdirSync(outDir, { recursive: true });
+          fs.writeFileSync(`${outDir}/samples.ndjson`, samples.map(x => JSON.stringify(x)).join('\n') + (samples.length ? '\n' : ''));
+          console.log(`restoredSamples=${samples.length}`);
+          if (samples.length) console.log(`restoredWindow=${samples[0].timestamp}..${samples.at(-1).timestamp}`);
+          NODE
+
       - name: Collect read-only public KAM metrics
         run: node research/kam-mainnet/collect-public-metrics.mjs
 
-      - name: Summarize current-run dataset
+      - name: Summarize rolling 72h dataset
         run: node research/kam-mainnet/summarize-metrics.mjs
+
+      - name: Evaluate 72h evidence maturity
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = `${process.env.KAM_RESEARCH_OUT}/summary.json`;
+          const s = JSON.parse(fs.readFileSync(path, 'utf8'));
+          const first = Date.parse(s.firstSampleAt);
+          const last = Date.parse(s.lastSampleAt);
+          const spanHours = Number.isFinite(first) && Number.isFinite(last) ? (last - first) / 3600000 : 0;
+          const mature = spanHours >= 71 && s.sampleCount >= 70;
+          const pass = mature
+            && s.availabilityPct >= 99
+            && s.chainIdMatchPct === 100
+            && (s.explorerConsistencyPct == null || s.explorerConsistencyPct >= 99)
+            && Number.isFinite(s.blockDelta)
+            && s.blockDelta > 0;
+          const report = {
+            generatedAt: new Date().toISOString(),
+            status: pass ? 'PASS' : mature ? 'FAIL' : 'COLLECTING',
+            spanHours: Number(spanHours.toFixed(2)),
+            sampleCount: s.sampleCount,
+            thresholds: {
+              minimumSpanHours: 71,
+              minimumSamples: 70,
+              minimumAvailabilityPct: 99,
+              chainIdMatchPct: 100,
+              minimumExplorerConsistencyPct: 99,
+              blockProgressRequired: true
+            }
+          };
+          fs.writeFileSync(`${process.env.KAM_RESEARCH_OUT}/maturity.json`, JSON.stringify(report, null, 2) + '\n');
+          console.log(JSON.stringify(report, null, 2));
+          if (mature && !pass) process.exit(2);
+          NODE
 
       - name: Upload research evidence
         if: always()
