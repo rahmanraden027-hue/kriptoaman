@@ -6,7 +6,7 @@ const HEADERS = {
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: HEADERS });
 
-async function readJson(url, timeoutMs = 1200) {
+async function readJson(url, timeoutMs = 2500) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -27,9 +27,9 @@ export async function onRequestGet({ request }) {
   const origin = new URL(request.url).origin;
   const generatedAt = new Date().toISOString();
   const [market, networks, kam] = await Promise.all([
-    readJson(`${origin}/api/market-snapshot?health=1`, 1200),
-    readJson(`${origin}/api/network-health`, 1100),
-    readJson(`${origin}/api/kam/network-status`, 1000),
+    readJson(`${origin}/api/market-snapshot?health=1`, 2500),
+    readJson(`${origin}/api/network-health`, 2500),
+    readJson(`${origin}/api/kam/network-status`, 5000),
   ]);
 
   const marketHealthy = Boolean(market.ok && market.payload?.healthy && Number(market.payload?.assetCount) > 0);
