@@ -8,7 +8,7 @@ const LINKS = [
   { label: 'Beranda', href: '#beranda' },
   { label: 'Fitur', href: '#fitur' },
   { label: 'Keamanan', href: '#keamanan' },
-  { label: 'Tentang Kami', href: '#tentang' },
+  { label: 'Ekosistem', href: '#institutional' },
   { label: 'FAQ', href: '#faq' },
   { label: 'Kontak', href: '#kontak' },
 ];
@@ -74,6 +74,14 @@ export default function GLandingHeader({ dark, onToggleTheme, active = 'Beranda'
             <a key={l.href} href={l.href} onClick={() => setOpen(false)}
               className={`ka-nav-link px-3 py-2 rounded-lg text-sm ${active === l.label ? 'active' : ''}`}>{l.label}</a>
           ))}
+          <Link
+            to="/en"
+            onClick={() => { setLanguage('en'); setOpen(false); }}
+            hrefLang="en"
+            className="sm:hidden ka-nav-link px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2"
+          >
+            <Globe className="w-4 h-4" /> English
+          </Link>
         </div>
       )}
     </header>
