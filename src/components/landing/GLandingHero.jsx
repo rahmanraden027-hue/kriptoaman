@@ -4,9 +4,9 @@ import { Shield, ArrowRight, CheckCircle } from 'lucide-react';
 import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
 
 const INDICATORS = [
-  { label: 'Pemantauan Real-time' },
-  { label: 'Verifikasi Transaksi' },
-  { label: 'Analisis Risiko' },
+  { label: 'Intelijen Pasar' },
+  { label: 'Verifikasi On-chain' },
+  { label: 'Analisis Risiko Indikatif' },
 ];
 
 const COINS = [
@@ -48,22 +48,22 @@ export default function GLandingHero() {
       <div className="ka-hero-grid max-w-[1440px] mx-auto grid lg:grid-cols-2 gap-10 lg:gap-8 items-center">
         <div className="ka-hero-copy text-center lg:text-left">
           <span className="ka-chip inline-flex items-center gap-2 px-3.5 py-1.5 text-[11px] font-bold tracking-wide">
-            <Shield className="w-3.5 h-3.5" /> KEAMANAN ASET DIGITAL ANDA, PRIORITAS KAMI
+            <Shield className="w-3.5 h-3.5" /> DIGITAL ASSET INTELLIGENCE · MONITORING · VERIFICATION
           </span>
           <h1 className="ka-sec-title mt-5 text-[34px] sm:text-5xl lg:text-[54px]">
-            Lindungi, Pantau,<br />
-            Verifikasi <span className="ka-blue">Aset Kripto</span> Anda
+            Intelijen Aset Digital,<br />
+            Dibangun untuk <span className="ka-blue">Kejelasan</span>
           </h1>
           <p className="ka-text2 mt-5 max-w-xl mx-auto lg:mx-0 text-sm sm:text-base leading-relaxed">
-            KriptoAman adalah platform keamanan aset digital yang membantu Anda melindungi,
-            memantau, dan memverifikasi transaksi kripto secara real-time.
+            KriptoAman menyatukan informasi pasar, pemantauan aset, verifikasi berbasis sumber publik,
+            dan analisis risiko indikatif untuk membantu pengguna memahami aktivitas aset digital secara lebih terstruktur.
           </p>
           <div className="ka-hero-actions mt-7 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
             <Link to="/login" className="ka-btn-primary inline-flex items-center justify-center gap-2 px-6 text-sm sm:text-base">
-              Mulai Sekarang <ArrowRight className="w-4 h-4" />
+              Jelajahi Platform <ArrowRight className="w-4 h-4" />
             </Link>
             <a href="#fitur" className="ka-btn-outline inline-flex items-center justify-center px-6 text-sm sm:text-base">
-              Pelajari Lebih Lanjut
+              Lihat Cara Kerja
             </a>
           </div>
           <div className="ka-hero-indicators mt-8 flex flex-wrap gap-x-6 gap-y-3 justify-center lg:justify-start">
@@ -92,7 +92,7 @@ export default function GLandingHero() {
         </div>
       </div>
       <p className="ka-text2 text-[11px] text-center mt-10 opacity-70">
-        Informasi jaringan ditampilkan untuk tujuan pemantauan dan edukasi.
+        Informasi dan analisis ditampilkan untuk tujuan pemantauan, riset, dan edukasi; bukan rekomendasi investasi.
       </p>
     </section>
   );
