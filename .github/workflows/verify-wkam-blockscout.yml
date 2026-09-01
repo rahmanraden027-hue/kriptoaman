@@ -6,7 +6,7 @@ on:
       - agent/verify-wkam-source
     paths:
       - '.github/workflows/verify-wkam-blockscout.yml'
-      - 'chain/kam-mainnet/trading/contracts/WKAM.sol'
+      - 'chain/kam-mainnet/contracts/WKAM.sol'
   workflow_dispatch:
 
 permissions:
@@ -26,7 +26,7 @@ jobs:
           python3 - <<'PY'
           import json
           from pathlib import Path
-          source = Path('chain/kam-mainnet/trading/contracts/WKAM.sol').read_text()
+          source = Path('chain/kam-mainnet/contracts/WKAM.sol').read_text()
           payload = {
             'language': 'Solidity',
             'sources': {'WKAM.sol': {'content': source}},
@@ -49,7 +49,7 @@ jobs:
             --output /tmp/verify-response.txt \
             --write-out '%{http_code}' \
             --request POST "$ENDPOINT" \
-            --form 'compiler_version=v0.8.36+commit.8a079791' \
+            --form 'compiler_version=v0.8.24+commit.e11b9ed9' \
             --form 'contract_name=WKAM' \
             --form 'files[0]=@/tmp/wkam-standard-input.json;type=application/json' \
             --form 'autodetect_constructor_args=false' \
