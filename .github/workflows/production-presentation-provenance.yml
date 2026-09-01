@@ -28,7 +28,8 @@ jobs:
           const base = 'https://kriptoaman.com';
           const required = [
             'Intelijen Aset Digital',
-            'Dibangun untuk Kejelasan',
+            'Dibangun untuk ',
+            'Kejelasan',
             'Demo Interface',
             'Research & Documentation'
           ];
