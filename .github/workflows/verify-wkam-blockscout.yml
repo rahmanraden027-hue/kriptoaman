@@ -67,14 +67,15 @@ jobs:
           URL="https://explorer.kriptoaman.com/api/v2/smart-contracts/${ADDRESS}"
           for i in $(seq 1 18); do
             curl --fail --silent --show-error "$URL" -o /tmp/contract.json
-            python3 - <<'PY'
+            if python3 - <<'PY'
           import json
           p=json.load(open('/tmp/contract.json'))
           print('is_verified=', p.get('is_verified'), 'name=', p.get('name'), 'compiler=', p.get('compiler_version'), 'evm=', p.get('evm_version'))
           raise SystemExit(0 if p.get('is_verified') is True else 1)
           PY
-            rc=$?
-            if [ "$rc" -eq 0 ]; then exit 0; fi
+            then
+              exit 0
+            fi
             sleep 10
           done
           echo 'WKAM verification did not become visible within the polling window.'
