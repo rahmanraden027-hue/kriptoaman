@@ -160,7 +160,8 @@ contract KAMPair {
     }
 
     function _safeTransfer(address token, address to, uint256 value) private {
-        require(IERC20Minimal(token).transfer(to, value), "KAMPair: TRANSFER_FAILED");
+        (bool ok, bytes memory data) = token.call(abi.encodeWithSelector(IERC20Minimal.transfer.selector, to, value));
+        require(ok && (data.length == 0 || abi.decode(data, (bool))), "KAMPair: TRANSFER_FAILED");
     }
 
     function _min(uint256 x, uint256 y) private pure returns (uint256) { return x < y ? x : y; }
