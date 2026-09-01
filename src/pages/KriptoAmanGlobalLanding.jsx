@@ -129,8 +129,8 @@ export default function KriptoAmanGlobalLanding() {
     })();
 
     const onScroll = () => {
-      const sections = ['beranda', 'berita', 'fitur', 'keamanan', 'institutional', 'tentang', 'faq', 'kontak'];
-      const labels = ['Beranda', 'Berita', 'Fitur', 'Keamanan', 'Ekosistem', 'Tentang Kami', 'FAQ', 'Kontak'];
+      const sections = ['beranda', 'berita', 'fitur', 'keamanan', 'institutional', 'faq', 'kontak'];
+      const labels = ['Beranda', 'Berita', 'Fitur', 'Keamanan', 'Ekosistem', 'FAQ', 'Kontak'];
       let cur = 'Beranda';
       for (let i = 0; i < sections.length; i++) {
         const el = document.getElementById(sections[i]);
