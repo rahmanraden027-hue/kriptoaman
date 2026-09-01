@@ -105,32 +105,37 @@ export default function GLandingBody({ stats }) {
       <section id="keamanan" className="ka-security-preview px-4 sm:px-6 py-14">
         <div className="max-w-[1440px] mx-auto grid lg:grid-cols-2 gap-5">
           <div className="ka-card ka-glow p-6 sm:p-8 flex flex-col">
-            <h3 className="font-bold text-lg ka-text">Dashboard Keamanan</h3>
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="font-bold text-lg ka-text">Dashboard Keamanan</h3>
+              <span className="text-[10px] font-bold uppercase tracking-[0.12em] ka-blue ka-card2 px-2 py-1 rounded-full">Demo Interface</span>
+            </div>
             <p className="text-sm ka-text2 mt-2">
-              Pantau semua aset dan transaksi Anda dalam satu dashboard yang komprehensif dan mudah dipahami.
+              Gambaran antarmuka untuk pemantauan aset, watchlist, dan status verifikasi dalam satu dashboard yang mudah dipahami.
             </p>
-            <div className="ka-card2 p-3 mt-4">
+            <div className="ka-card2 p-3 mt-4" aria-label="Contoh tampilan dashboard tanpa data finansial nyata">
               <div className="flex items-center justify-between text-[10px] ka-text2 mb-2">
-                <span>Portofolio</span>
-                <span className="ka-green">+12.4%</span>
+                <span>Watchlist contoh</span>
+                <span className="ka-blue">Mode demo</span>
               </div>
               <div className="space-y-1.5">
-                {[['BTC','0.4821','+3.2%'],['ETH','3.2104','+5.1%'],['SOL','42.10','+8.7%']].map(([a,b,c])=>(
-                  <div key={a} className="flex items-center justify-between text-[11px]">
-                    <span className="ka-text font-semibold">{a}</span>
-                    <span className="ka-text2">{b}</span>
-                    <span className="ka-green">{c}</span>
+                {['BTC','ETH','SOL'].map((asset)=>(
+                  <div key={asset} className="flex items-center justify-between text-[11px]">
+                    <span className="ka-text font-semibold">{asset}</span>
+                    <span className="ka-text2">Aset contoh</span>
+                    <span className="ka-blue">Dipantau</span>
                   </div>
                 ))}
               </div>
-              <div className="flex items-end gap-1.5 h-14 mt-3">
-                {[40,65,50,80,60,95,75].map((h,i)=>(
-                  <div key={i} className="flex-1 rounded-t" style={{height:`${h}%`,background:'linear-gradient(180deg,#3b82f6,#1e3a8a)'}} />
+              <div className="grid grid-cols-3 gap-2 mt-4">
+                {['Pasar','Risiko','Aktivitas'].map((label)=>(
+                  <div key={label} className="rounded-lg border px-2 py-3 text-center" style={{ borderColor: 'var(--ka-border)' }}>
+                    <span className="text-[10px] ka-text2">{label}</span>
+                  </div>
                 ))}
               </div>
             </div>
             <p className="text-[11px] ka-text2 mt-3 opacity-70">
-              Preview ilustratif. Pengunjung yang belum login melihat tampilan tanpa data pribadi.
+              Preview ini hanya contoh antarmuka. Tidak menampilkan saldo, profit, performa investasi, atau data pengguna nyata.
             </p>
             <Link to="/login" className="ka-btn-primary inline-flex items-center justify-center gap-2 px-5 mt-5 text-sm w-max">
               Buka Dashboard <ArrowRight className="w-4 h-4" />
