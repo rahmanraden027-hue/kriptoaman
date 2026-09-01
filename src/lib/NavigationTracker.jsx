@@ -5,7 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { pagesConfig } from '@/pages.config';
 
 const INDEXABLE_PAGE_KEYS = new Set([
-    'Home', 'AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'RPCPrivacyPolicy',
+    'AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'RPCPrivacyPolicy',
     'TermsOfService', 'AccountDeletion', 'Market', 'KAM', 'KAMCampaignNews', 'KAMDeveloper',
     'KAMGlobalRoadmap', 'KAMLaunchReadiness', 'KAMNetwork', 'KAMNetworkDocs', 'KAMTokenomics',
 ]);
@@ -54,7 +54,7 @@ const PUBLIC_ROUTE_SEO = {
     },
     '/KAMNetworkDocs': {
         title: 'KAM Network Documentation | KriptoAman',
-        description: 'Dokumentasi teknis publik KAM Network untuk parameter jaringan, integrasi, dan sumber verifikasi yang tersedia.',
+        description: 'Dokumentasi teknis publik KAM Network untuk parameter jaringan, integrasi teknis, dan sumber verifikasi yang tersedia.',
     },
     '/KAMLaunchReadiness': {
         title: 'KAM Launch Readiness | KriptoAman',
