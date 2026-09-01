@@ -74,7 +74,7 @@ export default function Founder() {
           <Link to="/" className="text-sm font-medium text-slate-300 hover:text-white">KriptoAman</Link>
           <div className="flex gap-5 text-xs uppercase tracking-[0.16em] text-slate-500">
             <Link to="/company" className="hover:text-slate-200">Company</Link>
-            <Link to="/Research" className="hover:text-slate-200">Research</Link>
+            <Link to="/research" className="hover:text-slate-200">Research</Link>
           </div>
         </nav>
 
@@ -110,7 +110,7 @@ export default function Founder() {
         <section className="grid md:grid-cols-3 gap-4 border-t border-white/10 pt-12">
           <Link to="/company" className="group rounded-2xl border border-white/10 p-6 hover:bg-white/[0.03]"><Building2 className="w-5 h-5 text-sky-300"/><h2 className="mt-5 font-semibold">Corporate Leadership</h2><p className="mt-2 text-sm leading-6 text-slate-500">Identitas institusi, ruang lingkup, governance, dan kanal resmi PT Kripto Aman Indonesia.</p></Link>
           <Link to="/KAM" className="group rounded-2xl border border-white/10 p-6 hover:bg-white/[0.03]"><Layers3 className="w-5 h-5 text-sky-300"/><h2 className="mt-5 font-semibold">Selected Work</h2><p className="mt-2 text-sm leading-6 text-slate-500">KriptoAman, KAM Network, explorer, dan pengembangan teknologi yang dapat diperiksa melalui sumber resmi.</p></Link>
-          <Link to="/Research" className="group rounded-2xl border border-white/10 p-6 hover:bg-white/[0.03]"><BookOpen className="w-5 h-5 text-sky-300"/><h2 className="mt-5 font-semibold">Research & Publications</h2><p className="mt-2 text-sm leading-6 text-slate-500">Dokumentasi teknis dan publikasi berbasis evidence tanpa memperluas klaim di luar status yang dapat diverifikasi.</p></Link>
+          <Link to="/research" className="group rounded-2xl border border-white/10 p-6 hover:bg-white/[0.03]"><BookOpen className="w-5 h-5 text-sky-300"/><h2 className="mt-5 font-semibold">Research & Publications</h2><p className="mt-2 text-sm leading-6 text-slate-500">Dokumentasi teknis dan publikasi berbasis evidence tanpa memperluas klaim di luar status yang dapat diverifikasi.</p></Link>
         </section>
 
         <div className="mt-12 flex items-start gap-3 rounded-2xl border border-white/10 p-5 text-xs leading-6 text-slate-500"><ShieldCheck className="mt-0.5 w-4 h-4 shrink-0 text-slate-400"/><p>Profil ini memisahkan identitas eksekutif, korporasi, dan produk. Status jaringan, regulasi, listing, dan publikasi hanya ditampilkan sesuai bukti yang tersedia pada kanal resmi.</p></div>
