@@ -1,0 +1,99 @@
+name: Production Presentation Provenance
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '37 * * * *'
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Allow production deployment to settle
+        if: github.event_name == 'push'
+        run: sleep 90
+
+      - name: Verify current homepage presentation bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const base = 'https://kriptoaman.com';
+          const required = [
+            'Intelijen Aset Digital',
+            'Dibangun untuk Kejelasan',
+            'Demo Interface',
+            'Research & Documentation'
+          ];
+
+          const home = await fetch(base + '/', {
+            headers: {
+              'User-Agent': 'KriptoAman-Presentation-Provenance/1.0',
+              'Cache-Control': 'no-cache'
+            }
+          });
+          if (!home.ok) throw new Error(`homepage HTTP ${home.status}`);
+          const html = await home.text();
+          const scripts = [...html.matchAll(/<script[^>]+src=["']([^"']+\.js(?:\?[^"']*)?)["']/gi)].map((m) => m[1]);
+          if (!scripts.length) throw new Error('No JavaScript bundle discovered on homepage');
+
+          let bundleText = '';
+          for (const src of scripts.slice(0, 30)) {
+            const url = src.startsWith('http') ? src : new URL(src, base).toString();
+            const response = await fetch(url, {
+              headers: {
+                'User-Agent': 'KriptoAman-Presentation-Provenance/1.0',
+                'Cache-Control': 'no-cache'
+              }
+            });
+            if (response.ok) bundleText += '\n' + await response.text();
+          }
+
+          const missing = required.filter((text) => !bundleText.includes(text));
+          if (missing.length) {
+            console.error(`Production presentation is stale. Missing: ${missing.join(' | ')}`);
+            process.exit(2);
+          }
+          console.log('PRODUCTION_PRESENTATION: VERIFIED');
+          NODE
+
+      - name: Verify Founder, Company, and Research routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          for route in /founder /company /research /research/kam-mainnet-architecture; do
+            code="$(curl --location --silent --show-error --connect-timeout 10 --max-time 25 -o /dev/null -w '%{http_code}' "https://kriptoaman.com${route}")"
+            test "$code" = "200"
+          done
+
+      - name: Publish presentation provenance status
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JOB_STATUS: ${{ job.status }}
+          SHA: ${{ github.sha }}
+          REPO: ${{ github.repository }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          state="failure"
+          description="Production presentation provenance failed"
+          if [ "$JOB_STATUS" = "success" ]; then
+            state="success"
+            description="Production presentation provenance verified"
+          fi
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$REPO/statuses/$SHA" \
+            -d "{\"state\":\"$state\",\"context\":\"kriptoaman/production-presentation-provenance\",\"description\":\"$description\",\"target_url\":\"$RUN_URL\"}" >/dev/null
