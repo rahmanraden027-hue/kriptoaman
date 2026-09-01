@@ -13,6 +13,19 @@ interface IWKAM is IERC20Minimal {
 contract KAMRouter {
     address public immutable factory;
     address public immutable WKAM;
+    uint256 private unlocked = 1;
+
+    modifier nonReentrant() {
+        require(unlocked == 1, "KAMRouter: LOCKED");
+        unlocked = 0;
+        _;
+        unlocked = 1;
+    }
+
+    modifier ensure(uint256 deadline) {
+        require(block.timestamp <= deadline, "KAMRouter: EXPIRED");
+        _;
+    }
 
     constructor(address _factory, address _wkam) {
         require(_factory != address(0), "KAMRouter: ZERO_FACTORY");
@@ -36,6 +49,25 @@ contract KAMRouter {
         require(reserveIn > 0 && reserveOut > 0, "KAMRouter: INSUFFICIENT_LIQUIDITY");
         uint256 amountInWithFee = amountIn * 997;
         amountOut = (amountInWithFee * reserveOut) / (reserveIn * 1000 + amountInWithFee);
+    }
+
+    function _safeTransfer(address token, address to, uint256 amount) internal {
+        (bool ok, bytes memory data) = token.call(abi.encodeWithSelector(IERC20Minimal.transfer.selector, to, amount));
+        require(ok && (data.length == 0 || abi.decode(data, (bool))), "KAMRouter: TRANSFER_FAILED");
+    }
+
+    function _safeTransferFrom(address token, address from, address to, uint256 amount) internal {
+        (bool ok, bytes memory data) = token.call(
+            abi.encodeWithSelector(IERC20Minimal.transferFrom.selector, from, to, amount)
+        );
+        require(ok && (data.length == 0 || abi.decode(data, (bool))), "KAMRouter: TRANSFER_FROM_FAILED");
+    }
+
+    function _transferExactFrom(address token, address from, address to, uint256 amount) internal {
+        uint256 beforeBalance = IERC20Minimal(token).balanceOf(to);
+        _safeTransferFrom(token, from, to, amount);
+        uint256 received = IERC20Minimal(token).balanceOf(to) - beforeBalance;
+        require(received == amount, "KAMRouter: UNSUPPORTED_TOKEN");
     }
 
     function _pairFor(address tokenA, address tokenB) internal returns (address pair) {
@@ -69,26 +101,26 @@ contract KAMRouter {
         address pair = _pairFor(tokenA, tokenB);
         (uint256 reserveA, uint256 reserveB) = _reservesFor(pair, tokenA, tokenB);
         (amountA, amountB) = _optimalAmounts(amountADesired, amountBDesired, amountAMin, amountBMin, reserveA, reserveB);
-        require(IERC20Minimal(tokenA).transferFrom(msg.sender, pair, amountA), "KAMRouter: TRANSFER_A");
-        require(IERC20Minimal(tokenB).transferFrom(msg.sender, pair, amountB), "KAMRouter: TRANSFER_B");
+        _transferExactFrom(tokenA, msg.sender, pair, amountA);
+        _transferExactFrom(tokenB, msg.sender, pair, amountB);
         liquidity = KAMPair(pair).mint(to);
     }
 
-    function addLiquidity(address tokenA, address tokenB, uint256 amountADesired, uint256 amountBDesired, uint256 amountAMin, uint256 amountBMin, address to)
-        external returns (uint256 amountA, uint256 amountB, uint256 liquidity)
+    function addLiquidity(address tokenA, address tokenB, uint256 amountADesired, uint256 amountBDesired, uint256 amountAMin, uint256 amountBMin, address to, uint256 deadline)
+        external nonReentrant ensure(deadline) returns (uint256 amountA, uint256 amountB, uint256 liquidity)
     {
         return _addLiquidity(tokenA, tokenB, amountADesired, amountBDesired, amountAMin, amountBMin, to);
     }
 
-    function addLiquidityKAM(address token, uint256 amountTokenDesired, uint256 amountTokenMin, uint256 amountKAMMin, address to)
-        external payable returns (uint256 amountToken, uint256 amountKAM, uint256 liquidity)
+    function addLiquidityKAM(address token, uint256 amountTokenDesired, uint256 amountTokenMin, uint256 amountKAMMin, address to, uint256 deadline)
+        external payable nonReentrant ensure(deadline) returns (uint256 amountToken, uint256 amountKAM, uint256 liquidity)
     {
         address pair = _pairFor(token, WKAM);
         (uint256 reserveToken, uint256 reserveWKAM) = _reservesFor(pair, token, WKAM);
         (amountToken, amountKAM) = _optimalAmounts(amountTokenDesired, msg.value, amountTokenMin, amountKAMMin, reserveToken, reserveWKAM);
-        require(IERC20Minimal(token).transferFrom(msg.sender, pair, amountToken), "KAMRouter: TOKEN_TRANSFER");
+        _transferExactFrom(token, msg.sender, pair, amountToken);
         IWKAM(WKAM).deposit{value: amountKAM}();
-        require(IWKAM(WKAM).transfer(pair, amountKAM), "KAMRouter: WKAM_TRANSFER");
+        _safeTransfer(WKAM, pair, amountKAM);
         liquidity = KAMPair(pair).mint(to);
         if (msg.value > amountKAM) {
             (bool ok,) = msg.sender.call{value: msg.value - amountKAM}("");
@@ -96,40 +128,48 @@ contract KAMRouter {
         }
     }
 
-    function removeLiquidity(address tokenA, address tokenB, uint256 liquidity, uint256 amountAMin, uint256 amountBMin, address to)
-        public returns (uint256 amountA, uint256 amountB)
+    function _removeLiquidity(address tokenA, address tokenB, uint256 liquidity, uint256 amountAMin, uint256 amountBMin, address to)
+        internal returns (uint256 amountA, uint256 amountB)
     {
         address pair = KAMFactory(factory).getPair(tokenA, tokenB);
         require(pair != address(0), "KAMRouter: PAIR_MISSING");
-        require(KAMPair(pair).transferFrom(msg.sender, pair, liquidity), "KAMRouter: LP_TRANSFER");
+        _safeTransferFrom(pair, msg.sender, pair, liquidity);
         (uint256 amount0, uint256 amount1) = KAMPair(pair).burn(to);
         if (tokenA < tokenB) (amountA, amountB) = (amount0, amount1); else (amountA, amountB) = (amount1, amount0);
         require(amountA >= amountAMin && amountB >= amountBMin, "KAMRouter: SLIPPAGE");
     }
 
-    function removeLiquidityKAM(address token, uint256 liquidity, uint256 amountTokenMin, uint256 amountKAMMin, address to)
-        external returns (uint256 amountToken, uint256 amountKAM)
+    function removeLiquidity(address tokenA, address tokenB, uint256 liquidity, uint256 amountAMin, uint256 amountBMin, address to, uint256 deadline)
+        external nonReentrant ensure(deadline) returns (uint256 amountA, uint256 amountB)
     {
-        (amountToken, amountKAM) = removeLiquidity(token, WKAM, liquidity, amountTokenMin, amountKAMMin, address(this));
-        require(IERC20Minimal(token).transfer(to, amountToken), "KAMRouter: TOKEN_OUT");
+        return _removeLiquidity(tokenA, tokenB, liquidity, amountAMin, amountBMin, to);
+    }
+
+    function removeLiquidityKAM(address token, uint256 liquidity, uint256 amountTokenMin, uint256 amountKAMMin, address to, uint256 deadline)
+        external nonReentrant ensure(deadline) returns (uint256 amountToken, uint256 amountKAM)
+    {
+        (amountToken, amountKAM) = _removeLiquidity(token, WKAM, liquidity, amountTokenMin, amountKAMMin, address(this));
+        _safeTransfer(token, to, amountToken);
         IWKAM(WKAM).withdraw(amountKAM);
         (bool ok,) = to.call{value: amountKAM}("");
         require(ok, "KAMRouter: KAM_OUT");
     }
 
-    function swapExactTokensForTokens(uint256 amountIn, uint256 amountOutMin, address tokenIn, address tokenOut, address to)
-        public returns (uint256 amountOut)
+    function swapExactTokensForTokens(uint256 amountIn, uint256 amountOutMin, address tokenIn, address tokenOut, address to, uint256 deadline)
+        external nonReentrant ensure(deadline) returns (uint256 amountOut)
     {
         address pair = KAMFactory(factory).getPair(tokenIn, tokenOut);
         require(pair != address(0), "KAMRouter: PAIR_MISSING");
         (uint256 reserveIn, uint256 reserveOut) = _reservesFor(pair, tokenIn, tokenOut);
         amountOut = getAmountOut(amountIn, reserveIn, reserveOut);
         require(amountOut >= amountOutMin, "KAMRouter: INSUFFICIENT_OUTPUT");
-        require(IERC20Minimal(tokenIn).transferFrom(msg.sender, pair, amountIn), "KAMRouter: TRANSFER_IN");
+        _transferExactFrom(tokenIn, msg.sender, pair, amountIn);
         if (tokenIn < tokenOut) KAMPair(pair).swap(0, amountOut, to); else KAMPair(pair).swap(amountOut, 0, to);
     }
 
-    function swapExactKAMForTokens(uint256 amountOutMin, address tokenOut, address to) external payable returns (uint256 amountOut) {
+    function swapExactKAMForTokens(uint256 amountOutMin, address tokenOut, address to, uint256 deadline)
+        external payable nonReentrant ensure(deadline) returns (uint256 amountOut)
+    {
         require(msg.value > 0, "KAMRouter: ZERO_KAM");
         address pair = KAMFactory(factory).getPair(WKAM, tokenOut);
         require(pair != address(0), "KAMRouter: PAIR_MISSING");
@@ -137,17 +177,19 @@ contract KAMRouter {
         amountOut = getAmountOut(msg.value, reserveIn, reserveOut);
         require(amountOut >= amountOutMin, "KAMRouter: INSUFFICIENT_OUTPUT");
         IWKAM(WKAM).deposit{value: msg.value}();
-        require(IWKAM(WKAM).transfer(pair, msg.value), "KAMRouter: WKAM_TRANSFER");
+        _safeTransfer(WKAM, pair, msg.value);
         if (WKAM < tokenOut) KAMPair(pair).swap(0, amountOut, to); else KAMPair(pair).swap(amountOut, 0, to);
     }
 
-    function swapExactTokensForKAM(uint256 amountIn, uint256 amountOutMin, address tokenIn, address to) external returns (uint256 amountOut) {
+    function swapExactTokensForKAM(uint256 amountIn, uint256 amountOutMin, address tokenIn, address to, uint256 deadline)
+        external nonReentrant ensure(deadline) returns (uint256 amountOut)
+    {
         address pair = KAMFactory(factory).getPair(tokenIn, WKAM);
         require(pair != address(0), "KAMRouter: PAIR_MISSING");
         (uint256 reserveIn, uint256 reserveOut) = _reservesFor(pair, tokenIn, WKAM);
         amountOut = getAmountOut(amountIn, reserveIn, reserveOut);
         require(amountOut >= amountOutMin, "KAMRouter: INSUFFICIENT_OUTPUT");
-        require(IERC20Minimal(tokenIn).transferFrom(msg.sender, pair, amountIn), "KAMRouter: TRANSFER_IN");
+        _transferExactFrom(tokenIn, msg.sender, pair, amountIn);
         if (tokenIn < WKAM) KAMPair(pair).swap(0, amountOut, address(this)); else KAMPair(pair).swap(amountOut, 0, address(this));
         IWKAM(WKAM).withdraw(amountOut);
         (bool ok,) = to.call{value: amountOut}("");
