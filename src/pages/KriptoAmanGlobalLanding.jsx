@@ -4,6 +4,7 @@ import GLandingHeader from '@/components/landing/GLandingHeader';
 import GLandingHero from '@/components/landing/GLandingHero';
 import GLandingNews from '@/components/landing/GLandingNews';
 import GLandingBody from '@/components/landing/GLandingBody';
+import GLandingInstitutional from '@/components/landing/GLandingInstitutional';
 import GLandingFooter from '@/components/landing/GLandingFooter';
 
 export default function KriptoAmanGlobalLanding() {
@@ -128,8 +129,8 @@ export default function KriptoAmanGlobalLanding() {
     })();
 
     const onScroll = () => {
-      const sections = ['beranda', 'berita', 'fitur', 'keamanan', 'tentang', 'faq', 'kontak'];
-      const labels = ['Beranda', 'Berita', 'Fitur', 'Keamanan', 'Tentang Kami', 'FAQ', 'Kontak'];
+      const sections = ['beranda', 'berita', 'fitur', 'keamanan', 'institutional', 'tentang', 'faq', 'kontak'];
+      const labels = ['Beranda', 'Berita', 'Fitur', 'Keamanan', 'Ekosistem', 'Tentang Kami', 'FAQ', 'Kontak'];
       let cur = 'Beranda';
       for (let i = 0; i < sections.length; i++) {
         const el = document.getElementById(sections[i]);
@@ -149,6 +150,7 @@ export default function KriptoAmanGlobalLanding() {
         <GLandingHero />
         <GLandingNews />
         <GLandingBody stats={stats} />
+        <GLandingInstitutional />
       </main>
       <GLandingFooter />
     </div>
