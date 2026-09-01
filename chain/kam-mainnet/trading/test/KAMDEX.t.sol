@@ -55,7 +55,14 @@ contract KAMDEXTest {
 
     function testAddLiquidityMintsLP() public {
         (,, uint256 liquidity) = router.addLiquidity(
-            address(tokenA), address(tokenB), 10_000 ether, 20_000 ether, 10_000 ether, 20_000 ether, address(this), deadline()
+            address(tokenA),
+            address(tokenB),
+            10_000 ether,
+            20_000 ether,
+            10_000 ether,
+            20_000 ether,
+            address(this),
+            deadline()
         );
         address pair = factory.getPair(address(tokenA), address(tokenB));
         require(liquidity > 0, "no liquidity");
@@ -66,14 +73,22 @@ contract KAMDEXTest {
 
     function testSwapPreservesProductWithFee() public {
         router.addLiquidity(
-            address(tokenA), address(tokenB), 10_000 ether, 10_000 ether, 10_000 ether, 10_000 ether, address(this), deadline()
+            address(tokenA),
+            address(tokenB),
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            address(this),
+            deadline()
         );
         address pair = factory.getPair(address(tokenA), address(tokenB));
         (uint112 r0Before, uint112 r1Before,) = KAMPair(pair).getReserves();
         uint256 kBefore = uint256(r0Before) * uint256(r1Before);
         uint256 bBefore = tokenB.balanceOf(address(this));
 
-        uint256 out = router.swapExactTokensForTokens(100 ether, 1, address(tokenA), address(tokenB), address(this), deadline());
+        uint256 out =
+            router.swapExactTokensForTokens(100 ether, 1, address(tokenA), address(tokenB), address(this), deadline());
         require(out > 0, "no output");
         require(tokenB.balanceOf(address(this)) == bBefore + out, "output mismatch");
 
@@ -84,7 +99,14 @@ contract KAMDEXTest {
 
     function testRemoveLiquidityReturnsBothAssets() public {
         (,, uint256 liquidity) = router.addLiquidity(
-            address(tokenA), address(tokenB), 10_000 ether, 10_000 ether, 10_000 ether, 10_000 ether, address(this), deadline()
+            address(tokenA),
+            address(tokenB),
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            address(this),
+            deadline()
         );
         address pair = factory.getPair(address(tokenA), address(tokenB));
         KAMPair(pair).approve(address(router), liquidity);
@@ -111,9 +133,8 @@ contract KAMDEXTest {
         require(mockWKAM.balanceOf(pair) == 10 ether, "WKAM not deposited");
 
         KAMPair(pair).approve(address(router), liquidity);
-        (uint256 tokenOut, uint256 kamOut) = router.removeLiquidityKAM(
-            address(tokenA), liquidity, 1, 1, address(this), deadline()
-        );
+        (uint256 tokenOut, uint256 kamOut) =
+            router.removeLiquidityKAM(address(tokenA), liquidity, 1, 1, address(this), deadline());
         require(tokenOut > 0 && kamOut > 0, "remove failed");
         require(address(this).balance > nativeBefore - 10 ether, "KAM not unwrapped");
     }
@@ -137,9 +158,7 @@ contract KAMDEXTest {
     function testExpiredTransactionReverts() public {
         vm.warp(1000);
         vm.expectRevert(bytes("KAMRouter: EXPIRED"));
-        router.addLiquidity(
-            address(tokenA), address(tokenB), 1 ether, 1 ether, 1 ether, 1 ether, address(this), 999
-        );
+        router.addLiquidity(address(tokenA), address(tokenB), 1 ether, 1 ether, 1 ether, 1 ether, address(this), 999);
     }
 
     function testQuoteAndFeeMath() public view {
