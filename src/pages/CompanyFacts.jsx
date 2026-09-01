@@ -51,7 +51,7 @@ export default function CompanyFacts() {
       <div className="max-w-6xl mx-auto px-5 sm:px-7 pt-8">
         <nav className="flex items-center justify-between border-b border-black/10 pb-6">
           <Link to="/" className="text-sm font-semibold">KriptoAman</Link>
-          <div className="flex gap-5 text-xs uppercase tracking-[0.15em] text-slate-500"><Link to="/founder" className="hover:text-slate-900">Leadership</Link><Link to="/LegalCorporateInformation" className="hover:text-slate-900">Legal</Link></div>
+          <div className="flex flex-wrap justify-end gap-x-5 gap-y-2 text-xs uppercase tracking-[0.15em] text-slate-500"><Link to="/founder" className="hover:text-slate-900">Leadership</Link><Link to="/research" className="hover:text-slate-900">Research</Link><Link to="/LegalCorporateInformation" className="hover:text-slate-900">Legal</Link></div>
         </nav>
 
         <header className="grid lg:grid-cols-[1.15fr_0.85fr] gap-10 py-14 sm:py-20 border-b border-black/10">
@@ -67,7 +67,7 @@ export default function CompanyFacts() {
         <section className="py-12 border-b border-black/10"><p className="text-xs uppercase tracking-[0.22em] text-slate-500">Corporate Architecture</p><div className="mt-6 grid md:grid-cols-3 gap-4">
           <Link to="/founder" className="rounded-2xl border border-black/10 bg-white/50 p-6 hover:bg-white"><UserRound className="w-5 h-5"/><h3 className="mt-5 font-semibold">Executive Leadership</h3><p className="mt-2 text-sm leading-6 text-slate-500">Raden Abdul Rahman sebagai Founder & CEO, dengan profil profesional yang terpisah dari komunikasi produk.</p></Link>
           <Link to="/" className="rounded-2xl border border-black/10 bg-white/50 p-6 hover:bg-white"><Building2 className="w-5 h-5"/><h3 className="mt-5 font-semibold">KriptoAman</h3><p className="mt-2 text-sm leading-6 text-slate-500">Lapisan produk: market intelligence, monitoring, edukasi, risk intelligence, dan pengalaman pengguna.</p></Link>
-          <Link to="/KAM" className="rounded-2xl border border-black/10 bg-white/50 p-6 hover:bg-white"><ShieldCheck className="w-5 h-5"/><h3 className="mt-5 font-semibold">Technology & Research</h3><p className="mt-2 text-sm leading-6 text-slate-500">KAM Network, explorer, developer documentation, dan research ditampilkan sesuai status dan evidence yang dapat diverifikasi.</p></Link>
+          <Link to="/research" className="rounded-2xl border border-black/10 bg-white/50 p-6 hover:bg-white"><ShieldCheck className="w-5 h-5"/><h3 className="mt-5 font-semibold">Technology & Research</h3><p className="mt-2 text-sm leading-6 text-slate-500">KAM Network, explorer, developer documentation, dan research ditampilkan sesuai status dan evidence yang dapat diverifikasi.</p></Link>
         </div></section>
 
         <section className="grid md:grid-cols-2 gap-4 py-12">
