@@ -1,0 +1,82 @@
+name: Verify WKAM on Blockscout
+
+on:
+  push:
+    branches:
+      - agent/verify-wkam-source
+    paths:
+      - '.github/workflows/verify-wkam-blockscout.yml'
+      - 'chain/kam-mainnet/trading/contracts/WKAM.sol'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-wkam:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build exact Standard JSON input
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          source = Path('chain/kam-mainnet/trading/contracts/WKAM.sol').read_text()
+          payload = {
+            'language': 'Solidity',
+            'sources': {'WKAM.sol': {'content': source}},
+            'settings': {
+              'evmVersion': 'paris',
+              'optimizer': {'enabled': True, 'runs': 200},
+              'outputSelection': {'*': {'*': ['abi', 'evm.bytecode.object']}}
+            }
+          }
+          Path('/tmp/wkam-standard-input.json').write_text(json.dumps(payload, separators=(',', ':')))
+          PY
+
+      - name: Submit verification to KAM Blockscout
+        shell: bash
+        run: |
+          set -euo pipefail
+          ADDRESS='0x0d8848CE88BB09a81a4248Efdd574d50B98b544A'
+          ENDPOINT="https://explorer.kriptoaman.com/api/v2/smart-contracts/${ADDRESS}/verification/via/standard-input"
+          code=$(curl --silent --show-error --location \
+            --output /tmp/verify-response.txt \
+            --write-out '%{http_code}' \
+            --request POST "$ENDPOINT" \
+            --form 'compiler_version=v0.8.36+commit.8a079791' \
+            --form 'contract_name=WKAM' \
+            --form 'files[0]=@/tmp/wkam-standard-input.json;type=application/json' \
+            --form 'autodetect_constructor_args=false' \
+            --form 'constructor_args=' \
+            --form 'license_type=mit')
+          echo "verification_http=$code"
+          cat /tmp/verify-response.txt || true
+          test "$code" = '200' || test "$code" = '201'
+
+      - name: Confirm contract becomes verified
+        shell: bash
+        run: |
+          set -euo pipefail
+          ADDRESS='0x0d8848CE88BB09a81a4248Efdd574d50B98b544A'
+          URL="https://explorer.kriptoaman.com/api/v2/smart-contracts/${ADDRESS}"
+          for i in $(seq 1 18); do
+            curl --fail --silent --show-error "$URL" -o /tmp/contract.json
+            python3 - <<'PY'
+          import json
+          p=json.load(open('/tmp/contract.json'))
+          print('is_verified=', p.get('is_verified'), 'name=', p.get('name'), 'compiler=', p.get('compiler_version'), 'evm=', p.get('evm_version'))
+          raise SystemExit(0 if p.get('is_verified') is True else 1)
+          PY
+            rc=$?
+            if [ "$rc" -eq 0 ]; then exit 0; fi
+            sleep 10
+          done
+          echo 'WKAM verification did not become visible within the polling window.'
+          cat /tmp/contract.json
+          exit 1
