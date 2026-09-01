@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "network": "KAM Mainnet Candidate",
+  "chainId": 22028,
+  "status": "mainnet-candidate-not-public",
+  "updatedAt": "2026-09-01T15:32:00Z",
+  "gates": {
+    "publicRpcExplorer": true,
+    "validatorSet4of4": true,
+    "backupRestore": true,
+    "hourlyMonitoring": true,
+    "fourDistinctValidatorHosts": false,
+    "dedicatedProtectedRpcOrigin": false,
+    "continuity24h": false,
+    "finalChainIdCollisionCheck": false,
+    "finalDocsLogoVerificationChannels": false
+  },
+  "notes": [
+    "Public RPC/explorer readiness is evidenced by passing external probes.",
+    "Private evidence has verified a 4/4 QBFT validator set and backup/restore readiness.",
+    "The current public-mainnet promotion remains blocked until every gate is true.",
+    "Do not change status to public mainnet from this manifest alone; each false gate requires independently reviewed evidence."
+  ]
+}
