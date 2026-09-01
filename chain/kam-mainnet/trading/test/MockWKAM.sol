@@ -14,7 +14,9 @@ contract MockWKAM {
     event Deposit(address indexed account, uint256 value);
     event Withdrawal(address indexed account, uint256 value);
 
-    receive() external payable { deposit(); }
+    receive() external payable {
+        deposit();
+    }
 
     function deposit() public payable {
         balanceOf[msg.sender] += msg.value;
