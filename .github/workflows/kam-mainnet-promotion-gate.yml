@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       strict:
-        description: 'Fail the run unless public RPC/explorer checks pass'
+        description: 'Fail the run unless all public-mainnet evidence gates pass'
         required: false
         default: false
         type: boolean
@@ -52,6 +52,35 @@ jobs:
           mkdir -p artifacts
           node chain/kam-mainnet/scripts/verify-public-endpoints.mjs 2>&1 | tee artifacts/kam-mainnet-public-readiness.json
 
+      - name: Evaluate full promotion readiness manifest
+        id: readiness
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const path = './chain/kam-mainnet/promotion-readiness.json';
+          const p = JSON.parse(fs.readFileSync(path, 'utf8'));
+          if (Number(p.chainId) !== 22028) throw new Error('promotion-readiness chainId must remain 22028');
+          if (p.status !== 'mainnet-candidate-not-public') throw new Error('promotion-readiness status must remain candidate until all gates pass');
+          const required = [
+            'publicRpcExplorer',
+            'validatorSet4of4',
+            'backupRestore',
+            'hourlyMonitoring',
+            'fourDistinctValidatorHosts',
+            'dedicatedProtectedRpcOrigin',
+            'continuity24h',
+            'finalChainIdCollisionCheck',
+            'finalDocsLogoVerificationChannels'
+          ];
+          const missing = required.filter((key) => p.gates?.[key] !== true);
+          const allReady = missing.length === 0;
+          console.log(JSON.stringify({ allReady, missing, status: p.status, chainId: p.chainId }));
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `all_ready=${allReady}\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `missing=${missing.join(',')}\n`);
+          NODE
+
       - name: Upload readiness evidence
         if: always()
         uses: actions/upload-artifact@v7
@@ -62,15 +91,17 @@ jobs:
           retention-days: 30
 
       - name: Record candidate-not-ready status
-        if: steps.verify.outcome != 'success'
+        if: steps.verify.outcome != 'success' || steps.readiness.outputs.all_ready != 'true'
         run: |
-          echo 'KAM_PUBLIC_ENDPOINT_GATE=NOT_READY'
-          echo 'KAM Mainnet remains a candidate. Scheduled and pull-request checks record evidence without treating an expected not-yet-live endpoint as a CI failure.'
+          echo 'KAM_PUBLIC_MAINNET_GATE=NOT_READY'
+          echo "Missing reviewed gates: ${{ steps.readiness.outputs.missing }}"
+          echo 'KAM Mainnet remains mainnet-candidate-not-public. No public-mainnet promotion is authorized by endpoint health alone.'
 
       - name: Enforce strict manual promotion gate
-        if: github.event_name == 'workflow_dispatch' && inputs.strict == true && steps.verify.outcome != 'success'
+        if: github.event_name == 'workflow_dispatch' && inputs.strict == true && (steps.verify.outcome != 'success' || steps.readiness.outputs.all_ready != 'true')
         run: |
-          echo 'Strict promotion gate failed: public RPC/explorer checks are not ready.'
+          echo 'Strict promotion gate failed.'
+          echo "Missing reviewed gates: ${{ steps.readiness.outputs.missing }}"
           exit 1
 
       - name: Promotion endpoint gate passed
@@ -78,4 +109,9 @@ jobs:
         run: |
           echo 'KAM_PUBLIC_ENDPOINT_GATE=PASS'
           echo 'Hourly continuity is counted from validated artifact checkedAt timestamps: at least one ready=true probe must exist in every consecutive UTC hour bucket. Redundant :17/:47 schedules improve evidence continuity but do not waive any missing-hour or failed-probe requirement.'
-          echo 'This is necessary but not sufficient for public-mainnet promotion; Issue #115 infrastructure, 24-hour stability, backup/restore, monitoring, validator-set, and final Chain ID checks must also pass.'
+
+      - name: Full public-mainnet evidence gate passed
+        if: steps.verify.outcome == 'success' && steps.readiness.outputs.all_ready == 'true'
+        run: |
+          echo 'KAM_PUBLIC_MAINNET_EVIDENCE_GATE=PASS'
+          echo 'All repository-tracked evidence gates are marked reviewed and current. A separate reviewed status-change commit is still required before public-mainnet promotion.'
