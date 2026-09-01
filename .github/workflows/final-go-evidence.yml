@@ -1,0 +1,179 @@
+name: Final GO Evidence
+
+# Revalidated after production latency hardening merge on 2026-08-31.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/final-go-evidence.yml'
+      - 'docs/FINAL_GO_EVIDENCE.md'
+      - 'load/k6-production-readonly.js'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'src/**'
+  workflow_dispatch:
+    inputs:
+      load_stage:
+        description: 'Read-only load stage'
+        required: true
+        default: 'smoke'
+        type: choice
+        options:
+          - smoke
+          - '1000'
+          - '2500'
+          - '5000'
+          - '10000'
+      allow_production_high_load:
+        description: 'Explicit approval for high-load production run'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - name: Production dependency gate
+        run: npm audit --omit=dev --audit-level=high
+      - name: Record direct moderate-risk import candidates
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'Checking actual imports/requires, not documentation strings.'
+          if grep -R --exclude='package*.json' --exclude-dir=node_modules -nE "(from|import\(|require\()[[:space:]]*['\"]react-quill['\"]" src functions server scripts tests 2>/dev/null; then
+            echo 'react-quill has an executable source reference; migrate/upgrade instead of removing.'
+          else
+            echo 'react-quill has no executable source import; candidate for lockfile-safe removal.'
+          fi
+          if grep -R --exclude='package*.json' --exclude-dir=node_modules -nE "(from|import\(|require\()[[:space:]]*['\"]@solana/web3\.js['\"]" src functions server scripts tests 2>/dev/null; then
+            echo '@solana/web3.js has an executable source reference; migrate/upgrade instead of removing.'
+          else
+            echo '@solana/web3.js has no executable source import; candidate for lockfile-safe removal.'
+          fi
+
+  viewport-browser-evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install Playwright CLI
+        run: npx -y playwright@1.55.0 install --with-deps chromium
+      - name: Capture production viewport matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p viewport-evidence
+          for width in 320 360 375 390 412 430 768 1024 1280 1440 1920; do
+            height=1000
+            if [ "$width" -ge 1024 ]; then height=1080; fi
+            npx -y playwright@1.55.0 screenshot \
+              --browser=chromium \
+              --viewport-size="${width},${height}" \
+              --full-page \
+              https://kriptoaman.com/ \
+              "viewport-evidence/home-${width}.png"
+          done
+      - name: Basic WCAG 2 AA automated scan
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/pa11y.json <<'JSON'
+          {
+            "standard": "WCAG2AA",
+            "chromeLaunchConfig": {
+              "args": ["--no-sandbox", "--disable-setuid-sandbox"]
+            }
+          }
+          JSON
+          npx -y pa11y@9.0.0 --config /tmp/pa11y.json --reporter json https://kriptoaman.com/ > viewport-evidence/pa11y-home.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: final-go-viewport-accessibility-evidence
+          path: viewport-evidence
+          retention-days: 30
+
+  controlled-readonly-load:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Resolve approved stage
+        id: stage
+        shell: bash
+        run: |
+          set -euo pipefail
+          stage='smoke'
+          allow='NO'
+          if [ '${{ github.event_name }}' = 'workflow_dispatch' ]; then
+            stage='${{ inputs.load_stage }}'
+            if [ "$stage" != 'smoke' ]; then
+              if [ '${{ inputs.allow_production_high_load }}' != 'true' ]; then
+                echo 'High-load production stage requires explicit workflow approval.' >&2
+                exit 1
+              fi
+              allow='YES'
+            fi
+          fi
+          echo "stage=$stage" >> "$GITHUB_OUTPUT"
+          echo "allow=$allow" >> "$GITHUB_OUTPUT"
+      - name: Endpoint latency preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in / /api/platform-status /api/network-health /api/kam/network-status; do
+            echo "== $path =="
+            for i in 1 2 3; do
+              curl -L -sS -o /dev/null --max-time 10 \
+                -w 'status=%{http_code} total=%{time_total}s connect=%{time_connect}s starttransfer=%{time_starttransfer}s\n' \
+                "https://kriptoaman.com${path}"
+            done
+          done
+      - name: Run guarded k6 profile
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm -i \
+            -e BASE_URL=https://kriptoaman.com \
+            -e KA_LOAD_STAGE='${{ steps.stage.outputs.stage }}' \
+            -e ALLOW_PRODUCTION_LOAD_TEST='${{ steps.stage.outputs.allow }}' \
+            grafana/k6:latest run - < load/k6-production-readonly.js
+
+  rollback-build-rehearsal:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Resolve rollback target
+        id: rollback
+        shell: bash
+        run: |
+          set -euo pipefail
+          target='${{ github.event.pull_request.base.sha }}'
+          if [ -z "$target" ]; then target="$(git rev-parse HEAD^)"; fi
+          echo "target=$target" >> "$GITHUB_OUTPUT"
+          echo "Rollback rehearsal target: $target"
+      - name: Build rollback target in isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          target='${{ steps.rollback.outputs.target }}'
+          git fetch --no-tags --depth=1 origin "$target"
+          git checkout --detach "$target"
+          npm ci --legacy-peer-deps
+          npm test
+          npm run build
+          echo 'Rollback target is buildable and regression-tested. No production deployment was changed.'
