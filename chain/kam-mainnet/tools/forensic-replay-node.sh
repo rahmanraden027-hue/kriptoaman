@@ -8,6 +8,7 @@ BOOTNODES_FILE="$ROOT/bootnodes.txt"
 DATA_DIR="$ROOT/data"
 RPC_PORT="${KAM_FORENSIC_RPC_PORT:-8650}"
 P2P_PORT="${KAM_FORENSIC_P2P_PORT:-30410}"
+P2P_HOST="${KAM_FORENSIC_P2P_HOST:-127.0.0.1}"
 NETWORK_ID="22028"
 
 fail() { echo "ERROR: $*" >&2; exit 1; }
@@ -51,6 +52,7 @@ cat > "$ROOT/forensic-start-summary.txt" <<EOF
 mode=non-validator-forensic-replay
 network_id=$NETWORK_ID
 rpc=http://127.0.0.1:$RPC_PORT
+p2p_host=$P2P_HOST
 p2p_port=$P2P_PORT
 data_dir=$DATA_DIR
 genesis=$GENESIS
@@ -63,6 +65,7 @@ exec "$BESU_BIN" \
   --network-id="$NETWORK_ID" \
   --sync-mode=FULL \
   --bootnodes="$BOOTNODES" \
+  --p2p-host="$P2P_HOST" \
   --p2p-port="$P2P_PORT" \
   --rpc-http-enabled=true \
   --rpc-http-host=127.0.0.1 \
