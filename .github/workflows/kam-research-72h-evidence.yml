@@ -12,10 +12,14 @@ permissions:
 env:
   KAM_RESEARCH_OUT: research/kam-mainnet/data
 
+concurrency:
+  group: kam-research-72h-evidence
+  cancel-in-progress: false
+
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -29,8 +33,8 @@ jobs:
           : > /tmp/kam-evidence-restore/combined.ndjson
 
           # Backfill from recent non-expired artifacts. Historical runs created
-          # one sample per artifact, so combining them converts the workflow
-          # into a true rolling evidence window without mutating chain state.
+          # one or more samples per artifact, so combining them preserves a true
+          # rolling evidence window without mutating chain state.
           gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts?per_page=100" \
             --jq '.artifacts[] | select(.expired == false and (.name | startswith("kam-research-evidence-"))) | [.id,.name] | @tsv' \
             > /tmp/kam-evidence-restore/artifacts.tsv
@@ -74,8 +78,20 @@ jobs:
           if (samples.length) console.log(`restoredWindow=${samples[0].timestamp}..${samples.at(-1).timestamp}`);
           NODE
 
-      - name: Collect read-only public KAM metrics
-        run: node research/kam-mainnet/collect-public-metrics.mjs
+      - name: Collect read-only public KAM metrics across real time
+        run: |
+          set -euo pipefail
+          # GitHub scheduled workflows can be delayed under platform load. Each
+          # run therefore records ten independent real-time observations over
+          # about 45 minutes. No timestamps are fabricated and no chain state is
+          # modified. Any critical collector failure still fails this step.
+          for sample in $(seq 1 10); do
+            echo "Collecting KAM evidence sample ${sample}/10"
+            node research/kam-mainnet/collect-public-metrics.mjs
+            if [ "$sample" -lt 10 ]; then
+              sleep 300
+            fi
+          done
 
       - name: Summarize rolling 72h dataset
         run: node research/kam-mainnet/summarize-metrics.mjs
