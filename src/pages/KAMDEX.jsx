@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   ArrowDownUp,
-  BarChart3,
   Coins,
   Droplets,
   ExternalLink,
