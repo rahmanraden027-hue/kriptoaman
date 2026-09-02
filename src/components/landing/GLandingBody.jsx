@@ -28,7 +28,7 @@ const STEPS = [
 
 const FAQS = [
   { q: 'Apakah KriptoAman menjamin keamanan aset saya?', a: 'Tidak. KriptoAman adalah platform informasi, pemantauan, dan analisis risiko. Kami tidak menyimpan atau menjamin dana Anda. Selalu lakukan verifikasi mandiri.' },
-  { q: 'Apakah data statistik di halaman ini real-time?', a: 'Angka cakupan aset dan jaringan diambil dari health endpoint KriptoAman. Jika verifikasi belum tersedia atau gagal, aplikasi menampilkan “—” atau status terbatas.' },
+  { q: 'Apakah data statistik di halaman ini real-time?', a: 'Angka cakupan aset dan jaringan diambil dari health endpoint KriptoAman. Selama pemeriksaan live masih berlangsung, halaman menampilkan status pemeriksaan. Status terbatas hanya ditampilkan setelah verifikasi selesai dan data memang belum dapat dikonfirmasi.' },
   { q: 'Apakah verifikasi transaksi menyatakan transaksi aman?', a: 'Tidak. Verifikasi hanya memeriksa status transaksi dan alamat melalui blockchain explorer. Status keamanan akhir tetap penilaian Anda sendiri.' },
   { q: 'Apakah saya perlu KYC untuk mulai?', a: 'Anda dapat menjelajah informasi publik tanpa akun. Fitur pribadi seperti dashboard memerlukan login.' },
 ];
@@ -46,12 +46,19 @@ export default function GLandingBody({ stats }) {
   const verifiedNetworks = Array.isArray(stats?.networks)
     ? stats.networks.filter((network) => network?.status === 'online')
     : [];
-  const assetCountValue = Number(stats?.assetCount) > 0
-    ? Number(stats.assetCount).toLocaleString('id-ID')
-    : '—';
-  const networkCountValue = Number.isFinite(Number(stats?.networkActiveCount))
-    ? String(Number(stats.networkActiveCount))
-    : '—';
+  const assetCountValue = stats?.loading
+    ? '…'
+    : Number(stats?.assetCount) > 0
+      ? Number(stats.assetCount).toLocaleString('id-ID')
+      : '—';
+  const networkCountValue = stats?.loading
+    ? '…'
+    : Number.isFinite(Number(stats?.networkActiveCount))
+      ? String(Number(stats.networkActiveCount))
+      : '—';
+  const statusTimestampLabel = stats?.loading
+    ? 'Memeriksa data live'
+    : (lastUpdated || 'Belum terverifikasi');
 
   return (
     <>
@@ -77,19 +84,20 @@ export default function GLandingBody({ stats }) {
         <div className="ka-stats-card max-w-[1440px] mx-auto ka-card p-5 sm:p-7">
           <div className="ka-stats-head flex items-center justify-between mb-5">
             <h2 className="font-bold text-sm ka-text">Statistik Platform</h2>
-            <span className="text-[11px] ka-text2">Terakhir diperbarui: {lastUpdated || 'Data belum tersedia'}</span>
+            <span className="text-[11px] ka-text2">Terakhir diperbarui: {statusTimestampLabel}</span>
           </div>
           <div className="ka-stats-grid grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { label: 'Cakupan Aset Pasar', value: assetCountValue },
               { label: 'Jaringan Aktif', value: networkCountValue },
               { label: 'Mata Uang Tampilan', value: 'IDR / USD' },
-              { label: 'Status Data Pasar', value: stats.loading ? '…' : (systemOk ? 'Operasional' : 'Terbatas') },
+              { label: 'Status Data Pasar', value: stats.loading ? 'Memeriksa' : (systemOk ? 'Operasional' : 'Terbatas') },
             ].map((s) => (
               <div key={s.label} className="ka-stat-tile ka-card2 p-4">
                 <p className="ka-stat-value text-2xl font-extrabold">
                   {s.value === 'Operasional' ? <span className="ka-green">{s.value}</span> :
                    s.value === 'Terbatas' ? <span className="ka-gold">{s.value}</span> :
+                   s.value === 'Memeriksa' ? <span className="ka-blue">{s.value}</span> :
                    <span className="ka-text2">{s.value}</span>}
                 </p>
                 <p className="text-[11px] ka-text2 mt-1">{s.label}</p>
@@ -193,7 +201,7 @@ export default function GLandingBody({ stats }) {
                 <span className="text-[9px] rounded-full px-1.5 py-0.5 ka-green">Aktif · Live</span>
               </span>
             )) : (
-              <span className="ka-card2 px-4 py-2 text-xs ka-text2">Verifikasi jaringan sedang diperbarui.</span>
+              <span className="ka-card2 px-4 py-2 text-xs ka-text2">{stats.loading ? 'Memeriksa jaringan live…' : 'Verifikasi jaringan sedang diperbarui.'}</span>
             )}
           </div>
           <p className="text-[11px] ka-text2 mt-4 text-center opacity-70 max-w-3xl mx-auto">
@@ -235,11 +243,11 @@ export default function GLandingBody({ stats }) {
               <h3 className="font-bold text-sm ka-text">Status Sistem</h3>
             </div>
             <div className="flex items-center gap-2">
-              <span className={`w-2.5 h-2.5 rounded-full ${systemOk ? 'bg-[var(--ka-green)]' : 'bg-[var(--ka-gold)]'} animate-pulse`} />
+              <span className={`w-2.5 h-2.5 rounded-full ${stats.loading ? 'bg-[var(--ka-blue)]' : systemOk ? 'bg-[var(--ka-green)]' : 'bg-[var(--ka-gold)]'} animate-pulse`} />
               <span className="text-sm font-semibold">
-                {stats.loading ? 'Memeriksa…' : systemOk ? <span className="ka-green">Operasional</span> : <span className="ka-gold">Layanan data terbatas</span>}
+                {stats.loading ? <span className="ka-blue">Memeriksa data live</span> : systemOk ? <span className="ka-green">Operasional</span> : <span className="ka-gold">Layanan data terbatas</span>}
               </span>
-              <span className="text-[11px] ka-text2">• {lastUpdated || 'Data belum tersedia'}</span>
+              <span className="text-[11px] ka-text2">• {statusTimestampLabel}</span>
             </div>
           </div>
           <p className="text-[11px] ka-text2 mt-3 opacity-70">
