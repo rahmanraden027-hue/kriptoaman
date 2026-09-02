@@ -1,0 +1,40 @@
+name: KAM DEX Mainnet Dry Run
+
+on:
+  pull_request:
+    paths:
+      - 'chain/kam-mainnet/trading/script/PrepareKAMDEXDeployment.s.sol'
+      - 'chain/kam-mainnet/trading/dex/**'
+      - 'chain/kam-mainnet/deployments/dex.production.manifest.json'
+      - '.github/workflows/kam-dex-mainnet-dry-run.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dry-run:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: chain/kam-mainnet/trading
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - name: Format check
+        run: forge fmt --check
+      - name: Build Paris-compatible bytecode
+        run: forge build --sizes --evm-version paris
+      - name: Simulate Factory and Router against KAM Mainnet state
+        run: >-
+          forge script script/PrepareKAMDEXDeployment.s.sol:PrepareKAMDEXDeployment
+          --rpc-url https://rpc.kriptoaman.com
+          --evm-version paris
+          -vvv
+      - name: Assert no broadcast credentials are present
+        run: |
+          test -z "${DEPLOYER_PRIVATE_KEY:-}"
+          test -z "${MNEMONIC:-}"
