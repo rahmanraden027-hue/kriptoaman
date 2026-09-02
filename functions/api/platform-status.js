@@ -1,4 +1,4 @@
-const STATUS_TTL_MS = 15_000;
+const STATUS_TTL_MS = 30_000;
 
 const HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
@@ -10,7 +10,10 @@ let cachedStatus = null;
 let cachedStatusAt = 0;
 let statusInFlight = null;
 
-const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: HEADERS });
+const json = (body, status = 200, extraHeaders = {}) => new Response(JSON.stringify(body), {
+  status,
+  headers: { ...HEADERS, ...extraHeaders },
+});
 
 async function readJson(url, timeoutMs = 2500) {
   const controller = new AbortController();
@@ -87,16 +90,15 @@ async function buildStatus(request) {
         unavailableMetricsUseNull: true,
         fabricatedMetrics: false,
         aggregateCacheTtlMs: STATUS_TTL_MS,
+        edgeCache: true,
       },
     },
   };
 }
 
-export async function onRequestGet({ request }) {
+async function getFreshStatus(request) {
   const now = Date.now();
-  if (cachedStatus && now - cachedStatusAt < STATUS_TTL_MS) {
-    return json(cachedStatus.body, cachedStatus.status);
-  }
+  if (cachedStatus && now - cachedStatusAt < STATUS_TTL_MS) return cachedStatus;
 
   if (!statusInFlight) {
     statusInFlight = buildStatus(request)
@@ -110,6 +112,34 @@ export async function onRequestGet({ request }) {
       });
   }
 
-  const result = await statusInFlight;
-  return json(result.body, result.status);
+  return statusInFlight;
+}
+
+export async function onRequestGet({ request, waitUntil }) {
+  const edgeCache = globalThis.caches?.default;
+  const cacheKey = new Request(new URL(request.url).origin + '/api/platform-status', {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+  });
+
+  if (edgeCache) {
+    const hit = await edgeCache.match(cacheKey);
+    if (hit) {
+      const headers = new Headers(hit.headers);
+      headers.set('X-KriptoAman-Status-Cache', 'HIT');
+      return new Response(hit.body, { status: hit.status, headers });
+    }
+  }
+
+  const result = await getFreshStatus(request);
+  const response = json(result.body, result.status, { 'X-KriptoAman-Status-Cache': 'MISS' });
+
+  if (edgeCache && result.status === 200) {
+    const cachedResponse = response.clone();
+    const task = edgeCache.put(cacheKey, cachedResponse);
+    if (typeof waitUntil === 'function') waitUntil(task);
+    else await task;
+  }
+
+  return response;
 }
