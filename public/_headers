@@ -69,6 +69,8 @@
   X-Robots-Tag: noindex, nofollow, noarchive
 /DEXSavings*
   X-Robots-Tag: noindex, nofollow, noarchive
+/KAMDEX*
+  X-Robots-Tag: noindex, nofollow, noarchive
 /FeatureUpdate*
   X-Robots-Tag: noindex, nofollow, noarchive
 /MarketResearch*
