@@ -1,0 +1,30 @@
+name: KAM DEX Read-only RPC
+
+on:
+  pull_request:
+    paths:
+      - 'chain/kam-mainnet/trading/scripts/verify-dex-readonly-rpc.mjs'
+      - 'chain/kam-mainnet/deployments/wkam.json'
+      - '.github/workflows/kam-dex-readonly-rpc.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify canonical WKAM against public KAM RPC
+        env:
+          KAM_RPC_URL: https://rpc.kriptoaman.com
+        run: node chain/kam-mainnet/trading/scripts/verify-dex-readonly-rpc.mjs
+      - name: Confirm no transaction secret is configured
+        run: |
+          test -z "${DEPLOYER_PRIVATE_KEY:-}"
+          test -z "${TREASURY_PRIVATE_KEY:-}"
