@@ -1,0 +1,36 @@
+name: Staging Provisioning Verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      staging_origin:
+        description: 'Dedicated isolated staging HTTPS origin (must not be *.kriptoaman.com)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging-provisioning-verification-${{ inputs.staging_origin }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify isolated staging provisioning
+        env:
+          STAGING_ORIGIN: ${{ inputs.staging_origin }}
+        run: node scripts/verify-staging-provisioning.mjs | tee staging-provisioning-evidence.json
+
+      - name: Upload verification evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-provisioning-${{ github.run_id }}
+          path: staging-provisioning-evidence.json
+          if-no-files-found: error
+          retention-days: 30
