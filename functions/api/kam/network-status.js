@@ -5,6 +5,7 @@ const EXPECTED_CHAIN_ID_HEX = '0x560c';
 const RPC_URL = 'https://rpc.kriptoaman.com';
 const EXPLORER_URL = 'https://explorer.kriptoaman.com';
 const ADDRESS_PATTERN = /^0x[0-9a-fA-F]{40}$/;
+const PUBLIC_STATUS_CACHE = 'public, max-age=5, s-maxage=20, stale-while-revalidate=40';
 
 const KAM_INDICATIVE_LISTING_REFERENCE = Object.freeze({
   value: 29.37,
@@ -41,6 +42,10 @@ export async function onRequestGet({ request }) {
   if (address && !ADDRESS_PATTERN.test(address)) {
     return json({ error: 'Invalid public EVM address' }, { status: 400 });
   }
+
+  // Public network status is safe to cache briefly at the edge. Wallet-specific
+  // balance responses remain uncached so user-address data is always live.
+  const cacheControl = address ? 'no-store' : PUBLIC_STATUS_CACHE;
 
   const base = {
     networkName: 'KriptoAman Mainnet',
@@ -82,7 +87,7 @@ export async function onRequestGet({ request }) {
       status: 'mainnet-candidate-rpc-verified',
       blockNumber: Number(BigInt(blockHex)),
       wallet: address ? { address, balanceKAM: formatKam(walletBalance) } : null,
-    }, { headers: { 'Cache-Control': 'no-store' } });
+    }, { headers: { 'Cache-Control': cacheControl } });
   } catch (error) {
     return json({
       ...base,
@@ -91,7 +96,7 @@ export async function onRequestGet({ request }) {
       blockNumber: null,
       wallet: address ? { address, balanceKAM: null } : null,
       reason: error?.name === 'AbortError' ? 'rpc-timeout' : 'rpc-unavailable-or-unverified',
-    }, { headers: { 'Cache-Control': 'no-store' } });
+    }, { headers: { 'Cache-Control': cacheControl } });
   } finally {
     clearTimeout(timeout);
   }
