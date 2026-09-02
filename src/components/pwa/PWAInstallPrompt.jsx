@@ -79,11 +79,11 @@ export default function PWAInstallPrompt() {
       <div
         className={`fixed left-1/2 z-[70] -translate-x-1/2 sm:left-auto sm:right-6 sm:translate-x-0 ${isPublicKamDocument ? 'bottom-4' : 'bottom-24 lg:bottom-6'}`}
       >
-        <div className="flex items-center overflow-hidden rounded-2xl border border-sky-400/30 bg-sky-500 text-white shadow-2xl shadow-sky-950/50">
+        <div className="flex items-center overflow-hidden rounded-2xl border border-sky-300/30 bg-sky-700 text-white shadow-2xl shadow-sky-950/50">
           <button
             type="button"
             onClick={install}
-            className="flex min-h-12 items-center gap-2 px-4 py-3 text-sm font-bold hover:bg-sky-400"
+            className="flex min-h-12 items-center gap-2 px-4 py-3 text-sm font-bold hover:bg-sky-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
             aria-label="Pasang aplikasi KriptoAman"
           >
             <Download className="h-4 w-4 shrink-0" />
@@ -92,7 +92,7 @@ export default function PWAInstallPrompt() {
           <button
             type="button"
             onClick={() => setDismissed(true)}
-            className="flex min-h-12 min-w-11 items-center justify-center border-l border-white/15 px-3 hover:bg-sky-400"
+            className="flex min-h-12 min-w-11 items-center justify-center border-l border-white/20 px-3 hover:bg-sky-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/80"
             aria-label="Tutup tombol instalasi KriptoAman"
           >
             <X className="h-4 w-4" />
