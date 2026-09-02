@@ -1,0 +1,60 @@
+name: Market Snapshot Warm
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  warm-market-snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Warm KriptoAman market snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          code="$(curl --location --silent --show-error \
+            --connect-timeout 10 --max-time 90 \
+            -o "$body" -w '%{http_code}' \
+            'https://kriptoaman.com/api/market-snapshot?health=1')"
+          if [ "$code" != "200" ]; then
+            echo "Market snapshot warm endpoint returned HTTP $code"
+            cat "$body"
+            exit 1
+          fi
+          node - "$body" <<'NODE'
+          const fs = require('fs');
+          const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          if (!Number.isFinite(Number(payload.assetCount)) || Number(payload.assetCount) < 2001) {
+            console.error(`Invalid market asset count: ${payload.assetCount}`);
+            process.exit(1);
+          }
+          if (!Number.isFinite(Number(payload.capturedAt)) || Number(payload.capturedAt) <= 0) {
+            console.error('Missing capturedAt');
+            process.exit(1);
+          }
+          console.log(`Market snapshot available: ${payload.assetCount} assets; source=${payload.source}; stale=${payload.stale}`);
+          NODE
+
+      - name: Verify paged market database
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          code="$(curl --fail-with-body --location --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            -o "$body" -w '%{http_code}' \
+            'https://kriptoaman.com/api/market-snapshot-page?page=0&limit=500')"
+          test "$code" = "200"
+          node - "$body" <<'NODE'
+          const fs = require('fs');
+          const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          if (!Array.isArray(payload.data) || payload.data.length < 1 || payload.data.length > 500) process.exit(1);
+          if (!Number.isFinite(Number(payload.totalAssets)) || Number(payload.totalAssets) < payload.data.length) process.exit(1);
+          console.log(`Paged market database verified: ${payload.totalAssets} assets.`);
+          NODE
