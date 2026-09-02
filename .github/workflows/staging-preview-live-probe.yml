@@ -30,18 +30,7 @@ jobs:
             echo "readiness_http=$ready_code"
             if [ "$ready_code" = "200" ]; then
               echo "readiness_body=$(tr -d '\n' < /tmp/ready | head -c 2000)"
-              node - <<'NODE' /tmp/ready
-const fs = require('fs');
-const p = process.argv[2];
-const j = JSON.parse(fs.readFileSync(p,'utf8'));
-const checks = j.checks || {};
-const allChecks = Object.values(checks).length > 0 && Object.values(checks).every(Boolean);
-if (j.ready !== true || j.environment !== 'staging' || !allChecks || !j.database_fingerprint || !j.session_fingerprint) {
-  console.error('Preview responded but did not prove isolated staging readiness');
-  process.exit(2);
-}
-console.log('isolated_staging_attested=true');
-NODE
+              node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync('/tmp/ready','utf8'));const c=j.checks||{};const ok=Object.values(c).length>0&&Object.values(c).every(Boolean);if(j.ready!==true||j.environment!=='staging'||!ok||!j.database_fingerprint||!j.session_fingerprint){console.error('Preview responded but did not prove isolated staging readiness');process.exit(2)};console.log('isolated_staging_attested=true')"
               found=1
               break
             fi
