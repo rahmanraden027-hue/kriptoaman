@@ -1,0 +1,95 @@
+name: Large Scale Staging Gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      staging_origin:
+        description: 'Dedicated isolated staging HTTPS origin (must not be *.kriptoaman.com)'
+        required: true
+        type: string
+      profile:
+        description: 'Progressive baseline profile'
+        required: true
+        default: '10x100'
+        type: choice
+        options:
+          - 10x100
+          - 25x500
+          - 50x2000
+          - 100x10000
+      isolation_verified:
+        description: 'I verified staging AUTH_DB/session/email/KYC/wallet isolation and synthetic data only'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: large-scale-staging-${{ inputs.staging_origin }}
+  cancel-in-progress: false
+
+jobs:
+  staging-certification:
+    if: ${{ inputs.isolation_verified == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Reject production and company hostnames
+        env:
+          TARGET: ${{ inputs.staging_origin }}
+        run: |
+          node - <<'NODE'
+          const target = process.env.TARGET;
+          const url = new URL(target);
+          const host = url.hostname.toLowerCase();
+          if (url.protocol !== 'https:') throw new Error('Staging target must use HTTPS');
+          if (host === 'kriptoaman.com' || host.endsWith('.kriptoaman.com')) {
+            throw new Error(`Refusing company/production hostname: ${host}`);
+          }
+          console.log(`Accepted isolated staging hostname: ${host}`);
+          NODE
+
+      - name: Verify staging read-only contract
+        env:
+          TARGET: ${{ inputs.staging_origin }}
+        run: |
+          set -euo pipefail
+          for path in / /login /api/auth/readiness; do
+            code=$(curl -sS -o /tmp/body -w '%{http_code}' --max-time 15 "${TARGET}${path}")
+            if [ "$code" -lt 200 ] || [ "$code" -ge 400 ]; then
+              echo "${path} failed with HTTP ${code}"
+              exit 1
+            fi
+          done
+
+      - name: Select progressive profile
+        id: profile
+        shell: bash
+        run: |
+          case '${{ inputs.profile }}' in
+            10x100) echo 'concurrency=10' >> "$GITHUB_OUTPUT"; echo 'requests=100' >> "$GITHUB_OUTPUT" ;;
+            25x500) echo 'concurrency=25' >> "$GITHUB_OUTPUT"; echo 'requests=500' >> "$GITHUB_OUTPUT" ;;
+            50x2000) echo 'concurrency=50' >> "$GITHUB_OUTPUT"; echo 'requests=2000' >> "$GITHUB_OUTPUT" ;;
+            100x10000) echo 'concurrency=100' >> "$GITHUB_OUTPUT"; echo 'requests=10000' >> "$GITHUB_OUTPUT" ;;
+            *) exit 2 ;;
+          esac
+
+      - name: Run guarded staging baseline
+        env:
+          LOAD_TEST_TARGET: ${{ inputs.staging_origin }}
+          LOAD_TEST_CONCURRENCY: ${{ steps.profile.outputs.concurrency }}
+          LOAD_TEST_REQUESTS: ${{ steps.profile.outputs.requests }}
+          LOAD_TEST_TIMEOUT_MS: '10000'
+        run: node scripts/load-test-staging.mjs | tee staging-load-evidence.json
+
+      - name: Upload redacted load evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: large-scale-staging-${{ inputs.profile }}-${{ github.run_id }}
+          path: staging-load-evidence.json
+          if-no-files-found: error
+          retention-days: 30
