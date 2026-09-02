@@ -1,0 +1,38 @@
+name: KAM DEX Deployment Decision Gate
+
+on:
+  pull_request:
+    paths:
+      - 'chain/kam-mainnet/deployments/dex.production.manifest.json'
+      - '.github/workflows/kam-dex-deployment-decision-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-predeployment-lock:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify deployment manifest remains locked
+        shell: bash
+        run: |
+          set -euo pipefail
+          FILE='chain/kam-mainnet/deployments/dex.production.manifest.json'
+          test "$(jq -r '.network.chainId' "$FILE")" = '22028'
+          test "$(jq -r '.network.evmVersion' "$FILE")" = 'paris'
+          test "$(jq -r '.canonicalWKAM.address' "$FILE")" = '0x0d8848CE88BB09a81a4248Efdd574d50B98b544A'
+          test "$(jq -r '.status' "$FILE")" = 'NOT_DEPLOYED'
+          test "$(jq -r '.contracts.factory.status' "$FILE")" = 'NOT_DEPLOYED'
+          test "$(jq -r '.contracts.router.status' "$FILE")" = 'NOT_DEPLOYED'
+          test "$(jq -r '.contracts.factory.address' "$FILE")" = 'null'
+          test "$(jq -r '.contracts.router.address' "$FILE")" = 'null'
+          test "$(jq -r '.liquidity.status' "$FILE")" = 'NOT_AUTHORIZED'
+          test "$(jq -r '.safety.containsPrivateKey' "$FILE")" = 'false'
+          test "$(jq -r '.safety.broadcastAuthorized' "$FILE")" = 'false'
+          test "$(jq -r '.safety.treasuryMovementAuthorized' "$FILE")" = 'false'
+          test "$(jq -r '.safety.liquiditySeedingAuthorized' "$FILE")" = 'false'
+      - name: Ensure workflow has no deployer secret
+        shell: bash
+        run: test -z "${DEPLOYER_PRIVATE_KEY:-}"
