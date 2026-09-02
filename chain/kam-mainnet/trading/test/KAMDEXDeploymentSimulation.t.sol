@@ -24,14 +24,12 @@ contract KAMDEXDeploymentSimulationTest {
         KAMFactory factory = new KAMFactory();
         WKAM wkam = new WKAM();
 
-        (bool zeroFactoryOk,) = address(this).call(
-            abi.encodeWithSelector(this.deployRouter.selector, address(0), address(wkam))
-        );
+        (bool zeroFactoryOk,) =
+            address(this).call(abi.encodeWithSelector(this.deployRouter.selector, address(0), address(wkam)));
         require(!zeroFactoryOk, "zero factory accepted");
 
-        (bool zeroWKAMOk,) = address(this).call(
-            abi.encodeWithSelector(this.deployRouter.selector, address(factory), address(0))
-        );
+        (bool zeroWKAMOk,) =
+            address(this).call(abi.encodeWithSelector(this.deployRouter.selector, address(factory), address(0)));
         require(!zeroWKAMOk, "zero WKAM accepted");
     }
 
