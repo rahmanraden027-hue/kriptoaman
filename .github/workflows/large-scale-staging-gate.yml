@@ -53,6 +53,36 @@ jobs:
           console.log(`Accepted isolated staging hostname: ${host}`);
           NODE
 
+      - name: Require staging isolation attestation
+        env:
+          TARGET: ${{ inputs.staging_origin }}
+        run: |
+          set -euo pipefail
+          curl -fsS --max-time 15 "${TARGET}/api/staging-readiness" -o staging-readiness.json
+          node - <<'NODE'
+          const fs = require('fs');
+          const report = JSON.parse(fs.readFileSync('staging-readiness.json', 'utf8'));
+          if (report.ready !== true) throw new Error('Staging readiness attestation is not ready');
+          if (report.environment !== 'staging') throw new Error('Target does not attest staging environment');
+          const checks = report.checks || {};
+          const required = [
+            'capacityTestsExplicitlyAllowed',
+            'writesDisabled',
+            'syntheticDataOnly',
+            'emailIsolated',
+            'kycIsolated',
+            'databaseMarkerPresent',
+            'sessionMarkerPresent',
+          ];
+          for (const key of required) {
+            if (checks[key] !== true) throw new Error(`Staging isolation check failed: ${key}`);
+          }
+          if (!report.fingerprints?.database || !report.fingerprints?.session) {
+            throw new Error('Missing redacted staging isolation fingerprints');
+          }
+          console.log('Staging isolation attestation accepted');
+          NODE
+
       - name: Verify staging read-only contract
         env:
           TARGET: ${{ inputs.staging_origin }}
@@ -86,10 +116,12 @@ jobs:
           LOAD_TEST_TIMEOUT_MS: '10000'
         run: node scripts/load-test-staging.mjs | tee staging-load-evidence.json
 
-      - name: Upload redacted load evidence
+      - name: Upload redacted evidence
         uses: actions/upload-artifact@v4
         with:
           name: large-scale-staging-${{ inputs.profile }}-${{ github.run_id }}
-          path: staging-load-evidence.json
+          path: |
+            staging-readiness.json
+            staging-load-evidence.json
           if-no-files-found: error
           retention-days: 30
