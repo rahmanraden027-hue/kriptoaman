@@ -43,22 +43,19 @@ contract KAMDEXTest {
 
     function testFactoryRejectsDuplicatePair() public {
         factory.createPair(address(tokenA), address(tokenB));
-        (bool ok,) = address(factory).call(
-            abi.encodeWithSelector(factory.createPair.selector, address(tokenA), address(tokenB))
-        );
+        (bool ok,) =
+            address(factory).call(abi.encodeWithSelector(factory.createPair.selector, address(tokenA), address(tokenB)));
         require(!ok, "duplicate pair accepted");
         require(factory.allPairsLength() == 1, "duplicate changed pair count");
     }
 
     function testFactoryRejectsIdenticalAndZeroAddressPairs() public {
-        (bool identicalOk,) = address(factory).call(
-            abi.encodeWithSelector(factory.createPair.selector, address(tokenA), address(tokenA))
-        );
+        (bool identicalOk,) =
+            address(factory).call(abi.encodeWithSelector(factory.createPair.selector, address(tokenA), address(tokenA)));
         require(!identicalOk, "identical pair accepted");
 
-        (bool zeroOk,) = address(factory).call(
-            abi.encodeWithSelector(factory.createPair.selector, address(0), address(tokenA))
-        );
+        (bool zeroOk,) =
+            address(factory).call(abi.encodeWithSelector(factory.createPair.selector, address(0), address(tokenA)));
         require(!zeroOk, "zero address pair accepted");
     }
 
@@ -78,18 +75,19 @@ contract KAMDEXTest {
             address(tokenA), address(tokenB), 10_000 ether, 10_000 ether, 10_000 ether, 10_000 ether, address(this)
         );
 
-        (bool ok,) = address(router).call(
-            abi.encodeWithSelector(
-                router.addLiquidity.selector,
-                address(tokenA),
-                address(tokenB),
-                1_000 ether,
-                1_000 ether,
-                1_001 ether,
-                1_001 ether,
-                address(this)
-            )
-        );
+        (bool ok,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.addLiquidity.selector,
+                    address(tokenA),
+                    address(tokenB),
+                    1_000 ether,
+                    1_000 ether,
+                    1_001 ether,
+                    1_001 ether,
+                    address(this)
+                )
+            );
         require(!ok, "impossible minimum accepted");
     }
 
@@ -116,30 +114,32 @@ contract KAMDEXTest {
             address(tokenA), address(tokenB), 10_000 ether, 10_000 ether, 10_000 ether, 10_000 ether, address(this)
         );
 
-        (bool ok,) = address(router).call(
-            abi.encodeWithSelector(
-                router.swapExactTokensForTokens.selector,
-                100 ether,
-                1_000 ether,
-                address(tokenA),
-                address(tokenB),
-                address(this)
-            )
-        );
+        (bool ok,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.swapExactTokensForTokens.selector,
+                    100 ether,
+                    1_000 ether,
+                    address(tokenA),
+                    address(tokenB),
+                    address(this)
+                )
+            );
         require(!ok, "slippage floor bypassed");
     }
 
     function testSwapRejectsMissingPair() public {
-        (bool ok,) = address(router).call(
-            abi.encodeWithSelector(
-                router.swapExactTokensForTokens.selector,
-                100 ether,
-                1,
-                address(tokenA),
-                address(tokenB),
-                address(this)
-            )
-        );
+        (bool ok,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.swapExactTokensForTokens.selector,
+                    100 ether,
+                    1,
+                    address(tokenA),
+                    address(tokenB),
+                    address(this)
+                )
+            );
         require(!ok, "missing pair accepted");
     }
 
@@ -163,17 +163,12 @@ contract KAMDEXTest {
             address(tokenA), address(tokenB), 10_000 ether, 10_000 ether, 10_000 ether, 10_000 ether, address(this)
         );
 
-        (bool ok,) = address(router).call(
-            abi.encodeWithSelector(
-                router.removeLiquidity.selector,
-                address(tokenA),
-                address(tokenB),
-                liquidity,
-                1,
-                1,
-                address(this)
-            )
-        );
+        (bool ok,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.removeLiquidity.selector, address(tokenA), address(tokenB), liquidity, 1, 1, address(this)
+                )
+            );
         require(!ok, "LP removal without approval accepted");
     }
 
