@@ -1,8 +1,14 @@
+const STATUS_TTL_MS = 15_000;
+
 const HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
   'Cache-Control': 'public, max-age=15, s-maxage=30, stale-while-revalidate=60',
   'X-Content-Type-Options': 'nosniff',
 };
+
+let cachedStatus = null;
+let cachedStatusAt = 0;
+let statusInFlight = null;
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: HEADERS });
 
@@ -23,7 +29,7 @@ async function readJson(url, timeoutMs = 2500) {
   }
 }
 
-export async function onRequestGet({ request }) {
+async function buildStatus(request) {
   const origin = new URL(request.url).origin;
   const generatedAt = new Date().toISOString();
   const [market, networks, kam] = await Promise.all([
@@ -68,16 +74,42 @@ export async function onRequestGet({ request }) {
   const healthyCount = Object.values(components).filter((item) => item.healthy).length;
   const overall = healthyCount === 3 ? 'operational' : healthyCount > 0 ? 'degraded' : 'unavailable';
 
-  return json({
-    schemaVersion: '1.0',
-    service: 'KriptoAman',
-    overall,
-    generatedAt,
-    components,
-    policy: {
-      valuesAreLiveVerifiedOnly: true,
-      unavailableMetricsUseNull: true,
-      fabricatedMetrics: false,
+  return {
+    status: overall === 'unavailable' ? 503 : 200,
+    body: {
+      schemaVersion: '1.0',
+      service: 'KriptoAman',
+      overall,
+      generatedAt,
+      components,
+      policy: {
+        valuesAreLiveVerifiedOnly: true,
+        unavailableMetricsUseNull: true,
+        fabricatedMetrics: false,
+        aggregateCacheTtlMs: STATUS_TTL_MS,
+      },
     },
-  }, overall === 'unavailable' ? 503 : 200);
+  };
+}
+
+export async function onRequestGet({ request }) {
+  const now = Date.now();
+  if (cachedStatus && now - cachedStatusAt < STATUS_TTL_MS) {
+    return json(cachedStatus.body, cachedStatus.status);
+  }
+
+  if (!statusInFlight) {
+    statusInFlight = buildStatus(request)
+      .then((result) => {
+        cachedStatus = result;
+        cachedStatusAt = Date.now();
+        return result;
+      })
+      .finally(() => {
+        statusInFlight = null;
+      });
+  }
+
+  const result = await statusInFlight;
+  return json(result.body, result.status);
 }
