@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "status": "NOT_DEPLOYED",
+  "network": {
+    "name": "KriptoAman Mainnet",
+    "chainId": 22028,
+    "rpc": "https://rpc.kriptoaman.com",
+    "explorer": "https://explorer.kriptoaman.com",
+    "nativeCurrency": "KAM",
+    "evmVersion": "paris"
+  },
+  "canonicalWKAM": {
+    "address": "0x0d8848CE88BB09a81a4248Efdd574d50B98b544A",
+    "symbol": "WKAM",
+    "decimals": 18,
+    "deploymentBlock": 240024,
+    "deploymentTransaction": "0x571063f1f9d031ac9ae6f22b861ff6766c5c6ee78b2d49d0b93e151acde0e7cf",
+    "verification": "read-only-rpc-gate-passed"
+  },
+  "contracts": {
+    "factory": {
+      "source": "chain/kam-mainnet/trading/dex/KAMFactory.sol",
+      "address": null,
+      "deploymentTransaction": null,
+      "deploymentBlock": null,
+      "runtimeCodeHash": null,
+      "status": "NOT_DEPLOYED"
+    },
+    "router": {
+      "source": "chain/kam-mainnet/trading/dex/KAMRouter.sol",
+      "address": null,
+      "deploymentTransaction": null,
+      "deploymentBlock": null,
+      "runtimeCodeHash": null,
+      "constructor": {
+        "factory": "<FACTORY_ADDRESS_AFTER_VERIFIED_DEPLOYMENT>",
+        "wkam": "0x0d8848CE88BB09a81a4248Efdd574d50B98b544A"
+      },
+      "status": "NOT_DEPLOYED"
+    }
+  },
+  "liquidity": {
+    "quoteAsset": null,
+    "pair": null,
+    "initialReserves": null,
+    "status": "NOT_AUTHORIZED"
+  },
+  "requiredBeforeBroadcast": [
+    "independent contract audit or explicit documented risk acceptance",
+    "deployment wallet and signing procedure reviewed outside source control",
+    "current KAM Mainnet RPC and chain-id verification passes",
+    "canonical WKAM runtime bytecode remains present",
+    "Factory and Router bytecode built from the reviewed commit",
+    "explicit approval to perform the deployment transaction"
+  ],
+  "requiredBeforeLiquidity": [
+    "legitimate counter-asset provenance verified",
+    "exact initial reserve quantities approved",
+    "implied initial pool price and slippage reviewed",
+    "treasury authorization recorded",
+    "deployed Factory and Router addresses independently verified on explorer"
+  ],
+  "safety": {
+    "containsPrivateKey": false,
+    "broadcastAuthorized": false,
+    "treasuryMovementAuthorized": false,
+    "liquiditySeedingAuthorized": false
+  }
+}
