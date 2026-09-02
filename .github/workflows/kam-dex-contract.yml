@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'chain/kam-mainnet/trading/dex/**'
+      - 'chain/kam-mainnet/trading/contracts/WKAM.sol'
+      - 'chain/kam-mainnet/deployments/wkam.json'
       - 'chain/kam-mainnet/trading/test/KAMDEX.t.sol'
       - 'chain/kam-mainnet/trading/test/MockToken.sol'
       - 'chain/kam-mainnet/trading/foundry.toml'
@@ -31,5 +33,13 @@ jobs:
         run: forge build --sizes --evm-version paris
       - name: DEX tests
         run: forge test --match-path test/KAMDEX.t.sol -vvv --evm-version paris
+      - name: Verify canonical WKAM deployment metadata
+        working-directory: .
+        run: |
+          test "$(jq -r '.chainId' chain/kam-mainnet/deployments/wkam.json)" = "22028"
+          test "$(jq -r '.symbol' chain/kam-mainnet/deployments/wkam.json)" = "WKAM"
+          test "$(jq -r '.decimals' chain/kam-mainnet/deployments/wkam.json)" = "18"
+          test "$(jq -r '.address' chain/kam-mainnet/deployments/wkam.json)" = "0x0d8848CE88BB09a81a4248Efdd574d50B98b544A"
+          test "$(jq -r '.status' chain/kam-mainnet/deployments/wkam.json)" = "deployed-and-wrap-unwrap-tested"
       - name: Ensure CI has no deployer secret
         run: test -z "${DEPLOYER_PRIVATE_KEY:-}"
