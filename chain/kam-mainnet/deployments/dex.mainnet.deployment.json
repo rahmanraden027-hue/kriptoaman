@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "status": "DEPLOYED_ONCHAIN_PENDING_SOURCE_VERIFICATION",
+  "network": {
+    "name": "KriptoAman Mainnet",
+    "chainId": 22028,
+    "rpc": "https://rpc.kriptoaman.com",
+    "explorer": "https://explorer.kriptoaman.com"
+  },
+  "deployer": "0x9D4b034758202cE555504d038F92A344540D47B0",
+  "canonicalWKAM": "0x0d8848CE88BB09a81a4248Efdd574d50B98b544A",
+  "factory": {
+    "address": "0x5024017B0496113269E80B17d9b0F11733AE6de2",
+    "deploymentTransaction": "0xddbe3f7265194a068b369d954277f360fcabd2753175c03929d5bebedb5c0e4",
+    "deploymentBlock": 384625,
+    "runtimeBytecodePresent": true
+  },
+  "router": {
+    "address": "0x4a413674245EE0959183604C153e386C00409122",
+    "deploymentTransaction": "0x83dd3be8629483b2db730c86437128fb39fb87ceb0738e970bba9c7a9bf98053",
+    "deploymentBlock": 384625,
+    "runtimeBytecodePresent": true,
+    "factoryBindingVerified": "0x5024017B0496113269E80B17d9b0F11733AE6de2",
+    "wkamBindingVerified": "0x0d8848CE88BB09a81a4248Efdd574d50B98b544A"
+  },
+  "verification": {
+    "method": "post-deployment read-only RPC checks",
+    "factoryCode": "present",
+    "routerCode": "present",
+    "routerFactoryBinding": "matched",
+    "routerWKAMBinding": "matched"
+  },
+  "liquidity": {
+    "pairCreated": false,
+    "seeded": false,
+    "status": "NOT_AUTHORIZED"
+  },
+  "notes": [
+    "This record documents the observed successful mainnet deployment and read-only binding checks.",
+    "Source verification/runtime code hash attestation is still a separate follow-up step.",
+    "No liquidity or treasury movement is authorized by this record."
+  ]
+}
