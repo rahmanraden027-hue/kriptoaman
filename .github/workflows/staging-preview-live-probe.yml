@@ -1,0 +1,52 @@
+name: Staging Preview Live Probe
+
+on:
+  push:
+    branches:
+      - chore/staging-preview-live-probe
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe Cloudflare Pages preview candidates
+        shell: bash
+        run: |
+          set -euo pipefail
+          urls=(
+            "https://4e04db4e.kriptoaman.pages.dev"
+            "https://chore-cloudflare-staging-pro.kriptoaman.pages.dev"
+          )
+          found=0
+          for base in "${urls[@]}"; do
+            echo "=== $base ==="
+            root_code=$(curl -sS -o /tmp/root -w '%{http_code}' --max-time 15 "$base/") || root_code=000
+            ready_code=$(curl -sS -o /tmp/ready -w '%{http_code}' --max-time 15 "$base/api/staging-readiness") || ready_code=000
+            echo "root_http=$root_code"
+            echo "readiness_http=$ready_code"
+            if [ "$ready_code" = "200" ]; then
+              echo "readiness_body=$(tr -d '\n' < /tmp/ready | head -c 2000)"
+              node - <<'NODE' /tmp/ready
+const fs = require('fs');
+const p = process.argv[2];
+const j = JSON.parse(fs.readFileSync(p,'utf8'));
+const checks = j.checks || {};
+const allChecks = Object.values(checks).length > 0 && Object.values(checks).every(Boolean);
+if (j.ready !== true || j.environment !== 'staging' || !allChecks || !j.database_fingerprint || !j.session_fingerprint) {
+  console.error('Preview responded but did not prove isolated staging readiness');
+  process.exit(2);
+}
+console.log('isolated_staging_attested=true');
+NODE
+              found=1
+              break
+            fi
+          done
+          if [ "$found" -ne 1 ]; then
+            echo "No preview candidate provided a valid isolated staging attestation."
+            exit 3
+          fi
