@@ -15,12 +15,13 @@ if (host === 'kriptoaman.com' || host.endsWith('.kriptoaman.com')) {
 
 const expectedPaths = ['/', '/login', '/api/auth/readiness', '/api/staging-readiness'];
 const results = [];
+let readinessEvidence = null;
 
 for (const path of expectedPaths) {
   const started = performance.now();
   const response = await fetch(new URL(path, url), {
     redirect: 'manual',
-    headers: { 'user-agent': 'KriptoAman-Staging-Provisioning-Verification/1.0' },
+    headers: { 'user-agent': 'KriptoAman-Staging-Provisioning-Verification/1.1' },
   });
   const latencyMs = Number((performance.now() - started).toFixed(2));
   results.push({ path, status: response.status, latencyMs });
@@ -34,12 +35,31 @@ for (const path of expectedPaths) {
       throw new Error('Staging readiness attestation did not confirm ready=true and environment=staging');
     }
     const checks = body?.checks || {};
-    for (const [name, value] of Object.entries(checks)) {
-      if (value !== true) throw new Error(`Staging isolation check failed: ${name}`);
+    const requiredChecks = [
+      'capacityTestsExplicitlyAllowed',
+      'writesDisabled',
+      'syntheticDataOnly',
+      'emailIsolated',
+      'kycIsolated',
+      'databaseMarkerPresent',
+      'sessionMarkerPresent',
+    ];
+    for (const name of requiredChecks) {
+      if (checks[name] !== true) throw new Error(`Staging isolation check failed: ${name}`);
     }
-    if (!body?.database_fingerprint || !body?.session_fingerprint) {
-      throw new Error('Staging readiness must expose redacted database/session fingerprints');
+
+    const databaseFingerprint = body?.fingerprints?.database;
+    const sessionFingerprint = body?.fingerprints?.session;
+    if (!databaseFingerprint || !sessionFingerprint) {
+      throw new Error('Staging readiness must expose redacted fingerprints.database and fingerprints.session');
     }
+
+    readinessEvidence = {
+      revision: body?.revision || null,
+      databaseFingerprint,
+      sessionFingerprint,
+      checks: Object.fromEntries(requiredChecks.map((name) => [name, true])),
+    };
   } else if (response.status < 200 || response.status >= 400) {
     throw new Error(`${path} failed with HTTP ${response.status}`);
   }
@@ -49,5 +69,6 @@ console.log(JSON.stringify({
   verified: true,
   target: `${url.protocol}//${host}`,
   checkedAt: new Date().toISOString(),
+  readiness: readinessEvidence,
   results,
 }, null, 2));
