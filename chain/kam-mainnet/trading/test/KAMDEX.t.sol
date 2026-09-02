@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import "../contracts/WKAM.sol";
 import "../dex/KAMFactory.sol";
 import "../dex/KAMRouter.sol";
 import "./MockToken.sol";
@@ -8,14 +9,14 @@ import "./MockToken.sol";
 contract KAMDEXTest {
     KAMFactory factory;
     KAMRouter router;
+    WKAM canonicalWKAM;
     MockToken tokenA;
     MockToken tokenB;
-    MockToken mockWKAM;
 
     function setUp() public {
         factory = new KAMFactory();
-        mockWKAM = new MockToken("Wrapped KAM", "WKAM");
-        router = new KAMRouter(address(factory), address(mockWKAM));
+        canonicalWKAM = new WKAM();
+        router = new KAMRouter(address(factory), address(canonicalWKAM));
         tokenA = new MockToken("Token A", "TKA");
         tokenB = new MockToken("Token B", "TKB");
         tokenA.mint(address(this), 1_000_000 ether);
@@ -24,9 +25,12 @@ contract KAMDEXTest {
         tokenB.approve(address(router), type(uint256).max);
     }
 
-    function testRouterPinsFactoryAndWKAM() public view {
+    function testRouterPinsFactoryAndCanonicalWKAM() public view {
         require(router.factory() == address(factory), "factory mismatch");
-        require(router.WKAM() == address(mockWKAM), "WKAM mismatch");
+        require(router.WKAM() == address(canonicalWKAM), "WKAM mismatch");
+        require(keccak256(bytes(canonicalWKAM.symbol())) == keccak256(bytes("WKAM")), "symbol mismatch");
+        require(canonicalWKAM.decimals() == 18, "decimals mismatch");
+        require(canonicalWKAM.totalSupply() == 0, "unexpected initial supply");
     }
 
     function testCreatePairOnce() public {
@@ -35,6 +39,27 @@ contract KAMDEXTest {
         require(factory.getPair(address(tokenA), address(tokenB)) == pair, "forward mapping");
         require(factory.getPair(address(tokenB), address(tokenA)) == pair, "reverse mapping");
         require(factory.allPairsLength() == 1, "pair count");
+    }
+
+    function testFactoryRejectsDuplicatePair() public {
+        factory.createPair(address(tokenA), address(tokenB));
+        (bool ok,) = address(factory).call(
+            abi.encodeWithSelector(factory.createPair.selector, address(tokenA), address(tokenB))
+        );
+        require(!ok, "duplicate pair accepted");
+        require(factory.allPairsLength() == 1, "duplicate changed pair count");
+    }
+
+    function testFactoryRejectsIdenticalAndZeroAddressPairs() public {
+        (bool identicalOk,) = address(factory).call(
+            abi.encodeWithSelector(factory.createPair.selector, address(tokenA), address(tokenA))
+        );
+        require(!identicalOk, "identical pair accepted");
+
+        (bool zeroOk,) = address(factory).call(
+            abi.encodeWithSelector(factory.createPair.selector, address(0), address(tokenA))
+        );
+        require(!zeroOk, "zero address pair accepted");
     }
 
     function testAddLiquidityMintsLP() public {
@@ -46,6 +71,26 @@ contract KAMDEXTest {
         require(KAMPair(pair).balanceOf(address(this)) == liquidity, "lp balance");
         (uint112 r0, uint112 r1,) = KAMPair(pair).getReserves();
         require(r0 > 0 && r1 > 0, "reserves missing");
+    }
+
+    function testAddLiquidityRejectsImpossibleMinimum() public {
+        router.addLiquidity(
+            address(tokenA), address(tokenB), 10_000 ether, 10_000 ether, 10_000 ether, 10_000 ether, address(this)
+        );
+
+        (bool ok,) = address(router).call(
+            abi.encodeWithSelector(
+                router.addLiquidity.selector,
+                address(tokenA),
+                address(tokenB),
+                1_000 ether,
+                1_000 ether,
+                1_001 ether,
+                1_001 ether,
+                address(this)
+            )
+        );
+        require(!ok, "impossible minimum accepted");
     }
 
     function testSwapPreservesProductWithFee() public {
@@ -66,6 +111,38 @@ contract KAMDEXTest {
         require(kAfter >= kBefore, "product decreased");
     }
 
+    function testSwapRejectsExcessiveMinimumOutput() public {
+        router.addLiquidity(
+            address(tokenA), address(tokenB), 10_000 ether, 10_000 ether, 10_000 ether, 10_000 ether, address(this)
+        );
+
+        (bool ok,) = address(router).call(
+            abi.encodeWithSelector(
+                router.swapExactTokensForTokens.selector,
+                100 ether,
+                1_000 ether,
+                address(tokenA),
+                address(tokenB),
+                address(this)
+            )
+        );
+        require(!ok, "slippage floor bypassed");
+    }
+
+    function testSwapRejectsMissingPair() public {
+        (bool ok,) = address(router).call(
+            abi.encodeWithSelector(
+                router.swapExactTokensForTokens.selector,
+                100 ether,
+                1,
+                address(tokenA),
+                address(tokenB),
+                address(this)
+            )
+        );
+        require(!ok, "missing pair accepted");
+    }
+
     function testRemoveLiquidityReturnsBothAssets() public {
         (,, uint256 liquidity) = router.addLiquidity(
             address(tokenA), address(tokenB), 10_000 ether, 10_000 ether, 10_000 ether, 10_000 ether, address(this)
@@ -79,6 +156,25 @@ contract KAMDEXTest {
         require(amountA > 0 && amountB > 0, "no assets returned");
         require(tokenA.balanceOf(address(this)) > aBefore, "A not returned");
         require(tokenB.balanceOf(address(this)) > bBefore, "B not returned");
+    }
+
+    function testRemoveLiquidityRejectsWithoutApproval() public {
+        (,, uint256 liquidity) = router.addLiquidity(
+            address(tokenA), address(tokenB), 10_000 ether, 10_000 ether, 10_000 ether, 10_000 ether, address(this)
+        );
+
+        (bool ok,) = address(router).call(
+            abi.encodeWithSelector(
+                router.removeLiquidity.selector,
+                address(tokenA),
+                address(tokenB),
+                liquidity,
+                1,
+                1,
+                address(this)
+            )
+        );
+        require(!ok, "LP removal without approval accepted");
     }
 
     function testQuoteAndFeeMath() public view {
