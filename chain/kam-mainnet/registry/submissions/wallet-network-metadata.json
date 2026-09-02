@@ -13,9 +13,13 @@
   "website": "https://kriptoaman.com",
   "logo": {
     "png": "https://kriptoaman.com/icons/kriptoaman-512.png",
-    "svg": "https://kriptoaman.com/brand/kriptoaman-mark.svg"
+    "svg": "https://kriptoaman.com/brand/kriptoaman-mark.svg",
+    "ipfs": "ipfs://bafkreicorcwbkyjyw3rdbvuxfpw7bvrf74nsp4vaakclaoh6a67enzd36a"
   },
-  "currentStatus": "mainnet-candidate-not-public",
-  "registryStatusRequested": "incubating",
-  "notes": "Use candidate/incubating wording until Issue #115 promotion gates pass. Do not represent this metadata as final public-mainnet status before promotion."
+  "projectPromotionStatus": "mainnet-candidate-not-public",
+  "ethereumListsObservedStatus": "active",
+  "ethereumListsPullRequest": 8639,
+  "defiLlamaPullRequest": 3089,
+  "defiLlamaMergedVerified": false,
+  "notes": "The upstream ethereum-lists directory state is distinct from KriptoAman's operational promotion gate. Keep candidate wording until Issue #115 passes all remaining infrastructure and continuity evidence requirements."
 }
