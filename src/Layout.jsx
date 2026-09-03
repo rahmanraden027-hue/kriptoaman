@@ -12,6 +12,7 @@ import {
   Home,
   LayoutGrid,
   Lock,
+  Search,
   ShieldCheck,
   TrendingUp,
   User,
@@ -173,6 +174,15 @@ export default function Layout({ children, currentPageName }) {
                 </div>
                 <div className="flex min-w-0 items-center justify-end gap-1.5 sm:gap-2">
                   <LanguageSwitcher compact />
+                  <button
+                    type="button"
+                    onClick={() => window.dispatchEvent(new Event('ka:open-global-search'))}
+                    className={`tap-reset flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-sky-400/20 bg-sky-400/8 text-sky-200 transition-colors hover:bg-sky-400/14 sm:h-10 sm:w-10 ${focusRing}`}
+                    aria-label={language === 'en' ? 'Open global search' : 'Buka pencarian global'}
+                    title={language === 'en' ? 'Global Search · Ctrl/⌘ K' : 'Pencarian Global · Ctrl/⌘ K'}
+                  >
+                    <Search className="h-4 w-4" aria-hidden="true" />
+                  </button>
                   <Link
                     to={createPageUrl('Services')}
                     className={`tap-reset flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-500/20 bg-sky-500/10 text-sky-300 transition-colors hover:bg-sky-500/15 ${focusRing}`}

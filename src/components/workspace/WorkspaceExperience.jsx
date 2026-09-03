@@ -74,8 +74,15 @@ export default function WorkspaceExperience() {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); setOpen(true); }
       if (event.key === 'Escape') { setOpen(false); setOnboardingOpen(false); }
     };
+    const onDockedSearchOpen = () => {
+      if (isAuthenticated) setOpen(true);
+    };
     window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    window.addEventListener('ka:open-global-search', onDockedSearchOpen);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('ka:open-global-search', onDockedSearchOpen);
+    };
   }, [isAuthenticated]);
 
   useEffect(() => { if (open) window.setTimeout(() => inputRef.current?.focus(), 0); else setQuery(''); }, [open]);
@@ -113,8 +120,6 @@ export default function WorkspaceExperience() {
           .ka-global-shell *, .ka-workspace-experience * { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
         }
       `}</style>
-
-      <button type="button" onClick={() => setOpen(true)} className="ka-workspace-experience fixed bottom-[calc(6.7rem+env(safe-area-inset-bottom,0px))] right-4 z-[60] flex h-12 w-12 items-center justify-center rounded-2xl border border-sky-400/25 bg-[#071321]/95 text-sky-200 shadow-[0_18px_50px_rgba(0,0,0,.45)] backdrop-blur-xl lg:bottom-5" aria-label={language === 'en' ? 'Open global search' : 'Buka pencarian global'} title="Global Search · Ctrl/⌘ K"><Search className="h-5 w-5" /></button>
 
       {open && <div className="ka-workspace-experience fixed inset-0 z-[100] flex items-start justify-center bg-slate-950/76 px-3 pt-[max(5rem,env(safe-area-inset-top,0px))] backdrop-blur-md sm:px-5 sm:pt-24" role="dialog" aria-modal="true" aria-label="Global Search">
         <button className="absolute inset-0 cursor-default" aria-label="Close" onClick={() => setOpen(false)} />

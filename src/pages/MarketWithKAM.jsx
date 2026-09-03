@@ -5,16 +5,15 @@ import Market from './Market.jsx';
 import useLivePrices from '@/components/market/useLivePrices';
 import { useLanguage } from '@/lib/LanguageContext';
 
-const INDICATIVE_REFERENCE = 29.37;
-const formatIndicativeReference = () => `US$${INDICATIVE_REFERENCE.toFixed(2)}`;
-
 const COPY = {
   id: {
     eyebrow: 'KAM NETWORK REFERENCE',
     title: 'KAM · Referensi Ekosistem',
     status: 'BELUM DIPERDAGANGKAN',
-    reference: 'Skenario indikatif · bukan harga live',
-    body: 'US$29.37 adalah acuan skenario internal yang terpisah dari harga pasar live. Nilai ini tidak digunakan untuk market cap, P/L, valuasi portofolio, atau ticker pasar.',
+    auditStatus: 'AUDIT BERLANGSUNG',
+    reference: 'Review independen · production hold',
+    body: 'Scope KAM DEX V2 Revision 3 telah dibekukan dan dikirim untuk review independen. Belum ada laporan audit eksternal yang diterima.',
+    auditEta: 'Estimasi internal: 1–3 minggu setelah kickoff auditor · dapat berubah sesuai temuan',
     network: 'KriptoAman Network · Chain ID 22028',
     networkState: 'Mainnet candidate · belum dipromosikan sebagai jaringan publik',
     roadmap: 'Roadmap KAM',
@@ -37,8 +36,10 @@ const COPY = {
     eyebrow: 'KAM NETWORK REFERENCE',
     title: 'KAM · Ecosystem Reference',
     status: 'NOT YET TRADING',
-    reference: 'Indicative scenario · not a live price',
-    body: 'US$29.37 is an internal scenario reference kept separate from live market pricing. It is excluded from market cap, P/L, portfolio valuation, and market tickers.',
+    auditStatus: 'AUDIT IN PROGRESS',
+    reference: 'Independent review · production hold',
+    body: 'The KAM DEX V2 Revision 3 scope is frozen and has been sent for independent review. No attributable external audit report has been received yet.',
+    auditEta: 'Internal estimate: 1–3 weeks after auditor kickoff · subject to findings',
     network: 'KriptoAman Network · Chain ID 22028',
     networkState: 'Mainnet candidate · not promoted as a public network',
     roadmap: 'KAM Roadmap',
@@ -114,13 +115,14 @@ export default function MarketWithKAM() {
                 <div>
                   <h2 className="text-lg font-black tracking-[-0.025em] text-white sm:text-xl">{text.title}</h2>
                   <div className="mt-1 flex flex-wrap items-baseline gap-2">
-                    <span className="text-2xl font-black tracking-[-0.04em] text-sky-300 sm:text-3xl">{formatIndicativeReference()}</span>
+                    <span className="text-2xl font-black tracking-[-0.04em] text-sky-300 sm:text-3xl">{text.auditStatus}</span>
                     <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-500">{text.reference}</span>
                   </div>
                 </div>
               </div>
 
               <p className="mt-2 max-w-3xl text-xs leading-5 text-slate-400 sm:text-sm">{text.body}</p>
+              <p className="mt-2 inline-flex rounded-full border border-sky-400/15 bg-sky-400/[0.06] px-3 py-1.5 text-[10px] font-bold leading-4 text-sky-200">{text.auditEta}</p>
               <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-[10px] font-semibold text-slate-400">
                 <span className="inline-flex items-center gap-1.5"><Network className="h-3.5 w-3.5 text-sky-300" /> {text.network}</span>
                 <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-emerald-300" /> {text.networkState}</span>
