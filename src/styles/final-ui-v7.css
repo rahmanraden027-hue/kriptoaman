@@ -111,8 +111,35 @@
 
   /* Security: reduce visual fragmentation while keeping every control legible. */
   .ka-bg:has(.ka-emerald-glow) > .max-w-6xl {
+    gap: 12px !important;
+    padding-top: 12px !important;
+  }
+
+  .ka-bg:has(.ka-emerald-glow) section[aria-labelledby="security-center-title"] {
+    padding: 16px !important;
+    border-radius: 22px !important;
+  }
+
+  .ka-bg:has(.ka-emerald-glow) section[aria-labelledby="security-center-title"] > .relative.grid {
     gap: 14px !important;
-    padding-top: 14px !important;
+  }
+
+  .ka-bg:has(.ka-emerald-glow) section[aria-labelledby="security-center-title"] .mb-3 {
+    margin-bottom: 8px !important;
+  }
+
+  .ka-bg:has(.ka-emerald-glow) section[aria-labelledby="security-center-title"] .mt-5.grid.grid-cols-3 {
+    margin-top: 14px !important;
+    gap: 7px !important;
+  }
+
+  .ka-bg:has(.ka-emerald-glow) section[aria-labelledby="security-center-title"] .mt-5.grid.grid-cols-3 > div {
+    padding: 10px !important;
+    border-radius: 15px !important;
+  }
+
+  .ka-bg:has(.ka-emerald-glow) section[aria-labelledby="security-center-title"] .mt-5.grid.grid-cols-3 > div p.mt-2 {
+    margin-top: 6px !important;
   }
 
   .ka-bg:has(.ka-emerald-glow) .ka-surface.ka-surface-hover {
@@ -122,22 +149,84 @@
   .ka-bg:has(.ka-emerald-glow) .grid.grid-cols-2.gap-2\.5 > .ka-surface,
   .ka-bg:has(.ka-emerald-glow) .grid.grid-cols-2.gap-2\.5 > button .ka-surface,
   .ka-bg:has(.ka-emerald-glow) .grid.grid-cols-2.gap-2\.5 > a .ka-surface {
-    min-height: 102px !important;
-    padding: 11px !important;
+    min-height: 94px !important;
+    padding: 9px !important;
   }
 
   .ka-bg:has(.ka-emerald-glow) .ka-emerald-glow {
-    padding: 14px !important;
-    gap: 12px !important;
+    padding: 12px !important;
+    gap: 10px !important;
   }
 
   .ka-bg:has(.ka-emerald-glow) .rounded-2xl.border.border-slate-700\/55.bg-slate-950\/35 {
-    padding: 11px !important;
-    border-radius: 15px !important;
+    padding: 10px !important;
+    border-radius: 14px !important;
   }
 
   .ka-bg:has(.ka-emerald-glow) h1 {
-    font-size: clamp(1.55rem, 7vw, 1.9rem) !important;
+    font-size: clamp(1.5rem, 6.8vw, 1.85rem) !important;
+  }
+
+  /* KAM reference and live intelligence: compact vertical rhythm only. */
+  .ka-market-shell > .mx-auto.max-w-7xl {
+    gap: 10px !important;
+    padding-top: 10px !important;
+  }
+
+  .ka-market-shell > .mx-auto.max-w-7xl > section:first-of-type {
+    padding: 13px !important;
+    border-radius: 20px !important;
+  }
+
+  .ka-market-shell > .mx-auto.max-w-7xl > section:first-of-type > .relative.grid {
+    gap: 11px !important;
+  }
+
+  .ka-market-shell > .mx-auto.max-w-7xl > section:first-of-type .mt-3.flex.flex-col {
+    margin-top: 8px !important;
+    gap: 5px !important;
+  }
+
+  .ka-market-shell > .mx-auto.max-w-7xl > section:first-of-type p.mt-2.max-w-3xl {
+    margin-top: 6px !important;
+    line-height: 1.45 !important;
+  }
+
+  .ka-market-shell > .mx-auto.max-w-7xl > section:first-of-type .mt-3.flex.flex-wrap.gap-x-4 {
+    margin-top: 8px !important;
+    row-gap: 5px !important;
+  }
+
+  .ka-market-shell > .mx-auto.max-w-7xl > section:first-of-type .flex.flex-col.gap-2.sm\:flex-row {
+    gap: 6px !important;
+  }
+
+  .ka-market-shell > .mx-auto.max-w-7xl > section:first-of-type a {
+    min-height: 42px !important;
+    border-radius: 11px !important;
+  }
+
+  .ka-market-shell > .mx-auto.max-w-7xl > section[aria-labelledby="market-intelligence-title"] {
+    padding: 12px !important;
+    border-radius: 20px !important;
+  }
+
+  .ka-market-shell > .mx-auto.max-w-7xl > section[aria-labelledby="market-intelligence-title"] > .flex.flex-col.gap-3 {
+    gap: 8px !important;
+  }
+
+  .ka-market-shell > .mx-auto.max-w-7xl > section[aria-labelledby="market-intelligence-title"] .mt-4.grid {
+    margin-top: 10px !important;
+    gap: 7px !important;
+  }
+
+  .ka-market-shell > .mx-auto.max-w-7xl > section[aria-labelledby="market-intelligence-title"] .mt-4.grid > div {
+    padding: 10px !important;
+    border-radius: 14px !important;
+  }
+
+  .ka-market-shell > .mx-auto.max-w-7xl > section[aria-labelledby="market-intelligence-title"] > p.mt-3 {
+    margin-top: 8px !important;
   }
 }
 
