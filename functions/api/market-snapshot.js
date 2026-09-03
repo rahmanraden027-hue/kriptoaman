@@ -3,6 +3,7 @@ const MIN_ACCEPTED_ASSETS = 4500;
 const SNAPSHOT_FRESH_MS = 15 * 60 * 1000;
 const SNAPSHOT_REFRESH_AHEAD_MS = 5 * 60 * 1000;
 const REQUEST_TIMEOUT_MS = 12 * 1000;
+const RETRY_DELAYS_MS = [250, 750];
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS market_snapshots (
@@ -20,21 +21,35 @@ const headers = {
   'X-Content-Type-Options': 'nosniff',
 };
 
-const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers });
+let refreshInFlight = null;
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const json = (body, status = 200, extraHeaders = {}) => new Response(JSON.stringify(body), {
+  status,
+  headers: { ...headers, ...extraHeaders },
+});
 
 async function fetchJson(url) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-  try {
-    const response = await fetch(url, {
-      headers: { Accept: 'application/json', 'User-Agent': 'KriptoAman-Market-Snapshot/1.0' },
-      signal: controller.signal,
-    });
-    if (!response.ok) throw new Error(`CoinLore request failed: ${response.status}`);
-    return response.json();
-  } finally {
-    clearTimeout(timeout);
+  let lastError;
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt += 1) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    try {
+      const response = await fetch(url, {
+        headers: { Accept: 'application/json', 'User-Agent': 'KriptoAman-Market-Snapshot/2.0' },
+        signal: controller.signal,
+      });
+      if (!response.ok) throw new Error(`CoinLore request failed: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      lastError = error;
+      if (attempt >= RETRY_DELAYS_MS.length) break;
+      await sleep(RETRY_DELAYS_MS[attempt]);
+    } finally {
+      clearTimeout(timeout);
+    }
   }
+  throw lastError || new Error('CoinLore request failed');
 }
 
 async function fetchCoinLore() {
@@ -96,6 +111,15 @@ async function refreshSnapshot(db) {
   return { source: 'coinlore', asset_count: data.length, captured_at: capturedAt, data };
 }
 
+async function refreshSnapshotSingleFlight(db) {
+  if (!refreshInFlight) {
+    refreshInFlight = refreshSnapshot(db).finally(() => {
+      refreshInFlight = null;
+    });
+  }
+  return refreshInFlight;
+}
+
 function decodeSnapshot(row) {
   if (!row) return null;
   try {
@@ -110,7 +134,7 @@ export async function onRequestGet(context) {
   const { env, request } = context;
   const requestId = crypto.randomUUID();
   if (!env.AUTH_DB) {
-    return json({ error: 'Market snapshot database is not configured', code: 'MARKET_DB_MISSING', requestId }, 503);
+    return json({ error: 'Market snapshot database is not configured', code: 'MARKET_DB_MISSING', requestId }, 503, { 'Retry-After': '30' });
   }
 
   try {
@@ -119,24 +143,25 @@ export async function onRequestGet(context) {
     const forceRefresh = healthOnly && url.searchParams.get('refresh') === '1';
 
     let snapshot = decodeSnapshot(await readSnapshot(env.AUTH_DB));
-    if (!snapshot) snapshot = await refreshSnapshot(env.AUTH_DB);
+    if (!snapshot) snapshot = await refreshSnapshotSingleFlight(env.AUTH_DB);
 
     let ageMs = Math.max(0, Date.now() - Number(snapshot.captured_at));
     let stale = ageMs > SNAPSHOT_FRESH_MS;
     let refreshDue = ageMs >= SNAPSHOT_FRESH_MS - SNAPSHOT_REFRESH_AHEAD_MS;
     let refreshPerformed = false;
 
-    // The scheduled warm job can request a deterministic refresh once the
-    // snapshot enters the refresh window. This avoids reporting success before
-    // an asynchronous refresh has actually completed and been persisted.
+    // Only the scheduled warm path waits for refresh. Interactive users keep
+    // reading the last known-good snapshot while refresh work happens outside
+    // the response path. The single-flight guard prevents duplicate refreshes
+    // inside a warm worker isolate during bursts.
     if (forceRefresh && refreshDue) {
-      snapshot = await refreshSnapshot(env.AUTH_DB);
+      snapshot = await refreshSnapshotSingleFlight(env.AUTH_DB);
       ageMs = Math.max(0, Date.now() - Number(snapshot.captured_at));
       stale = ageMs > SNAPSHOT_FRESH_MS;
       refreshDue = ageMs >= SNAPSHOT_FRESH_MS - SNAPSHOT_REFRESH_AHEAD_MS;
       refreshPerformed = true;
     } else if (refreshDue && typeof context.waitUntil === 'function') {
-      context.waitUntil(refreshSnapshot(env.AUTH_DB).catch((error) => {
+      context.waitUntil(refreshSnapshotSingleFlight(env.AUTH_DB).catch((error) => {
         console.error('Background market snapshot refresh failed', { requestId, error });
       }));
     }
@@ -152,11 +177,12 @@ export async function onRequestGet(context) {
       refreshDue,
       refreshPerformed,
       refreshScheduled: Boolean(!refreshPerformed && refreshDue && typeof context.waitUntil === 'function'),
+      refreshMode: 'single-flight-background',
       requestId,
     };
     return json(healthOnly ? metadata : { ...metadata, data: snapshot.data });
   } catch (error) {
     console.error('Market snapshot unavailable', { requestId, error });
-    return json({ error: 'Market snapshot unavailable', code: 'MARKET_SNAPSHOT_FAILED', requestId }, 503);
+    return json({ error: 'Market snapshot unavailable', code: 'MARKET_SNAPSHOT_FAILED', requestId }, 503, { 'Retry-After': '30' });
   }
 }
