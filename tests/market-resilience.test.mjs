@@ -65,6 +65,9 @@ test('server snapshot survives total upstream provider failure', async () => {
   assert.match(endpoint, /MIN_ACCEPTED_ASSETS = 4500/);
   assert.match(endpoint, /context\.waitUntil/);
   assert.match(endpoint, /env\.AUTH_DB/);
+  assert.match(endpoint, /url\.searchParams\.get\('refresh'\) === '1'/);
+  assert.match(endpoint, /if \(forceRefresh && refreshDue\)/);
+  assert.match(endpoint, /refreshPerformed/);
   assert.match(pageEndpoint, /FROM market_snapshots WHERE id = \?/);
   assert.match(client, /const fetchServerPage = async \(page\)/);
   assert.match(client, /const firstPayload = await fetchServerPage\(0\)/);
@@ -79,9 +82,13 @@ test('market disaster recovery monitoring and UI fallbacks are release-gated', a
     read('src/pages/Market.jsx'),
     read('src/components/pwa/PWAInstallPrompt.jsx'),
   ]);
+  const warmWorkflow = await read('.github/workflows/market-snapshot-warm.yml');
   assert.match(workflow, /cron: '\*\/15 \* \* \* \*'/);
   assert.match(health, /MIN_ASSETS = 4500/);
   assert.match(health, /MAX_AGE_MS/);
+  assert.match(warmWorkflow, /health=1&refresh=1/);
+  assert.match(warmWorkflow, /payload\.ageMs/);
+  assert.match(warmWorkflow, /payload\.assetCount\) < 4500/);
   assert.doesNotMatch(market, /fallbackSparkline/);
   assert.match(market, /chartUnavailable/);
   assert.match(market, /max-w-7xl/);
