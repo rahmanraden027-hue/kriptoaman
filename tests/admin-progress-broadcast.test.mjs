@@ -21,7 +21,7 @@ test('progress broadcast is admin-only, same-origin, deduplicated, and privacy p
   assert.match(endpoint, /MAX_RECIPIENTS = 100/);
   assert.match(endpoint, /ecosystem-progress-2026-09-03/);
   assert.match(endpoint, /kriptoaman-ecosystem-progress-september-2026\.svg/);
-  assert.doesNotMatch(endpoint, /return json\(\{[^}]*recipients/s);
+  assert.doesNotMatch(endpoint, /return json\(\{\s*recipients\s*[,}]/);
 
   assert.match(panel, /\/api\/auth\/admin\/broadcast-progress/);
   assert.match(panel, /KIRIM UPDATE SEPTEMBER 2026/);
