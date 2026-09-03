@@ -2,6 +2,7 @@ const DEFAULT_PROVIDER_TIMEOUT_MS = 2500;
 const SLOW_PROVIDER_TIMEOUT_MS = 3500;
 const EXTENDED_PROVIDER_TIMEOUT_MS = 5000;
 const SNAPSHOT_TTL_MS = 45_000;
+const STALE_SNAPSHOT_MAX_AGE_MS = 5 * 60 * 1000;
 const LAST_GOOD_TTL_MS = 10 * 60 * 1000;
 const MIN_ACTIVE_TARGET = 12;
 
@@ -12,15 +13,7 @@ const NETWORKS = [
   { name: 'Polygon', type: 'evm', urls: ['https://polygon-bor-rpc.publicnode.com', 'https://polygon.drpc.org'] },
   { name: 'Arbitrum', type: 'evm', urls: ['https://arb1.arbitrum.io/rpc', 'https://arbitrum-one-rpc.publicnode.com'] },
   { name: 'Optimism', type: 'evm', urls: ['https://mainnet.optimism.io', 'https://optimism-rpc.publicnode.com'] },
-  {
-    name: 'Base',
-    type: 'evm',
-    urls: [
-      'https://mainnet.base.org',
-      'https://base-rpc.publicnode.com',
-      'https://base-mainnet.public.blastapi.io',
-    ],
-  },
+  { name: 'Base', type: 'evm', urls: ['https://mainnet.base.org', 'https://base-rpc.publicnode.com', 'https://base-mainnet.public.blastapi.io'] },
   { name: 'Avalanche', type: 'evm', urls: ['https://api.avax.network/ext/bc/C/rpc', 'https://avalanche-c-chain-rpc.publicnode.com'] },
   { name: 'Gnosis', type: 'evm', urls: ['https://rpc.gnosischain.com', 'https://gnosis-rpc.publicnode.com'] },
   { name: 'Celo', type: 'evm', urls: ['https://forno.celo.org', 'https://celo-rpc.publicnode.com'] },
@@ -29,62 +22,17 @@ const NETWORKS = [
   { name: 'Mantle', type: 'evm', urls: ['https://rpc.mantle.xyz', 'https://mantle-rpc.publicnode.com'] },
   { name: 'Fantom', type: 'evm', urls: ['https://rpcapi.fantom.network', 'https://fantom.publicnode.com'] },
   { name: 'Solana', type: 'solana', timeoutMs: SLOW_PROVIDER_TIMEOUT_MS, urls: ['https://api.mainnet-beta.solana.com', 'https://solana-rpc.publicnode.com'] },
-  {
-    name: 'TRON',
-    type: 'tron',
-    timeoutMs: EXTENDED_PROVIDER_TIMEOUT_MS,
-    urls: [
-      'https://api.trongrid.io/wallet/getnowblock',
-      'https://tron-evm-rpc.publicnode.com',
-    ],
-  },
-  {
-    name: 'XRP Ledger',
-    type: 'xrp',
-    timeoutMs: EXTENDED_PROVIDER_TIMEOUT_MS,
-    urls: [
-      'https://honeycluster.io/',
-      'https://xrplcluster.com',
-      'https://s1.ripple.com:51234/',
-      'https://s2.ripple.com:51234/',
-    ],
-  },
+  { name: 'TRON', type: 'tron', timeoutMs: EXTENDED_PROVIDER_TIMEOUT_MS, urls: ['https://api.trongrid.io/wallet/getnowblock', 'https://tron-evm-rpc.publicnode.com'] },
+  { name: 'XRP Ledger', type: 'xrp', timeoutMs: EXTENDED_PROVIDER_TIMEOUT_MS, urls: ['https://honeycluster.io/', 'https://xrplcluster.com', 'https://s1.ripple.com:51234/', 'https://s2.ripple.com:51234/'] },
   { name: 'Polkadot', type: 'polkadot', timeoutMs: SLOW_PROVIDER_TIMEOUT_MS, urls: ['https://rpc.polkadot.io', 'https://polkadot-rpc.publicnode.com'] },
-  {
-    name: 'Cardano',
-    type: 'cardano',
-    timeoutMs: EXTENDED_PROVIDER_TIMEOUT_MS,
-    urls: ['https://api.koios.rest/api/v1/tip?select=block_no'],
-  },
-  {
-    name: 'Litecoin',
-    type: 'utxo',
-    timeoutMs: EXTENDED_PROVIDER_TIMEOUT_MS,
-    urls: [
-      'https://litecoinspace.org/api/blocks/tip/height',
-      'https://ltc1.trezor.io/api/v2',
-      'https://ltc2.trezor.io/api/v2',
-      'https://api.blockchair.com/litecoin/stats',
-      'https://api.blockcypher.com/v1/ltc/main',
-    ],
-  },
-  {
-    name: 'Dogecoin',
-    type: 'utxo',
-    timeoutMs: EXTENDED_PROVIDER_TIMEOUT_MS,
-    urls: [
-      'https://doge1.trezor.io/api/v2',
-      'https://doge2.trezor.io/api/v2',
-      'https://dogecoin.atomicwallet.io/api/v2',
-      'https://api.blockchair.com/dogecoin/stats',
-      'https://api.blockcypher.com/v1/doge/main',
-    ],
-  },
+  { name: 'Cardano', type: 'cardano', timeoutMs: EXTENDED_PROVIDER_TIMEOUT_MS, urls: ['https://api.koios.rest/api/v1/tip?select=block_no'] },
+  { name: 'Litecoin', type: 'utxo', timeoutMs: EXTENDED_PROVIDER_TIMEOUT_MS, urls: ['https://litecoinspace.org/api/blocks/tip/height', 'https://ltc1.trezor.io/api/v2', 'https://ltc2.trezor.io/api/v2', 'https://api.blockchair.com/litecoin/stats', 'https://api.blockcypher.com/v1/ltc/main'] },
+  { name: 'Dogecoin', type: 'utxo', timeoutMs: EXTENDED_PROVIDER_TIMEOUT_MS, urls: ['https://doge1.trezor.io/api/v2', 'https://doge2.trezor.io/api/v2', 'https://dogecoin.atomicwallet.io/api/v2', 'https://api.blockchair.com/dogecoin/stats', 'https://api.blockcypher.com/v1/doge/main'] },
 ];
 
 const HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
-  'Cache-Control': 'public, max-age=30, s-maxage=60, stale-while-revalidate=180',
+  'Cache-Control': 'public, max-age=30, s-maxage=60, stale-while-revalidate=240',
   'X-Content-Type-Options': 'nosniff',
 };
 
@@ -115,7 +63,7 @@ const rpcBody = (method, params = []) => JSON.stringify({ jsonrpc: '2.0', id: 1,
 function requestHeaders(extra = {}) {
   return {
     Accept: 'application/json,text/plain,*/*',
-    'User-Agent': 'KriptoAman-Network-Health/3.0',
+    'User-Agent': 'KriptoAman-Network-Health/4.0',
     ...extra,
   };
 }
@@ -127,43 +75,17 @@ async function probeUrl(item, url) {
   let responseMode = 'json';
 
   if (item.type === 'evm') {
-    response = await fetchWithTimeout(url, {
-      method: 'POST',
-      headers: requestHeaders({ 'Content-Type': 'application/json' }),
-      body: rpcBody('eth_blockNumber'),
-    }, timeoutMs);
+    response = await fetchWithTimeout(url, { method: 'POST', headers: requestHeaders({ 'Content-Type': 'application/json' }), body: rpcBody('eth_blockNumber') }, timeoutMs);
   } else if (item.type === 'solana') {
-    response = await fetchWithTimeout(url, {
-      method: 'POST',
-      headers: requestHeaders({ 'Content-Type': 'application/json' }),
-      body: rpcBody('getBlockHeight'),
-    }, timeoutMs);
+    response = await fetchWithTimeout(url, { method: 'POST', headers: requestHeaders({ 'Content-Type': 'application/json' }), body: rpcBody('getBlockHeight') }, timeoutMs);
   } else if (item.type === 'xrp') {
-    response = await fetchWithTimeout(url, {
-      method: 'POST',
-      headers: requestHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ method: 'server_info', params: [{}] }),
-    }, timeoutMs);
+    response = await fetchWithTimeout(url, { method: 'POST', headers: requestHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ method: 'server_info', params: [{}] }) }, timeoutMs);
   } else if (item.type === 'polkadot') {
-    response = await fetchWithTimeout(url, {
-      method: 'POST',
-      headers: requestHeaders({ 'Content-Type': 'application/json' }),
-      body: rpcBody('chain_getHeader'),
-    }, timeoutMs);
+    response = await fetchWithTimeout(url, { method: 'POST', headers: requestHeaders({ 'Content-Type': 'application/json' }), body: rpcBody('chain_getHeader') }, timeoutMs);
   } else if (item.type === 'tron') {
-    if (url === 'https://tron-evm-rpc.publicnode.com') {
-      response = await fetchWithTimeout(url, {
-        method: 'POST',
-        headers: requestHeaders({ 'Content-Type': 'application/json' }),
-        body: rpcBody('eth_blockNumber'),
-      }, timeoutMs);
-    } else {
-      response = await fetchWithTimeout(url, {
-        method: 'POST',
-        headers: requestHeaders({ 'Content-Type': 'application/json' }),
-        body: '{}',
-      }, timeoutMs);
-    }
+    response = url === 'https://tron-evm-rpc.publicnode.com'
+      ? await fetchWithTimeout(url, { method: 'POST', headers: requestHeaders({ 'Content-Type': 'application/json' }), body: rpcBody('eth_blockNumber') }, timeoutMs)
+      : await fetchWithTimeout(url, { method: 'POST', headers: requestHeaders({ 'Content-Type': 'application/json' }), body: '{}' }, timeoutMs);
   } else if (item.type === 'utxo' && url.includes('/blocks/tip/height')) {
     responseMode = 'height-text';
     response = await fetchWithTimeout(url, { headers: requestHeaders() }, timeoutMs);
@@ -178,14 +100,12 @@ async function probeUrl(item, url) {
   }
 
   let detail = 'ok';
-
   if (item.type === 'bitcoin' || responseMode === 'height-text') {
     const height = Number((await response.text()).trim());
     if (!Number.isFinite(height) || height <= 0) throw new Error('Invalid block height response');
     detail = String(height);
   } else {
     const payload = await response.json().catch(() => null);
-
     if (item.type === 'evm') {
       if (!payload?.result) throw new Error('Invalid EVM RPC response');
       detail = payload.result;
@@ -208,14 +128,7 @@ async function probeUrl(item, url) {
       if (!Array.isArray(payload) || !payload[0]?.block_no) throw new Error('Invalid Cardano response');
       detail = String(payload[0].block_no);
     } else if (item.type === 'utxo') {
-      const height = Number(
-        payload?.blockbook?.bestHeight
-        ?? payload?.backend?.blocks
-        ?? payload?.bestHeight
-        ?? payload?.data?.blocks
-        ?? payload?.data?.best_block_height
-        ?? payload?.height,
-      );
+      const height = Number(payload?.blockbook?.bestHeight ?? payload?.backend?.blocks ?? payload?.bestHeight ?? payload?.data?.blocks ?? payload?.data?.best_block_height ?? payload?.height);
       if (!Number.isFinite(height) || height <= 0) throw new Error('Invalid UTXO chain response');
       detail = String(height);
     }
@@ -267,12 +180,7 @@ async function probe(item) {
       error: 'all_providers_unavailable',
       timeout_ms: Number(item.timeoutMs) || DEFAULT_PROVIDER_TIMEOUT_MS,
       providers_tried: errors,
-      last_known_good: hasRecentLastGood ? {
-        provider: previous.provider,
-        detail: previous.detail,
-        checked_at: previous.checked_at,
-        age_ms: lastKnownAgeMs,
-      } : null,
+      last_known_good: hasRecentLastGood ? { provider: previous.provider, detail: previous.detail, checked_at: previous.checked_at, age_ms: lastKnownAgeMs } : null,
       checked_at: new Date().toISOString(),
     };
   }
@@ -305,18 +213,16 @@ async function buildSnapshot() {
       slowProviderTimeoutMs: SLOW_PROVIDER_TIMEOUT_MS,
       extendedProviderTimeoutMs: EXTENDED_PROVIDER_TIMEOUT_MS,
       snapshotTtlMs: SNAPSHOT_TTL_MS,
+      staleSnapshotMaxAgeMs: STALE_SNAPSHOT_MAX_AGE_MS,
       lastGoodTtlMs: LAST_GOOD_TTL_MS,
+      publicRequestsMayUseRecentVerifiedSnapshot: true,
+      refreshParameterAlwaysForcesFreshProbe: true,
       fabricatedMetrics: false,
     },
   };
 }
 
-async function getSnapshot(forceRefresh = false) {
-  const now = Date.now();
-  if (!forceRefresh && cachedSnapshot && now - cachedSnapshotAt < SNAPSHOT_TTL_MS) {
-    return cachedSnapshot;
-  }
-
+function startRefresh() {
   if (!refreshInFlight) {
     refreshInFlight = buildSnapshot()
       .then((snapshot) => {
@@ -328,18 +234,37 @@ async function getSnapshot(forceRefresh = false) {
         refreshInFlight = null;
       });
   }
-
   return refreshInFlight;
+}
+
+async function getSnapshot(forceRefresh = false, waitUntil) {
+  const now = Date.now();
+  const ageMs = cachedSnapshot ? now - cachedSnapshotAt : null;
+
+  if (forceRefresh) {
+    const snapshot = await startRefresh();
+    return { snapshot, deliveryMode: 'fresh-probe', ageMs: 0 };
+  }
+
+  if (cachedSnapshot && Number.isFinite(ageMs) && ageMs < SNAPSHOT_TTL_MS) {
+    return { snapshot: cachedSnapshot, deliveryMode: 'memory-fresh', ageMs };
+  }
+
+  if (cachedSnapshot && Number.isFinite(ageMs) && ageMs <= STALE_SNAPSHOT_MAX_AGE_MS) {
+    const task = startRefresh().catch((error) => console.error('Background network refresh failed', error));
+    if (typeof waitUntil === 'function') waitUntil(task);
+    return { snapshot: cachedSnapshot, deliveryMode: 'recent-verified-background-refresh', ageMs };
+  }
+
+  const snapshot = await startRefresh();
+  return { snapshot, deliveryMode: 'fresh-probe', ageMs: 0 };
 }
 
 export async function onRequestGet({ request, waitUntil } = {}) {
   const requestUrl = new URL(request?.url || 'https://kriptoaman.com/api/network-health');
   const forceRefresh = requestUrl.searchParams.get('refresh') === '1';
   const edgeCache = globalThis.caches?.default;
-  const cacheKey = new Request(`${requestUrl.origin}/api/network-health`, {
-    method: 'GET',
-    headers: { Accept: 'application/json' },
-  });
+  const cacheKey = new Request(`${requestUrl.origin}/api/network-health`, { method: 'GET', headers: { Accept: 'application/json' } });
 
   if (!forceRefresh && edgeCache) {
     const hit = await edgeCache.match(cacheKey);
@@ -350,10 +275,20 @@ export async function onRequestGet({ request, waitUntil } = {}) {
     }
   }
 
-  const snapshot = await getSnapshot(forceRefresh);
+  const { snapshot, deliveryMode, ageMs } = await getSnapshot(forceRefresh, waitUntil);
+  const delivered = {
+    ...snapshot,
+    delivery: {
+      mode: deliveryMode,
+      snapshotAgeMs: ageMs,
+      freshProbe: deliveryMode === 'fresh-probe',
+      edgeCacheEligible: !forceRefresh,
+    },
+  };
   const status = snapshot.summary.online > 0 ? 200 : 503;
-  const response = json(snapshot, { status }, {
+  const response = json(delivered, { status }, {
     'X-KriptoAman-Network-Cache': forceRefresh ? 'BYPASS' : 'MISS',
+    'X-KriptoAman-Network-Delivery': deliveryMode,
   });
 
   if (!forceRefresh && edgeCache && status === 200) {
