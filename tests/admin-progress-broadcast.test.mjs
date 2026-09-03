@@ -2,11 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-test('progress broadcast is admin-only, same-origin, deduplicated, and privacy preserving', async () => {
-  const [endpoint, panel, asset] = await Promise.all([
+test('progress broadcast is admin-only, branded, deduplicated, and privacy preserving', async () => {
+  const [endpoint, panel, asset, bimi] = await Promise.all([
     readFile(new URL('../functions/api/auth/admin/broadcast-progress.js', import.meta.url), 'utf8'),
     readFile(new URL('../src/components/admin/AppUpdatePanel.jsx', import.meta.url), 'utf8'),
     readFile(new URL('../public/assets/kriptoaman-ecosystem-progress-september-2026.svg', import.meta.url), 'utf8'),
+    readFile(new URL('../public/.well-known/kriptoaman-bimi.svg', import.meta.url), 'utf8'),
   ]);
 
   assert.match(endpoint, /requireSameOrigin/);
@@ -20,6 +21,8 @@ test('progress broadcast is admin-only, same-origin, deduplicated, and privacy p
   assert.match(endpoint, /Idempotency-Key/);
   assert.match(endpoint, /MAX_RECIPIENTS = 100/);
   assert.match(endpoint, /ecosystem-progress-2026-09-03/);
+  assert.match(endpoint, /kriptoaman-logo-primary\.png/);
+  assert.match(endpoint, /Official Ecosystem Update/);
   assert.match(endpoint, /kriptoaman-ecosystem-progress-september-2026\.svg/);
   assert.doesNotMatch(endpoint, /return json\(\{\s*recipients\s*[,}]/);
 
@@ -31,4 +34,10 @@ test('progress broadcast is admin-only, same-origin, deduplicated, and privacy p
   assert.match(asset, /Kemajuan Positif KriptoAman/);
   assert.match(asset, /KAM Mainnet/);
   assert.match(asset, /ethereum-lists\/chains/);
+
+  assert.match(bimi, /baseProfile="tiny-ps"/);
+  assert.match(bimi, /<title>KriptoAman<\/title>/);
+  assert.match(bimi, /viewBox="0 0 512 512"/);
+  assert.doesNotMatch(bimi, /<script/i);
+  assert.doesNotMatch(bimi, /(?:href|xlink:href)\s*=/i);
 });
