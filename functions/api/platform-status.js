@@ -4,7 +4,7 @@ const STATUS_TTL_MS = 30_000;
 const MIN_PUBLIC_MARKET_ASSETS = 4500;
 const MARKET_SNAPSHOT_FRESH_MS = 15 * 60 * 1000;
 const MARKET_SNAPSHOT_HEALTH_MAX_AGE_MS = MARKET_SNAPSHOT_FRESH_MS * 4;
-const NETWORK_HEALTH_TIMEOUT_MS = 5000;
+const COMPONENT_STATUS_TIMEOUT_MS = 850;
 
 const HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
@@ -21,7 +21,7 @@ const json = (body, status = 200, extraHeaders = {}) => new Response(JSON.string
   headers: { ...HEADERS, ...extraHeaders },
 });
 
-async function readJson(url, timeoutMs = 2500) {
+async function readJson(url, timeoutMs = COMPONENT_STATUS_TIMEOUT_MS) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -74,7 +74,7 @@ async function readMarketMetadata(env, origin) {
     }
   }
 
-  const fallback = await readJson(`${origin}/api/market-snapshot?health=1`, 1800);
+  const fallback = await readJson(`${origin}/api/market-snapshot?health=1`);
   return { ...fallback, readMode: 'http-fallback' };
 }
 
@@ -83,8 +83,8 @@ async function buildStatus(request, env) {
   const generatedAt = new Date().toISOString();
   const [market, networks, kam] = await Promise.all([
     readMarketMetadata(env, origin),
-    readJson(`${origin}/api/network-health`, NETWORK_HEALTH_TIMEOUT_MS),
-    readJson(`${origin}/api/kam/network-status`, 5000),
+    readJson(`${origin}/api/network-health`),
+    readJson(`${origin}/api/kam/network-status`),
   ]);
 
   const marketAssetCount = market.ok ? Number(market.payload?.assetCount) : NaN;
@@ -129,6 +129,7 @@ async function buildStatus(request, env) {
       minimumActiveTarget: Number.isFinite(networkMinimumTarget) ? networkMinimumTarget : null,
       meetsMinimumActiveTarget: networksHealthy,
       checkedAt: networks.ok ? networks.payload?.checked_at ?? null : null,
+      readError: networks.ok ? null : networks.error ?? 'unavailable',
     },
     kam: {
       status: kamHealthy ? 'operational' : kam.ok ? 'degraded' : 'unavailable',
@@ -136,6 +137,7 @@ async function buildStatus(request, env) {
       chainId: kamHealthy ? 22028 : null,
       blockNumber: kamHealthy && Number.isFinite(Number(kam.payload?.blockNumber)) ? Number(kam.payload.blockNumber) : null,
       checkedAt: kam.ok ? kam.payload?.checkedAt ?? null : null,
+      readError: kam.ok ? null : kam.error ?? 'unavailable',
     },
   };
 
@@ -156,11 +158,12 @@ async function buildStatus(request, env) {
         fabricatedMetrics: false,
         aggregateCacheTtlMs: STATUS_TTL_MS,
         edgeCache: true,
+        componentStatusTimeoutMs: COMPONENT_STATUS_TIMEOUT_MS,
+        componentTimeoutDegradesRatherThanFabricates: true,
         marketOperationalMinAssets: MIN_PUBLIC_MARKET_ASSETS,
         marketOperationalRequiresFreshSnapshot: true,
         marketSnapshotFreshMs: MARKET_SNAPSHOT_FRESH_MS,
         directMarketMetadataRead: true,
-        networkHealthTimeoutMs: NETWORK_HEALTH_TIMEOUT_MS,
         networkHealthyRequiresMinimumTarget: true,
       },
     },
