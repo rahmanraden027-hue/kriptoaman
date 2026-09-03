@@ -13,6 +13,7 @@ test('hot market API is edge cached, bounded and last-known-good resilient', asy
   assert.match(source, /FROM market_snapshots WHERE id = \?/);
   assert.match(source, /RETRY_DELAYS_MS/);
   assert.match(source, /refreshInFlight/);
+  assert.match(source, /readSession\(env\.AUTH_DB\)/);
   assert.doesNotMatch(source, /Math\.random/);
 });
 
@@ -31,6 +32,7 @@ test('paged market reads terminate at edge cache before repeated D1 work', async
   assert.match(source, /X-KriptoAman-Market-Page-Cache/);
   assert.match(source, /const MAX_PAGE_SIZE = 500/);
   assert.match(source, /stale-while-revalidate=840/);
+  assert.match(source, /readSession\(env\.AUTH_DB\)/);
 });
 
 test('live price fallback is centralized and does not expose CoinGecko keys in the client', async () => {
@@ -43,15 +45,22 @@ test('live price fallback is centralized and does not expose CoinGecko keys in t
   assert.doesNotMatch(source, /x-cg-pro-api-key/);
 });
 
-test('AI intelligence remains grounded, cached and non-advisory', async () => {
-  const source = await read('src/components/home/AIInsightCard.jsx');
-  assert.match(source, /AI_CACHE_TTL_MS = 5 \* 60 \* 1000/);
-  assert.match(source, /sessionStorage/);
-  assert.match(source, /buildMetrics/);
-  assert.match(source, /VERIFIED_SNAPSHOT/);
-  assert.match(source, /VERIFIED_METRICS/);
-  assert.match(source, /Never give buy\/sell instructions/);
-  assert.match(source, /Not investment advice/);
+test('AI intelligence remains grounded cached non-advisory and correlation-honest', async () => {
+  const [card, engine] = await Promise.all([
+    read('src/components/home/AIInsightCard.jsx'),
+    read('src/lib/aiIntelligence.js'),
+  ]);
+  assert.match(card, /AI_CACHE_TTL_MS = 5 \* 60 \* 1000/);
+  assert.match(card, /sessionStorage/);
+  assert.match(card, /buildIntelligenceMetrics/);
+  assert.match(card, /VERIFIED_SNAPSHOT/);
+  assert.match(card, /VERIFIED_METRICS/);
+  assert.match(card, /VERIFIED_NETWORK/);
+  assert.match(card, /Never give buy\/sell instructions/);
+  assert.match(card, /Not investment advice/);
+  assert.match(engine, /riskScore/);
+  assert.match(engine, /anomalySymbols/);
+  assert.match(engine, /correlationStatus: 'history-required'/);
 });
 
 test('production load profile covers the high-read market path and remains opt-in', async () => {
@@ -62,4 +71,11 @@ test('production load profile covers the high-read market path and remains opt-i
   assert.match(source, /p\(95\)<750/);
   assert.match(source, /p\(95\)<1000/);
   assert.doesNotMatch(source, /http\.(post|put|patch|del|delete)\(/);
+});
+
+test('isolated staging gate exposes progressive 1k through 10k profiles', async () => {
+  const workflow = await read('.github/workflows/large-scale-staging-gate.yml');
+  for (const profile of ['1000', '2500', '5000', '10000']) assert.ok(workflow.includes(`- '${profile}'`));
+  assert.match(workflow, /Refusing company\/production hostname/);
+  assert.match(workflow, /KA_INCLUDE_HOT_MARKET=YES/);
 });
