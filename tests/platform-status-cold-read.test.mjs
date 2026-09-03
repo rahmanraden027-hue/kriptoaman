@@ -73,6 +73,14 @@ test('durable aggregate is transparent and refreshes live verification in the ba
   assert.match(source, /scheduleBackground/);
 });
 
+test('only freshly live-verified aggregate responses can enter the edge cache', async () => {
+  const source = await read('functions/api/platform-status.js');
+  assert.match(source, /result\.body\?\.delivery\?\.aggregateRead === 'live-verified'/);
+  assert.match(source, /edgeCache\.put\(cacheKey, response\.clone\(\)\)/);
+  assert.doesNotMatch(source, /aggregateRead === 'd1-last-verified'[\s\S]{0,160}edgeCache\.put/);
+  assert.doesNotMatch(source, /aggregateRead === 'memory-last-verified'[\s\S]{0,160}edgeCache\.put/);
+});
+
 test('platform status keeps bounded HTTP fallback and cached aggregate delivery', async () => {
   const source = await read('functions/api/platform-status.js');
   assert.match(source, /\/api\/market-snapshot\?health=1/);
