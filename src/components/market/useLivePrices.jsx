@@ -1,6 +1,9 @@
 /**
  * useLivePrices — Global singleton WebSocket hook
  * Connects to Binance WebSocket stream 24/7, auto-reconnects on disconnect.
+ * Uses KriptoAman /api/market-hot as the centralized initial/fallback source so
+ * browser clients do not expose provider API keys or fan out fallback traffic
+ * directly to multiple public providers.
  * Returns: { prices: { BTC: { price, change24h, high24h, low24h, volume24h, tick } }, connected }
  */
 import { useState, useEffect, useRef } from 'react';
@@ -35,6 +38,9 @@ ASSETS.forEach(a => { SYM_MAP[a.sym] = a.id; });
 
 const STREAMS = ASSETS.map(a => `${a.sym}@ticker`).join('/');
 const WS_URL = `wss://stream.binance.com:9443/stream?streams=${STREAMS}`;
+const HOT_MARKET_ENDPOINT = '/api/market-hot';
+const HOT_POLL_INTERVAL_MS = 15_000;
+const HOT_REQUEST_TIMEOUT_MS = 7_000;
 const LIVE_CACHE_KEY = 'ka_live_prices_v1';
 const RECONNECT_DELAY_MS = 5000;
 const STALE_AFTER_MS = 30000;
@@ -48,6 +54,43 @@ const loadLiveCache = () => {
     return {};
   }
 };
+
+const normalizeHotPayload = (payload) => {
+  if (!Array.isArray(payload?.data)) return {};
+  const next = {};
+  payload.data.forEach((item) => {
+    const symbol = String(item?.symbol || '').toUpperCase();
+    const price = Number(item?.price);
+    if (!symbol || !Number.isFinite(price)) return;
+    next[symbol === 'POL' ? 'MATIC' : symbol] = {
+      price,
+      change24h: Number.isFinite(Number(item.change24h)) ? Number(item.change24h) : null,
+      volume24h: Number.isFinite(Number(item.volume24h)) ? Number(item.volume24h) : null,
+      high24h: Number.isFinite(Number(item.high24h)) ? Number(item.high24h) : null,
+      low24h: Number.isFinite(Number(item.low24h)) ? Number(item.low24h) : null,
+    };
+  });
+  return next;
+};
+
+async function fetchHotSnapshot() {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), HOT_REQUEST_TIMEOUT_MS);
+  try {
+    const response = await fetch(HOT_MARKET_ENDPOINT, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      signal: controller.signal,
+    });
+    if (!response.ok) throw new Error(`Hot market HTTP ${response.status}`);
+    const payload = await response.json();
+    const normalized = normalizeHotPayload(payload);
+    if (!normalized.BTC || !normalized.ETH) throw new Error('Hot market missing core assets');
+    return normalized;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
 // IDR rate cache
 let cachedIDR = 16200;
@@ -94,51 +137,21 @@ export default function useLivePrices() {
     return () => clearInterval(idrInterval);
   }, []);
 
-  // Load initial data: try CoinGecko, fallback to DB cache
+  // Initial server-controlled price snapshot. This removes client-side provider
+  // API keys and gives the app a verified fallback before WebSocket data arrives.
   useEffect(() => {
-    const geckoIds = 'bitcoin,ethereum,binancecoin,solana,ripple,cardano,dogecoin,tron,avalanche-2,polkadot,chainlink,matic-network,litecoin,uniswap,shiba-inu,pepe,cosmos,near,arbitrum,optimism,sui,aptos';
-    const geckoMap = {
-      bitcoin: 'BTC', ethereum: 'ETH', binancecoin: 'BNB', solana: 'SOL',
-      ripple: 'XRP', cardano: 'ADA', dogecoin: 'DOGE', tron: 'TRX',
-      'avalanche-2': 'AVAX', polkadot: 'DOT', chainlink: 'LINK',
-      'matic-network': 'MATIC', litecoin: 'LTC', uniswap: 'UNI',
-      'shiba-inu': 'SHIB', pepe: 'PEPE', cosmos: 'ATOM', near: 'NEAR',
-      arbitrum: 'ARB', optimism: 'OP', sui: 'SUI', aptos: 'APT',
-    };
+    let cancelled = false;
 
-    fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${geckoIds}&vs_currencies=usd&include_24hr_change=true&include_high_24hr=true&include_low_24hr=true`,
-      {
-        method: 'GET',
-        headers: {
-          'x-cg-pro-api-key': import.meta.env.COINGECKO_API_KEY,
-        },
-      }
-    )
-      .then(r => r.json())
-      .then(data => {
-        if (!mountedRef.current) return;
-
-        const initial = {};
-        Object.entries(data).forEach(([gid, d]) => {
-          const id = geckoMap[gid];
-          if (id) {
-            initial[id] = {
-              price: d.usd,
-              change24h: d.usd_24h_change,
-              volume24h: d.usd_24h_vol,
-              high24h: d.usd_24h_high,
-              low24h: d.usd_24h_low,
-            };
-          }
-        });
-
-        if (Object.keys(initial).length > 0) setPrices(initial);
+    fetchHotSnapshot()
+      .then((initial) => {
+        if (!cancelled && mountedRef.current && Object.keys(initial).length > 0) {
+          setPrices(prev => ({ ...prev, ...initial }));
+        }
       })
       .catch(() => {
         import('@/api/base44Client').then(({ base44 }) => {
           base44.entities.CachedPrice.list().then(cached => {
-            if (!mountedRef.current || !cached?.length) return;
+            if (cancelled || !mountedRef.current || !cached?.length) return;
 
             const initial = {};
             cached.forEach(c => {
@@ -156,11 +169,33 @@ export default function useLivePrices() {
               }
             });
 
-            setPrices(initial);
-          });
-        });
+            setPrices(prev => ({ ...prev, ...initial }));
+          }).catch(() => {});
+        }).catch(() => {});
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  // When WebSocket is unavailable, poll the edge-cached KriptoAman hot feed.
+  // At scale this keeps fallback traffic on KriptoAman edge/cache instead of
+  // multiplying public-provider requests from every browser session.
+  useEffect(() => {
+    if (connected) return undefined;
+    const poll = () => {
+      fetchHotSnapshot()
+        .then((next) => {
+          if (mountedRef.current && Object.keys(next).length > 0) {
+            setPrices(prev => ({ ...prev, ...next }));
+          }
+        })
+        .catch(() => {});
+    };
+    const interval = setInterval(poll, HOT_POLL_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [connected]);
 
   // Binance WebSocket — persistent live connection with stale-data watchdog.
   useEffect(() => {

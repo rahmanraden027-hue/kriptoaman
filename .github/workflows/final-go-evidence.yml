@@ -126,6 +126,7 @@ jobs:
           echo "stage=$stage" >> "$GITHUB_OUTPUT"
           echo "allow=$allow" >> "$GITHUB_OUTPUT"
       - name: Endpoint latency preflight
+        id: preflight
         shell: bash
         run: |
           set -euo pipefail
@@ -137,6 +138,16 @@ jobs:
                 "https://kriptoaman.com${path}"
             done
           done
+
+          hot='NO'
+          if curl -L --fail --silent --show-error --max-time 10 \
+              https://kriptoaman.com/api/market-hot -o /tmp/market-hot.json; then
+            if node -e "const p=require('/tmp/market-hot.json'); if(p.healthy!==true || !Array.isArray(p.data) || !p.data.some(x=>x.symbol==='BTC')) process.exit(1);"; then
+              hot='YES'
+            fi
+          fi
+          echo "include_hot=$hot" >> "$GITHUB_OUTPUT"
+          echo "Hot market load coverage: $hot"
       - name: Run guarded k6 profile
         shell: bash
         run: |
@@ -145,6 +156,7 @@ jobs:
             -e BASE_URL=https://kriptoaman.com \
             -e KA_LOAD_STAGE='${{ steps.stage.outputs.stage }}' \
             -e ALLOW_PRODUCTION_LOAD_TEST='${{ steps.stage.outputs.allow }}' \
+            -e KA_INCLUDE_HOT_MARKET='${{ steps.preflight.outputs.include_hot }}' \
             grafana/k6:latest run - < load/k6-production-readonly.js
 
   rollback-build-rehearsal:
