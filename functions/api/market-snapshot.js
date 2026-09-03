@@ -38,6 +38,7 @@ const headers = {
 };
 
 let refreshInFlight = null;
+let chunkBackfillInFlight = null;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const json = (body, status = 200, extraHeaders = {}) => new Response(JSON.stringify(body), {
@@ -53,7 +54,7 @@ async function fetchJson(url) {
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
       const response = await fetch(url, {
-        headers: { Accept: 'application/json', 'User-Agent': 'KriptoAman-Market-Snapshot/3.0' },
+        headers: { Accept: 'application/json', 'User-Agent': 'KriptoAman-Market-Snapshot/3.1' },
         signal: controller.signal,
       });
       if (!response.ok) throw new Error(`CoinLore request failed: ${response.status}`);
@@ -123,7 +124,40 @@ async function readSnapshot(db) {
   ).bind('global').first();
 }
 
-async function persistChunks(db, data, capturedAt) {
+async function readChunkCoverage(db, snapshot) {
+  const expectedChunks = Math.ceil(Number(snapshot?.asset_count || 0) / MARKET_CHUNK_SIZE);
+  if (!expectedChunks) {
+    return { ready: false, chunkCount: 0, expectedChunks: 0, capturedAt: null };
+  }
+
+  try {
+    const row = await db.prepare(`
+      SELECT
+        COUNT(*) AS chunk_count,
+        MIN(captured_at) AS min_captured_at,
+        MAX(captured_at) AS max_captured_at
+      FROM market_snapshot_chunks
+      WHERE snapshot_id = ?
+    `).bind('global').first();
+    const chunkCount = Number(row?.chunk_count || 0);
+    const minCapturedAt = Number(row?.min_captured_at || 0);
+    const maxCapturedAt = Number(row?.max_captured_at || 0);
+    const snapshotCapturedAt = Number(snapshot?.captured_at || 0);
+    return {
+      ready: chunkCount >= expectedChunks
+        && snapshotCapturedAt > 0
+        && minCapturedAt === snapshotCapturedAt
+        && maxCapturedAt === snapshotCapturedAt,
+      chunkCount,
+      expectedChunks,
+      capturedAt: snapshotCapturedAt || null,
+    };
+  } catch {
+    return { ready: false, chunkCount: 0, expectedChunks, capturedAt: Number(snapshot?.captured_at || 0) || null };
+  }
+}
+
+async function persistChunks(db, data, capturedAt, source = 'coinlore') {
   const chunkCount = Math.ceil(data.length / MARKET_CHUNK_SIZE);
   const statements = [];
   for (let chunkIndex = 0; chunkIndex < chunkCount; chunkIndex += 1) {
@@ -137,7 +171,7 @@ async function persistChunks(db, data, capturedAt) {
         asset_count = excluded.asset_count,
         payload = excluded.payload,
         updated_at = CURRENT_TIMESTAMP
-    `).bind('global', chunkIndex, 'coinlore', capturedAt, data.length, JSON.stringify(chunk)));
+    `).bind('global', chunkIndex, source, capturedAt, data.length, JSON.stringify(chunk)));
   }
 
   for (let offset = 0; offset < statements.length; offset += CHUNK_WRITE_BATCH_SIZE) {
@@ -168,7 +202,7 @@ async function refreshSnapshot(dbBinding) {
       payload = excluded.payload,
       updated_at = CURRENT_TIMESTAMP
   `).bind('global', 'coinlore', data.length, capturedAt, JSON.stringify(data)).run();
-  await persistChunks(db, data, capturedAt);
+  await persistChunks(db, data, capturedAt, 'coinlore');
   return { source: 'coinlore', asset_count: data.length, captured_at: capturedAt, data };
 }
 
@@ -189,6 +223,27 @@ function decodeSnapshot(row) {
   } catch {
     return null;
   }
+}
+
+async function backfillChunksFromPersistedSnapshot(dbBinding) {
+  if (!chunkBackfillInFlight) {
+    chunkBackfillInFlight = (async () => {
+      const db = primarySession(dbBinding);
+      await ensureSchemas(db);
+      const snapshot = decodeSnapshot(await readSnapshot(db));
+      if (!snapshot) throw new Error('Persisted market snapshot is unavailable for chunk backfill');
+      await persistChunks(
+        db,
+        snapshot.data,
+        Number(snapshot.captured_at),
+        snapshot.source || 'coinlore',
+      );
+      return readChunkCoverage(db, snapshot);
+    })().finally(() => {
+      chunkBackfillInFlight = null;
+    });
+  }
+  return chunkBackfillInFlight;
 }
 
 function metadataFor(snapshot, requestId, refreshPerformed, refreshScheduled) {
@@ -233,16 +288,38 @@ export async function onRequestGet(context) {
       }
 
       let meta = metadataFor(metadataRow, requestId, false, false);
+      let chunkCoverage = null;
+      let chunkBackfilled = false;
+
       if (forceRefresh && meta.refreshDue) {
         metadataRow = await refreshSnapshotSingleFlight(env.AUTH_DB);
         meta = metadataFor(metadataRow, requestId, true, false);
+      }
+
+      if (forceRefresh) {
+        const primaryDb = primarySession(env.AUTH_DB);
+        await ensureSchemas(primaryDb);
+        chunkCoverage = await readChunkCoverage(primaryDb, metadataRow);
+        if (!chunkCoverage.ready) {
+          chunkCoverage = await backfillChunksFromPersistedSnapshot(env.AUTH_DB);
+          chunkBackfilled = true;
+        }
       } else if (meta.refreshDue && typeof context.waitUntil === 'function') {
         context.waitUntil(refreshSnapshotSingleFlight(env.AUTH_DB).catch((error) => {
           console.error('Background market snapshot refresh failed', { requestId, error });
         }));
         meta = metadataFor(metadataRow, requestId, false, true);
       }
-      return json(meta, 200, { 'X-KriptoAman-Market-Read': 'metadata-only' });
+
+      return json({
+        ...meta,
+        ...(forceRefresh ? {
+          chunkReady: Boolean(chunkCoverage?.ready),
+          chunkCount: Number(chunkCoverage?.chunkCount || 0),
+          expectedChunks: Number(chunkCoverage?.expectedChunks || 0),
+          chunkBackfilled,
+        } : {}),
+      }, 200, { 'X-KriptoAman-Market-Read': 'metadata-only' });
     }
 
     let snapshot = decodeSnapshot(await readSnapshot(readDb));
