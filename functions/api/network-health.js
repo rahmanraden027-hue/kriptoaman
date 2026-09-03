@@ -151,7 +151,7 @@ async function probeUrl(item, url) {
       body: rpcBody('chain_getHeader'),
     }, timeoutMs);
   } else if (item.type === 'tron') {
-    if (url.includes('tron-evm-rpc.publicnode.com')) {
+    if (url === 'https://tron-evm-rpc.publicnode.com') {
       response = await fetchWithTimeout(url, {
         method: 'POST',
         headers: requestHeaders({ 'Content-Type': 'application/json' }),
