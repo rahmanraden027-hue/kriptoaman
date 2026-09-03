@@ -108,12 +108,14 @@ try {
   } else {
     const distance = Math.abs(rpcHeight - explorerHeight);
     report.checks.heightDistance = { rpcHeight, explorerHeight, distance };
-    if (distance > 5) {
-      report.classification = 'blockscout_indexer_lagging';
-    } else if (!report.checks.explorerTransactionsChartApi.ok || !report.checks.explorerMarketChartApi.ok) {
-      report.classification = 'blockscout_stats_chart_api_unhealthy';
+    if (distance <= 5) {
+      if (!report.checks.explorerTransactionsChartApi.ok || !report.checks.explorerMarketChartApi.ok) {
+        report.classification = 'blockscout_stats_chart_api_unhealthy';
+      } else {
+        report.classification = 'healthy';
+      }
     } else {
-      report.classification = 'healthy';
+      report.classification = 'blockscout_indexer_lagging';
     }
   }
 } catch (error) {
