@@ -65,79 +65,82 @@ contract KAMDEXV2Test {
         require(ok, "permissionless pair creation not enabled");
         require(factory.getPair(address(tokenA), address(tokenC)) != address(0), "public pair missing");
 
-        (bool secondOpenOk,) = address(factory).call(
-            abi.encodeWithSelector(factory.enablePermissionlessPairCreation.selector)
-        );
+        (bool secondOpenOk,) =
+            address(factory).call(abi.encodeWithSelector(factory.enablePermissionlessPairCreation.selector));
         require(!secondOpenOk, "permissionless opening repeated unexpectedly");
     }
 
     function testRouterNeverAutoCreatesMissingPair() public {
-        (bool ok,) = address(router).call(
-            abi.encodeWithSelector(
-                router.addLiquidity.selector,
-                address(tokenA),
-                address(tokenB),
-                1_000 ether,
-                1_000 ether,
-                1_000 ether,
-                1_000 ether,
-                address(this),
-                type(uint256).max
-            )
-        );
+        (bool ok,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.addLiquidity.selector,
+                    address(tokenA),
+                    address(tokenB),
+                    1_000 ether,
+                    1_000 ether,
+                    1_000 ether,
+                    1_000 ether,
+                    address(this),
+                    type(uint256).max
+                )
+            );
         require(!ok, "router auto-created missing pair");
         require(factory.allPairsLength() == 0, "missing pair was created");
     }
 
     function testExpiredDeadlineIsRejected() public {
         factory.createPair(address(tokenA), address(tokenB));
-        (bool ok,) = address(router).call(
-            abi.encodeWithSelector(
-                router.addLiquidity.selector,
-                address(tokenA),
-                address(tokenB),
-                1_000 ether,
-                1_000 ether,
-                1_000 ether,
-                1_000 ether,
-                address(this),
-                0
-            )
-        );
+        (bool ok,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.addLiquidity.selector,
+                    address(tokenA),
+                    address(tokenB),
+                    1_000 ether,
+                    1_000 ether,
+                    1_000 ether,
+                    1_000 ether,
+                    address(this),
+                    0
+                )
+            );
         require(!ok, "expired transaction accepted");
     }
 
     function testInitialLiquidityChecksBothMinimums() public {
         factory.createPair(address(tokenA), address(tokenB));
 
-        (bool aOk,) = address(router).call(
-            abi.encodeWithSelector(
-                router.addLiquidity.selector,
-                address(tokenA),
-                address(tokenB),
-                1_000 ether,
-                1_000 ether,
-                1_001 ether,
-                1_000 ether,
-                address(this),
-                type(uint256).max
-            )
-        );
+        (bool aOk,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.addLiquidity.selector,
+                    address(tokenA),
+                    address(tokenB),
+                    1_000 ether,
+                    1_000 ether,
+                    1_001 ether,
+                    1_000 ether,
+                    address(this),
+                    type(uint256).max
+                )
+            );
         require(!aOk, "initial amountAMin bypassed");
 
-        (bool bOk,) = address(router).call(
-            abi.encodeWithSelector(
-                router.addLiquidity.selector,
-                address(tokenA),
-                address(tokenB),
-                1_000 ether,
-                1_000 ether,
-                1_000 ether,
-                1_001 ether,
-                address(this),
-                type(uint256).max
-            )
-        );
+        (bool bOk,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.addLiquidity.selector,
+                    address(tokenA),
+                    address(tokenB),
+                    1_000 ether,
+                    1_000 ether,
+                    1_000 ether,
+                    1_001 ether,
+                    address(this),
+                    type(uint256).max
+                )
+            );
         require(!bOk, "initial amountBMin bypassed");
     }
 
@@ -146,19 +149,20 @@ contract KAMDEXV2Test {
         uint256 aBefore = tokenA.balanceOf(address(this));
         uint256 bBefore = tokenB.balanceOf(address(this));
 
-        (bool ok,) = address(router).call(
-            abi.encodeWithSelector(
-                router.addLiquidity.selector,
-                address(tokenA),
-                address(tokenB),
-                1_000 ether,
-                1_000 ether,
-                1_001 ether,
-                1_000 ether,
-                address(this),
-                type(uint256).max
-            )
-        );
+        (bool ok,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.addLiquidity.selector,
+                    address(tokenA),
+                    address(tokenB),
+                    1_000 ether,
+                    1_000 ether,
+                    1_001 ether,
+                    1_000 ether,
+                    address(this),
+                    type(uint256).max
+                )
+            );
         require(!ok, "F-05 amountAMin bypass still present");
         require(tokenA.balanceOf(address(this)) == aBefore, "A moved on revert");
         require(tokenB.balanceOf(address(this)) == bBefore, "B moved on revert");
@@ -169,19 +173,20 @@ contract KAMDEXV2Test {
         uint256 aBefore = tokenA.balanceOf(address(this));
         uint256 bBefore = tokenB.balanceOf(address(this));
 
-        (bool ok,) = address(router).call(
-            abi.encodeWithSelector(
-                router.addLiquidity.selector,
-                address(tokenA),
-                address(tokenB),
-                1_000 ether,
-                500 ether,
-                500 ether,
-                501 ether,
-                address(this),
-                type(uint256).max
-            )
-        );
+        (bool ok,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.addLiquidity.selector,
+                    address(tokenA),
+                    address(tokenB),
+                    1_000 ether,
+                    500 ether,
+                    500 ether,
+                    501 ether,
+                    address(this),
+                    type(uint256).max
+                )
+            );
         require(!ok, "F-05 amountBMin bypass still present");
         require(tokenA.balanceOf(address(this)) == aBefore, "A moved on revert");
         require(tokenB.balanceOf(address(this)) == bBefore, "B moved on revert");
