@@ -70,12 +70,14 @@ test('live capacity gate retries fresh probes but never lowers the 12-network st
   assert.doesNotMatch(workflow, /online < (?:[0-9]|1[01])\b/);
 });
 
-test('platform status gives the network probe enough time and enforces its published minimum', async () => {
+test('platform status enforces the 12-network minimum under a bounded aggregate latency budget', async () => {
   const platform = await read('functions/api/platform-status.js');
-  assert.match(platform, /const NETWORK_HEALTH_TIMEOUT_MS = 5000/);
-  assert.match(platform, /readJson\(`\$\{origin\}\/api\/network-health`, NETWORK_HEALTH_TIMEOUT_MS\)/);
+  assert.match(platform, /const COMPONENT_STATUS_TIMEOUT_MS = 850/);
+  assert.match(platform, /readJson\(`\$\{origin\}\/api\/network-health`\)/);
   assert.match(platform, /networkOnline >= networkMinimumTarget/);
   assert.match(platform, /networkHealthyRequiresMinimumTarget: true/);
+  assert.match(platform, /componentTimeoutDegradesRatherThanFabricates: true/);
+  assert.match(platform, /readError: networks\.ok \? null : networks\.error/);
 });
 
 test('public landing uses the stable platform health contract for asset and network counts', async () => {
