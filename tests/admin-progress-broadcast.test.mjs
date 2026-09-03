@@ -39,5 +39,5 @@ test('progress broadcast is admin-only, branded, deduplicated, and privacy prese
   assert.match(bimi, /<title>KriptoAman<\/title>/);
   assert.match(bimi, /viewBox="0 0 512 512"/);
   assert.doesNotMatch(bimi, /<script/i);
-  assert.doesNotMatch(bimi, /https?:\/\//i);
+  assert.doesNotMatch(bimi, /(?:href|xlink:href)\s*=/i);
 });
