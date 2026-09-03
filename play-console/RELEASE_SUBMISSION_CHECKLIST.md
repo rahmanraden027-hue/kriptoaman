@@ -1,6 +1,7 @@
 # KriptoAman — Google Play Submission Checklist
 
-Prepared: 18 August 2026
+Prepared: 18 August 2026  
+Latest technical sync: 3 September 2026
 
 Legend:
 
@@ -11,20 +12,28 @@ Legend:
 
 ## A. Developer organization
 
-- `[EXTERNAL]` D-U-N-S number for PT KRIPTO AMAN INDONESIA — pending D&B Indonesia.
+- `[EXTERNAL]` D-U-N-S number for PT KRIPTO AMAN INDONESIA — pending D&B Indonesia unless separately completed outside this repository.
 - `[ACTION]` Create/complete Google Play developer account as Organization after D-U-N-S is available.
 - `[ACTION]` Enter legal organization identity exactly as validated by D&B/Google payments profile.
 - `[VERIFY]` Do not place legal IDs, tax numbers, private identity documents, or signing credentials in this public repository.
 
 ## B. Android release
 
+Verified against production commit `5f913323acc8fbe5e6f013920551773711184187`.
+
 - `[READY]` Package ID: `com.kriptoaman.app`
-- `[READY]` Version name: `1.3`
-- `[READY]` Version code: `4`
+- `[READY]` Version name: `1.5`
+- `[READY]` Version code: `6`
+- `[READY]` Min SDK: API 24
+- `[READY]` Compile SDK: API 36
 - `[READY]` Target SDK: API 36
-- `[READY]` Signed AAB pipeline has previously succeeded on trusted `main`.
-- `[READY]` Android manifest currently requests INTERNET only and disables app backup.
-- `[ACTION]` After all release copy/compliance changes are merged, produce/verify the latest trusted signed AAB from `main` before upload.
+- `[READY]` Android app backup disabled and cleartext traffic disabled.
+- `[READY]` Android manifest permissions: `INTERNET`, `ACCESS_NETWORK_STATE`, `VIBRATE`.
+- `[READY]` Latest signed Android release pipeline succeeded on trusted `main`.
+- `[READY]` Latest workflow run: `Android Release Artifacts #646`.
+- `[READY]` Latest direct APK artifact: `kriptoaman-direct-apk` (7,049,108 bytes), SHA-256 `811aaf990a552db0fc7c411bc0d0f5fd3d07ac92bfec8923a7bd0ead032d670a`.
+- `[READY]` Latest Play AAB artifact: `kriptoaman-play-aab` (7,139,980 bytes), SHA-256 `fa3431cd8a1574981630e2493c4bd398589e5abe6f6f74022fb7c703b3af01ca`.
+- `[ACTION]` Upload the latest trusted signed AAB from `main` only after Play Console organization/app setup is complete.
 
 ## C. Main store listing
 
@@ -61,8 +70,8 @@ Copy from `play-console/APP_CONTENT_DECLARATIONS.md`.
 - `[READY]` Health app: No
 - `[ACTION]` Create a reusable standard reviewer account
 - `[ACTION]` Enter reviewer credentials/instructions in Play Console in English
-- `[VERIFY]` Confirm production analytics/Mixpanel behavior
-- `[VERIFY]` Confirm Didit Data Safety/vendor classification
+- `[VERIFY]` Confirm production Mixpanel token status and exactly which analytics data leaves the device.
+- `[VERIFY]` Confirm Didit production flow, Data Safety categories, and vendor/service-provider classification.
 
 ## E. Data Safety final gate
 
@@ -130,11 +139,12 @@ Do not send for production review until all of the following are true:
 5. Reviewer account works without OTP/TOTP/biometric dependency.
 6. Store screenshots match the submitted build.
 7. Data Safety matches actual production data flow.
-8. Financial Features Declaration matches watch-only/non-custodial behavior.
+8. Financial Features Declaration matches the actual shipped behavior and does not overstate exchange/custody capabilities.
 9. Privacy Policy and Account Deletion URLs are publicly reachable.
 10. No unsupported claim of exchange, custody, regulator approval, guaranteed returns, rankings, or security certification appears in store metadata or screenshots.
+11. Any DEX/liquidity functionality that remains under independent security-audit HOLD is not represented as publicly live or production-ready in the submitted store listing.
 
-## I. Fastest execution order once D-U-N-S arrives
+## I. Fastest execution order once organization verification is available
 
 1. Finish Organization verification.
 2. Create the app entry with package `com.kriptoaman.app`.
