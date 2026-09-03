@@ -26,7 +26,8 @@ const json = (body, status = 200, extraHeaders = {}) => new Response(JSON.string
 
 async function fetchJson(url) {
   let lastError;
-  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt += 1) {
+  const maxAttempts = RETRY_DELAYS_MS.length + 1;
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
@@ -38,8 +39,9 @@ async function fetchJson(url) {
       return await response.json();
     } catch (error) {
       lastError = error;
-      if (attempt >= RETRY_DELAYS_MS.length) break;
-      await sleep(RETRY_DELAYS_MS[attempt]);
+      if (attempt === maxAttempts - 1) break;
+      const retryDelay = RETRY_DELAYS_MS[attempt];
+      if (Number.isFinite(retryDelay)) await sleep(retryDelay);
     } finally {
       clearTimeout(timeout);
     }
