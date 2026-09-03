@@ -1,3 +1,5 @@
+import { readSession } from '../_shared/d1-session.js';
+
 const DEFAULT_PAGE_SIZE = 500;
 const MAX_PAGE_SIZE = 500;
 const MIN_PAGE_SIZE = 100;
@@ -25,7 +27,8 @@ async function buildPage(env, request, requestId) {
   }
 
   try {
-    const row = await env.AUTH_DB.prepare(
+    const db = readSession(env.AUTH_DB);
+    const row = await db.prepare(
       'SELECT source, asset_count, captured_at, payload FROM market_snapshots WHERE id = ?',
     ).bind('global').first();
 
@@ -57,7 +60,10 @@ async function buildPage(env, request, requestId) {
       hasMore: safePage + 1 < totalPages,
       requestId,
       data,
-    }, 200, { 'X-KriptoAman-Market-Page-Cache': 'MISS' });
+    }, 200, {
+      'X-KriptoAman-Market-Page-Cache': 'MISS',
+      'X-KriptoAman-D1-Session': typeof env.AUTH_DB.withSession === 'function' ? 'enabled' : 'compat',
+    });
   } catch (error) {
     console.error('Paged market snapshot unavailable', { requestId, error });
     return json({ error: 'Paged market snapshot unavailable', code: 'MARKET_PAGE_FAILED', requestId }, 503, { 'Retry-After': '30' });
