@@ -1,0 +1,65 @@
+name: Multi-chain Stability Proof
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'functions/api/network-health.js'
+      - 'scripts/summarize-network-health.mjs'
+      - '.github/workflows/multichain-stability-proof.yml'
+      - 'tests/multichain-stability-proof.test.mjs'
+  schedule:
+    - cron: '11,41 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: multichain-stability-proof
+  cancel-in-progress: false
+
+jobs:
+  stability-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Capture fresh production network evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            if curl --fail --silent --show-error --max-time 45 \
+              "https://kriptoaman.com/api/network-health?refresh=1&stability=${GITHUB_RUN_ID}-${attempt}" \
+              -o network-health-live.json; then
+              break
+            fi
+            if [ "$attempt" = 3 ]; then
+              echo 'Unable to capture a fresh multi-chain production snapshot.' >&2
+              exit 1
+            fi
+            sleep $((attempt * 5))
+          done
+
+      - name: Summarize stability evidence
+        run: |
+          node scripts/summarize-network-health.mjs \
+            network-health-live.json \
+            network-stability-summary.json \
+            network-stability-summary.md
+          cat network-stability-summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload stability evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: multichain-stability-${{ github.run_id }}
+          path: |
+            network-health-live.json
+            network-stability-summary.json
+            network-stability-summary.md
+          retention-days: 14
+          if-no-files-found: error
