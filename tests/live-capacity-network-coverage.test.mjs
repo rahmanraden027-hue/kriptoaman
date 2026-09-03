@@ -25,6 +25,7 @@ test('multi-chain probes tolerate normal public-RPC latency without fabricating 
   const health = await read('functions/api/network-health.js');
   assert.match(health, /const DEFAULT_PROVIDER_TIMEOUT_MS = 2500/);
   assert.match(health, /const SLOW_PROVIDER_TIMEOUT_MS = 3500/);
+  assert.match(health, /const EXTENDED_PROVIDER_TIMEOUT_MS = 5000/);
   assert.match(health, /const SNAPSHOT_TTL_MS = 45_000/);
   assert.match(health, /const LAST_GOOD_TTL_MS = 10 \* 60 \* 1000/);
   assert.match(health, /let refreshInFlight = null/);
@@ -41,6 +42,20 @@ test('Base health check has an independent third provider for rate-limit recover
   assert.ok(baseConfig.includes("'https://mainnet.base.org'"));
   assert.ok(baseConfig.includes("'https://base-rpc.publicnode.com'"));
   assert.ok(baseConfig.includes("'https://base-mainnet.public.blastapi.io'"));
+});
+
+test('remaining public chains have resilient provider coverage', async () => {
+  const health = await read('functions/api/network-health.js');
+  assert.ok(health.includes("'https://tron-evm-rpc.publicnode.com'"));
+  assert.ok(health.includes("'https://honeycluster.io/'"));
+  assert.ok(health.includes("'https://s2.ripple.com:51234/'"));
+  assert.ok(health.includes("'https://api.koios.rest/api/v1/tip?select=block_no'"));
+  assert.ok(health.includes("'https://litecoinspace.org/api/blocks/tip/height'"));
+  assert.ok(health.includes("'https://ltc1.trezor.io/api/v2'"));
+  assert.ok(health.includes("'https://doge1.trezor.io/api/v2'"));
+  assert.ok(health.includes("'https://dogecoin.atomicwallet.io/api/v2'"));
+  assert.match(health, /payload\?\.blockbook\?\.bestHeight/);
+  assert.match(health, /payload\?\.backend\?\.blocks/);
 });
 
 test('live capacity gate retries fresh probes but never lowers the 12-network standard', async () => {
