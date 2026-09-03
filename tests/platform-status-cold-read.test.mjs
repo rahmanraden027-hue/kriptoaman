@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import test from 'node:test';
+
+const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
+
+test('platform status reads compact market metadata directly through D1 Sessions', async () => {
+  const source = await read('functions/api/platform-status.js');
+  assert.match(source, /import \{ readSession \} from '\.\.\/_shared\/d1-session\.js'/);
+  assert.match(source, /async function readMarketMetadata/);
+  assert.match(source, /SELECT source, asset_count, captured_at FROM market_snapshots WHERE id = \?/);
+  assert.doesNotMatch(source, /SELECT source, asset_count, captured_at, payload FROM market_snapshots/);
+  assert.match(source, /readMode: 'd1-direct'/);
+  assert.match(source, /readMode: 'http-fallback'/);
+});
+
+test('platform status preserves market operational freshness and asset gates', async () => {
+  const source = await read('functions/api/platform-status.js');
+  assert.match(source, /const MIN_PUBLIC_MARKET_ASSETS = 4500/);
+  assert.match(source, /const MARKET_SNAPSHOT_FRESH_MS = 15 \* 60 \* 1000/);
+  assert.match(source, /market\.payload\?\.healthy === true/);
+  assert.match(source, /marketAssetCount >= MIN_PUBLIC_MARKET_ASSETS/);
+  assert.match(source, /marketFresh/);
+  assert.match(source, /marketOperationalRequiresFreshSnapshot: true/);
+  assert.match(source, /valuesAreLiveVerifiedOnly: true/);
+  assert.match(source, /fabricatedMetrics: false/);
+});
+
+test('platform status keeps bounded HTTP fallback and cached aggregate delivery', async () => {
+  const source = await read('functions/api/platform-status.js');
+  assert.match(source, /\/api\/market-snapshot\?health=1/);
+  assert.match(source, /1800/);
+  assert.match(source, /globalThis\.caches\?\.default/);
+  assert.match(source, /STATUS_TTL_MS = 30_000/);
+  assert.match(source, /statusInFlight/);
+});
