@@ -46,15 +46,15 @@ test('Base health check has an independent third provider for rate-limit recover
 
 test('remaining public chains have resilient provider coverage without anonymous TronScan dependency', async () => {
   const health = await read('functions/api/network-health.js');
-  assert.match(health, /https:\/\/tron-evm-rpc\.publicnode\.com/);
-  assert.doesNotMatch(health, /apilist\.tronscanapi\.com/);
-  assert.match(health, /https:\/\/honeycluster\.io\//);
-  assert.match(health, /https:\/\/s2\.ripple\.com:51234\//);
-  assert.match(health, /https:\/\/api\.koios\.rest\/api\/v1\/tip\?select=block_no/);
-  assert.match(health, /https:\/\/litecoinspace\.org\/api\/blocks\/tip\/height/);
-  assert.match(health, /https:\/\/ltc1\.trezor\.io\/api\/v2/);
-  assert.match(health, /https:\/\/doge1\.trezor\.io\/api\/v2/);
-  assert.match(health, /https:\/\/dogecoin\.atomicwallet\.io\/api\/v2/);
+  assert.ok(health.includes("'https://tron-evm-rpc.publicnode.com'"));
+  assert.ok(!health.includes('apilist.tronscanapi.com'));
+  assert.ok(health.includes("'https://honeycluster.io/'"));
+  assert.ok(health.includes("'https://s2.ripple.com:51234/'"));
+  assert.ok(health.includes("'https://api.koios.rest/api/v1/tip?select=block_no'"));
+  assert.ok(health.includes("'https://litecoinspace.org/api/blocks/tip/height'"));
+  assert.ok(health.includes("'https://ltc1.trezor.io/api/v2'"));
+  assert.ok(health.includes("'https://doge1.trezor.io/api/v2'"));
+  assert.ok(health.includes("'https://dogecoin.atomicwallet.io/api/v2'"));
   assert.match(health, /payload\?\.blockbook\?\.bestHeight/);
   assert.match(health, /payload\?\.backend\?\.blocks/);
 });
