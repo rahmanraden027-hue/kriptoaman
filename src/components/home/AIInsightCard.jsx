@@ -1,43 +1,24 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Activity, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react';
+import {
+  buildIntelligenceMetrics,
+  buildIntelligenceSnapshot,
+  deterministicIntelligence,
+} from '@/lib/aiIntelligence';
 import Skeleton from './Skeleton';
 
-const WATCHLIST = ['BTC', 'ETH', 'BNB', 'SOL', 'XRP'];
-const AI_CACHE_KEY = 'ka_ai_market_intelligence_v2';
+const AI_CACHE_KEY = 'ka_ai_market_intelligence_v3';
 const AI_CACHE_TTL_MS = 5 * 60 * 1000;
+const NETWORK_CONTEXT_TTL_MS = 60 * 1000;
 
-function buildSnapshot(prices = {}) {
-  return WATCHLIST.map(symbol => {
-    const item = prices?.[symbol];
-    if (!item || !Number.isFinite(Number(item.price))) return null;
-    return {
-      symbol,
-      price: Number(item.price),
-      change24h: Number.isFinite(Number(item.change24h)) ? Number(item.change24h) : null,
-      high24h: Number.isFinite(Number(item.high24h)) ? Number(item.high24h) : null,
-      low24h: Number.isFinite(Number(item.low24h)) ? Number(item.low24h) : null,
-      volume24h: Number.isFinite(Number(item.volume24h)) ? Number(item.volume24h) : null,
-    };
-  }).filter(Boolean);
-}
-
-function buildMetrics(snapshot) {
-  const changes = snapshot.map(x => x.change24h).filter(Number.isFinite);
-  const average = changes.length ? changes.reduce((a, b) => a + b, 0) / changes.length : 0;
-  const positive = changes.filter(v => v > 0).length;
-  const negative = changes.filter(v => v < 0).length;
-  const breadthPct = changes.length ? (positive / changes.length) * 100 : 0;
-  const dispersion = changes.length > 1
-    ? Math.sqrt(changes.reduce((sum, value) => sum + ((value - average) ** 2), 0) / changes.length)
-    : 0;
-  return { average, positive, negative, breadthPct, dispersion };
-}
-
-function snapshotFingerprint(snapshot, language) {
+function snapshotFingerprint(snapshot, language, networkContext) {
   return JSON.stringify({
     language,
-    values: snapshot.map(item => [
+    network: networkContext?.verified
+      ? [networkContext.online, networkContext.total, networkContext.kamOperational]
+      : null,
+    values: snapshot.map((item) => [
       item.symbol,
       Math.round(item.price * 10000) / 10000,
       Number.isFinite(item.change24h) ? Math.round(item.change24h * 100) / 100 : null,
@@ -68,59 +49,61 @@ function writeAICache(fingerprint, insight) {
   }
 }
 
-function deterministicInsight(snapshot, language) {
-  if (!snapshot.length) {
-    return {
-      title: language === 'en' ? 'Waiting for verified market data' : 'Menunggu data pasar terverifikasi',
-      body: language === 'en'
-        ? 'KriptoAman will generate market intelligence after a verified price snapshot is available.'
-        : 'KriptoAman akan menghasilkan market intelligence setelah snapshot harga terverifikasi tersedia.',
-      sentiment: 'neutral',
-      confidence: 'data-pending',
-      metrics: buildMetrics(snapshot),
-    };
-  }
-
-  const metrics = buildMetrics(snapshot);
-  const sentiment = metrics.average > 1 ? 'positive' : metrics.average < -1 ? 'negative' : 'neutral';
-  const breadth = metrics.positive > metrics.negative ? 'positive' : metrics.negative > metrics.positive ? 'negative' : 'mixed';
-  const riskBand = metrics.dispersion >= 4 ? 'elevated' : metrics.dispersion >= 2 ? 'moderate' : 'contained';
-
-  return language === 'en'
-    ? {
-        title: `Market breadth is ${breadth}`,
-        body: `${snapshot.length} major assets are verified. Average 24h change is ${metrics.average.toFixed(2)}%, with ${metrics.positive} advancing and ${metrics.negative} declining. Cross-asset dispersion is ${metrics.dispersion.toFixed(2)}%, indicating ${riskBand} short-horizon price dispersion.`,
-        sentiment,
-        confidence: 'rules-based',
-        metrics,
-      }
-    : {
-        title: `Breadth pasar ${breadth === 'positive' ? 'positif' : breadth === 'negative' ? 'negatif' : 'campuran'}`,
-        body: `${snapshot.length} aset utama terverifikasi. Rata-rata perubahan 24 jam ${metrics.average.toFixed(2)}%, dengan ${metrics.positive} menguat dan ${metrics.negative} melemah. Dispersi lintas aset ${metrics.dispersion.toFixed(2)}%, menunjukkan penyebaran harga jangka pendek ${riskBand === 'elevated' ? 'tinggi' : riskBand === 'moderate' ? 'moderat' : 'terkendali'}.`,
-        sentiment,
-        confidence: 'rules-based',
-        metrics,
-      };
-}
-
 export default function AIInsightCard({ prices = {}, language = 'id' }) {
   const [insight, setInsight] = useState(null);
   const [loading, setLoading] = useState(false);
   const [updatedAt, setUpdatedAt] = useState(null);
   const [sourceMode, setSourceMode] = useState('waiting');
+  const [networkContext, setNetworkContext] = useState(null);
 
-  const snapshot = useMemo(() => buildSnapshot(prices), [prices]);
-  const metrics = useMemo(() => buildMetrics(snapshot), [snapshot]);
-  const hasMarketData = snapshot.some(item => item.symbol === 'BTC') && snapshot.some(item => item.symbol === 'ETH');
+  const snapshot = useMemo(() => buildIntelligenceSnapshot(prices), [prices]);
+  const metrics = useMemo(() => buildIntelligenceMetrics(snapshot), [snapshot]);
+  const hasMarketData = snapshot.some((item) => item.symbol === 'BTC') && snapshot.some((item) => item.symbol === 'ETH');
+
+  useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
+
+    async function loadNetworkContext() {
+      try {
+        const [networkResponse, kamResponse] = await Promise.all([
+          fetch('/api/network-health', { signal: controller.signal, headers: { Accept: 'application/json' } }),
+          fetch('/api/kam/network-status', { signal: controller.signal, headers: { Accept: 'application/json' } }),
+        ]);
+        if (!networkResponse.ok || !kamResponse.ok) return;
+        const [network, kam] = await Promise.all([networkResponse.json(), kamResponse.json()]);
+        if (!active) return;
+        const online = Number(network?.summary?.online || 0);
+        const total = Number(network?.summary?.total || 0);
+        setNetworkContext({
+          verified: total > 0 && online >= Number(network?.summary?.minimum_active_target || 12),
+          online,
+          total,
+          kamOperational: kam?.live === true && kam?.verified === true && Number(kam?.chainId) === 22028,
+          checkedAt: Date.now(),
+        });
+      } catch {
+        // Network context is optional. Market intelligence must keep working without it.
+      }
+    }
+
+    loadNetworkContext();
+    const timer = setInterval(loadNetworkContext, NETWORK_CONTEXT_TTL_MS);
+    return () => {
+      active = false;
+      controller.abort();
+      clearInterval(timer);
+    };
+  }, []);
 
   const load = useCallback(async ({ force = false } = {}) => {
     if (!hasMarketData) {
-      setInsight(deterministicInsight(snapshot, language));
+      setInsight(deterministicIntelligence(snapshot, language, networkContext));
       setSourceMode('waiting');
       return;
     }
 
-    const fingerprint = snapshotFingerprint(snapshot, language);
+    const fingerprint = snapshotFingerprint(snapshot, language, networkContext);
     if (!force) {
       const cached = readAICache(fingerprint);
       if (cached) {
@@ -132,13 +115,20 @@ export default function AIInsightCard({ prices = {}, language = 'id' }) {
     }
 
     setLoading(true);
-    const fallback = deterministicInsight(snapshot, language);
+    const fallback = deterministicIntelligence(snapshot, language, networkContext);
 
     try {
       const localeInstruction = language === 'en' ? 'Write in English.' : 'Tulis dalam Bahasa Indonesia.';
-      const verifiedMetrics = buildMetrics(snapshot);
+      const verifiedMetrics = buildIntelligenceMetrics(snapshot);
+      const verifiedNetwork = networkContext?.verified
+        ? {
+            online: networkContext.online,
+            total: networkContext.total,
+            kamOperational: networkContext.kamOperational,
+          }
+        : null;
       const res = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are KriptoAman AI Market Intelligence. Use ONLY the verified JSON market snapshot and deterministic metrics below. Do not claim access to news, order books, dominance, sentiment indexes, on-chain data, forecasts, or information not present in the supplied evidence. ${localeInstruction} Produce a concise descriptive market-intelligence summary, not investment advice. Never give buy/sell instructions, price targets, guaranteed outcomes, or personalized financial advice. Classify sentiment only as positive, neutral, or negative. Explain observed breadth, momentum and cross-asset dispersion factually.\n\nVERIFIED_SNAPSHOT=${JSON.stringify(snapshot)}\nVERIFIED_METRICS=${JSON.stringify(verifiedMetrics)}`,
+        prompt: `You are KriptoAman AI Intelligence. Use ONLY the verified JSON market snapshot, deterministic metrics, and optional verified network context below. Do not claim access to news, order books, dominance, sentiment indexes, forecasts, historical correlation, or information not supplied. ${localeInstruction} Produce concise descriptive intelligence, not investment advice. Never give buy/sell instructions, price targets, guaranteed outcomes, or personalized financial advice. Explain breadth, momentum, dispersion, risk band, anomaly flags and verified network health factually. Correlation must be described as unavailable when time-series history is not supplied.\n\nVERIFIED_SNAPSHOT=${JSON.stringify(snapshot)}\nVERIFIED_METRICS=${JSON.stringify(verifiedMetrics)}\nVERIFIED_NETWORK=${JSON.stringify(verifiedNetwork)}`,
         response_json_schema: {
           type: 'object',
           required: ['title', 'body', 'sentiment'],
@@ -150,7 +140,12 @@ export default function AIInsightCard({ prices = {}, language = 'id' }) {
         },
       });
 
-      const grounded = { ...res, confidence: 'ai-grounded', metrics: verifiedMetrics };
+      const grounded = {
+        ...res,
+        confidence: 'ai-grounded',
+        metrics: verifiedMetrics,
+        network: verifiedNetwork,
+      };
       setInsight(grounded);
       setSourceMode('ai-grounded');
       writeAICache(fingerprint, grounded);
@@ -161,15 +156,15 @@ export default function AIInsightCard({ prices = {}, language = 'id' }) {
       setUpdatedAt(Date.now());
       setLoading(false);
     }
-  }, [hasMarketData, language, snapshot]);
+  }, [hasMarketData, language, networkContext, snapshot]);
 
   useEffect(() => {
     if (hasMarketData && sourceMode === 'waiting' && !loading) {
       load();
       return;
     }
-    if (!hasMarketData && !insight) setInsight(deterministicInsight(snapshot, language));
-  }, [hasMarketData, insight, language, load, loading, snapshot, sourceMode]);
+    if (!hasMarketData && !insight) setInsight(deterministicIntelligence(snapshot, language, networkContext));
+  }, [hasMarketData, insight, language, load, loading, networkContext, snapshot, sourceMode]);
 
   const sentiment = insight?.sentiment || 'neutral';
   const sentimentTone = sentiment === 'positive'
@@ -181,28 +176,30 @@ export default function AIInsightCard({ prices = {}, language = 'id' }) {
   const copy = language === 'en'
     ? {
         eyebrow: 'KRIPTOAMAN AI INTELLIGENCE',
-        title: 'Verified Market Intelligence',
-        refresh: 'Refresh market intelligence',
-        grounded: 'AI grounded in live data',
+        title: 'Verified Market & Network Intelligence',
+        refresh: 'Refresh intelligence',
+        grounded: 'AI grounded in verified data',
         cached: 'Verified AI cache',
         rules: 'Verified deterministic fallback',
         waiting: 'Waiting for live data',
         breadth: 'Advancing',
         dispersion: 'Dispersion',
-        average: 'Avg 24h',
+        risk: 'Risk radar',
+        network: 'Networks',
         disclaimer: 'Descriptive analytics only · Not investment advice',
       }
     : {
         eyebrow: 'KRIPTOAMAN AI INTELLIGENCE',
-        title: 'Verified Market Intelligence',
-        refresh: 'Perbarui market intelligence',
-        grounded: 'AI berbasis data live',
+        title: 'Verified Market & Network Intelligence',
+        refresh: 'Perbarui intelligence',
+        grounded: 'AI berbasis data terverifikasi',
         cached: 'Cache AI terverifikasi',
         rules: 'Fallback deterministik terverifikasi',
         waiting: 'Menunggu data live',
         breadth: 'Menguat',
         dispersion: 'Dispersi',
-        average: 'Rata2 24j',
+        risk: 'Risk radar',
+        network: 'Jaringan',
         disclaimer: 'Analitik deskriptif · Bukan rekomendasi investasi',
       };
 
@@ -252,23 +249,27 @@ export default function AIInsightCard({ prices = {}, language = 'id' }) {
           <p className="mt-3 text-sm font-extrabold leading-5 text-white">{insight?.title}</p>
           <p className="mt-1.5 text-sm leading-6 text-slate-400">{insight?.body}</p>
 
-          <div className="mt-3 grid grid-cols-3 gap-2">
+          <div className="mt-3 grid grid-cols-4 gap-2">
             <div className="rounded-xl border border-white/[0.06] bg-white/[0.025] px-2.5 py-2">
               <p className="text-[9px] font-bold text-slate-500">{copy.breadth}</p>
               <p className="mt-1 text-[11px] font-extrabold text-white">{metrics.positive}/{snapshot.length || 0}</p>
             </div>
             <div className="rounded-xl border border-white/[0.06] bg-white/[0.025] px-2.5 py-2">
-              <p className="text-[9px] font-bold text-slate-500">{copy.average}</p>
-              <p className="mt-1 text-[11px] font-extrabold text-white">{metrics.average >= 0 ? '+' : ''}{metrics.average.toFixed(2)}%</p>
-            </div>
-            <div className="rounded-xl border border-white/[0.06] bg-white/[0.025] px-2.5 py-2">
               <p className="text-[9px] font-bold text-slate-500">{copy.dispersion}</p>
               <p className="mt-1 text-[11px] font-extrabold text-white">{metrics.dispersion.toFixed(2)}%</p>
+            </div>
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.025] px-2.5 py-2">
+              <p className="text-[9px] font-bold text-slate-500">{copy.risk}</p>
+              <p className="mt-1 text-[11px] font-extrabold text-white">{metrics.riskScore}/100</p>
+            </div>
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.025] px-2.5 py-2">
+              <p className="text-[9px] font-bold text-slate-500">{copy.network}</p>
+              <p className="mt-1 text-[11px] font-extrabold text-white">{networkContext?.verified ? `${networkContext.online}/${networkContext.total}` : '—'}</p>
             </div>
           </div>
 
           <div className="mt-3 grid grid-cols-2 gap-2">
-            {snapshot.slice(0, 4).map(item => (
+            {snapshot.slice(0, 4).map((item) => (
               <div key={item.symbol} className="rounded-xl border border-white/[0.06] bg-white/[0.025] px-3 py-2">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[10px] font-black text-slate-300">{item.symbol}</span>

@@ -1,12 +1,19 @@
+import { readSession } from '../_shared/d1-session.js';
+
 const DEFAULT_PAGE_SIZE = 500;
 const MAX_PAGE_SIZE = 500;
 const MIN_PAGE_SIZE = 100;
+const SNAPSHOT_MEMORY_TTL_MS = 60_000;
 
 const headers = {
   'Content-Type': 'application/json; charset=utf-8',
   'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=840',
   'X-Content-Type-Options': 'nosniff',
 };
+
+let memoryRow = null;
+let memoryRowAt = 0;
+let rowLoadInFlight = null;
 
 const json = (body, status = 200, extraHeaders = {}) => new Response(JSON.stringify(body), {
   status,
@@ -19,15 +26,38 @@ const clampInteger = (value, fallback, min, max) => {
   return Math.min(max, Math.max(min, parsed));
 };
 
+async function loadSnapshotRow(env) {
+  const now = Date.now();
+  if (memoryRow && now - memoryRowAt < SNAPSHOT_MEMORY_TTL_MS) {
+    return { row: memoryRow, mode: 'memory' };
+  }
+
+  if (!rowLoadInFlight) {
+    rowLoadInFlight = (async () => {
+      const db = readSession(env.AUTH_DB);
+      const row = await db.prepare(
+        'SELECT source, asset_count, captured_at, payload FROM market_snapshots WHERE id = ?',
+      ).bind('global').first();
+      if (row?.payload) {
+        memoryRow = row;
+        memoryRowAt = Date.now();
+      }
+      return row;
+    })().finally(() => {
+      rowLoadInFlight = null;
+    });
+  }
+
+  return { row: await rowLoadInFlight, mode: 'd1' };
+}
+
 async function buildPage(env, request, requestId) {
   if (!env.AUTH_DB) {
     return json({ error: 'Market database is not configured', code: 'MARKET_DB_MISSING', requestId }, 503, { 'Retry-After': '30' });
   }
 
   try {
-    const row = await env.AUTH_DB.prepare(
-      'SELECT source, asset_count, captured_at, payload FROM market_snapshots WHERE id = ?',
-    ).bind('global').first();
+    const { row, mode } = await loadSnapshotRow(env);
 
     if (!row?.payload) {
       return json({ error: 'Market snapshot unavailable', code: 'MARKET_SNAPSHOT_EMPTY', requestId }, 503, { 'Retry-After': '30' });
@@ -57,7 +87,16 @@ async function buildPage(env, request, requestId) {
       hasMore: safePage + 1 < totalPages,
       requestId,
       data,
-    }, 200, { 'X-KriptoAman-Market-Page-Cache': 'MISS' });
+      delivery: {
+        snapshotRead: mode,
+        memoryTtlMs: SNAPSHOT_MEMORY_TTL_MS,
+        d1SessionRead: Boolean(env.AUTH_DB && typeof env.AUTH_DB.withSession === 'function'),
+      },
+    }, 200, {
+      'X-KriptoAman-Market-Page-Cache': 'MISS',
+      'X-KriptoAman-Market-Snapshot-Read': mode,
+      'X-KriptoAman-D1-Session': typeof env.AUTH_DB.withSession === 'function' ? 'enabled' : 'compat',
+    });
   } catch (error) {
     console.error('Paged market snapshot unavailable', { requestId, error });
     return json({ error: 'Paged market snapshot unavailable', code: 'MARKET_PAGE_FAILED', requestId }, 503, { 'Retry-After': '30' });

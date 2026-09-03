@@ -1,3 +1,5 @@
+import { readSession } from '../_shared/d1-session.js';
+
 const HOT_SYMBOLS = new Set([
   'BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'ADA', 'DOGE', 'TRX', 'AVAX', 'DOT',
   'LINK', 'POL', 'MATIC', 'LTC', 'UNI', 'SHIB', 'PEPE', 'ATOM', 'NEAR', 'ARB', 'OP', 'SUI', 'APT',
@@ -32,7 +34,7 @@ async function fetchJson(url) {
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
       const response = await fetch(url, {
-        headers: { Accept: 'application/json', 'User-Agent': 'KriptoAman-Hot-Market/2.0' },
+        headers: { Accept: 'application/json', 'User-Agent': 'KriptoAman-Hot-Market/3.0' },
         signal: controller.signal,
       });
       if (!response.ok) throw new Error(`upstream HTTP ${response.status}`);
@@ -100,7 +102,8 @@ function hasCoreSymbols(data) {
 
 async function readPersistedFallback(env) {
   if (!env.AUTH_DB) return null;
-  const row = await env.AUTH_DB.prepare(
+  const db = readSession(env.AUTH_DB);
+  const row = await db.prepare(
     'SELECT source, captured_at, payload FROM market_snapshots WHERE id = ?',
   ).bind('global').first();
   if (!row?.payload) return null;
@@ -182,7 +185,7 @@ export async function onRequestGet({ env, request, waitUntil }) {
     const stale = ageMs > HOT_STALE_AFTER_MS;
     const healthy = hasCoreSymbols(snapshot.data) && ageMs <= MAX_FALLBACK_AGE_MS;
     const response = json({
-      schemaVersion: '1.0',
+      schemaVersion: '1.1',
       healthy,
       source: snapshot.source,
       capturedAt: snapshot.capturedAt,
@@ -191,6 +194,12 @@ export async function onRequestGet({ env, request, waitUntil }) {
       assetCount: snapshot.data.length,
       data: snapshot.data,
       requestId,
+      delivery: {
+        memoryTtlMs: MEMORY_TTL_MS,
+        edgeSMaxAgeSeconds: 15,
+        d1SessionRead: Boolean(env.AUTH_DB && typeof env.AUTH_DB.withSession === 'function'),
+        singleFlight: true,
+      },
     }, healthy ? 200 : 503, { 'X-KriptoAman-Market-Cache': 'MISS' });
 
     if (edgeCache && healthy) {

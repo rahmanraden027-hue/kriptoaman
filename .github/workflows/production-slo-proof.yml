@@ -1,0 +1,45 @@
+name: Production SLO Proof
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'functions/api/**'
+      - 'functions/_shared/**'
+      - 'scripts/probe-production-slo.mjs'
+      - '.github/workflows/production-slo-proof.yml'
+  schedule:
+    - cron: '4,19,34,49 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-slo-proof
+  cancel-in-progress: true
+
+jobs:
+  measure-production-slo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait for production propagation on push
+        if: ${{ github.event_name == 'push' }}
+        run: sleep 35
+      - name: Capture production SLO evidence
+        run: node scripts/probe-production-slo.mjs
+      - name: Publish summary
+        if: always()
+        run: cat production-slo-proof.md >> "$GITHUB_STEP_SUMMARY" || true
+      - name: Upload SLO evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-slo-${{ github.run_id }}
+          path: |
+            production-slo-proof.json
+            production-slo-proof.md
+          if-no-files-found: error
+          retention-days: 14

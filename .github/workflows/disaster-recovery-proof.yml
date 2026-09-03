@@ -1,0 +1,51 @@
+name: Disaster Recovery Proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'functions/api/market-hot.js'
+      - 'functions/api/network-health.js'
+      - 'functions/_shared/d1-session.js'
+      - 'src/lib/aiIntelligence.js'
+      - 'src/components/home/AIInsightCard.jsx'
+      - 'tests/disaster-recovery-simulation.test.mjs'
+      - '.github/workflows/disaster-recovery-proof.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'functions/api/market-hot.js'
+      - 'functions/api/network-health.js'
+      - 'functions/_shared/d1-session.js'
+      - 'src/lib/aiIntelligence.js'
+      - 'src/components/home/AIInsightCard.jsx'
+      - 'tests/disaster-recovery-simulation.test.mjs'
+      - '.github/workflows/disaster-recovery-proof.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deterministic-failure-rehearsal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Simulate market provider RPC and AI failures
+        run: node --test tests/disaster-recovery-simulation.test.mjs
+      - name: Verify production remains read-only healthy
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in /api/market-hot /api/network-health /api/kam/network-status; do
+            code=$(curl -sS -o /tmp/body -w '%{http_code}' --max-time 15 "https://kriptoaman.com${path}")
+            if [ "$code" -lt 200 ] || [ "$code" -ge 400 ]; then
+              echo "Live read-only check failed: ${path} HTTP ${code}" >&2
+              cat /tmp/body || true
+              exit 1
+            fi
+          done

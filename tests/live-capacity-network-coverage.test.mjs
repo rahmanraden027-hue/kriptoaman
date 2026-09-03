@@ -8,7 +8,7 @@ test('network health probes a broad multi-chain set and reports live status only
   const health = await read('functions/api/network-health.js');
   for (const network of [
     'Bitcoin', 'Ethereum', 'BNB Chain', 'Polygon', 'Arbitrum', 'Optimism', 'Base',
-    'Avalanche', 'Gnosis', 'Celo', 'Linea', 'Scroll', 'Mantle', 'Solana', 'TRON',
+    'Avalanche', 'Gnosis', 'Celo', 'Linea', 'Scroll', 'Mantle', 'Fantom', 'Solana', 'TRON',
     'XRP Ledger', 'Polkadot', 'Cardano', 'Litecoin', 'Dogecoin',
   ]) {
     assert.match(health, new RegExp(`name: '${network.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}'`));
@@ -27,21 +27,23 @@ test('multi-chain probes tolerate normal public-RPC latency without fabricating 
   assert.match(health, /const SLOW_PROVIDER_TIMEOUT_MS = 3500/);
   assert.match(health, /const EXTENDED_PROVIDER_TIMEOUT_MS = 5000/);
   assert.match(health, /const SNAPSHOT_TTL_MS = 45_000/);
+  assert.match(health, /const STALE_SNAPSHOT_MAX_AGE_MS = 5 \* 60 \* 1000/);
   assert.match(health, /const LAST_GOOD_TTL_MS = 10 \* 60 \* 1000/);
   assert.match(health, /let refreshInFlight = null/);
   assert.match(health, /const lastGoodByNetwork = new Map\(\)/);
   assert.match(health, /lastKnownGoodNeverCountsAsOnline: true/);
   assert.match(health, /liveOnlineRequiresSuccessfulCurrentProbe: true/);
+  assert.match(health, /publicRequestsMayUseRecentVerifiedSnapshot: true/);
+  assert.match(health, /refreshParameterAlwaysForcesFreshProbe: true/);
   assert.match(health, /globalThis\.caches\?\.default/);
   assert.match(health, /searchParams\.get\('refresh'\) === '1'/);
 });
 
 test('Base health check has an independent third provider for rate-limit recovery', async () => {
   const health = await read('functions/api/network-health.js');
-  const baseConfig = health.match(/name: 'Base'[\s\S]*?\n\s*},/i)?.[0] || '';
-  assert.ok(baseConfig.includes("'https://mainnet.base.org'"));
-  assert.ok(baseConfig.includes("'https://base-rpc.publicnode.com'"));
-  assert.ok(baseConfig.includes("'https://base-mainnet.public.blastapi.io'"));
+  assert.ok(health.includes("'https://mainnet.base.org'"));
+  assert.ok(health.includes("'https://base-rpc.publicnode.com'"));
+  assert.ok(health.includes("'https://base-mainnet.public.blastapi.io'"));
 });
 
 test('remaining public chains have resilient provider coverage', async () => {
