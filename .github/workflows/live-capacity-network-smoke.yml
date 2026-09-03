@@ -45,13 +45,36 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl --fail --silent --show-error --max-time 45 \
-            'https://kriptoaman.com/api/network-health' -o /tmp/networks.json
-          node <<'NODE'
+          for attempt in 1 2 3 4; do
+            echo "Multi-chain live verification attempt ${attempt}/4"
+            if curl --fail --silent --show-error --max-time 45 \
+              "https://kriptoaman.com/api/network-health?refresh=1&attempt=${attempt}" \
+              -o /tmp/networks.json; then
+              if node <<'NODE'
           const p = require('/tmp/networks.json');
           const online = Number(p?.summary?.online || 0);
           const total = Number(p?.summary?.total || 0);
-          console.log('online=', online, 'total=', total, 'checked_at=', p?.checked_at);
+          const target = Number(p?.summary?.minimum_active_target || 12);
+          const degraded = Number(p?.summary?.degraded || 0);
+          console.log('online=', online, 'degraded=', degraded, 'total=', total, 'target=', target, 'checked_at=', p?.checked_at);
           console.log('active=', (p.networks || []).filter(n => n.status === 'online').map(n => n.name).join(', '));
+          const unavailable = (p.networks || [])
+            .filter(n => n.status !== 'online')
+            .map(n => `${n.name}:${n.status}:${(n.providers_tried || []).map(x => `${x.provider}/${x.reason}`).join('|') || 'no-provider-detail'}`);
+          if (unavailable.length) console.log('unavailable=', unavailable.join(', '));
+          if (target !== 12) throw new Error(`unexpected minimum target ${target}`);
           if (online < 12) process.exit(2);
           NODE
+              then
+                echo 'Multi-chain minimum target satisfied.'
+                exit 0
+              fi
+            fi
+
+            if [ "$attempt" = 4 ]; then
+              echo 'Live multi-chain coverage remained below 12 verified networks after four fresh probes.' >&2
+              cat /tmp/networks.json 2>/dev/null || true
+              exit 1
+            fi
+            sleep $((attempt * 5))
+          done
