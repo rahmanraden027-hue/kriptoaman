@@ -2,7 +2,7 @@
 
 Status: **PRE-AUDIT / NOT DEPLOYED / NO LIQUIDITY AUTHORIZED**
 
-This is the current frozen KAM DEX V2 candidate for independent review. It supersedes all earlier V2 addenda and Revision 2 freeze references.
+This is the current frozen KAM DEX V2 candidate for independent review. It supersedes all earlier V2 addenda and Revision 2 freeze references. Auditors should ignore earlier V2 blob/commit references and review only the Revision 3 scope below.
 
 ## Frozen revision
 
