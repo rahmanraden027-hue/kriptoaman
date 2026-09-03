@@ -10,17 +10,17 @@
   "deployer": "0x9D4b034758202cE555504d038F92A344540D47B0",
   "canonicalWKAM": "0x0d8848CE88BB09a81a4248Efdd574d50B98b544A",
   "factory": {
-    "address": "0x5024017B0496113269E80B17d9b0F11733AE6de2",
-    "deploymentTransaction": "0xddbe3f7265194a068b369d954277f360fcabd2753175c03929d5bebedb5c0e4",
+    "address": "0x5024017B0496113269E80817d9b0F11733AE6de2",
+    "deploymentTransaction": "0xddbe3f7265194a068b369d954277f360fcabd2753175c03929d5bebedeb5c0e4",
     "deploymentBlock": 384625,
     "runtimeBytecodePresent": true
   },
   "router": {
     "address": "0x4a413674245EE0959183604C153e386C00409122",
-    "deploymentTransaction": "0x83dd3be8629483b2db730c86437128fb39fb87ceb0738e970bba9c7a9bf98053",
+    "deploymentTransaction": "0x83dd3be8629483b2db730c86437128fb39f8b7ceb0738e970bba9c7a9bf98053",
     "deploymentBlock": 384625,
     "runtimeBytecodePresent": true,
-    "factoryBindingVerified": "0x5024017B0496113269E80B17d9b0F11733AE6de2",
+    "factoryBindingVerified": "0x5024017B0496113269E80817d9b0F11733AE6de2",
     "wkamBindingVerified": "0x0d8848CE88BB09a81a4248Efdd574d50B98b544A"
   },
   "verification": {
@@ -37,7 +37,8 @@
   },
   "notes": [
     "This record documents the observed successful mainnet deployment and read-only binding checks.",
-    "Source verification/runtime code hash attestation is still a separate follow-up step.",
+    "The Factory address and Factory/Router deployment transaction hashes in this file were corrected on 2026-09-03 from read-only block, receipt, runtime-code, and Router-binding evidence.",
+    "Source verification/runtime code hash attestation is still a separate follow-up step in this schema-v1 record.",
     "No liquidity or treasury movement is authorized by this record."
   ]
 }
