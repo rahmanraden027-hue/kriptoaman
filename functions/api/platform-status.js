@@ -1,10 +1,19 @@
-import { readSession } from '../_shared/d1-session.js';
+import { primarySession, readSession } from '../_shared/d1-session.js';
 
 const STATUS_TTL_MS = 30_000;
+const DURABLE_STATUS_TTL_MS = 45_000;
 const MIN_PUBLIC_MARKET_ASSETS = 4500;
 const MARKET_SNAPSHOT_FRESH_MS = 15 * 60 * 1000;
 const MARKET_SNAPSHOT_HEALTH_MAX_AGE_MS = MARKET_SNAPSHOT_FRESH_MS * 4;
 const COMPONENT_STATUS_TIMEOUT_MS = 850;
+
+const DURABLE_STATUS_SCHEMA = `
+CREATE TABLE IF NOT EXISTS platform_status_snapshots (
+  id TEXT PRIMARY KEY,
+  captured_at INTEGER NOT NULL,
+  payload TEXT NOT NULL,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+)`;
 
 const HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
@@ -15,10 +24,20 @@ const HEADERS = {
 let cachedStatus = null;
 let cachedStatusAt = 0;
 let statusInFlight = null;
+let durableSchemaReady = false;
 
 const json = (body, status = 200, extraHeaders = {}) => new Response(JSON.stringify(body), {
   status,
   headers: { ...HEADERS, ...extraHeaders },
+});
+
+const withDelivery = (body, aggregateRead, snapshotAgeMs = 0, backgroundRefresh = false) => ({
+  ...body,
+  delivery: {
+    aggregateRead,
+    snapshotAgeMs,
+    backgroundRefresh,
+  },
 });
 
 async function readJson(url, timeoutMs = COMPONENT_STATUS_TIMEOUT_MS) {
@@ -76,6 +95,96 @@ async function readMarketMetadata(env, origin) {
 
   const fallback = await readJson(`${origin}/api/market-snapshot?health=1`);
   return { ...fallback, readMode: 'http-fallback' };
+}
+
+function isVerifiedOperationalBody(body, now = Date.now()) {
+  const market = body?.components?.market;
+  const networks = body?.components?.networks;
+  const kam = body?.components?.kam;
+  const marketCapturedAt = Number(market?.capturedAt);
+  const marketAgeMs = Number.isFinite(marketCapturedAt) ? Math.max(0, now - marketCapturedAt) : Infinity;
+  const networkOnline = Number(networks?.online);
+  const networkMinimumTarget = Number(networks?.minimumActiveTarget);
+
+  return Boolean(
+    body?.overall === 'operational'
+      && market?.healthy === true
+      && Number(market?.assetCount) >= MIN_PUBLIC_MARKET_ASSETS
+      && marketAgeMs <= MARKET_SNAPSHOT_FRESH_MS
+      && networks?.healthy === true
+      && Number.isFinite(networkOnline)
+      && Number.isFinite(networkMinimumTarget)
+      && networkOnline >= networkMinimumTarget
+      && kam?.healthy === true
+      && Number(kam?.chainId) === 22028,
+  );
+}
+
+async function readDurableStatus(env) {
+  if (!env?.AUTH_DB) return null;
+  try {
+    const db = readSession(env.AUTH_DB);
+    const row = await db.prepare(
+      'SELECT captured_at, payload FROM platform_status_snapshots WHERE id = ?',
+    ).bind('global').first();
+    if (!row) return null;
+
+    const capturedAt = Number(row.captured_at);
+    const snapshotAgeMs = Number.isFinite(capturedAt) ? Math.max(0, Date.now() - capturedAt) : Infinity;
+    if (snapshotAgeMs > DURABLE_STATUS_TTL_MS) return null;
+
+    const body = JSON.parse(row.payload);
+    if (!isVerifiedOperationalBody(body)) return null;
+
+    const marketCapturedAt = Number(body.components.market.capturedAt);
+    const marketAgeMs = Math.max(0, Date.now() - marketCapturedAt);
+    return {
+      status: 200,
+      body: withDelivery({
+        ...body,
+        components: {
+          ...body.components,
+          market: {
+            ...body.components.market,
+            ageMs: marketAgeMs,
+            stale: false,
+          },
+        },
+      }, 'd1-last-verified', snapshotAgeMs, true),
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function ensureDurableSchema(db) {
+  if (durableSchemaReady) return;
+  await db.prepare(DURABLE_STATUS_SCHEMA).run();
+  durableSchemaReady = true;
+}
+
+async function persistDurableStatus(env, result) {
+  if (!env?.AUTH_DB || result?.status !== 200 || !isVerifiedOperationalBody(result.body)) return false;
+  try {
+    const db = primarySession(env.AUTH_DB);
+    await ensureDurableSchema(db);
+    const capturedAt = Date.now();
+    const payload = JSON.stringify(withDelivery(result.body, 'live-verified', 0, false));
+    await db.prepare(`
+      INSERT INTO platform_status_snapshots (id, captured_at, payload, updated_at)
+      VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+      ON CONFLICT(id) DO UPDATE SET
+        captured_at = excluded.captured_at,
+        payload = excluded.payload,
+        updated_at = CURRENT_TIMESTAMP
+    `).bind('global', capturedAt, payload).run();
+    return true;
+  } catch (error) {
+    console.error('Unable to persist durable platform status snapshot', {
+      error: error?.message || String(error),
+    });
+    return false;
+  }
 }
 
 async function buildStatus(request, env) {
@@ -146,7 +255,7 @@ async function buildStatus(request, env) {
 
   return {
     status: overall === 'unavailable' ? 503 : 200,
-    body: {
+    body: withDelivery({
       schemaVersion: '1.0',
       service: 'KriptoAman',
       overall,
@@ -157,7 +266,9 @@ async function buildStatus(request, env) {
         unavailableMetricsUseNull: true,
         fabricatedMetrics: false,
         aggregateCacheTtlMs: STATUS_TTL_MS,
+        durableVerifiedAggregateMaxAgeMs: DURABLE_STATUS_TTL_MS,
         edgeCache: true,
+        durableAggregateCache: true,
         componentStatusTimeoutMs: COMPONENT_STATUS_TIMEOUT_MS,
         componentTimeoutDegradesRatherThanFabricates: true,
         marketOperationalMinAssets: MIN_PUBLIC_MARKET_ASSETS,
@@ -166,14 +277,11 @@ async function buildStatus(request, env) {
         directMarketMetadataRead: true,
         networkHealthyRequiresMinimumTarget: true,
       },
-    },
+    }, 'live-verified', 0, false),
   };
 }
 
-async function getFreshStatus(request, env) {
-  const now = Date.now();
-  if (cachedStatus && now - cachedStatusAt < STATUS_TTL_MS) return cachedStatus;
-
+async function startLiveRefresh(request, env) {
   if (!statusInFlight) {
     statusInFlight = buildStatus(request, env)
       .then((result) => {
@@ -185,9 +293,24 @@ async function getFreshStatus(request, env) {
         statusInFlight = null;
       });
   }
-
   return statusInFlight;
 }
+
+async function getFreshStatus(request, env) {
+  const now = Date.now();
+  if (cachedStatus && now - cachedStatusAt < STATUS_TTL_MS) {
+    return {
+      ...cachedStatus,
+      body: withDelivery(cachedStatus.body, 'memory-last-verified', now - cachedStatusAt, false),
+    };
+  }
+  return startLiveRefresh(request, env);
+}
+
+const scheduleBackground = (waitUntil, task) => {
+  if (typeof waitUntil === 'function') waitUntil(task);
+  else task.catch(() => undefined);
+};
 
 export async function onRequestGet({ request, waitUntil, env }) {
   const edgeCache = globalThis.caches?.default;
@@ -205,14 +328,32 @@ export async function onRequestGet({ request, waitUntil, env }) {
     }
   }
 
-  const result = await getFreshStatus(request, env);
+  const memoryNow = Date.now();
+  let result = cachedStatus && memoryNow - cachedStatusAt < STATUS_TTL_MS
+    ? {
+        ...cachedStatus,
+        body: withDelivery(cachedStatus.body, 'memory-last-verified', memoryNow - cachedStatusAt, false),
+      }
+    : null;
+
+  if (!result) {
+    const durable = await readDurableStatus(env);
+    if (durable) {
+      result = durable;
+      scheduleBackground(
+        waitUntil,
+        startLiveRefresh(request, env).then((fresh) => persistDurableStatus(env, fresh)),
+      );
+    } else {
+      result = await getFreshStatus(request, env);
+      scheduleBackground(waitUntil, persistDurableStatus(env, result));
+    }
+  }
+
   const response = json(result.body, result.status, { 'X-KriptoAman-Status-Cache': 'MISS' });
 
   if (edgeCache && result.status === 200) {
-    const cachedResponse = response.clone();
-    const task = edgeCache.put(cacheKey, cachedResponse);
-    if (typeof waitUntil === 'function') waitUntil(task);
-    else await task;
+    scheduleBackground(waitUntil, edgeCache.put(cacheKey, response.clone()));
   }
 
   return response;
