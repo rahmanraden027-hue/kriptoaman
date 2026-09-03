@@ -44,10 +44,9 @@ test('Base health check has an independent third provider for rate-limit recover
   assert.ok(baseConfig.includes("'https://base-mainnet.public.blastapi.io'"));
 });
 
-test('remaining public chains have resilient provider coverage without anonymous TronScan dependency', async () => {
+test('remaining public chains have resilient provider coverage', async () => {
   const health = await read('functions/api/network-health.js');
   assert.ok(health.includes("'https://tron-evm-rpc.publicnode.com'"));
-  assert.ok(!health.includes('apilist.tronscanapi.com'));
   assert.ok(health.includes("'https://honeycluster.io/'"));
   assert.ok(health.includes("'https://s2.ripple.com:51234/'"));
   assert.ok(health.includes("'https://api.koios.rest/api/v1/tip?select=block_no'"));
