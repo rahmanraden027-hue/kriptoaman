@@ -65,22 +65,26 @@
 }
 
 @media (max-width: 639px) {
-  /* Market: compact high-signal list; retain generous touch targets. */
+  /* Market: denser premium list, targeting about 10 visible assets on common mobile screens. */
   .ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) > .max-w-7xl {
     padding-top: 12px !important;
   }
 
+  .ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) .grid.gap-2.xl\:grid-cols-2:has(> .ka-surface.ka-surface-hover) {
+    gap: 4px !important;
+  }
+
   .ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) .ka-surface.px-3\.5.py-3\.5 {
-    min-height: 68px;
-    padding: 11px 12px !important;
-    gap: 10px !important;
-    border-radius: 17px !important;
+    min-height: 58px;
+    padding: 8px 10px !important;
+    gap: 8px !important;
+    border-radius: 16px !important;
   }
 
   .ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) .ka-surface.px-3\.5.py-3\.5 img,
   .ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) .ka-surface.px-3\.5.py-3\.5 img + span {
-    width: 38px !important;
-    height: 38px !important;
+    width: 34px !important;
+    height: 34px !important;
   }
 
   .ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) .ka-surface.px-3\.5.py-3\.5 p.text-sm {
@@ -91,8 +95,17 @@
     font-size: 12.5px !important;
   }
 
+  .ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) .ka-surface.px-3\.5.py-3\.5 .ml-auto {
+    gap: 7px !important;
+  }
+
   .ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) .ka-surface.px-3\.5.py-3\.5 button {
-    padding: 7px !important;
+    min-width: 34px;
+    min-height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px !important;
     border-radius: 10px !important;
   }
 
@@ -130,7 +143,7 @@
 
 @media (max-width: 390px) {
   .ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) .ka-surface.px-3\.5.py-3\.5 {
-    gap: 8px !important;
+    gap: 7px !important;
   }
 
   .ka-bg:has(input[placeholder*="BTC, ETH, SOL"]) .ka-surface.px-3\.5.py-3\.5 .ml-auto {
