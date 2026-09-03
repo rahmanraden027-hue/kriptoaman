@@ -80,7 +80,7 @@ export default function GLandingBody({ stats }) {
         </div>
       </section>
 
-      <section className="ka-stats-section px-4 sm:px-6 py-6">
+      <section data-nosnippet="" className="ka-stats-section px-4 sm:px-6 py-6">
         <div className="ka-stats-card max-w-[1440px] mx-auto ka-card p-5 sm:p-7">
           <div className="ka-stats-head flex items-center justify-between mb-5">
             <h2 className="font-bold text-sm ka-text">Statistik Platform</h2>
@@ -235,7 +235,7 @@ export default function GLandingBody({ stats }) {
         </div>
       </section>
 
-      <section className="px-4 sm:px-6 py-14">
+      <section data-nosnippet="" className="px-4 sm:px-6 py-14">
         <div className="max-w-[1440px] mx-auto ka-card p-5 sm:p-7">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
