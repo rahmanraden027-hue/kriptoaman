@@ -16,7 +16,7 @@ test('progress broadcast is admin-only, same-origin, deduplicated, and privacy p
   assert.match(endpoint, /COUNT\(DISTINCT LOWER\(TRIM\(email\)\)\)/);
   assert.match(endpoint, /KIRIM UPDATE SEPTEMBER 2026/);
   assert.match(endpoint, /broadcast\.progress\.sent/);
-  assert.match(endpoint, /https:\/\/api\.resend\.com\/emails\/batch/);
+  assert.equal(endpoint.includes("https://api.resend.com/emails/batch"), true);
   assert.match(endpoint, /Idempotency-Key/);
   assert.match(endpoint, /MAX_RECIPIENTS = 100/);
   assert.match(endpoint, /ecosystem-progress-2026-09-03/);
