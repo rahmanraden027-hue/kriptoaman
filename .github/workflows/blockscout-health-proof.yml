@@ -7,7 +7,16 @@ on:
       - 'docs/BLOCKSCOUT_RECOVERY.md'
       - '.github/workflows/blockscout-health-proof.yml'
       - 'tests/blockscout-diagnostic-safety.test.mjs'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/diagnose-blockscout.mjs'
+      - 'docs/BLOCKSCOUT_RECOVERY.md'
+      - '.github/workflows/blockscout-health-proof.yml'
+      - 'tests/blockscout-diagnostic-safety.test.mjs'
   workflow_dispatch:
+  schedule:
+    - cron: '13,28,43,58 * * * *'
 
 permissions:
   contents: read

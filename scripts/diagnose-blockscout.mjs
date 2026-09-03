@@ -37,12 +37,14 @@ const report = {
 };
 
 try {
-  const [chain, head, receipt, blocks, stats] = await Promise.all([
+  const [chain, head, receipt, blocks, stats, transactionChart, marketChart] = await Promise.all([
     rpc('eth_chainId'),
     rpc('eth_blockNumber'),
     rpc('eth_getTransactionReceipt', [knownTxHash]),
     fetchJson(`${explorerUrl}/api/v2/blocks`, { headers: { accept: 'application/json' } }),
     fetchJson(`${explorerUrl}/api/v2/stats`, { headers: { accept: 'application/json' } }),
+    fetchJson(`${explorerUrl}/api/v2/stats/charts/transactions`, { headers: { accept: 'application/json' } }),
+    fetchJson(`${explorerUrl}/api/v2/stats/charts/market`, { headers: { accept: 'application/json' } }),
   ]);
 
   const rpcHeight = Number.parseInt(head.payload?.result, 16);
@@ -80,7 +82,21 @@ try {
   report.checks.explorerStatsApi = {
     ok: stats.response.ok,
     httpStatus: stats.response.status,
+    transactionsToday: stats.payload?.transactions_today ?? null,
+    totalTransactions: stats.payload?.total_transactions ?? null,
     latencyMs: stats.latencyMs,
+  };
+  report.checks.explorerTransactionsChartApi = {
+    ok: transactionChart.response.ok && Array.isArray(transactionChart.payload?.chart_data),
+    httpStatus: transactionChart.response.status,
+    pointCount: Array.isArray(transactionChart.payload?.chart_data) ? transactionChart.payload.chart_data.length : null,
+    latencyMs: transactionChart.latencyMs,
+  };
+  report.checks.explorerMarketChartApi = {
+    ok: marketChart.response.ok && Array.isArray(marketChart.payload?.chart_data),
+    httpStatus: marketChart.response.status,
+    pointCount: Array.isArray(marketChart.payload?.chart_data) ? marketChart.payload.chart_data.length : null,
+    latencyMs: marketChart.latencyMs,
   };
 
   if (!report.checks.rpcChainId.ok || !report.checks.rpcHead.ok) {
@@ -92,7 +108,15 @@ try {
   } else {
     const distance = Math.abs(rpcHeight - explorerHeight);
     report.checks.heightDistance = { rpcHeight, explorerHeight, distance };
-    report.classification = distance <= 5 ? 'healthy' : 'blockscout_indexer_lagging';
+    if (distance <= 5) {
+      if (!report.checks.explorerTransactionsChartApi.ok || !report.checks.explorerMarketChartApi.ok) {
+        report.classification = 'blockscout_stats_chart_api_unhealthy';
+      } else {
+        report.classification = 'healthy';
+      }
+    } else {
+      report.classification = 'blockscout_indexer_lagging';
+    }
   }
 } catch (error) {
   report.classification = 'diagnostic_failed';
