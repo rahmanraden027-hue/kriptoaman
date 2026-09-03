@@ -28,6 +28,21 @@ This document records an internal technical review of the current KAM DEX source
 - Liquidity seeded: `false`
 - Liquidity authorization: `NOT_AUTHORIZED`
 
+## Current CI evidence
+
+The audit branch has reproduced the contract build with Foundry `1.8.1`, Solidity `0.8.24`, optimizer enabled with `200` runs, and Paris-compatible EVM bytecode.
+
+Observed passing checks:
+- `forge build --sizes --evm-version paris`
+- 12/12 `KAMDEX.t.sol` tests passed
+- 2/2 deployment-simulation tests passed
+- canonical WKAM metadata checks passed
+- KAM DEX mainnet dry-run against `https://rpc.kriptoaman.com` completed successfully without a deployer private key or mnemonic
+
+These results demonstrate build/test consistency and live-RPC simulation compatibility. They **do not by themselves prove that the already-deployed production runtime bytecode is identical to the current source**.
+
+A dedicated read-only workflow, `KAM DEX Runtime Attestation`, has therefore been added to compare compiled runtime bytecode against the deployed WKAM, Factory and Router, normalize immutable slots where required, verify Router bindings and deployment receipts, and check that `KAMFactory.allPairsLength()` remains zero. The workflow has no signing credentials and cannot broadcast transactions.
+
 ## Positive findings
 
 1. WKAM is minimal and follows checks-effects-interactions on withdrawal.
@@ -65,8 +80,9 @@ The deployment manifest itself records `DEPLOYED_ONCHAIN_PENDING_SOURCE_VERIFICA
 Required resolution:
 - Rebuild with the exact compiler version/settings used for deployment.
 - Retrieve deployed runtime bytecode for WKAM, Factory and Router from KAM Mainnet.
-- Normalize immutable/metadata sections as appropriate for the chosen verification method.
+- Normalize immutable sections as appropriate for the chosen verification method.
 - Compare compiled runtime against deployed runtime and record reproducible hashes.
+- Verify deployment transaction receipts, expected deployment blocks and contract addresses.
 - Publish explorer source verification where supported.
 
 ### F-03 — Independent external smart-contract review is not evidenced
@@ -103,6 +119,19 @@ Pair/Router token transfers expect standard `transfer`/`transferFrom` boolean be
 
 Required resolution:
 - First quote asset must be independently verified as compatible with this behavior.
+
+### F-07 — WKAM emits withdrawal events after the native external call
+Severity: **Low / Auditor review required**
+
+Foundry lint flags `reentrancy-events` in `WKAM.withdraw()`: balances and total supply are reduced before the native call, but `Withdrawal` and burn-style `Transfer` events are emitted after the call returns.
+
+Current assessment:
+- The state-changing effects occur before the external call, so this finding is not by itself evidence of a balance-drain vulnerability.
+- A recipient contract can execute code during the native transfer, which can affect observable event ordering for off-chain consumers.
+
+Required resolution:
+- Independent reviewer should assess whether event emission should be moved before the external call and whether an explicit reentrancy guard is desirable for defense in depth.
+- If WKAM source is changed, deploy a new WKAM address and re-bind/redeploy dependent Router contracts rather than altering the source record associated with the canonical deployed address.
 
 ## Quote-asset gate
 
