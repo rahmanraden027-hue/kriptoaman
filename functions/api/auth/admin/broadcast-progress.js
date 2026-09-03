@@ -8,6 +8,7 @@ import { recordAdminAudit } from '../../../../server/auth/adminAudit.js';
 const CAMPAIGN_ID = 'ecosystem-progress-2026-09-03';
 const SUBJECT = 'Perkembangan Positif Ekosistem KriptoAman — September 2026';
 const CONFIRMATION = 'KIRIM UPDATE SEPTEMBER 2026';
+const LOGO_URL = 'https://kriptoaman.com/kriptoaman-logo-primary.png';
 const IMAGE_URL = 'https://kriptoaman.com/assets/kriptoaman-ecosystem-progress-september-2026.svg';
 const MAX_RECIPIENTS = 100;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -83,6 +84,10 @@ function buildHtml() {
   return `<!doctype html><html><body style="margin:0;padding:0;background:#071225;font-family:Arial,Helvetica,sans-serif">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#071225;padding:28px 12px"><tr><td align="center">
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:760px;background:#0b1930;border:1px solid #1e3a5f;border-radius:18px;overflow:hidden">
+      <tr><td align="center" style="padding:24px 24px 18px;background:#061328;border-bottom:1px solid #16304d">
+        <img src="${LOGO_URL}" alt="KriptoAman" width="196" style="display:block;width:196px;max-width:72%;height:auto;border:0;margin:0 auto 8px" />
+        <div style="font-size:11px;line-height:1.4;letter-spacing:1.4px;text-transform:uppercase;color:#7dd3fc;font-weight:700">Official Ecosystem Update</div>
+      </td></tr>
       <tr><td style="padding:0;background:#08172c">
         <img src="${IMAGE_URL}" alt="Kemajuan Positif Ekosistem KriptoAman" width="760" style="display:block;width:100%;max-width:760px;height:auto;border:0" />
       </td></tr>
@@ -134,6 +139,7 @@ export async function onRequestGet({ request, env }) {
       maxRecipients: MAX_RECIPIENTS,
       alreadySent: Boolean(previous),
       sentAt: previous?.created_at || null,
+      logoUrl: LOGO_URL,
       imageUrl: IMAGE_URL,
     });
   } catch (error) {
@@ -231,6 +237,7 @@ export async function onRequestPost({ request, env }) {
         subject: SUBJECT,
         recipientCount: recipients.length,
         acceptedCount,
+        logoUrl: LOGO_URL,
         imageUrl: IMAGE_URL,
       },
     });
