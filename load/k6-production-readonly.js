@@ -5,6 +5,7 @@ import { Rate, Trend } from 'k6/metrics';
 const BASE_URL = (__ENV.BASE_URL || 'https://kriptoaman.com').replace(/\/$/, '');
 const STAGE = __ENV.KA_LOAD_STAGE || 'smoke';
 const ALLOW_PROD = __ENV.ALLOW_PRODUCTION_LOAD_TEST === 'YES';
+const INCLUDE_HOT_MARKET = __ENV.KA_INCLUDE_HOT_MARKET === 'YES';
 
 const profiles = {
   smoke: { vus: 5, duration: '30s' },
@@ -41,7 +42,7 @@ const endpointLatency = new Trend('ka_endpoint_latency', true);
 
 const endpoints = [
   { name: 'homepage', path: '/', json: false, weight: 24 },
-  { name: 'market-hot', path: '/api/market-hot', json: true, weight: 28 },
+  ...(INCLUDE_HOT_MARKET ? [{ name: 'market-hot', path: '/api/market-hot', json: true, weight: 28 }] : []),
   { name: 'market-page', path: '/api/market-snapshot-page?page=0&limit=100', json: true, weight: 24 },
   { name: 'platform-status', path: '/api/platform-status', json: true, weight: 10 },
   { name: 'network-health', path: '/api/network-health', json: true, weight: 7 },
