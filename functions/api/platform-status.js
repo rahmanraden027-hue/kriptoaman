@@ -1,5 +1,9 @@
+import { readSession } from '../_shared/d1-session.js';
+
 const STATUS_TTL_MS = 30_000;
 const MIN_PUBLIC_MARKET_ASSETS = 4500;
+const MARKET_SNAPSHOT_FRESH_MS = 15 * 60 * 1000;
+const MARKET_SNAPSHOT_HEALTH_MAX_AGE_MS = MARKET_SNAPSHOT_FRESH_MS * 4;
 const NETWORK_HEALTH_TIMEOUT_MS = 5000;
 
 const HEADERS = {
@@ -34,11 +38,51 @@ async function readJson(url, timeoutMs = 2500) {
   }
 }
 
-async function buildStatus(request) {
+async function readMarketMetadata(env, origin) {
+  if (env?.AUTH_DB) {
+    try {
+      const db = readSession(env.AUTH_DB);
+      const row = await db.prepare(
+        'SELECT source, asset_count, captured_at FROM market_snapshots WHERE id = ?',
+      ).bind('global').first();
+      if (row) {
+        const assetCount = Number(row.asset_count);
+        const capturedAt = Number(row.captured_at);
+        const ageMs = Number.isFinite(capturedAt) ? Math.max(0, Date.now() - capturedAt) : null;
+        const stale = !Number.isFinite(ageMs) || ageMs > MARKET_SNAPSHOT_FRESH_MS;
+        return {
+          ok: true,
+          status: 200,
+          readMode: 'd1-direct',
+          payload: {
+            healthy: Number.isFinite(assetCount)
+              && assetCount >= MIN_PUBLIC_MARKET_ASSETS
+              && Number.isFinite(ageMs)
+              && ageMs <= MARKET_SNAPSHOT_HEALTH_MAX_AGE_MS,
+            source: row.source ?? null,
+            assetCount,
+            capturedAt,
+            ageMs,
+            stale,
+          },
+        };
+      }
+    } catch (error) {
+      console.error('Direct market metadata read failed; using HTTP fallback', {
+        error: error?.message || String(error),
+      });
+    }
+  }
+
+  const fallback = await readJson(`${origin}/api/market-snapshot?health=1`, 1800);
+  return { ...fallback, readMode: 'http-fallback' };
+}
+
+async function buildStatus(request, env) {
   const origin = new URL(request.url).origin;
   const generatedAt = new Date().toISOString();
   const [market, networks, kam] = await Promise.all([
-    readJson(`${origin}/api/market-snapshot?health=1`, 2500),
+    readMarketMetadata(env, origin),
     readJson(`${origin}/api/network-health`, NETWORK_HEALTH_TIMEOUT_MS),
     readJson(`${origin}/api/kam/network-status`, 5000),
   ]);
@@ -72,6 +116,7 @@ async function buildStatus(request) {
       capturedAt: market.ok ? market.payload?.capturedAt ?? null : null,
       ageMs: market.ok && Number.isFinite(Number(market.payload?.ageMs)) ? Number(market.payload.ageMs) : null,
       stale: market.ok ? Boolean(market.payload?.stale) : null,
+      readMode: market.readMode ?? null,
     },
     networks: {
       status: networksHealthy ? (Number(networks.payload?.summary?.offline) > 0 ? 'degraded' : 'operational') : networks.ok ? 'degraded' : 'unavailable',
@@ -113,6 +158,8 @@ async function buildStatus(request) {
         edgeCache: true,
         marketOperationalMinAssets: MIN_PUBLIC_MARKET_ASSETS,
         marketOperationalRequiresFreshSnapshot: true,
+        marketSnapshotFreshMs: MARKET_SNAPSHOT_FRESH_MS,
+        directMarketMetadataRead: true,
         networkHealthTimeoutMs: NETWORK_HEALTH_TIMEOUT_MS,
         networkHealthyRequiresMinimumTarget: true,
       },
@@ -120,12 +167,12 @@ async function buildStatus(request) {
   };
 }
 
-async function getFreshStatus(request) {
+async function getFreshStatus(request, env) {
   const now = Date.now();
   if (cachedStatus && now - cachedStatusAt < STATUS_TTL_MS) return cachedStatus;
 
   if (!statusInFlight) {
-    statusInFlight = buildStatus(request)
+    statusInFlight = buildStatus(request, env)
       .then((result) => {
         cachedStatus = result;
         cachedStatusAt = Date.now();
@@ -139,7 +186,7 @@ async function getFreshStatus(request) {
   return statusInFlight;
 }
 
-export async function onRequestGet({ request, waitUntil }) {
+export async function onRequestGet({ request, waitUntil, env }) {
   const edgeCache = globalThis.caches?.default;
   const cacheKey = new Request(new URL(request.url).origin + '/api/platform-status', {
     method: 'GET',
@@ -155,7 +202,7 @@ export async function onRequestGet({ request, waitUntil }) {
     }
   }
 
-  const result = await getFreshStatus(request);
+  const result = await getFreshStatus(request, env);
   const response = json(result.body, result.status, { 'X-KriptoAman-Status-Cache': 'MISS' });
 
   if (edgeCache && result.status === 200) {
