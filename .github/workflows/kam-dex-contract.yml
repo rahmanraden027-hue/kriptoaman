@@ -4,9 +4,13 @@ on:
   pull_request:
     paths:
       - 'chain/kam-mainnet/trading/dex/**'
+      - 'chain/kam-mainnet/trading/dex-v2/**'
       - 'chain/kam-mainnet/trading/contracts/WKAM.sol'
       - 'chain/kam-mainnet/deployments/wkam.json'
+      - 'chain/kam-mainnet/trading/script/PrepareKAMDEXV2Deployment.s.sol'
+      - 'chain/kam-mainnet/trading/script/DeployKAMDEXV2.s.sol'
       - 'chain/kam-mainnet/trading/test/KAMDEX.t.sol'
+      - 'chain/kam-mainnet/trading/test/KAMDEXV2.t.sol'
       - 'chain/kam-mainnet/trading/test/KAMDEXDeploymentSimulation.t.sol'
       - 'chain/kam-mainnet/trading/test/MockToken.sol'
       - 'chain/kam-mainnet/trading/foundry.toml'
@@ -32,8 +36,10 @@ jobs:
         run: forge fmt --check
       - name: Build Paris-compatible bytecode
         run: forge build --sizes --evm-version paris
-      - name: DEX tests
+      - name: DEX V1 regression tests
         run: forge test --match-path test/KAMDEX.t.sol -vvv --evm-version paris
+      - name: DEX V2 hardening candidate tests
+        run: forge test --match-path test/KAMDEXV2.t.sol -vvv --evm-version paris
       - name: DEX deployment simulation
         run: forge test --match-path test/KAMDEXDeploymentSimulation.t.sol -vvv --evm-version paris
       - name: Verify canonical WKAM deployment metadata
