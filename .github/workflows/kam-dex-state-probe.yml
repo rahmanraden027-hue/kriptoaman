@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'chain/kam-mainnet/trading/scripts/probe-current-dex-state.mjs'
+      - 'chain/kam-mainnet/trading/scripts/recover-dex-deployment-provenance.mjs'
       - '.github/workflows/kam-dex-state-probe.yml'
   workflow_dispatch:
 
@@ -30,6 +31,8 @@ jobs:
           test -z "${MNEMONIC:-}"
       - name: Probe current DEX state read-only
         run: node scripts/probe-current-dex-state.mjs
+      - name: Recover Factory and Router deployment provenance
+        run: node scripts/recover-dex-deployment-provenance.mjs
       - name: Re-assert no signing credentials were used
         if: always()
         run: |
