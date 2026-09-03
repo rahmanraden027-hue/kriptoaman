@@ -34,6 +34,10 @@ contract KAMDEXV2Test {
         tokenA.mint(address(this), 1_000_000 ether);
         tokenB.mint(address(this), 1_000_000 ether);
         tokenC.mint(address(this), 1_000_000 ether);
+
+        tokenA.approve(address(factory), type(uint256).max);
+        tokenB.approve(address(factory), type(uint256).max);
+        tokenC.approve(address(factory), type(uint256).max);
         tokenA.approve(address(router), type(uint256).max);
         tokenB.approve(address(router), type(uint256).max);
         tokenC.approve(address(router), type(uint256).max);
@@ -46,14 +50,61 @@ contract KAMDEXV2Test {
         require(!factory.permissionlessPairCreation(), "unexpected permissionless mode");
     }
 
-    function testFactoryBlocksThirdPartyPairCreationBeforeOpen() public {
-        bool ok = outsider.tryCreate(factory, address(tokenA), address(tokenB));
-        require(!ok, "third-party pair creation accepted before open");
-        require(factory.allPairsLength() == 0, "pair created unexpectedly");
+    function testControlledPhaseRejectsEmptyPairCreation() public {
+        bool outsiderOk = outsider.tryCreate(factory, address(tokenA), address(tokenB));
+        require(!outsiderOk, "third-party pair creation accepted before open");
 
-        address pair = factory.createPair(address(tokenA), address(tokenB));
-        require(pair != address(0), "authorized pair missing");
+        (bool creatorOk,) =
+            address(factory).call(abi.encodeWithSelector(factory.createPair.selector, address(tokenA), address(tokenB)));
+        require(!creatorOk, "pair creator opened an empty official pair");
+        require(factory.allPairsLength() == 0, "empty pair created during controlled phase");
+    }
+
+    function testOfficialPairCreationAndFirstSeedAreAtomic() public {
+        (address pair, uint256 liquidity) =
+            factory.createPairAndSeed(address(tokenA), address(tokenB), 10_000 ether, 20_000 ether, address(this));
+
+        require(pair != address(0), "pair missing");
         require(factory.getPair(address(tokenA), address(tokenB)) == pair, "pair mapping mismatch");
+        require(factory.allPairsLength() == 1, "pair count mismatch");
+        require(liquidity > 0, "initial LP missing");
+        require(KAMPair(pair).balanceOf(address(this)) == liquidity, "initial LP recipient mismatch");
+        require(tokenA.balanceOf(pair) == 10_000 ether, "seed A mismatch");
+        require(tokenB.balanceOf(pair) == 20_000 ether, "seed B mismatch");
+
+        (uint112 reserve0, uint112 reserve1,) = KAMPair(pair).getReserves();
+        require(reserve0 > 0 && reserve1 > 0, "pair exposed without reserves");
+    }
+
+    function testAtomicOfficialSeedCannotRepeatOrRunAfterOpen() public {
+        factory.createPairAndSeed(address(tokenA), address(tokenB), 10_000 ether, 10_000 ether, address(this));
+
+        (bool duplicateOk,) = address(factory)
+            .call(
+                abi.encodeWithSelector(
+                    factory.createPairAndSeed.selector,
+                    address(tokenA),
+                    address(tokenB),
+                    1_000 ether,
+                    1_000 ether,
+                    address(this)
+                )
+            );
+        require(!duplicateOk, "duplicate official pair seeded");
+
+        factory.enablePermissionlessPairCreation();
+        (bool afterOpenOk,) = address(factory)
+            .call(
+                abi.encodeWithSelector(
+                    factory.createPairAndSeed.selector,
+                    address(tokenA),
+                    address(tokenC),
+                    1_000 ether,
+                    1_000 ether,
+                    address(this)
+                )
+            );
+        require(!afterOpenOk, "controlled seed available after permissionless open");
     }
 
     function testPermissionlessOpeningIsExplicitAndEffective() public {
@@ -90,7 +141,7 @@ contract KAMDEXV2Test {
     }
 
     function testExpiredDeadlineIsRejected() public {
-        factory.createPair(address(tokenA), address(tokenB));
+        _atomicSeedEqualLiquidity();
         (bool ok,) = address(router)
             .call(
                 abi.encodeWithSelector(
@@ -108,8 +159,9 @@ contract KAMDEXV2Test {
         require(!ok, "expired transaction accepted");
     }
 
-    function testInitialLiquidityChecksBothMinimums() public {
-        factory.createPair(address(tokenA), address(tokenB));
+    function testPublicEmptyPairStillChecksBothInitialMinimums() public {
+        factory.enablePermissionlessPairCreation();
+        require(outsider.tryCreate(factory, address(tokenA), address(tokenB)), "public pair creation failed");
 
         (bool aOk,) = address(router)
             .call(
@@ -145,7 +197,7 @@ contract KAMDEXV2Test {
     }
 
     function testF05AmountAMinBypassIsClosed() public {
-        _seedEqualLiquidity();
+        _atomicSeedEqualLiquidity();
         uint256 aBefore = tokenA.balanceOf(address(this));
         uint256 bBefore = tokenB.balanceOf(address(this));
 
@@ -169,7 +221,7 @@ contract KAMDEXV2Test {
     }
 
     function testF05AmountBMinBypassIsClosed() public {
-        _seedEqualLiquidity();
+        _atomicSeedEqualLiquidity();
         uint256 aBefore = tokenA.balanceOf(address(this));
         uint256 bBefore = tokenB.balanceOf(address(this));
 
@@ -193,7 +245,7 @@ contract KAMDEXV2Test {
     }
 
     function testValidPostSeedLiquidityStillWorks() public {
-        _seedEqualLiquidity();
+        _atomicSeedEqualLiquidity();
         (uint256 amountA, uint256 amountB, uint256 liquidity) = router.addLiquidity(
             address(tokenA),
             address(tokenB),
@@ -208,19 +260,11 @@ contract KAMDEXV2Test {
         require(liquidity > 0, "no LP minted");
     }
 
-    function _seedEqualLiquidity() internal {
+    function _atomicSeedEqualLiquidity() internal {
         if (factory.getPair(address(tokenA), address(tokenB)) == address(0)) {
-            factory.createPair(address(tokenA), address(tokenB));
+            factory.createPairAndSeed(
+                address(tokenA), address(tokenB), 10_000 ether, 10_000 ether, address(this)
+            );
         }
-        router.addLiquidity(
-            address(tokenA),
-            address(tokenB),
-            10_000 ether,
-            10_000 ether,
-            10_000 ether,
-            10_000 ether,
-            address(this),
-            type(uint256).max
-        );
     }
 }
