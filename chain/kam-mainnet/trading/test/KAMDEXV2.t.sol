@@ -262,9 +262,7 @@ contract KAMDEXV2Test {
 
     function _atomicSeedEqualLiquidity() internal {
         if (factory.getPair(address(tokenA), address(tokenB)) == address(0)) {
-            factory.createPairAndSeed(
-                address(tokenA), address(tokenB), 10_000 ether, 10_000 ether, address(this)
-            );
+            factory.createPairAndSeed(address(tokenA), address(tokenB), 10_000 ether, 10_000 ether, address(this));
         }
     }
 }
