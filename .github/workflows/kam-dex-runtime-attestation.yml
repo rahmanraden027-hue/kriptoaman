@@ -1,0 +1,59 @@
+name: KAM DEX Runtime Attestation
+
+on:
+  pull_request:
+    paths:
+      - 'chain/kam-mainnet/trading/contracts/WKAM.sol'
+      - 'chain/kam-mainnet/trading/dex/**'
+      - 'chain/kam-mainnet/trading/scripts/attest-dex-runtime.mjs'
+      - 'chain/kam-mainnet/trading/foundry.toml'
+      - 'chain/kam-mainnet/deployments/wkam.json'
+      - 'chain/kam-mainnet/deployments/dex.mainnet.deployment.json'
+      - '.github/workflows/kam-dex-runtime-attestation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  attest:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: chain/kam-mainnet/trading
+    env:
+      KAM_RPC_URL: https://rpc.kriptoaman.com
+      KAM_DEX_ATTESTATION_OUT: attestation/dex-runtime-attestation.json
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Assert no signing credentials are present
+        run: |
+          test -z "${DEPLOYER_PRIVATE_KEY:-}"
+          test -z "${MNEMONIC:-}"
+
+      - name: Build exact audit candidate
+        run: forge build --sizes --evm-version paris
+
+      - name: Attest deployed runtime and read-only mainnet state
+        run: node scripts/attest-dex-runtime.mjs
+
+      - name: Upload attestation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kam-dex-runtime-attestation-${{ github.run_id }}
+          path: chain/kam-mainnet/trading/attestation/dex-runtime-attestation.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Re-assert no signing credentials were used
+        if: always()
+        run: |
+          test -z "${DEPLOYER_PRIVATE_KEY:-}"
+          test -z "${MNEMONIC:-}"
