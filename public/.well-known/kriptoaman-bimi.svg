@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny-ps" viewBox="0 0 512 512">
+  <title>KriptoAman</title>
+  <rect width="512" height="512" rx="104" fill="#020B1D"/>
+  <path d="M256 48 418 112v131c0 112-66 176-162 221C160 419 94 355 94 243V112Z" fill="none" stroke="#079BEF" stroke-width="18" stroke-linejoin="round"/>
+  <path d="M256 48 418 112v131c0 112-66 176-162 221" fill="none" stroke="#F5B71F" stroke-width="18" stroke-linejoin="round"/>
+  <path d="M168 154h58v90l88-90h73L274 270 160 375V154Z" fill="#079BEF"/>
+  <path d="M240 293 289 339 397 234l28 29-136 133-77-75Z" fill="#21D9F4"/>
+  <circle cx="256" cy="383" r="17" fill="none" stroke="#079BEF" stroke-width="11"/>
+  <path d="M250 397h12l8 31h-28Z" fill="#079BEF"/>
+</svg>
