@@ -7,6 +7,7 @@ const SNAPSHOT_TTL_MS = 45_000;
 const STALE_SNAPSHOT_MAX_AGE_MS = 5 * 60 * 1000;
 const LAST_GOOD_TTL_MS = 10 * 60 * 1000;
 const MIN_ACTIVE_TARGET = 12;
+const PROBE_CONCURRENCY = 5;
 
 const NETWORKS = [
   { name: 'Bitcoin', type: 'bitcoin', timeoutMs: SLOW_PROVIDER_TIMEOUT_MS, urls: ['https://mempool.space/api/blocks/tip/height', 'https://blockstream.info/api/blocks/tip/height'] },
@@ -68,7 +69,7 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = DEFAULT_PROVIDER_
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await fetch(url, { ...options, signal: controller.signal });
+    return await fetch(url, { ...options, redirect: 'error', signal: controller.signal });
   } finally {
     clearTimeout(timer);
   }
@@ -79,7 +80,7 @@ const rpcBody = (method, params = []) => JSON.stringify({ jsonrpc: '2.0', id: 1,
 function requestHeaders(extra = {}) {
   return {
     Accept: 'application/json,text/plain,*/*',
-    'User-Agent': 'KriptoAman-Network-Health/4.1',
+    'User-Agent': 'KriptoAman-Network-Health/4.2',
     ...extra,
   };
 }
@@ -169,41 +170,55 @@ function providerFailure(url, error) {
 }
 
 async function probe(item) {
-  const attempts = item.urls.map(async (url) => {
+  const errors = [];
+
+  for (const url of item.urls) {
     try {
-      return await probeUrl(item, url);
+      const result = await probeUrl(item, url);
+      lastGoodByNetwork.set(item.name, { ...result, remembered_at: Date.now() });
+      return result;
     } catch (error) {
-      throw providerFailure(url, error);
+      const failure = providerFailure(url, error);
+      errors.push({ provider: failure.provider || 'unknown', reason: failure.reason || 'unavailable' });
     }
-  });
-
-  try {
-    const result = await Promise.any(attempts);
-    lastGoodByNetwork.set(item.name, { ...result, remembered_at: Date.now() });
-    return result;
-  } catch (aggregate) {
-    const errors = Array.isArray(aggregate?.errors)
-      ? aggregate.errors.map((error) => ({ provider: error?.provider || 'unknown', reason: error?.reason || 'unavailable' }))
-      : [];
-    const previous = lastGoodByNetwork.get(item.name);
-    const lastKnownAgeMs = previous ? Date.now() - Number(previous.remembered_at || 0) : null;
-    const hasRecentLastGood = previous && Number.isFinite(lastKnownAgeMs) && lastKnownAgeMs <= LAST_GOOD_TTL_MS;
-
-    return {
-      name: item.name,
-      status: hasRecentLastGood ? 'degraded' : 'offline',
-      latency: null,
-      error: 'all_providers_unavailable',
-      timeout_ms: Number(item.timeoutMs) || DEFAULT_PROVIDER_TIMEOUT_MS,
-      providers_tried: errors,
-      last_known_good: hasRecentLastGood ? { provider: previous.provider, detail: previous.detail, checked_at: previous.checked_at, age_ms: lastKnownAgeMs } : null,
-      checked_at: new Date().toISOString(),
-    };
   }
+
+  const previous = lastGoodByNetwork.get(item.name);
+  const lastKnownAgeMs = previous ? Date.now() - Number(previous.remembered_at || 0) : null;
+  const hasRecentLastGood = previous && Number.isFinite(lastKnownAgeMs) && lastKnownAgeMs <= LAST_GOOD_TTL_MS;
+
+  return {
+    name: item.name,
+    status: hasRecentLastGood ? 'degraded' : 'offline',
+    latency: null,
+    error: 'all_providers_unavailable',
+    timeout_ms: Number(item.timeoutMs) || DEFAULT_PROVIDER_TIMEOUT_MS,
+    providers_tried: errors,
+    last_known_good: hasRecentLastGood ? { provider: previous.provider, detail: previous.detail, checked_at: previous.checked_at, age_ms: lastKnownAgeMs } : null,
+    checked_at: new Date().toISOString(),
+  };
+}
+
+async function mapWithConcurrency(items, limit, worker) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+
+  async function runWorker() {
+    while (true) {
+      const index = nextIndex;
+      nextIndex += 1;
+      if (index >= items.length) return;
+      results[index] = await worker(items[index], index);
+    }
+  }
+
+  const workerCount = Math.min(Math.max(1, limit), items.length);
+  await Promise.all(Array.from({ length: workerCount }, () => runWorker()));
+  return results;
 }
 
 async function buildSnapshot() {
-  const networks = await Promise.all(NETWORKS.map(probe));
+  const networks = await mapWithConcurrency(NETWORKS, PROBE_CONCURRENCY, probe);
   const online = networks.filter((item) => item.status === 'online').length;
   const degraded = networks.filter((item) => item.status === 'degraded').length;
   const total = networks.length;
@@ -235,6 +250,10 @@ async function buildSnapshot() {
       refreshParameterAlwaysForcesFreshProbe: true,
       durableRecentSnapshotMaxAgeMs: SNAPSHOT_TTL_MS,
       durableSnapshotCrossPop: true,
+      probeConcurrency: PROBE_CONCURRENCY,
+      providerFallbackMode: 'sequential',
+      automaticRedirectsFollowed: false,
+      freshProbeProviderFanoutBounded: true,
       fabricatedMetrics: false,
     },
   };
