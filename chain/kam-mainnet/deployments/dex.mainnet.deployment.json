@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 1,
-  "status": "DEPLOYED_ONCHAIN_PENDING_SOURCE_VERIFICATION",
+  "schemaVersion": 2,
+  "status": "ONCHAIN_SOURCE_VERIFIED_PENDING_EXTERNAL_AUDIT_AND_LIQUIDITY_AUTHORIZATION",
   "network": {
     "name": "KriptoAman Mainnet",
     "chainId": 22028,
@@ -10,34 +10,72 @@
   "deployer": "0x9D4b034758202cE555504d038F92A344540D47B0",
   "canonicalWKAM": "0x0d8848CE88BB09a81a4248Efdd574d50B98b544A",
   "factory": {
-    "address": "0x5024017B0496113269E80B17d9b0F11733AE6de2",
-    "deploymentTransaction": "0xddbe3f7265194a068b369d954277f360fcabd2753175c03929d5bebedb5c0e4",
+    "address": "0x5024017B0496113269E80817d9b0F11733AE6de2",
+    "deploymentTransaction": "0xddbe3f7265194a068b369d954277f360fcabd2753175c03929d5bebedeb5c0e4",
     "deploymentBlock": 384625,
-    "runtimeBytecodePresent": true
+    "runtimeBytecodePresent": true,
+    "sourceRuntimeVerified": true,
+    "compiler": "0.8.36",
+    "optimizerRuns": 200,
+    "evmVersion": "paris"
   },
   "router": {
     "address": "0x4a413674245EE0959183604C153e386C00409122",
-    "deploymentTransaction": "0x83dd3be8629483b2db730c86437128fb39fb87ceb0738e970bba9c7a9bf98053",
+    "deploymentTransaction": "0x83dd3be8629483b2db730c86437128fb39f8b7ceb0738e970bba9c7a9bf98053",
     "deploymentBlock": 384625,
     "runtimeBytecodePresent": true,
-    "factoryBindingVerified": "0x5024017B0496113269E80B17d9b0F11733AE6de2",
+    "sourceRuntimeVerified": true,
+    "compiler": "0.8.36",
+    "optimizerRuns": 200,
+    "evmVersion": "paris",
+    "factoryBindingVerified": "0x5024017B0496113269E80817d9b0F11733AE6de2",
     "wkamBindingVerified": "0x0d8848CE88BB09a81a4248Efdd574d50B98b544A"
   },
   "verification": {
-    "method": "post-deployment read-only RPC checks",
+    "method": "read-only RPC state probe, block/receipt provenance recovery, and exact runtime-source reproduction",
     "factoryCode": "present",
     "routerCode": "present",
     "routerFactoryBinding": "matched",
-    "routerWKAMBinding": "matched"
+    "routerWKAMBinding": "matched",
+    "factoryRuntimeSource": "exact-match",
+    "routerRuntimeSource": "exact-match",
+    "wkamRuntimeSource": "exact-match",
+    "wkamCompiler": "0.8.24",
+    "wkamOptimizerRuns": 200,
+    "wkamEvmVersion": "paris",
+    "verifiedAt": "2026-09-03"
   },
   "liquidity": {
     "pairCreated": false,
+    "observedFactoryPairCount": 0,
     "seeded": false,
     "status": "NOT_AUTHORIZED"
   },
+  "corrections": [
+    {
+      "field": "factory.address",
+      "previous": "0x5024017B0496113269E80B17d9b0F11733AE6de2",
+      "corrected": "0x5024017B0496113269E80817d9b0F11733AE6de2",
+      "evidence": "Router immutable factory() binding, live runtime code, allPairsLength(), and deployment receipt recovered from block 384625"
+    },
+    {
+      "field": "factory.deploymentTransaction",
+      "previous": "0xddbe3f7265194a068b369d954277f360fcabd2753175c03929d5bebedb5c0e4",
+      "corrected": "0xddbe3f7265194a068b369d954277f360fcabd2753175c03929d5bebedeb5c0e4",
+      "evidence": "contract-creation receipt recovered from block 384625"
+    },
+    {
+      "field": "router.deploymentTransaction",
+      "previous": "0x83dd3be8629483b2db730c86437128fb39fb87ceb0738e970bba9c7a9bf98053",
+      "corrected": "0x83dd3be8629483b2db730c86437128fb39f8b7ceb0738e970bba9c7a9bf98053",
+      "evidence": "contract-creation receipt recovered from block 384625"
+    }
+  ],
   "notes": [
-    "This record documents the observed successful mainnet deployment and read-only binding checks.",
-    "Source verification/runtime code hash attestation is still a separate follow-up step.",
-    "No liquidity or treasury movement is authorized by this record."
+    "This record corrects transcription errors discovered by independent read-only state and block provenance checks on 2026-09-03.",
+    "Factory and Router runtime bytecode were reproduced exactly from repository source with Solidity 0.8.36, optimizer 200, EVM Paris.",
+    "WKAM runtime bytecode was reproduced exactly from its deployment source with Solidity 0.8.24, optimizer 200, EVM Paris.",
+    "Source verification does not substitute for an independent external smart-contract audit.",
+    "No liquidity, treasury movement, pair creation, public swap activation, or DEX-live claim is authorized by this record."
   ]
 }
