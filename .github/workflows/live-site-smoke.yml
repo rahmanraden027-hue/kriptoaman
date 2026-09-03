@@ -112,6 +112,34 @@ jobs:
           grep -qi '^cache-control:.*no-store' "$headers"
           node -e "const fs=require('fs'); const p=JSON.parse(fs.readFileSync(process.argv[1],'utf8')); if (typeof p !== 'object' || p === null) process.exit(1)" "$body"
 
+      - name: Check public platform market status consistency
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          code="$(curl --fail-with-body --location --silent --show-error \
+            --connect-timeout 10 --max-time 25 \
+            -o "$body" -w '%{http_code}' \
+            https://kriptoaman.com/api/platform-status)"
+          test "$code" = "200"
+          node - "$body" <<'NODE'
+          const fs = require('fs');
+          const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          const market = payload?.components?.market;
+          if (!market || market.status !== 'operational' || market.healthy !== true) {
+            console.error(`Expected public market status operational, got ${market?.status ?? 'missing'}`);
+            process.exit(1);
+          }
+          if (!Number.isFinite(Number(market.assetCount)) || Number(market.assetCount) < 4500) {
+            console.error(`Expected at least 4500 public market assets, got ${market?.assetCount ?? 'missing'}`);
+            process.exit(1);
+          }
+          if (market.stale !== false) {
+            console.error(`Expected a fresh public market snapshot, stale=${market?.stale ?? 'missing'}`);
+            process.exit(1);
+          }
+          NODE
+
       - name: Check KriptoAman Market Database paging contract
         shell: bash
         run: |

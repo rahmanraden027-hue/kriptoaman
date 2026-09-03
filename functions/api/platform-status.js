@@ -1,4 +1,5 @@
 const STATUS_TTL_MS = 30_000;
+const MIN_PUBLIC_MARKET_ASSETS = 4500;
 
 const HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
@@ -41,7 +42,15 @@ async function buildStatus(request) {
     readJson(`${origin}/api/kam/network-status`, 5000),
   ]);
 
-  const marketHealthy = Boolean(market.ok && market.payload?.healthy && Number(market.payload?.assetCount) > 0);
+  const marketAssetCount = market.ok ? Number(market.payload?.assetCount) : NaN;
+  const marketFresh = market.ok && market.payload?.stale === false;
+  const marketHealthy = Boolean(
+    market.ok
+      && market.payload?.healthy === true
+      && Number.isFinite(marketAssetCount)
+      && marketAssetCount >= MIN_PUBLIC_MARKET_ASSETS
+      && marketFresh,
+  );
   const networkOnline = networks.ok ? Number(networks.payload?.summary?.online) : null;
   const networkTotal = networks.ok ? Number(networks.payload?.summary?.total) : null;
   const networksHealthy = Number.isFinite(networkOnline) && networkOnline > 0;
@@ -51,9 +60,10 @@ async function buildStatus(request) {
     market: {
       status: marketHealthy ? 'operational' : market.ok ? 'degraded' : 'unavailable',
       healthy: marketHealthy,
-      assetCount: market.ok && Number(market.payload?.assetCount) > 0 ? Number(market.payload.assetCount) : null,
+      assetCount: Number.isFinite(marketAssetCount) && marketAssetCount > 0 ? marketAssetCount : null,
       source: market.ok ? market.payload?.source ?? null : null,
       capturedAt: market.ok ? market.payload?.capturedAt ?? null : null,
+      ageMs: market.ok && Number.isFinite(Number(market.payload?.ageMs)) ? Number(market.payload.ageMs) : null,
       stale: market.ok ? Boolean(market.payload?.stale) : null,
     },
     networks: {
@@ -91,6 +101,8 @@ async function buildStatus(request) {
         fabricatedMetrics: false,
         aggregateCacheTtlMs: STATUS_TTL_MS,
         edgeCache: true,
+        marketOperationalMinAssets: MIN_PUBLIC_MARKET_ASSETS,
+        marketOperationalRequiresFreshSnapshot: true,
       },
     },
   };
