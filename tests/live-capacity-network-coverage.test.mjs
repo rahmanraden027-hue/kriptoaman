@@ -14,9 +14,25 @@ test('network health probes a broad multi-chain set and reports live status only
     assert.match(health, new RegExp(`name: '${network.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}'`));
   }
   assert.match(health, /status: 'online'/);
-  assert.match(health, /status: 'offline'/);
-  assert.match(health, /minimum_active_target: 12/);
+  assert.match(health, /status: hasRecentLastGood \? 'degraded' : 'offline'/);
+  assert.match(health, /const MIN_ACTIVE_TARGET = 12/);
+  assert.match(health, /minimum_active_target: MIN_ACTIVE_TARGET/);
+  assert.match(health, /meets_minimum_active_target: online >= MIN_ACTIVE_TARGET/);
   assert.doesNotMatch(health, /Math\.random/);
+});
+
+test('multi-chain probes tolerate normal public-RPC latency without fabricating online status', async () => {
+  const health = await read('functions/api/network-health.js');
+  assert.match(health, /const DEFAULT_PROVIDER_TIMEOUT_MS = 2500/);
+  assert.match(health, /const SLOW_PROVIDER_TIMEOUT_MS = 3500/);
+  assert.match(health, /const SNAPSHOT_TTL_MS = 45_000/);
+  assert.match(health, /const LAST_GOOD_TTL_MS = 10 \* 60 \* 1000/);
+  assert.match(health, /let refreshInFlight = null/);
+  assert.match(health, /const lastGoodByNetwork = new Map\(\)/);
+  assert.match(health, /lastKnownGoodNeverCountsAsOnline: true/);
+  assert.match(health, /liveOnlineRequiresSuccessfulCurrentProbe: true/);
+  assert.match(health, /globalThis\.caches\?\.default/);
+  assert.match(health, /searchParams\.get\('refresh'\) === '1'/);
 });
 
 test('Base health check has an independent third provider for rate-limit recovery', async () => {
@@ -25,6 +41,24 @@ test('Base health check has an independent third provider for rate-limit recover
   assert.ok(baseConfig.includes("'https://mainnet.base.org'"));
   assert.ok(baseConfig.includes("'https://base-rpc.publicnode.com'"));
   assert.ok(baseConfig.includes("'https://base-mainnet.public.blastapi.io'"));
+});
+
+test('live capacity gate retries fresh probes but never lowers the 12-network standard', async () => {
+  const workflow = await read('.github/workflows/live-capacity-network-smoke.yml');
+  assert.match(workflow, /for attempt in 1 2 3 4; do/);
+  assert.match(workflow, /network-health\?refresh=1&attempt=\$\{attempt\}/);
+  assert.match(workflow, /if \(target !== 12\)/);
+  assert.match(workflow, /if \(online < 12\) process\.exit\(2\)/);
+  assert.match(workflow, /remained below 12 verified networks after four fresh probes/);
+  assert.doesNotMatch(workflow, /online < (?:[0-9]|1[01])\b/);
+});
+
+test('platform status gives the network probe enough time and enforces its published minimum', async () => {
+  const platform = await read('functions/api/platform-status.js');
+  assert.match(platform, /const NETWORK_HEALTH_TIMEOUT_MS = 5000/);
+  assert.match(platform, /readJson\(`\$\{origin\}\/api\/network-health`, NETWORK_HEALTH_TIMEOUT_MS\)/);
+  assert.match(platform, /networkOnline >= networkMinimumTarget/);
+  assert.match(platform, /networkHealthyRequiresMinimumTarget: true/);
 });
 
 test('public landing uses the stable platform health contract for asset and network counts', async () => {
