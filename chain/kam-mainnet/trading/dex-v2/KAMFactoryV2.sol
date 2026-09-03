@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "../dex/KAMPair.sol";
+import "./KAMPairV2.sol";
 import "../dex/interfaces/IERC20Minimal.sol";
 
-/// @notice Pre-audit candidate factory for controlled first-liquidity launch.
-/// Official launch pairs are created and initially seeded atomically by pairCreator.
-/// Empty permissionless pair creation is available only after an explicit irreversible open action.
+/// @notice Pre-audit candidate factory for atomic pair creation and first liquidity.
+/// No empty pair creation path exists: every pair is created and seeded in one transaction.
 contract KAMFactoryV2 {
     mapping(address => mapping(address => address)) public getPair;
     address[] public allPairs;
@@ -49,15 +48,9 @@ contract KAMFactoryV2 {
         emit PermissionlessPairCreationEnabled(msg.sender);
     }
 
-    /// @notice Public pair creation is intentionally unavailable during the controlled launch phase.
-    function createPair(address tokenA, address tokenB) external lock returns (address pair) {
-        require(permissionlessPairCreation, "KAMFactoryV2: CREATION_RESTRICTED");
-        pair = _createPair(tokenA, tokenB);
-    }
-
-    /// @notice Creates the official pair and seeds its first liquidity in the same transaction.
-    /// The pairCreator must pre-approve this factory for both ERC-20 assets, including WKAM.
-    /// Fee-on-transfer/rebasing behavior is rejected by exact post-transfer balance checks.
+    /// @notice Creates a pair and seeds its first liquidity atomically.
+    /// Before permissionless mode opens, only pairCreator may call this function.
+    /// After opening, any provider may create and seed a new pair atomically.
     function createPairAndSeed(
         address tokenA,
         address tokenB,
@@ -65,19 +58,24 @@ contract KAMFactoryV2 {
         uint256 amountB,
         address to
     ) external lock returns (address pair, uint256 liquidity) {
-        require(msg.sender == pairCreator, "KAMFactoryV2: FORBIDDEN");
-        require(!permissionlessPairCreation, "KAMFactoryV2: LAUNCH_PHASE_CLOSED");
+        require(permissionlessPairCreation || msg.sender == pairCreator, "KAMFactoryV2: CREATION_RESTRICTED");
         require(amountA > 0 && amountB > 0, "KAMFactoryV2: ZERO_AMOUNT");
         require(to != address(0), "KAMFactoryV2: ZERO_TO");
 
         pair = _createPair(tokenA, tokenB);
 
+        uint256 preA = IERC20Minimal(tokenA).balanceOf(pair);
+        uint256 preB = IERC20Minimal(tokenB).balanceOf(pair);
+
         require(IERC20Minimal(tokenA).transferFrom(msg.sender, pair, amountA), "KAMFactoryV2: TRANSFER_A");
         require(IERC20Minimal(tokenB).transferFrom(msg.sender, pair, amountB), "KAMFactoryV2: TRANSFER_B");
-        require(IERC20Minimal(tokenA).balanceOf(pair) == amountA, "KAMFactoryV2: NON_STANDARD_A");
-        require(IERC20Minimal(tokenB).balanceOf(pair) == amountB, "KAMFactoryV2: NON_STANDARD_B");
 
-        liquidity = KAMPair(pair).mint(to);
+        if (tokenA < tokenB) {
+            liquidity = KAMPairV2(pair).seed(to, msg.sender, preA, preB, amountA, amountB);
+        } else {
+            liquidity = KAMPairV2(pair).seed(to, msg.sender, preB, preA, amountB, amountA);
+        }
+
         emit InitialLiquiditySeeded(pair, msg.sender, to, amountA, amountB, liquidity);
     }
 
@@ -87,7 +85,7 @@ contract KAMFactoryV2 {
         require(token0 != address(0), "KAMFactoryV2: ZERO_ADDRESS");
         require(getPair[token0][token1] == address(0), "KAMFactoryV2: PAIR_EXISTS");
 
-        KAMPair deployed = new KAMPair();
+        KAMPairV2 deployed = new KAMPairV2();
         pair = address(deployed);
         deployed.initialize(token0, token1);
 
