@@ -18,16 +18,17 @@ contract FactoryV2Caller {
         tokenA.approve(address(factory), amountA);
         tokenB.approve(address(factory), amountB);
         bytes memory data;
-        (ok, data) = address(factory).call(
-            abi.encodeWithSelector(
-                factory.createPairAndSeed.selector,
-                address(tokenA),
-                address(tokenB),
-                amountA,
-                amountB,
-                address(this)
-            )
-        );
+        (ok, data) = address(factory)
+            .call(
+                abi.encodeWithSelector(
+                    factory.createPairAndSeed.selector,
+                    address(tokenA),
+                    address(tokenB),
+                    amountA,
+                    amountB,
+                    address(this)
+                )
+            );
         if (ok) (pair,) = abi.decode(data, (address, uint256));
     }
 }
@@ -111,16 +112,17 @@ contract KAMDEXV2Test {
 
     function testDuplicatePairAndSeedIsRejected() public {
         factory.createPairAndSeed(address(tokenA), address(tokenB), 10_000 ether, 10_000 ether, address(this));
-        (bool ok,) = address(factory).call(
-            abi.encodeWithSelector(
-                factory.createPairAndSeed.selector,
-                address(tokenA),
-                address(tokenB),
-                1_000 ether,
-                1_000 ether,
-                address(this)
-            )
-        );
+        (bool ok,) = address(factory)
+            .call(
+                abi.encodeWithSelector(
+                    factory.createPairAndSeed.selector,
+                    address(tokenA),
+                    address(tokenB),
+                    1_000 ether,
+                    1_000 ether,
+                    address(this)
+                )
+            );
         require(!ok, "duplicate pair seeded");
     }
 
@@ -140,38 +142,40 @@ contract KAMDEXV2Test {
     }
 
     function testRouterNeverAutoCreatesMissingPair() public {
-        (bool ok,) = address(router).call(
-            abi.encodeWithSelector(
-                router.addLiquidity.selector,
-                address(tokenA),
-                address(tokenB),
-                1_000 ether,
-                1_000 ether,
-                1_000 ether,
-                1_000 ether,
-                address(this),
-                type(uint256).max
-            )
-        );
+        (bool ok,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.addLiquidity.selector,
+                    address(tokenA),
+                    address(tokenB),
+                    1_000 ether,
+                    1_000 ether,
+                    1_000 ether,
+                    1_000 ether,
+                    address(this),
+                    type(uint256).max
+                )
+            );
         require(!ok, "router auto-created missing pair");
         require(factory.allPairsLength() == 0, "missing pair was created");
     }
 
     function testExpiredDeadlineIsRejected() public {
         _atomicSeedEqualLiquidity();
-        (bool ok,) = address(router).call(
-            abi.encodeWithSelector(
-                router.addLiquidity.selector,
-                address(tokenA),
-                address(tokenB),
-                1_000 ether,
-                1_000 ether,
-                1_000 ether,
-                1_000 ether,
-                address(this),
-                0
-            )
-        );
+        (bool ok,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.addLiquidity.selector,
+                    address(tokenA),
+                    address(tokenB),
+                    1_000 ether,
+                    1_000 ether,
+                    1_000 ether,
+                    1_000 ether,
+                    address(this),
+                    0
+                )
+            );
         require(!ok, "expired transaction accepted");
     }
 
@@ -180,19 +184,20 @@ contract KAMDEXV2Test {
         uint256 aBefore = tokenA.balanceOf(address(this));
         uint256 bBefore = tokenB.balanceOf(address(this));
 
-        (bool ok,) = address(router).call(
-            abi.encodeWithSelector(
-                router.addLiquidity.selector,
-                address(tokenA),
-                address(tokenB),
-                1_000 ether,
-                1_000 ether,
-                1_001 ether,
-                1_000 ether,
-                address(this),
-                type(uint256).max
-            )
-        );
+        (bool ok,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.addLiquidity.selector,
+                    address(tokenA),
+                    address(tokenB),
+                    1_000 ether,
+                    1_000 ether,
+                    1_001 ether,
+                    1_000 ether,
+                    address(this),
+                    type(uint256).max
+                )
+            );
         require(!ok, "F-05 amountAMin bypass still present");
         require(tokenA.balanceOf(address(this)) == aBefore, "A moved on revert");
         require(tokenB.balanceOf(address(this)) == bBefore, "B moved on revert");
@@ -203,19 +208,20 @@ contract KAMDEXV2Test {
         uint256 aBefore = tokenA.balanceOf(address(this));
         uint256 bBefore = tokenB.balanceOf(address(this));
 
-        (bool ok,) = address(router).call(
-            abi.encodeWithSelector(
-                router.addLiquidity.selector,
-                address(tokenA),
-                address(tokenB),
-                1_000 ether,
-                500 ether,
-                500 ether,
-                501 ether,
-                address(this),
-                type(uint256).max
-            )
-        );
+        (bool ok,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.addLiquidity.selector,
+                    address(tokenA),
+                    address(tokenB),
+                    1_000 ether,
+                    500 ether,
+                    500 ether,
+                    501 ether,
+                    address(this),
+                    type(uint256).max
+                )
+            );
         require(!ok, "F-05 amountBMin bypass still present");
         require(tokenA.balanceOf(address(this)) == aBefore, "A moved on revert");
         require(tokenB.balanceOf(address(this)) == bBefore, "B moved on revert");
@@ -246,9 +252,8 @@ contract KAMDEXV2Test {
 
         uint256 removable = KAMPairV2(pair).balanceOf(address(this)) / 10;
         KAMPairV2(pair).approve(address(router), removable);
-        (uint256 removedA, uint256 removedB) = router.removeLiquidity(
-            address(tokenA), address(tokenB), removable, 1, 1, address(this), type(uint256).max
-        );
+        (uint256 removedA, uint256 removedB) =
+            router.removeLiquidity(address(tokenA), address(tokenB), removable, 1, 1, address(this), type(uint256).max);
         require(removedA > 0 && removedB > 0, "remove liquidity failed");
     }
 
