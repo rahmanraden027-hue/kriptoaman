@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import "./KAMFactoryV2.sol";
-import "../dex/KAMPair.sol";
+import "./KAMPairV2.sol";
 import "../dex/interfaces/IERC20Minimal.sol";
 
 interface IWKAMV2 is IERC20Minimal {
@@ -67,7 +67,7 @@ contract KAMRouterV2 {
         view
         returns (uint256 reserveA, uint256 reserveB)
     {
-        (uint112 reserve0, uint112 reserve1,) = KAMPair(pair).getReserves();
+        (uint112 reserve0, uint112 reserve1,) = KAMPairV2(pair).getReserves();
         if (tokenA < tokenB) return (reserve0, reserve1);
         return (reserve1, reserve0);
     }
@@ -114,7 +114,7 @@ contract KAMRouterV2 {
             _optimalAmounts(amountADesired, amountBDesired, amountAMin, amountBMin, reserveA, reserveB);
         require(IERC20Minimal(tokenA).transferFrom(msg.sender, pair, amountA), "KAMRouterV2: TRANSFER_A");
         require(IERC20Minimal(tokenB).transferFrom(msg.sender, pair, amountB), "KAMRouterV2: TRANSFER_B");
-        liquidity = KAMPair(pair).mint(to);
+        liquidity = KAMPairV2(pair).mint(to);
     }
 
     function addLiquidity(
@@ -146,7 +146,7 @@ contract KAMRouterV2 {
         require(IERC20Minimal(token).transferFrom(msg.sender, pair, amountToken), "KAMRouterV2: TOKEN_TRANSFER");
         IWKAMV2(WKAM).deposit{value: amountKAM}();
         require(IWKAMV2(WKAM).transfer(pair, amountKAM), "KAMRouterV2: WKAM_TRANSFER");
-        liquidity = KAMPair(pair).mint(to);
+        liquidity = KAMPairV2(pair).mint(to);
         if (msg.value > amountKAM) {
             (bool ok,) = msg.sender.call{value: msg.value - amountKAM}("");
             require(ok, "KAMRouterV2: REFUND");
@@ -162,8 +162,8 @@ contract KAMRouterV2 {
         address to
     ) internal returns (uint256 amountA, uint256 amountB) {
         address pair = _pairFor(tokenA, tokenB);
-        require(KAMPair(pair).transferFrom(msg.sender, pair, liquidity), "KAMRouterV2: LP_TRANSFER");
-        (uint256 amount0, uint256 amount1) = KAMPair(pair).burn(to);
+        require(KAMPairV2(pair).transferFrom(msg.sender, pair, liquidity), "KAMRouterV2: LP_TRANSFER");
+        (uint256 amount0, uint256 amount1) = KAMPairV2(pair).burn(to);
         if (tokenA < tokenB) {
             (amountA, amountB) = (amount0, amount1);
         } else {
@@ -214,9 +214,9 @@ contract KAMRouterV2 {
         require(amountOut >= amountOutMin, "KAMRouterV2: INSUFFICIENT_OUTPUT");
         require(IERC20Minimal(tokenIn).transferFrom(msg.sender, pair, amountIn), "KAMRouterV2: TRANSFER_IN");
         if (tokenIn < tokenOut) {
-            KAMPair(pair).swap(0, amountOut, to);
+            KAMPairV2(pair).swap(0, amountOut, to);
         } else {
-            KAMPair(pair).swap(amountOut, 0, to);
+            KAMPairV2(pair).swap(amountOut, 0, to);
         }
     }
 
@@ -235,9 +235,9 @@ contract KAMRouterV2 {
         IWKAMV2(WKAM).deposit{value: msg.value}();
         require(IWKAMV2(WKAM).transfer(pair, msg.value), "KAMRouterV2: WKAM_TRANSFER");
         if (WKAM < tokenOut) {
-            KAMPair(pair).swap(0, amountOut, to);
+            KAMPairV2(pair).swap(0, amountOut, to);
         } else {
-            KAMPair(pair).swap(amountOut, 0, to);
+            KAMPairV2(pair).swap(amountOut, 0, to);
         }
     }
 
@@ -254,9 +254,9 @@ contract KAMRouterV2 {
         require(amountOut >= amountOutMin, "KAMRouterV2: INSUFFICIENT_OUTPUT");
         require(IERC20Minimal(tokenIn).transferFrom(msg.sender, pair, amountIn), "KAMRouterV2: TRANSFER_IN");
         if (tokenIn < WKAM) {
-            KAMPair(pair).swap(0, amountOut, address(this));
+            KAMPairV2(pair).swap(0, amountOut, address(this));
         } else {
-            KAMPair(pair).swap(amountOut, 0, address(this));
+            KAMPairV2(pair).swap(amountOut, 0, address(this));
         }
         IWKAMV2(WKAM).withdraw(amountOut);
         (bool ok,) = to.call{value: amountOut}("");
