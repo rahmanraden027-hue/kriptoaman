@@ -7,12 +7,11 @@ import {
   Info,
   LockKeyhole,
   Network,
-  ShieldCheck,
   Wallet,
 } from 'lucide-react';
 
 const WKAM_ADDRESS = '0x0d8848CE88BB09a81a4248Efdd574d50B98b544A';
-const FACTORY_ADDRESS = '0x5024017B0496113269E80B17d9b0F11733AE6de2';
+const FACTORY_ADDRESS = '0x5024017B0496113269E80817d9b0F11733AE6de2';
 const ROUTER_ADDRESS = '0x4a413674245EE0959183604C153e386C00409122';
 
 const Metric = ({ label, value, note }) => (
@@ -54,12 +53,12 @@ export default function KAMDEX() {
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <StatusChip>KAM Mainnet · Chain ID 22028</StatusChip>
-                <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">Factory + Router Deployed</span>
+                <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">Factory + Router Source Verified</span>
                 <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-xs font-bold text-amber-200">Liquidity Not Yet Enabled</span>
               </div>
               <h1 className="mt-5 text-3xl font-black tracking-tight sm:text-4xl">KriptoAman DEX</h1>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400 sm:text-base">
-                KAMFactory dan KAMRouter telah dideploy di KAM Mainnet dan binding Router ke Factory serta canonical WKAM telah diverifikasi melalui pemeriksaan RPC read-only. Pool dan likuiditas tetap dinonaktifkan sampai counter-asset dan otorisasi treasury diselesaikan.
+                KAMFactory, KAMRouter, dan WKAM telah dicocokkan secara reproducible dengan runtime bytecode di KAM Mainnet. Pool dan likuiditas tetap dinonaktifkan sampai independent contract review, provenance counter-asset, dan otorisasi treasury selesai.
               </p>
             </div>
             <div className="flex gap-3">
@@ -124,10 +123,10 @@ export default function KAMDEX() {
             <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-300">Liquidity Readiness</p>
             <div className="mt-4 space-y-3">
               {[
-                ['Factory', 'Deployed · verified binding'],
+                ['Factory', 'Deployed · source/runtime verified'],
                 ['Pair / LP', 'Implemented · no live pool yet'],
-                ['Router', 'Deployed · verified binding'],
-                ['WKAM', 'Canonical deployment active'],
+                ['Router', 'Deployed · source/runtime verified'],
+                ['WKAM', 'Deployment source/runtime verified'],
                 ['Quote asset', 'Pending provenance'],
                 ['Real pool reserves', 'Not seeded'],
               ].map(([name, state]) => (
@@ -146,8 +145,8 @@ export default function KAMDEX() {
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
               {[
                 ['KAMRouter', 'Live mainnet entry point', ArrowDownUp],
-                ['KAMFactory', 'Live mainnet pair factory', Coins],
-                ['KAMPair', 'Created only when a pool is authorized', Droplets],
+                ['KAMFactory', 'Live permissionless pair factory', Coins],
+                ['KAMPair', 'No production pair exists yet', Droplets],
               ].map(([name, desc, Icon]) => (
                 <div key={name} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
                   <Icon className="h-5 w-5 text-sky-300" />
@@ -166,8 +165,8 @@ export default function KAMDEX() {
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               {[
                 ['Contract deployment', 'Completed on KAM Mainnet'],
-                ['Router bindings', 'Factory + canonical WKAM verified'],
-                ['Source verification', 'Still required'],
+                ['Source verification', 'Completed · reproducible runtime match'],
+                ['Independent review', 'Required before production pool'],
                 ['Quote asset provenance', 'Required before pool'],
                 ['Treasury authorization', 'Required before funds move'],
                 ['Small real swap smoke', 'Only after verified liquidity'],
@@ -185,7 +184,7 @@ export default function KAMDEX() {
           <div className="flex gap-3">
             <Info className="mt-0.5 h-5 w-5 shrink-0 text-blue-300" />
             <p className="text-sm leading-6 text-slate-400">
-              Factory dan Router sudah live di KAM Mainnet. Halaman ini tetap tidak menampilkan harga KAM, TVL, volume, APY, listing, atau likuiditas yang belum terverifikasi. Wallet connection, pool creation dan swap tetap dinonaktifkan sampai source verification, counter-asset provenance, liquidity approval, dan smoke test selesai.
+              Factory, Router, dan WKAM telah melalui reproducible source/runtime verification. Halaman ini tetap tidak menampilkan harga KAM, TVL, volume, APY, listing, atau likuiditas yang belum terverifikasi. Wallet connection, pool creation dan swap tetap dinonaktifkan sampai independent contract review, counter-asset provenance, liquidity approval, dan smoke test selesai.
             </p>
           </div>
         </section>
