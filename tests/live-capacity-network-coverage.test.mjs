@@ -39,6 +39,21 @@ test('multi-chain probes tolerate normal public-RPC latency without fabricating 
   assert.match(health, /searchParams\.get\('refresh'\) === '1'/);
 });
 
+test('fresh provider fanout stays below the worker connection ceiling and fallbacks are sequential', async () => {
+  const health = await read('functions/api/network-health.js');
+  assert.match(health, /const PROBE_CONCURRENCY = 5/);
+  assert.match(health, /async function mapWithConcurrency/);
+  assert.match(health, /mapWithConcurrency\(NETWORKS, PROBE_CONCURRENCY, probe\)/);
+  assert.match(health, /for \(const url of item\.urls\)/);
+  assert.doesNotMatch(health, /Promise\.any\(/);
+  assert.doesNotMatch(health, /Promise\.all\(NETWORKS\.map\(probe\)\)/);
+  assert.match(health, /redirect: 'error'/);
+  assert.match(health, /probeConcurrency: PROBE_CONCURRENCY/);
+  assert.match(health, /providerFallbackMode: 'sequential'/);
+  assert.match(health, /automaticRedirectsFollowed: false/);
+  assert.match(health, /freshProbeProviderFanoutBounded: true/);
+});
+
 test('network health has a short cross-POP durable verified snapshot without weakening fresh probes', async () => {
   const health = await read('functions/api/network-health.js');
   assert.match(health, /import \{ primarySession, readSession \} from '\.\.\/_shared\/d1-session\.js'/);
