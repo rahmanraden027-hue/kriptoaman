@@ -7,6 +7,8 @@ on:
       - 'chain/kam-mainnet/trading/dex-v2/**'
       - 'chain/kam-mainnet/trading/contracts/WKAM.sol'
       - 'chain/kam-mainnet/deployments/wkam.json'
+      - 'chain/kam-mainnet/trading/script/PrepareKAMDEXV2Deployment.s.sol'
+      - 'chain/kam-mainnet/trading/script/DeployKAMDEXV2.s.sol'
       - 'chain/kam-mainnet/trading/test/KAMDEX.t.sol'
       - 'chain/kam-mainnet/trading/test/KAMDEXV2.t.sol'
       - 'chain/kam-mainnet/trading/test/KAMDEXDeploymentSimulation.t.sol'
