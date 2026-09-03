@@ -1,3 +1,5 @@
+import { primarySession, readSession } from '../_shared/d1-session.js';
+
 const DEFAULT_PROVIDER_TIMEOUT_MS = 2500;
 const SLOW_PROVIDER_TIMEOUT_MS = 3500;
 const EXTENDED_PROVIDER_TIMEOUT_MS = 5000;
@@ -30,6 +32,14 @@ const NETWORKS = [
   { name: 'Dogecoin', type: 'utxo', timeoutMs: EXTENDED_PROVIDER_TIMEOUT_MS, urls: ['https://doge1.trezor.io/api/v2', 'https://doge2.trezor.io/api/v2', 'https://dogecoin.atomicwallet.io/api/v2', 'https://api.blockchair.com/dogecoin/stats', 'https://api.blockcypher.com/v1/doge/main'] },
 ];
 
+const DURABLE_SNAPSHOT_SCHEMA = `
+CREATE TABLE IF NOT EXISTS network_health_snapshots (
+  id TEXT PRIMARY KEY,
+  captured_at INTEGER NOT NULL,
+  payload TEXT NOT NULL,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+)`;
+
 const HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
   'Cache-Control': 'public, max-age=30, s-maxage=60, stale-while-revalidate=240',
@@ -39,6 +49,7 @@ const HEADERS = {
 let cachedSnapshot = null;
 let cachedSnapshotAt = 0;
 let refreshInFlight = null;
+let durableSchemaReady = false;
 const lastGoodByNetwork = new Map();
 
 function json(data, init = {}, extraHeaders = {}) {
@@ -47,6 +58,11 @@ function json(data, init = {}, extraHeaders = {}) {
     headers: { ...HEADERS, ...(init.headers || {}), ...extraHeaders },
   });
 }
+
+const scheduleBackground = (waitUntil, task) => {
+  if (typeof waitUntil === 'function') waitUntil(task);
+  else task.catch(() => undefined);
+};
 
 async function fetchWithTimeout(url, options = {}, timeoutMs = DEFAULT_PROVIDER_TIMEOUT_MS) {
   const controller = new AbortController();
@@ -63,7 +79,7 @@ const rpcBody = (method, params = []) => JSON.stringify({ jsonrpc: '2.0', id: 1,
 function requestHeaders(extra = {}) {
   return {
     Accept: 'application/json,text/plain,*/*',
-    'User-Agent': 'KriptoAman-Network-Health/4.0',
+    'User-Agent': 'KriptoAman-Network-Health/4.1',
     ...extra,
   };
 }
@@ -217,9 +233,79 @@ async function buildSnapshot() {
       lastGoodTtlMs: LAST_GOOD_TTL_MS,
       publicRequestsMayUseRecentVerifiedSnapshot: true,
       refreshParameterAlwaysForcesFreshProbe: true,
+      durableRecentSnapshotMaxAgeMs: SNAPSHOT_TTL_MS,
+      durableSnapshotCrossPop: true,
       fabricatedMetrics: false,
     },
   };
+}
+
+function isCompleteVerifiedSnapshot(snapshot) {
+  const total = Number(snapshot?.summary?.total);
+  const online = Number(snapshot?.summary?.online);
+  const degraded = Number(snapshot?.summary?.degraded);
+  const offline = Number(snapshot?.summary?.offline);
+  const target = Number(snapshot?.summary?.minimum_active_target);
+  return Boolean(
+    Array.isArray(snapshot?.networks)
+      && snapshot.networks.length === NETWORKS.length
+      && total === NETWORKS.length
+      && Number.isFinite(online)
+      && Number.isFinite(degraded)
+      && Number.isFinite(offline)
+      && online >= 0
+      && degraded >= 0
+      && offline >= 0
+      && online + degraded + offline === total
+      && target === MIN_ACTIVE_TARGET,
+  );
+}
+
+async function readDurableSnapshot(env) {
+  if (!env?.AUTH_DB) return null;
+  try {
+    const db = readSession(env.AUTH_DB);
+    const row = await db.prepare(
+      'SELECT captured_at, payload FROM network_health_snapshots WHERE id = ?',
+    ).bind('global').first();
+    if (!row) return null;
+    const capturedAt = Number(row.captured_at);
+    const ageMs = Number.isFinite(capturedAt) ? Math.max(0, Date.now() - capturedAt) : Infinity;
+    if (ageMs >= SNAPSHOT_TTL_MS) return null;
+    const snapshot = JSON.parse(row.payload);
+    if (!isCompleteVerifiedSnapshot(snapshot)) return null;
+    return { snapshot, ageMs };
+  } catch {
+    return null;
+  }
+}
+
+async function ensureDurableSchema(db) {
+  if (durableSchemaReady) return;
+  await db.prepare(DURABLE_SNAPSHOT_SCHEMA).run();
+  durableSchemaReady = true;
+}
+
+async function persistDurableSnapshot(env, snapshot) {
+  if (!env?.AUTH_DB || !isCompleteVerifiedSnapshot(snapshot)) return false;
+  try {
+    const db = primarySession(env.AUTH_DB);
+    await ensureDurableSchema(db);
+    await db.prepare(`
+      INSERT INTO network_health_snapshots (id, captured_at, payload, updated_at)
+      VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+      ON CONFLICT(id) DO UPDATE SET
+        captured_at = excluded.captured_at,
+        payload = excluded.payload,
+        updated_at = CURRENT_TIMESTAMP
+    `).bind('global', Date.now(), JSON.stringify(snapshot)).run();
+    return true;
+  } catch (error) {
+    console.error('Unable to persist durable network health snapshot', {
+      error: error?.message || String(error),
+    });
+    return false;
+  }
 }
 
 function startRefresh() {
@@ -237,12 +323,13 @@ function startRefresh() {
   return refreshInFlight;
 }
 
-async function getSnapshot(forceRefresh = false, waitUntil) {
+async function getSnapshot(forceRefresh = false, waitUntil, env) {
   const now = Date.now();
   const ageMs = cachedSnapshot ? now - cachedSnapshotAt : null;
 
   if (forceRefresh) {
     const snapshot = await startRefresh();
+    scheduleBackground(waitUntil, persistDurableSnapshot(env, snapshot));
     return { snapshot, deliveryMode: 'fresh-probe', ageMs: 0 };
   }
 
@@ -250,17 +337,29 @@ async function getSnapshot(forceRefresh = false, waitUntil) {
     return { snapshot: cachedSnapshot, deliveryMode: 'memory-fresh', ageMs };
   }
 
+  const durable = await readDurableSnapshot(env);
+  if (durable) {
+    scheduleBackground(
+      waitUntil,
+      startRefresh().then((snapshot) => persistDurableSnapshot(env, snapshot)),
+    );
+    return { snapshot: durable.snapshot, deliveryMode: 'd1-recent-verified', ageMs: durable.ageMs };
+  }
+
   if (cachedSnapshot && Number.isFinite(ageMs) && ageMs <= STALE_SNAPSHOT_MAX_AGE_MS) {
-    const task = startRefresh().catch((error) => console.error('Background network refresh failed', error));
-    if (typeof waitUntil === 'function') waitUntil(task);
+    scheduleBackground(
+      waitUntil,
+      startRefresh().then((snapshot) => persistDurableSnapshot(env, snapshot)),
+    );
     return { snapshot: cachedSnapshot, deliveryMode: 'recent-verified-background-refresh', ageMs };
   }
 
   const snapshot = await startRefresh();
+  scheduleBackground(waitUntil, persistDurableSnapshot(env, snapshot));
   return { snapshot, deliveryMode: 'fresh-probe', ageMs: 0 };
 }
 
-export async function onRequestGet({ request, waitUntil } = {}) {
+export async function onRequestGet({ request, waitUntil, env } = {}) {
   const requestUrl = new URL(request?.url || 'https://kriptoaman.com/api/network-health');
   const forceRefresh = requestUrl.searchParams.get('refresh') === '1';
   const edgeCache = globalThis.caches?.default;
@@ -275,14 +374,14 @@ export async function onRequestGet({ request, waitUntil } = {}) {
     }
   }
 
-  const { snapshot, deliveryMode, ageMs } = await getSnapshot(forceRefresh, waitUntil);
+  const { snapshot, deliveryMode, ageMs } = await getSnapshot(forceRefresh, waitUntil, env);
   const delivered = {
     ...snapshot,
     delivery: {
       mode: deliveryMode,
       snapshotAgeMs: ageMs,
       freshProbe: deliveryMode === 'fresh-probe',
-      edgeCacheEligible: !forceRefresh,
+      edgeCacheEligible: !forceRefresh && deliveryMode === 'fresh-probe',
     },
   };
   const status = snapshot.summary.online > 0 ? 200 : 503;
@@ -291,10 +390,8 @@ export async function onRequestGet({ request, waitUntil } = {}) {
     'X-KriptoAman-Network-Delivery': deliveryMode,
   });
 
-  if (!forceRefresh && edgeCache && status === 200) {
-    const task = edgeCache.put(cacheKey, response.clone());
-    if (typeof waitUntil === 'function') waitUntil(task);
-    else await task;
+  if (!forceRefresh && edgeCache && status === 200 && deliveryMode === 'fresh-probe') {
+    scheduleBackground(waitUntil, edgeCache.put(cacheKey, response.clone()));
   }
 
   return response;
