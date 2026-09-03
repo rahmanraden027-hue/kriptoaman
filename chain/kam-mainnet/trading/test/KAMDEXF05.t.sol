@@ -29,13 +29,7 @@ contract KAMDEXF05Test {
         tokenB.approve(address(router), type(uint256).max);
 
         router.addLiquidity(
-            address(tokenA),
-            address(tokenB),
-            10_000 ether,
-            10_000 ether,
-            10_000 ether,
-            10_000 ether,
-            address(this)
+            address(tokenA), address(tokenB), 10_000 ether, 10_000 ether, 10_000 ether, 10_000 ether, address(this)
         );
     }
 
@@ -46,18 +40,19 @@ contract KAMDEXF05Test {
         uint256 aBefore = tokenA.balanceOf(address(this));
         uint256 bBefore = tokenB.balanceOf(address(this));
 
-        (bool ok,) = address(router).call(
-            abi.encodeWithSelector(
-                router.addLiquidity.selector,
-                address(tokenA),
-                address(tokenB),
-                1_000 ether,
-                1_000 ether,
-                1_001 ether,
-                1_000 ether,
-                address(this)
-            )
-        );
+        (bool ok,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.addLiquidity.selector,
+                    address(tokenA),
+                    address(tokenB),
+                    1_000 ether,
+                    1_000 ether,
+                    1_001 ether,
+                    1_000 ether,
+                    address(this)
+                )
+            );
 
         require(ok, "F-05 reproduction changed: amountAMin now enforced");
         require(aBefore - tokenA.balanceOf(address(this)) == 1_000 ether, "unexpected A consumption");
@@ -71,18 +66,19 @@ contract KAMDEXF05Test {
         uint256 aBefore = tokenA.balanceOf(address(this));
         uint256 bBefore = tokenB.balanceOf(address(this));
 
-        (bool ok,) = address(router).call(
-            abi.encodeWithSelector(
-                router.addLiquidity.selector,
-                address(tokenA),
-                address(tokenB),
-                1_000 ether,
-                500 ether,
-                500 ether,
-                501 ether,
-                address(this)
-            )
-        );
+        (bool ok,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.addLiquidity.selector,
+                    address(tokenA),
+                    address(tokenB),
+                    1_000 ether,
+                    500 ether,
+                    500 ether,
+                    501 ether,
+                    address(this)
+                )
+            );
 
         require(ok, "F-05 reproduction changed: amountBMin now enforced");
         require(aBefore - tokenA.balanceOf(address(this)) == 500 ether, "unexpected A consumption");
