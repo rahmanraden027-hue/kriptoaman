@@ -352,7 +352,11 @@ export async function onRequestGet({ request, waitUntil, env }) {
 
   const response = json(result.body, result.status, { 'X-KriptoAman-Status-Cache': 'MISS' });
 
-  if (edgeCache && result.status === 200) {
+  if (
+    edgeCache
+      && result.status === 200
+      && result.body?.delivery?.aggregateRead === 'live-verified'
+  ) {
     scheduleBackground(waitUntil, edgeCache.put(cacheKey, response.clone()));
   }
 
