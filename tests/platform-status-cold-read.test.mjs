@@ -26,10 +26,20 @@ test('platform status preserves market operational freshness and asset gates', a
   assert.match(source, /fabricatedMetrics: false/);
 });
 
+test('platform status bounds component reads below the public aggregate SLO instead of waiting on slow cold subrequests', async () => {
+  const source = await read('functions/api/platform-status.js');
+  assert.match(source, /const COMPONENT_STATUS_TIMEOUT_MS = 850/);
+  assert.match(source, /readJson\(`\$\{origin\}\/api\/network-health`\)/);
+  assert.match(source, /readJson\(`\$\{origin\}\/api\/kam\/network-status`\)/);
+  assert.match(source, /componentStatusTimeoutMs: COMPONENT_STATUS_TIMEOUT_MS/);
+  assert.match(source, /componentTimeoutDegradesRatherThanFabricates: true/);
+  assert.match(source, /readError: networks\.ok \? null : networks\.error/);
+  assert.match(source, /readError: kam\.ok \? null : kam\.error/);
+});
+
 test('platform status keeps bounded HTTP fallback and cached aggregate delivery', async () => {
   const source = await read('functions/api/platform-status.js');
   assert.match(source, /\/api\/market-snapshot\?health=1/);
-  assert.match(source, /1800/);
   assert.match(source, /globalThis\.caches\?\.default/);
   assert.match(source, /STATUS_TTL_MS = 30_000/);
   assert.match(source, /statusInFlight/);
