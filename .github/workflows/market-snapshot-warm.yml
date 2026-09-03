@@ -2,6 +2,13 @@ name: Market Snapshot Warm
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'functions/api/market-snapshot.js'
+      - 'functions/api/market-snapshot-page.js'
+      - '.github/workflows/market-snapshot-warm.yml'
   schedule:
     - cron: '7,22,37,52 * * * *'
 
@@ -13,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - name: Warm KriptoAman market snapshot
+      - name: Warm KriptoAman market snapshot and ensure chunks
         shell: bash
         run: |
           set -euo pipefail
@@ -46,10 +53,18 @@ jobs:
             console.error('Market snapshot endpoint reported unhealthy state');
             process.exit(1);
           }
-          console.log(`Market snapshot verified: ${payload.assetCount} assets; source=${payload.source}; ageMs=${payload.ageMs}; refreshPerformed=${payload.refreshPerformed}`);
+          if (payload.chunkReady !== true) {
+            console.error(`Market chunk coverage is not ready: ${JSON.stringify({ chunkCount: payload.chunkCount, expectedChunks: payload.expectedChunks, chunkBackfilled: payload.chunkBackfilled })}`);
+            process.exit(1);
+          }
+          if (!Number.isFinite(Number(payload.chunkCount)) || Number(payload.chunkCount) < Number(payload.expectedChunks) || Number(payload.expectedChunks) < 45) {
+            console.error(`Invalid market chunk coverage: ${payload.chunkCount}/${payload.expectedChunks}`);
+            process.exit(1);
+          }
+          console.log(`Market snapshot verified: ${payload.assetCount} assets; source=${payload.source}; ageMs=${payload.ageMs}; chunks=${payload.chunkCount}/${payload.expectedChunks}; chunkBackfilled=${payload.chunkBackfilled}; refreshPerformed=${payload.refreshPerformed}`);
           NODE
 
-      - name: Verify paged market database
+      - name: Verify paged market uses chunk delivery
         shell: bash
         run: |
           set -euo pipefail
@@ -57,12 +72,20 @@ jobs:
           code="$(curl --fail-with-body --location --silent --show-error \
             --connect-timeout 10 --max-time 30 \
             -o "$body" -w '%{http_code}' \
-            'https://kriptoaman.com/api/market-snapshot-page?page=0&limit=500')"
+            'https://kriptoaman.com/api/market-snapshot-page?page=11&limit=300')"
           test "$code" = "200"
           node - "$body" <<'NODE'
           const fs = require('fs');
           const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
-          if (!Array.isArray(payload.data) || payload.data.length < 1 || payload.data.length > 500) process.exit(1);
+          if (!Array.isArray(payload.data) || payload.data.length < 1 || payload.data.length > 300) process.exit(1);
           if (!Number.isFinite(Number(payload.totalAssets)) || Number(payload.totalAssets) < payload.data.length) process.exit(1);
-          console.log(`Paged market database verified: ${payload.totalAssets} assets.`);
+          if (payload.delivery?.snapshotRead !== 'chunk-d1') {
+            console.error(`Paged market is not using chunk delivery: ${payload.delivery?.snapshotRead}`);
+            process.exit(1);
+          }
+          if (payload.delivery?.d1SessionRead !== true) {
+            console.error('Paged market is not using the D1 Sessions-compatible path');
+            process.exit(1);
+          }
+          console.log(`Paged market chunk delivery verified: ${payload.totalAssets} assets; chunksRead=${payload.delivery?.chunksRead}.`);
           NODE
