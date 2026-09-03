@@ -39,6 +39,33 @@ test('multi-chain probes tolerate normal public-RPC latency without fabricating 
   assert.match(health, /searchParams\.get\('refresh'\) === '1'/);
 });
 
+test('network health has a short cross-POP durable verified snapshot without weakening fresh probes', async () => {
+  const health = await read('functions/api/network-health.js');
+  assert.match(health, /import \{ primarySession, readSession \} from '\.\.\/_shared\/d1-session\.js'/);
+  assert.match(health, /CREATE TABLE IF NOT EXISTS network_health_snapshots/);
+  assert.match(health, /SELECT captured_at, payload FROM network_health_snapshots WHERE id = \?/);
+  assert.match(health, /ageMs >= SNAPSHOT_TTL_MS/);
+  assert.match(health, /snapshot\.networks\.length === NETWORKS\.length/);
+  assert.match(health, /total === NETWORKS\.length/);
+  assert.match(health, /target === MIN_ACTIVE_TARGET/);
+  assert.match(health, /const db = primarySession\(env\.AUTH_DB\)/);
+  assert.match(health, /INSERT INTO network_health_snapshots/);
+  assert.match(health, /deliveryMode: 'd1-recent-verified'/);
+  assert.match(health, /startRefresh\(\)\.then\(\(snapshot\) => persistDurableSnapshot\(env, snapshot\)\)/);
+  assert.match(health, /forceRefresh[\s\S]*startRefresh\(\)/);
+  assert.match(health, /refreshParameterAlwaysForcesFreshProbe: true/);
+  assert.match(health, /durableRecentSnapshotMaxAgeMs: SNAPSHOT_TTL_MS/);
+  assert.match(health, /durableSnapshotCrossPop: true/);
+});
+
+test('only current fresh probes may seed the network edge cache', async () => {
+  const health = await read('functions/api/network-health.js');
+  assert.match(health, /deliveryMode === 'fresh-probe'/);
+  assert.match(health, /edgeCacheEligible: !forceRefresh && deliveryMode === 'fresh-probe'/);
+  assert.match(health, /!forceRefresh && edgeCache && status === 200 && deliveryMode === 'fresh-probe'/);
+  assert.doesNotMatch(health, /deliveryMode === 'd1-recent-verified'[\s\S]{0,180}edgeCache\.put/);
+});
+
 test('Base health check has an independent third provider for rate-limit recovery', async () => {
   const health = await read('functions/api/network-health.js');
   assert.ok(health.includes("'https://mainnet.base.org'"));
