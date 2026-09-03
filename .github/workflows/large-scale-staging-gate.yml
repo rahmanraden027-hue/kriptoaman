@@ -8,15 +8,15 @@ on:
         required: true
         type: string
       profile:
-        description: 'Progressive baseline profile'
+        description: 'Progressive concurrent-user profile'
         required: true
-        default: '10x100'
+        default: '1000'
         type: choice
         options:
-          - 10x100
-          - 25x500
-          - 50x2000
-          - 100x10000
+          - '1000'
+          - '2500'
+          - '5000'
+          - '10000'
       isolation_verified:
         description: 'I verified staging AUTH_DB/session/email/KYC/wallet isolation and synthetic data only'
         required: true
@@ -34,7 +34,7 @@ jobs:
   staging-certification:
     if: ${{ inputs.isolation_verified == true }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
@@ -65,21 +65,10 @@ jobs:
           if (report.ready !== true) throw new Error('Staging readiness attestation is not ready');
           if (report.environment !== 'staging') throw new Error('Target does not attest staging environment');
           const checks = report.checks || {};
-          const required = [
-            'capacityTestsExplicitlyAllowed',
-            'writesDisabled',
-            'syntheticDataOnly',
-            'emailIsolated',
-            'kycIsolated',
-            'databaseMarkerPresent',
-            'sessionMarkerPresent',
-          ];
-          for (const key of required) {
+          for (const key of ['capacityTestsExplicitlyAllowed','writesDisabled','syntheticDataOnly','emailIsolated','kycIsolated','databaseMarkerPresent','sessionMarkerPresent']) {
             if (checks[key] !== true) throw new Error(`Staging isolation check failed: ${key}`);
           }
-          if (!report.fingerprints?.database || !report.fingerprints?.session) {
-            throw new Error('Missing redacted staging isolation fingerprints');
-          }
+          if (!report.fingerprints?.database || !report.fingerprints?.session) throw new Error('Missing redacted staging isolation fingerprints');
           console.log('Staging isolation attestation accepted');
           NODE
 
@@ -88,7 +77,7 @@ jobs:
           TARGET: ${{ inputs.staging_origin }}
         run: |
           set -euo pipefail
-          for path in / /login /api/auth/readiness; do
+          for path in / /login /api/auth/readiness /api/market-hot /api/network-health; do
             code=$(curl -sS -o /tmp/body -w '%{http_code}' --max-time 15 "${TARGET}${path}")
             if [ "$code" -lt 200 ] || [ "$code" -ge 400 ]; then
               echo "${path} failed with HTTP ${code}"
@@ -96,25 +85,37 @@ jobs:
             fi
           done
 
-      - name: Select progressive profile
-        id: profile
+      - name: Run guarded k6 concurrent-user profile
+        env:
+          TARGET: ${{ inputs.staging_origin }}
+          PROFILE: ${{ inputs.profile }}
         shell: bash
         run: |
-          case '${{ inputs.profile }}' in
-            10x100) echo 'concurrency=10' >> "$GITHUB_OUTPUT"; echo 'requests=100' >> "$GITHUB_OUTPUT" ;;
-            25x500) echo 'concurrency=25' >> "$GITHUB_OUTPUT"; echo 'requests=500' >> "$GITHUB_OUTPUT" ;;
-            50x2000) echo 'concurrency=50' >> "$GITHUB_OUTPUT"; echo 'requests=2000' >> "$GITHUB_OUTPUT" ;;
-            100x10000) echo 'concurrency=100' >> "$GITHUB_OUTPUT"; echo 'requests=10000' >> "$GITHUB_OUTPUT" ;;
-            *) exit 2 ;;
-          esac
+          set -euo pipefail
+          docker run --rm -i \
+            -e BASE_URL="$TARGET" \
+            -e KA_LOAD_STAGE="$PROFILE" \
+            -e ALLOW_PRODUCTION_LOAD_TEST=NO \
+            -e KA_INCLUDE_HOT_MARKET=YES \
+            grafana/k6:latest run --summary-export=/tmp/k6-summary.json - < load/k6-production-readonly.js | tee staging-k6-output.txt
 
-      - name: Run guarded staging baseline
+      - name: Record staging evidence metadata
         env:
-          LOAD_TEST_TARGET: ${{ inputs.staging_origin }}
-          LOAD_TEST_CONCURRENCY: ${{ steps.profile.outputs.concurrency }}
-          LOAD_TEST_REQUESTS: ${{ steps.profile.outputs.requests }}
-          LOAD_TEST_TIMEOUT_MS: '10000'
-        run: node scripts/load-test-staging.mjs | tee staging-load-evidence.json
+          PROFILE: ${{ inputs.profile }}
+          TARGET: ${{ inputs.staging_origin }}
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          fs.writeFileSync('staging-load-evidence.json', JSON.stringify({
+            checkedAt: new Date().toISOString(),
+            profile: process.env.PROFILE,
+            target: new URL(process.env.TARGET).origin,
+            writesDisabled: true,
+            syntheticDataRequired: true,
+            productionHostRejected: true,
+            resultSource: 'k6-console-and-thresholds',
+          }, null, 2));
+          NODE
 
       - name: Upload redacted evidence
         uses: actions/upload-artifact@v4
@@ -123,5 +124,6 @@ jobs:
           path: |
             staging-readiness.json
             staging-load-evidence.json
+            staging-k6-output.txt
           if-no-files-found: error
           retention-days: 30
