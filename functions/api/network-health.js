@@ -1,5 +1,11 @@
+const DEFAULT_PROVIDER_TIMEOUT_MS = 2500;
+const SLOW_PROVIDER_TIMEOUT_MS = 3500;
+const SNAPSHOT_TTL_MS = 45_000;
+const LAST_GOOD_TTL_MS = 10 * 60 * 1000;
+const MIN_ACTIVE_TARGET = 12;
+
 const NETWORKS = [
-  { name: 'Bitcoin', type: 'bitcoin', urls: ['https://mempool.space/api/blocks/tip/height', 'https://blockstream.info/api/blocks/tip/height'] },
+  { name: 'Bitcoin', type: 'bitcoin', timeoutMs: SLOW_PROVIDER_TIMEOUT_MS, urls: ['https://mempool.space/api/blocks/tip/height', 'https://blockstream.info/api/blocks/tip/height'] },
   { name: 'Ethereum', type: 'evm', urls: ['https://ethereum-rpc.publicnode.com', 'https://eth.llamarpc.com'] },
   { name: 'BNB Chain', type: 'evm', urls: ['https://bsc-dataseed.binance.org', 'https://bsc-rpc.publicnode.com'] },
   { name: 'Polygon', type: 'evm', urls: ['https://polygon-bor-rpc.publicnode.com', 'https://polygon.drpc.org'] },
@@ -21,26 +27,34 @@ const NETWORKS = [
   { name: 'Scroll', type: 'evm', urls: ['https://rpc.scroll.io', 'https://scroll-rpc.publicnode.com'] },
   { name: 'Mantle', type: 'evm', urls: ['https://rpc.mantle.xyz', 'https://mantle-rpc.publicnode.com'] },
   { name: 'Fantom', type: 'evm', urls: ['https://rpcapi.fantom.network', 'https://fantom.publicnode.com'] },
-  { name: 'Solana', type: 'solana', urls: ['https://api.mainnet-beta.solana.com', 'https://solana-rpc.publicnode.com'] },
-  { name: 'TRON', type: 'tron', urls: ['https://api.trongrid.io/wallet/getnowblock', 'https://apilist.tronscanapi.com/api/system/status'] },
-  { name: 'XRP Ledger', type: 'xrp', urls: ['https://xrplcluster.com', 'https://s1.ripple.com:51234'] },
-  { name: 'Polkadot', type: 'polkadot', urls: ['https://rpc.polkadot.io', 'https://polkadot-rpc.publicnode.com'] },
-  { name: 'Cardano', type: 'cardano', urls: ['https://api.koios.rest/api/v1/tip'] },
-  { name: 'Litecoin', type: 'get-json', urls: ['https://api.blockchair.com/litecoin/stats', 'https://api.blockcypher.com/v1/ltc/main'] },
-  { name: 'Dogecoin', type: 'get-json', urls: ['https://api.blockchair.com/dogecoin/stats', 'https://api.blockcypher.com/v1/doge/main'] },
+  { name: 'Solana', type: 'solana', timeoutMs: SLOW_PROVIDER_TIMEOUT_MS, urls: ['https://api.mainnet-beta.solana.com', 'https://solana-rpc.publicnode.com'] },
+  { name: 'TRON', type: 'tron', timeoutMs: SLOW_PROVIDER_TIMEOUT_MS, urls: ['https://api.trongrid.io/wallet/getnowblock', 'https://apilist.tronscanapi.com/api/system/status'] },
+  { name: 'XRP Ledger', type: 'xrp', timeoutMs: SLOW_PROVIDER_TIMEOUT_MS, urls: ['https://xrplcluster.com', 'https://s1.ripple.com:51234'] },
+  { name: 'Polkadot', type: 'polkadot', timeoutMs: SLOW_PROVIDER_TIMEOUT_MS, urls: ['https://rpc.polkadot.io', 'https://polkadot-rpc.publicnode.com'] },
+  { name: 'Cardano', type: 'cardano', timeoutMs: SLOW_PROVIDER_TIMEOUT_MS, urls: ['https://api.koios.rest/api/v1/tip'] },
+  { name: 'Litecoin', type: 'get-json', timeoutMs: SLOW_PROVIDER_TIMEOUT_MS, urls: ['https://api.blockchair.com/litecoin/stats', 'https://api.blockcypher.com/v1/ltc/main'] },
+  { name: 'Dogecoin', type: 'get-json', timeoutMs: SLOW_PROVIDER_TIMEOUT_MS, urls: ['https://api.blockchair.com/dogecoin/stats', 'https://api.blockcypher.com/v1/doge/main'] },
 ];
 
-const PROVIDER_TIMEOUT_MS = 950;
+const HEADERS = {
+  'Content-Type': 'application/json; charset=utf-8',
+  'Cache-Control': 'public, max-age=30, s-maxage=60, stale-while-revalidate=180',
+  'X-Content-Type-Options': 'nosniff',
+};
 
-function json(data, init = {}) {
-  const headers = new Headers(init.headers || {});
-  headers.set('Content-Type', 'application/json; charset=utf-8');
-  headers.set('Cache-Control', 'public, max-age=120, s-maxage=300, stale-while-revalidate=300');
-  headers.set('X-Content-Type-Options', 'nosniff');
-  return new Response(JSON.stringify(data), { ...init, headers });
+let cachedSnapshot = null;
+let cachedSnapshotAt = 0;
+let refreshInFlight = null;
+const lastGoodByNetwork = new Map();
+
+function json(data, init = {}, extraHeaders = {}) {
+  return new Response(JSON.stringify(data), {
+    ...init,
+    headers: { ...HEADERS, ...(init.headers || {}), ...extraHeaders },
+  });
 }
 
-async function fetchWithTimeout(url, options = {}, timeoutMs = PROVIDER_TIMEOUT_MS) {
+async function fetchWithTimeout(url, options = {}, timeoutMs = DEFAULT_PROVIDER_TIMEOUT_MS) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -52,46 +66,55 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = PROVIDER_TIMEOUT_
 
 const rpcBody = (method, params = []) => JSON.stringify({ jsonrpc: '2.0', id: 1, method, params });
 
+function requestHeaders(extra = {}) {
+  return {
+    Accept: 'application/json,text/plain,*/*',
+    'User-Agent': 'KriptoAman-Network-Health/2.0',
+    ...extra,
+  };
+}
+
 async function probeUrl(item, url) {
   const started = Date.now();
+  const timeoutMs = Number(item.timeoutMs) || DEFAULT_PROVIDER_TIMEOUT_MS;
   let response;
 
   if (item.type === 'evm') {
     response = await fetchWithTimeout(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      headers: requestHeaders({ 'Content-Type': 'application/json' }),
       body: rpcBody('eth_blockNumber'),
-    });
+    }, timeoutMs);
   } else if (item.type === 'solana') {
     response = await fetchWithTimeout(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      headers: requestHeaders({ 'Content-Type': 'application/json' }),
       body: rpcBody('getBlockHeight'),
-    });
+    }, timeoutMs);
   } else if (item.type === 'xrp') {
     response = await fetchWithTimeout(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      headers: requestHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ method: 'server_info', params: [{}] }),
-    });
+    }, timeoutMs);
   } else if (item.type === 'polkadot') {
     response = await fetchWithTimeout(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      headers: requestHeaders({ 'Content-Type': 'application/json' }),
       body: rpcBody('chain_getHeader'),
-    });
+    }, timeoutMs);
   } else if (item.type === 'tron') {
     if (url.includes('/wallet/getnowblock')) {
       response = await fetchWithTimeout(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: requestHeaders({ 'Content-Type': 'application/json' }),
         body: '{}',
-      });
+      }, timeoutMs);
     } else {
-      response = await fetchWithTimeout(url, { headers: { Accept: 'application/json' } });
+      response = await fetchWithTimeout(url, { headers: requestHeaders() }, timeoutMs);
     }
   } else {
-    response = await fetchWithTimeout(url, { headers: { Accept: 'application/json,text/plain,*/*' } });
+    response = await fetchWithTimeout(url, { headers: requestHeaders() }, timeoutMs);
   }
 
   if (!response.ok) {
@@ -129,7 +152,7 @@ async function probeUrl(item, url) {
       if (!Array.isArray(payload) || !payload[0]?.block_no) throw new Error('Invalid Cardano response');
       detail = String(payload[0].block_no);
     } else if (item.type === 'get-json') {
-      const valid = Boolean(payload?.data?.blocks || payload?.height || payload?.name);
+      const valid = Boolean(payload?.data?.blocks || payload?.data?.best_block_height || payload?.height || payload?.name);
       if (!valid) throw new Error('Invalid chain stats response');
     }
   }
@@ -139,6 +162,7 @@ async function probeUrl(item, url) {
     status: 'online',
     latency: Date.now() - started,
     provider: new URL(url).hostname,
+    timeout_ms: timeoutMs,
     detail,
     checked_at: new Date().toISOString(),
   };
@@ -161,36 +185,117 @@ async function probe(item) {
   });
 
   try {
-    return await Promise.any(attempts);
+    const result = await Promise.any(attempts);
+    lastGoodByNetwork.set(item.name, { ...result, remembered_at: Date.now() });
+    return result;
   } catch (aggregate) {
     const errors = Array.isArray(aggregate?.errors)
       ? aggregate.errors.map((error) => ({ provider: error?.provider || 'unknown', reason: error?.reason || 'unavailable' }))
       : [];
+    const previous = lastGoodByNetwork.get(item.name);
+    const lastKnownAgeMs = previous ? Date.now() - Number(previous.remembered_at || 0) : null;
+    const hasRecentLastGood = previous && Number.isFinite(lastKnownAgeMs) && lastKnownAgeMs <= LAST_GOOD_TTL_MS;
 
     return {
       name: item.name,
-      status: 'offline',
+      status: hasRecentLastGood ? 'degraded' : 'offline',
       latency: null,
       error: 'all_providers_unavailable',
+      timeout_ms: Number(item.timeoutMs) || DEFAULT_PROVIDER_TIMEOUT_MS,
       providers_tried: errors,
+      last_known_good: hasRecentLastGood ? {
+        provider: previous.provider,
+        detail: previous.detail,
+        checked_at: previous.checked_at,
+        age_ms: lastKnownAgeMs,
+      } : null,
       checked_at: new Date().toISOString(),
     };
   }
 }
 
-export async function onRequestGet() {
+async function buildSnapshot() {
   const networks = await Promise.all(NETWORKS.map(probe));
   const online = networks.filter((item) => item.status === 'online').length;
+  const degraded = networks.filter((item) => item.status === 'degraded').length;
   const total = networks.length;
-  return json({
+  const offline = total - online - degraded;
+  const checkedAt = new Date().toISOString();
+
+  return {
     summary: {
       total,
       online,
-      offline: total - online,
+      degraded,
+      offline,
       health_pct: total ? Math.round((online / total) * 100) : 0,
-      minimum_active_target: 12,
+      minimum_active_target: MIN_ACTIVE_TARGET,
+      meets_minimum_active_target: online >= MIN_ACTIVE_TARGET,
     },
     networks,
-    checked_at: new Date().toISOString(),
-  }, { status: online > 0 ? 200 : 503 });
+    checked_at: checkedAt,
+    policy: {
+      liveOnlineRequiresSuccessfulCurrentProbe: true,
+      lastKnownGoodNeverCountsAsOnline: true,
+      defaultProviderTimeoutMs: DEFAULT_PROVIDER_TIMEOUT_MS,
+      slowProviderTimeoutMs: SLOW_PROVIDER_TIMEOUT_MS,
+      snapshotTtlMs: SNAPSHOT_TTL_MS,
+      lastGoodTtlMs: LAST_GOOD_TTL_MS,
+      fabricatedMetrics: false,
+    },
+  };
+}
+
+async function getSnapshot(forceRefresh = false) {
+  const now = Date.now();
+  if (!forceRefresh && cachedSnapshot && now - cachedSnapshotAt < SNAPSHOT_TTL_MS) {
+    return cachedSnapshot;
+  }
+
+  if (!refreshInFlight) {
+    refreshInFlight = buildSnapshot()
+      .then((snapshot) => {
+        cachedSnapshot = snapshot;
+        cachedSnapshotAt = Date.now();
+        return snapshot;
+      })
+      .finally(() => {
+        refreshInFlight = null;
+      });
+  }
+
+  return refreshInFlight;
+}
+
+export async function onRequestGet({ request, waitUntil } = {}) {
+  const requestUrl = new URL(request?.url || 'https://kriptoaman.com/api/network-health');
+  const forceRefresh = requestUrl.searchParams.get('refresh') === '1';
+  const edgeCache = globalThis.caches?.default;
+  const cacheKey = new Request(`${requestUrl.origin}/api/network-health`, {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+  });
+
+  if (!forceRefresh && edgeCache) {
+    const hit = await edgeCache.match(cacheKey);
+    if (hit) {
+      const headers = new Headers(hit.headers);
+      headers.set('X-KriptoAman-Network-Cache', 'HIT');
+      return new Response(hit.body, { status: hit.status, headers });
+    }
+  }
+
+  const snapshot = await getSnapshot(forceRefresh);
+  const status = snapshot.summary.online > 0 ? 200 : 503;
+  const response = json(snapshot, { status }, {
+    'X-KriptoAman-Network-Cache': forceRefresh ? 'BYPASS' : 'MISS',
+  });
+
+  if (!forceRefresh && edgeCache && status === 200) {
+    const task = edgeCache.put(cacheKey, response.clone());
+    if (typeof waitUntil === 'function') waitUntil(task);
+    else await task;
+  }
+
+  return response;
 }

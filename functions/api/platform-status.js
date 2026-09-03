@@ -1,5 +1,6 @@
 const STATUS_TTL_MS = 30_000;
 const MIN_PUBLIC_MARKET_ASSETS = 4500;
+const NETWORK_HEALTH_TIMEOUT_MS = 5000;
 
 const HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
@@ -38,7 +39,7 @@ async function buildStatus(request) {
   const generatedAt = new Date().toISOString();
   const [market, networks, kam] = await Promise.all([
     readJson(`${origin}/api/market-snapshot?health=1`, 2500),
-    readJson(`${origin}/api/network-health`, 2500),
+    readJson(`${origin}/api/network-health`, NETWORK_HEALTH_TIMEOUT_MS),
     readJson(`${origin}/api/kam/network-status`, 5000),
   ]);
 
@@ -53,7 +54,13 @@ async function buildStatus(request) {
   );
   const networkOnline = networks.ok ? Number(networks.payload?.summary?.online) : null;
   const networkTotal = networks.ok ? Number(networks.payload?.summary?.total) : null;
-  const networksHealthy = Number.isFinite(networkOnline) && networkOnline > 0;
+  const networkDegraded = networks.ok ? Number(networks.payload?.summary?.degraded || 0) : null;
+  const networkMinimumTarget = networks.ok ? Number(networks.payload?.summary?.minimum_active_target || 12) : null;
+  const networksHealthy = Boolean(
+    Number.isFinite(networkOnline)
+      && Number.isFinite(networkMinimumTarget)
+      && networkOnline >= networkMinimumTarget,
+  );
   const kamHealthy = Boolean(kam.ok && kam.payload?.verified === true && Number(kam.payload?.chainId) === 22028);
 
   const components = {
@@ -71,8 +78,11 @@ async function buildStatus(request) {
       healthy: networksHealthy,
       online: Number.isFinite(networkOnline) ? networkOnline : null,
       total: Number.isFinite(networkTotal) ? networkTotal : null,
+      degraded: Number.isFinite(networkDegraded) ? networkDegraded : null,
       offline: networks.ok && Number.isFinite(Number(networks.payload?.summary?.offline)) ? Number(networks.payload.summary.offline) : null,
       healthPct: networks.ok && Number.isFinite(Number(networks.payload?.summary?.health_pct)) ? Number(networks.payload.summary.health_pct) : null,
+      minimumActiveTarget: Number.isFinite(networkMinimumTarget) ? networkMinimumTarget : null,
+      meetsMinimumActiveTarget: networksHealthy,
       checkedAt: networks.ok ? networks.payload?.checked_at ?? null : null,
     },
     kam: {
@@ -103,6 +113,8 @@ async function buildStatus(request) {
         edgeCache: true,
         marketOperationalMinAssets: MIN_PUBLIC_MARKET_ASSETS,
         marketOperationalRequiresFreshSnapshot: true,
+        networkHealthTimeoutMs: NETWORK_HEALTH_TIMEOUT_MS,
+        networkHealthyRequiresMinimumTarget: true,
       },
     },
   };
