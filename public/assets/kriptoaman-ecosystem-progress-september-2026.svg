@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200" role="img" aria-labelledby="title desc">
+  <title id="title">Kemajuan Positif KriptoAman</title>
+  <desc id="desc">Ringkasan kemajuan positif Ekosistem KriptoAman per September 2026.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#061226"/><stop offset="1" stop-color="#0b2344"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#f7c65d"/><stop offset="1" stop-color="#ffde83"/></linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="10" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="1200" height="1200" fill="url(#bg)"/>
+  <circle cx="1080" cy="125" r="180" fill="#0d315d" opacity=".45"/>
+  <circle cx="1100" cy="1020" r="220" fill="#0d315d" opacity=".30"/>
+  <g opacity=".18" stroke="#38bdf8"><path d="M40 160H1160M40 1000H1160"/><path d="M90 90V1110M1110 90V1110"/></g>
+  <text x="80" y="105" fill="#ffffff" font-family="Arial,Helvetica,sans-serif" font-size="54" font-weight="700">Kemajuan Positif</text>
+  <text x="80" y="170" fill="url(#gold)" font-family="Arial,Helvetica,sans-serif" font-size="68" font-weight="800">KriptoAman</text>
+  <text x="82" y="215" fill="#7dd3fc" font-family="Arial,Helvetica,sans-serif" font-size="24">Ekosistem Makin Matang • September 2026</text>
+  <rect x="790" y="70" rx="22" ry="22" width="320" height="100" fill="#0b1d36" stroke="#f7c65d" stroke-width="2"/>
+  <text x="820" y="110" fill="#ffffff" font-family="Arial,Helvetica,sans-serif" font-size="18" font-weight="700">STATUS</text>
+  <text x="820" y="145" fill="#f7c65d" font-family="Arial,Helvetica,sans-serif" font-size="30" font-weight="800">SANGAT POSITIF</text>
+
+  <g font-family="Arial,Helvetica,sans-serif">
+    <g transform="translate(70 300)"><rect width="330" height="190" rx="24" fill="#0d2341" stroke="#1d5c86"/><circle cx="55" cy="55" r="28" fill="#123a61"/><text x="55" y="64" text-anchor="middle" fill="#67e8f9" font-size="25" font-weight="800">1</text><text x="35" y="115" fill="#fff" font-size="27" font-weight="700">Production</text><text x="35" y="150" fill="#dbeafe" font-size="25">health lulus</text></g>
+    <g transform="translate(435 300)"><rect width="330" height="190" rx="24" fill="#0d2341" stroke="#1d5c86"/><circle cx="55" cy="55" r="28" fill="#123a61"/><text x="55" y="64" text-anchor="middle" fill="#67e8f9" font-size="25" font-weight="800">2</text><text x="35" y="115" fill="#fff" font-size="27" font-weight="700">Website publik</text><text x="35" y="150" fill="#dbeafe" font-size="25">aktif &amp; stabil</text></g>
+    <g transform="translate(800 300)"><rect width="330" height="190" rx="24" fill="#0d2341" stroke="#1d5c86"/><circle cx="55" cy="55" r="28" fill="#123a61"/><text x="55" y="64" text-anchor="middle" fill="#67e8f9" font-size="25" font-weight="800">3</text><text x="35" y="110" fill="#fff" font-size="25" font-weight="700">Market data dan</text><text x="35" y="145" fill="#dbeafe" font-size="23">database semakin sinkron</text></g>
+    <g transform="translate(70 525)"><rect width="330" height="190" rx="24" fill="#0d2341" stroke="#1d5c86"/><circle cx="55" cy="55" r="28" fill="#123a61"/><text x="55" y="64" text-anchor="middle" fill="#67e8f9" font-size="25" font-weight="800">4</text><text x="35" y="110" fill="#fff" font-size="25" font-weight="700">KAM Mainnet</text><text x="35" y="145" fill="#dbeafe" font-size="22">aktif &amp; termonitor 24/7</text></g>
+    <g transform="translate(435 525)"><rect width="330" height="190" rx="24" fill="#0d2341" stroke="#1d5c86"/><circle cx="55" cy="55" r="28" fill="#123a61"/><text x="55" y="64" text-anchor="middle" fill="#67e8f9" font-size="25" font-weight="800">5</text><text x="35" y="105" fill="#fff" font-size="24" font-weight="700">RPC, explorer, dan</text><text x="35" y="138" fill="#dbeafe" font-size="22">block progression</text><text x="35" y="168" fill="#dbeafe" font-size="22">berjalan normal</text></g>
+    <g transform="translate(800 525)"><rect width="330" height="190" rx="24" fill="#0d2341" stroke="#1d5c86"/><circle cx="55" cy="55" r="28" fill="#123a61"/><text x="55" y="64" text-anchor="middle" fill="#67e8f9" font-size="25" font-weight="800">6</text><text x="35" y="102" fill="#fff" font-size="22" font-weight="700">KAM Mainnet telah</text><text x="35" y="135" fill="#dbeafe" font-size="21">masuk registry</text><text x="35" y="165" fill="#dbeafe" font-size="20">ethereum-lists/chains</text></g>
+  </g>
+
+  <rect x="70" y="770" width="1060" height="260" rx="28" fill="#0a1b33" stroke="#f7c65d" stroke-width="2"/>
+  <text x="110" y="825" fill="#f7c65d" font-family="Arial,Helvetica,sans-serif" font-size="30" font-weight="800">Kesimpulan Utama</text>
+  <text x="110" y="875" fill="#ffffff" font-family="Arial,Helvetica,sans-serif" font-size="25">KriptoAman kini bergerak dari tahap pembangunan menuju operasional yang lebih matang,</text>
+  <text x="110" y="915" fill="#dbeafe" font-family="Arial,Helvetica,sans-serif" font-size="25">dengan fondasi kuat untuk ekspansi aplikasi, penguatan ekosistem Web3, dan adopsi global.</text>
+  <text x="600" y="1105" text-anchor="middle" fill="#7dd3fc" font-family="Arial,Helvetica,sans-serif" font-size="20" letter-spacing="2">KriptoAman Ecosystem Progress</text>
+</svg>
