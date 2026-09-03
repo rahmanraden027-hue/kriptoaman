@@ -7,6 +7,7 @@ on:
       - 'chain/kam-mainnet/contracts/WKAM.sol'
       - 'chain/kam-mainnet/trading/dex/**'
       - 'chain/kam-mainnet/trading/scripts/compare-runtime-at-address.mjs'
+      - 'chain/kam-mainnet/trading/scripts/reproduce-wkam-standard-json.mjs'
       - '.github/workflows/kam-dex-source-reproduction.yml'
   workflow_dispatch:
 
@@ -57,21 +58,26 @@ jobs:
       - name: Reproduce WKAM candidates with on-chain compiler 0.8.24
         run: forge build --use 0.8.24 --evm-version paris --force
 
-      - name: Compare canonical trading WKAM candidate
+      - name: Compare current trading WKAM candidate
         continue-on-error: true
         env:
-          CONTRACT_LABEL: canonical-trading-WKAM-solc-0.8.24
+          CONTRACT_LABEL: current-trading-WKAM-solc-0.8.24
           CONTRACT_ADDRESS: '0x0d8848CE88BB09a81a4248Efdd574d50B98b544A'
           ARTIFACT_PATH: out/WKAM.sol/WKAM.json
         run: node scripts/compare-runtime-at-address.mjs
 
-      - name: Compare legacy root WKAM candidate
-        continue-on-error: true
+      - name: Compare legacy root WKAM logic candidate
         env:
           CONTRACT_LABEL: legacy-root-WKAM-solc-0.8.24
           CONTRACT_ADDRESS: '0x0d8848CE88BB09a81a4248Efdd574d50B98b544A'
           ARTIFACT_PATH: out/WKAMLegacy.sol/WKAM.json
         run: node scripts/compare-runtime-at-address.mjs
+
+      - name: Install exact solc-js used for WKAM reproduction
+        run: npm install --no-save --ignore-scripts solc@0.8.24
+
+      - name: Reproduce WKAM with original standard-json source key and settings
+        run: node scripts/reproduce-wkam-standard-json.mjs
 
       - name: Re-assert read-only mode
         if: always()
