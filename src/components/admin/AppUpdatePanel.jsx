@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RefreshCw, CheckCircle2, AlertTriangle, Upload, Zap, Clock, User } from 'lucide-react';
+import { RefreshCw, CheckCircle2, AlertTriangle, Upload, Zap, Clock, User, Mail, Users } from 'lucide-react';
 
 const CURRENT_VERSION = '1.0.0';
 const CHANGELOG = [
@@ -12,6 +12,10 @@ export default function AppUpdatePanel() {
   const [manualNote, setManualNote] = useState('');
   const [deploying, setDeploying] = useState(false);
   const [deployResult, setDeployResult] = useState(null);
+  const [broadcastInfo, setBroadcastInfo] = useState(null);
+  const [broadcastChecking, setBroadcastChecking] = useState(false);
+  const [broadcasting, setBroadcasting] = useState(false);
+  const [broadcastResult, setBroadcastResult] = useState(null);
   const [autoUpdate, setAutoUpdate] = useState(
     localStorage.getItem('ka_auto_update') !== 'false'
   );
@@ -43,6 +47,58 @@ export default function AppUpdatePanel() {
       setDeployResult({ ok: false, msg: 'Gagal memproses notifikasi deploy: ' + e.message });
     }
     setDeploying(false);
+  };
+
+  const checkBroadcastRecipients = async () => {
+    setBroadcastChecking(true);
+    setBroadcastResult(null);
+    try {
+      const response = await fetch('/api/auth/admin/broadcast-progress', {
+        method: 'GET',
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' },
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data?.error || 'Gagal membaca status broadcast');
+      setBroadcastInfo(data);
+      if (data.alreadySent) {
+        setBroadcastResult({ ok: true, msg: `Update September 2026 sudah terkirim${data.sentAt ? ` pada ${new Date(data.sentAt).toLocaleString('id-ID')}` : ''}.` });
+      }
+    } catch (e) {
+      setBroadcastResult({ ok: false, msg: 'Gagal memeriksa penerima: ' + e.message });
+    }
+    setBroadcastChecking(false);
+  };
+
+  const sendProgressBroadcast = async () => {
+    if (!broadcastInfo || broadcastInfo.alreadySent || !broadcastInfo.recipientCount) return;
+    const approved = window.confirm(
+      `Kirim “${broadcastInfo.subject}” ke ${broadcastInfo.recipientCount} pengguna KriptoAman terverifikasi? Pengiriman hanya dapat dilakukan satu kali untuk kampanye ini.`
+    );
+    if (!approved) return;
+
+    setBroadcasting(true);
+    setBroadcastResult(null);
+    try {
+      const response = await fetch('/api/auth/admin/broadcast-progress', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmation: 'KIRIM UPDATE SEPTEMBER 2026' }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data?.error || 'Broadcast ditolak');
+      setBroadcastResult({ ok: true, msg: `Broadcast diterima Resend untuk ${data.acceptedCount || data.recipientCount} pengguna.` });
+      setBroadcastInfo((current) => ({
+        ...(current || {}),
+        alreadySent: true,
+        recipientCount: data.recipientCount,
+        sentAt: new Date().toISOString(),
+      }));
+    } catch (e) {
+      setBroadcastResult({ ok: false, msg: 'Gagal mengirim broadcast: ' + e.message });
+    }
+    setBroadcasting(false);
   };
 
   const toggleAutoUpdate = () => {
@@ -113,6 +169,45 @@ export default function AppUpdatePanel() {
         </button>
         {deployResult && (
           <p className={`text-xs ${deployResult.ok ? 'text-green-400' : 'text-red-400'}`}>{deployResult.msg}</p>
+        )}
+      </div>
+
+      <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-xl p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <Mail className="w-4 h-4 text-cyan-300" />
+          <p className="text-cyan-200 font-semibold text-sm">Broadcast Perkembangan Ekosistem — September 2026</p>
+        </div>
+        <p className="text-slate-400 text-xs">Bahasa email dipertahankan seperti contoh yang telah disetujui. Visual perkembangan ditampilkan di bagian atas email. Semua pengguna terverifikasi menerima email secara individual melalui Resend.</p>
+        <img
+          src="/assets/kriptoaman-ecosystem-progress-september-2026.svg"
+          alt="Kemajuan Positif Ekosistem KriptoAman"
+          className="w-full rounded-xl border border-cyan-500/20 bg-slate-950"
+        />
+        <div className="flex flex-wrap items-center gap-2">
+          <button onClick={checkBroadcastRecipients} disabled={broadcastChecking || broadcasting}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-60 text-white rounded-lg text-xs font-semibold transition-colors">
+            <Users className={`w-3.5 h-3.5 ${broadcastChecking ? 'animate-pulse' : ''}`} />
+            {broadcastChecking ? 'Memeriksa...' : 'Cek Penerima'}
+          </button>
+          <button
+            onClick={sendProgressBroadcast}
+            disabled={broadcasting || !broadcastInfo || broadcastInfo.alreadySent || !broadcastInfo.recipientCount || broadcastInfo.recipientCount > broadcastInfo.maxRecipients}
+            className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 text-white rounded-lg text-xs font-semibold transition-colors">
+            <Mail className={`w-3.5 h-3.5 ${broadcasting ? 'animate-pulse' : ''}`} />
+            {broadcasting ? 'Mengirim...' : 'Kirim Update September 2026'}
+          </button>
+        </div>
+        {broadcastInfo && (
+          <div className="rounded-xl bg-slate-900/70 border border-slate-700/50 p-3 text-xs text-slate-300 space-y-1">
+            <p><span className="text-slate-500">Penerima terverifikasi:</span> <strong className="text-white">{broadcastInfo.recipientCount}</strong></p>
+            <p><span className="text-slate-500">Status kampanye:</span> <strong className={broadcastInfo.alreadySent ? 'text-green-400' : 'text-cyan-300'}>{broadcastInfo.alreadySent ? 'Sudah terkirim' : 'Siap dikirim'}</strong></p>
+            {broadcastInfo.recipientCount > broadcastInfo.maxRecipients && (
+              <p className="text-amber-300">Jumlah penerima melebihi batas pengamanan {broadcastInfo.maxRecipients}. Gunakan campaign queue sebelum mengirim.</p>
+            )}
+          </div>
+        )}
+        {broadcastResult && (
+          <p className={`text-xs ${broadcastResult.ok ? 'text-green-400' : 'text-red-400'}`}>{broadcastResult.msg}</p>
         )}
       </div>
 
