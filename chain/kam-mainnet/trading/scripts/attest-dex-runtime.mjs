@@ -87,7 +87,7 @@ function artifact(contractName) {
   }
 }
 
-function attestRuntime(contractName, address) {
+function attestFoundryRuntime(contractName, address, expectedSolc) {
   const found = artifact(contractName);
   const compiledRaw = normalizeHex(found.data?.deployedBytecode?.object || '');
   const codeResult = safeCast(['code', '--rpc-url', rpcUrl, address]);
@@ -105,6 +105,8 @@ function attestRuntime(contractName, address) {
   return {
     contract: contractName,
     address,
+    sourceMode: 'FOUNDRY_ARTIFACT_WITH_IMMUTABLE_MASK',
+    expectedSolc,
     artifact: path.relative(process.cwd(), found.artifactPath),
     artifactError: found.error,
     rpcCodeError: codeResult.error,
@@ -115,6 +117,7 @@ function attestRuntime(contractName, address) {
     immutableMaskError: compiledMasked.error || onchainMasked.error,
     compiledSolcFromMetadata: compiledMeta.solc,
     onchainSolcFromMetadata: onchainMeta.solc,
+    compilerMetadataMatch: compiledMeta.solc === expectedSolc && onchainMeta.solc === expectedSolc,
     compiledMetadataBytes: compiledMeta.metadataBytes,
     onchainMetadataBytes: onchainMeta.metadataBytes,
     compiledNormalizedSha256: sha256Hex(compiledMasked.hex),
@@ -124,6 +127,68 @@ function attestRuntime(contractName, address) {
     sameLength,
     normalizedRuntimeMatch,
     logicSameLength,
+    logicRuntimeMatch,
+  };
+}
+
+async function attestWKAMExact(address) {
+  const sourcePath = path.join(chainDir, 'contracts', 'WKAM.sol');
+  const source = fs.readFileSync(sourcePath, 'utf8');
+  const solcModule = await import('solc');
+  const solc = solcModule.default;
+  const compilerVersion = solc.version();
+
+  const input = {
+    language: 'Solidity',
+    sources: {
+      'WKAM.sol': { content: source },
+    },
+    settings: {
+      evmVersion: 'paris',
+      optimizer: { enabled: true, runs: 200 },
+      outputSelection: {
+        '*': {
+          '*': ['evm.deployedBytecode.object'],
+        },
+      },
+    },
+  };
+
+  const output = JSON.parse(solc.compile(JSON.stringify(input)));
+  const errors = output.errors || [];
+  const fatal = errors.filter((item) => item.severity === 'error');
+  const compiledRaw = normalizeHex(output.contracts?.['WKAM.sol']?.WKAM?.evm?.deployedBytecode?.object || '');
+  const codeResult = safeCast(['code', '--rpc-url', rpcUrl, address]);
+  const onchainRaw = normalizeHex(codeResult.value || '');
+  const compiledMeta = metadataInfo(compiledRaw);
+  const onchainMeta = metadataInfo(onchainRaw);
+  const exactRuntimeMatch = Boolean(compiledRaw && onchainRaw && compiledRaw === onchainRaw);
+  const logicRuntimeMatch = Boolean(compiledMeta.body && onchainMeta.body && compiledMeta.body === onchainMeta.body);
+
+  return {
+    contract: 'WKAM',
+    address,
+    sourceMode: 'ORIGINAL_STANDARD_JSON_INPUT',
+    source: path.relative(process.cwd(), sourcePath),
+    standardJsonSourceKey: 'WKAM.sol',
+    expectedSolc: '0.8.24',
+    compilerVersion,
+    compilerVersionMatch: compilerVersion.startsWith('0.8.24+'),
+    optimizer: { enabled: true, runs: 200 },
+    evmVersion: 'paris',
+    compilerErrors: fatal.map((item) => item.formattedMessage || item.message),
+    rpcCodeError: codeResult.error,
+    codePresent: onchainRaw.length > 0,
+    runtimeBytesCompiled: compiledRaw.length / 2,
+    runtimeBytesOnchain: onchainRaw.length / 2,
+    compiledSolcFromMetadata: compiledMeta.solc,
+    onchainSolcFromMetadata: onchainMeta.solc,
+    compilerMetadataMatch: compiledMeta.solc === '0.8.24' && onchainMeta.solc === '0.8.24',
+    compiledRuntimeSha256: sha256Hex(compiledRaw),
+    onchainRuntimeSha256: sha256Hex(onchainRaw),
+    compiledLogicSha256: sha256Hex(compiledMeta.body),
+    onchainLogicSha256: sha256Hex(onchainMeta.body),
+    exactRuntimeMatch,
     logicRuntimeMatch,
   };
 }
@@ -155,6 +220,8 @@ function safeReceipt(txHash) {
       blockNumber: parsed.blockNumber == null ? null : Number(BigInt(parsed.blockNumber)),
       status: parsed.status == null ? null : Number(BigInt(parsed.status)),
       contractAddress: parsed.contractAddress || null,
+      from: parsed.from || null,
+      to: parsed.to || null,
     };
   } catch (error) {
     return { transactionHash: txHash, found: false, error: error instanceof Error ? error.message : String(error) };
@@ -167,12 +234,15 @@ function safeContractCall(address, signature) {
 }
 
 const report = {
-  schemaVersion: 2,
+  schemaVersion: 3,
   generatedAt: new Date().toISOString(),
-  mode: 'READ_ONLY_SOURCE_RUNTIME_ATTESTATION',
+  mode: 'READ_ONLY_MIXED_COMPILER_SOURCE_RUNTIME_ATTESTATION',
   rpc: rpcUrl,
   expectedNetwork: { name: 'KriptoAman Mainnet', chainId: 22028 },
-  compilerCandidate: { solc: '0.8.24', optimizer: true, optimizerRuns: 200, evmVersion: 'paris' },
+  compilerCandidates: {
+    wkam: { solc: '0.8.24', optimizer: true, optimizerRuns: 200, evmVersion: 'paris' },
+    factoryRouter: { solc: '0.8.36', optimizer: true, optimizerRuns: 200, evmVersion: 'paris' },
+  },
   contracts: [],
   bindings: {},
   deploymentReceipts: {},
@@ -194,11 +264,10 @@ const wkamAddress = wkamManifest.address;
 const factoryAddress = dexManifest.factory.address;
 const routerAddress = dexManifest.router.address;
 
-report.contracts = [
-  attestRuntime('WKAM', wkamAddress),
-  attestRuntime('KAMFactory', factoryAddress),
-  attestRuntime('KAMRouter', routerAddress),
-];
+const wkamAttestation = await attestWKAMExact(wkamAddress);
+const factoryAttestation = attestFoundryRuntime('KAMFactory', factoryAddress, '0.8.36');
+const routerAttestation = attestFoundryRuntime('KAMRouter', routerAddress, '0.8.36');
+report.contracts = [wkamAttestation, factoryAttestation, routerAttestation];
 
 const factoryCall = safeContractCall(routerAddress, 'factory()(address)');
 const wkamCall = safeContractCall(routerAddress, 'WKAM()(address)');
@@ -239,8 +308,12 @@ report.checks = {
   currentHeightAtOrBeyondRecordedDeployments:
     Number.isFinite(report.observedBlockNumber) && report.observedBlockNumber >= maxRecordedDeploymentBlock,
   runtimeCodePresent: report.contracts.every((item) => item.codePresent),
-  exactNormalizedRuntimeMatches: report.contracts.every((item) => item.normalizedRuntimeMatch),
+  exactSourceRuntimeMatches:
+    wkamAttestation.exactRuntimeMatch && factoryAttestation.normalizedRuntimeMatch && routerAttestation.normalizedRuntimeMatch,
   logicRuntimeMatchesIgnoringMetadata: report.contracts.every((item) => item.logicRuntimeMatch),
+  compilerVersions:
+    wkamAttestation.compilerVersionMatch && wkamAttestation.compilerMetadataMatch &&
+    factoryAttestation.compilerMetadataMatch && routerAttestation.compilerMetadataMatch,
   routerBindings: report.bindings.factoryMatch && report.bindings.wkamMatch,
   noPairsYet: report.factoryState.noPairsYet,
   receiptsFound: receipts.every((item) => item.found),
