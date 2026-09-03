@@ -51,8 +51,8 @@ jobs:
 
       - name: Prepare legacy WKAM source candidate
         run: |
-          mkdir -p legacy
-          cp ../contracts/WKAM.sol legacy/WKAMLegacy.sol
+          mkdir -p contracts/audit
+          cp ../contracts/WKAM.sol contracts/audit/WKAMLegacy.sol
 
       - name: Reproduce WKAM candidates with on-chain compiler 0.8.24
         run: forge build --use 0.8.24 --evm-version paris --force
