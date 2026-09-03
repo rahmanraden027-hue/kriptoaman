@@ -1,0 +1,65 @@
+name: Hot Market Health
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '2,7,12,17,22,27,32,37,42,47,52,57 * * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-hot-market:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify hot market endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          headers="$(mktemp)"
+          body="$(mktemp)"
+          code="$(curl --location --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            -D "$headers" -o "$body" -w '%{http_code}' \
+            'https://kriptoaman.com/api/market-hot')"
+          test "$code" = "200"
+          node - "$body" <<'NODE'
+          const fs = require('fs');
+          const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          if (payload.healthy !== true) throw new Error('hot market is not healthy');
+          if (!Array.isArray(payload.data)) throw new Error('hot market data missing');
+          const symbols = new Set(payload.data.map((item) => item.symbol));
+          for (const symbol of ['BTC', 'ETH', 'BNB', 'SOL', 'XRP']) {
+            if (!symbols.has(symbol)) throw new Error(`missing ${symbol}`);
+          }
+          if (!Number.isFinite(Number(payload.ageMs))) throw new Error('ageMs missing');
+          if (Number(payload.ageMs) > 60 * 60 * 1000) throw new Error(`hot market fallback too old: ${payload.ageMs}`);
+          console.log(JSON.stringify({
+            healthy: payload.healthy,
+            source: payload.source,
+            assetCount: payload.assetCount,
+            ageMs: payload.ageMs,
+            stale: payload.stale,
+          }, null, 2));
+          NODE
+          grep -Eqi '^cache-control:.*(s-maxage=15|stale-while-revalidate=45)' "$headers"
+
+      - name: Verify paged market edge path
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          code="$(curl --location --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            -o "$body" -w '%{http_code}' \
+            'https://kriptoaman.com/api/market-snapshot-page?page=0&limit=100')"
+          test "$code" = "200"
+          node - "$body" <<'NODE'
+          const fs = require('fs');
+          const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          if (payload.pageSize !== 100) throw new Error(`unexpected page size: ${payload.pageSize}`);
+          if (!Array.isArray(payload.data) || payload.data.length !== 100) throw new Error('expected exactly 100 assets on first page');
+          if (Number(payload.totalAssets) < 4500) throw new Error(`insufficient market assets: ${payload.totalAssets}`);
+          console.log(`market page healthy: ${payload.totalAssets} assets`);
+          NODE
