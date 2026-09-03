@@ -1,47 +1,90 @@
 # Canonical WKAM for KAM DEX
 
-Status: canonicalization record for audit/readiness. This file does not declare the DEX production-ready and does not authorize treasury movement or liquidity seeding.
+Status: source/provenance record for audit and release readiness. This file does not declare the DEX production-ready and does not authorize treasury movement, pair creation, or liquidity seeding.
 
-## Canonical source
+## Canonical deployed source
 
-For the KAM DEX and trading stack, the canonical WKAM source is:
+The WKAM runtime currently deployed on KriptoAman Mainnet at:
+
+`0x0d8848CE88BB09a81a4248Efdd574d50B98b544A`
+
+was reproduced exactly from:
+
+`chain/kam-mainnet/contracts/WKAM.sol`
+
+The historical deployment script uses the Standard JSON source key `WKAM.sol` with Solidity `0.8.24`, optimizer enabled with `200` runs, and EVM version `paris`. Recompiling that source with those exact inputs produces an exact byte-for-byte deployed runtime match to the live WKAM contract.
+
+The separate file:
 
 `chain/kam-mainnet/trading/contracts/WKAM.sol`
 
-Reason: the recorded Termux deployment script `chain/kam-mainnet/trading/deploy-wkam-termux.mjs` reads `./contracts/WKAM.sol` when executed from the trading directory, and the deployment registry records the corresponding WKAM deployment on KAM Mainnet.
+is a later trading-stack variant and does **not** reproduce the currently deployed WKAM runtime. It must not be represented as the source of the live WKAM deployment.
 
-The separate source at `chain/kam-mainnet/contracts/WKAM.sol` must be treated as legacy/reference-only until bytecode equivalence is independently proven. It must not be used for a new router/factory deployment by accident.
+## Reproduction evidence
+
+Read-only source reproduction performed on 2026-09-03 established:
+
+- Compiler: `0.8.24+commit.e11b9ed9.Emscripten.clang`
+- Optimizer: enabled, `200` runs
+- EVM version: `paris`
+- Standard JSON source key: `WKAM.sol`
+- Compiled runtime length: `2232` bytes
+- On-chain runtime length: `2232` bytes
+- Exact runtime match: `true`
+- Compiled/on-chain runtime SHA-256: `739d764da5216881769312e6b80f5bbe856b9ded889635a51ac0935e90717c30`
+- Compiled/on-chain logic SHA-256: `464d7acacb04d95fc5544cfbc6ba8c6053a551470e9f0df743550335a456140f`
+
+Reproduction helper:
+
+`chain/kam-mainnet/trading/scripts/reproduce-wkam-standard-json.mjs`
 
 ## Recorded deployment
 
 - Network: KriptoAman Mainnet
 - Chain ID: 22028 (`0x560c`)
-- Canonical symbol: WKAM
-- Canonical decimals: 18
-- Recorded address: `0x0d8848CE88BB09a81a4248Efdd574d50B98b544A`
-- Recorded deployment block: `240024`
-- Recorded deployment transaction: `0x571063f1f9d031ac9ae6f22b861ff6766c5c6ee78b2d49d0b93e151acde0e7cf`
+- Symbol: WKAM
+- Decimals: 18
+- Address: `0x0d8848CE88BB09a81a4248Efdd574d50B98b544A`
+- Deployment block: `240024`
+- Deployment transaction: `0x571063f1f9d031ac9ae6f22b861ff6766c5c6ee78b2d49d0b93e151acde0e7cf`
 - Deployment registry: `chain/kam-mainnet/deployments/wkam.json`
 
-The registry currently records status `deployed-and-wrap-unwrap-tested`. This is repository evidence only; production DEX activation still requires independent explorer/runtime-code verification and smart-contract review.
+The deployment receipt is present and successful, and its contract address matches the recorded WKAM address.
 
 ## DEX binding rule
 
-Every KAM DEX deployment or verification script must bind the router to the canonical WKAM address above only after:
+The KAM Router may only be treated as correctly bound when read-only RPC verification confirms all of the following:
 
-1. RPC confirms Chain ID 22028.
-2. Runtime bytecode at the recorded address is non-empty.
-3. `symbol()` returns `WKAM` and `decimals()` returns `18`.
-4. Wrap and unwrap smoke checks use a deliberately small amount.
-5. The deployed runtime/source relationship is independently reviewed.
+1. Chain ID is `22028`.
+2. Runtime bytecode at the WKAM address is non-empty.
+3. The deployed WKAM source/runtime reproduction passes with the exact compiler inputs above.
+4. Router `WKAM()` resolves to the canonical WKAM address.
+5. Router `factory()` resolves to the verified live Factory address.
+6. Factory runtime code is present and its source/runtime reproduction passes.
 
-## Remaining hard gates
+The verified live Factory address is:
 
-- Independent source/security review of WKAM, Factory, Pair and Router.
-- Automated DEX tests for pair creation, LP mint/burn, swaps, slippage, refund paths and failure cases.
-- Factory/router deployment simulation against Chain ID 22028.
-- Legitimate quote-asset provenance.
-- Explicit treasury authorization for any liquidity amount and source wallet.
-- Real pool creation and small real buy/sell smoke tests only after all previous gates pass.
+`0x5024017B0496113269E80817d9b0F11733AE6de2`
+
+## Current release gates
+
+Completed technical evidence:
+
+- WKAM exact source/runtime reproduction.
+- Factory exact source/runtime reproduction with Solidity 0.8.36, optimizer 200, EVM Paris.
+- Router exact source/runtime reproduction with Solidity 0.8.36, optimizer 200, EVM Paris.
+- Router → Factory binding verified read-only.
+- Router → WKAM binding verified read-only.
+- Factory pair count observed at `0` during the 2026-09-03 audit pass.
+- Deployment provenance for Factory and Router recovered from block `384625`.
+
+Still required before production liquidity activation:
+
+- Independent external smart-contract review of WKAM, Factory, Pair, and Router.
+- Legitimate quote-asset provenance and network compatibility verification.
+- Explicit treasury authorization for the exact assets, amounts, and source wallet.
+- Pair creation and deliberately small liquidity seed only after the previous gates pass.
+- Small real buy/sell smoke test only after verified liquidity exists.
+- Monitoring and rollback/incident procedures before wider activation.
 
 No fake stablecoin, wash trading, fabricated volume, guaranteed price, guaranteed liquidity, or implied external listing is permitted.

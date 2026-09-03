@@ -1,0 +1,40 @@
+name: KAM DEX Current State Probe
+
+on:
+  pull_request:
+    paths:
+      - 'chain/kam-mainnet/trading/scripts/probe-current-dex-state.mjs'
+      - 'chain/kam-mainnet/trading/scripts/recover-dex-deployment-provenance.mjs'
+      - '.github/workflows/kam-dex-state-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: chain/kam-mainnet/trading
+    env:
+      KAM_RPC_URL: https://rpc.kriptoaman.com
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Foundry read tools
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - name: Assert no signing credentials are present
+        run: |
+          test -z "${DEPLOYER_PRIVATE_KEY:-}"
+          test -z "${MNEMONIC:-}"
+      - name: Probe current DEX state read-only
+        run: node scripts/probe-current-dex-state.mjs
+      - name: Recover Factory and Router deployment provenance
+        run: node scripts/recover-dex-deployment-provenance.mjs
+      - name: Re-assert no signing credentials were used
+        if: always()
+        run: |
+          test -z "${DEPLOYER_PRIVATE_KEY:-}"
+          test -z "${MNEMONIC:-}"

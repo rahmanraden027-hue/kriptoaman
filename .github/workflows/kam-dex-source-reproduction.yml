@@ -1,0 +1,86 @@
+name: KAM DEX Source Reproduction
+
+on:
+  pull_request:
+    paths:
+      - 'chain/kam-mainnet/trading/contracts/WKAM.sol'
+      - 'chain/kam-mainnet/contracts/WKAM.sol'
+      - 'chain/kam-mainnet/trading/dex/**'
+      - 'chain/kam-mainnet/trading/scripts/compare-runtime-at-address.mjs'
+      - 'chain/kam-mainnet/trading/scripts/reproduce-wkam-standard-json.mjs'
+      - '.github/workflows/kam-dex-source-reproduction.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: chain/kam-mainnet/trading
+    env:
+      KAM_RPC_URL: https://rpc.kriptoaman.com
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - name: Assert read-only mode
+        run: |
+          test -z "${DEPLOYER_PRIVATE_KEY:-}"
+          test -z "${MNEMONIC:-}"
+
+      - name: Reproduce DEX with on-chain compiler 0.8.36
+        run: forge build --use 0.8.36 --evm-version paris --force
+
+      - name: Compare Router source to deployed runtime
+        env:
+          CONTRACT_LABEL: KAMRouter-solc-0.8.36
+          CONTRACT_ADDRESS: '0x4a413674245EE0959183604C153e386C00409122'
+          ARTIFACT_PATH: out/KAMRouter.sol/KAMRouter.json
+        run: node scripts/compare-runtime-at-address.mjs
+
+      - name: Compare router-bound Factory source to deployed runtime
+        env:
+          CONTRACT_LABEL: KAMFactory-solc-0.8.36
+          CONTRACT_ADDRESS: '0x5024017B0496113269E80817d9b0F11733AE6de2'
+          ARTIFACT_PATH: out/KAMFactory.sol/KAMFactory.json
+        run: node scripts/compare-runtime-at-address.mjs
+
+      - name: Prepare legacy WKAM source candidate
+        run: |
+          mkdir -p contracts/audit
+          cp ../contracts/WKAM.sol contracts/audit/WKAMLegacy.sol
+
+      - name: Reproduce WKAM candidates with on-chain compiler 0.8.24
+        run: forge build --use 0.8.24 --evm-version paris --force
+
+      - name: Compare current trading WKAM candidate
+        continue-on-error: true
+        env:
+          CONTRACT_LABEL: current-trading-WKAM-solc-0.8.24
+          CONTRACT_ADDRESS: '0x0d8848CE88BB09a81a4248Efdd574d50B98b544A'
+          ARTIFACT_PATH: out/WKAM.sol/WKAM.json
+        run: node scripts/compare-runtime-at-address.mjs
+
+      - name: Compare legacy root WKAM logic candidate
+        env:
+          CONTRACT_LABEL: legacy-root-WKAM-solc-0.8.24
+          CONTRACT_ADDRESS: '0x0d8848CE88BB09a81a4248Efdd574d50B98b544A'
+          ARTIFACT_PATH: out/WKAMLegacy.sol/WKAM.json
+        run: node scripts/compare-runtime-at-address.mjs
+
+      - name: Install exact solc-js used for WKAM reproduction
+        run: npm install --no-save --ignore-scripts solc@0.8.24
+
+      - name: Reproduce WKAM with original standard-json source key and settings
+        run: node scripts/reproduce-wkam-standard-json.mjs
+
+      - name: Re-assert read-only mode
+        if: always()
+        run: |
+          test -z "${DEPLOYER_PRIVATE_KEY:-}"
+          test -z "${MNEMONIC:-}"
