@@ -18,94 +18,160 @@ function runCast(args) {
   return execFileSync('cast', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 }
 
+function safeCast(args) {
+  try {
+    return { ok: true, value: runCast(args), error: null };
+  } catch (error) {
+    const stderr = error?.stderr ? String(error.stderr).trim() : '';
+    return { ok: false, value: null, error: stderr || error?.message || String(error) };
+  }
+}
+
 function normalizeHex(value) {
-  if (typeof value !== 'string') throw new Error('Expected hex string');
+  if (typeof value !== 'string') return '';
   const clean = value.trim().toLowerCase().replace(/^0x/, '');
-  if (!/^[0-9a-f]*$/.test(clean) || clean.length % 2 !== 0) throw new Error('Invalid hex byte string');
+  if (!/^[0-9a-f]*$/.test(clean) || clean.length % 2 !== 0) return '';
   return clean;
 }
 
 function sha256Hex(hex) {
+  if (!hex) return null;
   return crypto.createHash('sha256').update(Buffer.from(hex, 'hex')).digest('hex');
 }
 
+function metadataInfo(hex) {
+  if (!hex || hex.length < 4) return { body: hex, metadata: '', metadataBytes: 0, solc: null };
+  const declaredBytes = Number.parseInt(hex.slice(-4), 16);
+  const totalHexChars = (declaredBytes + 2) * 2;
+  if (!Number.isFinite(declaredBytes) || totalHexChars > hex.length || declaredBytes === 0) {
+    return { body: hex, metadata: '', metadataBytes: 0, solc: null };
+  }
+  const start = hex.length - totalHexChars;
+  const metadata = hex.slice(start, -4);
+  const match = metadata.match(/64736f6c6343([0-9a-f]{6})/);
+  const solc = match
+    ? `${Number.parseInt(match[1].slice(0, 2), 16)}.${Number.parseInt(match[1].slice(2, 4), 16)}.${Number.parseInt(match[1].slice(4, 6), 16)}`
+    : null;
+  return { body: hex.slice(0, start), metadata, metadataBytes: declaredBytes + 2, solc };
+}
+
 function maskImmutableReferences(hex, references = {}) {
+  if (!hex) return { hex: '', maskedSlots: 0, error: null };
   const bytes = Buffer.from(hex, 'hex');
   let maskedSlots = 0;
-  for (const slots of Object.values(references || {})) {
-    for (const slot of slots || []) {
-      const start = Number(slot.start);
-      const length = Number(slot.length);
-      if (!Number.isInteger(start) || !Number.isInteger(length) || start < 0 || length < 0 || start + length > bytes.length) {
-        throw new Error(`Invalid immutable reference: start=${slot.start} length=${slot.length}`);
+  try {
+    for (const slots of Object.values(references || {})) {
+      for (const slot of slots || []) {
+        const start = Number(slot.start);
+        const length = Number(slot.length);
+        if (!Number.isInteger(start) || !Number.isInteger(length) || start < 0 || length < 0 || start + length > bytes.length) {
+          throw new Error(`Invalid immutable reference: start=${slot.start} length=${slot.length}`);
+        }
+        bytes.fill(0, start, start + length);
+        maskedSlots += 1;
       }
-      bytes.fill(0, start, start + length);
-      maskedSlots += 1;
     }
+    return { hex: bytes.toString('hex'), maskedSlots, error: null };
+  } catch (error) {
+    return { hex, maskedSlots, error: error instanceof Error ? error.message : String(error) };
   }
-  return { hex: bytes.toString('hex'), maskedSlots };
 }
 
 function artifact(contractName) {
   const artifactPath = path.join(tradingDir, 'out', `${contractName}.sol`, `${contractName}.json`);
-  if (!fs.existsSync(artifactPath)) throw new Error(`Missing Foundry artifact: ${artifactPath}`);
-  return { artifactPath, data: JSON.parse(fs.readFileSync(artifactPath, 'utf8')) };
+  if (!fs.existsSync(artifactPath)) return { artifactPath, data: null, error: `Missing Foundry artifact: ${artifactPath}` };
+  try {
+    return { artifactPath, data: JSON.parse(fs.readFileSync(artifactPath, 'utf8')), error: null };
+  } catch (error) {
+    return { artifactPath, data: null, error: error instanceof Error ? error.message : String(error) };
+  }
 }
 
 function attestRuntime(contractName, address) {
-  const { artifactPath, data } = artifact(contractName);
-  const compiledRaw = normalizeHex(data?.deployedBytecode?.object || '');
-  const onchainRaw = normalizeHex(runCast(['code', '--rpc-url', rpcUrl, address]));
-  if (!compiledRaw) throw new Error(`${contractName}: compiled runtime is empty`);
-  if (!onchainRaw) throw new Error(`${contractName}: on-chain runtime is empty`);
-
-  const refs = data?.deployedBytecode?.immutableReferences || {};
-  const compiled = maskImmutableReferences(compiledRaw, refs);
-  const onchain = maskImmutableReferences(onchainRaw, refs);
-  const sameLength = compiledRaw.length === onchainRaw.length;
-  const match = sameLength && compiled.hex === onchain.hex;
+  const found = artifact(contractName);
+  const compiledRaw = normalizeHex(found.data?.deployedBytecode?.object || '');
+  const codeResult = safeCast(['code', '--rpc-url', rpcUrl, address]);
+  const onchainRaw = normalizeHex(codeResult.value || '');
+  const refs = found.data?.deployedBytecode?.immutableReferences || {};
+  const compiledMasked = maskImmutableReferences(compiledRaw, refs);
+  const onchainMasked = maskImmutableReferences(onchainRaw, refs);
+  const compiledMeta = metadataInfo(compiledMasked.hex);
+  const onchainMeta = metadataInfo(onchainMasked.hex);
+  const sameLength = Boolean(compiledRaw && onchainRaw && compiledRaw.length === onchainRaw.length);
+  const normalizedRuntimeMatch = sameLength && compiledMasked.hex === onchainMasked.hex;
+  const logicSameLength = Boolean(compiledMeta.body && onchainMeta.body && compiledMeta.body.length === onchainMeta.body.length);
+  const logicRuntimeMatch = logicSameLength && compiledMeta.body === onchainMeta.body;
 
   return {
     contract: contractName,
     address,
-    artifact: path.relative(process.cwd(), artifactPath),
+    artifact: path.relative(process.cwd(), found.artifactPath),
+    artifactError: found.error,
+    rpcCodeError: codeResult.error,
+    codePresent: onchainRaw.length > 0,
     runtimeBytesCompiled: compiledRaw.length / 2,
     runtimeBytesOnchain: onchainRaw.length / 2,
-    immutableSlotsMasked: compiled.maskedSlots,
-    compiledNormalizedSha256: sha256Hex(compiled.hex),
-    onchainNormalizedSha256: sha256Hex(onchain.hex),
+    immutableSlotsMasked: compiledMasked.maskedSlots,
+    immutableMaskError: compiledMasked.error || onchainMasked.error,
+    compiledSolcFromMetadata: compiledMeta.solc,
+    onchainSolcFromMetadata: onchainMeta.solc,
+    compiledMetadataBytes: compiledMeta.metadataBytes,
+    onchainMetadataBytes: onchainMeta.metadataBytes,
+    compiledNormalizedSha256: sha256Hex(compiledMasked.hex),
+    onchainNormalizedSha256: sha256Hex(onchainMasked.hex),
+    compiledLogicSha256: sha256Hex(compiledMeta.body),
+    onchainLogicSha256: sha256Hex(onchainMeta.body),
     sameLength,
-    normalizedRuntimeMatch: match,
+    normalizedRuntimeMatch,
+    logicSameLength,
+    logicRuntimeMatch,
   };
 }
 
 function addressEqual(a, b) {
-  return String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
+  return Boolean(a && b && String(a).trim().toLowerCase() === String(b).trim().toLowerCase());
 }
 
 function parseBigIntOutput(value) {
+  if (!value) return null;
   const token = String(value).trim().split(/\s+/)[0];
-  return BigInt(token);
+  try {
+    return BigInt(token);
+  } catch {
+    return null;
+  }
 }
 
-function receipt(txHash) {
-  const raw = runCast(['receipt', '--json', '--rpc-url', rpcUrl, txHash]);
-  const parsed = JSON.parse(raw);
-  return {
-    transactionHash: txHash,
-    blockNumber: Number(BigInt(parsed.blockNumber)),
-    status: Number(BigInt(parsed.status)),
-    contractAddress: parsed.contractAddress,
-  };
+function safeReceipt(txHash) {
+  const result = safeCast(['receipt', '--json', '--rpc-url', rpcUrl, txHash]);
+  if (!result.ok) return { transactionHash: txHash, found: false, error: result.error };
+  try {
+    const parsed = JSON.parse(result.value);
+    return {
+      transactionHash: txHash,
+      found: true,
+      error: null,
+      blockNumber: parsed.blockNumber == null ? null : Number(BigInt(parsed.blockNumber)),
+      status: parsed.status == null ? null : Number(BigInt(parsed.status)),
+      contractAddress: parsed.contractAddress || null,
+    };
+  } catch (error) {
+    return { transactionHash: txHash, found: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+function safeContractCall(address, signature) {
+  const result = safeCast(['call', '--rpc-url', rpcUrl, address, signature]);
+  return { signature, ok: result.ok, value: result.value, error: result.error };
 }
 
 const report = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   generatedAt: new Date().toISOString(),
   mode: 'READ_ONLY_SOURCE_RUNTIME_ATTESTATION',
   rpc: rpcUrl,
   expectedNetwork: { name: 'KriptoAman Mainnet', chainId: 22028 },
-  compiler: { solc: '0.8.24', optimizer: true, optimizerRuns: 200, evmVersion: 'paris' },
+  compilerCandidate: { solc: '0.8.24', optimizer: true, optimizerRuns: 200, evmVersion: 'paris' },
   contracts: [],
   bindings: {},
   deploymentReceipts: {},
@@ -114,67 +180,84 @@ const report = {
   ready: false,
 };
 
-let failure = null;
-try {
-  const observedChainId = Number(runCast(['chain-id', '--rpc-url', rpcUrl]));
-  report.observedChainId = observedChainId;
-  report.checks.chainId = observedChainId === 22028;
+const chainIdResult = safeCast(['chain-id', '--rpc-url', rpcUrl]);
+const blockNumberResult = safeCast(['block-number', '--rpc-url', rpcUrl]);
+report.observedChainId = chainIdResult.ok ? Number(chainIdResult.value) : null;
+report.observedBlockNumber = blockNumberResult.ok ? Number(blockNumberResult.value) : null;
+report.rpcErrors = {
+  chainId: chainIdResult.error,
+  blockNumber: blockNumberResult.error,
+};
 
-  const wkamAddress = wkamManifest.address;
-  const factoryAddress = dexManifest.factory.address;
-  const routerAddress = dexManifest.router.address;
+const wkamAddress = wkamManifest.address;
+const factoryAddress = dexManifest.factory.address;
+const routerAddress = dexManifest.router.address;
 
-  report.contracts.push(attestRuntime('WKAM', wkamAddress));
-  report.contracts.push(attestRuntime('KAMFactory', factoryAddress));
-  report.contracts.push(attestRuntime('KAMRouter', routerAddress));
+report.contracts = [
+  attestRuntime('WKAM', wkamAddress),
+  attestRuntime('KAMFactory', factoryAddress),
+  attestRuntime('KAMRouter', routerAddress),
+];
 
-  const routerFactory = runCast(['call', '--rpc-url', rpcUrl, routerAddress, 'factory()(address)']);
-  const routerWKAM = runCast(['call', '--rpc-url', rpcUrl, routerAddress, 'WKAM()(address)']);
-  const allPairsLengthRaw = runCast(['call', '--rpc-url', rpcUrl, factoryAddress, 'allPairsLength()(uint256)']);
-  const allPairsLength = parseBigIntOutput(allPairsLengthRaw);
+const factoryCall = safeContractCall(routerAddress, 'factory()(address)');
+const wkamCall = safeContractCall(routerAddress, 'WKAM()(address)');
+const pairsCall = safeContractCall(factoryAddress, 'allPairsLength()(uint256)');
+const allPairsLength = parseBigIntOutput(pairsCall.value);
 
-  report.bindings = {
-    routerFactory,
-    expectedFactory: factoryAddress,
-    factoryMatch: addressEqual(routerFactory, factoryAddress),
-    routerWKAM,
-    expectedWKAM: wkamAddress,
-    wkamMatch: addressEqual(routerWKAM, wkamAddress),
-  };
-  report.factoryState = {
-    allPairsLength: allPairsLength.toString(),
-    noPairsYet: allPairsLength === 0n,
-  };
+report.bindings = {
+  routerFactory: factoryCall.value,
+  expectedFactory: factoryAddress,
+  factoryMatch: factoryCall.ok && addressEqual(factoryCall.value, factoryAddress),
+  factoryCallError: factoryCall.error,
+  routerWKAM: wkamCall.value,
+  expectedWKAM: wkamAddress,
+  wkamMatch: wkamCall.ok && addressEqual(wkamCall.value, wkamAddress),
+  wkamCallError: wkamCall.error,
+};
+report.factoryState = {
+  allPairsLength: allPairsLength == null ? null : allPairsLength.toString(),
+  noPairsYet: pairsCall.ok && allPairsLength === 0n,
+  callError: pairsCall.error,
+};
 
-  report.deploymentReceipts = {
-    wkam: receipt(wkamManifest.deploymentTransaction),
-    factory: receipt(dexManifest.factory.deploymentTransaction),
-    router: receipt(dexManifest.router.deploymentTransaction),
-  };
+report.deploymentReceipts = {
+  wkam: safeReceipt(wkamManifest.deploymentTransaction),
+  factory: safeReceipt(dexManifest.factory.deploymentTransaction),
+  router: safeReceipt(dexManifest.router.deploymentTransaction),
+};
 
-  report.checks.runtimeMatches = report.contracts.every((item) => item.normalizedRuntimeMatch);
-  report.checks.routerBindings = report.bindings.factoryMatch && report.bindings.wkamMatch;
-  report.checks.noPairsYet = report.factoryState.noPairsYet;
-  report.checks.receiptsSucceeded = Object.values(report.deploymentReceipts).every((item) => item.status === 1);
-  report.checks.receiptAddresses =
-    addressEqual(report.deploymentReceipts.wkam.contractAddress, wkamAddress) &&
-    addressEqual(report.deploymentReceipts.factory.contractAddress, factoryAddress) &&
-    addressEqual(report.deploymentReceipts.router.contractAddress, routerAddress);
-  report.checks.receiptBlocks =
-    report.deploymentReceipts.wkam.blockNumber === Number(wkamManifest.deploymentBlock) &&
-    report.deploymentReceipts.factory.blockNumber === Number(dexManifest.factory.deploymentBlock) &&
-    report.deploymentReceipts.router.blockNumber === Number(dexManifest.router.deploymentBlock);
+const receipts = Object.values(report.deploymentReceipts);
+const maxRecordedDeploymentBlock = Math.max(
+  Number(wkamManifest.deploymentBlock),
+  Number(dexManifest.factory.deploymentBlock),
+  Number(dexManifest.router.deploymentBlock),
+);
 
-  report.ready = Object.values(report.checks).every(Boolean);
-} catch (error) {
-  failure = error;
-  report.error = error instanceof Error ? error.message : String(error);
-}
+report.checks = {
+  chainId: report.observedChainId === 22028,
+  currentHeightAtOrBeyondRecordedDeployments:
+    Number.isFinite(report.observedBlockNumber) && report.observedBlockNumber >= maxRecordedDeploymentBlock,
+  runtimeCodePresent: report.contracts.every((item) => item.codePresent),
+  exactNormalizedRuntimeMatches: report.contracts.every((item) => item.normalizedRuntimeMatch),
+  logicRuntimeMatchesIgnoringMetadata: report.contracts.every((item) => item.logicRuntimeMatch),
+  routerBindings: report.bindings.factoryMatch && report.bindings.wkamMatch,
+  noPairsYet: report.factoryState.noPairsYet,
+  receiptsFound: receipts.every((item) => item.found),
+  receiptsSucceeded: receipts.every((item) => item.found && item.status === 1),
+  receiptAddresses:
+    report.deploymentReceipts.wkam.found && addressEqual(report.deploymentReceipts.wkam.contractAddress, wkamAddress) &&
+    report.deploymentReceipts.factory.found && addressEqual(report.deploymentReceipts.factory.contractAddress, factoryAddress) &&
+    report.deploymentReceipts.router.found && addressEqual(report.deploymentReceipts.router.contractAddress, routerAddress),
+  receiptBlocks:
+    report.deploymentReceipts.wkam.found && report.deploymentReceipts.wkam.blockNumber === Number(wkamManifest.deploymentBlock) &&
+    report.deploymentReceipts.factory.found && report.deploymentReceipts.factory.blockNumber === Number(dexManifest.factory.deploymentBlock) &&
+    report.deploymentReceipts.router.found && report.deploymentReceipts.router.blockNumber === Number(dexManifest.router.deploymentBlock),
+};
+
+report.ready = Object.values(report.checks).every(Boolean);
 
 fs.mkdirSync(path.dirname(reportPath), { recursive: true });
 fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
 console.log(JSON.stringify(report, null, 2));
 
-if (failure || !report.ready) {
-  process.exitCode = 1;
-}
+if (!report.ready) process.exitCode = 1;
