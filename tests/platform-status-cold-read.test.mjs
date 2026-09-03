@@ -6,7 +6,7 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('platform status reads compact market metadata directly through D1 Sessions', async () => {
   const source = await read('functions/api/platform-status.js');
-  assert.match(source, /import \{ readSession \} from '\.\.\/_shared\/d1-session\.js'/);
+  assert.match(source, /import \{ primarySession, readSession \} from '\.\.\/_shared\/d1-session\.js'/);
   assert.match(source, /async function readMarketMetadata/);
   assert.match(source, /SELECT source, asset_count, captured_at FROM market_snapshots WHERE id = \?/);
   assert.doesNotMatch(source, /SELECT source, asset_count, captured_at, payload FROM market_snapshots/);
@@ -35,6 +35,50 @@ test('platform status bounds component reads below the public aggregate SLO inst
   assert.match(source, /componentTimeoutDegradesRatherThanFabricates: true/);
   assert.match(source, /readError: networks\.ok \? null : networks\.error/);
   assert.match(source, /readError: kam\.ok \? null : kam\.error/);
+});
+
+test('platform status uses only a short recent fully-verified durable aggregate', async () => {
+  const source = await read('functions/api/platform-status.js');
+  assert.match(source, /const DURABLE_STATUS_TTL_MS = 45_000/);
+  assert.match(source, /CREATE TABLE IF NOT EXISTS platform_status_snapshots/);
+  assert.match(source, /SELECT captured_at, payload FROM platform_status_snapshots WHERE id = \?/);
+  assert.match(source, /snapshotAgeMs > DURABLE_STATUS_TTL_MS/);
+  assert.match(source, /body\?\.overall === 'operational'/);
+  assert.match(source, /market\?\.healthy === true/);
+  assert.match(source, /Number\(market\?\.assetCount\) >= MIN_PUBLIC_MARKET_ASSETS/);
+  assert.match(source, /marketAgeMs <= MARKET_SNAPSHOT_FRESH_MS/);
+  assert.match(source, /networks\?\.healthy === true/);
+  assert.match(source, /networkOnline >= networkMinimumTarget/);
+  assert.match(source, /kam\?\.healthy === true/);
+  assert.match(source, /Number\(kam\?\.chainId\) === 22028/);
+});
+
+test('platform status writes durable evidence only through the primary session and only after verification', async () => {
+  const source = await read('functions/api/platform-status.js');
+  assert.match(source, /async function persistDurableStatus/);
+  assert.match(source, /!isVerifiedOperationalBody\(result\.body\)/);
+  assert.match(source, /const db = primarySession\(env\.AUTH_DB\)/);
+  assert.match(source, /INSERT INTO platform_status_snapshots/);
+  assert.match(source, /ON CONFLICT\(id\) DO UPDATE SET/);
+  assert.match(source, /durableAggregateCache: true/);
+  assert.match(source, /durableVerifiedAggregateMaxAgeMs: DURABLE_STATUS_TTL_MS/);
+});
+
+test('durable aggregate is transparent and refreshes live verification in the background', async () => {
+  const source = await read('functions/api/platform-status.js');
+  assert.match(source, /'d1-last-verified'/);
+  assert.match(source, /snapshotAgeMs/);
+  assert.match(source, /backgroundRefresh/);
+  assert.match(source, /startLiveRefresh\(request, env\)\.then\(\(fresh\) => persistDurableStatus\(env, fresh\)\)/);
+  assert.match(source, /scheduleBackground/);
+});
+
+test('only freshly live-verified aggregate responses can enter the edge cache', async () => {
+  const source = await read('functions/api/platform-status.js');
+  assert.match(source, /result\.body\?\.delivery\?\.aggregateRead === 'live-verified'/);
+  assert.match(source, /edgeCache\.put\(cacheKey, response\.clone\(\)\)/);
+  assert.doesNotMatch(source, /aggregateRead === 'd1-last-verified'[\s\S]{0,160}edgeCache\.put/);
+  assert.doesNotMatch(source, /aggregateRead === 'memory-last-verified'[\s\S]{0,160}edgeCache\.put/);
 });
 
 test('platform status keeps bounded HTTP fallback and cached aggregate delivery', async () => {
