@@ -114,18 +114,28 @@ export async function onRequestGet(context) {
   }
 
   try {
+    const url = new URL(request.url);
+    const healthOnly = url.searchParams.get('health') === '1';
+    const forceRefresh = healthOnly && url.searchParams.get('refresh') === '1';
+
     let snapshot = decodeSnapshot(await readSnapshot(env.AUTH_DB));
     if (!snapshot) snapshot = await refreshSnapshot(env.AUTH_DB);
 
-    const healthOnly = new URL(request.url).searchParams.get('health') === '1';
-    const ageMs = Math.max(0, Date.now() - Number(snapshot.captured_at));
-    const stale = ageMs > SNAPSHOT_FRESH_MS;
-    const refreshDue = ageMs >= SNAPSHOT_FRESH_MS - SNAPSHOT_REFRESH_AHEAD_MS;
+    let ageMs = Math.max(0, Date.now() - Number(snapshot.captured_at));
+    let stale = ageMs > SNAPSHOT_FRESH_MS;
+    let refreshDue = ageMs >= SNAPSHOT_FRESH_MS - SNAPSHOT_REFRESH_AHEAD_MS;
+    let refreshPerformed = false;
 
-    // Refresh before the snapshot becomes stale so scheduled health checks keep
-    // market data warm. Persisted data is still returned immediately; upstream
-    // collection remains asynchronous and measured freshness stays explicit.
-    if (refreshDue && typeof context.waitUntil === 'function') {
+    // The scheduled warm job can request a deterministic refresh once the
+    // snapshot enters the refresh window. This avoids reporting success before
+    // an asynchronous refresh has actually completed and been persisted.
+    if (forceRefresh && refreshDue) {
+      snapshot = await refreshSnapshot(env.AUTH_DB);
+      ageMs = Math.max(0, Date.now() - Number(snapshot.captured_at));
+      stale = ageMs > SNAPSHOT_FRESH_MS;
+      refreshDue = ageMs >= SNAPSHOT_FRESH_MS - SNAPSHOT_REFRESH_AHEAD_MS;
+      refreshPerformed = true;
+    } else if (refreshDue && typeof context.waitUntil === 'function') {
       context.waitUntil(refreshSnapshot(env.AUTH_DB).catch((error) => {
         console.error('Background market snapshot refresh failed', { requestId, error });
       }));
@@ -140,7 +150,8 @@ export async function onRequestGet(context) {
       ageMs,
       stale,
       refreshDue,
-      refreshScheduled: Boolean(refreshDue && typeof context.waitUntil === 'function'),
+      refreshPerformed,
+      refreshScheduled: Boolean(!refreshPerformed && refreshDue && typeof context.waitUntil === 'function'),
       requestId,
     };
     return json(healthOnly ? metadata : { ...metadata, data: snapshot.data });
