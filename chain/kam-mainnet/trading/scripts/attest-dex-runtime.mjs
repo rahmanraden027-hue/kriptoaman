@@ -15,7 +15,7 @@ const wkamManifest = JSON.parse(fs.readFileSync(path.join(chainDir, 'deployments
 const dexManifest = JSON.parse(fs.readFileSync(path.join(chainDir, 'deployments', 'dex.mainnet.deployment.json'), 'utf8'));
 
 function runCast(args) {
-  return execFileSync('cast', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+  return execFileSync('cast', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 20000 }).trim();
 }
 
 function safeCast(args) {
@@ -143,8 +143,9 @@ function parseBigIntOutput(value) {
 }
 
 function safeReceipt(txHash) {
-  const result = safeCast(['receipt', '--json', '--rpc-url', rpcUrl, txHash]);
+  const result = safeCast(['rpc', '--rpc-url', rpcUrl, 'eth_getTransactionReceipt', txHash]);
   if (!result.ok) return { transactionHash: txHash, found: false, error: result.error };
+  if (!result.value || result.value === 'null') return { transactionHash: txHash, found: false, error: null };
   try {
     const parsed = JSON.parse(result.value);
     return {
