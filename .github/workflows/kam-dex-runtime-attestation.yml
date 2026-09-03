@@ -3,6 +3,7 @@ name: KAM DEX Runtime Attestation
 on:
   pull_request:
     paths:
+      - 'chain/kam-mainnet/contracts/WKAM.sol'
       - 'chain/kam-mainnet/trading/contracts/WKAM.sol'
       - 'chain/kam-mainnet/trading/dex/**'
       - 'chain/kam-mainnet/trading/scripts/attest-dex-runtime.mjs'
@@ -37,10 +38,13 @@ jobs:
           test -z "${DEPLOYER_PRIVATE_KEY:-}"
           test -z "${MNEMONIC:-}"
 
-      - name: Build exact audit candidate
-        run: forge build --sizes --evm-version paris
+      - name: Build exact Factory and Router audit candidates
+        run: forge build --use 0.8.36 --evm-version paris --force
 
-      - name: Attest deployed runtime and read-only mainnet state
+      - name: Install exact WKAM deployment compiler
+        run: npm install --no-save --ignore-scripts solc@0.8.24
+
+      - name: Attest mixed-compiler deployed runtimes and read-only mainnet state
         run: node scripts/attest-dex-runtime.mjs
 
       - name: Upload attestation evidence
