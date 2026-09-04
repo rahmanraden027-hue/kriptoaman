@@ -35,3 +35,15 @@ test('dedicated warm job is staggered every ten minutes and cannot cancel an act
   assert.match(workflow, /payload\.assetCount\) < 4500/);
   assert.match(workflow, /payload\.chunkReady !== true/);
 });
+
+test('paged market has a bounded 24 hour rescue cache for transient D1 or origin failures', async () => {
+  const page = await read('functions/api/market-snapshot-page.js');
+  assert.match(page, /RESCUE_CACHE_TTL_SECONDS = 24 \* 60 \* 60/);
+  assert.match(page, /stale-if-error=86400/);
+  assert.match(page, /_ka_rescue/);
+  assert.match(page, /X-KriptoAman-Market-Page-Cache', 'RESCUE'/);
+  assert.match(page, /X-KriptoAman-Market-Stale', 'true'/);
+  assert.match(page, /Warning', '110 - \\"Response is stale\\"'/);
+  assert.match(page, /edgeCache\.put\(rescueCacheKey, buildRescueSeed\(response\)\)/);
+  assert.match(page, /if \(rescue\) return rescue/);
+});
