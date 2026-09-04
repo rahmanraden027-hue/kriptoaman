@@ -1,0 +1,13 @@
+# PREPARATION ONLY — not yet submitted to or accepted by the Hyperlane registry.
+# Domain ID 22028 intentionally matches the EVM Chain ID; uniqueness must be rechecked immediately before registry submission.
+chainId: 22028
+displayName: KriptoAman Mainnet
+domainId: 22028
+name: kriptoaman
+nativeToken:
+  decimals: 18
+  name: KriptoAman
+  symbol: KAM
+protocol: ethereum
+rpcUrls:
+  - http: https://rpc.kriptoaman.com
