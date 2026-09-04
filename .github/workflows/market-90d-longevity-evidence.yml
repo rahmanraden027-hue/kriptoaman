@@ -95,7 +95,9 @@ jobs:
           }
 
           const platformMarket = platform?.components?.market;
-          if (platform?.overall !== 'operational') failures.push(`platform overall is ${platform?.overall}`);
+          // Record the aggregate platform state for diagnosis, but this longevity
+          // monitor gates only market continuity. KAM/network/auth readiness has
+          // dedicated workflows and must not create false market outages here.
           if (platformMarket?.status !== 'operational' || platformMarket?.healthy !== true) {
             failures.push(`platform market status is ${platformMarket?.status}`);
           }
