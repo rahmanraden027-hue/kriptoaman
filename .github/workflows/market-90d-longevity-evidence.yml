@@ -44,8 +44,10 @@ jobs:
             printf '%s' "$code"
           }
 
+          # refresh=1 exposes the complete chunk-coverage contract. The endpoint
+          # performs a provider refresh only when the persisted snapshot is due.
           market_code="$(curl_json \
-            'https://kriptoaman.com/api/market-snapshot?health=1' \
+            'https://kriptoaman.com/api/market-snapshot?health=1&refresh=1' \
             market-longevity-evidence/market-health.json \
             market-longevity-evidence/market-health.headers)"
           platform_code="$(curl_json \
@@ -126,6 +128,7 @@ jobs:
               chunkReady: market.chunkReady ?? null,
               chunkCount: Number(market.chunkCount) || null,
               expectedChunks: Number(market.expectedChunks) || null,
+              refreshPerformed: market.refreshPerformed ?? null,
             },
             platform: {
               overall: platform?.overall ?? null,
