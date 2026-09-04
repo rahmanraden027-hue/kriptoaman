@@ -86,37 +86,39 @@ contract KAMDEXTest {
     }
 
     function testInitialLiquidityRejectsMinimumAboveDesired() public {
-        (bool ok,) = address(router).call(
-            abi.encodeWithSelector(
-                router.addLiquidity.selector,
-                address(tokenA),
-                address(tokenB),
-                100 ether,
-                100 ether,
-                101 ether,
-                100 ether,
-                address(this),
-                DEADLINE
-            )
-        );
+        (bool ok,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.addLiquidity.selector,
+                    address(tokenA),
+                    address(tokenB),
+                    100 ether,
+                    100 ether,
+                    101 ether,
+                    100 ether,
+                    address(this),
+                    DEADLINE
+                )
+            );
         require(!ok, "initial liquidity ignored minimum");
     }
 
     function testExpiredDeadlineRejected() public {
         vm.warp(100);
-        (bool ok,) = address(router).call(
-            abi.encodeWithSelector(
-                router.addLiquidity.selector,
-                address(tokenA),
-                address(tokenB),
-                100 ether,
-                100 ether,
-                100 ether,
-                100 ether,
-                address(this),
-                99
-            )
-        );
+        (bool ok,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.addLiquidity.selector,
+                    address(tokenA),
+                    address(tokenB),
+                    100 ether,
+                    100 ether,
+                    100 ether,
+                    100 ether,
+                    address(this),
+                    99
+                )
+            );
         require(!ok, "expired liquidity transaction accepted");
         require(factory.allPairsLength() == 0, "expired call created pair");
     }
@@ -133,19 +135,20 @@ contract KAMDEXTest {
             DEADLINE
         );
 
-        (bool ok,) = address(router).call(
-            abi.encodeWithSelector(
-                router.addLiquidity.selector,
-                address(tokenA),
-                address(tokenB),
-                1_000 ether,
-                1_000 ether,
-                1_001 ether,
-                1_001 ether,
-                address(this),
-                DEADLINE
-            )
-        );
+        (bool ok,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.addLiquidity.selector,
+                    address(tokenA),
+                    address(tokenB),
+                    1_000 ether,
+                    1_000 ether,
+                    1_001 ether,
+                    1_001 ether,
+                    address(this),
+                    DEADLINE
+                )
+            );
         require(!ok, "impossible minimum accepted");
     }
 
@@ -187,32 +190,34 @@ contract KAMDEXTest {
             DEADLINE
         );
 
-        (bool ok,) = address(router).call(
-            abi.encodeWithSelector(
-                router.swapExactTokensForTokens.selector,
-                100 ether,
-                1_000 ether,
-                address(tokenA),
-                address(tokenB),
-                address(this),
-                DEADLINE
-            )
-        );
+        (bool ok,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.swapExactTokensForTokens.selector,
+                    100 ether,
+                    1_000 ether,
+                    address(tokenA),
+                    address(tokenB),
+                    address(this),
+                    DEADLINE
+                )
+            );
         require(!ok, "slippage floor bypassed");
     }
 
     function testSwapRejectsMissingPair() public {
-        (bool ok,) = address(router).call(
-            abi.encodeWithSelector(
-                router.swapExactTokensForTokens.selector,
-                100 ether,
-                1,
-                address(tokenA),
-                address(tokenB),
-                address(this),
-                DEADLINE
-            )
-        );
+        (bool ok,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.swapExactTokensForTokens.selector,
+                    100 ether,
+                    1,
+                    address(tokenA),
+                    address(tokenB),
+                    address(this),
+                    DEADLINE
+                )
+            );
         require(!ok, "missing pair accepted");
     }
 
@@ -250,18 +255,19 @@ contract KAMDEXTest {
             DEADLINE
         );
 
-        (bool ok,) = address(router).call(
-            abi.encodeWithSelector(
-                router.removeLiquidity.selector,
-                address(tokenA),
-                address(tokenB),
-                liquidity,
-                1,
-                1,
-                address(this),
-                DEADLINE
-            )
-        );
+        (bool ok,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.removeLiquidity.selector,
+                    address(tokenA),
+                    address(tokenB),
+                    liquidity,
+                    1,
+                    1,
+                    address(this),
+                    DEADLINE
+                )
+            );
         require(!ok, "LP removal without approval accepted");
     }
 
