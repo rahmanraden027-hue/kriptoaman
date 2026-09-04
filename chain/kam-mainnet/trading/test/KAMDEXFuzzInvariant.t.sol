@@ -91,6 +91,7 @@ contract KAMDEXFuzzInvariantTest {
     address internal constant ALICE = address(0xA11CE);
     uint256 internal constant USER_TOKEN_BALANCE = 20_000_000 ether;
     uint256 internal constant USER_NATIVE_BALANCE = 20_000_000 ether;
+    uint256 internal constant DEADLINE = type(uint256).max;
 
     function setUp() public {
         factory = new KAMFactory();
@@ -129,7 +130,14 @@ contract KAMDEXFuzzInvariantTest {
 
         vm.prank(ALICE);
         router.addLiquidity(
-            address(tokenA), address(tokenB), baseLiquidity, baseLiquidity, baseLiquidity, baseLiquidity, ALICE
+            address(tokenA),
+            address(tokenB),
+            baseLiquidity,
+            baseLiquidity,
+            baseLiquidity,
+            baseLiquidity,
+            ALICE,
+            DEADLINE
         );
 
         address pair = factory.getPair(address(tokenA), address(tokenB));
@@ -143,7 +151,7 @@ contract KAMDEXFuzzInvariantTest {
 
         vm.prank(ALICE);
         uint256 actualOut =
-            router.swapExactTokensForTokens(amountIn, expectedOut, address(tokenA), address(tokenB), ALICE);
+            router.swapExactTokensForTokens(amountIn, expectedOut, address(tokenA), address(tokenB), ALICE, DEADLINE);
         require(actualOut == expectedOut, "router output mismatch");
 
         (uint112 r0After, uint112 r1After,) = KAMPair(pair).getReserves();
@@ -156,7 +164,14 @@ contract KAMDEXFuzzInvariantTest {
 
         vm.prank(ALICE);
         router.addLiquidity(
-            address(tokenA), address(tokenB), baseLiquidity, baseLiquidity, baseLiquidity, baseLiquidity, ALICE
+            address(tokenA),
+            address(tokenB),
+            baseLiquidity,
+            baseLiquidity,
+            baseLiquidity,
+            baseLiquidity,
+            ALICE,
+            DEADLINE
         );
 
         address pair = factory.getPair(address(tokenA), address(tokenB));
@@ -167,17 +182,17 @@ contract KAMDEXFuzzInvariantTest {
         uint256 expectedOut = router.getAmountOut(amountIn, reserveIn, reserveOut);
 
         vm.prank(ALICE);
-        (bool ok,) = address(router)
-            .call(
-                abi.encodeWithSelector(
-                    router.swapExactTokensForTokens.selector,
-                    amountIn,
-                    expectedOut + 1,
-                    address(tokenA),
-                    address(tokenB),
-                    ALICE
-                )
-            );
+        (bool ok,) = address(router).call(
+            abi.encodeWithSelector(
+                router.swapExactTokensForTokens.selector,
+                amountIn,
+                expectedOut + 1,
+                address(tokenA),
+                address(tokenB),
+                ALICE,
+                DEADLINE
+            )
+        );
         require(!ok, "slippage bypassed");
 
         (uint112 r0After, uint112 r1After,) = KAMPair(pair).getReserves();
@@ -190,7 +205,14 @@ contract KAMDEXFuzzInvariantTest {
 
         vm.prank(ALICE);
         (,, uint256 liquidity) = router.addLiquidity(
-            address(tokenA), address(tokenB), baseLiquidity, baseLiquidity, baseLiquidity, baseLiquidity, ALICE
+            address(tokenA),
+            address(tokenB),
+            baseLiquidity,
+            baseLiquidity,
+            baseLiquidity,
+            baseLiquidity,
+            ALICE,
+            DEADLINE
         );
 
         address pair = factory.getPair(address(tokenA), address(tokenB));
@@ -199,7 +221,7 @@ contract KAMDEXFuzzInvariantTest {
 
         vm.prank(ALICE);
         (uint256 amountA, uint256 amountB) =
-            router.removeLiquidity(address(tokenA), address(tokenB), liquidity, 1, 1, ALICE);
+            router.removeLiquidity(address(tokenA), address(tokenB), liquidity, 1, 1, ALICE, DEADLINE);
 
         require(amountA > 0 && amountB > 0, "zero round-trip output");
         require(amountA <= baseLiquidity && amountB <= baseLiquidity, "round trip over-returned assets");
@@ -219,7 +241,8 @@ contract KAMDEXFuzzInvariantTest {
             initialLiquidity,
             initialLiquidity,
             initialLiquidity,
-            ALICE
+            ALICE,
+            DEADLINE
         );
 
         address pair = factory.getPair(address(tokenA), address(tokenB));
@@ -229,7 +252,7 @@ contract KAMDEXFuzzInvariantTest {
 
         vm.prank(ALICE);
         (uint256 amountA, uint256 amountB, uint256 minted) =
-            router.addLiquidity(address(tokenA), address(tokenB), topUp, topUp, 0, 0, ALICE);
+            router.addLiquidity(address(tokenA), address(tokenB), topUp, topUp, 0, 0, ALICE, DEADLINE);
 
         require(amountA == topUp && amountB == topUp, "equal reserve ratio not preserved");
         require(minted == expectedLiquidity, "LP pro-rata mint mismatch");
@@ -260,13 +283,14 @@ contract KAMDEXFuzzInvariantTest {
 
         vm.prank(ALICE);
         router.addLiquidityKAM{value: initialLiquidity}(
-            address(tokenA), initialLiquidity, initialLiquidity, initialLiquidity, ALICE
+            address(tokenA), initialLiquidity, initialLiquidity, initialLiquidity, ALICE, DEADLINE
         );
 
         uint256 nativeBefore = ALICE.balance;
         vm.prank(ALICE);
-        (uint256 amountToken, uint256 amountKAM,) =
-            router.addLiquidityKAM{value: topUp * 2}(address(tokenA), topUp, 0, 0, ALICE);
+        (uint256 amountToken, uint256 amountKAM,) = router.addLiquidityKAM{value: topUp * 2}(
+            address(tokenA), topUp, 0, 0, ALICE, DEADLINE
+        );
 
         require(amountToken == topUp && amountKAM == topUp, "unexpected optimal native ratio");
         require(nativeBefore - ALICE.balance == amountKAM, "excess native KAM was not refunded");
@@ -283,7 +307,14 @@ contract KAMDEXFuzzInvariantTest {
 
         vm.prank(ALICE);
         router.addLiquidity(
-            address(reentrant), address(tokenB), 10_000 ether, 10_000 ether, 10_000 ether, 10_000 ether, ALICE
+            address(reentrant),
+            address(tokenB),
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            ALICE,
+            DEADLINE
         );
 
         address pair = factory.getPair(address(reentrant), address(tokenB));
@@ -291,7 +322,8 @@ contract KAMDEXFuzzInvariantTest {
         reentrant.setReentryEnabled(true);
 
         vm.prank(ALICE);
-        uint256 out = router.swapExactTokensForTokens(100 ether, 1, address(tokenB), address(reentrant), ALICE);
+        uint256 out =
+            router.swapExactTokensForTokens(100 ether, 1, address(tokenB), address(reentrant), ALICE, DEADLINE);
 
         require(out > 0, "outer swap failed");
         require(reentrant.reentryAttempted(), "callback did not attempt reentry");
