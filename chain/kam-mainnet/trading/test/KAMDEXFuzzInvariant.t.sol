@@ -182,17 +182,18 @@ contract KAMDEXFuzzInvariantTest {
         uint256 expectedOut = router.getAmountOut(amountIn, reserveIn, reserveOut);
 
         vm.prank(ALICE);
-        (bool ok,) = address(router).call(
-            abi.encodeWithSelector(
-                router.swapExactTokensForTokens.selector,
-                amountIn,
-                expectedOut + 1,
-                address(tokenA),
-                address(tokenB),
-                ALICE,
-                DEADLINE
-            )
-        );
+        (bool ok,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.swapExactTokensForTokens.selector,
+                    amountIn,
+                    expectedOut + 1,
+                    address(tokenA),
+                    address(tokenB),
+                    ALICE,
+                    DEADLINE
+                )
+            );
         require(!ok, "slippage bypassed");
 
         (uint112 r0After, uint112 r1After,) = KAMPair(pair).getReserves();
@@ -288,9 +289,8 @@ contract KAMDEXFuzzInvariantTest {
 
         uint256 nativeBefore = ALICE.balance;
         vm.prank(ALICE);
-        (uint256 amountToken, uint256 amountKAM,) = router.addLiquidityKAM{value: topUp * 2}(
-            address(tokenA), topUp, 0, 0, ALICE, DEADLINE
-        );
+        (uint256 amountToken, uint256 amountKAM,) =
+            router.addLiquidityKAM{value: topUp * 2}(address(tokenA), topUp, 0, 0, ALICE, DEADLINE);
 
         require(amountToken == topUp && amountKAM == topUp, "unexpected optimal native ratio");
         require(nativeBefore - ALICE.balance == amountKAM, "excess native KAM was not refunded");
@@ -307,14 +307,7 @@ contract KAMDEXFuzzInvariantTest {
 
         vm.prank(ALICE);
         router.addLiquidity(
-            address(reentrant),
-            address(tokenB),
-            10_000 ether,
-            10_000 ether,
-            10_000 ether,
-            10_000 ether,
-            ALICE,
-            DEADLINE
+            address(reentrant), address(tokenB), 10_000 ether, 10_000 ether, 10_000 ether, 10_000 ether, ALICE, DEADLINE
         );
 
         address pair = factory.getPair(address(reentrant), address(tokenB));
