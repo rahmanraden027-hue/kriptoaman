@@ -2,6 +2,11 @@ name: Market 90-Day Longevity Evidence
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/market-90d-longevity-evidence.yml'
   schedule:
     - cron: '17 */6 * * *'
 
