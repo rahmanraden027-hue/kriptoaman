@@ -6,12 +6,20 @@ import "../dex/KAMFactory.sol";
 import "../dex/KAMRouter.sol";
 import "./MockToken.sol";
 
+interface VmAudit {
+    function warp(uint256 newTimestamp) external;
+}
+
 contract KAMDEXTest {
+    VmAudit internal constant vm = VmAudit(address(uint160(uint256(keccak256("hevm cheat code")))));
+
     KAMFactory factory;
     KAMRouter router;
     WKAM canonicalWKAM;
     MockToken tokenA;
     MockToken tokenB;
+
+    uint256 internal constant DEADLINE = type(uint256).max;
 
     function setUp() public {
         factory = new KAMFactory();
@@ -61,7 +69,14 @@ contract KAMDEXTest {
 
     function testAddLiquidityMintsLP() public {
         (,, uint256 liquidity) = router.addLiquidity(
-            address(tokenA), address(tokenB), 10_000 ether, 20_000 ether, 10_000 ether, 20_000 ether, address(this)
+            address(tokenA),
+            address(tokenB),
+            10_000 ether,
+            20_000 ether,
+            10_000 ether,
+            20_000 ether,
+            address(this),
+            DEADLINE
         );
         address pair = factory.getPair(address(tokenA), address(tokenB));
         require(liquidity > 0, "no liquidity");
@@ -70,37 +85,88 @@ contract KAMDEXTest {
         require(r0 > 0 && r1 > 0, "reserves missing");
     }
 
+    function testInitialLiquidityRejectsMinimumAboveDesired() public {
+        (bool ok,) = address(router).call(
+            abi.encodeWithSelector(
+                router.addLiquidity.selector,
+                address(tokenA),
+                address(tokenB),
+                100 ether,
+                100 ether,
+                101 ether,
+                100 ether,
+                address(this),
+                DEADLINE
+            )
+        );
+        require(!ok, "initial liquidity ignored minimum");
+    }
+
+    function testExpiredDeadlineRejected() public {
+        vm.warp(100);
+        (bool ok,) = address(router).call(
+            abi.encodeWithSelector(
+                router.addLiquidity.selector,
+                address(tokenA),
+                address(tokenB),
+                100 ether,
+                100 ether,
+                100 ether,
+                100 ether,
+                address(this),
+                99
+            )
+        );
+        require(!ok, "expired liquidity transaction accepted");
+        require(factory.allPairsLength() == 0, "expired call created pair");
+    }
+
     function testAddLiquidityRejectsImpossibleMinimum() public {
         router.addLiquidity(
-            address(tokenA), address(tokenB), 10_000 ether, 10_000 ether, 10_000 ether, 10_000 ether, address(this)
+            address(tokenA),
+            address(tokenB),
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            address(this),
+            DEADLINE
         );
 
-        (bool ok,) = address(router)
-            .call(
-                abi.encodeWithSelector(
-                    router.addLiquidity.selector,
-                    address(tokenA),
-                    address(tokenB),
-                    1_000 ether,
-                    1_000 ether,
-                    1_001 ether,
-                    1_001 ether,
-                    address(this)
-                )
-            );
+        (bool ok,) = address(router).call(
+            abi.encodeWithSelector(
+                router.addLiquidity.selector,
+                address(tokenA),
+                address(tokenB),
+                1_000 ether,
+                1_000 ether,
+                1_001 ether,
+                1_001 ether,
+                address(this),
+                DEADLINE
+            )
+        );
         require(!ok, "impossible minimum accepted");
     }
 
     function testSwapPreservesProductWithFee() public {
         router.addLiquidity(
-            address(tokenA), address(tokenB), 10_000 ether, 10_000 ether, 10_000 ether, 10_000 ether, address(this)
+            address(tokenA),
+            address(tokenB),
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            address(this),
+            DEADLINE
         );
         address pair = factory.getPair(address(tokenA), address(tokenB));
         (uint112 r0Before, uint112 r1Before,) = KAMPair(pair).getReserves();
         uint256 kBefore = uint256(r0Before) * uint256(r1Before);
         uint256 bBefore = tokenB.balanceOf(address(this));
 
-        uint256 out = router.swapExactTokensForTokens(100 ether, 1, address(tokenA), address(tokenB), address(this));
+        uint256 out =
+            router.swapExactTokensForTokens(100 ether, 1, address(tokenA), address(tokenB), address(this), DEADLINE);
         require(out > 0, "no output");
         require(tokenB.balanceOf(address(this)) == bBefore + out, "output mismatch");
 
@@ -111,48 +177,62 @@ contract KAMDEXTest {
 
     function testSwapRejectsExcessiveMinimumOutput() public {
         router.addLiquidity(
-            address(tokenA), address(tokenB), 10_000 ether, 10_000 ether, 10_000 ether, 10_000 ether, address(this)
+            address(tokenA),
+            address(tokenB),
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            address(this),
+            DEADLINE
         );
 
-        (bool ok,) = address(router)
-            .call(
-                abi.encodeWithSelector(
-                    router.swapExactTokensForTokens.selector,
-                    100 ether,
-                    1_000 ether,
-                    address(tokenA),
-                    address(tokenB),
-                    address(this)
-                )
-            );
+        (bool ok,) = address(router).call(
+            abi.encodeWithSelector(
+                router.swapExactTokensForTokens.selector,
+                100 ether,
+                1_000 ether,
+                address(tokenA),
+                address(tokenB),
+                address(this),
+                DEADLINE
+            )
+        );
         require(!ok, "slippage floor bypassed");
     }
 
     function testSwapRejectsMissingPair() public {
-        (bool ok,) = address(router)
-            .call(
-                abi.encodeWithSelector(
-                    router.swapExactTokensForTokens.selector,
-                    100 ether,
-                    1,
-                    address(tokenA),
-                    address(tokenB),
-                    address(this)
-                )
-            );
+        (bool ok,) = address(router).call(
+            abi.encodeWithSelector(
+                router.swapExactTokensForTokens.selector,
+                100 ether,
+                1,
+                address(tokenA),
+                address(tokenB),
+                address(this),
+                DEADLINE
+            )
+        );
         require(!ok, "missing pair accepted");
     }
 
     function testRemoveLiquidityReturnsBothAssets() public {
         (,, uint256 liquidity) = router.addLiquidity(
-            address(tokenA), address(tokenB), 10_000 ether, 10_000 ether, 10_000 ether, 10_000 ether, address(this)
+            address(tokenA),
+            address(tokenB),
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            address(this),
+            DEADLINE
         );
         address pair = factory.getPair(address(tokenA), address(tokenB));
         KAMPair(pair).approve(address(router), liquidity);
         uint256 aBefore = tokenA.balanceOf(address(this));
         uint256 bBefore = tokenB.balanceOf(address(this));
         (uint256 amountA, uint256 amountB) =
-            router.removeLiquidity(address(tokenA), address(tokenB), liquidity, 1, 1, address(this));
+            router.removeLiquidity(address(tokenA), address(tokenB), liquidity, 1, 1, address(this), DEADLINE);
         require(amountA > 0 && amountB > 0, "no assets returned");
         require(tokenA.balanceOf(address(this)) > aBefore, "A not returned");
         require(tokenB.balanceOf(address(this)) > bBefore, "B not returned");
@@ -160,15 +240,28 @@ contract KAMDEXTest {
 
     function testRemoveLiquidityRejectsWithoutApproval() public {
         (,, uint256 liquidity) = router.addLiquidity(
-            address(tokenA), address(tokenB), 10_000 ether, 10_000 ether, 10_000 ether, 10_000 ether, address(this)
+            address(tokenA),
+            address(tokenB),
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            address(this),
+            DEADLINE
         );
 
-        (bool ok,) = address(router)
-            .call(
-                abi.encodeWithSelector(
-                    router.removeLiquidity.selector, address(tokenA), address(tokenB), liquidity, 1, 1, address(this)
-                )
-            );
+        (bool ok,) = address(router).call(
+            abi.encodeWithSelector(
+                router.removeLiquidity.selector,
+                address(tokenA),
+                address(tokenB),
+                liquidity,
+                1,
+                1,
+                address(this),
+                DEADLINE
+            )
+        );
         require(!ok, "LP removal without approval accepted");
     }
 
