@@ -11,6 +11,7 @@ on:
       - 'chain/kam-mainnet/trading/script/DeployKAMDEXV2.s.sol'
       - 'chain/kam-mainnet/trading/test/KAMDEX.t.sol'
       - 'chain/kam-mainnet/trading/test/KAMDEXV2.t.sol'
+      - 'chain/kam-mainnet/trading/test/KAMDEXV2Adversarial.t.sol'
       - 'chain/kam-mainnet/trading/test/KAMDEXDeploymentSimulation.t.sol'
       - 'chain/kam-mainnet/trading/test/MockToken.sol'
       - 'chain/kam-mainnet/trading/foundry.toml'
@@ -40,6 +41,8 @@ jobs:
         run: forge test --match-path test/KAMDEX.t.sol -vvv --evm-version paris
       - name: DEX V2 hardening candidate tests
         run: forge test --match-path test/KAMDEXV2.t.sol -vvv --evm-version paris
+      - name: DEX V2 adversarial security tests
+        run: forge test --match-path test/KAMDEXV2Adversarial.t.sol -vvv --evm-version paris
       - name: DEX deployment simulation
         run: forge test --match-path test/KAMDEXDeploymentSimulation.t.sol -vvv --evm-version paris
       - name: Verify canonical WKAM deployment metadata
