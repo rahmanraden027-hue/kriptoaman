@@ -1,0 +1,128 @@
+name: Cloudflare Pages Preview Inventory
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    name: Inventory Pages deployments (read-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CF_PROJECT_NAME: kriptoaman
+    steps:
+      - name: Validate required secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${CF_ACCOUNT_ID:-}" ]]; then
+            echo "Missing repository secret: CLOUDFLARE_ACCOUNT_ID"
+            exit 1
+          fi
+          if [[ -z "${CF_API_TOKEN:-}" ]]; then
+            echo "Missing repository secret: CLOUDFLARE_API_TOKEN"
+            exit 1
+          fi
+
+      - name: Fetch preview deployment inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p cloudflare-inventory
+          : > cloudflare-inventory/previews.tsv
+
+          page=1
+          total_pages=1
+          while (( page <= total_pages )); do
+            response="$(curl --fail-with-body --silent --show-error \
+              --get \
+              "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${CF_PROJECT_NAME}/deployments" \
+              --header "Authorization: Bearer ${CF_API_TOKEN}" \
+              --data-urlencode "env=preview" \
+              --data-urlencode "page=${page}" \
+              --data-urlencode "per_page=100")"
+
+            success="$(jq -r '.success' <<<"${response}")"
+            if [[ "${success}" != "true" ]]; then
+              jq '.errors' <<<"${response}"
+              exit 1
+            fi
+
+            jq -r '.result[] | [
+              .id,
+              (.short_id // ""),
+              (.created_on // ""),
+              (.modified_on // ""),
+              (.environment // ""),
+              (.deployment_trigger.metadata.branch // ""),
+              (.deployment_trigger.metadata.commit_hash // ""),
+              (.url // "")
+            ] | @tsv' <<<"${response}" >> cloudflare-inventory/previews.tsv
+
+            total_pages="$(jq -r '.result_info.total_pages // 1' <<<"${response}")"
+            page=$((page + 1))
+          done
+
+          preview_count="$(wc -l < cloudflare-inventory/previews.tsv | tr -d ' ')"
+          echo "Preview deployments found: ${preview_count}"
+          echo "PREVIEW_COUNT=${preview_count}" >> "$GITHUB_ENV"
+
+      - name: Fetch recent production deployment inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          response="$(curl --fail-with-body --silent --show-error \
+            --get \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${CF_PROJECT_NAME}/deployments" \
+            --header "Authorization: Bearer ${CF_API_TOKEN}" \
+            --data-urlencode "env=production" \
+            --data-urlencode "page=1" \
+            --data-urlencode "per_page=20")"
+
+          success="$(jq -r '.success' <<<"${response}")"
+          if [[ "${success}" != "true" ]]; then
+            jq '.errors' <<<"${response}"
+            exit 1
+          fi
+
+          jq -r '.result[] | [
+            .id,
+            (.short_id // ""),
+            (.created_on // ""),
+            (.modified_on // ""),
+            (.environment // ""),
+            (.deployment_trigger.metadata.branch // ""),
+            (.deployment_trigger.metadata.commit_hash // ""),
+            (.url // "")
+          ] | @tsv' <<<"${response}" > cloudflare-inventory/production-recent.tsv
+
+          production_count="$(wc -l < cloudflare-inventory/production-recent.tsv | tr -d ' ')"
+          echo "Recent production deployments captured: ${production_count}"
+          echo "PRODUCTION_COUNT=${production_count}" >> "$GITHUB_ENV"
+
+      - name: Write safety summary
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "# Cloudflare Pages deployment inventory"
+            echo
+            echo "- Project: \`${CF_PROJECT_NAME}\`"
+            echo "- Preview deployments inventoried: ${PREVIEW_COUNT}"
+            echo "- Recent Production deployments captured: ${PRODUCTION_COUNT}"
+            echo "- Mode: **READ ONLY / NO DELETE**"
+            echo
+            echo "No DELETE request is issued by this workflow."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload inventory artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloudflare-pages-deployment-inventory
+          path: cloudflare-inventory/
+          retention-days: 7
