@@ -5,10 +5,11 @@ const MAX_PAGE_SIZE = 500;
 const MIN_PAGE_SIZE = 100;
 const MARKET_CHUNK_SIZE = 100;
 const SNAPSHOT_MEMORY_TTL_MS = 60_000;
+const RESCUE_CACHE_TTL_SECONDS = 24 * 60 * 60;
 
 const headers = {
   'Content-Type': 'application/json; charset=utf-8',
-  'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=840',
+  'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=840, stale-if-error=86400',
   'X-Content-Type-Options': 'nosniff',
 };
 
@@ -152,17 +153,57 @@ async function buildPage(env, request, requestId) {
   }
 }
 
-export async function onRequestGet({ env, request, waitUntil }) {
-  const requestId = crypto.randomUUID();
-  const edgeCache = globalThis.caches?.default;
+function buildCacheKeys(request) {
   const sourceUrl = new URL(request.url);
   const normalizedUrl = new URL('/api/market-snapshot-page', sourceUrl.origin);
   normalizedUrl.searchParams.set('page', String(clampInteger(sourceUrl.searchParams.get('page'), 0, 0, 100)));
   normalizedUrl.searchParams.set('limit', String(clampInteger(sourceUrl.searchParams.get('limit'), DEFAULT_PAGE_SIZE, MIN_PAGE_SIZE, MAX_PAGE_SIZE)));
+
   const cacheKey = new Request(normalizedUrl.toString(), {
     method: 'GET',
     headers: { Accept: 'application/json' },
   });
+
+  const rescueUrl = new URL(normalizedUrl.toString());
+  rescueUrl.searchParams.set('_ka_rescue', '1');
+  const rescueCacheKey = new Request(rescueUrl.toString(), {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+  });
+
+  return { cacheKey, rescueCacheKey };
+}
+
+function buildRescueSeed(response) {
+  const rescueHeaders = new Headers(response.headers);
+  rescueHeaders.set('Cache-Control', `public, max-age=0, s-maxage=${RESCUE_CACHE_TTL_SECONDS}`);
+  rescueHeaders.set('X-KriptoAman-Market-Rescue-Seed', 'true');
+  return new Response(response.clone().body, {
+    status: response.status,
+    headers: rescueHeaders,
+  });
+}
+
+async function serveRescue(edgeCache, rescueCacheKey) {
+  if (!edgeCache) return null;
+  const rescue = await edgeCache.match(rescueCacheKey);
+  if (!rescue) return null;
+
+  const rescueHeaders = new Headers(rescue.headers);
+  rescueHeaders.set('Cache-Control', 'no-store');
+  rescueHeaders.set('X-KriptoAman-Market-Page-Cache', 'RESCUE');
+  rescueHeaders.set('X-KriptoAman-Market-Stale', 'true');
+  rescueHeaders.set('Warning', '110 - "Response is stale"');
+  return new Response(rescue.body, {
+    status: 200,
+    headers: rescueHeaders,
+  });
+}
+
+export async function onRequestGet({ env, request, waitUntil }) {
+  const requestId = crypto.randomUUID();
+  const edgeCache = globalThis.caches?.default;
+  const { cacheKey, rescueCacheKey } = buildCacheKeys(request);
 
   if (edgeCache) {
     const hit = await edgeCache.match(cacheKey);
@@ -175,9 +216,18 @@ export async function onRequestGet({ env, request, waitUntil }) {
 
   const response = await buildPage(env, request, requestId);
   if (edgeCache && response.status === 200) {
-    const task = edgeCache.put(cacheKey, response.clone());
+    const tasks = [
+      edgeCache.put(cacheKey, response.clone()),
+      edgeCache.put(rescueCacheKey, buildRescueSeed(response)),
+    ];
+    const task = Promise.all(tasks);
     if (typeof waitUntil === 'function') waitUntil(task);
     else await task;
+    return response;
   }
+
+  const rescue = await serveRescue(edgeCache, rescueCacheKey);
+  if (rescue) return rescue;
+
   return response;
 }
