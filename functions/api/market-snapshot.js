@@ -6,6 +6,9 @@ const SNAPSHOT_FRESH_MS = 15 * 60 * 1000;
 const SNAPSHOT_REFRESH_AHEAD_MS = 5 * 60 * 1000;
 const REQUEST_TIMEOUT_MS = 12 * 1000;
 const RETRY_DELAYS_MS = [250, 750];
+const COINGECKO_RETRY_DELAYS_MS = [750, 2000, 5000];
+const COINGECKO_PAGE_SIZE = 250;
+const COINGECKO_PUBLIC_PAGE_DELAY_MS = 350;
 const MARKET_CHUNK_SIZE = 100;
 const CHUNK_WRITE_BATCH_SIZE = 10;
 
@@ -46,29 +49,51 @@ const json = (body, status = 200, extraHeaders = {}) => new Response(JSON.string
   headers: { ...headers, ...extraHeaders },
 });
 
-async function fetchJson(url) {
+async function fetchJson(url, {
+  provider = 'Market provider',
+  requestHeaders = {},
+  retryDelays = RETRY_DELAYS_MS,
+} = {}) {
   let lastError;
-  const maxAttempts = RETRY_DELAYS_MS.length + 1;
+  const maxAttempts = retryDelays.length + 1;
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
       const response = await fetch(url, {
-        headers: { Accept: 'application/json', 'User-Agent': 'KriptoAman-Market-Snapshot/3.1' },
+        headers: {
+          Accept: 'application/json',
+          'User-Agent': 'KriptoAman-Market-Snapshot/4.0',
+          ...requestHeaders,
+        },
         signal: controller.signal,
       });
-      if (!response.ok) throw new Error(`CoinLore request failed: ${response.status}`);
+      if (!response.ok) throw new Error(`${provider} request failed: ${response.status}`);
       return await response.json();
     } catch (error) {
       lastError = error;
       if (attempt === maxAttempts - 1) break;
-      const retryDelay = RETRY_DELAYS_MS[attempt];
+      const retryDelay = retryDelays[attempt];
       if (Number.isFinite(retryDelay)) await sleep(retryDelay);
     } finally {
       clearTimeout(timeout);
     }
   }
-  throw lastError || new Error('CoinLore request failed');
+  throw lastError || new Error(`${provider} request failed`);
+}
+
+function normalizeUniqueCoins(rows, mapRow) {
+  const seen = new Set();
+  return rows
+    .map(mapRow)
+    .filter((coin) => {
+      const symbol = String(coin?.symbol || '').toUpperCase();
+      if (!symbol || seen.has(symbol)) return false;
+      seen.add(symbol);
+      coin.symbol = symbol;
+      return true;
+    })
+    .slice(0, MARKET_ASSET_LIMIT);
 }
 
 async function fetchCoinLore() {
@@ -77,17 +102,18 @@ async function fetchCoinLore() {
   for (let index = 0; index < starts.length; index += 5) {
     const results = await Promise.allSettled(
       starts.slice(index, index + 5).map((start) =>
-        fetchJson(`https://api.coinlore.net/api/tickers/?start=${start}&limit=100`)),
+        fetchJson(`https://api.coinlore.net/api/tickers/?start=${start}&limit=100`, {
+          provider: 'CoinLore',
+        })),
     );
     rows.push(...results
       .filter((result) => result.status === 'fulfilled' && Array.isArray(result.value?.data))
       .flatMap((result) => result.value.data));
   }
 
-  const seen = new Set();
-  const data = rows.map((item, index) => ({
+  const data = normalizeUniqueCoins(rows, (item, index) => ({
     id: `coinlore-${item.id || item.symbol || index}`,
-    symbol: String(item.symbol || '').toUpperCase(),
+    symbol: item.symbol || '',
     name: item.name || item.nameid || item.symbol || '',
     image: '',
     current_price: Number(item.price_usd),
@@ -98,13 +124,119 @@ async function fetchCoinLore() {
     low_24h: null,
     market_cap_rank: Number(item.rank) || index + 1,
     sparkline_in_7d: { price: [] },
-  })).filter((coin) => coin.symbol && !seen.has(coin.symbol) && seen.add(coin.symbol))
-    .slice(0, MARKET_ASSET_LIMIT);
+  }));
 
   if (data.length < MIN_ACCEPTED_ASSETS) {
     throw new Error(`CoinLore returned only ${data.length} unique assets`);
   }
   return data;
+}
+
+function coinGeckoConfig(env = {}) {
+  if (env.COINGECKO_PRO_API_KEY) {
+    return {
+      baseUrl: 'https://pro-api.coingecko.com/api/v3',
+      requestHeaders: { 'x-cg-pro-api-key': env.COINGECKO_PRO_API_KEY },
+      authenticated: true,
+      tier: 'pro',
+    };
+  }
+
+  const demoKey = env.COINGECKO_DEMO_API_KEY || env.COINGECKO_API_KEY;
+  if (demoKey) {
+    return {
+      baseUrl: 'https://api.coingecko.com/api/v3',
+      requestHeaders: { 'x-cg-demo-api-key': demoKey },
+      authenticated: true,
+      tier: 'demo',
+    };
+  }
+
+  return {
+    baseUrl: 'https://api.coingecko.com/api/v3',
+    requestHeaders: {},
+    authenticated: false,
+    tier: 'public-keyless',
+  };
+}
+
+async function fetchCoinGecko(env = {}) {
+  const config = coinGeckoConfig(env);
+  const rows = [];
+  const pageCount = Math.ceil(MARKET_ASSET_LIMIT / COINGECKO_PAGE_SIZE);
+
+  for (let page = 1; page <= pageCount; page += 1) {
+    const params = new URLSearchParams({
+      vs_currency: 'usd',
+      order: 'market_cap_desc',
+      per_page: String(COINGECKO_PAGE_SIZE),
+      page: String(page),
+      sparkline: 'false',
+      price_change_percentage: '24h',
+      precision: 'full',
+    });
+
+    const payload = await fetchJson(`${config.baseUrl}/coins/markets?${params.toString()}`, {
+      provider: `CoinGecko ${config.tier}`,
+      requestHeaders: config.requestHeaders,
+      retryDelays: COINGECKO_RETRY_DELAYS_MS,
+    });
+
+    if (!Array.isArray(payload)) {
+      throw new Error(`CoinGecko ${config.tier} returned invalid market data`);
+    }
+    rows.push(...payload);
+    if (payload.length < COINGECKO_PAGE_SIZE || rows.length >= MARKET_ASSET_LIMIT) break;
+
+    // Keyless traffic uses a shared, dynamically throttled pool. Keep emergency
+    // fallback deliberately slow rather than creating a burst that causes 429s.
+    if (!config.authenticated) await sleep(COINGECKO_PUBLIC_PAGE_DELAY_MS);
+  }
+
+  const data = normalizeUniqueCoins(rows, (item, index) => ({
+    id: item.id || `coingecko-${item.symbol || index}`,
+    symbol: item.symbol || '',
+    name: item.name || item.symbol || '',
+    image: item.image || '',
+    current_price: Number(item.current_price),
+    price_change_percentage_24h: Number(
+      item.price_change_percentage_24h_in_currency ?? item.price_change_percentage_24h,
+    ),
+    market_cap: Number(item.market_cap),
+    total_volume: Number(item.total_volume),
+    high_24h: Number.isFinite(Number(item.high_24h)) ? Number(item.high_24h) : null,
+    low_24h: Number.isFinite(Number(item.low_24h)) ? Number(item.low_24h) : null,
+    market_cap_rank: Number(item.market_cap_rank) || index + 1,
+    sparkline_in_7d: { price: [] },
+  }));
+
+  if (data.length < MIN_ACCEPTED_ASSETS) {
+    throw new Error(`CoinGecko ${config.tier} returned only ${data.length} unique assets`);
+  }
+  return data;
+}
+
+async function fetchMarketData(env = {}) {
+  const failures = [];
+  const providers = [
+    ['coinlore', () => fetchCoinLore()],
+    ['coingecko', () => fetchCoinGecko(env)],
+  ];
+
+  for (const [source, fetchProvider] of providers) {
+    try {
+      const data = await fetchProvider();
+      return { source, data, failures };
+    } catch (error) {
+      failures.push({ source, message: error?.message || String(error) });
+      console.error('Market provider refresh failed; trying failover', {
+        source,
+        error: error?.message || String(error),
+      });
+    }
+  }
+
+  throw new Error(`All market providers failed: ${failures.map((item) => `${item.source}: ${item.message}`).join(' | ')}`);
 }
 
 async function ensureSchemas(db) {
@@ -187,8 +319,8 @@ async function persistChunks(db, data, capturedAt, source = 'coinlore') {
   ).bind('global', chunkCount).run();
 }
 
-async function refreshSnapshot(dbBinding) {
-  const data = await fetchCoinLore();
+async function refreshSnapshot(dbBinding, env = {}) {
+  const { source, data } = await fetchMarketData(env);
   const capturedAt = Date.now();
   const db = primarySession(dbBinding);
   await ensureSchemas(db);
@@ -201,14 +333,14 @@ async function refreshSnapshot(dbBinding) {
       captured_at = excluded.captured_at,
       payload = excluded.payload,
       updated_at = CURRENT_TIMESTAMP
-  `).bind('global', 'coinlore', data.length, capturedAt, JSON.stringify(data)).run();
-  await persistChunks(db, data, capturedAt, 'coinlore');
-  return { source: 'coinlore', asset_count: data.length, captured_at: capturedAt, data };
+  `).bind('global', source, data.length, capturedAt, JSON.stringify(data)).run();
+  await persistChunks(db, data, capturedAt, source);
+  return { source, asset_count: data.length, captured_at: capturedAt, data };
 }
 
-async function refreshSnapshotSingleFlight(db) {
+async function refreshSnapshotSingleFlight(db, env = {}) {
   if (!refreshInFlight) {
-    refreshInFlight = refreshSnapshot(db).finally(() => {
+    refreshInFlight = refreshSnapshot(db, env).finally(() => {
       refreshInFlight = null;
     });
   }
@@ -262,6 +394,7 @@ function metadataFor(snapshot, requestId, refreshPerformed, refreshScheduled) {
     refreshPerformed,
     refreshScheduled,
     refreshMode: 'single-flight-background',
+    providerFailover: ['coinlore', 'coingecko'],
     chunkSize: MARKET_CHUNK_SIZE,
     requestId,
   };
@@ -283,7 +416,7 @@ export async function onRequestGet(context) {
     if (healthOnly) {
       let metadataRow = await readSnapshotMetadata(readDb).catch(() => null);
       if (!metadataRow) {
-        const initialized = await refreshSnapshotSingleFlight(env.AUTH_DB);
+        const initialized = await refreshSnapshotSingleFlight(env.AUTH_DB, env);
         metadataRow = initialized;
       }
 
@@ -292,7 +425,7 @@ export async function onRequestGet(context) {
       let chunkBackfilled = false;
 
       if (forceRefresh && meta.refreshDue) {
-        metadataRow = await refreshSnapshotSingleFlight(env.AUTH_DB);
+        metadataRow = await refreshSnapshotSingleFlight(env.AUTH_DB, env);
         meta = metadataFor(metadataRow, requestId, true, false);
       }
 
@@ -305,7 +438,7 @@ export async function onRequestGet(context) {
           chunkBackfilled = true;
         }
       } else if (meta.refreshDue && typeof context.waitUntil === 'function') {
-        context.waitUntil(refreshSnapshotSingleFlight(env.AUTH_DB).catch((error) => {
+        context.waitUntil(refreshSnapshotSingleFlight(env.AUTH_DB, env).catch((error) => {
           console.error('Background market snapshot refresh failed', { requestId, error });
         }));
         meta = metadataFor(metadataRow, requestId, false, true);
@@ -323,11 +456,11 @@ export async function onRequestGet(context) {
     }
 
     let snapshot = decodeSnapshot(await readSnapshot(readDb));
-    if (!snapshot) snapshot = await refreshSnapshotSingleFlight(env.AUTH_DB);
+    if (!snapshot) snapshot = await refreshSnapshotSingleFlight(env.AUTH_DB, env);
     let meta = metadataFor(snapshot, requestId, false, false);
 
     if (meta.refreshDue && typeof context.waitUntil === 'function') {
-      context.waitUntil(refreshSnapshotSingleFlight(env.AUTH_DB).catch((error) => {
+      context.waitUntil(refreshSnapshotSingleFlight(env.AUTH_DB, env).catch((error) => {
         console.error('Background market snapshot refresh failed', { requestId, error });
       }));
       meta = metadataFor(snapshot, requestId, false, true);
