@@ -33,8 +33,8 @@ test('CoinGecko supports keyed production tiers without committing a key', async
   assert.match(source, /env\.COINGECKO_DEMO_API_KEY \|\| env\.COINGECKO_API_KEY/);
   assert.match(source, /'x-cg-pro-api-key'/);
   assert.match(source, /'x-cg-demo-api-key'/);
-  assert.ok(source.includes("https://pro-api.coingecko.com/api/v3"));
-  assert.ok(source.includes("https://api.coingecko.com/api/v3"));
+  assert.match(source, /tier: 'pro'/);
+  assert.match(source, /tier: 'demo'/);
   assert.doesNotMatch(source, /x-cg-(?:pro|demo)-api-key':\s*['"][A-Za-z0-9_-]{20,}/);
 });
 
