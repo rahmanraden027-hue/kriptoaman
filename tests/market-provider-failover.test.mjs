@@ -52,7 +52,7 @@ test('keyless CoinGecko emergency mode is throttled and last-known-good truth ga
 test('the persisted snapshot records the provider that actually succeeded', async () => {
   const source = await read('functions/api/market-snapshot.js');
 
-  assert.match(source, /const \{ source, data \} = await fetchMarketData\(env\)/);
+  assert.match(source, /const \{ source, data \} = await fetchMarketData\(db, env\)/);
   assert.match(source, /\.bind\('global', source, data\.length, capturedAt, JSON\.stringify\(data\)\)\.run\(\)/);
   assert.match(source, /persistChunks\(db, data, capturedAt, source\)/);
   assert.match(source, /return \{ source, asset_count: data\.length, captured_at: capturedAt, data \}/);
