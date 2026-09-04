@@ -8,12 +8,17 @@ on:
     paths:
       - 'functions/api/market-snapshot.js'
       - 'functions/api/market-snapshot-page.js'
+      - 'scripts/check-market-health.mjs'
       - '.github/workflows/market-snapshot-warm.yml'
   schedule:
-    - cron: '7,22,37,52 * * * *'
+    - cron: '3,13,23,33,43,53 * * * *'
 
 permissions:
   contents: read
+
+concurrency:
+  group: market-snapshot-warm-production
+  cancel-in-progress: false
 
 jobs:
   warm-market-snapshot:
@@ -35,16 +40,17 @@ jobs:
           fi
 
           body="$(mktemp)"
-          for attempt in 1 2 3; do
+          for attempt in 1 2 3 4; do
             code="$(curl --location --silent --show-error \
               --connect-timeout 10 --max-time 120 \
+              -H 'Cache-Control: no-cache' \
               -o "$body" -w '%{http_code}' \
               'https://kriptoaman.com/api/market-snapshot?health=1&refresh=1')"
             if [ "$code" = "200" ] && node -e "const fs=require('fs'); const p=JSON.parse(fs.readFileSync(process.argv[1],'utf8')); if (p.chunkReady === undefined) process.exit(1)" "$body"; then
               break
             fi
-            if [ "$attempt" = "3" ]; then
-              echo "Market snapshot warm endpoint did not expose the current chunk contract after deployment propagation."
+            if [ "$attempt" = "4" ]; then
+              echo "Market snapshot warm endpoint did not expose the current chunk contract after retries."
               cat "$body"
               exit 1
             fi
