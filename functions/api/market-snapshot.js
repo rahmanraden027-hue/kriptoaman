@@ -1,4 +1,12 @@
 import { primarySession, readSession } from '../_shared/d1-session.js';
+import {
+  PROVIDER_COOLDOWN_MS,
+  PROVIDER_FAILURE_THRESHOLD,
+  ensureMarketProviderCircuitSchema,
+  readMarketProviderCircuit,
+  recordMarketProviderFailure,
+  recordMarketProviderSuccess,
+} from '../_shared/market-provider-circuit.js';
 
 const MARKET_ASSET_LIMIT = 5000;
 const MIN_ACCEPTED_ASSETS = 4500;
@@ -216,7 +224,7 @@ async function fetchCoinGecko(env = {}) {
   return data;
 }
 
-async function fetchMarketData(env = {}) {
+async function fetchMarketData(db, env = {}) {
   const failures = [];
   const providers = [
     ['coinlore', () => fetchCoinLore()],
@@ -224,14 +232,40 @@ async function fetchMarketData(env = {}) {
   ];
 
   for (const [source, fetchProvider] of providers) {
+    const circuit = await readMarketProviderCircuit(db, source);
+    const now = Date.now();
+    if (circuit.openUntil > now) {
+      failures.push({
+        source,
+        message: 'provider circuit is open',
+        circuitOpenUntil: circuit.openUntil,
+        consecutiveFailures: circuit.consecutiveFailures,
+      });
+      console.warn('Market provider circuit open; skipping provider', {
+        source,
+        openUntil: circuit.openUntil,
+        consecutiveFailures: circuit.consecutiveFailures,
+      });
+      continue;
+    }
+
     try {
       const data = await fetchProvider();
+      await recordMarketProviderSuccess(db, source, Date.now());
       return { source, data, failures };
     } catch (error) {
-      failures.push({ source, message: error?.message || String(error) });
+      const nextCircuit = await recordMarketProviderFailure(db, source, error, Date.now());
+      failures.push({
+        source,
+        message: error?.message || String(error),
+        circuitOpenUntil: nextCircuit.openUntil || null,
+        consecutiveFailures: nextCircuit.consecutiveFailures,
+      });
       console.error('Market provider refresh failed; trying failover', {
         source,
         error: error?.message || String(error),
+        circuitOpenUntil: nextCircuit.openUntil || null,
+        consecutiveFailures: nextCircuit.consecutiveFailures,
       });
     }
   }
@@ -242,6 +276,7 @@ async function fetchMarketData(env = {}) {
 async function ensureSchemas(db) {
   await db.prepare(SNAPSHOT_SCHEMA).run();
   await db.prepare(CHUNK_SCHEMA).run();
+  await ensureMarketProviderCircuitSchema(db);
 }
 
 async function readSnapshotMetadata(db) {
@@ -320,10 +355,10 @@ async function persistChunks(db, data, capturedAt, source = 'coinlore') {
 }
 
 async function refreshSnapshot(dbBinding, env = {}) {
-  const { source, data } = await fetchMarketData(env);
-  const capturedAt = Date.now();
   const db = primarySession(dbBinding);
   await ensureSchemas(db);
+  const { source, data } = await fetchMarketData(db, env);
+  const capturedAt = Date.now();
   await db.prepare(`
     INSERT INTO market_snapshots (id, source, asset_count, captured_at, payload, updated_at)
     VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
@@ -395,6 +430,12 @@ function metadataFor(snapshot, requestId, refreshPerformed, refreshScheduled) {
     refreshScheduled,
     refreshMode: 'single-flight-background',
     providerFailover: ['coinlore', 'coingecko'],
+    providerCircuit: {
+      persistence: 'd1',
+      failureThreshold: PROVIDER_FAILURE_THRESHOLD,
+      cooldownMs: PROVIDER_COOLDOWN_MS,
+      recoveryMode: 'cooldown-then-probe',
+    },
     chunkSize: MARKET_CHUNK_SIZE,
     requestId,
   };
