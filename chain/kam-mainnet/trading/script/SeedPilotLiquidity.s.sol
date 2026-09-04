@@ -16,8 +16,7 @@ interface IERC20Approve {
 }
 
 contract SeedPilotLiquidity {
-    VmLiquidity internal constant vm =
-        VmLiquidity(address(uint160(uint256(keccak256("hevm cheat code")))));
+    VmLiquidity internal constant vm = VmLiquidity(address(uint160(uint256(keccak256("hevm cheat code")))));
 
     uint256 internal constant KAM_MAINNET_CHAIN_ID = 22028;
     address internal constant CANONICAL_WKAM = 0x0d8848CE88BB09a81a4248Efdd574d50B98b544A;
@@ -45,18 +44,14 @@ contract SeedPilotLiquidity {
 
         KAMRouter router = KAMRouter(payable(routerAddress));
         require(router.WKAM() == CANONICAL_WKAM, "SeedPilotLiquidity: noncanonical WKAM");
-        require(router.factory() != address(0) && router.factory().code.length > 0, "SeedPilotLiquidity: factory missing");
+        require(
+            router.factory() != address(0) && router.factory().code.length > 0, "SeedPilotLiquidity: factory missing"
+        );
 
         vm.startBroadcast(liquidityPrivateKey);
         require(IERC20Approve(quoteToken).approve(routerAddress, quoteAmount), "SeedPilotLiquidity: approve failed");
-        (quoteUsed, kamUsed, liquidity) = router.addLiquidityKAM{value: kamAmount}(
-            quoteToken,
-            quoteAmount,
-            quoteMin,
-            kamMin,
-            recipient,
-            deadline
-        );
+        (quoteUsed, kamUsed, liquidity) =
+            router.addLiquidityKAM{value: kamAmount}(quoteToken, quoteAmount, quoteMin, kamMin, recipient, deadline);
         vm.stopBroadcast();
 
         require(quoteUsed > 0 && kamUsed > 0 && liquidity > 0, "SeedPilotLiquidity: empty result");
