@@ -1,0 +1,81 @@
+name: KAM Hyperlane Preflight
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'chain/kam-mainnet/bridge/hyperlane/**'
+      - 'chain/kam-mainnet/trading/QUOTE_ASSET_PROVENANCE.md'
+      - '.github/workflows/kam-hyperlane-preflight.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  rpc-preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify KAM RPC primitives needed for bridge tooling
+        shell: bash
+        env:
+          KAM_RPC_URL: https://rpc.kriptoaman.com
+          WKAM_ADDRESS: '0x0d8848CE88BB09a81a4248Efdd574d50B98b544A'
+        run: |
+          set -euo pipefail
+
+          rpc() {
+            local method="$1"
+            local params="$2"
+            curl --fail-with-body --silent --show-error \
+              --connect-timeout 10 --max-time 25 \
+              -H 'content-type: application/json' \
+              --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"${method}\",\"params\":${params}}" \
+              "$KAM_RPC_URL"
+          }
+
+          CHAIN_JSON="$(rpc eth_chainId '[]')"
+          CHAIN_ID="$(jq -r '.result // empty' <<<"$CHAIN_JSON")"
+          test "${CHAIN_ID,,}" = '0x560c' || {
+            echo "Unexpected KAM chain ID: ${CHAIN_ID:-missing}"
+            exit 1
+          }
+
+          BLOCK1_JSON="$(rpc eth_blockNumber '[]')"
+          BLOCK1_HEX="$(jq -r '.result // empty' <<<"$BLOCK1_JSON")"
+          test -n "$BLOCK1_HEX" && test "$BLOCK1_HEX" != 'null'
+
+          CODE_JSON="$(rpc eth_getCode "[\"$WKAM_ADDRESS\",\"latest\"]")"
+          CODE="$(jq -r '.result // empty' <<<"$CODE_JSON")"
+          test -n "$CODE" && test "$CODE" != '0x' || {
+            echo 'Canonical WKAM has no runtime code at the recorded address.'
+            exit 1
+          }
+
+          STORAGE_JSON="$(rpc eth_getStorageAt "[\"$WKAM_ADDRESS\",\"0x0\",\"latest\"]")"
+          STORAGE="$(jq -r '.result // empty' <<<"$STORAGE_JSON")"
+          [[ "$STORAGE" =~ ^0x[0-9a-fA-F]{64}$ ]] || {
+            echo "eth_getStorageAt returned an unexpected result: ${STORAGE:-missing}"
+            exit 1
+          }
+
+          sleep 6
+          BLOCK2_JSON="$(rpc eth_blockNumber '[]')"
+          BLOCK2_HEX="$(jq -r '.result // empty' <<<"$BLOCK2_JSON")"
+          test -n "$BLOCK2_HEX" && test "$BLOCK2_HEX" != 'null'
+
+          BLOCK1=$((16#${BLOCK1_HEX#0x}))
+          BLOCK2=$((16#${BLOCK2_HEX#0x}))
+          if (( BLOCK2 < BLOCK1 )); then
+            echo "Block height regressed: $BLOCK1 -> $BLOCK2"
+            exit 1
+          fi
+
+          printf 'KAM Hyperlane preflight OK\n'
+          printf 'chainId=%s\n' "$CHAIN_ID"
+          printf 'block1=%s\n' "$BLOCK1"
+          printf 'block2=%s\n' "$BLOCK2"
+          printf 'eth_getStorageAt=compatible\n'
+          printf 'canonicalWKAMRuntime=present\n'
