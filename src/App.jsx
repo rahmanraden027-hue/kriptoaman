@@ -84,7 +84,7 @@ const PublicKAMWithDocument = ({ Page }) => (
   </div>
 );
 
-const PUBLIC_PAGE_KEYS = new Set(['AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'RPCPrivacyPolicy', 'TermsOfService', 'AccountDeletion', 'Market', 'KAM', 'KAMCampaignNews', 'KAMDeveloper', 'KAMGlobalRoadmap', 'KAMLaunchReadiness', 'KAMNetwork', 'KAMNetworkDocs', 'KAMTokenomics']);
+const PUBLIC_PAGE_KEYS = new Set(['AboutUs', 'Edukasi', 'Enterprise', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'RPCPrivacyPolicy', 'TermsOfService', 'AccountDeletion', 'Market', 'KAM', 'KAMCampaignNews', 'KAMDeveloper', 'KAMGlobalRoadmap', 'KAMLaunchReadiness', 'KAMNetwork', 'KAMNetworkDocs', 'KAMTokenomics']);
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ? <Layout currentPageName={currentPageName}>{children}</Layout> : <>{children}</>;
 

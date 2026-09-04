@@ -42,11 +42,12 @@ export default function GLandingHeader({ dark, onToggleTheme, active = 'Beranda'
           </span>
         </a>
 
-        <nav className="hidden lg:flex items-center gap-7 text-sm">
+        <nav className="hidden lg:flex items-center gap-6 text-sm">
           {LINKS.map((l) => (
             <a key={l.href} href={l.href}
                className={`ka-nav-link ${active === l.label ? 'active' : ''}`}>{l.label}</a>
           ))}
+          <Link to="/Enterprise" className="ka-nav-link font-bold text-emerald-300">Enterprise</Link>
         </nav>
 
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
@@ -74,6 +75,7 @@ export default function GLandingHeader({ dark, onToggleTheme, active = 'Beranda'
             <a key={l.href} href={l.href} onClick={() => setOpen(false)}
               className={`ka-nav-link px-3 py-2 rounded-lg text-sm ${active === l.label ? 'active' : ''}`}>{l.label}</a>
           ))}
+          <Link to="/Enterprise" onClick={() => setOpen(false)} className="ka-nav-link px-3 py-2 rounded-lg text-sm font-bold text-emerald-300">Enterprise</Link>
           <Link
             to="/en"
             onClick={() => { setLanguage('en'); setOpen(false); }}
