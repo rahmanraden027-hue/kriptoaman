@@ -1,0 +1,162 @@
+name: Market 90-Day Longevity Evidence
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/market-90d-longevity-evidence.yml'
+  schedule:
+    - cron: '17 */6 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: market-90d-longevity-production
+  cancel-in-progress: false
+
+jobs:
+  market-longevity-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Collect production market evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p market-longevity-evidence
+          date -u +'%Y-%m-%dT%H:%M:%SZ' > market-longevity-evidence/observed-at.txt
+
+          curl_json() {
+            local url="$1"
+            local body="$2"
+            local headers="$3"
+            local code
+            code="$(curl --location --silent --show-error \
+              --retry 3 --retry-delay 3 --retry-all-errors \
+              --connect-timeout 10 --max-time 60 \
+              -H 'Accept: application/json' \
+              -H 'Cache-Control: no-cache' \
+              -D "$headers" -o "$body" -w '%{http_code}' \
+              "$url")"
+            printf '%s' "$code"
+          }
+
+          market_code="$(curl_json \
+            'https://kriptoaman.com/api/market-snapshot?health=1' \
+            market-longevity-evidence/market-health.json \
+            market-longevity-evidence/market-health.headers)"
+          platform_code="$(curl_json \
+            'https://kriptoaman.com/api/platform-status' \
+            market-longevity-evidence/platform-status.json \
+            market-longevity-evidence/platform-status.headers)"
+          page_code="$(curl_json \
+            'https://kriptoaman.com/api/market-snapshot-page?page=0&limit=100' \
+            market-longevity-evidence/market-page.json \
+            market-longevity-evidence/market-page.headers)"
+
+          printf '%s\n' "$market_code" > market-longevity-evidence/market-health.http-code
+          printf '%s\n' "$platform_code" > market-longevity-evidence/platform-status.http-code
+          printf '%s\n' "$page_code" > market-longevity-evidence/market-page.http-code
+
+          test "$market_code" = "200"
+          test "$platform_code" = "200"
+          test "$page_code" = "200"
+
+      - name: Verify fresh market continuity contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const dir = 'market-longevity-evidence';
+          const observedAt = fs.readFileSync(`${dir}/observed-at.txt`, 'utf8').trim();
+          const market = JSON.parse(fs.readFileSync(`${dir}/market-health.json`, 'utf8'));
+          const platform = JSON.parse(fs.readFileSync(`${dir}/platform-status.json`, 'utf8'));
+          const page = JSON.parse(fs.readFileSync(`${dir}/market-page.json`, 'utf8'));
+          const pageHeaders = fs.readFileSync(`${dir}/market-page.headers`, 'utf8').toLowerCase();
+
+          const failures = [];
+          if (market.healthy !== true) failures.push('market health is not healthy');
+          if (!Number.isFinite(Number(market.assetCount)) || Number(market.assetCount) < 4500) {
+            failures.push(`market assetCount below 4500: ${market.assetCount}`);
+          }
+          if (!Number.isFinite(Number(market.ageMs)) || Number(market.ageMs) > 15 * 60 * 1000) {
+            failures.push(`market snapshot older than 15 minutes: ${market.ageMs}`);
+          }
+          if (market.stale !== false) failures.push(`market stale flag is ${market.stale}`);
+          if (market.chunkReady !== true) failures.push('market chunk coverage is not ready');
+          if (!Number.isFinite(Number(market.chunkCount)) || Number(market.chunkCount) < Number(market.expectedChunks)) {
+            failures.push(`market chunk coverage incomplete: ${market.chunkCount}/${market.expectedChunks}`);
+          }
+
+          const platformMarket = platform?.components?.market;
+          if (platform?.overall !== 'operational') failures.push(`platform overall is ${platform?.overall}`);
+          if (platformMarket?.status !== 'operational' || platformMarket?.healthy !== true) {
+            failures.push(`platform market status is ${platformMarket?.status}`);
+          }
+          if (!Number.isFinite(Number(platformMarket?.assetCount)) || Number(platformMarket.assetCount) < 4500) {
+            failures.push(`platform market assetCount below 4500: ${platformMarket?.assetCount}`);
+          }
+          if (platformMarket?.stale !== false) failures.push(`platform market stale flag is ${platformMarket?.stale}`);
+
+          if (!Array.isArray(page.data) || page.data.length < 1 || page.data.length > 100) {
+            failures.push(`paged market returned invalid data length: ${page.data?.length}`);
+          }
+          if (!Number.isFinite(Number(page.totalAssets)) || Number(page.totalAssets) < 4500) {
+            failures.push(`paged market totalAssets below 4500: ${page.totalAssets}`);
+          }
+          if (pageHeaders.includes('x-kriptoaman-market-page-cache: rescue')) {
+            failures.push('paged market is currently using the 24-hour rescue cache');
+          }
+
+          const evidence = {
+            schemaVersion: '1.0',
+            observedAt,
+            ok: failures.length === 0,
+            market: {
+              healthy: market.healthy ?? null,
+              source: market.source ?? null,
+              assetCount: Number(market.assetCount) || null,
+              capturedAt: market.capturedAt ?? null,
+              ageMs: Number.isFinite(Number(market.ageMs)) ? Number(market.ageMs) : null,
+              stale: market.stale ?? null,
+              chunkReady: market.chunkReady ?? null,
+              chunkCount: Number(market.chunkCount) || null,
+              expectedChunks: Number(market.expectedChunks) || null,
+            },
+            platform: {
+              overall: platform?.overall ?? null,
+              marketStatus: platformMarket?.status ?? null,
+              marketHealthy: platformMarket?.healthy ?? null,
+              marketAssetCount: Number(platformMarket?.assetCount) || null,
+              marketAgeMs: Number.isFinite(Number(platformMarket?.ageMs)) ? Number(platformMarket.ageMs) : null,
+              marketStale: platformMarket?.stale ?? null,
+            },
+            page: {
+              source: page.source ?? null,
+              capturedAt: page.capturedAt ?? null,
+              totalAssets: Number(page.totalAssets) || null,
+              pageSize: Number(page.pageSize) || null,
+              returnedAssets: Array.isArray(page.data) ? page.data.length : null,
+              snapshotRead: page?.delivery?.snapshotRead ?? null,
+              rescueCache: pageHeaders.includes('x-kriptoaman-market-page-cache: rescue'),
+            },
+            failures,
+          };
+
+          fs.writeFileSync(`${dir}/summary.json`, `${JSON.stringify(evidence, null, 2)}\n`);
+          console.log(JSON.stringify(evidence, null, 2));
+          if (failures.length) process.exit(1);
+          NODE
+
+      - name: Upload 90-day evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: market-longevity-${{ github.run_id }}-${{ github.run_attempt }}
+          path: market-longevity-evidence
+          if-no-files-found: error
+          retention-days: 90
