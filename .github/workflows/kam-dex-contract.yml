@@ -7,6 +7,7 @@ on:
       - 'chain/kam-mainnet/trading/contracts/WKAM.sol'
       - 'chain/kam-mainnet/deployments/wkam.json'
       - 'chain/kam-mainnet/trading/test/KAMDEX.t.sol'
+      - 'chain/kam-mainnet/trading/test/KAMDEXFuzzInvariant.t.sol'
       - 'chain/kam-mainnet/trading/test/KAMDEXDeploymentSimulation.t.sol'
       - 'chain/kam-mainnet/trading/test/MockToken.sol'
       - 'chain/kam-mainnet/trading/foundry.toml'
@@ -34,6 +35,8 @@ jobs:
         run: forge build --sizes --evm-version paris
       - name: DEX tests
         run: forge test --match-path test/KAMDEX.t.sol -vvv --evm-version paris
+      - name: DEX fuzz and invariant hardening
+        run: forge test --match-path test/KAMDEXFuzzInvariant.t.sol -vvv --evm-version paris
       - name: DEX deployment simulation
         run: forge test --match-path test/KAMDEXDeploymentSimulation.t.sol -vvv --evm-version paris
       - name: Verify canonical WKAM deployment metadata
