@@ -43,7 +43,7 @@ test('paged market has a bounded 24 hour rescue cache for transient D1 or origin
   assert.match(page, /_ka_rescue/);
   assert.match(page, /X-KriptoAman-Market-Page-Cache', 'RESCUE'/);
   assert.match(page, /X-KriptoAman-Market-Stale', 'true'/);
-  assert.match(page, /Warning', '110 - \\"Response is stale\\"'/);
+  assert.match(page, /Warning', '110 - "Response is stale"'/);
   assert.match(page, /edgeCache\.put\(rescueCacheKey, buildRescueSeed\(response\)\)/);
   assert.match(page, /if \(rescue\) return rescue/);
 });
