@@ -67,7 +67,7 @@ test('server snapshot survives total upstream provider failure', async () => {
   assert.match(endpoint, /env\.AUTH_DB/);
   assert.match(endpoint, /url\.searchParams\.get\('refresh'\) === '1'/);
   assert.match(endpoint, /if \(forceRefresh && meta\.refreshDue\)/);
-  assert.match(endpoint, /refreshSnapshotSingleFlight\(env\.AUTH_DB\)/);
+  assert.match(endpoint, /refreshSnapshotSingleFlight\(env\.AUTH_DB, env\)/);
   assert.match(endpoint, /refreshPerformed/);
   assert.match(pageEndpoint, /FROM market_snapshots WHERE id = \?/);
   assert.match(client, /const fetchServerPage = async \(page\)/);
