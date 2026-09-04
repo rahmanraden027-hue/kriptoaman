@@ -6,6 +6,7 @@ on:
       - 'chain/kam-mainnet/trading/dex/**'
       - 'chain/kam-mainnet/trading/contracts/WKAM.sol'
       - 'chain/kam-mainnet/deployments/wkam.json'
+      - 'chain/kam-mainnet/trading/script/SeedPilotLiquidity.s.sol'
       - 'chain/kam-mainnet/trading/test/KAMDEX.t.sol'
       - 'chain/kam-mainnet/trading/test/KAMDEXFuzzInvariant.t.sol'
       - 'chain/kam-mainnet/trading/test/KAMDEXDeploymentSimulation.t.sol'
@@ -47,5 +48,7 @@ jobs:
           test "$(jq -r '.decimals' chain/kam-mainnet/deployments/wkam.json)" = "18"
           test "$(jq -r '.address' chain/kam-mainnet/deployments/wkam.json)" = "0x0d8848CE88BB09a81a4248Efdd574d50B98b544A"
           test "$(jq -r '.status' chain/kam-mainnet/deployments/wkam.json)" = "deployed-and-wrap-unwrap-tested"
-      - name: Ensure CI has no deployer secret
-        run: test -z "${DEPLOYER_PRIVATE_KEY:-}"
+      - name: Ensure CI has no signing secrets
+        run: |
+          test -z "${DEPLOYER_PRIVATE_KEY:-}"
+          test -z "${LIQUIDITY_PRIVATE_KEY:-}"
