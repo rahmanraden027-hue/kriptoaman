@@ -8,9 +8,13 @@ on:
     paths:
       - 'functions/api/market-snapshot.js'
       - 'functions/api/market-snapshot-page.js'
+      - 'functions/api/market-quality.js'
       - 'scripts/check-market-health.mjs'
       - '.github/workflows/market-snapshot-warm.yml'
   schedule:
+    # Staggered ten-minute cadence is intentionally retained. GitHub schedule
+    # delivery can drift, so public UI separately distinguishes delayed data;
+    # an active refresh must not be cancelled just to chase a tighter cadence.
     - cron: '3,13,23,33,43,53 * * * *'
 
 permissions:
@@ -86,6 +90,42 @@ jobs:
             process.exit(1);
           }
           console.log(`Market snapshot verified: ${payload.assetCount} assets; source=${payload.source}; ageMs=${payload.ageMs}; maxAgeMs=${maxAgeMs}; chunks=${payload.chunkCount}/${payload.expectedChunks}; chunkBackfilled=${payload.chunkBackfilled}; refreshPerformed=${payload.refreshPerformed}`);
+          NODE
+
+      - name: Verify market data quality contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          code="$(curl --location --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            -H 'Cache-Control: no-cache' \
+            -o "$body" -w '%{http_code}' \
+            "https://kriptoaman.com/api/market-quality?ts=$(date +%s)")"
+          test "$code" = "200"
+          node - "$body" <<'NODE'
+          const fs = require('fs');
+          const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          const score = Number(payload.score);
+          const assets = Number(payload.assetCount);
+          if (!Number.isFinite(score) || score < 60) {
+            console.error(`Market quality score below minimum integrity gate: ${payload.score}`);
+            process.exit(1);
+          }
+          if (!Number.isFinite(assets) || assets < 4500) {
+            console.error(`Market quality coverage below public minimum: ${payload.assetCount}`);
+            process.exit(1);
+          }
+          if (payload.freshness?.veryStale === true || payload.status === 'stale') {
+            console.error(`Market quality endpoint reports stale data: ${JSON.stringify(payload.freshness)}`);
+            process.exit(1);
+          }
+          const anomalies = payload.anomalies || {};
+          if (Number(anomalies.negativeMarketCaps || 0) > 0 || Number(anomalies.negativeVolumes || 0) > 0) {
+            console.error(`Invalid negative market observations detected: ${JSON.stringify(anomalies)}`);
+            process.exit(1);
+          }
+          console.log(`Market quality verified: score=${score}; status=${payload.status}; assets=${assets}; priceCompleteness=${payload.components?.priceCompletenessPct}%; volumeCompleteness=${payload.components?.volumeCompletenessPct}%; ageMs=${payload.ageMs}`);
           NODE
 
       - name: Verify paged market uses chunk delivery
