@@ -2,7 +2,7 @@ import { readSession } from '../_shared/d1-session.js';
 
 const HOT_SYMBOLS = new Set([
   'BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'ADA', 'DOGE', 'TRX', 'AVAX', 'DOT',
-  'LINK', 'POL', 'MATIC', 'LTC', 'UNI', 'SHIB', 'PEPE', 'ATOM', 'NEAR', 'ARB', 'OP', 'SUI', 'APT',
+  'LINK', 'POL', 'MATIC', 'LTC', 'UNI', 'USDT', 'USDC', 'SHIB', 'PEPE', 'ATOM', 'NEAR', 'ARB', 'OP', 'SUI', 'APT',
 ]);
 const CORE_SYMBOLS = ['BTC', 'ETH', 'BNB', 'SOL', 'XRP'];
 const MEMORY_TTL_MS = 15_000;
@@ -34,7 +34,7 @@ async function fetchJson(url) {
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
       const response = await fetch(url, {
-        headers: { Accept: 'application/json', 'User-Agent': 'KriptoAman-Hot-Market/3.0' },
+        headers: { Accept: 'application/json', 'User-Agent': 'KriptoAman-Hot-Market/3.1' },
         signal: controller.signal,
       });
       if (!response.ok) throw new Error(`upstream HTTP ${response.status}`);
@@ -185,7 +185,7 @@ export async function onRequestGet({ env, request, waitUntil }) {
     const stale = ageMs > HOT_STALE_AFTER_MS;
     const healthy = hasCoreSymbols(snapshot.data) && ageMs <= MAX_FALLBACK_AGE_MS;
     const response = json({
-      schemaVersion: '1.1',
+      schemaVersion: '1.2',
       healthy,
       source: snapshot.source,
       capturedAt: snapshot.capturedAt,
