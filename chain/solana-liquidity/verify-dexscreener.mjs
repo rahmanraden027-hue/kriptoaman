@@ -1,5 +1,4 @@
 import 'dotenv/config';
-import fs from 'node:fs';
 
 function required(name) {
   const value = process.env[name]?.trim();
@@ -46,8 +45,11 @@ if (buys + sells < 1) {
   throw new Error('Pair is indexed but no transaction is observable in the returned DEX Screener windows yet.');
 }
 
-// Public network observations are printed for operator inspection but are not persisted verbatim.
+// Entirely read-only: public observations are printed to stdout only. Operators who need
+// durable evidence can redirect/tee stdout into their controlled evidence store.
 const publicObservation = {
+  checkedAt: new Date().toISOString(),
+  indexed: true,
   chainId: selected.chainId,
   dexId: selected.dexId,
   pairAddress: selected.pairAddress,
@@ -62,21 +64,6 @@ const publicObservation = {
   fdv: selected.fdv ?? null,
   marketCap: selected.marketCap ?? null,
 };
+
 console.log(JSON.stringify(publicObservation, null, 2));
-
-// Persist only validation results plus operator-supplied identifiers. This avoids treating
-// remote API content as trusted durable evidence while still recording the completed gate.
-const evidence = {
-  checkedAt: new Date().toISOString(),
-  indexed: true,
-  tokenMint,
-  expectedPool,
-  raydiumPairObserved: true,
-  positiveUsdLiquidityObserved: true,
-  transactionObserved: true,
-};
-
-fs.mkdirSync('artifacts', { recursive: true });
-fs.writeFileSync('artifacts/dexscreener-verification.json', JSON.stringify(evidence, null, 2));
 console.log('DEX Screener indexing verified from public API.');
-console.log('Durable validation gate:', JSON.stringify(evidence, null, 2));
