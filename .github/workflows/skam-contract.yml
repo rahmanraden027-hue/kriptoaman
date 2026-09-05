@@ -6,6 +6,7 @@ on:
     paths:
       - 'chain/kam-mainnet/trading/contracts/SKAM.sol'
       - 'chain/kam-mainnet/trading/test/SKAM.t.sol'
+      - 'chain/kam-mainnet/trading/test/SKAMFuzzInvariant.t.sol'
       - 'chain/kam-mainnet/trading/script/DeploySKAM.s.sol'
       - 'chain/kam-mainnet/trading/SKAM_README.md'
       - 'chain/kam-mainnet/trading/contracts/WKAM.sol'
@@ -36,6 +37,8 @@ jobs:
         run: forge test --match-path test/WKAM.t.sol -vvv --evm-version paris
       - name: sKAM tests
         run: forge test --match-path test/SKAM.t.sol -vvv --evm-version paris
+      - name: sKAM fuzz and invariant hardening
+        run: forge test --match-path test/SKAMFuzzInvariant.t.sol -vvv --evm-version paris
       - name: Ensure CI has no signing secrets
         run: |
           test -z "${DEPLOYER_PRIVATE_KEY:-}"
