@@ -3,7 +3,7 @@
   "network": "KAM Mainnet Candidate",
   "chainId": 22028,
   "status": "mainnet-candidate-not-public",
-  "updatedAt": "2026-09-01T15:32:00Z",
+  "updatedAt": "2026-09-05T04:26:00Z",
   "gates": {
     "publicRpcExplorer": true,
     "validatorSet4of4": true,
@@ -12,13 +12,15 @@
     "fourDistinctValidatorHosts": false,
     "dedicatedProtectedRpcOrigin": false,
     "continuity24h": false,
-    "finalChainIdCollisionCheck": false,
-    "finalDocsLogoVerificationChannels": false
+    "finalChainIdCollisionCheck": true,
+    "finalDocsLogoVerificationChannels": true
   },
   "notes": [
     "Public RPC/explorer readiness is evidenced by passing external probes.",
     "Private evidence has verified a 4/4 QBFT validator set and backup/restore readiness.",
-    "The current public-mainnet promotion remains blocked until every gate is true.",
+    "The canonical ethereum-lists/chains entry for Chain ID 22028 is present with KriptoAman Mainnet metadata and no conflicting canonical assignment was found in the final collision review recorded in Issue #115.",
+    "Final network documentation, canonical logo assets, and official verification channels are recorded as complete in Issue #115.",
+    "The current public-mainnet promotion remains blocked until fourDistinctValidatorHosts, dedicatedProtectedRpcOrigin, and continuity24h are independently evidenced and set true.",
     "Do not change status to public mainnet from this manifest alone; each false gate requires independently reviewed evidence."
   ]
 }
