@@ -12,17 +12,17 @@ on:
       - 'scripts/check-market-health.mjs'
       - '.github/workflows/market-snapshot-warm.yml'
   schedule:
-    # Non-round minutes reduce contention on shared GitHub Actions scheduler.
-    # Eight-minute cadence gives more than one refresh opportunity inside the
-    # 15-minute primary freshness window while keeping provider traffic bounded.
-    - cron: '3,11,19,27,35,43,51,59 * * * *'
+    # Staggered ten-minute cadence is intentionally retained. GitHub schedule
+    # delivery can drift, so public UI separately distinguishes delayed data;
+    # an active refresh must not be cancelled just to chase a tighter cadence.
+    - cron: '3,13,23,33,43,53 * * * *'
 
 permissions:
   contents: read
 
 concurrency:
   group: market-snapshot-warm-production
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   warm-market-snapshot:
