@@ -5,13 +5,13 @@ import { base44 } from '@/api/base44Client';
 import { pagesConfig } from '@/pages.config';
 
 const INDEXABLE_PAGE_KEYS = new Set([
-    'AboutUs', 'Edukasi', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'RPCPrivacyPolicy',
+    'AboutUs', 'Edukasi', 'Enterprise', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'RPCPrivacyPolicy',
     'TermsOfService', 'AccountDeletion', 'Market', 'KAM', 'KAMCampaignNews', 'KAMDeveloper',
     'KAMGlobalRoadmap', 'KAMLaunchReadiness', 'KAMNetwork', 'KAMNetworkDocs', 'KAMTokenomics',
 ]);
 
 const INDEXABLE_DIRECT_PATHS = new Set([
-    '/', '/en', '/founder', '/company', '/LegalCorporateInformation', '/SystemStatus', '/news/kam-campaign-2026',
+    '/', '/en', '/enterprise', '/founder', '/company', '/LegalCorporateInformation', '/SystemStatus', '/news/kam-campaign-2026',
     '/research', '/research/kam-mainnet-architecture',
 ]);
 
@@ -23,6 +23,10 @@ const PUBLIC_ROUTE_SEO = {
     '/en': {
         title: 'KriptoAman — Crypto Intelligence & Digital Asset Monitoring',
         description: 'Explore KriptoAman for digital asset market information, public-address monitoring, education, and transparent risk context.',
+    },
+    '/enterprise': {
+        title: 'KriptoAman Enterprise — Data, Blockchain Infrastructure & Web3 Integration',
+        description: 'KriptoAman Enterprise provides data intelligence, dedicated KAM RPC, managed node infrastructure, security monitoring, Web3 integration, and technical research for organizations.',
     },
     '/AboutUs': {
         title: 'Tentang KriptoAman | PT Kripto Aman Indonesia',
@@ -145,6 +149,7 @@ export default function NavigationTracker() {
 
     useEffect(() => {
         const pathname = location.pathname;
+        const canonicalPath = pathname.toLowerCase() === '/enterprise' ? '/enterprise' : pathname;
         const isLandingPage = pathname === '/' || pathname === '';
         let pageName = null;
 
@@ -156,15 +161,15 @@ export default function NavigationTracker() {
             pageName = pageKeys.find(key => key.toLowerCase() === pathSegment.toLowerCase()) || null;
         }
 
-        const isIndexable = INDEXABLE_DIRECT_PATHS.has(pathname) || !!(pageName && INDEXABLE_PAGE_KEYS.has(pageName));
+        const isIndexable = INDEXABLE_DIRECT_PATHS.has(canonicalPath) || !!(pageName && INDEXABLE_PAGE_KEYS.has(pageName));
         ensureMeta('robots').setAttribute('content', isIndexable ? 'index, follow, max-image-preview:large' : 'noindex, nofollow, noarchive');
 
         ensureCanonicalLink().setAttribute(
             'href',
-            isIndexable ? `https://kriptoaman.com${isLandingPage ? '/' : pathname}` : 'https://kriptoaman.com/'
+            isIndexable ? `https://kriptoaman.com${isLandingPage ? '/' : canonicalPath}` : 'https://kriptoaman.com/'
         );
 
-        const seo = PUBLIC_ROUTE_SEO[pathname];
+        const seo = PUBLIC_ROUTE_SEO[canonicalPath];
         if (seo) {
             document.title = seo.title;
             ensureMeta('description').setAttribute('content', seo.description);
