@@ -39,6 +39,7 @@ test('market quality visibly degrades stale or incomplete data', () => {
   rows[0].current_price = 0;
   rows[1].total_volume = -1;
   rows[2].id = '';
+  rows[3].market_cap = null;
 
   const quality = scoreMarketQuality({
     rows,
@@ -51,6 +52,7 @@ test('market quality visibly degrades stale or incomplete data', () => {
   assert.ok(quality.score < 70);
   assert.equal(quality.anomalies.nonPositivePrices, 1);
   assert.equal(quality.anomalies.negativeVolumes, 1);
+  assert.equal(quality.missing.marketCaps, 1);
   assert.ok(quality.components.identityCompletenessPct < 100);
 });
 
@@ -63,10 +65,18 @@ test('live-price hook does not synthesize USDT or USDC at a fixed one-dollar peg
   assert.match(source, /never synthesize a market price/i);
 });
 
+test('server hot feed can carry observed USDT and USDC values', async () => {
+  const source = await read('functions/api/market-hot.js');
+  assert.match(source, /'USDT'/);
+  assert.match(source, /'USDC'/);
+  assert.match(source, /price:\s*Number|const price = Number/);
+});
+
 test('market quality endpoint declares operational interpretation, not investment signal', async () => {
   const source = await read('functions/api/market-quality.js');
   assert.match(source, /not an investment signal/i);
   assert.match(source, /priceCompletenessPct/);
   assert.match(source, /duplicateSymbols/);
   assert.match(source, /freshnessScore/);
+  assert.match(source, /missingMarketCaps/);
 });
