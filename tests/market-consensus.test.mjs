@@ -143,7 +143,7 @@ test('Coinbase USD exchange rates normalize into observed USD-per-asset prices w
 
   assert.equal(observations.size, 7);
   assert.equal(observations.get('BTC').provider, 'coinbase');
-  assert.equal(observations.get('BTC').price, 100000);
+  assert.ok(Math.abs(observations.get('BTC').price - 100000) < 1e-8);
   assert.ok(Math.abs(observations.get('USDC').price - (1 / 0.9999)) < 1e-12);
   assert.notEqual(observations.get('USDC').price, 1);
   assert.equal(observations.get('USDC').timestampType, 'retrieved');
