@@ -8,6 +8,10 @@ const ASSETS = [
   { symbol: 'USDC', name: 'USD Coin', coinGeckoId: 'usd-coin', stablecoin: true },
 ];
 
+const COINLORE_NAME_OVERRIDES = {
+  BNB: 'binance coin',
+};
+
 const CORE_SYMBOLS = new Set(['BTC', 'ETH', 'BNB', 'SOL', 'XRP']);
 const REQUEST_TIMEOUT_MS = 6_000;
 const MAX_OBSERVATION_AGE_MS = 2 * 60 * 1000;
@@ -102,7 +106,8 @@ function normalizeCoinLore(payload, retrievedAt) {
     const spec = ASSETS.find((asset) => asset.symbol === symbol);
     if (!spec) continue;
     const observedName = String(item?.name || item?.nameid || '').trim().toLowerCase();
-    if (observedName && observedName !== spec.name.toLowerCase()) continue;
+    const expectedName = COINLORE_NAME_OVERRIDES[spec.symbol] || spec.name.toLowerCase();
+    if (observedName && observedName !== expectedName) continue;
     const price = Number(item?.price_usd);
     if (!Number.isFinite(price) || price <= 0) continue;
     const rank = Number(item?.rank);
@@ -114,6 +119,7 @@ function normalizeCoinLore(payload, retrievedAt) {
         symbol,
         price,
         observedAt: retrievedAt,
+        retrievedAt,
         timestampType: 'retrieved',
         rank: Number.isFinite(rank) ? rank : null,
       });
