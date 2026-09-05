@@ -10,7 +10,7 @@ import {
 import BN from 'bn.js';
 import Decimal from 'decimal.js';
 
-const CANONICAL_USDC = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+const CANONICAL_WSOL = 'So11111111111111111111111111111111111111112';
 
 function required(name) {
   const value = process.env[name]?.trim();
@@ -28,33 +28,39 @@ function uiToRaw(value, decimals) {
 
 const rpcUrl = required('RPC_URL');
 const keypairPath = required('KEYPAIR');
+const operatorPublicAddress = required('OPERATOR_PUBLIC_ADDRESS');
 const tokenMint = new PublicKey(required('TOKEN_MINT'));
 const quoteMintText = required('QUOTE_MINT');
 const quoteMint = new PublicKey(quoteMintText);
+const quoteSymbol = (process.env.QUOTE_SYMBOL || 'SOL').trim();
 const baseUi = required('POOL_BASE_UI');
 const quoteUi = required('POOL_QUOTE_UI');
 const feeConfigIndex = Number(process.env.RAYDIUM_FEE_CONFIG_INDEX ?? '0');
 
 if (process.env.CONFIRM_CREATE_POOL !== 'CREATE_REAL_RAYDIUM_POOL') {
-  throw new Error('Refusing real pool creation. Set CONFIRM_CREATE_POOL=CREATE_REAL_RAYDIUM_POOL only after reviewing token identity, USDC amount and seed ratio.');
+  throw new Error('Refusing real pool creation. Set CONFIRM_CREATE_POOL=CREATE_REAL_RAYDIUM_POOL only after reviewing token identity, SOL amount and seed ratio.');
 }
-if (quoteMintText !== CANONICAL_USDC) {
-  throw new Error(`QUOTE_MINT must be canonical Solana USDC (${CANONICAL_USDC}) for this launch pack.`);
+if (quoteMintText !== CANONICAL_WSOL) {
+  throw new Error(`QUOTE_MINT must be canonical Wrapped SOL (${CANONICAL_WSOL}) for this launch pack.`);
 }
 if (!fs.existsSync(keypairPath)) throw new Error('KEYPAIR must point to an existing local keypair file; never commit it.');
 if (!Number.isInteger(feeConfigIndex) || feeConfigIndex < 0) throw new Error('RAYDIUM_FEE_CONFIG_INDEX must be a non-negative integer.');
 
 const owner = Keypair.fromSecretKey(new Uint8Array(JSON.parse(fs.readFileSync(keypairPath, 'utf8'))));
+if (owner.publicKey.toBase58() !== operatorPublicAddress) {
+  throw new Error(`Signer mismatch. Expected OPERATOR_PUBLIC_ADDRESS=${operatorPublicAddress}, got ${owner.publicKey.toBase58()}.`);
+}
+
 const connection = new Connection(rpcUrl, 'confirmed');
 const balanceLamports = await connection.getBalance(owner.publicKey, 'confirmed');
-if (balanceLamports <= 0) throw new Error('Signer has no SOL for transaction fees/pool creation.');
+if (balanceLamports <= 0) throw new Error('Signer has no SOL for liquidity, transaction fees, rent, and pool creation.');
 
 console.log('Signer:', owner.publicKey.toBase58());
 console.log('SOL balance:', balanceLamports / 1e9);
 console.log('Token mint:', tokenMint.toBase58());
-console.log('Quote mint (canonical USDC):', quoteMint.toBase58());
-console.log('Requested initial reserves:', { token: baseUi, usdc: quoteUi });
-console.log('Seed ratio USDC per token:', new Decimal(quoteUi).div(baseUi).toString());
+console.log('Quote mint (canonical WSOL):', quoteMint.toBase58());
+console.log('Requested initial reserves:', { token: baseUi, [quoteSymbol]: quoteUi });
+console.log(`Seed ratio ${quoteSymbol} per token:`, new Decimal(quoteUi).div(baseUi).toString());
 
 const raydium = await Raydium.load({
   owner,
@@ -86,7 +92,7 @@ const { execute, extInfo } = await raydium.cpmm.createPool({
   startTime: new BN(0),
   feeConfig,
   associatedOnly: false,
-  ownerInfo: { useSOLBalance: false },
+  ownerInfo: { useSOLBalance: true },
   txVersion: TxVersion.V0,
 });
 
@@ -106,9 +112,11 @@ fs.writeFileSync(
       creationTx: txId,
       tokenMint: tokenMint.toBase58(),
       quoteMint: quoteMint.toBase58(),
+      quoteSymbol,
+      quoteUsesNativeSolBalance: true,
       initialTokenUi: baseUi,
-      initialUsdcUi: quoteUi,
-      initialPoolRatioUsdcPerToken: new Decimal(quoteUi).div(baseUi).toString(),
+      initialQuoteUi: quoteUi,
+      initialPoolRatioQuotePerToken: new Decimal(quoteUi).div(baseUi).toString(),
       feeConfigIndex,
       rpcBaseReserve: rpcData.baseReserve.toString(),
       rpcQuoteReserve: rpcData.quoteReserve.toString(),
