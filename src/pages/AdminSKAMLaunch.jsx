@@ -1,14 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Keypair, PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
 import {
-  ASSOCIATED_TOKEN_PROGRAM_ID,
   MINT_SIZE,
   TOKEN_PROGRAM_ID,
   createAssociatedTokenAccountInstruction,
   createInitializeMint2Instruction,
   createMintToCheckedInstruction,
   getAssociatedTokenAddressSync,
-} from '@solana/spl-token';
+} from '../lib/solana/skamSplInstructions.js';
 import { ed25519 } from '@noble/curves/ed25519';
 import { CheckCircle2, CircleAlert, ExternalLink, Loader2, ShieldCheck, WalletCards } from 'lucide-react';
 
@@ -197,13 +196,7 @@ export default function AdminSKAMLaunch() {
       const owner = new PublicKey(APPROVED_WALLET);
       const mintKeypair = Keypair.generate();
       const nextMint = mintKeypair.publicKey.toBase58();
-      const associatedToken = getAssociatedTokenAddressSync(
-        mintKeypair.publicKey,
-        owner,
-        false,
-        TOKEN_PROGRAM_ID,
-        ASSOCIATED_TOKEN_PROGRAM_ID,
-      );
+      const associatedToken = getAssociatedTokenAddressSync(mintKeypair.publicKey, owner);
 
       if (typeof window !== 'undefined') {
         sessionStorage.setItem(PENDING_MINT_KEY, nextMint);
@@ -229,15 +222,12 @@ export default function AdminSKAMLaunch() {
           MINT_DECIMALS,
           owner,
           owner,
-          TOKEN_PROGRAM_ID,
         ),
         createAssociatedTokenAccountInstruction(
           owner,
           associatedToken,
           owner,
           mintKeypair.publicKey,
-          TOKEN_PROGRAM_ID,
-          ASSOCIATED_TOKEN_PROGRAM_ID,
         ),
         createMintToCheckedInstruction(
           mintKeypair.publicKey,
@@ -245,8 +235,6 @@ export default function AdminSKAMLaunch() {
           owner,
           TOTAL_SUPPLY_BASE_UNITS,
           MINT_DECIMALS,
-          [],
-          TOKEN_PROGRAM_ID,
         ),
       );
 
