@@ -26,6 +26,23 @@ test('platform status preserves market operational freshness and asset gates', a
   assert.match(source, /fabricatedMetrics: false/);
 });
 
+test('platform status self-heals stale market metadata only through a bounded verified refresh', async () => {
+  const source = await read('functions/api/platform-status.js');
+  assert.match(source, /const MARKET_STALE_REFRESH_TIMEOUT_MS = 20_000/);
+  assert.match(source, /if \(!stale\) return directResult/);
+  assert.match(source, /\/api\/market-snapshot\?health=1&refresh=1/);
+  assert.match(source, /MARKET_STALE_REFRESH_TIMEOUT_MS/);
+  assert.match(source, /refreshed\.payload\?\.healthy === true/);
+  assert.match(source, /refreshed\.payload\?\.stale === false/);
+  assert.match(source, /refreshedAssetCount >= MIN_PUBLIC_MARKET_ASSETS/);
+  assert.match(source, /readMode: 'http-refresh'/);
+  assert.match(source, /refreshAttempted: true/);
+  assert.match(source, /refreshRecovered: true/);
+  assert.match(source, /refreshRecovered: false/);
+  assert.match(source, /marketStaleSelfHeal: true/);
+  assert.match(source, /marketStaleSelfHealTimeoutMs: MARKET_STALE_REFRESH_TIMEOUT_MS/);
+});
+
 test('platform status bounds component reads below the public aggregate SLO instead of waiting on slow cold subrequests', async () => {
   const source = await read('functions/api/platform-status.js');
   assert.match(source, /const COMPONENT_STATUS_TIMEOUT_MS = 850/);
