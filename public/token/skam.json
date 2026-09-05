@@ -1,0 +1,12 @@
+{
+  "name": "Solana KAM",
+  "symbol": "sKAM",
+  "description": "sKAM is a Solana companion asset for the KriptoAman ecosystem. It is distinct from the native KAM coin on KAM Network. No 1:1 redemption or bridge claim should be made unless backing and bridge provenance are independently verifiable.",
+  "image": "https://kriptoaman.com/kriptoaman-logo-primary.png",
+  "external_url": "https://kriptoaman.com",
+  "attributes": [
+    {"trait_type": "Network", "value": "Solana"},
+    {"trait_type": "Asset role", "value": "KriptoAman ecosystem companion asset"},
+    {"trait_type": "Native KAM", "value": "No — native KAM remains on KAM Network Chain ID 22028"}
+  ]
+}
