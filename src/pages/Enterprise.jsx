@@ -156,7 +156,7 @@ export default function Enterprise() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 py-18 sm:px-6 sm:py-20 lg:px-8">
+      <section className="mx-auto max-w-7xl px-5 py-16 sm:px-6 sm:py-20 lg:px-8">
         <div className="max-w-3xl">
           <p className="text-xs font-black uppercase tracking-[0.22em] text-sky-300">Enterprise Solutions</p>
           <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Satu jalur layanan untuk data, jaringan, integrasi, dan operasional.</h2>
@@ -204,7 +204,7 @@ export default function Enterprise() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 py-18 sm:px-6 sm:py-20 lg:px-8">
+      <section className="mx-auto max-w-7xl px-5 py-16 sm:px-6 sm:py-20 lg:px-8">
         <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
           <div className="max-w-3xl">
             <p className="text-xs font-black uppercase tracking-[0.22em] text-amber-300">Engagement Model</p>
