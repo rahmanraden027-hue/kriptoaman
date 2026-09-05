@@ -21,26 +21,39 @@ test('sKAM Phantom gate is bound to the approved public operator wallet', () => 
   assert.match(page, /LIQUIDITY_SOL = 0\.2/);
 });
 
-test('sKAM Phantom gate proves control with an off-chain signature', () => {
+test('sKAM Phantom gate proves control with an off-chain signature before transactions', () => {
   assert.match(page, /phantom\.signMessage/);
   assert.match(page, /ed25519\.verify/);
   assert.match(page, /NOT an on-chain transaction/);
+  assert.match(page, /if \(!launchGateReady\) throw new Error/);
 });
 
-test('sKAM Phantom gate contains no transaction execution surface or secret recovery mechanism', () => {
+test('sKAM mint transaction uses canonical SPL helpers and the approved fixed supply', () => {
+  assert.match(page, /MINT_DECIMALS = 9/);
+  assert.match(page, /TOTAL_SUPPLY_BASE_UNITS = 1_000_000_000_000_000_000n/);
+  assert.match(page, /createInitializeMint2Instruction/);
+  assert.match(page, /createAssociatedTokenAccountInstruction/);
+  assert.match(page, /createMintToCheckedInstruction/);
+  assert.match(page, /transaction\.partialSign\(mintKeypair\)/);
+  assert.match(page, /phantom\.signAndSendTransaction/);
+  assert.match(page, /\/api\/solana\/skam-mint-prep/);
+  assert.match(page, /\/api\/solana\/skam-mint-verify/);
+});
+
+test('sKAM mint execution does not persist or recover secret signing material', () => {
   for (const forbidden of [
-    /\.sendTransaction\s*\(/,
-    /\.signTransaction\s*\(/,
-    /\.signAllTransactions\s*\(/,
-    /\.createPool\s*\(/,
-    /\.mintTo\s*\(/,
+    /mintKeypair\.secretKey/,
     /PRIVATE_KEY\s*=/,
     /SECRET_KEY\s*=/,
     /solana-keygen\s+recover/i,
     /mnemonic\s*=/i,
+    /\.createPool\s*\(/,
+    /\.swap\s*\(/,
   ]) {
     assert.doesNotMatch(page, forbidden);
   }
+  assert.match(page, /sessionStorage\.setItem\(PENDING_MINT_KEY, nextMint\)/);
+  assert.match(page, /sessionStorage\.setItem\(PENDING_SIGNATURE_KEY, nextSignature\)/);
 });
 
 test('sKAM launch gate is registered and admin-protected', () => {
