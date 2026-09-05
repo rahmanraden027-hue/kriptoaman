@@ -117,7 +117,7 @@ test('historical API is persisted-storage-only and does not fabricate or fetch u
   assert.match(source, /customerPriceReplacement: false/);
   assert.match(source, /FROM market_timeseries_observations/);
   assert.doesNotMatch(source, /Math\.random/);
-  assert.equal(source.includes('api.coingecko.com'), false);
+  assert.equal(source.includes('fetch('), false);
   assert.doesNotMatch(source, /\bINSERT\b/i);
   assert.doesNotMatch(source, /\bUPDATE\b/i);
   assert.doesNotMatch(source, /\bDELETE\b/i);
