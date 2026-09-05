@@ -18,11 +18,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Read public Solana balances
+      - name: Read public Solana balance and launch budget
         env:
           RPC_URL: https://api.mainnet-beta.solana.com
           OPERATOR_PUBLIC_ADDRESS: 5Fg4FVvyvSRLMapHdYVZzUCbhC8CWdENF77AfGPVAfpK
-          # 50 USDC seeds the approved pool; 1 USDC remains for one real smoke buy.
-          REQUIRED_USDC: '51'
-          MIN_SOL: '0.20'
+          LIQUIDITY_SOL: '0.20'
+          POOL_CREATION_FEE_SOL: '0.15'
+          EST_POOL_RENT_SOL: '0.04'
+          OPS_BUFFER_SOL: '0.05'
         run: node chain/solana-liquidity/check-wallet-readiness.mjs
