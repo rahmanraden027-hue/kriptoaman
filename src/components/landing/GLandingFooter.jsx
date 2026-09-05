@@ -5,7 +5,7 @@ import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
 
 const COLS = [
   { title: 'Produk', links: [['Dashboard', '/login'], ['Pemantauan Aset', '/login'], ['Verifikasi Transaksi', '/login'], ['Pemeriksaan Risiko', '/login']] },
-  { title: 'Teknologi & Riset', links: [['Research & Publications', '/research'], ['KAM Architecture Paper', '/research/kam-mainnet-architecture'], ['Status Sistem', '/SystemStatus'], ['KAM Explorer', 'https://explorer.kriptoaman.com']] },
+  { title: 'Enterprise', links: [['Enterprise Solutions', '/enterprise'], ['KAM Network Docs', '/KAMNetworkDocs'], ['Status Sistem', '/SystemStatus'], ['Research & Publications', '/research']] },
   { title: 'Perusahaan', links: [['Company Facts', '/company'], ['Founder & CEO', '/founder'], ['Legal & Corporate', '/LegalCorporateInformation'], ['Tentang Kami', '/AboutUs'], ['Kontak', '/Contact']] },
   { title: 'Bantuan & Legal', links: [['FAQ', '#faq'], ['Dukungan', '/Contact'], ['Kebijakan Privasi', '/PrivacyPolicy'], ['Syarat Penggunaan', '/TermsOfService'], ['Disclaimer', '/Disclaimer']] },
 ];
@@ -36,7 +36,7 @@ export default function GLandingFooter() {
           {COLS.map((c) => <div key={c.title}><h4 className="text-xs font-bold uppercase tracking-wider ka-text2 mb-3">{c.title}</h4><ul className="space-y-2">{c.links.map(([label, to]) => <li key={label}><FooterLink label={label} to={to} /></li>)}</ul></div>)}
         </div>
         <div className="ka-card2 p-4 mt-8 flex items-start gap-3"><AlertTriangle className="w-4 h-4 ka-gold shrink-0 mt-0.5" /><p className="text-[11px] ka-text2 leading-relaxed">Informasi pasar, riset, status jaringan, dan analisis risiko disediakan untuk pemantauan, verifikasi, dan edukasi. KriptoAman tidak memberikan nasihat investasi serta tidak menjanjikan harga, keuntungan, likuiditas, listing, atau hasil investasi tertentu.</p></div>
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-6 pt-6 border-t" style={{ borderColor: 'var(--ka-border)' }}><p className="text-[11px] ka-text2">© 2026 KriptoAman · PT Kripto Aman Indonesia.</p><div className="flex flex-wrap justify-center gap-4 text-[11px] ka-text2"><Link to="/company" className="hover:ka-blue">Company Facts</Link><Link to="/founder" className="hover:ka-blue">Founder & CEO</Link><Link to="/research" className="hover:ka-blue">Research</Link><Link to="/LegalCorporateInformation" className="hover:ka-blue">Legal & Corporate</Link><Link to="/PrivacyPolicy" className="hover:ka-blue">Privasi</Link><Link to="/TermsOfService" className="hover:ka-blue">Syarat</Link><Link to="/Disclaimer" className="hover:ka-blue">Disclaimer</Link></div></div>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-6 pt-6 border-t" style={{ borderColor: 'var(--ka-border)' }}><p className="text-[11px] ka-text2">© 2026 KriptoAman · PT Kripto Aman Indonesia.</p><div className="flex flex-wrap justify-center gap-4 text-[11px] ka-text2"><Link to="/enterprise" className="hover:ka-blue">Enterprise</Link><Link to="/company" className="hover:ka-blue">Company Facts</Link><Link to="/founder" className="hover:ka-blue">Founder & CEO</Link><Link to="/research" className="hover:ka-blue">Research</Link><Link to="/LegalCorporateInformation" className="hover:ka-blue">Legal & Corporate</Link><Link to="/PrivacyPolicy" className="hover:ka-blue">Privasi</Link><Link to="/TermsOfService" className="hover:ka-blue">Syarat</Link><Link to="/Disclaimer" className="hover:ka-blue">Disclaimer</Link></div></div>
       </div>
     </footer>
   );
