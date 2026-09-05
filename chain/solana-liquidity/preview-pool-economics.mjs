@@ -1,5 +1,3 @@
-import 'dotenv/config';
-
 function requiredPositiveNumber(name) {
   const raw = process.env[name]?.trim();
   if (!raw) throw new Error(`Required value is empty: ${name}`);
