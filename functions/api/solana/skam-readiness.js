@@ -6,8 +6,12 @@ import { getTotpSettings } from '../../../server/auth/totp.js';
 import { getUserById } from '../../../server/auth/users.js';
 
 const APPROVED_WALLET = '5Fg4FVvyvSRLMapHdYVZzUCbhC8CWdENF77AfGPVAfpK';
-const PUBLIC_SOLANA_RPC = 'https://api.mainnet-beta.solana.com';
+const PUBLIC_SOLANA_RPCS = [
+  'https://solana-rpc.publicnode.com',
+  'https://api.mainnet-beta.solana.com',
+];
 const MIN_PLANNED_SOL = 0.44;
+const RPC_TIMEOUT_MS = 4_000;
 
 async function requireVerifiedAdmin(request, env) {
   requireBindings(env, ['AUTH_DB', 'SESSION_SECRET']);
@@ -31,22 +35,33 @@ async function requireVerifiedAdmin(request, env) {
 }
 
 async function readBalance(rpcUrl) {
-  const response = await fetch(rpcUrl, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', accept: 'application/json' },
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'getBalance',
-      params: [APPROVED_WALLET, { commitment: 'confirmed' }],
-    }),
-  });
-  if (!response.ok) throw new Error(`RPC HTTP ${response.status}`);
-  const payload = await response.json();
-  if (payload?.error) throw new Error(payload.error.message || 'Solana RPC error');
-  const lamports = Number(payload?.result?.value);
-  if (!Number.isFinite(lamports) || lamports < 0) throw new Error('Invalid balance response');
-  return lamports / 1e9;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), RPC_TIMEOUT_MS);
+  try {
+    const response = await fetch(rpcUrl, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'content-type': 'application/json',
+        accept: 'application/json',
+        'user-agent': 'KriptoAman-sKAM-Readiness/1.0',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'getBalance',
+        params: [APPROVED_WALLET, { commitment: 'confirmed' }],
+      }),
+    });
+    if (!response.ok) throw new Error(`RPC HTTP ${response.status}`);
+    const payload = await response.json();
+    if (payload?.error) throw new Error(payload.error.message || 'Solana RPC error');
+    const lamports = Number(payload?.result?.value);
+    if (!Number.isFinite(lamports) || lamports < 0) throw new Error('Invalid balance response');
+    return lamports / 1e9;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export async function onRequestGet({ request, env }) {
@@ -54,26 +69,18 @@ export async function onRequestGet({ request, env }) {
     const auth = await requireVerifiedAdmin(request, env);
     if (auth.response) return auth.response;
 
-    const candidates = [];
-    if (typeof env.SOLANA_RPC_URL === 'string' && env.SOLANA_RPC_URL.startsWith('https://')) {
-      candidates.push(env.SOLANA_RPC_URL);
-    }
-    candidates.push(PUBLIC_SOLANA_RPC);
-
     let balanceSol = null;
-    let lastError = null;
-    for (const rpcUrl of [...new Set(candidates)]) {
-      try {
-        balanceSol = await readBalance(rpcUrl);
-        break;
-      } catch (error) {
-        lastError = error;
-      }
+    try {
+      balanceSol = await Promise.any(PUBLIC_SOLANA_RPCS.map((rpcUrl) => readBalance(rpcUrl)));
+    } catch (aggregate) {
+      const reasons = Array.isArray(aggregate?.errors)
+        ? aggregate.errors.map((error) => error?.name === 'AbortError' ? 'timeout' : 'unavailable')
+        : ['unavailable'];
+      console.error('sKAM Solana readiness RPC providers unavailable', reasons);
     }
 
     if (balanceSol == null) {
-      console.error('sKAM Solana readiness RPC failed', lastError);
-      return json({ error: 'Solana balance temporarily unavailable' }, { status: 503 });
+      return json({ error: 'Solana balance temporarily unavailable' }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
     }
 
     return json({
@@ -85,6 +92,6 @@ export async function onRequestGet({ request, env }) {
     }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     console.error('sKAM admin readiness failed', error);
-    return json({ error: 'sKAM readiness unavailable' }, { status: 503 });
+    return json({ error: 'sKAM readiness unavailable' }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
   }
 }
