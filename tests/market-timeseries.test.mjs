@@ -77,14 +77,22 @@ test('stored candles preserve nullable volume and reject impossible OHLC values'
   assert.equal(valid.schemaVersion, MARKET_TIMESERIES_SCHEMA_VERSION);
 
   const impossible = normalizeStoredCandle({
-    ...valid,
+    schema_version: 1,
+    canonical_key: 'coingecko:bitcoin',
+    provider: 'coingecko',
+    provider_asset_id: 'bitcoin',
     open_time: 1000,
     close_time: 2000,
     open: 100,
     high: 95,
     low: 90,
     close: 105,
+    volume: null,
+    volume_unit: null,
     retrieved_at: 3000,
+    ingest_run_id: 'run-2',
+    ingest_mode: 'backfill',
+    provenance: 'provider-native-ohlc',
   });
   assert.equal(impossible, null);
 });
@@ -109,7 +117,7 @@ test('historical API is persisted-storage-only and does not fabricate or fetch u
   assert.match(source, /customerPriceReplacement: false/);
   assert.match(source, /FROM market_timeseries_observations/);
   assert.doesNotMatch(source, /Math\.random/);
-  assert.doesNotMatch(source, /api\.coingecko\.com/);
+  assert.equal(source.includes('api.coingecko.com'), false);
   assert.doesNotMatch(source, /\bINSERT\b/i);
   assert.doesNotMatch(source, /\bUPDATE\b/i);
   assert.doesNotMatch(source, /\bDELETE\b/i);
