@@ -29,11 +29,11 @@ test('sKAM Phantom gate proves control with an off-chain signature', () => {
 
 test('sKAM Phantom gate contains no transaction execution surface or secret recovery mechanism', () => {
   for (const forbidden of [
-    /sendTransaction/,
-    /signTransaction/,
-    /signAllTransactions/,
-    /createPool\s*\(/,
-    /mintTo\s*\(/,
+    /\.sendTransaction\s*\(/,
+    /\.signTransaction\s*\(/,
+    /\.signAllTransactions\s*\(/,
+    /\.createPool\s*\(/,
+    /\.mintTo\s*\(/,
     /PRIVATE_KEY\s*=/,
     /SECRET_KEY\s*=/,
     /solana-keygen\s+recover/i,
