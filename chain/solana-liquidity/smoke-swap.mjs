@@ -5,6 +5,8 @@ import { Raydium, TxVersion, CurveCalculator } from '@raydium-io/raydium-sdk-v2'
 import BN from 'bn.js';
 import Decimal from 'decimal.js';
 
+const CANONICAL_WSOL = 'So11111111111111111111111111111111111111112';
+
 function required(name) {
   const value = process.env[name]?.trim();
   if (!value) throw new Error(`Required value is empty: ${name}`);
@@ -21,6 +23,7 @@ function uiToRaw(value, decimals) {
 
 const rpcUrl = required('RPC_URL');
 const keypairPath = required('KEYPAIR');
+const operatorPublicAddress = required('OPERATOR_PUBLIC_ADDRESS');
 const poolId = new PublicKey(required('POOL_ID'));
 const tokenMint = new PublicKey(required('TOKEN_MINT'));
 const quoteMint = new PublicKey(required('QUOTE_MINT'));
@@ -31,11 +34,16 @@ const slippage = Number(process.env.SMOKE_SLIPPAGE ?? '0.01');
 if (process.env.CONFIRM_SMOKE_SWAP !== 'EXECUTE_ONE_REAL_SMOKE_SWAP') {
   throw new Error('Refusing real swap. Set CONFIRM_SMOKE_SWAP=EXECUTE_ONE_REAL_SMOKE_SWAP for exactly one functional smoke trade.');
 }
+if (quoteMint.toBase58() !== CANONICAL_WSOL) throw new Error(`QUOTE_MINT must be canonical Wrapped SOL (${CANONICAL_WSOL}).`);
 if (!['quote-to-token', 'token-to-quote'].includes(direction)) throw new Error('SMOKE_DIRECTION must be quote-to-token or token-to-quote.');
 if (!Number.isFinite(slippage) || slippage <= 0 || slippage > 0.05) throw new Error('SMOKE_SLIPPAGE must be >0 and <=0.05.');
 if (!fs.existsSync(keypairPath)) throw new Error('KEYPAIR must point to an existing local keypair file.');
 
 const owner = Keypair.fromSecretKey(new Uint8Array(JSON.parse(fs.readFileSync(keypairPath, 'utf8'))));
+if (owner.publicKey.toBase58() !== operatorPublicAddress) {
+  throw new Error(`Signer mismatch. Expected OPERATOR_PUBLIC_ADDRESS=${operatorPublicAddress}, got ${owner.publicKey.toBase58()}.`);
+}
+
 const connection = new Connection(rpcUrl, 'confirmed');
 const raydium = await Raydium.load({
   owner,
@@ -69,6 +77,7 @@ console.log('Executing exactly one real smoke swap:', {
   inputMint: inputMint.toBase58(),
   inputUi,
   slippage,
+  quoteUsesNativeSolBalance: true,
 });
 
 const { execute } = await raydium.cpmm.swap({
@@ -78,6 +87,10 @@ const { execute } = await raydium.cpmm.swap({
   swapResult,
   slippage,
   baseIn,
+  config: {
+    associatedOnly: false,
+    checkCreateATAOwner: true,
+  },
   txVersion: TxVersion.V0,
 });
 const { txId } = await execute({ sendAndConfirm: true });
@@ -90,6 +103,8 @@ const evidence = {
   inputMint: inputMint.toBase58(),
   inputUi,
   slippage,
+  quoteMint: CANONICAL_WSOL,
+  quoteUsesNativeSolBalance: true,
   txId,
   executedAt: new Date().toISOString(),
   purpose: 'functional-smoke-test-not-volume-generation',
