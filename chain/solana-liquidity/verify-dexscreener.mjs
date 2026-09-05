@@ -8,7 +8,10 @@ function required(name) {
 
 const tokenMint = required('TOKEN_MINT');
 const expectedPool = process.env.POOL_ID?.trim() || null;
-const endpoint = `https://api.dexscreener.com/token-pairs/v1/solana/${encodeURIComponent(tokenMint)}`;
+const endpoint = new URL(`/token-pairs/v1/solana/${encodeURIComponent(tokenMint)}`, 'https://api.dexscreener.com');
+if (endpoint.origin !== 'https://api.dexscreener.com') {
+  throw new Error('Unexpected DEX Screener API origin.');
+}
 
 const response = await fetch(endpoint, {
   headers: { accept: 'application/json' },
