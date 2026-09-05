@@ -108,7 +108,13 @@ jobs:
           if (warnings.length) console.warn(`Consensus warnings: ${warnings.join('; ')}`);
           if (failures.length) {
             console.error(`Consensus trust gate failed: ${failures.join('; ')}`);
-            console.error(JSON.stringify({ status: payload.status, providerCount: payload.providerCount, coreCoverage: payload.coreCoverage }, null, 2));
+            console.error(JSON.stringify({
+              status: payload.status,
+              providerCount: payload.providerCount,
+              providerFailures: payload.providerFailures,
+              coreCoverage: payload.coreCoverage,
+              observedProviders: [...new Set((payload.assets || []).flatMap((asset) => (asset.observations || []).map((observation) => observation.provider)).filter(Boolean))],
+            }, null, 2));
             process.exit(1);
           }
 
