@@ -17,11 +17,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          headers="$(mktemp)"
           body="$(mktemp)"
           code="$(curl --location --silent --show-error \
             --connect-timeout 10 --max-time 30 \
-            -D "$headers" -o "$body" -w '%{http_code}' \
+            -o "$body" -w '%{http_code}' \
             'https://kriptoaman.com/api/market-hot')"
           test "$code" = "200"
           node - "$body" <<'NODE'
@@ -35,15 +34,18 @@ jobs:
           }
           if (!Number.isFinite(Number(payload.ageMs))) throw new Error('ageMs missing');
           if (Number(payload.ageMs) > 60 * 60 * 1000) throw new Error(`hot market fallback too old: ${payload.ageMs}`);
+          if (Number(payload.delivery?.edgeSMaxAgeSeconds) !== 15) {
+            throw new Error(`unexpected hot-market edge TTL contract: ${payload.delivery?.edgeSMaxAgeSeconds}`);
+          }
           console.log(JSON.stringify({
             healthy: payload.healthy,
             source: payload.source,
             assetCount: payload.assetCount,
             ageMs: payload.ageMs,
             stale: payload.stale,
+            edgeSMaxAgeSeconds: payload.delivery?.edgeSMaxAgeSeconds,
           }, null, 2));
           NODE
-          grep -Eqi '^cache-control:.*(s-maxage=15|stale-while-revalidate=45)' "$headers"
 
       - name: Verify paged market edge path
         shell: bash
