@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react';
-import { Connection, PublicKey } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 import { ed25519 } from '@noble/curves/ed25519';
 import { CheckCircle2, CircleAlert, ExternalLink, Loader2, ShieldCheck, WalletCards } from 'lucide-react';
 
 const APPROVED_WALLET = '5Fg4FVvyvSRLMapHdYVZzUCbhC8CWdENF77AfGPVAfpK';
-const RPC_URL = 'https://api.mainnet-beta.solana.com';
 const MIN_PLANNED_SOL = 0.44;
 const LIQUIDITY_SOL = 0.2;
 const POOL_TOKEN_AMOUNT = 1_000_000;
@@ -25,7 +24,6 @@ function compact(value) {
 
 export default function AdminSKAMLaunch() {
   const phantom = useMemo(() => phantomProvider(), []);
-  const connection = useMemo(() => new Connection(RPC_URL, 'confirmed'), []);
   const [address, setAddress] = useState('');
   const [solBalance, setSolBalance] = useState(null);
   const [proofVerified, setProofVerified] = useState(false);
@@ -38,9 +36,22 @@ export default function AdminSKAMLaunch() {
   const launchGateReady = addressMatches && balanceReady && proofVerified && metadataReady;
 
   async function refreshPublicState(publicKeyText = address) {
-    if (!publicKeyText) return;
-    const lamports = await connection.getBalance(new PublicKey(publicKeyText), 'confirmed');
-    setSolBalance(lamports / 1e9);
+    if (!publicKeyText || publicKeyText !== APPROVED_WALLET) {
+      setSolBalance(null);
+      return;
+    }
+
+    const response = await fetch('/api/solana/skam-readiness', {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+    });
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) throw new Error(payload?.error || `Readiness HTTP ${response.status}`);
+    if (payload?.owner !== APPROVED_WALLET) throw new Error('Alamat readiness server tidak cocok dengan wallet operator.');
+    if (!Number.isFinite(payload?.balanceSol) || payload.balanceSol < 0) throw new Error('Saldo Solana dari server tidak valid.');
+    setSolBalance(payload.balanceSol);
   }
 
   async function connectWallet() {
@@ -52,6 +63,10 @@ export default function AdminSKAMLaunch() {
       const response = await phantom.connect();
       const nextAddress = response.publicKey.toString();
       setAddress(nextAddress);
+      if (nextAddress !== APPROVED_WALLET) {
+        setSolBalance(null);
+        throw new Error('Wallet Phantom yang terhubung bukan wallet operator sKAM yang disetujui.');
+      }
       await refreshPublicState(nextAddress);
     } catch (err) {
       setError(err?.message || 'Gagal menghubungkan Phantom.');
