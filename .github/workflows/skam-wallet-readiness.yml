@@ -1,0 +1,29 @@
+name: sKAM Wallet Readiness
+
+on:
+  pull_request:
+    paths:
+      - 'chain/solana-liquidity/check-wallet-readiness.mjs'
+      - '.github/workflows/skam-wallet-readiness.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  read-only-balance-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Read public Solana balance and launch budget
+        env:
+          RPC_URL: https://api.mainnet-beta.solana.com
+          OPERATOR_PUBLIC_ADDRESS: 5Fg4FVvyvSRLMapHdYVZzUCbhC8CWdENF77AfGPVAfpK
+          LIQUIDITY_SOL: '0.20'
+          POOL_CREATION_FEE_SOL: '0.15'
+          EST_POOL_RENT_SOL: '0.04'
+          OPS_BUFFER_SOL: '0.05'
+        run: node chain/solana-liquidity/check-wallet-readiness.mjs
