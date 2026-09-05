@@ -25,9 +25,11 @@ test('scheduled health independently forces a refresh before the 15 minute opera
   assert.match(health, /validateOperationalFreshness/);
 });
 
-test('dedicated warm job is staggered every ten minutes and cannot cancel an active refresh', async () => {
+test('dedicated warm watchdog runs every five minutes without cancelling an active refresh', async () => {
   const workflow = await read('.github/workflows/market-snapshot-warm.yml');
-  assert.match(workflow, /cron: '3,13,23,33,43,53 \* \* \* \*'/);
+  assert.match(workflow, /cron: '\*\/5 \* \* \* \*'/);
+  assert.match(workflow, /max_age_ms=600000/);
+  assert.match(workflow, /max_age_ms=900000/);
   assert.match(workflow, /group: market-snapshot-warm-production/);
   assert.match(workflow, /cancel-in-progress: false/);
   assert.match(workflow, /health=1&refresh=1/);
