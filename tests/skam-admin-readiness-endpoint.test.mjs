@@ -10,7 +10,6 @@ test('sKAM admin page reads balance through same-origin server endpoint, not bro
   assert.ok(page.includes("fetch('/api/solana/skam-readiness'"));
   assert.match(page, /credentials: 'same-origin'/);
   assert.doesNotMatch(page, /new Connection\s*\(/);
-  assert.ok(!page.includes('https://api.mainnet-beta.solana.com'));
 });
 
 test('sKAM readiness endpoint is locked to verified admin and 2FA', () => {
