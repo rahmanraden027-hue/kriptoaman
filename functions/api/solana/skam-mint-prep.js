@@ -3,9 +3,11 @@ import {
   APPROVED_WALLET,
   MIN_PLANNED_SOL,
   MINT_DECIMALS,
+  MINT_SEED,
   MINT_SIZE,
   TOTAL_SUPPLY,
   TOTAL_SUPPLY_BASE_UNITS,
+  getCanonicalMintAddress,
   requireVerifiedAdmin,
   withSolanaProvider,
 } from './_skam-admin.js';
@@ -15,11 +17,13 @@ export async function onRequestGet({ request, env }) {
     const auth = await requireVerifiedAdmin(request, env);
     if (auth.response) return auth.response;
 
+    const mintAddress = await getCanonicalMintAddress();
     const state = await withSolanaProvider(async (rpc) => {
-      const [latest, rentLamports, balance] = await Promise.all([
+      const [latest, rentLamports, balance, existingMint] = await Promise.all([
         rpc('getLatestBlockhash', [{ commitment: 'confirmed' }]),
         rpc('getMinimumBalanceForRentExemption', [MINT_SIZE, { commitment: 'confirmed' }]),
         rpc('getBalance', [APPROVED_WALLET, { commitment: 'confirmed' }]),
+        rpc('getAccountInfo', [mintAddress, { encoding: 'base64', commitment: 'confirmed' }]),
       ]);
 
       const blockhash = latest?.value?.blockhash;
@@ -36,8 +40,16 @@ export async function onRequestGet({ request, env }) {
         lastValidBlockHeight,
         mintRentLamports,
         balanceSol: balanceLamports / 1e9,
+        mintAlreadyExists: Boolean(existingMint?.value),
       };
     });
+
+    if (state.mintAlreadyExists) {
+      return json({
+        error: 'Alamat mint canonical sKAM sudah ada. Pembuatan mint kedua diblokir.',
+        mintAddress,
+      }, { status: 409, headers: { 'Cache-Control': 'no-store' } });
+    }
 
     if (state.balanceSol < MIN_PLANNED_SOL) {
       return json({ error: 'Saldo SOL tidak lagi memenuhi minimum launch.' }, { status: 409, headers: { 'Cache-Control': 'no-store' } });
@@ -46,6 +58,8 @@ export async function onRequestGet({ request, env }) {
     return json({
       mode: 'SKAM_MINT_PREP_READ_ONLY',
       owner: APPROVED_WALLET,
+      mintAddress,
+      mintSeed: MINT_SEED,
       decimals: MINT_DECIMALS,
       totalSupply: TOTAL_SUPPLY,
       totalSupplyBaseUnits: TOTAL_SUPPLY_BASE_UNITS,
