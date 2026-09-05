@@ -50,6 +50,6 @@ test('sKAM launch gate is registered and admin-protected', () => {
 });
 
 test('sKAM gate verifies official metadata and logo paths', () => {
-  assert.match(page, /\/token\/skam\.json/);
-  assert.match(page, /https:\/\/kriptoaman\.com\/token\/skam-logo\.png/);
+  assert.ok(page.includes("fetch('/token/skam.json'"));
+  assert.ok(page.includes('https://kriptoaman.com/token/skam-logo.png'));
 });
