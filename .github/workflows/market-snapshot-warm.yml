@@ -11,7 +11,7 @@ on:
       - 'scripts/check-market-health.mjs'
       - '.github/workflows/market-snapshot-warm.yml'
   schedule:
-    - cron: '3,13,23,33,43,53 * * * *'
+    - cron: '*/5 * * * *'
 
 permissions:
   contents: read
@@ -30,10 +30,12 @@ jobs:
         run: |
           set -euo pipefail
 
-          # A push-triggered run is primarily a deployment/migration proof. The
-          # snapshot itself is operationally fresh for 15 minutes, while the
-          # recurring/manual warm gate keeps the stricter <=5 minute evidence.
-          max_age_ms=300000
+          # Scheduled/manual runs are a five-minute watchdog. The endpoint only
+          # performs an upstream provider refresh when refreshDue is true, so the
+          # tighter watchdog does not double the normal provider-refresh cadence.
+          # It instead gives the 15-minute public freshness contract more margin
+          # against scheduler jitter. Push runs remain deployment/migration proof.
+          max_age_ms=600000
           if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
             max_age_ms=900000
             sleep 35
