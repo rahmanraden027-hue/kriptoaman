@@ -25,11 +25,21 @@ test('Solana launch pack is fail-closed before real writes', () => {
   assert.match(text.config, /CONFIRM_SMOKE_SWAP=/);
 });
 
-test('quote asset defaults to canonical Solana USDC and pool tooling refuses substitutes', () => {
-  const usdc = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
-  assert.match(text.config, new RegExp(usdc));
-  assert.match(text.createPool, new RegExp(usdc));
-  assert.match(text.createPool, /QUOTE_MINT must be canonical Solana USDC/);
+test('quote asset is canonical Wrapped SOL and pool tooling uses native SOL balance', () => {
+  const wsol = 'So11111111111111111111111111111111111111112';
+  assert.match(text.config, new RegExp(wsol));
+  assert.match(text.createPool, new RegExp(wsol));
+  assert.match(text.smokeSwap, new RegExp(wsol));
+  assert.match(text.createPool, /QUOTE_MINT must be canonical Wrapped SOL/);
+  assert.match(text.createPool, /useSOLBalance:\s*true/);
+  assert.match(text.config, /POOL_QUOTE_UI=0\.20/);
+  assert.doesNotMatch(text.config, /EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/);
+});
+
+test('operator wallet identity is checked before pool and smoke writes', () => {
+  assert.match(text.config, /OPERATOR_PUBLIC_ADDRESS=/);
+  assert.match(text.createPool, /Signer mismatch/);
+  assert.match(text.smokeSwap, /Signer mismatch/);
 });
 
 test('smoke tool is one explicit swap rather than a volume loop', () => {
