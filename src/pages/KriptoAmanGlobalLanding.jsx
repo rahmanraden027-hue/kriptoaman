@@ -7,6 +7,9 @@ import GLandingBody from '@/components/landing/GLandingBody';
 import GLandingInstitutional from '@/components/landing/GLandingInstitutional';
 import GLandingFooter from '@/components/landing/GLandingFooter';
 
+const MARKET_DELAYED_MAX_AGE_MS = 60 * 60 * 1000;
+const MIN_PUBLIC_MARKET_ASSETS = 4500;
+
 export default function KriptoAmanGlobalLanding() {
   const [dark, setDark] = useState(true);
   const [active, setActive] = useState('Beranda');
@@ -14,6 +17,8 @@ export default function KriptoAmanGlobalLanding() {
     loading: true,
     overall: 'unavailable',
     marketAvailable: false,
+    marketStatus: 'unavailable',
+    marketAgeMs: null,
     lastUpdated: null,
     assetCount: null,
     marketSource: null,
@@ -28,6 +33,8 @@ export default function KriptoAmanGlobalLanding() {
         loading: false,
         overall: 'unavailable',
         marketAvailable: false,
+        marketStatus: 'unavailable',
+        marketAgeMs: null,
         lastUpdated: null,
         assetCount: null,
         marketSource: null,
@@ -53,8 +60,26 @@ export default function KriptoAmanGlobalLanding() {
             const networks = platformPayload.components.networks || {};
             const kam = platformPayload.components.kam || {};
 
-            next.marketAvailable = market.status === 'operational';
-            next.assetCount = Number.isFinite(Number(market.assetCount)) && Number(market.assetCount) > 0 ? Number(market.assetCount) : null;
+            const assetCount = Number(market.assetCount);
+            const marketAgeMs = Number(market.ageMs);
+            const hasVerifiedCoverage = Number.isFinite(assetCount) && assetCount >= MIN_PUBLIC_MARKET_ASSETS;
+            const hasUsableDelayedSnapshot = Boolean(
+              market.status === 'degraded'
+                && hasVerifiedCoverage
+                && Number.isFinite(marketAgeMs)
+                && marketAgeMs >= 0
+                && marketAgeMs <= MARKET_DELAYED_MAX_AGE_MS
+                && market.capturedAt,
+            );
+
+            next.marketStatus = market.status === 'operational'
+              ? 'operational'
+              : hasUsableDelayedSnapshot
+                ? 'delayed'
+                : (market.status || 'unavailable');
+            next.marketAvailable = next.marketStatus === 'operational' || next.marketStatus === 'delayed';
+            next.assetCount = Number.isFinite(assetCount) && assetCount > 0 ? assetCount : null;
+            next.marketAgeMs = Number.isFinite(marketAgeMs) && marketAgeMs >= 0 ? marketAgeMs : null;
             next.lastUpdated = market.capturedAt || null;
             next.marketSource = market.source || null;
             next.networkActiveCount = Number.isFinite(Number(networks.online)) ? Number(networks.online) : undefined;
