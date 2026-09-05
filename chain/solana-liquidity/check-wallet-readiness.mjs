@@ -1,12 +1,14 @@
 const RPC_URL = process.env.RPC_URL || 'https://api.mainnet-beta.solana.com';
 const OWNER = (process.env.OPERATOR_PUBLIC_ADDRESS || '').trim();
-const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
-const REQUIRED_USDC = Number(process.env.REQUIRED_USDC || '50');
-const MIN_SOL = Number(process.env.MIN_SOL || '0.20');
+const LIQUIDITY_SOL = Number(process.env.LIQUIDITY_SOL || '0.20');
+const POOL_CREATION_FEE_SOL = Number(process.env.POOL_CREATION_FEE_SOL || '0.15');
+const EST_POOL_RENT_SOL = Number(process.env.EST_POOL_RENT_SOL || '0.04');
+const OPS_BUFFER_SOL = Number(process.env.OPS_BUFFER_SOL || '0.05');
 
 if (!OWNER) throw new Error('OPERATOR_PUBLIC_ADDRESS is required.');
-if (!Number.isFinite(REQUIRED_USDC) || REQUIRED_USDC < 0) throw new Error('REQUIRED_USDC must be non-negative.');
-if (!Number.isFinite(MIN_SOL) || MIN_SOL < 0) throw new Error('MIN_SOL must be non-negative.');
+for (const [name, value] of Object.entries({ LIQUIDITY_SOL, POOL_CREATION_FEE_SOL, EST_POOL_RENT_SOL, OPS_BUFFER_SOL })) {
+  if (!Number.isFinite(value) || value < 0) throw new Error(`${name} must be non-negative.`);
+}
 
 let id = 0;
 async function rpc(method, params) {
@@ -21,28 +23,28 @@ async function rpc(method, params) {
   return body.result;
 }
 
-const [balanceResult, tokenAccountsResult] = await Promise.all([
-  rpc('getBalance', [OWNER, { commitment: 'confirmed' }]),
-  rpc('getTokenAccountsByOwner', [OWNER, { mint: USDC_MINT }, { encoding: 'jsonParsed', commitment: 'confirmed' }]),
-]);
-
+const balanceResult = await rpc('getBalance', [OWNER, { commitment: 'confirmed' }]);
 const sol = Number(balanceResult.value) / 1e9;
-let usdc = 0;
-for (const account of tokenAccountsResult.value || []) {
-  const tokenAmount = account?.account?.data?.parsed?.info?.tokenAmount;
-  const ui = tokenAmount?.uiAmountString;
-  if (ui != null) usdc += Number(ui);
-}
+const plannedSol = LIQUIDITY_SOL + POOL_CREATION_FEE_SOL + EST_POOL_RENT_SOL + OPS_BUFFER_SOL;
 
 const result = {
   mode: 'READ_ONLY_SOLANA_WALLET_READINESS',
   owner: OWNER,
   rpcUrl: RPC_URL,
-  balances: { sol, usdc },
-  requirements: { minSol: MIN_SOL, requiredUsdc: REQUIRED_USDC },
-  ready: { sol: sol >= MIN_SOL, usdc: usdc >= REQUIRED_USDC },
+  balanceSol: sol,
+  planned: {
+    liquiditySol: LIQUIDITY_SOL,
+    raydiumPoolCreationFeeSol: POOL_CREATION_FEE_SOL,
+    estimatedPoolRentSol: EST_POOL_RENT_SOL,
+    operationalBufferSol: OPS_BUFFER_SOL,
+    minimumPlannedSol: plannedSol,
+  },
+  ready: {
+    sol: sol >= plannedSol,
+  },
+  note: 'Estimated rent is a planning value, not a guarantee. Real transactions must still be simulated/preflighted before signing.',
 };
-result.ready.all = result.ready.sol && result.ready.usdc;
+result.ready.all = result.ready.sol;
 
 console.log(JSON.stringify(result, null, 2));
 if (!result.ready.all) process.exitCode = 2;
