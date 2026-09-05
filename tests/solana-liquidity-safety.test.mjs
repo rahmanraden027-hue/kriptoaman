@@ -39,7 +39,7 @@ test('smoke tool is one explicit swap rather than a volume loop', () => {
 });
 
 test('DEX Screener verifier is read-only public API verification', () => {
-  assert.match(text.verifyDex, /api\.dexscreener\.com\/token-pairs\/v1\/solana/);
+  assert.ok(text.verifyDex.includes('https://api.dexscreener.com/token-pairs/v1/solana/'));
   assert.doesNotMatch(text.verifyDex, /KEYPAIR|sendTransaction|signTransaction|secretKey/);
 });
 
