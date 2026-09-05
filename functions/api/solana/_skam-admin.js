@@ -1,3 +1,4 @@
+import { PublicKey } from '@solana/web3.js';
 import { json, requireBindings } from '../../../server/auth/http.js';
 import { ensureAuthSchema } from '../../../server/auth/schema.js';
 import { getSessionToken, verifySessionToken } from '../../../server/auth/session.js';
@@ -9,6 +10,7 @@ export const APPROVED_WALLET = '5Fg4FVvyvSRLMapHdYVZzUCbhC8CWdENF77AfGPVAfpK';
 export const MIN_PLANNED_SOL = 0.44;
 export const MINT_DECIMALS = 9;
 export const MINT_SIZE = 82;
+export const MINT_SEED = 'KriptoAman-sKAM-v1';
 export const TOTAL_SUPPLY = 1_000_000_000;
 export const TOTAL_SUPPLY_BASE_UNITS = '1000000000000000000';
 export const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
@@ -18,6 +20,12 @@ const PUBLIC_SOLANA_RPCS = [
   'https://api.mainnet-beta.solana.com',
 ];
 const RPC_TIMEOUT_MS = 4_000;
+
+export async function getCanonicalMintAddress() {
+  const owner = new PublicKey(APPROVED_WALLET);
+  const tokenProgram = new PublicKey(TOKEN_PROGRAM_ID);
+  return (await PublicKey.createWithSeed(owner, MINT_SEED, tokenProgram)).toBase58();
+}
 
 export async function requireVerifiedAdmin(request, env) {
   requireBindings(env, ['AUTH_DB', 'SESSION_SECRET']);
@@ -50,7 +58,7 @@ async function rpcOn(rpcUrl, method, params = []) {
       headers: {
         'content-type': 'application/json',
         accept: 'application/json',
-        'user-agent': 'KriptoAman-sKAM-Admin/2.0',
+        'user-agent': 'KriptoAman-sKAM-Admin/2.1',
       },
       body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
     });
