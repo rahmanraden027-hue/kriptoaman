@@ -1,0 +1,114 @@
+name: Market Data Trust Gate
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'functions/api/market-quality.js'
+      - 'functions/api/platform-status.js'
+      - 'functions/api/market-snapshot.js'
+      - 'functions/api/market-snapshot-page.js'
+      - '.github/workflows/market-data-trust-gate.yml'
+      - '.github/workflows/market-snapshot-warm.yml'
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: market-data-trust-gate-production
+  cancel-in-progress: false
+
+jobs:
+  verify-market-data-trust:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Verify public market status contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          code="$(curl --location --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            -H 'Accept: application/json' \
+            -H 'Cache-Control: no-cache' \
+            -o "$body" -w '%{http_code}' \
+            'https://kriptoaman.com/api/platform-status')"
+          test "$code" = "200"
+
+          node - "$body" <<'NODE'
+          const fs = require('fs');
+          const p = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          const market = p?.components?.market || {};
+          const failures = [];
+          if (market.status !== 'operational') failures.push(`market status=${market.status}`);
+          if (market.healthy !== true) failures.push('market healthy flag is not true');
+          if (!Number.isFinite(Number(market.assetCount)) || Number(market.assetCount) < 4500) failures.push(`assetCount=${market.assetCount}`);
+          if (!Number.isFinite(Number(market.capturedAt)) || Number(market.capturedAt) <= 0) failures.push('capturedAt missing');
+          if (!Number.isFinite(Number(market.ageMs)) || Number(market.ageMs) > 15 * 60 * 1000) failures.push(`ageMs=${market.ageMs}`);
+          if (market.stale !== false) failures.push(`stale=${market.stale}`);
+          if (!market.source) failures.push('source missing');
+          if (p?.policy?.fabricatedMetrics !== false) failures.push('fabricatedMetrics policy is not false');
+          if (failures.length) {
+            console.error(`Market status trust gate failed: ${failures.join('; ')}`);
+            console.error(JSON.stringify({ overall: p?.overall, market, delivery: p?.delivery }, null, 2));
+            process.exit(1);
+          }
+          console.log(`Market status verified: ${market.assetCount} assets; source=${market.source}; ageMs=${market.ageMs}; readMode=${market.readMode}.`);
+          NODE
+
+      - name: Verify market quality contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          code="$(curl --location --silent --show-error \
+            --connect-timeout 10 --max-time 45 \
+            -H 'Accept: application/json' \
+            -H 'Cache-Control: no-cache' \
+            -o "$body" -w '%{http_code}' \
+            'https://kriptoaman.com/api/market-quality')"
+          test "$code" = "200"
+
+          node - "$body" <<'NODE'
+          const fs = require('fs');
+          const p = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          const failures = [];
+          if (p.healthy !== true) failures.push(`healthy=${p.healthy}`);
+          if (!['excellent', 'healthy'].includes(p.status)) failures.push(`status=${p.status}`);
+          if (!Number.isFinite(Number(p.score)) || Number(p.score) < 85) failures.push(`score=${p.score}`);
+          if (!Number.isFinite(Number(p.assetCount)) || Number(p.assetCount) < 4500) failures.push(`assetCount=${p.assetCount}`);
+          if (p?.freshness?.active !== true) failures.push(`active=${p?.freshness?.active}`);
+          if (!p.source) failures.push('source missing');
+          for (const key of ['nonPositivePrices', 'negativeMarketCaps', 'negativeVolumes']) {
+            if (Number(p?.anomalies?.[key] || 0) > 0) failures.push(`${key}=${p.anomalies[key]}`);
+          }
+          if (failures.length) {
+            console.error(`Market quality trust gate failed: ${failures.join('; ')}`);
+            console.error(JSON.stringify(p, null, 2));
+            process.exit(1);
+          }
+          console.log(`Market quality verified: score=${p.score}; status=${p.status}; assets=${p.assetCount}; source=${p.source}; ageMs=${p.ageMs}.`);
+          NODE
+
+      - name: Verify paged delivery remains customer-ready
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          code="$(curl --location --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            -H 'Accept: application/json' \
+            -o "$body" -w '%{http_code}' \
+            'https://kriptoaman.com/api/market-snapshot-page?page=1&limit=100')"
+          test "$code" = "200"
+          node - "$body" <<'NODE'
+          const fs = require('fs');
+          const p = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          if (!Array.isArray(p.data) || p.data.length < 50 || p.data.length > 100) process.exit(1);
+          if (!Number.isFinite(Number(p.totalAssets)) || Number(p.totalAssets) < 4500) process.exit(1);
+          if (p.delivery?.snapshotRead !== 'chunk-d1') process.exit(1);
+          console.log(`Paged customer delivery verified: pageAssets=${p.data.length}; totalAssets=${p.totalAssets}; read=${p.delivery?.snapshotRead}.`);
+          NODE
