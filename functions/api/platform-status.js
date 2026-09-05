@@ -6,6 +6,7 @@ const MIN_PUBLIC_MARKET_ASSETS = 4500;
 const MARKET_SNAPSHOT_FRESH_MS = 15 * 60 * 1000;
 const MARKET_SNAPSHOT_HEALTH_MAX_AGE_MS = MARKET_SNAPSHOT_FRESH_MS * 4;
 const COMPONENT_STATUS_TIMEOUT_MS = 850;
+const MARKET_STALE_REFRESH_TIMEOUT_MS = 20_000;
 
 const DURABLE_STATUS_SCHEMA = `
 CREATE TABLE IF NOT EXISTS platform_status_snapshots (
@@ -69,7 +70,7 @@ async function readMarketMetadata(env, origin) {
         const capturedAt = Number(row.captured_at);
         const ageMs = Number.isFinite(capturedAt) ? Math.max(0, Date.now() - capturedAt) : null;
         const stale = !Number.isFinite(ageMs) || ageMs > MARKET_SNAPSHOT_FRESH_MS;
-        return {
+        const directResult = {
           ok: true,
           status: 200,
           readMode: 'd1-direct',
@@ -84,6 +85,38 @@ async function readMarketMetadata(env, origin) {
             ageMs,
             stale,
           },
+        };
+
+        if (!stale) return directResult;
+
+        const refreshed = await readJson(
+          `${origin}/api/market-snapshot?health=1&refresh=1`,
+          MARKET_STALE_REFRESH_TIMEOUT_MS,
+        );
+        const refreshedAssetCount = Number(refreshed.payload?.assetCount);
+        const refreshVerified = Boolean(
+          refreshed.ok
+            && refreshed.payload?.healthy === true
+            && refreshed.payload?.stale === false
+            && Number.isFinite(refreshedAssetCount)
+            && refreshedAssetCount >= MIN_PUBLIC_MARKET_ASSETS,
+        );
+
+        if (refreshVerified) {
+          return {
+            ...refreshed,
+            readMode: 'http-refresh',
+            refreshAttempted: true,
+            refreshRecovered: true,
+          };
+        }
+
+        return {
+          ...directResult,
+          refreshAttempted: true,
+          refreshRecovered: false,
+          refreshError: refreshed.error
+            ?? (refreshed.ok ? 'refresh_unhealthy_or_stale' : `http_${refreshed.status || 0}`),
         };
       }
     } catch (error) {
@@ -226,6 +259,9 @@ async function buildStatus(request, env) {
       ageMs: market.ok && Number.isFinite(Number(market.payload?.ageMs)) ? Number(market.payload.ageMs) : null,
       stale: market.ok ? Boolean(market.payload?.stale) : null,
       readMode: market.readMode ?? null,
+      refreshAttempted: Boolean(market.refreshAttempted),
+      refreshRecovered: market.refreshAttempted ? Boolean(market.refreshRecovered) : null,
+      refreshError: market.refreshAttempted && !market.refreshRecovered ? market.refreshError ?? 'refresh_failed' : null,
     },
     networks: {
       status: networksHealthy ? (Number(networks.payload?.summary?.offline) > 0 ? 'degraded' : 'operational') : networks.ok ? 'degraded' : 'unavailable',
@@ -274,6 +310,8 @@ async function buildStatus(request, env) {
         marketOperationalMinAssets: MIN_PUBLIC_MARKET_ASSETS,
         marketOperationalRequiresFreshSnapshot: true,
         marketSnapshotFreshMs: MARKET_SNAPSHOT_FRESH_MS,
+        marketStaleSelfHeal: true,
+        marketStaleSelfHealTimeoutMs: MARKET_STALE_REFRESH_TIMEOUT_MS,
         directMarketMetadataRead: true,
         networkHealthyRequiresMinimumTarget: true,
       },
