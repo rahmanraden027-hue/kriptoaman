@@ -82,8 +82,9 @@ export function calculateDispersionBps(a, b) {
 }
 
 export function classifyConsensus(dispersionBps) {
+  if (dispersionBps === null || dispersionBps === undefined || dispersionBps === '') return 'insufficient';
   const bps = Number(dispersionBps);
-  if (!Number.isFinite(bps)) return 'insufficient';
+  if (!Number.isFinite(bps) || bps < 0) return 'insufficient';
   if (bps <= ALIGNED_MAX_BPS) return 'aligned';
   if (bps <= WATCH_MAX_BPS) return 'watch';
   return 'divergent';
