@@ -1,0 +1,66 @@
+name: KAM Explorer Host Apply
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type APPLY_EXPLORER_FRONTEND_ONLY to continue'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kam-explorer-host-apply
+  cancel-in-progress: false
+
+jobs:
+  apply-explorer-frontend:
+    if: ${{ github.event.inputs.confirm == 'APPLY_EXPLORER_FRONTEND_ONLY' }}
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 15
+    steps:
+      - name: Checkout reviewed source
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Verify Explorer host boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d /opt/blockscout/docker-compose
+          test -f /opt/blockscout/docker-compose/envs/common-frontend.env
+          test -x scripts/apply-kam-explorer-branding.sh || chmod +x scripts/apply-kam-explorer-branding.sh
+
+      - name: Capture pre-change public health
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          node scripts/diagnose-blockscout.mjs | tee artifacts/explorer-before.json
+
+      - name: Apply frontend-only Explorer presentation recovery
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/apply-kam-explorer-branding.sh | tee artifacts/explorer-apply.log
+
+      - name: Verify post-change public health
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/diagnose-blockscout.mjs | tee artifacts/explorer-after.json
+
+      - name: Upload deployment evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: kam-explorer-host-apply-${{ github.run_id }}
+          path: artifacts/*
+          if-no-files-found: error
+          retention-days: 30
