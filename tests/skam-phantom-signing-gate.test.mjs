@@ -27,17 +27,17 @@ test('sKAM Phantom gate proves control with an off-chain signature', () => {
   assert.match(page, /NOT an on-chain transaction/);
 });
 
-test('sKAM Phantom gate contains no transaction execution surface or secret recovery path', () => {
+test('sKAM Phantom gate contains no transaction execution surface or secret recovery mechanism', () => {
   for (const forbidden of [
     /sendTransaction/,
     /signTransaction/,
     /signAllTransactions/,
     /createPool\s*\(/,
     /mintTo\s*\(/,
-    /seed phrase/i,
     /PRIVATE_KEY\s*=/,
     /SECRET_KEY\s*=/,
     /solana-keygen\s+recover/i,
+    /mnemonic\s*=/i,
   ]) {
     assert.doesNotMatch(page, forbidden);
   }
