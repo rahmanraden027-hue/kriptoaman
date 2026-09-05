@@ -27,8 +27,10 @@ test('market warm workflow verifies machine-readable quality endpoint', async ()
   assert.match(workflow, /negativeMarketCaps/);
 });
 
-test('market warm workflow has multiple refresh opportunities inside primary freshness window', async () => {
+test('market warm workflow preserves staggered non-cancelling refresh safety while verifying quality', async () => {
   const workflow = await read('.github/workflows/market-snapshot-warm.yml');
-  assert.match(workflow, /3,11,19,27,35,43,51,59/);
-  assert.match(workflow, /cancel-in-progress:\s*true/);
+  assert.match(workflow, /3,13,23,33,43,53/);
+  assert.match(workflow, /cancel-in-progress:\s*false/);
+  assert.match(workflow, /health=1&refresh=1/);
+  assert.match(workflow, /Verify market data quality contract/);
 });
