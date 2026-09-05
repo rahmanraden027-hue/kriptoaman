@@ -1,0 +1,17 @@
+{
+  "name": "kriptoaman-solana-liquidity-ops",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "pool:create": "node create-raydium-pool.mjs",
+    "swap:smoke": "node smoke-swap.mjs",
+    "dexscreener:verify": "node verify-dexscreener.mjs"
+  },
+  "dependencies": {
+    "@raydium-io/raydium-sdk-v2": "0.2.42-alpha",
+    "@solana/web3.js": "^1.98.0",
+    "bn.js": "^5.2.1",
+    "decimal.js": "^10.6.0",
+    "dotenv": "^16.6.1"
+  }
+}
