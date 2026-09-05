@@ -11,11 +11,11 @@ function fail(message) {
 }
 
 const args = process.argv.slice(2);
-if (args.length < 6 || args.length > 6) {
+if (args.length !== 6) {
   fail('Usage: node assemble-four-host-topology-evidence.mjs <validator1.json> <validator2.json> <validator3.json> <validator4.json> <rpc-sentry.json> <output.json>');
 }
 
-const [validator1Path, validator2Path, validator3Path, validator4Path, sentryPath, outputPath] = args.map(resolve);
+const [validator1Path, validator2Path, validator3Path, validator4Path, sentryPath, outputPath] = args.map((value) => resolve(value));
 
 async function load(path) {
   const raw = await readFile(path, 'utf8').catch((error) => fail(`Unable to read ${path}: ${error.message}`));
