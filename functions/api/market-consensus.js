@@ -61,7 +61,7 @@ async function fetchJson(url, { provider, headers = {} } = {}) {
     const response = await fetch(url, {
       headers: {
         Accept: 'application/json',
-        'User-Agent': 'KriptoAman-Market-Consensus/1.0',
+        'User-Agent': 'KriptoAman-Market-Consensus/1.1',
         ...headers,
       },
       signal: controller.signal,
@@ -149,6 +149,32 @@ function normalizeCoinGecko(payload, retrievedAt) {
   return bySymbol;
 }
 
+export function normalizeCoinbaseExchangeRates(payload, retrievedAt) {
+  const rates = payload?.data?.rates && typeof payload.data.rates === 'object'
+    ? payload.data.rates
+    : {};
+  const base = String(payload?.data?.currency || '').toUpperCase();
+  if (base !== 'USD') return new Map();
+
+  const bySymbol = new Map();
+  for (const spec of ASSETS) {
+    const unitsPerUsd = Number(rates[spec.symbol]);
+    if (!Number.isFinite(unitsPerUsd) || unitsPerUsd <= 0) continue;
+    const price = 1 / unitsPerUsd;
+    if (!Number.isFinite(price) || price <= 0) continue;
+    bySymbol.set(spec.symbol, {
+      provider: 'coinbase',
+      providerAssetId: `${spec.symbol}-USD-exchange-rate`,
+      symbol: spec.symbol,
+      price,
+      observedAt: retrievedAt,
+      retrievedAt,
+      timestampType: 'retrieved',
+    });
+  }
+  return bySymbol;
+}
+
 async function fetchCoinLore() {
   const retrievedAt = Date.now();
   const payload = await fetchJson('https://api.coinlore.net/api/tickers/?start=0&limit=200', {
@@ -183,6 +209,22 @@ async function fetchCoinGecko(env = {}) {
   };
 }
 
+async function fetchCoinbaseExchangeRates() {
+  const retrievedAt = Date.now();
+  const payload = await fetchJson('https://api.coinbase.com/v2/exchange-rates?currency=USD', {
+    provider: 'Coinbase Data API',
+  });
+  const observations = normalizeCoinbaseExchangeRates(payload, retrievedAt);
+  if (observations.size < CORE_SYMBOLS.size) {
+    throw new Error(`Coinbase Data API returned only ${observations.size} supported consensus assets`);
+  }
+  return {
+    provider: 'coinbase',
+    retrievedAt,
+    observations,
+  };
+}
+
 export function buildConsensus({ providerResults = [], now = Date.now() } = {}) {
   const successful = providerResults.filter((result) => result?.observations instanceof Map);
   const providerFailures = providerResults
@@ -199,7 +241,10 @@ export function buildConsensus({ providerResults = [], now = Date.now() } = {}) 
       }));
 
     const fresh = observations.filter((observation) => observation.ageMs <= MAX_OBSERVATION_AGE_MS);
-    const prices = fresh.map((observation) => Number(observation.price)).filter((price) => Number.isFinite(price) && price > 0);
+    const comparisonPair = fresh.slice(0, 2);
+    const prices = comparisonPair
+      .map((observation) => Number(observation.price))
+      .filter((price) => Number.isFinite(price) && price > 0);
     const referencePrice = prices.length >= 2
       ? Math.round(((prices[0] + prices[1]) / 2) * 1e12) / 1e12
       : null;
@@ -219,6 +264,7 @@ export function buildConsensus({ providerResults = [], now = Date.now() } = {}) 
       comparisonOnly: true,
       providerCount: fresh.length,
       observations,
+      referenceProviderPair: comparisonPair.map((observation) => observation.provider),
       referencePrice,
       referenceSemantics: referencePrice === null
         ? 'unavailable-without-two-fresh-independent-observations'
@@ -239,7 +285,7 @@ export function buildConsensus({ providerResults = [], now = Date.now() } = {}) 
   const status = healthy ? (watchCore.length ? 'watch' : 'aligned') : 'degraded';
 
   return {
-    schemaVersion: '1.0',
+    schemaVersion: '1.1',
     healthy,
     status,
     generatedAt: Number(now),
@@ -262,21 +308,35 @@ export function buildConsensus({ providerResults = [], now = Date.now() } = {}) 
     policy: {
       replacesCustomerMarketPrice: false,
       crossProviderIdentityReconciliation: 'explicit-core-map-only',
-      averagingPolicy: 'No provider observations are overwritten. The arithmetic midpoint is exposed only as a comparison reference when two fresh independent observations exist.',
+      providerPreference: 'CoinLore + CoinGecko; Coinbase Data API is fetched only when the primary pair cannot provide complete two-source core coverage.',
+      averagingPolicy: 'No provider observations are overwritten. At most the first two fresh independent observations in provider-preference order are used for an arithmetic midpoint comparison reference.',
       stablecoinPolicy: 'Observed prices are never forced to USD 1.00. Peg status is derived from fresh provider observations and withheld when provider consensus is unreliable.',
       interpretation: 'Operational cross-provider market-data agreement only; not investment advice, valuation, best execution, or a guaranteed tradable price.',
     },
   };
 }
 
+function settledProviderResult(result, provider) {
+  if (result.status === 'fulfilled') return result.value;
+  return { provider, error: result.reason?.message || String(result.reason) };
+}
+
 export async function onRequestGet({ env }) {
   const requestId = crypto.randomUUID();
-  const settled = await Promise.allSettled([fetchCoinLore(), fetchCoinGecko(env)]);
-  const providerResults = settled.map((result, index) => {
-    const provider = index === 0 ? 'coinlore' : 'coingecko';
-    if (result.status === 'fulfilled') return result.value;
-    return { provider, error: result.reason?.message || String(result.reason) };
-  });
+  const primarySettled = await Promise.allSettled([fetchCoinLore(), fetchCoinGecko(env)]);
+  const providerResults = [
+    settledProviderResult(primarySettled[0], 'coinlore'),
+    settledProviderResult(primarySettled[1], 'coingecko'),
+  ];
+
+  const primaryConsensus = buildConsensus({ providerResults });
+  if (!primaryConsensus.coreCoverage.complete) {
+    try {
+      providerResults.push(await fetchCoinbaseExchangeRates());
+    } catch (error) {
+      providerResults.push({ provider: 'coinbase', error: error?.message || String(error) });
+    }
+  }
 
   const consensus = buildConsensus({ providerResults });
   const hasAnyObservations = consensus.assets.some((asset) => asset.observations.length > 0);
