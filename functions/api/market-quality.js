@@ -22,6 +22,7 @@ const pct = (numerator, denominator) => denominator > 0
   : 0;
 
 const clamp100 = (value) => Math.max(0, Math.min(100, Number(value) || 0));
+const hasObservedValue = value => value !== null && value !== undefined && value !== '';
 
 function freshnessScore(ageMs) {
   if (!Number.isFinite(ageMs) || ageMs < 0) return 0;
@@ -50,6 +51,9 @@ export function scoreMarketQuality({ rows = [], capturedAt = 0, source = 'unknow
   let nonPositivePrices = 0;
   let negativeMarketCaps = 0;
   let negativeVolumes = 0;
+  let missingPrices = 0;
+  let missingMarketCaps = 0;
+  let missingVolumes = 0;
 
   for (const item of data) {
     const id = String(item?.id || '').trim();
@@ -66,20 +70,34 @@ export function scoreMarketQuality({ rows = [], capturedAt = 0, source = 'unknow
       else idSet.add(id);
     }
 
-    const price = Number(item?.current_price);
-    if (Number.isFinite(price) && price > 0) validPrice += 1;
-    else if (Number.isFinite(price) && price <= 0) nonPositivePrices += 1;
+    if (!hasObservedValue(item?.current_price)) {
+      missingPrices += 1;
+    } else {
+      const price = Number(item.current_price);
+      if (Number.isFinite(price) && price > 0) validPrice += 1;
+      else if (Number.isFinite(price) && price <= 0) nonPositivePrices += 1;
+    }
 
-    const marketCap = Number(item?.market_cap);
-    if (Number.isFinite(marketCap) && marketCap >= 0) validMarketCap += 1;
-    else if (Number.isFinite(marketCap) && marketCap < 0) negativeMarketCaps += 1;
+    if (!hasObservedValue(item?.market_cap)) {
+      missingMarketCaps += 1;
+    } else {
+      const marketCap = Number(item.market_cap);
+      if (Number.isFinite(marketCap) && marketCap >= 0) validMarketCap += 1;
+      else if (Number.isFinite(marketCap) && marketCap < 0) negativeMarketCaps += 1;
+    }
 
-    const volume = Number(item?.total_volume);
-    if (Number.isFinite(volume) && volume >= 0) validVolume += 1;
-    else if (Number.isFinite(volume) && volume < 0) negativeVolumes += 1;
+    if (!hasObservedValue(item?.total_volume)) {
+      missingVolumes += 1;
+    } else {
+      const volume = Number(item.total_volume);
+      if (Number.isFinite(volume) && volume >= 0) validVolume += 1;
+      else if (Number.isFinite(volume) && volume < 0) negativeVolumes += 1;
+    }
 
-    const change24h = Number(item?.price_change_percentage_24h);
-    if (Number.isFinite(change24h)) validChange24h += 1;
+    if (hasObservedValue(item?.price_change_percentage_24h)) {
+      const change24h = Number(item.price_change_percentage_24h);
+      if (Number.isFinite(change24h)) validChange24h += 1;
+    }
 
     if (String(item?.image || '').trim()) imageCoverage += 1;
   }
@@ -110,7 +128,7 @@ export function scoreMarketQuality({ rows = [], capturedAt = 0, source = 'unknow
   if (hardAnomaly && status === 'excellent') status = 'healthy';
 
   return {
-    schemaVersion: '1.0',
+    schemaVersion: '1.1',
     status,
     score: weightedScore,
     source,
@@ -127,6 +145,11 @@ export function scoreMarketQuality({ rows = [], capturedAt = 0, source = 'unknow
       volumeCompletenessPct: volumeScore,
       change24hCompletenessPct: pct(validChange24h, assetCount),
       imageCoveragePct: pct(imageCoverage, assetCount),
+    },
+    missing: {
+      prices: missingPrices,
+      marketCaps: missingMarketCaps,
+      volumes: missingVolumes,
     },
     anomalies: {
       duplicateSymbols,
