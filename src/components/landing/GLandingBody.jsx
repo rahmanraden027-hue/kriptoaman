@@ -28,7 +28,7 @@ const STEPS = [
 
 const FAQS = [
   { q: 'Apakah KriptoAman menjamin keamanan aset saya?', a: 'Tidak. KriptoAman adalah platform informasi, pemantauan, dan analisis risiko. Kami tidak menyimpan atau menjamin dana Anda. Selalu lakukan verifikasi mandiri.' },
-  { q: 'Apakah data statistik di halaman ini real-time?', a: 'Angka cakupan aset dan jaringan diambil dari health endpoint KriptoAman. Selama pemeriksaan live masih berlangsung, halaman menampilkan status pemeriksaan. Status terbatas hanya ditampilkan setelah verifikasi selesai dan data memang belum dapat dikonfirmasi.' },
+  { q: 'Apakah data statistik di halaman ini real-time?', a: 'Angka cakupan aset dan jaringan berasal dari endpoint health KriptoAman. Status Operasional berarti snapshot masih dalam jendela freshness utama. Pembaruan tertunda berarti snapshot terverifikasi terakhir masih tersedia namun pembaruan terbaru sedang berlangsung. Status Terbatas digunakan ketika data tidak lagi memenuhi batas penggunaan publik yang ditetapkan.' },
   { q: 'Apakah verifikasi transaksi menyatakan transaksi aman?', a: 'Tidak. Verifikasi hanya memeriksa status transaksi dan alamat melalui blockchain explorer. Status keamanan akhir tetap penilaian Anda sendiri.' },
   { q: 'Apakah saya perlu KYC untuk mulai?', a: 'Anda dapat menjelajah informasi publik tanpa akun. Fitur pribadi seperti dashboard memerlukan login.' },
 ];
@@ -41,8 +41,22 @@ export default function GLandingBody({ stats }) {
     ? new Date(stats.networkCheckedAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })
     : null;
 
-  const systemOk = Boolean(stats?.marketAvailable && stats.lastUpdated) &&
-    (Date.now() - new Date(stats.lastUpdated).getTime()) < 60 * 60 * 1000;
+  const marketDisplayStatus = stats?.loading
+    ? 'checking'
+    : stats?.marketStatus === 'operational'
+      ? 'operational'
+      : stats?.marketStatus === 'delayed'
+        ? 'delayed'
+        : 'limited';
+  const systemOk = marketDisplayStatus === 'operational';
+  const systemDelayed = marketDisplayStatus === 'delayed';
+  const marketStatusLabel = marketDisplayStatus === 'checking'
+    ? 'Memeriksa'
+    : marketDisplayStatus === 'operational'
+      ? 'Operasional'
+      : marketDisplayStatus === 'delayed'
+        ? 'Pembaruan tertunda'
+        : 'Terbatas';
   const verifiedNetworks = Array.isArray(stats?.networks)
     ? stats.networks.filter((network) => network?.status === 'online')
     : [];
@@ -58,7 +72,12 @@ export default function GLandingBody({ stats }) {
       : '—';
   const statusTimestampLabel = stats?.loading
     ? 'Memeriksa data live'
-    : (lastUpdated || 'Belum terverifikasi');
+    : (lastUpdated || 'Belum tersedia');
+  const marketStatusDescription = systemOk
+    ? 'Snapshot pasar terverifikasi berada dalam jendela freshness utama dan siap digunakan untuk informasi pasar.'
+    : systemDelayed
+      ? 'Snapshot terverifikasi terakhir tetap tersedia. Pembaruan terbaru sedang diproses dan waktu observasi terakhir ditampilkan secara terbuka.'
+      : 'Data pasar sedang dipulihkan atau belum memenuhi batas freshness dan cakupan publik. KriptoAman tidak mengganti data yang tidak tersedia dengan angka buatan.';
 
   return (
     <>
@@ -91,11 +110,12 @@ export default function GLandingBody({ stats }) {
               { label: 'Cakupan Aset Pasar', value: assetCountValue },
               { label: 'Jaringan Aktif', value: networkCountValue },
               { label: 'Mata Uang Tampilan', value: 'IDR / USD' },
-              { label: 'Status Data Pasar', value: stats.loading ? 'Memeriksa' : (systemOk ? 'Operasional' : 'Terbatas') },
+              { label: 'Status Data Pasar', value: marketStatusLabel },
             ].map((s) => (
               <div key={s.label} className="ka-stat-tile ka-card2 p-4">
                 <p className="ka-stat-value text-2xl font-extrabold">
                   {s.value === 'Operasional' ? <span className="ka-green">{s.value}</span> :
+                   s.value === 'Pembaruan tertunda' ? <span className="ka-gold">{s.value}</span> :
                    s.value === 'Terbatas' ? <span className="ka-gold">{s.value}</span> :
                    s.value === 'Memeriksa' ? <span className="ka-blue">{s.value}</span> :
                    <span className="ka-text2">{s.value}</span>}
@@ -105,7 +125,7 @@ export default function GLandingBody({ stats }) {
             ))}
           </div>
           <p className="text-[11px] ka-text2 mt-3 opacity-70">
-            Angka cakupan aset berasal dari snapshot Database Pasar KriptoAman. Jaringan Aktif hanya menghitung jaringan yang merespons pemeriksaan live terakhir.
+            Angka cakupan aset berasal dari snapshot Database Pasar KriptoAman. Jaringan Aktif hanya menghitung jaringan yang merespons pemeriksaan live terakhir. Status freshness dibedakan agar keterlambatan pembaruan tidak disamakan dengan kehilangan data.
           </p>
         </div>
       </section>
@@ -245,13 +265,13 @@ export default function GLandingBody({ stats }) {
             <div className="flex items-center gap-2">
               <span className={`w-2.5 h-2.5 rounded-full ${stats.loading ? 'bg-[var(--ka-blue)]' : systemOk ? 'bg-[var(--ka-green)]' : 'bg-[var(--ka-gold)]'} animate-pulse`} />
               <span className="text-sm font-semibold">
-                {stats.loading ? <span className="ka-blue">Memeriksa data live</span> : systemOk ? <span className="ka-green">Operasional</span> : <span className="ka-gold">Layanan data terbatas</span>}
+                {stats.loading ? <span className="ka-blue">Memeriksa data live</span> : systemOk ? <span className="ka-green">Operasional</span> : systemDelayed ? <span className="ka-gold">Pembaruan tertunda</span> : <span className="ka-gold">Layanan data terbatas</span>}
               </span>
               <span className="text-[11px] ka-text2">• {statusTimestampLabel}</span>
             </div>
           </div>
           <p className="text-[11px] ka-text2 mt-3 opacity-70">
-            Status memeriksa snapshot pasar internal dan health jaringan publik. Gangguan provider tidak mengubah data tersimpan terakhir yang masih tersedia.
+            {marketStatusDescription}
           </p>
         </div>
       </section>
