@@ -1,0 +1,43 @@
+name: sKAM Temporary Lockfile Refresh
+
+on:
+  push:
+    branches:
+      - feature/skam-onchain-mint-20260905
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-lockfile:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v7
+        with:
+          ref: feature/skam-onchain-mint-20260905
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Add official SPL Token dependency
+        run: npm install --save @solana/spl-token@0.4.15 --ignore-scripts
+
+      - name: Commit deterministic dependency files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package.json package-lock.json
+          if git diff --cached --quiet; then
+            echo 'Dependency files already current.'
+            exit 0
+          fi
+          git commit -m 'Deps: add official Solana SPL Token client'
+          git push origin HEAD:feature/skam-onchain-mint-20260905
