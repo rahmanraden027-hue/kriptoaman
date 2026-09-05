@@ -1,0 +1,120 @@
+name: Market Consensus Trust Gate
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'functions/api/market-consensus.js'
+      - 'tests/market-consensus.test.mjs'
+      - '.github/workflows/market-consensus-trust-gate.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'functions/api/market-consensus.js'
+      - 'tests/market-consensus.test.mjs'
+      - '.github/workflows/market-consensus-trust-gate.yml'
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: market-consensus-trust-production
+  cancel-in-progress: false
+
+jobs:
+  verify-cross-provider-consensus:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Verify live cross-provider consensus contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          code=""
+
+          for attempt in 1 2 3 4; do
+            code="$(curl --location --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              -H 'Accept: application/json' \
+              -H 'Cache-Control: no-cache' \
+              -o "$body" -w '%{http_code}' \
+              'https://kriptoaman.com/api/market-consensus')"
+            if [ "$code" = "200" ]; then
+              break
+            fi
+            if [ "$attempt" = "4" ]; then
+              echo "Consensus endpoint did not return HTTP 200 after retries; code=$code"
+              cat "$body" || true
+              exit 1
+            fi
+            sleep $((attempt * 15))
+          done
+
+          node - "$body" <<'NODE'
+          const fs = require('fs');
+          const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          const failures = [];
+          const warnings = [];
+          const requiredCore = ['BTC', 'ETH', 'BNB', 'SOL', 'XRP'];
+
+          if (payload.schemaVersion !== '1.0') failures.push(`schemaVersion=${payload.schemaVersion}`);
+          if (payload.providerCount < 2) failures.push(`providerCount=${payload.providerCount}`);
+          if (payload.coreCoverage?.complete !== true) failures.push('coreCoverage.complete is not true');
+          if (payload.policy?.replacesCustomerMarketPrice !== false) failures.push('consensus must not replace customer market price');
+          if (!/comparison reference/i.test(payload.policy?.averagingPolicy || '')) failures.push('comparison-only midpoint policy missing');
+          if (!/never forced/i.test(payload.policy?.stablecoinPolicy || '')) failures.push('stablecoin non-synthetic policy missing');
+          if (!Array.isArray(payload.assets)) failures.push('assets array missing');
+
+          for (const symbol of requiredCore) {
+            const asset = payload.assets?.find((item) => item?.symbol === symbol);
+            if (!asset) {
+              failures.push(`${symbol}: missing`);
+              continue;
+            }
+            if (Number(asset.providerCount) < 2) failures.push(`${symbol}: providerCount=${asset.providerCount}`);
+            if (!Array.isArray(asset.observations) || asset.observations.length < 2) failures.push(`${symbol}: raw provider observations missing`);
+            const providerSet = new Set((asset.observations || []).map((item) => item?.provider).filter(Boolean));
+            if (providerSet.size < 2) failures.push(`${symbol}: observations are not from two distinct providers`);
+            const fresh = (asset.observations || []).filter((item) => Number.isFinite(Number(item?.ageMs)) && Number(item.ageMs) <= 120000);
+            if (fresh.length < 2) failures.push(`${symbol}: fewer than two fresh observations`);
+            if (asset.referencePrice === null || asset.referencePrice === undefined) failures.push(`${symbol}: comparison reference missing`);
+            if (!/comparison-only-not-an-execution-price/.test(asset.referenceSemantics || '')) failures.push(`${symbol}: reference semantics missing`);
+            if (asset.consensusStatus === 'insufficient') failures.push(`${symbol}: insufficient consensus`);
+            if (asset.consensusStatus === 'divergent') failures.push(`${symbol}: provider divergence ${asset.dispersionBps} bps`);
+            if (asset.consensusStatus === 'watch') warnings.push(`${symbol}: watch ${asset.dispersionBps} bps`);
+          }
+
+          for (const symbol of ['USDT', 'USDC']) {
+            const asset = payload.assets?.find((item) => item?.symbol === symbol);
+            if (!asset) {
+              warnings.push(`${symbol}: not observed`);
+              continue;
+            }
+            if (asset.providerCount >= 2 && asset.referencePrice === 1 && asset.observations?.every((item) => Number(item.price) === 1)) {
+              warnings.push(`${symbol}: both providers currently report exactly 1.00; retain raw observations for verification`);
+            }
+            if (asset.stablecoinPeg === 'depeg-watch' || asset.stablecoinPeg === 'depeg-observed') {
+              warnings.push(`${symbol}: ${asset.stablecoinPeg} (${asset.pegDeviationBps} bps from USD 1 reference)`);
+            }
+            if (asset.stablecoinPeg === 'unreliable') warnings.push(`${symbol}: provider agreement unreliable`);
+          }
+
+          if (warnings.length) console.warn(`Consensus warnings: ${warnings.join('; ')}`);
+          if (failures.length) {
+            console.error(`Consensus trust gate failed: ${failures.join('; ')}`);
+            console.error(JSON.stringify({ status: payload.status, providerCount: payload.providerCount, coreCoverage: payload.coreCoverage }, null, 2));
+            process.exit(1);
+          }
+
+          console.log(`Consensus verified: status=${payload.status}; providers=${payload.providerCount}; core=${requiredCore.join(',')}.`);
+          for (const symbol of requiredCore) {
+            const asset = payload.assets.find((item) => item.symbol === symbol);
+            console.log(`${symbol}: ${asset.consensusStatus}; dispersion=${asset.dispersionBps}bps; providers=${asset.providerCount}`);
+          }
+          NODE
