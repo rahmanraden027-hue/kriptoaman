@@ -38,9 +38,11 @@ test('smoke tool is one explicit swap rather than a volume loop', () => {
   assert.doesNotMatch(text.smokeSwap, /wash|fake volume|manufactur(e|ing).*volume/i);
 });
 
-test('DEX Screener verifier is read-only public API verification', () => {
-  assert.ok(text.verifyDex.includes('https://api.dexscreener.com/token-pairs/v1/solana/'));
-  assert.doesNotMatch(text.verifyDex, /KEYPAIR|sendTransaction|signTransaction|secretKey/);
+test('DEX Screener verifier is read-only and enforces a fixed API origin', () => {
+  assert.match(text.verifyDex, /endpoint = new URL/);
+  assert.match(text.verifyDex, /endpoint\.origin/);
+  assert.match(text.verifyDex, /Unexpected DEX Screener API origin/);
+  assert.doesNotMatch(text.verifyDex, /KEYPAIR|sendTransaction|signTransaction|secretKey|writeFile/);
 });
 
 test('no recovery phrase/private key material is embedded in the launch pack', () => {
