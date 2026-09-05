@@ -4,7 +4,18 @@
  * Uses KriptoAman /api/market-hot as the centralized initial/fallback source so
  * browser clients do not expose provider API keys or fan out fallback traffic
  * directly to multiple public providers.
- * Returns: { prices: { BTC: { price, change24h, high24h, low24h, volume24h, tick } }, connected }
+ *
+ * Data-integrity rule:
+ * - never synthesize a market price when an observation is unavailable;
+ * - stablecoins must come from an observed provider/snapshot just like any asset.
+ *
+ * Returns: {
+ *   prices,
+ *   connected,
+ *   idrRate,
+ *   feedSource,
+ *   lastLiveUpdate,
+ * }
  */
 import { useState, useEffect, useRef } from 'react';
 
@@ -92,18 +103,18 @@ async function fetchHotSnapshot() {
   }
 }
 
-// IDR rate cache
+// IDR rate cache. This is a display-conversion helper, not an execution FX quote.
 let cachedIDR = 16200;
 let lastIDRFetch = 0;
 
 async function fetchIDRRate() {
   const now = Date.now();
-  if (now - lastIDRFetch < 5 * 60 * 1000) return cachedIDR; // cache 5 min
+  if (now - lastIDRFetch < 5 * 60 * 1000) return cachedIDR;
   try {
     const r = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
     const d = await r.json();
     if (d.rates?.IDR) { cachedIDR = d.rates.IDR; lastIDRFetch = now; }
-  } catch { /* use cached */ }
+  } catch { /* use last-known display conversion */ }
   return cachedIDR;
 }
 
@@ -111,6 +122,8 @@ export default function useLivePrices() {
   const [prices, setPrices] = useState(loadLiveCache);
   const [connected, setConnected] = useState(false);
   const [idrRate, setIdrRate] = useState(16200);
+  const [feedSource, setFeedSource] = useState('cache');
+  const [lastLiveUpdate, setLastLiveUpdate] = useState(null);
   const wsRef = useRef(null);
   const reconnectRef = useRef(null);
   const mountedRef = useRef(true);
@@ -128,7 +141,7 @@ export default function useLivePrices() {
     }
   }, [prices, idrRate]);
 
-  // Fetch IDR rate on mount and every 5 min
+  // Fetch IDR display rate on mount and every 5 min.
   useEffect(() => {
     fetchIDRRate().then(r => { if (mountedRef.current) setIdrRate(r); });
     const idrInterval = setInterval(() => {
@@ -137,8 +150,7 @@ export default function useLivePrices() {
     return () => clearInterval(idrInterval);
   }, []);
 
-  // Initial server-controlled price snapshot. This removes client-side provider
-  // API keys and gives the app a verified fallback before WebSocket data arrives.
+  // Initial server-controlled price snapshot.
   useEffect(() => {
     let cancelled = false;
 
@@ -146,6 +158,8 @@ export default function useLivePrices() {
       .then((initial) => {
         if (!cancelled && mountedRef.current && Object.keys(initial).length > 0) {
           setPrices(prev => ({ ...prev, ...initial }));
+          setFeedSource('kriptoaman-market-hot');
+          setLastLiveUpdate(Date.now());
         }
       })
       .catch(() => {
@@ -155,8 +169,10 @@ export default function useLivePrices() {
 
             const initial = {};
             cached.forEach(c => {
+              const price = Number(c.price);
+              if (!c.symbol || !Number.isFinite(price)) return;
               initial[c.symbol] = {
-                price: c.price,
+                price,
                 change24h: c.change24h,
                 volume24h: c.volume24h,
                 high24h: c.high24h,
@@ -169,7 +185,11 @@ export default function useLivePrices() {
               }
             });
 
-            setPrices(prev => ({ ...prev, ...initial }));
+            if (Object.keys(initial).length > 0) {
+              setPrices(prev => ({ ...prev, ...initial }));
+              setFeedSource('cached-price');
+              setLastLiveUpdate(Date.now());
+            }
           }).catch(() => {});
         }).catch(() => {});
       });
@@ -180,8 +200,6 @@ export default function useLivePrices() {
   }, []);
 
   // When WebSocket is unavailable, poll the edge-cached KriptoAman hot feed.
-  // At scale this keeps fallback traffic on KriptoAman edge/cache instead of
-  // multiplying public-provider requests from every browser session.
   useEffect(() => {
     if (connected) return undefined;
     const poll = () => {
@@ -189,6 +207,8 @@ export default function useLivePrices() {
         .then((next) => {
           if (mountedRef.current && Object.keys(next).length > 0) {
             setPrices(prev => ({ ...prev, ...next }));
+            setFeedSource('kriptoaman-market-hot');
+            setLastLiveUpdate(Date.now());
           }
         })
         .catch(() => {});
@@ -233,7 +253,7 @@ export default function useLivePrices() {
           const id = SYM_MAP[d.s.toLowerCase()];
           if (!id) return;
           const price = parseFloat(d.c);
-          if (isNaN(price)) return;
+          if (!Number.isFinite(price)) return;
 
           setPrices(prev => ({
             ...prev,
@@ -246,6 +266,8 @@ export default function useLivePrices() {
               tick: prev[id]?.price ? (price > prev[id].price ? 'up' : price < prev[id].price ? 'down' : null) : null,
             },
           }));
+          setFeedSource('binance-websocket');
+          setLastLiveUpdate(lastMessageRef.current);
         } catch {
           // Ignore malformed messages; the watchdog still tracks socket activity.
         }
@@ -297,27 +319,5 @@ export default function useLivePrices() {
     };
   }, []);
 
-  if (!prices.USDT) {
-    prices.USDT = {
-      price: 1,
-      change24h: 0,
-      high24h: 1,
-      low24h: 1,
-      volume24h: 0,
-      tick: 'same',
-    };
-  }
-
-  if (!prices.USDC) {
-    prices.USDC = {
-      price: 1,
-      change24h: 0,
-      high24h: 1,
-      low24h: 1,
-      volume24h: 0,
-      tick: 'same',
-    };
-  }
-
-  return { prices, connected, idrRate };
+  return { prices, connected, idrRate, feedSource, lastLiveUpdate };
 }
