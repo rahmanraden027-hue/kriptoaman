@@ -1,0 +1,28 @@
+{
+  "scanIntervalMs": 30000,
+  "requestDelayMs": 1100,
+  "probeAmountUi": "0.01",
+  "slippageBps": 30,
+  "maxPriceImpactPct": 1.0,
+  "executionCostBps": 20,
+  "minNetProfitBps": 50,
+  "opportunityLogPath": "var/market-edge-opportunities.jsonl",
+  "venues": [
+    "Raydium CPMM",
+    "Orca Whirlpool",
+    "Meteora DLMM"
+  ],
+  "markets": [
+    {
+      "symbol": "sKAM",
+      "mint": "Dw9xf7EmMH5dD7rdqkFbzjJtcAWk4KXLBAXUkSRcLSLi",
+      "decimals": 9,
+      "baseSymbol": "SOL",
+      "baseMint": "So11111111111111111111111111111111111111112",
+      "baseDecimals": 9,
+      "probeAmountUi": "0.002",
+      "maxPriceImpactPct": 0.75,
+      "minNetProfitBps": 100
+    }
+  ]
+}
