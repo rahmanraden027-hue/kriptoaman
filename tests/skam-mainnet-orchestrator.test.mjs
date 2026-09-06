@@ -15,12 +15,12 @@ test('sKAM mainnet orchestrator is fail-closed behind all irreversible gates', (
 });
 
 test('sKAM mainnet orchestrator pins approved public identity and canonical WSOL', () => {
-  assert.match(launcher, /5Fg4FVvyvSRLMapHdYVZzUCbhC8CWdENF77AfGPVAfpK/);
-  assert.match(launcher, /Solana KAM/);
-  assert.match(launcher, /EXPECTED_SYMBOL="sKAM"/);
-  assert.match(launcher, /EXPECTED_SUPPLY="1000000000"/);
-  assert.match(launcher, /So11111111111111111111111111111111111111112/);
-  assert.match(launcher, /https:\/\/kriptoaman\.com\/token\/skam\.json/);
+  assert.ok(launcher.includes('5Fg4FVvyvSRLMapHdYVZzUCbhC8CWdENF77AfGPVAfpK'));
+  assert.ok(launcher.includes('Solana KAM'));
+  assert.ok(launcher.includes('EXPECTED_SYMBOL="sKAM"'));
+  assert.ok(launcher.includes('EXPECTED_SUPPLY="1000000000"'));
+  assert.ok(launcher.includes('So11111111111111111111111111111111111111112'));
+  assert.ok(launcher.includes('https://kriptoaman.com/token/skam.json'));
 });
 
 test('orchestrator keeps smoke trade deliberately small and singular', () => {
