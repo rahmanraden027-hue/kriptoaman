@@ -27,10 +27,13 @@ test('sKAM mainnet orchestrator pins approved public identity and canonical WSOL
   assert.ok(launcher.includes('https://kriptoaman.com/token/skam.json'));
 });
 
-test('Termux launch path is Node-only and does not require Solana native CLI binaries', () => {
+test('Termux launch path is Node-only and does not execute Solana native CLI binaries', () => {
   assert.match(launcher, /node create-token-2022\.mjs/);
   assert.match(launcher, /Execution mode: Node\.js only/);
-  assert.doesNotMatch(launcher, /solana address|spl-token\s/);
+  assert.doesNotMatch(launcher, /^\s*solana(?:\s|$)/m);
+  assert.doesNotMatch(launcher, /^\s*spl-token(?:\s|$)/m);
+  assert.doesNotMatch(launcher, /command\s+-v\s+solana/);
+  assert.doesNotMatch(launcher, /command\s+-v\s+spl-token/);
   assert.equal(pkg.dependencies['@solana/spl-token'], '0.4.15');
   assert.equal(pkg.dependencies['@solana/spl-token-metadata'], '0.1.6');
 });
@@ -40,6 +43,8 @@ test('Node Token-2022 creator uses metadata pointer, checked minting and approve
   assert.match(nodeMint, /createInitializeMintInstruction/);
   assert.match(nodeMint, /createInitializeInstruction/);
   assert.match(nodeMint, /createMintToCheckedInstruction/);
+  assert.match(nodeMint, /TLV_TYPE_SIZE = 2/);
+  assert.match(nodeMint, /TLV_LENGTH_SIZE = 2/);
   assert.match(nodeMint, /Signer mismatch/);
   assert.match(nodeMint, /rawSupply > 18_446_744_073_709_551_615n/);
   assert.match(nodeMint, /skipPreflight:\s*false/);
