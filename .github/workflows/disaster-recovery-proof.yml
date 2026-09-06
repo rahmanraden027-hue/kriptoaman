@@ -7,13 +7,20 @@ on:
       - 'functions/api/market-hot.js'
       - 'functions/api/market-snapshot.js'
       - 'functions/api/market-snapshot-page.js'
+      - 'functions/api/market-benchmark-history.js'
       - 'functions/api/network-health.js'
       - 'functions/_shared/d1-session.js'
       - 'src/components/home/HomeMarketMovers.jsx'
+      - 'src/components/home/HomePortfolioPerformance.jsx'
+      - 'src/components/home/WhaleAlertCard.jsx'
+      - 'src/components/market/MarketOverviewWidget.jsx'
+      - 'src/components/wallet/useMarketData.jsx'
+      - 'src/lib/readOnlyMarketPrices.js'
       - 'src/lib/aiIntelligence.js'
       - 'src/components/home/AIInsightCard.jsx'
       - 'tests/disaster-recovery-simulation.test.mjs'
       - 'tests/data-resilience-v3.test.mjs'
+      - 'tests/data-resilience-v3-phase2.test.mjs'
       - 'docs/DATA_RESILIENCE_V3.md'
       - '.github/workflows/disaster-recovery-proof.yml'
   push:
@@ -22,13 +29,20 @@ on:
       - 'functions/api/market-hot.js'
       - 'functions/api/market-snapshot.js'
       - 'functions/api/market-snapshot-page.js'
+      - 'functions/api/market-benchmark-history.js'
       - 'functions/api/network-health.js'
       - 'functions/_shared/d1-session.js'
       - 'src/components/home/HomeMarketMovers.jsx'
+      - 'src/components/home/HomePortfolioPerformance.jsx'
+      - 'src/components/home/WhaleAlertCard.jsx'
+      - 'src/components/market/MarketOverviewWidget.jsx'
+      - 'src/components/wallet/useMarketData.jsx'
+      - 'src/lib/readOnlyMarketPrices.js'
       - 'src/lib/aiIntelligence.js'
       - 'src/components/home/AIInsightCard.jsx'
       - 'tests/disaster-recovery-simulation.test.mjs'
       - 'tests/data-resilience-v3.test.mjs'
+      - 'tests/data-resilience-v3-phase2.test.mjs'
       - 'docs/DATA_RESILIENCE_V3.md'
       - '.github/workflows/disaster-recovery-proof.yml'
   workflow_dispatch:
@@ -46,7 +60,7 @@ jobs:
         with:
           node-version: '22'
       - name: Simulate provider RPC AI and long-duration market failures
-        run: node --test tests/disaster-recovery-simulation.test.mjs tests/data-resilience-v3.test.mjs
+        run: node --test tests/disaster-recovery-simulation.test.mjs tests/data-resilience-v3.test.mjs tests/data-resilience-v3-phase2.test.mjs
       - name: Verify production remains read-only healthy
         shell: bash
         run: |
