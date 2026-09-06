@@ -1,0 +1,63 @@
+{
+  "scanIntervalMs": 30000,
+  "requestDelayMs": 1500,
+  "probeAmountUi": "0.01",
+  "slippageBps": 30,
+  "maxPriceImpactPct": 0.5,
+  "executionCostBps": 20,
+  "minNetProfitBps": 50,
+  "noRouteCooldownMs": 900000,
+  "observationLogPath": "var/market-edge-observations.jsonl",
+  "opportunityLogPath": "var/market-edge-opportunities.jsonl",
+  "venues": [
+    "Raydium CP",
+    "Orca V2",
+    "Meteora DLMM"
+  ],
+  "markets": [
+    {
+      "symbol": "USDC",
+      "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "decimals": 6,
+      "baseSymbol": "SOL",
+      "baseMint": "So11111111111111111111111111111111111111112",
+      "baseDecimals": 9,
+      "probeAmountUi": "0.01",
+      "maxPriceImpactPct": 0.3,
+      "minNetProfitBps": 50
+    },
+    {
+      "symbol": "JUP",
+      "mint": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+      "decimals": 6,
+      "baseSymbol": "SOL",
+      "baseMint": "So11111111111111111111111111111111111111112",
+      "baseDecimals": 9,
+      "probeAmountUi": "0.01",
+      "maxPriceImpactPct": 0.3,
+      "minNetProfitBps": 50
+    },
+    {
+      "symbol": "RAY",
+      "mint": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+      "decimals": 6,
+      "baseSymbol": "SOL",
+      "baseMint": "So11111111111111111111111111111111111111112",
+      "baseDecimals": 9,
+      "probeAmountUi": "0.01",
+      "maxPriceImpactPct": 0.3,
+      "minNetProfitBps": 50
+    },
+    {
+      "symbol": "BONK",
+      "mint": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+      "decimals": 5,
+      "baseSymbol": "SOL",
+      "baseMint": "So11111111111111111111111111111111111111112",
+      "baseDecimals": 9,
+      "probeAmountUi": "0.01",
+      "maxPriceImpactPct": 0.3,
+      "minNetProfitBps": 50
+    }
+  ]
+}
