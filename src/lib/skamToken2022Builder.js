@@ -10,6 +10,7 @@ export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZb
 export const SKAM_NAME = 'Solana KAM';
 export const SKAM_SYMBOL = 'sKAM';
 export const SKAM_METADATA_URI = 'https://kriptoaman.com/token/skam.json';
+export const SKAM_MINT_SEED = 'kriptoaman-skam-v1';
 export const SKAM_DECIMALS = 9;
 export const SKAM_SUPPLY_UI = 1_000_000_000n;
 export const SKAM_RAW_SUPPLY = SKAM_SUPPLY_UI * 10n ** BigInt(SKAM_DECIMALS);
@@ -65,7 +66,6 @@ async function discriminator(text) {
 }
 
 export function metadataPackedLength({ name = SKAM_NAME, symbol = SKAM_SYMBOL, uri = SKAM_METADATA_URI } = {}) {
-  // TokenMetadata state: updateAuthority(32) + mint(32) + three Borsh strings + Vec<(String,String)> length(4).
   return 32 + 32
     + 4 + new TextEncoder().encode(name).length
     + 4 + new TextEncoder().encode(symbol).length
@@ -74,20 +74,18 @@ export function metadataPackedLength({ name = SKAM_NAME, symbol = SKAM_SYMBOL, u
 }
 
 export function mintBaseSpaceWithMetadataPointer() {
-  // Mirrors getMintLen([ExtensionType.MetadataPointer]): extended mint accounts use
-  // ACCOUNT_SIZE (165), an account-type byte, and TLV(type + length + 64-byte pointer state).
   return ACCOUNT_SIZE + ACCOUNT_TYPE_SIZE + TLV_TYPE_SIZE + TLV_LENGTH_SIZE + METADATA_POINTER_STATE_SIZE;
 }
 
 export function mintRentSpace() {
-  // The account is created at mintBaseSpaceWithMetadataPointer(), while rent is funded for
-  // the final TokenMetadata TLV size because Token-2022 reallocates the mint during metadata init.
   return mintBaseSpaceWithMetadataPointer() + TLV_TYPE_SIZE + TLV_LENGTH_SIZE + metadataPackedLength();
 }
 
+export async function deriveSkamMintAddress(owner) {
+  return PublicKey.createWithSeed(owner, SKAM_MINT_SEED, TOKEN_2022_PROGRAM_ID);
+}
+
 export function createInitializeMetadataPointerInstruction(mint, authority) {
-  // MetadataPointer::Initialize data is outer TokenInstruction(39), inner instruction(0),
-  // authority OptionalNonZeroPubkey(32), metadataAddress OptionalNonZeroPubkey(32).
   const data = concatBytes(
     Uint8Array.of(TOKEN_INSTRUCTION_METADATA_POINTER_EXTENSION, METADATA_POINTER_INITIALIZE),
     authority.toBytes(),
@@ -101,8 +99,8 @@ export function createInitializeMetadataPointerInstruction(mint, authority) {
 }
 
 export function createInitializeMint2Instruction(mint, authority) {
-  // TokenInstruction::InitializeMint2 packing is:
-  // 20, decimals, mintAuthority(32), COption<Pubkey> where Some = 1 byte tag + 32-byte key.
+  // Official TokenInstruction packing: tag 20, decimals, mintAuthority(32),
+  // then COption<Pubkey>; Some is a one-byte 1 tag followed by the 32-byte key.
   const data = concatBytes(
     Uint8Array.of(TOKEN_INSTRUCTION_INITIALIZE_MINT_2, SKAM_DECIMALS),
     authority.toBytes(),
@@ -136,21 +134,6 @@ export async function createInitializeTokenMetadataInstruction(mint, authority) 
   });
 }
 
-export async function buildCreateMintTransaction({ owner, mint, lamports, blockhash }) {
-  return new Transaction({ feePayer: owner, recentBlockhash: blockhash }).add(
-    SystemProgram.createAccount({
-      fromPubkey: owner,
-      newAccountPubkey: mint,
-      lamports,
-      space: mintBaseSpaceWithMetadataPointer(),
-      programId: TOKEN_2022_PROGRAM_ID,
-    }),
-    createInitializeMetadataPointerInstruction(mint, owner),
-    createInitializeMint2Instruction(mint, owner),
-    await createInitializeTokenMetadataInstruction(mint, owner),
-  );
-}
-
 export function getAssociatedTokenAddress(mint, owner) {
   return PublicKey.findProgramAddressSync(
     [owner.toBuffer(), TOKEN_2022_PROGRAM_ID.toBuffer(), mint.toBuffer()],
@@ -169,7 +152,6 @@ export function createAssociatedTokenAccountInstruction({ payer, ata, owner, min
       { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
       { pubkey: TOKEN_2022_PROGRAM_ID, isSigner: false, isWritable: false },
     ],
-    // The legacy Associated Token Program Create instruction is encoded as empty data.
     data: new Uint8Array(),
   });
 }
@@ -191,21 +173,15 @@ export function createMintToCheckedInstruction({ mint, ata, authority }) {
   });
 }
 
-export function buildMintSupplyTransaction({ owner, mint, blockhash }) {
+export async function buildAtomicSkamMintTransaction({ owner, lamports, blockhash }) {
+  const mint = await deriveSkamMintAddress(owner);
   const ata = getAssociatedTokenAddress(mint, owner);
   const transaction = new Transaction({ feePayer: owner, recentBlockhash: blockhash }).add(
-    createAssociatedTokenAccountInstruction({ payer: owner, ata, owner, mint }),
-    createMintToCheckedInstruction({ mint, ata, authority: owner }),
-  );
-  return { transaction, ata };
-}
-
-export async function buildAtomicSkamMintTransaction({ owner, mint, lamports, blockhash }) {
-  const ata = getAssociatedTokenAddress(mint, owner);
-  const transaction = new Transaction({ feePayer: owner, recentBlockhash: blockhash }).add(
-    SystemProgram.createAccount({
+    SystemProgram.createAccountWithSeed({
       fromPubkey: owner,
       newAccountPubkey: mint,
+      basePubkey: owner,
+      seed: SKAM_MINT_SEED,
       lamports,
       space: mintBaseSpaceWithMetadataPointer(),
       programId: TOKEN_2022_PROGRAM_ID,
@@ -216,7 +192,7 @@ export async function buildAtomicSkamMintTransaction({ owner, mint, lamports, bl
     createAssociatedTokenAccountInstruction({ payer: owner, ata, owner, mint }),
     createMintToCheckedInstruction({ mint, ata, authority: owner }),
   );
-  return { transaction, ata };
+  return { transaction, mint, ata };
 }
 
 export function parseMintBase(data) {
