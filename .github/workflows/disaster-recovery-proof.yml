@@ -5,21 +5,31 @@ on:
     branches: [main]
     paths:
       - 'functions/api/market-hot.js'
+      - 'functions/api/market-snapshot.js'
+      - 'functions/api/market-snapshot-page.js'
       - 'functions/api/network-health.js'
       - 'functions/_shared/d1-session.js'
+      - 'src/components/home/HomeMarketMovers.jsx'
       - 'src/lib/aiIntelligence.js'
       - 'src/components/home/AIInsightCard.jsx'
       - 'tests/disaster-recovery-simulation.test.mjs'
+      - 'tests/data-resilience-v3.test.mjs'
+      - 'docs/DATA_RESILIENCE_V3.md'
       - '.github/workflows/disaster-recovery-proof.yml'
   push:
     branches: [main]
     paths:
       - 'functions/api/market-hot.js'
+      - 'functions/api/market-snapshot.js'
+      - 'functions/api/market-snapshot-page.js'
       - 'functions/api/network-health.js'
       - 'functions/_shared/d1-session.js'
+      - 'src/components/home/HomeMarketMovers.jsx'
       - 'src/lib/aiIntelligence.js'
       - 'src/components/home/AIInsightCard.jsx'
       - 'tests/disaster-recovery-simulation.test.mjs'
+      - 'tests/data-resilience-v3.test.mjs'
+      - 'docs/DATA_RESILIENCE_V3.md'
       - '.github/workflows/disaster-recovery-proof.yml'
   workflow_dispatch:
 
@@ -35,8 +45,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Simulate market provider RPC and AI failures
-        run: node --test tests/disaster-recovery-simulation.test.mjs
+      - name: Simulate provider RPC AI and long-duration market failures
+        run: node --test tests/disaster-recovery-simulation.test.mjs tests/data-resilience-v3.test.mjs
       - name: Verify production remains read-only healthy
         shell: bash
         run: |
