@@ -16,7 +16,6 @@ set -a
 source "$ENV_FILE"
 set +a
 
-TOKEN_2022_PROGRAM_ID="TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
 EXPECTED_OPERATOR="5Fg4FVvyvSRLMapHdYVZzUCbhC8CWdENF77AfGPVAfpK"
 EXPECTED_NAME="Solana KAM"
 EXPECTED_SYMBOL="sKAM"
@@ -63,7 +62,7 @@ set_env_value() {
   export "$key=$value"
 }
 
-for cmd in bash node npm solana spl-token awk grep tr mv sleep date; do
+for cmd in bash node npm awk grep mv sleep date; do
   command -v "$cmd" >/dev/null 2>&1 || { echo "Missing command: $cmd" >&2; exit 1; }
 done
 
@@ -99,14 +98,8 @@ assert_equal "Pool token reserve" "$POOL_BASE_UI" "$EXPECTED_POOL_BASE"
 assert_equal "Pool SOL reserve" "$POOL_QUOTE_UI" "$EXPECTED_POOL_QUOTE"
 
 if [[ ! -f "$KEYPAIR" ]]; then
-  echo "KEYPAIR must be an existing local file. Never copy a seed phrase/private key into chat, GitHub, or this repository." >&2
+  echo "KEYPAIR must be an existing local JSON keypair file. Never copy a seed phrase/private key into chat, GitHub, or this repository." >&2
   exit 1
-fi
-
-SIGNER="$(solana address --keypair "$KEYPAIR")"
-if [[ "$SIGNER" != "$EXPECTED_OPERATOR" ]]; then
-  echo "Signer mismatch. Expected $EXPECTED_OPERATOR, got $SIGNER." >&2
-  exit 3
 fi
 
 SMOKE_INPUT_UI="${SMOKE_INPUT_UI:-$DEFAULT_SMOKE_INPUT_UI}"
@@ -129,12 +122,45 @@ if ! [[ "$DEXSCREENER_RETRY_SECONDS" =~ ^[0-9]+$ ]] || (( DEXSCREENER_RETRY_SECO
   exit 1
 fi
 
+# Install/resolve JavaScript tooling before the first irreversible blockchain write.
+echo "=== PRELOAD NODE SOLANA + RAYDIUM TOOLING ==="
+npm install --no-audit --no-fund
+node --input-type=module <<'NODE'
+await Promise.all([
+  import('@raydium-io/raydium-sdk-v2'),
+  import('@solana/web3.js'),
+  import('@solana/spl-token'),
+  import('@solana/spl-token-metadata'),
+  import('bn.js'),
+  import('decimal.js'),
+]);
+console.log('Node Solana/Token-2022/Raydium dependencies resolved.');
+NODE
+for script in create-token-2022.mjs create-raydium-pool.mjs smoke-swap.mjs verify-dexscreener.mjs; do
+  node --check "$script"
+done
+
+# Resolve the local keypair to its public address using JS; no Solana CLI is required.
+SIGNER="$(node --input-type=module <<'NODE'
+import fs from 'node:fs';
+import { Keypair } from '@solana/web3.js';
+const secret = JSON.parse(fs.readFileSync(process.env.KEYPAIR, 'utf8'));
+if (!Array.isArray(secret) || secret.length !== 64) throw new Error('KEYPAIR is not a standard 64-byte Solana JSON keypair.');
+process.stdout.write(Keypair.fromSecretKey(Uint8Array.from(secret)).publicKey.toBase58());
+NODE
+)"
+if [[ "$SIGNER" != "$EXPECTED_OPERATOR" ]]; then
+  echo "Signer mismatch. Expected $EXPECTED_OPERATOR, got $SIGNER." >&2
+  exit 3
+fi
+
 echo "=== sKAM MAINNET LAUNCH GATE ==="
 echo "Signer: $SIGNER"
 echo "Token: $TOKEN_NAME ($TOKEN_SYMBOL)"
 echo "Supply: $TOKEN_SUPPLY"
 echo "Pool seed: $POOL_BASE_UI sKAM + $POOL_QUOTE_UI SOL"
 echo "Functional smoke input: $SMOKE_INPUT_UI SOL"
+echo "Execution mode: Node.js only; solana/spl-token CLI are not required."
 echo "No private key material will be printed or persisted by this launcher."
 
 # Verify public metadata and image before any write.
@@ -156,39 +182,31 @@ NODE
 # Read-only balance gate. It exits non-zero if the approved budget is not available.
 node check-wallet-readiness.mjs
 
-# Resolve and sanity-check all Raydium dependencies before the first irreversible write.
-echo "=== PRELOAD RAYDIUM TOOLING ==="
-npm install --no-audit --no-fund
-node --input-type=module <<'NODE'
-await Promise.all([
-  import('@raydium-io/raydium-sdk-v2'),
-  import('@solana/web3.js'),
-  import('bn.js'),
-  import('decimal.js'),
-]);
-console.log('Raydium launch dependencies resolved.');
-NODE
-node --check create-raydium-pool.mjs
-node --check smoke-swap.mjs
-node --check verify-dexscreener.mjs
-
 mkdir -p artifacts
 
 if [[ -z "${TOKEN_MINT:-}" ]]; then
-  echo "=== CREATE TOKEN-2022 MINT ==="
-  bash create-token-2022.sh "$ENV_FILE"
+  echo "=== CREATE TOKEN-2022 MINT (NODE) ==="
+  node create-token-2022.mjs
   # shellcheck disable=SC1091
   source artifacts/solana-token.env
   require TOKEN_MINT
   set_env_value TOKEN_MINT "$TOKEN_MINT"
 else
-  echo "TOKEN_MINT already configured; verifying existing mint instead of creating a second token."
-  spl-token --url "$RPC_URL" --program-id "$TOKEN_2022_PROGRAM_ID" display "$TOKEN_MINT"
-  ONCHAIN_SUPPLY="$(spl-token --url "$RPC_URL" --program-id "$TOKEN_2022_PROGRAM_ID" supply "$TOKEN_MINT" | tr -d '[:space:]')"
-  if [[ "$ONCHAIN_SUPPLY" != "$EXPECTED_SUPPLY" ]]; then
-    echo "Existing TOKEN_MINT supply mismatch. Expected $EXPECTED_SUPPLY, got $ONCHAIN_SUPPLY." >&2
-    exit 4
-  fi
+  echo "TOKEN_MINT already configured; verifying existing Token-2022 mint instead of creating a second token."
+  node --input-type=module <<'NODE'
+import { Connection, PublicKey } from '@solana/web3.js';
+import { TOKEN_2022_PROGRAM_ID, getMint } from '@solana/spl-token';
+const connection = new Connection(process.env.RPC_URL, 'confirmed');
+const mintAddress = new PublicKey(process.env.TOKEN_MINT);
+const mint = await getMint(connection, mintAddress, 'confirmed', TOKEN_2022_PROGRAM_ID);
+const decimals = Number(process.env.TOKEN_DECIMALS);
+const expectedRaw = BigInt(process.env.TOKEN_SUPPLY) * (10n ** BigInt(decimals));
+if (mint.decimals !== decimals) throw new Error(`Existing TOKEN_MINT decimals mismatch: ${mint.decimals}`);
+if (mint.supply !== expectedRaw) throw new Error(`Existing TOKEN_MINT raw supply mismatch: ${mint.supply.toString()}`);
+const expectedAuthority = process.env.OPERATOR_PUBLIC_ADDRESS;
+if (mint.mintAuthority?.toBase58() !== expectedAuthority) throw new Error('Existing TOKEN_MINT mint authority is not the approved operator.');
+console.log(JSON.stringify({ mint: mintAddress.toBase58(), decimals: mint.decimals, rawSupply: mint.supply.toString(), mintAuthority: mint.mintAuthority?.toBase58() ?? null, freezeAuthority: mint.freezeAuthority?.toBase58() ?? null }, null, 2));
+NODE
 fi
 
 echo "Confirmed TOKEN_MINT=$TOKEN_MINT"
