@@ -1,7 +1,20 @@
 import { useMemo, useState } from 'react';
-import { PublicKey } from '@solana/web3.js';
+import { Connection, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import { ed25519 } from '@noble/curves/ed25519';
-import { CheckCircle2, CircleAlert, ExternalLink, Loader2, ShieldCheck, WalletCards } from 'lucide-react';
+import { CheckCircle2, CircleAlert, Coins, ExternalLink, Loader2, ShieldCheck, WalletCards } from 'lucide-react';
+import {
+  SKAM_DECIMALS,
+  SKAM_METADATA_URI,
+  SKAM_MINT_SEED,
+  SKAM_NAME,
+  SKAM_RAW_SUPPLY,
+  SKAM_SUPPLY_UI,
+  SKAM_SYMBOL,
+  buildAtomicSkamMintTransaction,
+  deriveSkamMintAddress,
+  mintRentSpace,
+  verifySkamMintAccount,
+} from '@/lib/skamToken2022Builder';
 
 const APPROVED_WALLET = '5Fg4FVvyvSRLMapHdYVZzUCbhC8CWdENF77AfGPVAfpK';
 const MIN_PLANNED_SOL = 0.44;
@@ -9,6 +22,9 @@ const LIQUIDITY_SOL = 0.2;
 const POOL_TOKEN_AMOUNT = 1_000_000;
 const TOTAL_SUPPLY = 1_000_000_000;
 const WSOL_MINT = 'So11111111111111111111111111111111111111112';
+const RPC_URLS = ['https://solana-rpc.publicnode.com', 'https://api.mainnet-beta.solana.com'];
+const TOKEN_2022_ATA_SPACE_ESTIMATE = 170;
+const TX_STORAGE_KEY = 'ka_skam_atomic_mint_tx_v1';
 
 function phantomProvider() {
   if (typeof window === 'undefined') return null;
@@ -22,6 +38,62 @@ function compact(value) {
   return `${value.slice(0, 7)}…${value.slice(-6)}`;
 }
 
+function txSignature(result) {
+  const value = result?.signature || result;
+  if (typeof value !== 'string' || value.length < 32) throw new Error('Phantom tidak mengembalikan transaction signature yang valid.');
+  return value;
+}
+
+function bytesToBase64(bytes) {
+  let binary = '';
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, Math.min(i + chunk, bytes.length)));
+  }
+  return btoa(binary);
+}
+
+async function firstWorkingConnection() {
+  let lastError;
+  for (const url of RPC_URLS) {
+    try {
+      const connection = new Connection(url, 'confirmed');
+      await connection.getLatestBlockhash('confirmed');
+      return connection;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error('Semua RPC Solana tidak tersedia.');
+}
+
+async function simulateTransaction(connection, transaction) {
+  const serialized = transaction.serialize({ requireAllSignatures: false, verifySignatures: false });
+  const response = await fetch(connection.rpcEndpoint, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'simulateTransaction',
+      params: [bytesToBase64(serialized), {
+        encoding: 'base64',
+        commitment: 'confirmed',
+        sigVerify: false,
+        replaceRecentBlockhash: false,
+      }],
+    }),
+  });
+  if (!response.ok) throw new Error(`Simulasi RPC HTTP ${response.status}`);
+  const payload = await response.json();
+  if (payload?.error) throw new Error(payload.error.message || 'Simulasi RPC gagal.');
+  if (payload?.result?.value?.err) {
+    const logs = payload?.result?.value?.logs?.slice(-6).join(' | ') || '';
+    throw new Error(`Simulasi transaksi gagal: ${JSON.stringify(payload.result.value.err)}${logs ? ` · ${logs}` : ''}`);
+  }
+  return payload?.result?.value;
+}
+
 export default function AdminSKAMLaunch() {
   const phantom = useMemo(() => phantomProvider(), []);
   const [address, setAddress] = useState('');
@@ -30,17 +102,22 @@ export default function AdminSKAMLaunch() {
   const [metadataReady, setMetadataReady] = useState(false);
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
+  const [mintAddress, setMintAddress] = useState('');
+  const [mintTx, setMintTx] = useState(() => {
+    try { return localStorage.getItem(TX_STORAGE_KEY) || ''; } catch { return ''; }
+  });
+  const [mintVerified, setMintVerified] = useState(false);
+  const [mintConflict, setMintConflict] = useState(false);
 
   const addressMatches = address === APPROVED_WALLET;
   const balanceReady = typeof solBalance === 'number' && solBalance >= MIN_PLANNED_SOL;
-  const launchGateReady = addressMatches && balanceReady && proofVerified && metadataReady;
+  const launchGateReady = addressMatches && balanceReady && proofVerified && metadataReady && !mintConflict;
 
   async function refreshPublicState(publicKeyText = address) {
     if (!publicKeyText || publicKeyText !== APPROVED_WALLET) {
       setSolBalance(null);
       return;
     }
-
     const response = await fetch('/api/solana/skam-readiness', {
       method: 'GET',
       credentials: 'same-origin',
@@ -52,6 +129,29 @@ export default function AdminSKAMLaunch() {
     if (payload?.owner !== APPROVED_WALLET) throw new Error('Alamat readiness server tidak cocok dengan wallet operator.');
     if (!Number.isFinite(payload?.balanceSol) || payload.balanceSol < 0) throw new Error('Saldo Solana dari server tidak valid.');
     setSolBalance(payload.balanceSol);
+  }
+
+  async function inspectDeterministicMint(owner, connection = null) {
+    const mint = await deriveSkamMintAddress(owner);
+    const mintText = mint.toBase58();
+    setMintAddress(mintText);
+    const rpc = connection || await firstWorkingConnection();
+    const info = await rpc.getAccountInfo(mint, 'confirmed');
+    if (!info) {
+      setMintVerified(false);
+      setMintConflict(false);
+      return { mint, exists: false };
+    }
+    try {
+      verifySkamMintAccount(info, APPROVED_WALLET);
+      setMintVerified(true);
+      setMintConflict(false);
+      return { mint, exists: true, verified: true };
+    } catch (verificationError) {
+      setMintVerified(false);
+      setMintConflict(true);
+      throw new Error(`Alamat mint deterministik sudah terisi tetapi tidak cocok dengan sKAM: ${verificationError.message}`);
+    }
   }
 
   async function connectWallet() {
@@ -68,6 +168,7 @@ export default function AdminSKAMLaunch() {
         throw new Error('Wallet Phantom yang terhubung bukan wallet operator sKAM yang disetujui.');
       }
       await refreshPublicState(nextAddress);
+      await inspectDeterministicMint(new PublicKey(nextAddress));
     } catch (err) {
       setError(err?.message || 'Gagal menghubungkan Phantom.');
     } finally {
@@ -82,7 +183,7 @@ export default function AdminSKAMLaunch() {
       const response = await fetch('/token/skam.json', { cache: 'no-store' });
       if (!response.ok) throw new Error(`Metadata sKAM HTTP ${response.status}`);
       const metadata = await response.json();
-      if (metadata?.name !== 'Solana KAM' || metadata?.symbol !== 'sKAM') throw new Error('Identitas metadata sKAM tidak cocok.');
+      if (metadata?.name !== SKAM_NAME || metadata?.symbol !== SKAM_SYMBOL) throw new Error('Identitas metadata sKAM tidak cocok.');
       if (metadata?.image !== 'https://kriptoaman.com/token/skam-logo.png') throw new Error('URI logo sKAM tidak cocok dengan konfigurasi resmi.');
       const imageResponse = await fetch('/token/skam-logo.png', { method: 'HEAD', cache: 'no-store' });
       if (!imageResponse.ok) throw new Error(`Logo sKAM HTTP ${imageResponse.status}`);
@@ -105,6 +206,7 @@ export default function AdminSKAMLaunch() {
       const challenge = [
         'KriptoAman sKAM operator authorization',
         `wallet=${APPROVED_WALLET}`,
+        `mintSeed=${SKAM_MINT_SEED}`,
         `supply=${TOTAL_SUPPLY}`,
         `pool=${POOL_TOKEN_AMOUNT} sKAM + ${LIQUIDITY_SOL} SOL`,
         `nonce=${crypto.randomUUID()}`,
@@ -124,6 +226,86 @@ export default function AdminSKAMLaunch() {
     }
   }
 
+  async function createAtomicMint() {
+    setBusy('mint');
+    setError('');
+    try {
+      if (!launchGateReady) throw new Error('Signing gate belum READY.');
+      if (mintVerified) throw new Error('sKAM sudah terverifikasi on-chain; transaksi mint kedua ditolak.');
+      if (!phantom?.signAndSendTransaction) throw new Error('Phantom provider tidak menyediakan signAndSendTransaction.');
+
+      const owner = new PublicKey(address);
+      const connection = await firstWorkingConnection();
+      const existing = await inspectDeterministicMint(owner, connection);
+      if (existing.exists && existing.verified) return;
+
+      const mintRent = await connection.getMinimumBalanceForRentExemption(mintRentSpace(), 'confirmed');
+      const ataRentEstimate = await connection.getMinimumBalanceForRentExemption(TOKEN_2022_ATA_SPACE_ESTIMATE, 'confirmed');
+      const latest = await connection.getLatestBlockhash('confirmed');
+      const { transaction, mint } = await buildAtomicSkamMintTransaction({ owner, lamports: mintRent, blockhash: latest.blockhash });
+      if (mint.toBase58() !== mintAddress) throw new Error('Derived mint berubah selama persiapan transaksi.');
+
+      const fee = await connection.getFeeForMessage(transaction.compileMessage(), 'confirmed');
+      const networkFee = Number(fee?.value || 0);
+      const plannedDebitSol = (mintRent + ataRentEstimate + networkFee) / LAMPORTS_PER_SOL;
+      const approved = window.confirm([
+        'TRANSAKSI NYATA SOLANA MAINNET',
+        '',
+        `Mint: ${mint.toBase58()}`,
+        `Token: ${SKAM_NAME} (${SKAM_SYMBOL})`,
+        `Supply: ${SKAM_SUPPLY_UI.toLocaleString()} sKAM`,
+        `Decimals: ${SKAM_DECIMALS}`,
+        `Metadata: ${SKAM_METADATA_URI}`,
+        `Perkiraan mint + ATA rent + network fee: ~${plannedDebitSol.toFixed(6)} SOL`,
+        '',
+        'Pool Raydium 0.20 SOL BELUM dibuat pada transaksi ini.',
+        'Setelah OK, Phantom masih akan meminta persetujuan final.',
+      ].join('\n'));
+      if (!approved) throw new Error('Transaksi dibatalkan sebelum membuka persetujuan Phantom.');
+
+      await simulateTransaction(connection, transaction);
+      const result = await phantom.signAndSendTransaction(transaction, {
+        skipPreflight: false,
+        preflightCommitment: 'confirmed',
+      });
+      const signature = txSignature(result);
+      setMintTx(signature);
+      try { localStorage.setItem(TX_STORAGE_KEY, signature); } catch { /* public evidence only */ }
+
+      await connection.confirmTransaction({
+        signature,
+        blockhash: latest.blockhash,
+        lastValidBlockHeight: latest.lastValidBlockHeight,
+      }, 'confirmed');
+
+      const accountInfo = await connection.getAccountInfo(mint, 'confirmed');
+      verifySkamMintAccount(accountInfo, APPROVED_WALLET);
+      setMintVerified(true);
+      setMintConflict(false);
+      await refreshPublicState(APPROVED_WALLET);
+    } catch (err) {
+      setError(err?.message || 'Transaksi mint sKAM gagal atau dibatalkan.');
+    } finally {
+      setBusy('');
+    }
+  }
+
+  async function verifyMintOnChain() {
+    setBusy('verify-mint');
+    setError('');
+    try {
+      if (!addressMatches) throw new Error('Hubungkan wallet operator terlebih dahulu.');
+      const owner = new PublicKey(address);
+      const result = await inspectDeterministicMint(owner);
+      if (!result.exists) throw new Error('Mint sKAM belum ditemukan on-chain.');
+      await refreshPublicState(APPROVED_WALLET);
+    } catch (err) {
+      setError(err?.message || 'Verifikasi mint sKAM gagal.');
+    } finally {
+      setBusy('');
+    }
+  }
+
   const checks = [
     ['Alamat operator', addressMatches, address ? compact(address) : 'Belum terhubung'],
     ['Saldo minimum perencanaan', balanceReady, solBalance == null ? 'Belum dibaca' : `${solBalance.toFixed(6)} SOL`],
@@ -138,9 +320,9 @@ export default function AdminSKAMLaunch() {
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
             <img src="/token/skam-logo.png" alt="sKAM" className="h-24 w-24 rounded-full border border-cyan-400/20 object-cover" />
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">Admin · Solana Launch Gate</p>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">Admin · Solana Mainnet Launch</p>
               <h1 className="mt-2 text-3xl font-black">Solana KAM · sKAM</h1>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">Gate ini memverifikasi wallet, saldo, metadata, dan bukti kontrol Phantom. Halaman ini tidak membuat mint, pool, swap, atau transaksi on-chain.</p>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">Gate operator tetap read-only. Setelah semua gate lulus, satu transaksi atomik dapat membuat Token-2022, metadata, ATA operator, dan supply awal—hanya setelah persetujuan eksplisit Phantom.</p>
             </div>
           </div>
         </section>
@@ -148,8 +330,8 @@ export default function AdminSKAMLaunch() {
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
             ['Total supply', '1,000,000,000 sKAM'],
-            ['Canary token', '1,000,000 sKAM'],
-            ['Liquidity', '0.20 SOL'],
+            ['Decimals', '9'],
+            ['Canary liquidity', '1,000,000 sKAM + 0.20 SOL'],
             ['Reserve ratio', '0.0000002 SOL / sKAM'],
           ].map(([label, value]) => (
             <div key={label} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
@@ -166,7 +348,7 @@ export default function AdminSKAMLaunch() {
             <button type="button" onClick={verifyMetadata} disabled={Boolean(busy)} className="min-h-11 rounded-xl border border-cyan-500/40 px-4 text-sm font-bold text-cyan-200 hover:bg-cyan-500/10 disabled:opacity-50">{busy === 'metadata' ? 'Memeriksa…' : 'Verifikasi metadata/logo'}</button>
             <button type="button" onClick={proveWalletControl} disabled={Boolean(busy) || !addressMatches} className="min-h-11 rounded-xl border border-emerald-500/40 px-4 text-sm font-bold text-emerald-200 hover:bg-emerald-500/10 disabled:opacity-40">{busy === 'proof' ? 'Menunggu signature…' : 'Buktikan kontrol wallet'}</button>
           </div>
-          {busy && <div className="mt-3 flex items-center gap-2 text-xs text-slate-400"><Loader2 className="h-4 w-4 animate-spin" /> Proses verifikasi berjalan.</div>}
+          {busy && <div className="mt-3 flex items-center gap-2 text-xs text-slate-400"><Loader2 className="h-4 w-4 animate-spin" /> Proses berjalan. Tinjau setiap prompt sebelum menyetujui.</div>}
           {error && <div role="alert" className="mt-4 flex items-start gap-2 rounded-xl border border-red-500/25 bg-red-500/10 p-3 text-sm text-red-200"><CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />{error}</div>}
         </section>
 
@@ -183,13 +365,39 @@ export default function AdminSKAMLaunch() {
         </section>
 
         <section className={`rounded-3xl border p-5 ${launchGateReady ? 'border-emerald-500/30 bg-emerald-500/10' : 'border-amber-500/25 bg-amber-500/8'}`}>
-          <div className="flex items-start gap-3"><ShieldCheck className={`mt-0.5 h-5 w-5 shrink-0 ${launchGateReady ? 'text-emerald-300' : 'text-amber-300'}`} /><div><h2 className="font-black">{launchGateReady ? 'Signing gate READY' : 'Signing gate HOLD'}</h2><p className="mt-1 text-sm leading-6 text-slate-300">{launchGateReady ? 'Identitas wallet, saldo minimum, metadata, dan bukti kontrol telah lolos. Transaksi nyata tetap membutuhkan langkah terpisah dan persetujuan wallet untuk setiap operasi.' : 'Tidak ada transaksi yang dapat dilanjutkan dari halaman ini sampai seluruh pemeriksaan di atas lolos.'}</p></div></div>
+          <div className="flex items-start gap-3"><ShieldCheck className={`mt-0.5 h-5 w-5 shrink-0 ${launchGateReady ? 'text-emerald-300' : 'text-amber-300'}`} /><div><h2 className="font-black">{launchGateReady ? 'Signing gate READY' : 'Signing gate HOLD'}</h2><p className="mt-1 text-sm leading-6 text-slate-300">{launchGateReady ? 'Identitas wallet, saldo minimum, metadata, dan bukti kontrol telah lolos. Transaksi atomik di bawah tetap membutuhkan persetujuan final Phantom.' : 'Transaksi tetap terkunci sampai seluruh pemeriksaan lulus dan tidak ada konflik mint deterministik.'}</p></div></div>
+        </section>
+
+        <section className="rounded-3xl border border-cyan-500/25 bg-slate-900/80 p-5">
+          <div className="flex items-start gap-3"><Coins className="mt-0.5 h-5 w-5 shrink-0 text-cyan-300" /><div><h2 className="font-black">Tahap 1 · Token-2022 sKAM mainnet</h2><p className="mt-2 text-sm leading-6 text-slate-400">Mint address diturunkan secara deterministik dari wallet operator + seed resmi. Transaksi ini membuat mint, MetadataPointer, TokenMetadata, ATA operator, dan supply 1 miliar sKAM secara atomik. Pool Raydium tidak termasuk.</p></div></div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 text-xs leading-5 text-slate-400">
+              <p><span className="text-slate-500">Name:</span> {SKAM_NAME}</p>
+              <p><span className="text-slate-500">Symbol:</span> {SKAM_SYMBOL}</p>
+              <p><span className="text-slate-500">Supply:</span> {SKAM_SUPPLY_UI.toLocaleString()} sKAM</p>
+              <p><span className="text-slate-500">Decimals:</span> {SKAM_DECIMALS}</p>
+              <p className="break-all"><span className="text-slate-500">Metadata:</span> {SKAM_METADATA_URI}</p>
+              <p><span className="text-slate-500">Seed:</span> {SKAM_MINT_SEED}</p>
+            </div>
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 text-xs leading-5 text-slate-400">
+              <p><span className="text-slate-500">Deterministic mint:</span> <span className="break-all text-white">{mintAddress || 'Hubungkan operator untuk menghitung alamat'}</span></p>
+              <p><span className="text-slate-500">Transaction:</span> <span className="break-all text-white">{mintTx || '—'}</span></p>
+              <p><span className="text-slate-500">Raw supply:</span> <span className="break-all text-white">{SKAM_RAW_SUPPLY.toString()}</span></p>
+              <p><span className="text-slate-500">Status:</span> <span className={mintVerified ? 'text-emerald-300' : mintConflict ? 'text-red-300' : 'text-amber-300'}>{mintVerified ? 'VERIFIED ON-CHAIN' : mintConflict ? 'CONFLICT — LOCKED' : 'BELUM TERBIT'}</span></p>
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button type="button" onClick={createAtomicMint} disabled={Boolean(busy) || !launchGateReady || mintVerified || mintConflict} className="min-h-12 rounded-xl bg-cyan-600 px-4 text-sm font-black hover:bg-cyan-500 disabled:opacity-40">{busy === 'mint' ? 'Simulasi / menunggu Phantom…' : 'Buat sKAM Token-2022 nyata'}</button>
+            <button type="button" onClick={verifyMintOnChain} disabled={Boolean(busy) || !addressMatches || !mintAddress} className="min-h-12 rounded-xl border border-emerald-500/40 px-4 text-sm font-bold text-emerald-200 hover:bg-emerald-500/10 disabled:opacity-40">{busy === 'verify-mint' ? 'Memverifikasi…' : 'Verifikasi mint on-chain'}</button>
+          </div>
+          {mintVerified && <div className="mt-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-100"><p className="font-black">TOKEN-2022 MINT VERIFIED</p><p className="mt-1 break-all">Mint: {mintAddress}</p><p className="mt-1">Supply, decimals, mint/freeze authority, MetadataPointer, dan TokenMetadata cocok dengan konfigurasi resmi sKAM. Tahap Raydium dapat dilanjutkan setelah saldo pasca-mint diperiksa.</p></div>}
         </section>
 
         <section className="rounded-2xl border border-slate-800 bg-slate-950 p-4 text-xs leading-5 text-slate-500">
           <p>Canonical WSOL: <span className="break-all text-slate-300">{WSOL_MINT}</span></p>
           <p className="mt-1">Metadata: <a className="inline-flex items-center gap-1 text-cyan-300 hover:underline" href="/token/skam.json" target="_blank" rel="noreferrer">/token/skam.json <ExternalLink className="h-3 w-3" /></a></p>
-          <p className="mt-2">Security boundary: no seed phrase, private key, transaction signing, sendTransaction, mint, pool creation, or swap is implemented by this page.</p>
+          <p className="mt-2">Security boundary: seed phrase/private key tidak pernah diminta. Tidak ada mint keypair sementara. Transaksi hanya dapat dikirim setelah wallet operator lolos gate, simulasi berhasil, konfirmasi ringkasan disetujui, dan Phantom memberi persetujuan final.</p>
+          <p className="mt-1">Pool Raydium dan smoke swap tetap terpisah dan belum dijalankan oleh tahap ini.</p>
         </section>
       </div>
     </main>
