@@ -8,5 +8,14 @@
     {"trait_type": "Network", "value": "Solana"},
     {"trait_type": "Asset role", "value": "KriptoAman ecosystem companion asset"},
     {"trait_type": "Native KAM", "value": "No — native KAM remains on KAM Network Chain ID 22028"}
-  ]
+  ],
+  "properties": {
+    "category": "image",
+    "files": [
+      {
+        "uri": "https://kriptoaman.com/token/skam-logo.png",
+        "type": "image/png"
+      }
+    ]
+  }
 }
