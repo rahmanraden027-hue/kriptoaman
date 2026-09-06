@@ -1,5 +1,6 @@
 name: sKAM Final Live Audit
 
+# Evidence refresh: re-run the existing read-only live audit against current Solana, DEX Screener and Jupiter state.
 on:
   workflow_dispatch:
   pull_request:
@@ -34,11 +35,67 @@ jobs:
       - name: Run read-only Solana + DEX Screener audit
         run: node chain/solana-liquidity/audit-skam-live.mjs
 
+      - name: Probe live Jupiter routes
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+
+          const SOL = 'So11111111111111111111111111111111111111112';
+          const SKAM = 'Dw9xf7EmMH5dD7rdqkFbzjJtcAWk4KXLBAXUkSRcLSLi';
+
+          async function probe(label, inputMint, outputMint, amount) {
+            const url = new URL('https://api.jup.ag/swap/v1/quote');
+            url.searchParams.set('inputMint', inputMint);
+            url.searchParams.set('outputMint', outputMint);
+            url.searchParams.set('amount', amount);
+            url.searchParams.set('slippageBps', '100');
+            url.searchParams.set('instructionVersion', 'V2');
+            try {
+              const response = await fetch(url, {
+                headers: { accept: 'application/json' },
+                signal: AbortSignal.timeout(15000),
+              });
+              const text = await response.text();
+              let body;
+              try { body = JSON.parse(text); } catch { body = { raw: text.slice(0, 2000) }; }
+              return {
+                label,
+                httpStatus: response.status,
+                ok: response.ok,
+                routeFound: response.ok && Array.isArray(body?.routePlan) && body.routePlan.length > 0,
+                outAmount: body?.outAmount ?? null,
+                priceImpactPct: body?.priceImpactPct ?? null,
+                routePlan: Array.isArray(body?.routePlan) ? body.routePlan : [],
+                error: response.ok ? null : (body?.error || body?.message || body?.raw || null),
+              };
+            } catch (error) {
+              return { label, httpStatus: null, ok: false, routeFound: false, error: String(error?.message || error) };
+            }
+          }
+
+          const buy = await probe('SOL_TO_SKAM_0.001_SOL', SOL, SKAM, '1000000');
+          await new Promise((resolve) => setTimeout(resolve, 2500));
+          const sell = await probe('SKAM_TO_SOL_1000_SKAM', SKAM, SOL, '1000000000000');
+
+          const report = {
+            checkedAt: new Date().toISOString(),
+            source: 'Jupiter keyless Metis quote API',
+            mint: SKAM,
+            routes: [buy, sell],
+            bothDirectionsRoutable: buy.routeFound && sell.routeFound,
+          };
+          fs.mkdirSync('artifacts', { recursive: true });
+          fs.writeFileSync('artifacts/skam-jupiter-route.json', `${JSON.stringify(report, null, 2)}\n`);
+          console.log(JSON.stringify(report, null, 2));
+          NODE
+
       - name: Upload non-secret audit evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: skam-final-live-audit
-          path: artifacts/skam-final-live-audit.json
+          path: |
+            artifacts/skam-final-live-audit.json
+            artifacts/skam-jupiter-route.json
           if-no-files-found: error
           retention-days: 30
