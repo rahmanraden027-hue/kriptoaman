@@ -46,7 +46,15 @@ export default function WhaleAlertCard() {
       const payload = await response.json();
       const data = Array.isArray(payload?.data) ? payload.data : [];
       const list = data
-        .filter(c => Number(c.market_cap_rank) > 0 && Number(c.market_cap_rank) <= 100 && Number(c.market_cap) > 100_000_000 && Number(c.total_volume) > 5_000_000)
+        .filter(c => {
+          const market_cap_rank = Number(c.market_cap_rank);
+          const market_cap = Number(c.market_cap);
+          const total_volume = Number(c.total_volume);
+          return market_cap_rank > 0
+            && market_cap_rank <= 100
+            && market_cap > 100_000_000
+            && total_volume > 5_000_000;
+        })
         .map(c => ({ ...c, turnover: Number(c.total_volume) / Number(c.market_cap) }))
         .filter(c => Number.isFinite(c.turnover))
         .sort((a, b) => b.turnover - a.turnover)
