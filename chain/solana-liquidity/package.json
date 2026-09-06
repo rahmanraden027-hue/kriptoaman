@@ -7,13 +7,16 @@
     "pool:create": "node create-raydium-pool.mjs",
     "swap:smoke": "node smoke-swap.mjs",
     "dexscreener:verify": "node verify-dexscreener.mjs",
-    "reserve:readiness": "node verify-skam-reserve-foundation.mjs"
+    "reserve:readiness": "node verify-skam-reserve-foundation.mjs",
+    "governance:create": "node create-skam-squads-v4.mjs",
+    "governance:verify": "node verify-skam-squads-v4.mjs"
   },
   "dependencies": {
     "@raydium-io/raydium-sdk-v2": "0.2.42-alpha",
     "@solana/spl-token": "0.4.15",
     "@solana/spl-token-metadata": "0.1.6",
     "@solana/web3.js": "^1.98.0",
+    "@sqds/multisig": "2.1.4",
     "bn.js": "^5.2.1",
     "decimal.js": "^10.6.0",
     "dotenv": "^16.6.1"
