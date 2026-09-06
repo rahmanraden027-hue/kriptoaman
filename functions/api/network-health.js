@@ -233,7 +233,9 @@ async function buildSnapshot() {
       lastGoodTtlMs: LAST_GOOD_TTL_MS,
       publicRequestsMayUseRecentVerifiedSnapshot: true,
       refreshParameterAlwaysForcesFreshProbe: true,
-      durableRecentSnapshotMaxAgeMs: SNAPSHOT_TTL_MS,
+      durableFreshSnapshotMaxAgeMs: SNAPSHOT_TTL_MS,
+      durableRecentSnapshotMaxAgeMs: STALE_SNAPSHOT_MAX_AGE_MS,
+      durableRecentSnapshotTriggersBackgroundRefresh: true,
       durableSnapshotCrossPop: true,
       fabricatedMetrics: false,
     },
@@ -271,10 +273,10 @@ async function readDurableSnapshot(env) {
     if (!row) return null;
     const capturedAt = Number(row.captured_at);
     const ageMs = Number.isFinite(capturedAt) ? Math.max(0, Date.now() - capturedAt) : Infinity;
-    if (ageMs >= SNAPSHOT_TTL_MS) return null;
+    if (ageMs > STALE_SNAPSHOT_MAX_AGE_MS) return null;
     const snapshot = JSON.parse(row.payload);
     if (!isCompleteVerifiedSnapshot(snapshot)) return null;
-    return { snapshot, ageMs };
+    return { snapshot, ageMs, fresh: ageMs < SNAPSHOT_TTL_MS };
   } catch {
     return null;
   }
@@ -343,7 +345,11 @@ async function getSnapshot(forceRefresh = false, waitUntil, env) {
       waitUntil,
       startRefresh().then((snapshot) => persistDurableSnapshot(env, snapshot)),
     );
-    return { snapshot: durable.snapshot, deliveryMode: 'd1-recent-verified', ageMs: durable.ageMs };
+    return {
+      snapshot: durable.snapshot,
+      deliveryMode: durable.fresh ? 'd1-recent-verified' : 'd1-recent-verified-background-refresh',
+      ageMs: durable.ageMs,
+    };
   }
 
   if (cachedSnapshot && Number.isFinite(ageMs) && ageMs <= STALE_SNAPSHOT_MAX_AGE_MS) {
