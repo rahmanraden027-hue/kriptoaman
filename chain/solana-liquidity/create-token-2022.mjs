@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import fs from 'node:fs';
-import { Connection, Keypair, PublicKey, SystemProgram, Transaction, sendAndConfirmTransaction } from '@solana/web3.js';
+import { Connection, Keypair, SystemProgram, Transaction, sendAndConfirmTransaction } from '@solana/web3.js';
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   ExtensionType,
@@ -13,7 +13,8 @@ import {
   getMint,
   getMintLen,
 } from '@solana/spl-token';
-import { TYPE_SIZE, LENGTH_SIZE, createInitializeInstruction, pack } from '@solana/spl-token-metadata';
+import { createInitializeInstruction, pack } from '@solana/spl-token-metadata';
+import { TYPE_SIZE, LENGTH_SIZE } from '@solana/spl-type-length-value';
 
 function required(name) {
   const value = process.env[name]?.trim();
