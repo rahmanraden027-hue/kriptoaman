@@ -200,6 +200,25 @@ export function buildMintSupplyTransaction({ owner, mint, blockhash }) {
   return { transaction, ata };
 }
 
+export async function buildAtomicSkamMintTransaction({ owner, mint, lamports, blockhash }) {
+  const ata = getAssociatedTokenAddress(mint, owner);
+  const transaction = new Transaction({ feePayer: owner, recentBlockhash: blockhash }).add(
+    SystemProgram.createAccount({
+      fromPubkey: owner,
+      newAccountPubkey: mint,
+      lamports,
+      space: mintBaseSpaceWithMetadataPointer(),
+      programId: TOKEN_2022_PROGRAM_ID,
+    }),
+    createInitializeMetadataPointerInstruction(mint, owner),
+    createInitializeMint2Instruction(mint, owner),
+    await createInitializeTokenMetadataInstruction(mint, owner),
+    createAssociatedTokenAccountInstruction({ payer: owner, ata, owner, mint }),
+    createMintToCheckedInstruction({ mint, ata, authority: owner }),
+  );
+  return { transaction, ata };
+}
+
 export function parseMintBase(data) {
   if (!(data instanceof Uint8Array) || data.length < 82) throw new Error('Mint account data terlalu pendek.');
   const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
