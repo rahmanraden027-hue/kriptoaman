@@ -39,22 +39,25 @@ test('multi-chain probes tolerate normal public-RPC latency without fabricating 
   assert.match(health, /searchParams\.get\('refresh'\) === '1'/);
 });
 
-test('network health has a short cross-POP durable verified snapshot without weakening fresh probes', async () => {
+test('network health has bounded cross-POP verified evidence without weakening fresh probes', async () => {
   const health = await read('functions/api/network-health.js');
   assert.match(health, /import \{ primarySession, readSession \} from '\.\.\/_shared\/d1-session\.js'/);
   assert.match(health, /CREATE TABLE IF NOT EXISTS network_health_snapshots/);
   assert.match(health, /SELECT captured_at, payload FROM network_health_snapshots WHERE id = \?/);
-  assert.match(health, /ageMs >= SNAPSHOT_TTL_MS/);
+  assert.match(health, /ageMs > STALE_SNAPSHOT_MAX_AGE_MS/);
+  assert.match(health, /fresh: ageMs < SNAPSHOT_TTL_MS/);
   assert.match(health, /snapshot\.networks\.length === NETWORKS\.length/);
   assert.match(health, /total === NETWORKS\.length/);
   assert.match(health, /target === MIN_ACTIVE_TARGET/);
   assert.match(health, /const db = primarySession\(env\.AUTH_DB\)/);
   assert.match(health, /INSERT INTO network_health_snapshots/);
-  assert.match(health, /deliveryMode: 'd1-recent-verified'/);
+  assert.match(health, /durable\.fresh \? 'd1-recent-verified' : 'd1-recent-verified-background-refresh'/);
   assert.match(health, /startRefresh\(\)\.then\(\(snapshot\) => persistDurableSnapshot\(env, snapshot\)\)/);
   assert.match(health, /forceRefresh[\s\S]*startRefresh\(\)/);
   assert.match(health, /refreshParameterAlwaysForcesFreshProbe: true/);
-  assert.match(health, /durableRecentSnapshotMaxAgeMs: SNAPSHOT_TTL_MS/);
+  assert.match(health, /durableFreshSnapshotMaxAgeMs: SNAPSHOT_TTL_MS/);
+  assert.match(health, /durableRecentSnapshotMaxAgeMs: STALE_SNAPSHOT_MAX_AGE_MS/);
+  assert.match(health, /durableRecentSnapshotTriggersBackgroundRefresh: true/);
   assert.match(health, /durableSnapshotCrossPop: true/);
 });
 
