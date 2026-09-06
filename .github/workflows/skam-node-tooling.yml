@@ -1,0 +1,71 @@
+name: sKAM Node Tooling
+
+on:
+  pull_request:
+    paths:
+      - 'chain/solana-liquidity/**'
+      - 'tests/skam-mainnet-orchestrator.test.mjs'
+      - '.github/workflows/skam-node-tooling.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  node-termux-compatible-tooling:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Install isolated Solana liquidity dependencies
+        working-directory: chain/solana-liquidity
+        run: npm install --no-audit --no-fund
+
+      - name: Verify required JavaScript exports
+        working-directory: chain/solana-liquidity
+        run: |
+          node --input-type=module <<'NODE'
+          const web3 = await import('@solana/web3.js');
+          const token = await import('@solana/spl-token');
+          const metadata = await import('@solana/spl-token-metadata');
+          const raydium = await import('@raydium-io/raydium-sdk-v2');
+          for (const [name, value] of Object.entries({
+            Connection: web3.Connection,
+            Keypair: web3.Keypair,
+            sendAndConfirmTransaction: web3.sendAndConfirmTransaction,
+            TOKEN_2022_PROGRAM_ID: token.TOKEN_2022_PROGRAM_ID,
+            ExtensionType: token.ExtensionType,
+            getMintLen: token.getMintLen,
+            createInitializeMetadataPointerInstruction: token.createInitializeMetadataPointerInstruction,
+            createInitializeMintInstruction: token.createInitializeMintInstruction,
+            createAssociatedTokenAccountInstruction: token.createAssociatedTokenAccountInstruction,
+            createMintToCheckedInstruction: token.createMintToCheckedInstruction,
+            createInitializeInstruction: metadata.createInitializeInstruction,
+            pack: metadata.pack,
+            TYPE_SIZE: metadata.TYPE_SIZE,
+            LENGTH_SIZE: metadata.LENGTH_SIZE,
+            Raydium: raydium.Raydium,
+          })) {
+            if (value == null) throw new Error(`Missing required export: ${name}`);
+          }
+          console.log('Required Node Solana/Token-2022/Raydium exports verified.');
+          NODE
+
+      - name: Parse all operator scripts
+        working-directory: chain/solana-liquidity
+        run: |
+          node --check create-token-2022.mjs
+          node --check create-raydium-pool.mjs
+          node --check smoke-swap.mjs
+          node --check verify-dexscreener.mjs
+          bash -n launch-skam-mainnet.sh
+
+      - name: Run sKAM orchestrator regression test
+        run: node --test tests/skam-mainnet-orchestrator.test.mjs
