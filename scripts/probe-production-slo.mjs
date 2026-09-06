@@ -18,6 +18,17 @@ function percentile(values, p) {
   return sorted[Math.min(sorted.length - 1, Math.ceil((p / 100) * sorted.length) - 1)];
 }
 
+function diagnosticBody(body) {
+  if (!body || typeof body !== 'object') return null;
+  return {
+    overall: body.overall ?? null,
+    healthy: body.healthy ?? null,
+    summary: body.summary ?? null,
+    delivery: body.delivery ?? null,
+    checked_at: body.checked_at ?? body.checkedAt ?? null,
+  };
+}
+
 async function sampleEndpoint(endpoint) {
   const samples = [];
   for (let i = 0; i < SAMPLES; i += 1) {
@@ -26,6 +37,7 @@ async function sampleEndpoint(endpoint) {
     let ok = false;
     let body = null;
     let error = null;
+    let responseHeaders = null;
     try {
       const response = await fetch(`${ORIGIN}${endpoint.path}`, {
         headers: { Accept: endpoint.json ? 'application/json' : 'text/html,*/*' },
@@ -33,6 +45,14 @@ async function sampleEndpoint(endpoint) {
       });
       status = response.status;
       ok = response.ok;
+      responseHeaders = {
+        cache: response.headers.get('x-kriptoaman-network-cache')
+          || response.headers.get('x-kriptoaman-status-cache')
+          || response.headers.get('cf-cache-status')
+          || null,
+        delivery: response.headers.get('x-kriptoaman-network-delivery') || null,
+        ray: response.headers.get('cf-ray') || null,
+      };
       if (endpoint.json) body = await response.json().catch(() => null);
       else await response.arrayBuffer();
     } catch (err) {
@@ -43,12 +63,22 @@ async function sampleEndpoint(endpoint) {
       status,
       ok,
       error,
+      responseHeaders,
       body,
     });
     await new Promise((resolve) => setTimeout(resolve, 120));
   }
   const latencies = samples.filter((s) => s.ok).map((s) => s.latencyMs);
   const failures = samples.filter((s) => !s.ok).length;
+  const failureSamples = samples
+    .filter((s) => !s.ok)
+    .map((s) => ({
+      latencyMs: s.latencyMs,
+      status: s.status,
+      error: s.error,
+      responseHeaders: s.responseHeaders,
+      body: diagnosticBody(s.body),
+    }));
   return {
     name: endpoint.name,
     path: endpoint.path,
@@ -62,6 +92,7 @@ async function sampleEndpoint(endpoint) {
     hardP95Ms: endpoint.hardP95Ms,
     targetMet: failures === 0 && percentile(latencies, 95) != null && percentile(latencies, 95) <= endpoint.targetP95Ms,
     hardGateMet: failures / samples.length < 0.05 && percentile(latencies, 95) != null && percentile(latencies, 95) <= endpoint.hardP95Ms,
+    failureSamples,
     latestBody: samples.findLast((s) => s.ok)?.body || null,
   };
 }
@@ -104,6 +135,12 @@ const report = {
   hardFailures: hardFailures.map((r) => r.name),
 };
 
+const failureLines = report.endpointResults
+  .filter((r) => r.failureSamples?.length)
+  .flatMap((r) => r.failureSamples.map((sample) =>
+    `- ${r.name}: status=${sample.status} error=${sample.error ?? 'none'} latency=${sample.latencyMs}ms cache=${sample.responseHeaders?.cache ?? 'none'} delivery=${sample.responseHeaders?.delivery ?? 'none'} ray=${sample.responseHeaders?.ray ?? 'none'} body=${JSON.stringify(sample.body)}`,
+  ));
+
 const md = [
   '# KriptoAman Production SLO Proof',
   '',
@@ -121,6 +158,9 @@ const md = [
   '',
   `Target misses: ${report.targetMisses.length ? report.targetMisses.join(', ') : 'none'}`,
   `Hard failures: ${report.hardFailures.length ? report.hardFailures.join(', ') : 'none'}`,
+  '',
+  '## Failed sample diagnostics',
+  ...(failureLines.length ? failureLines : ['- none']),
 ].join('\n');
 
 await writeFile('production-slo-proof.json', `${JSON.stringify(report, null, 2)}\n`);
