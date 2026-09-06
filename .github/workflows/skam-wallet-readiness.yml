@@ -20,7 +20,8 @@ jobs:
 
       - name: Read public Solana balance and launch budget
         env:
-          RPC_URL: https://api.mainnet-beta.solana.com
+          RPC_URLS: https://solana-rpc.publicnode.com,https://api.mainnet-beta.solana.com
+          RPC_TIMEOUT_MS: '4000'
           OPERATOR_PUBLIC_ADDRESS: 5Fg4FVvyvSRLMapHdYVZzUCbhC8CWdENF77AfGPVAfpK
           LIQUIDITY_SOL: '0.20'
           POOL_CREATION_FEE_SOL: '0.15'
