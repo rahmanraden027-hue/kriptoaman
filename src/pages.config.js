@@ -20,6 +20,7 @@ const PAGE_OVERRIDES = {
   AdminKYCManagement: 'AdminKYCManagementModern',
   AdminPlatformAssets: 'AdminPlatformAssetsModern',
   AdminProfitAnalytics: 'AdminProfitAnalyticsModern',
+  AdminSKAMLaunch: 'AdminSKAMLaunchV2',
   AdminUserBalances: 'AdminUserBalancesModern',
   Alerts: 'NotificationCenterV2',
   Home: 'HomeV3',

@@ -5,8 +5,13 @@ on:
     paths:
       - 'chain/solana-liquidity/**'
       - 'src/lib/skamToken2022Builder.js'
+      - 'src/lib/skamAuthorityRevocationBuilder.js'
+      - 'src/components/skam/SKAMAuthorityRevokePanel.jsx'
       - 'src/pages/AdminSKAMLaunch.jsx'
+      - 'src/pages/AdminSKAMLaunchV2.jsx'
+      - 'src/pages.config.js'
       - 'tests/skam-mainnet-orchestrator.test.mjs'
+      - 'tests/skam-phantom-authority-revoke.test.mjs'
       - '.github/workflows/skam-node-tooling.yml'
   workflow_dispatch:
 
@@ -53,6 +58,8 @@ jobs:
             createInitializeMintInstruction: token.createInitializeMintInstruction,
             createAssociatedTokenAccountInstruction: token.createAssociatedTokenAccountInstruction,
             createMintToCheckedInstruction: token.createMintToCheckedInstruction,
+            createSetAuthorityInstruction: token.createSetAuthorityInstruction,
+            AuthorityType: token.AuthorityType,
             createInitializeInstruction: metadata.createInitializeInstruction,
             pack: metadata.pack,
             Raydium: raydium.Raydium,
@@ -64,16 +71,22 @@ jobs:
 
       - name: Compare browser Token-2022 instructions with official SPL encoders
         working-directory: chain/solana-liquidity
-        run: node verify-browser-token-builder.mjs
+        run: |
+          node verify-browser-token-builder.mjs
+          node verify-browser-authority-revoke.mjs
 
-      - name: Parse all operator scripts and browser builder
+      - name: Parse all operator scripts and browser builders
         run: |
           node --check src/lib/skamToken2022Builder.js
+          node --check src/lib/skamAuthorityRevocationBuilder.js
           node --check chain/solana-liquidity/create-token-2022.mjs
           node --check chain/solana-liquidity/create-raydium-pool.mjs
           node --check chain/solana-liquidity/smoke-swap.mjs
           node --check chain/solana-liquidity/verify-dexscreener.mjs
+          node --check chain/solana-liquidity/revoke-skam-authorities.mjs
           bash -n chain/solana-liquidity/launch-skam-mainnet.sh
 
-      - name: Run sKAM orchestrator regression test
-        run: node --test tests/skam-mainnet-orchestrator.test.mjs
+      - name: Run sKAM regression tests
+        run: |
+          node --test tests/skam-mainnet-orchestrator.test.mjs
+          node --test tests/skam-phantom-authority-revoke.test.mjs
