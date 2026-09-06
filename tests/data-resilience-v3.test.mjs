@@ -88,7 +88,7 @@ test('home market movers no longer depends directly on CoinGecko', async () => {
   assert.match(source, /\/api\/market-snapshot-page\?page=0&limit=100/);
   assert.match(source, /KriptoAman Market Database/);
   assert.match(source, /snapshotAt/);
-  assert.doesNotMatch(source, /api\.coingecko\.com/);
+  assert.equal(source.includes('api.coingecko.com'), false);
 });
 
 test('long-outage hardening preserves the service-worker anti-stale security boundary', async () => {
