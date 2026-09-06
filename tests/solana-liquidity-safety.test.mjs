@@ -36,8 +36,10 @@ test('quote asset is canonical Wrapped SOL and pool tooling uses native SOL bala
   assert.doesNotMatch(text.config, /EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/);
 });
 
-test('operator wallet identity is checked before pool and smoke writes', () => {
+test('operator wallet identity is checked before token, pool and smoke writes', () => {
   assert.match(text.config, /OPERATOR_PUBLIC_ADDRESS=/);
+  assert.match(text.createToken, /OPERATOR_PUBLIC_ADDRESS/);
+  assert.match(text.createToken, /Signer mismatch/);
   assert.match(text.createPool, /Signer mismatch/);
   assert.match(text.smokeSwap, /Signer mismatch/);
 });

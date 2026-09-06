@@ -25,7 +25,7 @@ for cmd in solana spl-token awk grep mkdir; do
   command -v "$cmd" >/dev/null 2>&1 || { echo "Missing command: $cmd" >&2; exit 1; }
 done
 
-for key in RPC_URL KEYPAIR TOKEN_NAME TOKEN_SYMBOL TOKEN_DECIMALS TOKEN_SUPPLY METADATA_URI; do
+for key in RPC_URL KEYPAIR OPERATOR_PUBLIC_ADDRESS TOKEN_NAME TOKEN_SYMBOL TOKEN_DECIMALS TOKEN_SUPPLY METADATA_URI; do
   require "$key"
 done
 
@@ -55,6 +55,11 @@ if [[ ! "$METADATA_URI" =~ ^https:// ]]; then
 fi
 
 OWNER="$(solana address --keypair "$KEYPAIR")"
+if [[ "$OWNER" != "$OPERATOR_PUBLIC_ADDRESS" ]]; then
+  echo "Signer mismatch: expected $OPERATOR_PUBLIC_ADDRESS but keypair resolves to $OWNER. Refusing token creation." >&2
+  exit 3
+fi
+
 echo "Signer: $OWNER"
 echo "RPC: $RPC_URL"
 solana balance "$OWNER" --url "$RPC_URL"
