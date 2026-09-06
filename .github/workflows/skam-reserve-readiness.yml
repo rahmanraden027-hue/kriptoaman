@@ -1,0 +1,46 @@
+name: sKAM Reserve Readiness
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'chain/solana-liquidity/skam-reserve-policy.json'
+      - 'chain/solana-liquidity/verify-skam-reserve-foundation.mjs'
+      - 'chain/solana-liquidity/package.json'
+      - '.github/workflows/skam-reserve-readiness.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Install isolated Solana dependencies
+        working-directory: chain/solana-liquidity
+        run: npm install --no-audit --no-fund
+
+      - name: Parse reserve verifier
+        run: node --check chain/solana-liquidity/verify-skam-reserve-foundation.mjs
+
+      - name: Run read-only reserve readiness
+        working-directory: chain/solana-liquidity
+        run: npm run reserve:readiness
+
+      - name: Upload non-secret readiness evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skam-reserve-foundation-readiness
+          path: chain/solana-liquidity/artifacts/skam-reserve-foundation-readiness.json
+          if-no-files-found: error
+          retention-days: 30
