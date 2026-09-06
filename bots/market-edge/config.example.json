@@ -1,6 +1,6 @@
 {
   "scanIntervalMs": 30000,
-  "requestDelayMs": 1100,
+  "requestDelayMs": 1500,
   "probeAmountUi": "0.01",
   "slippageBps": 30,
   "maxPriceImpactPct": 1.0,
@@ -10,7 +10,7 @@
   "venues": [
     "Raydium CP",
     "Orca V2",
-    "Meteora DLMM v2"
+    "Meteora DLMM"
   ],
   "markets": [
     {
