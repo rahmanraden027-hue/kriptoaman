@@ -34,9 +34,15 @@ test('diagnostic validates KAM chain identity, Blockscout height and optional ch
   assert.doesNotMatch(source, /Math\.random/);
 });
 
-test('Explorer branding helper disables only optional homepage charts as the presentation fallback', () => {
+test('Explorer branding helper hides unverified homepage stats and gas without touching chain services', () => {
   assert.match(branding, /\^NEXT_PUBLIC_HOMEPAGE_CHARTS=/);
+  assert.match(branding, /\^NEXT_PUBLIC_HOMEPAGE_STATS=/);
+  assert.match(branding, /\^NEXT_PUBLIC_GAS_TRACKER_ENABLED=/);
   assert.match(branding, /NEXT_PUBLIC_HOMEPAGE_CHARTS=\[\]/);
+  assert.match(branding, /NEXT_PUBLIC_HOMEPAGE_STATS=\[\]/);
+  assert.match(branding, /NEXT_PUBLIC_GAS_TRACKER_ENABLED=false/);
+  assert.match(branding, /Placeholder Counter/);
+  assert.match(branding, /Gas tracker/);
   assert.match(branding, /docker compose up -d --force-recreate frontend/);
   assert.match(branding, /docker compose restart proxy/);
   assert.doesNotMatch(branding, /docker compose restart (?:db|postgres|indexer|backend)/);

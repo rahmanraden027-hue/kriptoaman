@@ -32,6 +32,8 @@ sed -i \
   -e '/^NEXT_PUBLIC_OG_DESCRIPTION=/d' \
   -e '/^NEXT_PUBLIC_NAVIGATION_LAYOUT=/d' \
   -e '/^NEXT_PUBLIC_HOMEPAGE_CHARTS=/d' \
+  -e '/^NEXT_PUBLIC_HOMEPAGE_STATS=/d' \
+  -e '/^NEXT_PUBLIC_GAS_TRACKER_ENABLED=/d' \
   -e '/^NEXT_PUBLIC_SEO_ENHANCED_DATA_ENABLED=/d' \
   -e '/^NEXT_PUBLIC_OG_ENHANCED_DATA_ENABLED=/d' \
   -e '/^NEXT_PUBLIC_ADDRESS_USERNAME_TAG=/d' \
@@ -56,9 +58,11 @@ NEXT_PUBLIC_PROMOTE_BLOCKSCOUT_IN_TITLE=false
 NEXT_PUBLIC_AD_BANNER_PROVIDER=none
 NEXT_PUBLIC_AD_TEXT_PROVIDER=none
 NEXT_PUBLIC_NAVIGATION_LAYOUT=horizontal
-# Optional Blockscout homepage charts are disabled until the chart endpoints are
-# independently verified healthy. Core block/transaction data remains visible.
+# Optional Blockscout homepage charts/stats remain hidden until their backing
+# endpoints are independently verified. Blocks and transactions remain public.
 NEXT_PUBLIC_HOMEPAGE_CHARTS=[]
+NEXT_PUBLIC_HOMEPAGE_STATS=[]
+NEXT_PUBLIC_GAS_TRACKER_ENABLED=false
 NEXT_PUBLIC_SEO_ENHANCED_DATA_ENABLED=true
 NEXT_PUBLIC_OG_ENHANCED_DATA_ENABLED=false
 NEXT_PUBLIC_OG_DESCRIPTION=KriptoAman Explorer adalah penjelajah resmi KriptoAman Mainnet untuk blok, transaksi, alamat, dan aktivitas jaringan KAM.
@@ -98,7 +102,7 @@ echo "=== SERVICES ==="
 docker compose ps frontend proxy backend db
 
 echo "=== EFFECTIVE BRAND ENV ==="
-docker compose exec -T frontend sh -c 'env | grep -E "NEXT_PUBLIC_NETWORK_(NAME|SHORT_NAME|ID|CURRENCY|LOGO|ICON)|NEXT_PUBLIC_NAVIGATION_LAYOUT|NEXT_PUBLIC_HOMEPAGE_CHARTS|NEXT_PUBLIC_PROMOTE_BLOCKSCOUT_IN_TITLE|NEXT_PUBLIC_OG_DESCRIPTION|NEXT_PUBLIC_ADDRESS_USERNAME_TAG|FAVICON_MASTER_URL" | sort' || true
+docker compose exec -T frontend sh -c 'env | grep -E "NEXT_PUBLIC_NETWORK_(NAME|SHORT_NAME|ID|CURRENCY|LOGO|ICON)|NEXT_PUBLIC_NAVIGATION_LAYOUT|NEXT_PUBLIC_HOMEPAGE_(CHARTS|STATS)|NEXT_PUBLIC_GAS_TRACKER_ENABLED|NEXT_PUBLIC_PROMOTE_BLOCKSCOUT_IN_TITLE|NEXT_PUBLIC_OG_DESCRIPTION|NEXT_PUBLIC_ADDRESS_USERNAME_TAG|FAVICON_MASTER_URL" | sort' || true
 
 echo "=== KAM TREASURY PROFILE ==="
 echo "$PROFILE_JSON"
@@ -109,4 +113,15 @@ curl -sSI http://127.0.0.1:8080 | head -n 1 || true
 echo "=== PUBLIC EXPLORER ==="
 curl -sSI https://explorer.kriptoaman.com | head -n 1 || true
 
-echo "KriptoAman Explorer final branding and official KAM Treasury label applied."
+# Fail closed if the public SSR page still exposes unverified placeholder stats.
+PUBLIC_HTML="$(curl -L -sS --max-time 20 https://explorer.kriptoaman.com/)"
+if [[ "$PUBLIC_HTML" == *'Placeholder Counter'* ]]; then
+  echo "Explorer finalization failed: public page still exposes Placeholder Counter" >&2
+  exit 1
+fi
+if [[ "$PUBLIC_HTML" == *'Gas tracker'* || "$PUBLIC_HTML" == *'Gas Tracker'* ]]; then
+  echo "Explorer finalization failed: public page still exposes Gas tracker while disabled" >&2
+  exit 1
+fi
+
+echo "KriptoAman Explorer final branding applied; unverified homepage stats and gas tracker are hidden."
