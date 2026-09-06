@@ -63,7 +63,7 @@ set_env_value() {
   export "$key=$value"
 }
 
-for cmd in bash node npm solana spl-token awk grep; do
+for cmd in bash node npm solana spl-token awk grep tr mv sleep date; do
   command -v "$cmd" >/dev/null 2>&1 || { echo "Missing command: $cmd" >&2; exit 1; }
 done
 
@@ -110,11 +110,11 @@ if [[ "$SIGNER" != "$EXPECTED_OPERATOR" ]]; then
 fi
 
 SMOKE_INPUT_UI="${SMOKE_INPUT_UI:-$DEFAULT_SMOKE_INPUT_UI}"
-export SMOKE_INPUT_UI
+export SMOKE_INPUT_UI MAX_SMOKE_INPUT_UI
 node - <<'NODE'
 const value = Number(process.env.SMOKE_INPUT_UI);
-const max = 0.005;
-if (!Number.isFinite(value) || value <= 0 || value > max) {
+const max = Number(process.env.MAX_SMOKE_INPUT_UI);
+if (!Number.isFinite(value) || !Number.isFinite(max) || value <= 0 || value > max) {
   console.error(`SMOKE_INPUT_UI must be > 0 and <= ${max} SOL for this canary launch.`);
   process.exit(1);
 }
@@ -156,6 +156,22 @@ NODE
 # Read-only balance gate. It exits non-zero if the approved budget is not available.
 node check-wallet-readiness.mjs
 
+# Resolve and sanity-check all Raydium dependencies before the first irreversible write.
+echo "=== PRELOAD RAYDIUM TOOLING ==="
+npm install --no-audit --no-fund
+node --input-type=module <<'NODE'
+await Promise.all([
+  import('@raydium-io/raydium-sdk-v2'),
+  import('@solana/web3.js'),
+  import('bn.js'),
+  import('decimal.js'),
+]);
+console.log('Raydium launch dependencies resolved.');
+NODE
+node --check create-raydium-pool.mjs
+node --check smoke-swap.mjs
+node --check verify-dexscreener.mjs
+
 mkdir -p artifacts
 
 if [[ -z "${TOKEN_MINT:-}" ]]; then
@@ -176,9 +192,6 @@ else
 fi
 
 echo "Confirmed TOKEN_MINT=$TOKEN_MINT"
-
-# Install the isolated Raydium dependencies only in this launch pack.
-npm install --no-audit --no-fund
 
 # Mandatory read-only economics preview immediately before pool creation.
 POOL_TOKEN_AMOUNT="$POOL_BASE_UI" \
