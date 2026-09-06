@@ -14,7 +14,9 @@ import {
   getMintLen,
 } from '@solana/spl-token';
 import { createInitializeInstruction, pack } from '@solana/spl-token-metadata';
-import { TYPE_SIZE, LENGTH_SIZE } from '@solana/spl-type-length-value';
+
+const TLV_TYPE_SIZE = 2;
+const TLV_LENGTH_SIZE = 2;
 
 function required(name) {
   const value = process.env[name]?.trim();
@@ -69,7 +71,7 @@ const metadata = {
 };
 
 const baseMintLen = getMintLen([ExtensionType.MetadataPointer]);
-const metadataLen = TYPE_SIZE + LENGTH_SIZE + pack(metadata).length;
+const metadataLen = TLV_TYPE_SIZE + TLV_LENGTH_SIZE + pack(metadata).length;
 const rent = await connection.getMinimumBalanceForRentExemption(baseMintLen + metadataLen, 'confirmed');
 
 const createMintTx = new Transaction().add(
