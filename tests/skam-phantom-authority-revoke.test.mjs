@@ -30,6 +30,18 @@ test('Phantom revoke flow requires inspection, simulation, confirmation and wall
   assert.doesNotMatch(panel, /secretKey|seed phrase|recovery phrase|private key/i);
 });
 
+test('Phantom execution refreshes blockhash after human confirmation', () => {
+  const confirmIndex = panel.indexOf('const approved = window.confirm');
+  const freshBlockhashIndex = panel.indexOf("const freshLatest = await rpc.getLatestBlockhash('confirmed')");
+  const sendIndex = panel.indexOf('phantom.signAndSendTransaction(freshTx');
+  assert.ok(confirmIndex >= 0, 'irreversible confirmation must exist');
+  assert.ok(freshBlockhashIndex > confirmIndex, 'fresh blockhash must be fetched after human confirmation');
+  assert.ok(sendIndex > freshBlockhashIndex, 'fresh transaction must be sent only after fresh blockhash');
+  assert.match(panel, /const refreshed = await inspect\(rpc\)/);
+  assert.match(panel, /Authority masih aktif saat dibaca ulang; transaksi tidak dianggap berhasil/);
+  assert.match(panel, /Tekan “Hubungkan Signer 1 & Periksa” sebelum mencoba lagi/);
+});
+
 test('existing admin route stays protected while using hardened wrapper', () => {
   assert.match(wrapper, /AdminSKAMLaunch/);
   assert.match(wrapper, /SKAMAuthorityRevokePanel/);

@@ -153,6 +153,7 @@ export default function SKAMAuthorityRevokePanel() {
     setBusy('revoke');
     setError('');
     setSignature('');
+    let submittedTxid = '';
     try {
       if (!phantom?.signAndSendTransaction) throw new Error('Phantom tidak menyediakan signAndSendTransaction.');
       if (!addressMatches || !authorityStateSafe || !simulationOk) {
@@ -164,14 +165,14 @@ export default function SKAMAuthorityRevokePanel() {
 
       const revokeMint = current.mintAuthority !== null;
       const revokeFreeze = current.freezeAuthority !== null;
-      const latest = await rpc.getLatestBlockhash('confirmed');
-      const tx = buildSkamAuthorityRevocationTransaction({
+      const previewLatest = await rpc.getLatestBlockhash('confirmed');
+      const previewTx = buildSkamAuthorityRevocationTransaction({
         owner: new PublicKey(address),
-        blockhash: latest.blockhash,
+        blockhash: previewLatest.blockhash,
         revokeMint,
         revokeFreeze,
       });
-      await simulateUnsignedTransaction(rpc, tx);
+      await simulateUnsignedTransaction(rpc, previewTx);
 
       const approved = window.confirm([
         'TINDAKAN PERMANEN · SOLANA MAINNET',
@@ -188,26 +189,72 @@ export default function SKAMAuthorityRevokePanel() {
       ].join('\n'));
       if (!approved) throw new Error('Pencabutan authority dibatalkan sebelum persetujuan Phantom.');
 
-      const result = await phantom.signAndSendTransaction(tx, {
+      // Re-read live authority state after the human confirmation, then fetch a fresh
+      // blockhash immediately before opening Phantom. This keeps the signing window
+      // as large as possible and prevents stale-preview blockhash expiry.
+      const refreshed = await inspect(rpc);
+      if (refreshed.state.mintAuthority === null && refreshed.state.freezeAuthority === null) return;
+
+      const freshRevokeMint = refreshed.state.mintAuthority !== null;
+      const freshRevokeFreeze = refreshed.state.freezeAuthority !== null;
+      const freshLatest = await rpc.getLatestBlockhash('confirmed');
+      const freshTx = buildSkamAuthorityRevocationTransaction({
+        owner: new PublicKey(address),
+        blockhash: freshLatest.blockhash,
+        revokeMint: freshRevokeMint,
+        revokeFreeze: freshRevokeFreeze,
+      });
+      await simulateUnsignedTransaction(rpc, freshTx);
+
+      const result = await phantom.signAndSendTransaction(freshTx, {
         skipPreflight: false,
         preflightCommitment: 'confirmed',
       });
-      const txid = txSignature(result);
-      setSignature(txid);
+      submittedTxid = txSignature(result);
 
-      await rpc.confirmTransaction({
-        signature: txid,
-        blockhash: latest.blockhash,
-        lastValidBlockHeight: latest.lastValidBlockHeight,
-      }, 'confirmed');
+      try {
+        await rpc.confirmTransaction({
+          signature: submittedTxid,
+          blockhash: freshLatest.blockhash,
+          lastValidBlockHeight: freshLatest.lastValidBlockHeight,
+        }, 'confirmed');
+      } catch (confirmError) {
+        // Confirmation RPC can time out or report blockheight expiry even when the
+        // transaction landed. Never submit a second transaction before re-reading
+        // the authority state from chain.
+        const observed = await inspect(rpc);
+        if (observed.state.mintAuthority === null && observed.state.freezeAuthority === null) {
+          setSignature(submittedTxid);
+          setSimulationOk(true);
+          return;
+        }
+        throw new Error(`${confirmError?.message || 'Konfirmasi transaksi tidak selesai.'} Authority masih aktif saat dibaca ulang; transaksi tidak dianggap berhasil.`);
+      }
 
       const verified = await inspect(rpc);
       if (verified.state.mintAuthority !== null || verified.state.freezeAuthority !== null) {
         throw new Error(`Verifikasi pascatransaksi gagal: mint=${verified.state.mintAuthority}, freeze=${verified.state.freezeAuthority}.`);
       }
+      setSignature(submittedTxid);
       setSimulationOk(true);
     } catch (err) {
-      setError(err?.message || 'Pencabutan authority gagal atau dibatalkan.');
+      if (submittedTxid) {
+        try {
+          const observed = await inspect();
+          if (observed.state.mintAuthority === null && observed.state.freezeAuthority === null) {
+            setSignature(submittedTxid);
+            setSimulationOk(true);
+            setError('');
+            return;
+          }
+        } catch {
+          // Preserve the original error below; the operator can safely re-inspect.
+        }
+        setSimulationOk(false);
+        setError(`${err?.message || 'Konfirmasi transaksi tidak selesai.'} Signature: ${submittedTxid}. Tekan “Hubungkan Signer 1 & Periksa” sebelum mencoba lagi.`);
+      } else {
+        setError(err?.message || 'Pencabutan authority gagal atau dibatalkan.');
+      }
     } finally {
       setBusy('');
     }
