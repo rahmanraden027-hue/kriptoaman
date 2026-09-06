@@ -3,19 +3,44 @@ import { PublicKey } from '@solana/web3.js';
 
 const POLICY_PATH = new URL('./skam-reserve-policy.json', import.meta.url);
 const policy = JSON.parse(fs.readFileSync(POLICY_PATH, 'utf8'));
-const MINT = policy.token.mint;
-const OPERATOR = policy.operator;
+
+// Security boundary: every value used in an outbound RPC request is pinned in
+// reviewed source. Once the Squads addresses exist, update these three values
+// through a reviewed PR; do not accept runtime/env/file-supplied network inputs.
+const MINT = 'Dw9xf7EmMH5dD7rdqkFbzjJtcAWk4KXLBAXUkSRcLSLi';
+const OPERATOR = '5Fg4FVvyvSRLMapHdYVZzUCbhC8CWdENF77AfGPVAfpK';
 const TOKEN_2022_PROGRAM_ID = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
-const SCALE = 10n ** BigInt(policy.token.decimals);
-const EXPECTED_SUPPLY = BigInt(policy.token.fixedSupplyUi) * SCALE;
-const STRATEGIC_RESERVE = BigInt(policy.allocation.strategicReserveUi) * SCALE;
-const ECOSYSTEM_RESERVE = BigInt(policy.allocation.ecosystemReserveUi) * SCALE;
-const RESERVED_TOTAL = BigInt(policy.allocation.reservedTotalUi) * SCALE;
-const SQUADS_V4 = policy.treasuryFoundation.programId;
+const SQUADS_V4 = 'SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf';
+const TOKEN_DECIMALS = 9;
+const FIXED_SUPPLY_UI = 1_000_000_000n;
+const STRATEGIC_RESERVE_UI = 200_000_000n;
+const ECOSYSTEM_RESERVE_UI = 100_000_000n;
+const RESERVED_TOTAL_UI = 300_000_000n;
+const STRATEGIC_VAULT_OWNER = null;
+const ECOSYSTEM_VAULT_OWNER = null;
+const SQUADS_MULTISIG_ADDRESS = null;
+const SCALE = 10n ** BigInt(TOKEN_DECIMALS);
+const EXPECTED_SUPPLY = FIXED_SUPPLY_UI * SCALE;
+const STRATEGIC_RESERVE = STRATEGIC_RESERVE_UI * SCALE;
+const ECOSYSTEM_RESERVE = ECOSYSTEM_RESERVE_UI * SCALE;
+const RESERVED_TOTAL = RESERVED_TOTAL_UI * SCALE;
 const RPC_URLS = [
   'https://solana-rpc.publicnode.com',
   'https://api.mainnet-beta.solana.com',
 ];
+
+function requirePolicyMatch(actual, expected, label) {
+  if (String(actual) !== String(expected)) throw new Error(`Policy/code mismatch for ${label}: ${actual}`);
+}
+
+requirePolicyMatch(policy.token.mint, MINT, 'mint');
+requirePolicyMatch(policy.operator, OPERATOR, 'operator');
+requirePolicyMatch(policy.token.decimals, TOKEN_DECIMALS, 'decimals');
+requirePolicyMatch(policy.token.fixedSupplyUi, FIXED_SUPPLY_UI, 'fixedSupplyUi');
+requirePolicyMatch(policy.allocation.strategicReserveUi, STRATEGIC_RESERVE_UI, 'strategicReserveUi');
+requirePolicyMatch(policy.allocation.ecosystemReserveUi, ECOSYSTEM_RESERVE_UI, 'ecosystemReserveUi');
+requirePolicyMatch(policy.allocation.reservedTotalUi, RESERVED_TOTAL_UI, 'reservedTotalUi');
+requirePolicyMatch(policy.treasuryFoundation.programId, SQUADS_V4, 'Squads program');
 
 function parseMintBase(data) {
   if (!(data instanceof Uint8Array) || data.length < 82) throw new Error('Mint account data is too short.');
@@ -69,7 +94,7 @@ function ui(raw) {
   const whole = raw / SCALE;
   const remainder = raw % SCALE;
   if (remainder === 0n) return whole.toString();
-  return `${whole}.${remainder.toString().padStart(policy.token.decimals, '0').replace(/0+$/, '')}`;
+  return `${whole}.${remainder.toString().padStart(TOKEN_DECIMALS, '0').replace(/0+$/, '')}`;
 }
 
 const { result: mintResult, provider } = await rpc('getAccountInfo', [MINT, { encoding: 'base64', commitment: 'confirmed' }]);
@@ -78,13 +103,13 @@ if (mintResult.value.owner !== TOKEN_2022_PROGRAM_ID) throw new Error(`Unexpecte
 const mintData = Uint8Array.from(Buffer.from(mintResult.value.data[0], 'base64'));
 const mint = parseMintBase(mintData);
 if (!mint.initialized) throw new Error('sKAM mint is not initialized.');
-if (mint.decimals !== policy.token.decimals) throw new Error(`Decimals mismatch: ${mint.decimals}`);
+if (mint.decimals !== TOKEN_DECIMALS) throw new Error(`Decimals mismatch: ${mint.decimals}`);
 if (mint.supply !== EXPECTED_SUPPLY) throw new Error(`Supply mismatch: ${mint.supply}`);
 
 const operatorRaw = await tokenBalanceRaw(OPERATOR);
-const strategicVault = process.env.STRATEGIC_VAULT_OWNER?.trim() || policy.treasuryFoundation.strategicVaultOwner;
-const ecosystemVault = process.env.ECOSYSTEM_VAULT_OWNER?.trim() || policy.treasuryFoundation.ecosystemVaultOwner;
-const multisigAddress = process.env.SQUADS_MULTISIG_ADDRESS?.trim() || policy.treasuryFoundation.multisigAddress;
+const strategicVault = STRATEGIC_VAULT_OWNER;
+const ecosystemVault = ECOSYSTEM_VAULT_OWNER;
+const multisigAddress = SQUADS_MULTISIG_ADDRESS;
 
 let strategicRaw = null;
 let ecosystemRaw = null;
@@ -132,28 +157,29 @@ const report = {
     multisigAddress,
     multisigProgramOwner,
     multisigProgramVerified,
-    threshold: `${policy.treasuryFoundation.threshold}-of-${policy.treasuryFoundation.requiredIndependentMembers}`,
-    globalTimelockSeconds: policy.treasuryFoundation.globalTimelockSeconds,
+    threshold: '2-of-3',
+    globalTimelockSeconds: 86400,
   },
   reserves: {
     strategicVaultOwner: strategicVault,
-    strategicExpectedUi: policy.allocation.strategicReserveUi,
+    strategicExpectedUi: STRATEGIC_RESERVE_UI.toString(),
     strategicObservedUi: strategicRaw == null ? null : ui(strategicRaw),
     ecosystemVaultOwner: ecosystemVault,
-    ecosystemExpectedUi: policy.allocation.ecosystemReserveUi,
+    ecosystemExpectedUi: ECOSYSTEM_RESERVE_UI.toString(),
     ecosystemObservedUi: ecosystemRaw == null ? null : ui(ecosystemRaw),
     balancesExact: reserveBalancesExact,
   },
   warnings: [
-    ...(vaultsConfigured ? [] : ['No reserve vault addresses are pinned yet. Do not move reserve-scale balances until they are configured and verified.']),
+    ...(vaultsConfigured ? [] : ['No reserve vault addresses are pinned yet. Do not move reserve-scale balances until they are code-pinned and verified.']),
     ...(operatorCanFund ? [] : ['Operator does not currently hold enough sKAM to fund the full 300M reserve target.']),
-    ...(multisigAddress && !multisigProgramVerified ? ['Configured multisig account is not owned by the expected Squads v4 program.'] : []),
+    ...(multisigAddress && !multisigProgramVerified ? ['Pinned multisig account is not owned by the expected Squads v4 program.'] : []),
     ...(authoritiesRevoked && !reserveBalancesExact ? ['Authorities are already revoked but reserve balances are not exact; manual review is required.'] : []),
   ],
 };
 
-fs.mkdirSync(new URL('./artifacts/', import.meta.url), { recursive: true });
-fs.writeFileSync(new URL('./artifacts/skam-reserve-foundation-readiness.json', import.meta.url), `${JSON.stringify(report, null, 2)}\n`);
+// Keep network-derived evidence on stdout. The GitHub workflow captures this
+// output as an artifact outside the Node process, avoiding a file/network taint
+// path while preserving a reproducible, non-secret audit record.
 console.log(JSON.stringify(report, null, 2));
 
 if (stage.startsWith('BLOCKED_')) process.exitCode = 2;
