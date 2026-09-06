@@ -32,9 +32,12 @@ jobs:
       - name: Parse reserve verifier
         run: node --check chain/solana-liquidity/verify-skam-reserve-foundation.mjs
 
-      - name: Run read-only reserve readiness
+      - name: Run read-only reserve readiness and capture evidence
         working-directory: chain/solana-liquidity
-        run: npm run reserve:readiness
+        run: |
+          set -o pipefail
+          mkdir -p artifacts
+          node verify-skam-reserve-foundation.mjs | tee artifacts/skam-reserve-foundation-readiness.json
 
       - name: Upload non-secret readiness evidence
         if: always()
