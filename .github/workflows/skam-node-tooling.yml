@@ -35,6 +35,7 @@ jobs:
           const web3 = await import('@solana/web3.js');
           const token = await import('@solana/spl-token');
           const metadata = await import('@solana/spl-token-metadata');
+          const tlv = await import('@solana/spl-type-length-value');
           const raydium = await import('@raydium-io/raydium-sdk-v2');
           for (const [name, value] of Object.entries({
             Connection: web3.Connection,
@@ -49,8 +50,8 @@ jobs:
             createMintToCheckedInstruction: token.createMintToCheckedInstruction,
             createInitializeInstruction: metadata.createInitializeInstruction,
             pack: metadata.pack,
-            TYPE_SIZE: metadata.TYPE_SIZE,
-            LENGTH_SIZE: metadata.LENGTH_SIZE,
+            TYPE_SIZE: tlv.TYPE_SIZE,
+            LENGTH_SIZE: tlv.LENGTH_SIZE,
             Raydium: raydium.Raydium,
           })) {
             if (value == null) throw new Error(`Missing required export: ${name}`);
