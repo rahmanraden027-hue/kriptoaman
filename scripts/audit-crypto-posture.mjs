@@ -5,11 +5,11 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 const checks = [];
 const add = (name, ok, detail) => checks.push({ name, ok: Boolean(ok), detail });
 
-const [password, headers, provider, app, networkProfileRaw, baseline] = await Promise.all([
+const [password, headers, provider, localWalletPage, networkProfileRaw, baseline] = await Promise.all([
   read('server/auth/password.js'),
   read('public/_headers'),
   read('src/components/web3/Web3Provider.jsx'),
-  read('src/App.jsx'),
+  read('src/pages/MultiChainWallet.jsx'),
   read('chain/kam-mainnet/network-profile.json'),
   read('docs/SECURITY_PQC_BASELINE_2026.md'),
 ]);
@@ -44,11 +44,12 @@ add(
   'Public external-wallet release explicitly blocks transaction execution and signing.',
 );
 add(
-  'local-self-custody-not-public-route',
-  /LOCAL_SELF_CUSTODY_RELEASE_ENABLED/.test(app)
-    && /VITE_ENABLE_EXPERIMENTAL_LOCAL_WALLET/.test(app)
-    && /LOCAL_SELF_CUSTODY_RELEASE_ENABLED \? <MultiChainWallet \/> : <StoreAvailabilityNotice \/>/.test(app),
-  'Browser-local self-custody route is disabled by default and requires an explicit non-production experimental gate.',
+  'browser-local-self-custody-production-gated',
+  /Controlled Security Gate/.test(localWalletPage)
+    && /tidak membuat, menyimpan, membaca, atau menandatangani transaksi/.test(localWalletPage)
+    && /to="\/Wallet"/.test(localWalletPage)
+    && !/loadWallet\(|decryptData\(|sessionStorage|getItem\('btc_wallet'\)/.test(localWalletPage),
+  'Historical browser-local self-custody page no longer reads wallet secrets and redirects users to the external-wallet production path.',
 );
 add(
   'kam-commercial-launch-disabled',
