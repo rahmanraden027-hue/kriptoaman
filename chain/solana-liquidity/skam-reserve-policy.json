@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 1,
-  "status": "PREPARED_NOT_EXECUTED",
+  "schemaVersion": 2,
+  "status": "MEMBERS_PINNED_AWAITING_INDEPENDENCE_ATTESTATION",
   "network": "solana-mainnet-beta",
   "token": {
     "name": "Solana KAM",
@@ -24,6 +24,23 @@
     "globalTimelockSeconds": 86400,
     "configAuthority": null,
     "spendingLimitsAllowedAtFoundation": false,
+    "members": [
+      {
+        "role": "operator",
+        "address": "5Fg4FVvyvSRLMapHdYVZzUCbhC8CWdENF77AfGPVAfpK"
+      },
+      {
+        "role": "treasury-signer-2",
+        "address": "9kyjft13umxb92C11qr9v6L8HnJ3t1cZuDohc5wLrFqB"
+      },
+      {
+        "role": "treasury-signer-3",
+        "address": "9qhMmV5T9gfPQ4yCZPMVgDbHUR9F65c3xBKnEmWLYxT2"
+      }
+    ],
+    "memberAddressesPinned": true,
+    "independentControlAttestationComplete": false,
+    "independentControlRequirement": "Before multisig creation, confirm the three pinned signer addresses are controlled by independent seed material or independent signing devices. Imported copies of the same seed do not count as independent signers.",
     "strategicVaultOwner": null,
     "ecosystemVaultOwner": null,
     "multisigAddress": null
@@ -35,15 +52,17 @@
     "retainMetadataPointerAuthorityForBrandingHardening": true
   },
   "executionOrder": [
-    "Create a Squads v4 multisig with three independent signer wallets and a 2-of-3 threshold; do not use a unilateral config authority.",
+    "Confirm independent control of all three pinned signer addresses; do not expose any seed phrase or private key.",
+    "Create a Squads v4 multisig using exactly the three pinned signer addresses with a 2-of-3 threshold and no unilateral config authority.",
     "Enable a 24-hour global timelock and do not configure spending limits during the foundation phase.",
     "Create or identify separate Strategic Reserve and Ecosystem Reserve vault owner addresses.",
-    "Perform a small test transfer to each vault and verify recovery/approval workflow before moving reserve-scale balances.",
+    "Pin the resulting Squads multisig and vault owner addresses in a follow-up reviewed PR.",
+    "Perform a small test transfer to each vault and verify the approval/recovery workflow before moving reserve-scale balances.",
     "Transfer exactly 200000000 sKAM to the Strategic Reserve vault and exactly 100000000 sKAM to the Ecosystem Reserve vault.",
     "Run the read-only reserve verifier and require exact reserve balances before any authority revocation.",
-    "Revoke sKAM Mint Authority in a dedicated Phantom-approved transaction and verify on-chain that it is null.",
-    "Revoke sKAM Freeze Authority in a separate Phantom-approved transaction and verify on-chain that it is null.",
-    "Run the final live audit again and publish the reserve addresses and governance policy as transparency evidence."
+    "Revoke sKAM Mint Authority in a dedicated wallet-approved transaction and verify on-chain that it is null.",
+    "Revoke sKAM Freeze Authority in a separate wallet-approved transaction and verify on-chain that it is null.",
+    "Run the final live audit again and publish reserve addresses and governance policy as transparency evidence."
   ],
   "publicDisclosure": {
     "claimFixedSupplyOnlyAfterMintAuthorityRevoked": true,
