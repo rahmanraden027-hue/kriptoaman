@@ -1,6 +1,6 @@
 # KAM ↔ Base USDC Bridge Review — 2026-09-06
 
-Status: **SOURCE ASSET VERIFIED / BRIDGE PRE-DEPLOYMENT ONLY / NO TREASURY MOVEMENT AUTHORIZED**
+Status: **SOURCE ASSET VERIFIED / STAGE A RPC PREFLIGHT PASS / BRIDGE PRE-DEPLOYMENT ONLY / NO TREASURY MOVEMENT AUTHORIZED**
 
 ## Decision
 
@@ -42,13 +42,20 @@ The quickstart flow is suitable for testing; production security must be reviewe
 
 ## Stage A — KAM Hyperlane core preflight
 
-All of the following must pass before any contract deployment is signed:
+### Result: PASS for tested RPC primitives
 
-- [ ] `eth_chainId` returns `0x560c`.
-- [ ] block height progresses over repeated probes.
-- [ ] `eth_getStorageAt` works on the KAM RPC.
-- [ ] gas estimation and transaction receipt APIs work reliably.
-- [ ] proposed Hyperlane domain ID 22028 is checked against the current registry at deployment time.
+GitHub Actions workflow **KAM Hyperlane Preflight**, run `34033481630`, completed successfully on 2026-09-06.
+
+Observed read-only evidence:
+
+- `eth_chainId = 0x560c` — PASS.
+- block progression during the test: `494575 -> 494578` over the probe interval — PASS.
+- `eth_getStorageAt` returned a correctly shaped 32-byte value — PASS.
+- canonical WKAM at `0x0d8848CE88BB09a81a4248Efdd574d50B98b544A` returned runtime bytecode — PASS.
+- public Hyperlane registry search returned no current match for `22028` or `KriptoAman` at review time; final uniqueness must still be checked immediately before deployment/registry submission.
+
+Remaining Stage A governance/configuration items:
+
 - [ ] KAM chain metadata is prepared for the Hyperlane registry format.
 - [ ] deployer public address is recorded without exposing private keys or seed phrases.
 - [ ] deployer is funded only with the minimum KAM needed for controlled deployment/testing.
@@ -59,7 +66,8 @@ All of the following must pass before any contract deployment is signed:
 
 Before deploying a Base ↔ KAM Warp Route:
 
-- [ ] independently verify the Base USDC contract address against current Circle documentation again on deployment day.
+- [x] verify the current Base native-USDC address against Circle documentation during this review.
+- [ ] re-verify the Base USDC contract address against current Circle documentation again on deployment day.
 - [ ] freeze the exact Hyperlane CLI/contracts version.
 - [ ] identify the exact collateral Warp Route implementation and bytecode.
 - [ ] document Base collateral custody/locking semantics.
@@ -119,6 +127,10 @@ Only after a legitimate bridged quote asset is proven by a successful round trip
 
 `DESTINATION_CHAIN = KAM Mainnet / 22028`
 
+`KAM_RPC_STAGE_A_PRIMITIVES = PASS`
+
+`HYPERLANE_REGISTRY_CONFLICT_FOUND = false_at_review_time`
+
 `KAM_HYPERLANE_CORE_DEPLOYED = false`
 
 `WARP_ROUTE_DEPLOYED = false`
@@ -133,4 +145,4 @@ Only after a legitimate bridged quote asset is proven by a successful round trip
 
 ## Next executable step
 
-Proceed with **read-only Stage A RPC compatibility checks and Hyperlane registry/domain review only**. Do not request wallet signatures or move USDC/KAM until Stage A and Stage B are documented as PASS.
+Proceed with **Stage B configuration/security review only**: freeze the Hyperlane version, define the exact collateral Warp Route, ISM, ownership/admin model, validator/relayer assumptions, and accounting invariants. Do not request wallet signatures or move USDC/KAM until Stage B is documented as PASS.
