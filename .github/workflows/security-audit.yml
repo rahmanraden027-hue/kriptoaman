@@ -38,18 +38,21 @@ jobs:
       - name: Security regression tests
         run: npm run test
 
+      - name: Crypto agility and post-quantum readiness gate
+        run: node scripts/audit-crypto-posture.mjs
+
       - name: Lint release-critical security surfaces
         run: >-
           npx eslint server/auth/*.js functions/api/auth/*.js functions/api/market-snapshot.js
           functions/api/auth/google/*.js src/lib/kriptoAuth.js src/lib/AuthContext.jsx
           src/api/base44Client.js src/Layout.jsx src/pages.config.js src/main.jsx
           src/pages/Login.jsx src/pages/Register.jsx src/pages/ForgotPassword.jsx src/pages/ResetPassword.jsx
-          src/pages/Home.jsx src/pages/Market.jsx src/pages/Wallet.jsx src/pages/SecurityHub.jsx
+          src/pages/Home.jsx src/pages/Market.jsx src/pages/Wallet.jsx src/pages/MultiChainWallet.jsx src/pages/SecurityHub.jsx
           src/pages/KYC.jsx src/pages/Settings.jsx src/pages/PortfolioOverview.jsx
           src/components/security/TOTP2FA.jsx src/components/market/useLivePrices.jsx
           src/components/home/useCoinMarkets.js src/components/LanguageSwitcher.jsx
           src/lib/LanguageContext.jsx src/components/pwa/PWAInstallPrompt.jsx
-          scripts/audit-production-deps.mjs scripts/check-market-health.mjs scripts/check-system-health.mjs public/sw.js --quiet
+          scripts/audit-production-deps.mjs scripts/audit-crypto-posture.mjs scripts/check-market-health.mjs scripts/check-system-health.mjs public/sw.js --quiet
 
       - name: Build production bundle
         run: npm run build
@@ -137,10 +140,10 @@ jobs:
         run: |
           if [ "$JOB_STATUS" = "success" ]; then
             STATE=success
-            DESCRIPTION='Production security and KAM integrity gate passed'
+            DESCRIPTION='Production security, crypto agility and KAM integrity gates passed'
           else
             STATE=failure
-            DESCRIPTION='Production security or KAM integrity gate failed'
+            DESCRIPTION='Production security, crypto agility or KAM integrity gate failed'
           fi
           curl --fail-with-body --silent --show-error \
             -X POST \
