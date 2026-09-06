@@ -9,7 +9,7 @@ import {
   TOKEN_2022_PROGRAM_ID,
   createAssociatedTokenAccountInstruction as officialCreateAta,
   createInitializeMetadataPointerInstruction as officialInitPointer,
-  createInitializeMintInstruction as officialInitMint,
+  createInitializeMint2Instruction as officialInitMint2,
   createMintToCheckedInstruction as officialMintChecked,
   getAssociatedTokenAddressSync,
   getMintLen,
@@ -21,6 +21,7 @@ import {
 import {
   SKAM_DECIMALS,
   SKAM_METADATA_URI,
+  SKAM_MINT_SEED,
   SKAM_NAME,
   SKAM_RAW_SUPPLY,
   SKAM_SYMBOL,
@@ -29,6 +30,7 @@ import {
   createInitializeMint2Instruction,
   createInitializeTokenMetadataInstruction,
   createMintToCheckedInstruction,
+  deriveSkamMintAddress,
   getAssociatedTokenAddress,
   metadataPackedLength,
   mintBaseSpaceWithMetadataPointer,
@@ -54,7 +56,7 @@ const officialPointer = officialInitPointer(mint, owner, mint, TOKEN_2022_PROGRA
 const browserPointer = createInitializeMetadataPointerInstruction(mint, owner);
 assert.deepEqual(normalize(browserPointer), normalize(officialPointer), 'MetadataPointer instruction differs from official SPL builder');
 
-const officialMint = officialInitMint(mint, SKAM_DECIMALS, owner, owner, TOKEN_2022_PROGRAM_ID);
+const officialMint = officialInitMint2(mint, SKAM_DECIMALS, owner, owner, TOKEN_2022_PROGRAM_ID);
 const browserMint = createInitializeMint2Instruction(mint, owner);
 assert.deepEqual(normalize(browserMint), normalize(officialMint), 'InitializeMint2 instruction differs from official SPL builder');
 assert.equal(browserMint.data.length, 67, 'InitializeMint2 must be exactly 67 bytes');
@@ -97,6 +99,10 @@ assert.deepEqual(normalize(browserAta), normalize(officialAta), 'ATA create inst
 const officialMintSupply = officialMintChecked(mint, officialAtaAddress, owner, SKAM_RAW_SUPPLY, SKAM_DECIMALS, [], TOKEN_2022_PROGRAM_ID);
 const browserMintSupply = createMintToCheckedInstruction({ mint, ata: browserAtaAddress, authority: owner });
 assert.deepEqual(normalize(browserMintSupply), normalize(officialMintSupply), 'MintToChecked instruction differs from official SPL builder');
+
+const derivedA = await deriveSkamMintAddress(owner);
+const derivedB = await PublicKey.createWithSeed(owner, SKAM_MINT_SEED, TOKEN_2022_PROGRAM_ID);
+assert.equal(derivedA.toBase58(), derivedB.toBase58(), 'Deterministic mint derivation differs from web3.js createWithSeed');
 
 assert.equal(new PublicKey(TOKEN_2022_PROGRAM_ID).toBase58(), TOKEN_2022_PROGRAM_ID.toBase58());
 console.log('Browser sKAM Token-2022 builder matches official SPL instruction encoders.');
