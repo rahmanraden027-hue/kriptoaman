@@ -20,6 +20,7 @@ export default function HomeMarketMovers() {
   const [coins, setCoins] = useState([]);
   const [trending, setTrending] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [snapshotAt, setSnapshotAt] = useState(null);
   const [watchlist, setWatchlist] = useState(() => {
     try { return JSON.parse(localStorage.getItem('ka_watchlist') || '[]'); } catch { return []; }
   });
@@ -37,14 +38,28 @@ export default function HomeMarketMovers() {
     const load = async () => {
       setLoading(true);
       try {
-        const [m, t] = await Promise.all([
-          fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h').then(r => r.json()),
-          fetch('https://api.coingecko.com/api/v3/search/trending').then(r => r.json()).catch(() => ({ coins: [] })),
-        ]);
-        if (!alive) return;
-        setCoins(Array.isArray(m) ? m : []);
-        setTrending(Array.isArray(t?.coins) ? t.coins.map(c => c.item) : []);
-      } catch { /* rate-limit */ } finally { if (alive) setLoading(false); }
+        const response = await fetch('/api/market-snapshot-page?page=0&limit=100', {
+          headers: { Accept: 'application/json' },
+          cache: 'no-store',
+        });
+        if (!response.ok) throw new Error(`Market snapshot HTTP ${response.status}`);
+        const payload = await response.json();
+        const rows = Array.isArray(payload?.data) ? payload.data : [];
+        if (!alive || rows.length === 0) return;
+
+        setCoins(rows);
+        setTrending(
+          [...rows]
+            .filter(c => Number.isFinite(Number(c?.total_volume)))
+            .sort((a, b) => Number(b.total_volume || 0) - Number(a.total_volume || 0))
+            .slice(0, 20),
+        );
+        setSnapshotAt(Number(payload?.capturedAt) || null);
+      } catch {
+        // Preserve the last rendered snapshot if the KriptoAman read path is temporarily unavailable.
+      } finally {
+        if (alive) setLoading(false);
+      }
     };
     load();
     const id = setInterval(load, 60000);
@@ -66,10 +81,7 @@ export default function HomeMarketMovers() {
     .sort((a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h)
     .slice(0, 10);
   const trendingCoins = trending
-    .map(t => coins.find(c => c.id === t.id) || {
-      id: t.id, symbol: (t.symbol || '').toUpperCase(), name: t.name, image: t.small || t.thumb,
-      current_price: t.data?.price, price_change_percentage_24h: t.data?.price_change_percentage_24h,
-    })
+    .map(t => coins.find(c => c.id === t.id) || t)
     .filter(c => c.current_price != null);
 
   let list = [];
@@ -95,7 +107,7 @@ export default function HomeMarketMovers() {
         ))}
       </div>
 
-      {loading ? (
+      {loading && list.length === 0 ? (
         <div className="space-y-2">{[...Array(6)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
       ) : list.length === 0 ? (
         <div className="text-center py-6 ka-muted text-xs">
@@ -130,7 +142,7 @@ export default function HomeMarketMovers() {
             );
           })}
           <p className="ka-muted text-[10px] leading-relaxed pt-2 border-t border-ka-card-border">
-            Sumber: CoinGecko. Gainers/Losers disaring dari 100 aset teratas dengan kapitalisasi ≥ $100 juta dan volume 24 jam ≥ $1 juta. Data informatif, bukan rekomendasi investasi.
+            Sumber: KriptoAman Market Database. Gainers/Losers disaring dari 100 aset teratas dengan kapitalisasi ≥ $100 juta dan volume 24 jam ≥ $1 juta. Trending menggunakan volume tertinggi pada snapshot yang sama. {snapshotAt ? `Snapshot: ${new Date(snapshotAt).toLocaleString('id-ID')}. ` : ''}Data informatif, bukan rekomendasi investasi.
           </p>
         </div>
       )}
