@@ -34,12 +34,15 @@
   Cache-Control: no-store
 
 /Admin*
+  Cache-Control: no-cache, no-store, must-revalidate
   X-Robots-Tag: noindex, nofollow, noarchive
 /ServerControl*
+  Cache-Control: no-cache, no-store, must-revalidate
   X-Robots-Tag: noindex, nofollow, noarchive
 /SecureVault*
   X-Robots-Tag: noindex, nofollow, noarchive
 /dashboard*
+  Cache-Control: no-cache, no-store, must-revalidate
   X-Robots-Tag: noindex, nofollow, noarchive
 /Profile*
   X-Robots-Tag: noindex, nofollow, noarchive
