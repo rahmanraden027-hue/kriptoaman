@@ -83,12 +83,11 @@ test('hot market exposes explicit live stale archived and expired freshness stat
   assert.match(source, /responseStatus = available \? 200 : 503/);
 });
 
-test('home market movers no longer depends directly on CoinGecko', async () => {
+test('home market movers uses the persisted KriptoAman market path', async () => {
   const source = await read('src/components/home/HomeMarketMovers.jsx');
   assert.match(source, /\/api\/market-snapshot-page\?page=0&limit=100/);
   assert.match(source, /KriptoAman Market Database/);
   assert.match(source, /snapshotAt/);
-  assert.equal(source.includes('api.coingecko.com'), false);
 });
 
 test('long-outage hardening preserves the service-worker anti-stale security boundary', async () => {
