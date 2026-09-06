@@ -48,19 +48,58 @@ jobs:
           printf 'CF_ACCOUNT_ID_CLEAN=%s\n' "${account_id}" >> "${GITHUB_ENV}"
           printf 'CF_API_TOKEN_CLEAN=%s\n' "${api_token}" >> "${GITHUB_ENV}"
 
-      - name: Fetch preview deployment inventory
+      - name: Verify Pages project visibility
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p cloudflare-inventory
-          : > cloudflare-inventory/previews.tsv
+          body_file="$(mktemp)"
+          http_code="$(curl --silent --show-error \
+            --output "${body_file}" \
+            --write-out '%{http_code}' \
+            --get \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID_CLEAN}/pages/projects" \
+            --header "Authorization: Bearer ${CF_API_TOKEN_CLEAN}" \
+            --header "Accept: application/json" \
+            --data-urlencode "page=1" \
+            --data-urlencode "per_page=100")"
 
+          if [[ "${http_code}" != "200" ]]; then
+            echo "Cloudflare Pages project-list request failed with HTTP ${http_code}."
+            jq -c '{success, errors}' "${body_file}" 2>/dev/null || true
+            exit 3
+          fi
+
+          if [[ "$(jq -r '.success' "${body_file}")" != "true" ]]; then
+            echo "Cloudflare API returned success=false while listing Pages projects."
+            jq '.errors' "${body_file}"
+            exit 3
+          fi
+
+          jq -r '.result[].name' "${body_file}" > cloudflare-inventory/pages-projects.txt
+          if ! grep -Fxq "${CF_PROJECT_NAME}" cloudflare-inventory/pages-projects.txt; then
+            echo "Pages project '${CF_PROJECT_NAME}' is not visible to this Account ID/API token pair."
+            echo "Visible Pages projects:"
+            sed 's/^/- /' cloudflare-inventory/pages-projects.txt
+            exit 4
+          fi
+
+          echo "Confirmed Pages project '${CF_PROJECT_NAME}' is visible to the supplied credentials."
+
+      - name: Fetch preview deployment inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          : > cloudflare-inventory/previews.tsv
           api_url="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID_CLEAN}/pages/projects/${CF_PROJECT_NAME}/deployments"
 
           page=1
           total_pages=1
           while (( page <= total_pages )); do
-            response="$(curl --fail-with-body --silent --show-error \
+            body_file="$(mktemp)"
+            http_code="$(curl --silent --show-error \
+              --output "${body_file}" \
+              --write-out '%{http_code}' \
               --get \
               "${api_url}" \
               --header "Authorization: Bearer ${CF_API_TOKEN_CLEAN}" \
@@ -69,11 +108,16 @@ jobs:
               --data-urlencode "page=${page}" \
               --data-urlencode "per_page=100")"
 
-            success="$(jq -r '.success' <<<"${response}")"
-            if [[ "${success}" != "true" ]]; then
+            if [[ "${http_code}" != "200" ]]; then
+              echo "Cloudflare Preview deployment request failed with HTTP ${http_code}."
+              jq -c '{success, errors}' "${body_file}" 2>/dev/null || true
+              exit 5
+            fi
+
+            if [[ "$(jq -r '.success' "${body_file}")" != "true" ]]; then
               echo "Cloudflare API returned success=false while reading Preview deployments."
-              jq '.errors' <<<"${response}"
-              exit 1
+              jq '.errors' "${body_file}"
+              exit 5
             fi
 
             jq -r '.result[] | [
@@ -85,9 +129,9 @@ jobs:
               (.deployment_trigger.metadata.branch // ""),
               (.deployment_trigger.metadata.commit_hash // ""),
               (.url // "")
-            ] | @tsv' <<<"${response}" >> cloudflare-inventory/previews.tsv
+            ] | @tsv' "${body_file}" >> cloudflare-inventory/previews.tsv
 
-            total_pages="$(jq -r '.result_info.total_pages // 1' <<<"${response}")"
+            total_pages="$(jq -r '.result_info.total_pages // 1' "${body_file}")"
             page=$((page + 1))
           done
 
@@ -100,8 +144,10 @@ jobs:
         run: |
           set -euo pipefail
           api_url="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID_CLEAN}/pages/projects/${CF_PROJECT_NAME}/deployments"
-
-          response="$(curl --fail-with-body --silent --show-error \
+          body_file="$(mktemp)"
+          http_code="$(curl --silent --show-error \
+            --output "${body_file}" \
+            --write-out '%{http_code}' \
             --get \
             "${api_url}" \
             --header "Authorization: Bearer ${CF_API_TOKEN_CLEAN}" \
@@ -110,11 +156,16 @@ jobs:
             --data-urlencode "page=1" \
             --data-urlencode "per_page=20")"
 
-          success="$(jq -r '.success' <<<"${response}")"
-          if [[ "${success}" != "true" ]]; then
+          if [[ "${http_code}" != "200" ]]; then
+            echo "Cloudflare Production deployment request failed with HTTP ${http_code}."
+            jq -c '{success, errors}' "${body_file}" 2>/dev/null || true
+            exit 6
+          fi
+
+          if [[ "$(jq -r '.success' "${body_file}")" != "true" ]]; then
             echo "Cloudflare API returned success=false while reading Production deployments."
-            jq '.errors' <<<"${response}"
-            exit 1
+            jq '.errors' "${body_file}"
+            exit 6
           fi
 
           jq -r '.result[] | [
@@ -126,7 +177,7 @@ jobs:
             (.deployment_trigger.metadata.branch // ""),
             (.deployment_trigger.metadata.commit_hash // ""),
             (.url // "")
-          ] | @tsv' <<<"${response}" > cloudflare-inventory/production-recent.tsv
+          ] | @tsv' "${body_file}" > cloudflare-inventory/production-recent.tsv
 
           production_count="$(wc -l < cloudflare-inventory/production-recent.tsv | tr -d ' ')"
           echo "Recent production deployments captured: ${production_count}"
