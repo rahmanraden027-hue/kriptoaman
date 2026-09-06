@@ -8,9 +8,9 @@
   "minNetProfitBps": 50,
   "opportunityLogPath": "var/market-edge-opportunities.jsonl",
   "venues": [
-    "Raydium CPMM",
-    "Orca Whirlpool",
-    "Meteora DLMM"
+    "Raydium CP",
+    "Orca V2",
+    "Meteora DLMM v2"
   ],
   "markets": [
     {
