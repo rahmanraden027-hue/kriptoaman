@@ -16,8 +16,50 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  public-preflight:
+    if: ${{ github.event.inputs.confirm == 'APPLY_EXPLORER_FRONTEND_ONLY' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout reviewed source
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Capture public Explorer core health
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          node scripts/diagnose-blockscout.mjs | tee artifacts/explorer-preflight.json
+
+      - name: Capture public homepage presentation state
+        shell: bash
+        run: |
+          set -euo pipefail
+          HTML="$(curl -L -sS --max-time 20 https://explorer.kriptoaman.com/)"
+          PLACEHOLDER_COUNT="$(printf '%s' "$HTML" | grep -o 'Placeholder Counter' | wc -l | tr -d ' ')"
+          GAS_TRACKER_COUNT="$(printf '%s' "$HTML" | grep -Eoi 'Gas tracker|Gas Tracker' | wc -l | tr -d ' ')"
+          {
+            echo "placeholder_counter_count=$PLACEHOLDER_COUNT"
+            echo "gas_tracker_count=$GAS_TRACKER_COUNT"
+          } | tee artifacts/explorer-presentation-before.txt
+
+      - name: Upload preflight evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: kam-explorer-preflight-${{ github.run_id }}
+          path: artifacts/*
+          if-no-files-found: error
+          retention-days: 30
+
   apply-explorer-frontend:
     if: ${{ github.event.inputs.confirm == 'APPLY_EXPLORER_FRONTEND_ONLY' }}
+    needs: public-preflight
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
     timeout-minutes: 15
     steps:
@@ -61,6 +103,51 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: kam-explorer-host-apply-${{ github.run_id }}
+          path: artifacts/*
+          if-no-files-found: error
+          retention-days: 30
+
+  public-post-verify:
+    if: ${{ github.event.inputs.confirm == 'APPLY_EXPLORER_FRONTEND_ONLY' }}
+    needs: apply-explorer-frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout reviewed source
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Verify public Explorer core after host apply
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          node scripts/diagnose-blockscout.mjs | tee artifacts/explorer-public-after.json
+
+      - name: Verify public homepage presentation is finalized
+        shell: bash
+        run: |
+          set -euo pipefail
+          HTML="$(curl -L -sS --max-time 20 https://explorer.kriptoaman.com/)"
+          if [[ "$HTML" == *'Placeholder Counter'* ]]; then
+            echo "Public Explorer still exposes Placeholder Counter" >&2
+            exit 1
+          fi
+          if [[ "$HTML" == *'Gas tracker'* || "$HTML" == *'Gas Tracker'* ]]; then
+            echo "Public Explorer still exposes Gas tracker while disabled" >&2
+            exit 1
+          fi
+          echo "public_homepage_presentation=finalized" | tee artifacts/explorer-presentation-after.txt
+
+      - name: Upload final public evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: kam-explorer-public-final-${{ github.run_id }}
           path: artifacts/*
           if-no-files-found: error
           retention-days: 30
