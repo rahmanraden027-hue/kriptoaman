@@ -25,8 +25,9 @@ const normalizeAsset = (coinId) => String(coinId || '').toUpperCase();
 
 const chooseInterval = (days) => {
   const numericDays = Math.max(1, Number(days) || 7);
-  if (numericDays <= 31) return '1h';
-  if (numericDays <= 180) return '4h';
+  // Keep every supported UI timeframe within the API's 500-row hard limit.
+  if (numericDays <= 7) return '1h';
+  if (numericDays <= 80) return '4h';
   return '1d';
 };
 
