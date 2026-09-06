@@ -4,9 +4,9 @@ import { PublicKey } from '@solana/web3.js';
 const POLICY_PATH = new URL('./skam-reserve-policy.json', import.meta.url);
 const policy = JSON.parse(fs.readFileSync(POLICY_PATH, 'utf8'));
 
-// Security boundary: every value used in an outbound RPC request is pinned in
-// reviewed source. Once the Squads addresses exist, update these three values
-// through a reviewed PR; do not accept runtime/env/file-supplied network inputs.
+// Phase 1 security boundary: every value used in an outbound RPC request is
+// pinned in reviewed source. Reserve-scale transfers remain disabled until the
+// created Squads multisig/vault addresses are added through a separate PR.
 const MINT = 'Dw9xf7EmMH5dD7rdqkFbzjJtcAWk4KXLBAXUkSRcLSLi';
 const OPERATOR = '5Fg4FVvyvSRLMapHdYVZzUCbhC8CWdENF77AfGPVAfpK';
 const TOKEN_2022_PROGRAM_ID = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
@@ -16,13 +16,8 @@ const FIXED_SUPPLY_UI = 1_000_000_000n;
 const STRATEGIC_RESERVE_UI = 200_000_000n;
 const ECOSYSTEM_RESERVE_UI = 100_000_000n;
 const RESERVED_TOTAL_UI = 300_000_000n;
-const STRATEGIC_VAULT_OWNER = null;
-const ECOSYSTEM_VAULT_OWNER = null;
-const SQUADS_MULTISIG_ADDRESS = null;
 const SCALE = 10n ** BigInt(TOKEN_DECIMALS);
 const EXPECTED_SUPPLY = FIXED_SUPPLY_UI * SCALE;
-const STRATEGIC_RESERVE = STRATEGIC_RESERVE_UI * SCALE;
-const ECOSYSTEM_RESERVE = ECOSYSTEM_RESERVE_UI * SCALE;
 const RESERVED_TOTAL = RESERVED_TOTAL_UI * SCALE;
 const RPC_URLS = [
   'https://solana-rpc.publicnode.com',
@@ -41,6 +36,9 @@ requirePolicyMatch(policy.allocation.strategicReserveUi, STRATEGIC_RESERVE_UI, '
 requirePolicyMatch(policy.allocation.ecosystemReserveUi, ECOSYSTEM_RESERVE_UI, 'ecosystemReserveUi');
 requirePolicyMatch(policy.allocation.reservedTotalUi, RESERVED_TOTAL_UI, 'reservedTotalUi');
 requirePolicyMatch(policy.treasuryFoundation.programId, SQUADS_V4, 'Squads program');
+requirePolicyMatch(policy.treasuryFoundation.requiredIndependentMembers, 3, 'multisig member count');
+requirePolicyMatch(policy.treasuryFoundation.threshold, 2, 'multisig threshold');
+requirePolicyMatch(policy.treasuryFoundation.globalTimelockSeconds, 86400, 'global timelock');
 
 function parseMintBase(data) {
   if (!(data instanceof Uint8Array) || data.length < 82) throw new Error('Mint account data is too short.');
@@ -77,17 +75,12 @@ async function rpc(method, params) {
   throw lastError || new Error(`All RPC providers failed for ${method}.`);
 }
 
-async function tokenBalanceRaw(owner) {
-  const { result } = await rpc('getTokenAccountsByOwner', [owner, { mint: MINT }, { encoding: 'jsonParsed', commitment: 'confirmed' }]);
+async function operatorTokenBalanceRaw() {
+  const { result } = await rpc('getTokenAccountsByOwner', [OPERATOR, { mint: MINT }, { encoding: 'jsonParsed', commitment: 'confirmed' }]);
   return (result?.value || []).reduce((sum, entry) => {
     const amount = entry?.account?.data?.parsed?.info?.tokenAmount?.amount;
     return sum + BigInt(amount || '0');
   }, 0n);
-}
-
-async function accountOwner(address) {
-  const { result } = await rpc('getAccountInfo', [address, { encoding: 'base64', commitment: 'confirmed' }]);
-  return result?.value?.owner || null;
 }
 
 function ui(raw) {
@@ -106,40 +99,19 @@ if (!mint.initialized) throw new Error('sKAM mint is not initialized.');
 if (mint.decimals !== TOKEN_DECIMALS) throw new Error(`Decimals mismatch: ${mint.decimals}`);
 if (mint.supply !== EXPECTED_SUPPLY) throw new Error(`Supply mismatch: ${mint.supply}`);
 
-const operatorRaw = await tokenBalanceRaw(OPERATOR);
-const strategicVault = STRATEGIC_VAULT_OWNER;
-const ecosystemVault = ECOSYSTEM_VAULT_OWNER;
-const multisigAddress = SQUADS_MULTISIG_ADDRESS;
-
-let strategicRaw = null;
-let ecosystemRaw = null;
-let multisigProgramOwner = null;
-if (strategicVault) strategicRaw = await tokenBalanceRaw(strategicVault);
-if (ecosystemVault) ecosystemRaw = await tokenBalanceRaw(ecosystemVault);
-if (multisigAddress) multisigProgramOwner = await accountOwner(multisigAddress);
-
-const vaultsConfigured = Boolean(strategicVault && ecosystemVault && multisigAddress);
-const multisigProgramVerified = multisigAddress ? multisigProgramOwner === SQUADS_V4 : false;
-const reserveBalancesExact = strategicRaw === STRATEGIC_RESERVE && ecosystemRaw === ECOSYSTEM_RESERVE;
+const operatorRaw = await operatorTokenBalanceRaw();
 const operatorCanFund = operatorRaw >= RESERVED_TOTAL;
 const authoritiesStillOperator = mint.mintAuthority === OPERATOR && mint.freezeAuthority === OPERATOR;
-const authoritiesRevoked = mint.mintAuthority === null && mint.freezeAuthority === null;
-
-let stage = 'AWAITING_MULTISIG_VAULT_ADDRESSES';
-if (vaultsConfigured && !multisigProgramVerified) stage = 'BLOCKED_MULTISIG_PROGRAM_MISMATCH';
-else if (vaultsConfigured && !reserveBalancesExact) stage = 'READY_FOR_TEST_AND_RESERVE_FUNDING';
-else if (vaultsConfigured && reserveBalancesExact && authoritiesStillOperator) stage = 'RESERVES_FUNDED_AUTHORITY_REVOKE_PENDING';
-else if (vaultsConfigured && reserveBalancesExact && authoritiesRevoked) stage = 'FOUNDATION_HARDENED';
-else if (vaultsConfigured && reserveBalancesExact) stage = 'BLOCKED_UNEXPECTED_AUTHORITY_STATE';
+const safeToCreateMultisig = authoritiesStillOperator && operatorCanFund;
 
 const report = {
-  audit: 'sKAM reserve foundation read-only verifier',
+  audit: 'sKAM reserve foundation read-only verifier — phase 1',
   checkedAt: new Date().toISOString(),
   provider,
-  stage,
-  safeToCreateMultisig: authoritiesStillOperator && operatorCanFund,
-  safeToFundReserves: vaultsConfigured && multisigProgramVerified && authoritiesStillOperator && operatorCanFund,
-  safeToRevokeAuthorities: vaultsConfigured && multisigProgramVerified && reserveBalancesExact && authoritiesStillOperator,
+  stage: 'AWAITING_MULTISIG_VAULT_ADDRESSES',
+  safeToCreateMultisig,
+  safeToFundReserves: false,
+  safeToRevokeAuthorities: false,
   token: {
     mint: MINT,
     supplyUi: ui(mint.supply),
@@ -154,32 +126,33 @@ const report = {
   },
   governance: {
     expectedProgramId: SQUADS_V4,
-    multisigAddress,
-    multisigProgramOwner,
-    multisigProgramVerified,
+    multisigAddress: null,
+    multisigProgramVerified: false,
+    requiredIndependentMembers: 3,
     threshold: '2-of-3',
     globalTimelockSeconds: 86400,
+    unilateralConfigAuthorityAllowed: false,
+    spendingLimitsAllowedAtFoundation: false,
   },
   reserves: {
-    strategicVaultOwner: strategicVault,
+    strategicVaultOwner: null,
     strategicExpectedUi: STRATEGIC_RESERVE_UI.toString(),
-    strategicObservedUi: strategicRaw == null ? null : ui(strategicRaw),
-    ecosystemVaultOwner: ecosystemVault,
+    strategicObservedUi: null,
+    ecosystemVaultOwner: null,
     ecosystemExpectedUi: ECOSYSTEM_RESERVE_UI.toString(),
-    ecosystemObservedUi: ecosystemRaw == null ? null : ui(ecosystemRaw),
-    balancesExact: reserveBalancesExact,
+    ecosystemObservedUi: null,
+    balancesExact: false,
   },
   warnings: [
-    ...(vaultsConfigured ? [] : ['No reserve vault addresses are pinned yet. Do not move reserve-scale balances until they are code-pinned and verified.']),
+    'Reserve vault addresses are not pinned yet. Do not move reserve-scale balances.',
+    'Authority revocation is intentionally blocked until a follow-up PR pins and verifies the Squads multisig and both reserve vaults.',
     ...(operatorCanFund ? [] : ['Operator does not currently hold enough sKAM to fund the full 300M reserve target.']),
-    ...(multisigAddress && !multisigProgramVerified ? ['Pinned multisig account is not owned by the expected Squads v4 program.'] : []),
-    ...(authoritiesRevoked && !reserveBalancesExact ? ['Authorities are already revoked but reserve balances are not exact; manual review is required.'] : []),
+    ...(authoritiesStillOperator ? [] : ['Mint/freeze authority state changed from the approved pre-reserve state; stop and re-audit.']),
   ],
 };
 
-// Keep network-derived evidence on stdout. The GitHub workflow captures this
-// output as an artifact outside the Node process, avoiding a file/network taint
-// path while preserving a reproducible, non-secret audit record.
+// Network-derived evidence is stdout-only; the workflow captures it externally
+// as a non-secret artifact.
 console.log(JSON.stringify(report, null, 2));
 
-if (stage.startsWith('BLOCKED_')) process.exitCode = 2;
+if (!safeToCreateMultisig) process.exitCode = 2;
