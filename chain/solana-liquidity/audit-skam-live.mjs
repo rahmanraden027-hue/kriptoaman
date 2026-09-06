@@ -1,26 +1,53 @@
 import fs from 'node:fs';
 import { PublicKey } from '@solana/web3.js';
-import {
-  SKAM_DECIMALS,
-  SKAM_METADATA_URI,
-  SKAM_NAME,
-  SKAM_RAW_SUPPLY,
-  SKAM_SYMBOL,
-  TOKEN_2022_PROGRAM_ID,
-  findTlvExtension,
-  parseMintBase,
-} from '../../src/lib/skamToken2022Builder.js';
 
 const MINT = 'Dw9xf7EmMH5dD7rdqkFbzjJtcAWk4KXLBAXUkSRcLSLi';
 const POOL_ID = '7vW6cmvM2YYHzoLTx7qJqACzj3X2Rq236b83YHpqCbyD';
 const OPERATOR = '5Fg4FVvyvSRLMapHdYVZzUCbhC8CWdENF77AfGPVAfpK';
 const WSOL = 'So11111111111111111111111111111111111111112';
+const TOKEN_2022_PROGRAM_ID = new PublicKey('TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb');
+const SKAM_NAME = 'Solana KAM';
+const SKAM_SYMBOL = 'sKAM';
+const SKAM_METADATA_URI = 'https://kriptoaman.com/token/skam.json';
+const SKAM_DECIMALS = 9;
+const SKAM_SUPPLY_UI = 1_000_000_000n;
+const SKAM_RAW_SUPPLY = SKAM_SUPPLY_UI * 10n ** BigInt(SKAM_DECIMALS);
 const METADATA_POINTER_EXTENSION_TYPE = 18;
 const TOKEN_METADATA_EXTENSION_TYPE = 19;
 const RPC_URLS = [
   'https://solana-rpc.publicnode.com',
   'https://api.mainnet-beta.solana.com',
 ];
+
+function parseMintBase(data) {
+  if (!(data instanceof Uint8Array) || data.length < 82) throw new Error('Mint account data is too short.');
+  const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+  const mintAuthorityOption = view.getUint32(0, true);
+  const mintAuthority = mintAuthorityOption === 1 ? new PublicKey(data.slice(4, 36)).toBase58() : null;
+  let supply = 0n;
+  for (let i = 7; i >= 0; i -= 1) supply = (supply << 8n) | BigInt(data[36 + i]);
+  const decimals = data[44];
+  const initialized = data[45] === 1;
+  const freezeAuthorityOption = view.getUint32(46, true);
+  const freezeAuthority = freezeAuthorityOption === 1 ? new PublicKey(data.slice(50, 82)).toBase58() : null;
+  return { mintAuthority, supply, decimals, initialized, freezeAuthority };
+}
+
+function findTlvExtension(data, type) {
+  if (!(data instanceof Uint8Array) || data.length <= 166) return null;
+  let offset = 166;
+  while (offset + 4 <= data.length) {
+    const view = new DataView(data.buffer, data.byteOffset + offset, data.byteLength - offset);
+    const entryType = view.getUint16(0, true);
+    const entryLength = view.getUint16(2, true);
+    const start = offset + 4;
+    const end = start + entryLength;
+    if (end > data.length) return null;
+    if (entryType === type) return data.slice(start, end);
+    offset = end;
+  }
+  return null;
+}
 
 function readU32(bytes, offset) {
   return new DataView(bytes.buffer, bytes.byteOffset + offset, 4).getUint32(0, true);
@@ -37,7 +64,10 @@ function readString(bytes, offset) {
 function parseTokenMetadata(bytes) {
   if (!(bytes instanceof Uint8Array) || bytes.length < 68) throw new Error('TokenMetadata extension is too short.');
   let offset = 0;
-  const updateAuthority = new PublicKey(bytes.slice(offset, offset + 32)).toBase58();
+  const updateAuthorityBytes = bytes.slice(offset, offset + 32);
+  const updateAuthority = updateAuthorityBytes.every((byte) => byte === 0)
+    ? null
+    : new PublicKey(updateAuthorityBytes).toBase58();
   offset += 32;
   const mint = new PublicKey(bytes.slice(offset, offset + 32)).toBase58();
   offset += 32;
@@ -115,7 +145,7 @@ async function auditMint() {
     initialized: base.initialized,
     decimals: base.decimals,
     rawSupply: base.supply.toString(),
-    supplyUi: Number(base.supply / (10n ** BigInt(base.decimals))),
+    supplyUi: Number(SKAM_SUPPLY_UI),
     mintAuthority: base.mintAuthority,
     freezeAuthority: base.freezeAuthority,
     mintable: base.mintAuthority !== null,
@@ -155,9 +185,17 @@ async function auditPublicMetadata() {
   const metadata = await metadataResponse.json();
   if (metadata.name !== SKAM_NAME || metadata.symbol !== SKAM_SYMBOL) throw new Error('Public metadata identity mismatch.');
   if (typeof metadata.image !== 'string' || !metadata.image.startsWith('https://')) throw new Error('Public metadata image is missing or not HTTPS.');
-  const logoResponse = await fetchWithTimeout(metadata.image, { method: 'HEAD', cache: 'no-store' });
+  const logoResponse = await fetchWithTimeout(metadata.image, { cache: 'no-store' });
   if (!logoResponse.ok) throw new Error(`Public logo HTTP ${logoResponse.status}`);
-  return { name: metadata.name, symbol: metadata.symbol, image: metadata.image, metadataHttp: metadataResponse.status, logoHttp: logoResponse.status };
+  await logoResponse.body?.cancel();
+  return {
+    name: metadata.name,
+    symbol: metadata.symbol,
+    image: metadata.image,
+    metadataHttp: metadataResponse.status,
+    logoHttp: logoResponse.status,
+    logoContentType: logoResponse.headers.get('content-type') || null,
+  };
 }
 
 async function auditDexScreener() {
