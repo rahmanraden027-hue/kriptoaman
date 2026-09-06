@@ -1,5 +1,6 @@
 name: sKAM Final Live Audit
 
+# Evidence refresh: re-run the existing read-only live audit against current Solana and DEX Screener state.
 on:
   workflow_dispatch:
   pull_request:
