@@ -1,10 +1,10 @@
-# MarketEdge Bot v1
+# MarketEdge Bot v1.5
 
 Multi-token, multi-DEX Solana arbitrage scanner for the KriptoAman repository.
 
 ## Safety model
 
-v1 is deliberately **PAPER_ONLY**. It does not load a wallet, private key, seed phrase, or signer and cannot submit transactions. This is intentional: a profitable quote is not a guaranteed executable profit. Real arbitrage also faces stale quotes, priority fees, slippage, failed transactions, MEV and non-atomic leg risk.
+MarketEdge is deliberately **PAPER_ONLY**. It does not load a wallet, private key, seed phrase, or signer and cannot submit transactions. This is intentional: a profitable quote is not a guaranteed executable profit. Real arbitrage also faces stale quotes, priority fees, slippage, failed transactions, MEV and non-atomic leg risk.
 
 The scanner only reports an opportunity when:
 
@@ -15,6 +15,14 @@ The scanner only reports an opportunity when:
 - the quoted gross edge remains above the configured execution-cost buffer and minimum net-profit threshold.
 
 It never creates synthetic volume, self-trades, or buys and sells against the same pool to manufacture activity.
+
+## v1.5 additions
+
+- **Route learning:** ordered venue pairs that return `NO_ROUTES_FOUND` enter a temporary cooldown instead of consuming the Jupiter free tier every scan cycle. The default cooldown is 15 minutes and then the route is tested again.
+- **Observation log:** every valid paper round trip is appended to `observationLogPath`, including losing routes. This provides evidence for later fill/quote and threshold analysis.
+- **Opportunity log:** only paper routes that exceed the configured net-profit threshold are appended to `opportunityLogPath`.
+- **Leaderboard:** `leaderboard.mjs` aggregates observed routes by market and venue pair, including observation count, opportunity count, average net bps, best net bps and latest net bps.
+- **Liquid-market example:** `config-liquid.example.json` provides a conservative example for SOL round trips through USDC, JUP, RAY and BONK.
 
 ## Requirements
 
@@ -48,15 +56,38 @@ cp bots/market-edge/config.example.json bots/market-edge/config.local.json
 node bots/market-edge/scanner.mjs --config=bots/market-edge/config.local.json --once
 ```
 
-Do not commit `config.local.json` if it contains sensitive operational limits.
+For the broader liquid-market paper scanner:
+
+```bash
+cp bots/market-edge/config-liquid.example.json bots/market-edge/config-liquid.json
+node bots/market-edge/scanner.mjs --config=bots/market-edge/config-liquid.json --once
+```
+
+Do not commit local configs if they contain sensitive operational limits.
 
 ## Continuous monitoring
 
 ```bash
-node bots/market-edge/scanner.mjs --config=bots/market-edge/config.local.json
+node bots/market-edge/scanner.mjs --config=bots/market-edge/config-liquid.json
 ```
 
-Profitable paper opportunities are appended as JSONL to `opportunityLogPath`.
+Valid paper observations are appended as JSONL to `observationLogPath`. Profitable paper opportunities are separately appended to `opportunityLogPath`.
+
+## Leaderboard
+
+```bash
+node bots/market-edge/leaderboard.mjs
+```
+
+Or specify a log and number of rows:
+
+```bash
+node bots/market-edge/leaderboard.mjs \
+  --file=var/market-edge-observations.jsonl \
+  --top=20
+```
+
+The leaderboard is diagnostic evidence, not a profit promise. A route that was profitable in a paper snapshot may no longer exist by the time a transaction is constructed.
 
 ## Adding tokens
 
@@ -86,6 +117,9 @@ The same bot can monitor many tokens. If a token only has one valid venue, the s
 - `executionCostBps`: conservative buffer for priority fees, landing risk and other costs not represented by AMM quote output.
 - `minNetProfitBps`: required edge after subtracting `executionCostBps`.
 - `probeAmountUi`: paper trade size in the base asset.
+- `requestDelayMs`: minimum global delay between Jupiter requests.
+- `noRouteCooldownMs`: how long a venue pair that has no direct route is skipped before probing again.
+- `observationLogPath`: JSONL evidence for every valid paper round trip.
 
 Jupiter quotes already reflect the route's AMM economics in `outAmount`, but network and execution risk still need a separate buffer.
 

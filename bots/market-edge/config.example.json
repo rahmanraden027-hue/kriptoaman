@@ -6,6 +6,8 @@
   "maxPriceImpactPct": 1.0,
   "executionCostBps": 20,
   "minNetProfitBps": 50,
+  "noRouteCooldownMs": 900000,
+  "observationLogPath": "var/market-edge-observations.jsonl",
   "opportunityLogPath": "var/market-edge-opportunities.jsonl",
   "venues": [
     "Raydium CP",
