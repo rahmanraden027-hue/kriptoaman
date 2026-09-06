@@ -9,6 +9,9 @@ const policy = JSON.parse(fs.readFileSync(POLICY_PATH, 'utf8'));
 // created Squads multisig/vault addresses are added through a separate PR.
 const MINT = 'Dw9xf7EmMH5dD7rdqkFbzjJtcAWk4KXLBAXUkSRcLSLi';
 const OPERATOR = '5Fg4FVvyvSRLMapHdYVZzUCbhC8CWdENF77AfGPVAfpK';
+const SIGNER_2 = '9kyjft13umxb92C11qr9v6L8HnJ3t1cZuDohc5wLrFqB';
+const SIGNER_3 = '9qhMmV5T9gfPQ4yCZPMVgDbHUR9F65c3xBKnEmWLYxT2';
+const PINNED_MEMBERS = [OPERATOR, SIGNER_2, SIGNER_3];
 const TOKEN_2022_PROGRAM_ID = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
 const SQUADS_V4 = 'SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf';
 const TOKEN_DECIMALS = 9;
@@ -28,6 +31,19 @@ function requirePolicyMatch(actual, expected, label) {
   if (String(actual) !== String(expected)) throw new Error(`Policy/code mismatch for ${label}: ${actual}`);
 }
 
+function requireValidDistinctMembers(members) {
+  if (!Array.isArray(members) || members.length !== 3) throw new Error('Policy must contain exactly three multisig members.');
+  const addresses = members.map((member) => String(member?.address || ''));
+  for (const address of addresses) {
+    const normalized = new PublicKey(address).toBase58();
+    if (normalized !== address) throw new Error(`Non-canonical Solana member address: ${address}`);
+  }
+  if (new Set(addresses).size !== 3) throw new Error('Multisig member addresses must be distinct.');
+  if (addresses.join(',') !== PINNED_MEMBERS.join(',')) throw new Error(`Pinned multisig member set/order mismatch: ${addresses.join(',')}`);
+  return addresses;
+}
+
+requirePolicyMatch(policy.schemaVersion, 2, 'schemaVersion');
 requirePolicyMatch(policy.token.mint, MINT, 'mint');
 requirePolicyMatch(policy.operator, OPERATOR, 'operator');
 requirePolicyMatch(policy.token.decimals, TOKEN_DECIMALS, 'decimals');
@@ -39,6 +55,8 @@ requirePolicyMatch(policy.treasuryFoundation.programId, SQUADS_V4, 'Squads progr
 requirePolicyMatch(policy.treasuryFoundation.requiredIndependentMembers, 3, 'multisig member count');
 requirePolicyMatch(policy.treasuryFoundation.threshold, 2, 'multisig threshold');
 requirePolicyMatch(policy.treasuryFoundation.globalTimelockSeconds, 86400, 'global timelock');
+requirePolicyMatch(policy.treasuryFoundation.memberAddressesPinned, true, 'memberAddressesPinned');
+const pinnedMembers = requireValidDistinctMembers(policy.treasuryFoundation.members);
 
 function parseMintBase(data) {
   if (!(data instanceof Uint8Array) || data.length < 82) throw new Error('Mint account data is too short.');
@@ -102,13 +120,16 @@ if (mint.supply !== EXPECTED_SUPPLY) throw new Error(`Supply mismatch: ${mint.su
 const operatorRaw = await operatorTokenBalanceRaw();
 const operatorCanFund = operatorRaw >= RESERVED_TOTAL;
 const authoritiesStillOperator = mint.mintAuthority === OPERATOR && mint.freezeAuthority === OPERATOR;
-const safeToCreateMultisig = authoritiesStillOperator && operatorCanFund;
+const technicalPrerequisitesPass = authoritiesStillOperator && operatorCanFund && pinnedMembers.length === 3;
+const independentControlAttested = policy.treasuryFoundation.independentControlAttestationComplete === true;
+const safeToCreateMultisig = technicalPrerequisitesPass && independentControlAttested;
 
 const report = {
-  audit: 'sKAM reserve foundation read-only verifier — phase 1',
+  audit: 'sKAM reserve foundation read-only verifier — phase 1 member pinning',
   checkedAt: new Date().toISOString(),
   provider,
-  stage: 'AWAITING_MULTISIG_VAULT_ADDRESSES',
+  stage: independentControlAttested ? 'READY_TO_CREATE_MULTISIG' : 'AWAITING_INDEPENDENT_SIGNER_ATTESTATION',
+  technicalPrerequisitesPass,
   safeToCreateMultisig,
   safeToFundReserves: false,
   safeToRevokeAuthorities: false,
@@ -128,7 +149,9 @@ const report = {
     expectedProgramId: SQUADS_V4,
     multisigAddress: null,
     multisigProgramVerified: false,
+    pinnedMembers,
     requiredIndependentMembers: 3,
+    independentControlAttested,
     threshold: '2-of-3',
     globalTimelockSeconds: 86400,
     unilateralConfigAuthorityAllowed: false,
@@ -144,6 +167,7 @@ const report = {
     balancesExact: false,
   },
   warnings: [
+    ...(independentControlAttested ? [] : ['Independent signer control has not yet been attested. Do not create the multisig until each signer is confirmed to use independent seed material or an independent signing device.']),
     'Reserve vault addresses are not pinned yet. Do not move reserve-scale balances.',
     'Authority revocation is intentionally blocked until a follow-up PR pins and verifies the Squads multisig and both reserve vaults.',
     ...(operatorCanFund ? [] : ['Operator does not currently hold enough sKAM to fund the full 300M reserve target.']),
@@ -155,4 +179,4 @@ const report = {
 // as a non-secret artifact.
 console.log(JSON.stringify(report, null, 2));
 
-if (!safeToCreateMultisig) process.exitCode = 2;
+if (!technicalPrerequisitesPass) process.exitCode = 2;
