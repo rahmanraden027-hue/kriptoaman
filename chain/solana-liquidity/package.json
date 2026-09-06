@@ -9,7 +9,9 @@
     "dexscreener:verify": "node verify-dexscreener.mjs",
     "reserve:readiness": "node verify-skam-reserve-foundation.mjs",
     "governance:create": "node create-skam-squads-v4.mjs",
-    "governance:verify": "node verify-skam-squads-v4.mjs"
+    "governance:verify": "node verify-skam-squads-v4.mjs",
+    "authority:preview": "node revoke-skam-authorities.mjs --preview",
+    "authority:revoke": "node revoke-skam-authorities.mjs --execute"
   },
   "dependencies": {
     "@raydium-io/raydium-sdk-v2": "0.2.42-alpha",
