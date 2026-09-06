@@ -4,7 +4,11 @@ import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 
 const launcherUrl = new URL('../chain/solana-liquidity/launch-skam-mainnet.sh', import.meta.url);
+const nodeMintUrl = new URL('../chain/solana-liquidity/create-token-2022.mjs', import.meta.url);
+const packageUrl = new URL('../chain/solana-liquidity/package.json', import.meta.url);
 const launcher = await readFile(launcherUrl, 'utf8');
+const nodeMint = await readFile(nodeMintUrl, 'utf8');
+const pkg = JSON.parse(await readFile(packageUrl, 'utf8'));
 
 test('sKAM mainnet orchestrator is fail-closed behind all irreversible gates', () => {
   assert.match(launcher, /CONFIRM_FULL_SKAM_LAUNCH/);
@@ -21,6 +25,24 @@ test('sKAM mainnet orchestrator pins approved public identity and canonical WSOL
   assert.ok(launcher.includes('EXPECTED_SUPPLY="1000000000"'));
   assert.ok(launcher.includes('So11111111111111111111111111111111111111112'));
   assert.ok(launcher.includes('https://kriptoaman.com/token/skam.json'));
+});
+
+test('Termux launch path is Node-only and does not require Solana native CLI binaries', () => {
+  assert.match(launcher, /node create-token-2022\.mjs/);
+  assert.match(launcher, /Execution mode: Node\.js only/);
+  assert.doesNotMatch(launcher, /solana address|spl-token\s/);
+  assert.equal(pkg.dependencies['@solana/spl-token'], '0.4.15');
+  assert.equal(pkg.dependencies['@solana/spl-token-metadata'], '0.1.6');
+});
+
+test('Node Token-2022 creator uses metadata pointer, checked minting and approved signer gate', () => {
+  assert.match(nodeMint, /createInitializeMetadataPointerInstruction/);
+  assert.match(nodeMint, /createInitializeMintInstruction/);
+  assert.match(nodeMint, /createInitializeInstruction/);
+  assert.match(nodeMint, /createMintToCheckedInstruction/);
+  assert.match(nodeMint, /Signer mismatch/);
+  assert.match(nodeMint, /rawSupply > 18_446_744_073_709_551_615n/);
+  assert.match(nodeMint, /skipPreflight:\s*false/);
 });
 
 test('orchestrator keeps smoke trade deliberately small and singular', () => {
@@ -40,7 +62,8 @@ test('DEX Screener polling is read-only, bounded, and cannot claim readiness on 
   assert.match(launcher, /"dexScreenerVerified": true/);
 });
 
-test('orchestrator never embeds or recovers secret key material', () => {
+test('orchestrator and Node mint path never embed or recover secret key material', () => {
+  const combined = `${launcher}\n${nodeMint}`;
   for (const forbidden of [
     /solana-keygen\s+recover/i,
     /seed phrase\s*=/i,
@@ -48,12 +71,14 @@ test('orchestrator never embeds or recovers secret key material', () => {
     /PRIVATE_KEY\s*=/,
     /SECRET_KEY\s*=/,
   ]) {
-    assert.doesNotMatch(launcher, forbidden);
+    assert.doesNotMatch(combined, forbidden);
   }
-  assert.match(launcher, /KEYPAIR must be an existing local file/);
+  assert.match(launcher, /KEYPAIR must be an existing local JSON keypair file/);
 });
 
-test('orchestrator shell parses successfully', () => {
-  const check = spawnSync('bash', ['-n', launcherUrl.pathname], { encoding: 'utf8' });
-  assert.equal(check.status, 0, check.stderr);
+test('operator scripts parse successfully', () => {
+  const shellCheck = spawnSync('bash', ['-n', launcherUrl.pathname], { encoding: 'utf8' });
+  assert.equal(shellCheck.status, 0, shellCheck.stderr);
+  const nodeCheck = spawnSync(process.execPath, ['--check', nodeMintUrl.pathname], { encoding: 'utf8' });
+  assert.equal(nodeCheck.status, 0, nodeCheck.stderr);
 });
