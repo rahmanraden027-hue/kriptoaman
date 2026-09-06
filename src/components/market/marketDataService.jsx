@@ -8,7 +8,13 @@
  * outage, while coverage gaps and provenance remain explicit.
  */
 
-const SUPPORTED_HISTORY_ASSETS = new Set(['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'USDT', 'USDC']);
+const SUPPORTED_HISTORY_ASSETS = new Set([
+  'BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'ADA', 'DOGE', 'TRX', 'AVAX', 'DOT',
+  'LINK', 'MATIC', 'POL', 'LTC', 'UNI', 'ATOM', 'NEAR', 'APT', 'SUI', 'ARB',
+  'OP', 'AAVE', 'CRV', 'INJ', 'SHIB', 'USDT', 'USDC', 'PEPE', 'BCH', 'XLM',
+  'TON', 'HBAR', 'ICP', 'ETC', 'FIL', 'LDO', 'DAI', 'CRO', 'MKR', 'ALGO',
+  'VET', 'TIA', 'IMX', 'GRT', 'STX', 'RUNE', 'KAS',
+]);
 const INTERVAL_MS = {
   '1h': 60 * 60 * 1000,
   '4h': 4 * 60 * 60 * 1000,
