@@ -19,6 +19,7 @@ const DEFAULT_CONFIG = new URL('./config.example.json', import.meta.url);
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 let minRequestGapMs = 1300;
 let nextRequestAt = 0;
+const noRouteUntil = new Map();
 
 function parseArgs(argv) {
   return {
@@ -100,6 +101,24 @@ function marketBase(market) {
   };
 }
 
+function isNoRouteError(error) {
+  const text = String(error?.message || error || '');
+  return text.includes('NO_ROUTES_FOUND') || text.includes('No routes found');
+}
+
+function routeCacheKey(market, buyVenue, sellVenue) {
+  return `${market.mint}|${buyVenue}|${sellVenue}`;
+}
+
+function routeCoolingDown(key) {
+  const until = noRouteUntil.get(key) || 0;
+  if (until <= Date.now()) {
+    if (until) noRouteUntil.delete(key);
+    return false;
+  }
+  return true;
+}
+
 async function scanMarket(config, market, availableVenues) {
   if (market.enabled === false) return [];
   const base = marketBase(market);
@@ -117,9 +136,13 @@ async function scanMarket(config, market, availableVenues) {
   const maxPriceImpactPct = Number(market.maxPriceImpactPct ?? config.maxPriceImpactPct ?? 1.0);
   const executionCostBps = Number(market.executionCostBps ?? config.executionCostBps ?? 20);
   const minNetProfitBps = Number(market.minNetProfitBps ?? config.minNetProfitBps ?? 50);
+  const noRouteCooldownMs = Math.max(60000, Number(market.noRouteCooldownMs ?? config.noRouteCooldownMs ?? 900000));
   const results = [];
 
   for (const [buyVenue, sellVenue] of orderedVenuePairs(venues)) {
+    const cacheKey = routeCacheKey(market, buyVenue, sellVenue);
+    if (routeCoolingDown(cacheKey)) continue;
+
     try {
       const buy = await quote({
         inputMint: base.mint,
@@ -170,8 +193,14 @@ async function scanMarket(config, market, availableVenues) {
       };
       results.push(result);
       console.log(JSON.stringify(result));
+      await appendJsonLine(config.observationLogPath, result);
       if (evaluation.profitable) await appendJsonLine(config.opportunityLogPath, result);
     } catch (error) {
+      if (isNoRouteError(error)) {
+        noRouteUntil.set(cacheKey, Date.now() + noRouteCooldownMs);
+        console.warn(`[${market.symbol}] ${buyVenue} -> ${sellVenue}: no direct route; cooling for ${Math.round(noRouteCooldownMs / 60000)}m`);
+        continue;
+      }
       console.warn(`[${market.symbol}] ${buyVenue} -> ${sellVenue}: ${error?.message || error}`);
     }
   }
@@ -182,7 +211,13 @@ async function runCycle(config, availableVenues) {
   const cycle = [];
   for (const market of config.markets) cycle.push(...await scanMarket(config, market, availableVenues));
   const opportunities = cycle.filter((x) => x.opportunity);
-  console.log(JSON.stringify({ timestamp: new Date().toISOString(), summary: true, scannedRoutes: cycle.length, opportunities: opportunities.length }));
+  console.log(JSON.stringify({
+    timestamp: new Date().toISOString(),
+    summary: true,
+    scannedRoutes: cycle.length,
+    opportunities: opportunities.length,
+    coolingNoRoutePairs: noRouteUntil.size,
+  }));
   return opportunities;
 }
 
@@ -199,7 +234,7 @@ async function main() {
 
   const labels = new Set(await getVenueLabels());
   console.log(`MarketEdge PAPER scanner started; Jupiter venues available: ${labels.size}; min request gap: ${minRequestGapMs}ms`);
-  console.log('LIVE EXECUTION IS INTENTIONALLY DISABLED IN V1. No wallet key is loaded and no transaction can be signed.');
+  console.log('LIVE EXECUTION IS INTENTIONALLY DISABLED. No wallet key is loaded and no transaction can be signed.');
 
   do {
     await runCycle(config, labels);
