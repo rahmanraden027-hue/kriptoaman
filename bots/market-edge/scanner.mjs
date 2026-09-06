@@ -17,6 +17,8 @@ const API_BASE = 'https://api.jup.ag/swap/v1';
 const DEFAULT_CONFIG = new URL('./config.example.json', import.meta.url);
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+let minRequestGapMs = 1300;
+let nextRequestAt = 0;
 
 function parseArgs(argv) {
   return {
@@ -40,10 +42,30 @@ function headers() {
   return { 'x-api-key': apiKey };
 }
 
-async function fetchJson(url) {
-  const response = await fetch(url, { headers: headers() });
-  if (!response.ok) throw new Error(`HTTP ${response.status}: ${await response.text()}`);
-  return response.json();
+async function waitForRequestSlot() {
+  const waitMs = Math.max(0, nextRequestAt - Date.now());
+  if (waitMs > 0) await sleep(waitMs);
+  nextRequestAt = Date.now() + minRequestGapMs;
+}
+
+async function fetchJson(url, { max429Retries = 3 } = {}) {
+  for (let attempt = 0; ; attempt += 1) {
+    await waitForRequestSlot();
+    const response = await fetch(url, { headers: headers() });
+    if (response.ok) return response.json();
+
+    const body = await response.text();
+    if (response.status === 429 && attempt < max429Retries) {
+      const retryAfterSeconds = Number(response.headers.get('retry-after'));
+      const retryMs = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
+        ? Math.ceil(retryAfterSeconds * 1000)
+        : Math.max(minRequestGapMs, 1500 * (2 ** attempt));
+      console.warn(`[rate-limit] HTTP 429 from Jupiter; retrying in ${retryMs}ms (${attempt + 1}/${max429Retries})`);
+      await sleep(retryMs);
+      continue;
+    }
+    throw new Error(`HTTP ${response.status}: ${body}`);
+  }
 }
 
 async function getVenueLabels() {
@@ -95,7 +117,6 @@ async function scanMarket(config, market, availableVenues) {
   const maxPriceImpactPct = Number(market.maxPriceImpactPct ?? config.maxPriceImpactPct ?? 1.0);
   const executionCostBps = Number(market.executionCostBps ?? config.executionCostBps ?? 20);
   const minNetProfitBps = Number(market.minNetProfitBps ?? config.minNetProfitBps ?? 50);
-  const requestDelayMs = Number(config.requestDelayMs ?? 1100);
   const results = [];
 
   for (const [buyVenue, sellVenue] of orderedVenuePairs(venues)) {
@@ -107,7 +128,6 @@ async function scanMarket(config, market, availableVenues) {
         venue: buyVenue,
         slippageBps,
       });
-      await sleep(requestDelayMs);
       if (!buy?.outAmount || BigInt(buy.outAmount) <= 0n) continue;
       if (priceImpactPct(buy) > maxPriceImpactPct) continue;
 
@@ -118,7 +138,6 @@ async function scanMarket(config, market, availableVenues) {
         venue: sellVenue,
         slippageBps,
       });
-      await sleep(requestDelayMs);
       if (!sell?.outAmount || BigInt(sell.outAmount) <= 0n) continue;
       if (priceImpactPct(sell) > maxPriceImpactPct) continue;
       if (hasSharedAmm(buy, sell)) continue;
@@ -175,8 +194,11 @@ async function main() {
   }
 
   const config = await loadConfig(args.config);
+  const configuredGap = Number(config.requestDelayMs ?? 1300);
+  minRequestGapMs = Number.isFinite(configuredGap) ? Math.max(1100, configuredGap) : 1300;
+
   const labels = new Set(await getVenueLabels());
-  console.log(`MarketEdge PAPER scanner started; Jupiter venues available: ${labels.size}`);
+  console.log(`MarketEdge PAPER scanner started; Jupiter venues available: ${labels.size}; min request gap: ${minRequestGapMs}ms`);
   console.log('LIVE EXECUTION IS INTENTIONALLY DISABLED IN V1. No wallet key is loaded and no transaction can be signed.');
 
   do {
