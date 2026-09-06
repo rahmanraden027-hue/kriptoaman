@@ -7,7 +7,8 @@ const HOT_SYMBOLS = new Set([
 const CORE_SYMBOLS = ['BTC', 'ETH', 'BNB', 'SOL', 'XRP'];
 const MEMORY_TTL_MS = 15_000;
 const HOT_STALE_AFTER_MS = 60_000;
-const MAX_FALLBACK_AGE_MS = 60 * 60 * 1000;
+const HOT_HEALTHY_AGE_MS = 60 * 60 * 1000;
+const MAX_FALLBACK_AGE_MS = 365 * 24 * 60 * 60 * 1000;
 const REQUEST_TIMEOUT_MS = 5_000;
 const RETRY_DELAYS_MS = [150, 350];
 
@@ -34,7 +35,7 @@ async function fetchJson(url) {
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
       const response = await fetch(url, {
-        headers: { Accept: 'application/json', 'User-Agent': 'KriptoAman-Hot-Market/3.1' },
+        headers: { Accept: 'application/json', 'User-Agent': 'KriptoAman-Hot-Market/3.2' },
         signal: controller.signal,
       });
       if (!response.ok) throw new Error(`upstream HTTP ${response.status}`);
@@ -98,6 +99,13 @@ function normalizePersisted(rows) {
 function hasCoreSymbols(data) {
   const symbols = new Set(data.map((item) => item.symbol));
   return CORE_SYMBOLS.every((symbol) => symbols.has(symbol));
+}
+
+function freshnessState(ageMs) {
+  if (ageMs <= HOT_STALE_AFTER_MS) return 'live';
+  if (ageMs <= HOT_HEALTHY_AGE_MS) return 'stale';
+  if (ageMs <= MAX_FALLBACK_AGE_MS) return 'archived';
+  return 'expired';
 }
 
 async function readPersistedFallback(env) {
@@ -182,11 +190,24 @@ export async function onRequestGet({ env, request, waitUntil }) {
   try {
     const snapshot = await getHot(env);
     const ageMs = Math.max(0, Date.now() - Number(snapshot.capturedAt));
-    const stale = ageMs > HOT_STALE_AFTER_MS;
-    const healthy = hasCoreSymbols(snapshot.data) && ageMs <= MAX_FALLBACK_AGE_MS;
+    const freshness = freshnessState(ageMs);
+    const stale = freshness !== 'live';
+    const healthy = hasCoreSymbols(snapshot.data) && ageMs <= HOT_HEALTHY_AGE_MS;
+    const available = hasCoreSymbols(snapshot.data) && ageMs <= MAX_FALLBACK_AGE_MS;
+    const responseStatus = available ? 200 : 503;
+    const extraHeaders = {
+      'X-KriptoAman-Market-Cache': 'MISS',
+      'X-KriptoAman-Market-Freshness': freshness,
+      ...(stale ? {
+        'X-KriptoAman-Market-Stale': 'true',
+        Warning: '110 - "Response is stale"',
+      } : {}),
+    };
     const response = json({
-      schemaVersion: '1.2',
+      schemaVersion: '1.3',
       healthy,
+      available,
+      freshness,
       source: snapshot.source,
       capturedAt: snapshot.capturedAt,
       ageMs,
@@ -196,13 +217,15 @@ export async function onRequestGet({ env, request, waitUntil }) {
       requestId,
       delivery: {
         memoryTtlMs: MEMORY_TTL_MS,
+        healthyAgeMs: HOT_HEALTHY_AGE_MS,
+        maxFallbackAgeMs: MAX_FALLBACK_AGE_MS,
         edgeSMaxAgeSeconds: 15,
         d1SessionRead: Boolean(env.AUTH_DB && typeof env.AUTH_DB.withSession === 'function'),
         singleFlight: true,
       },
-    }, healthy ? 200 : 503, { 'X-KriptoAman-Market-Cache': 'MISS' });
+    }, responseStatus, extraHeaders);
 
-    if (edgeCache && healthy) {
+    if (edgeCache && available) {
       const task = edgeCache.put(cacheKey, response.clone());
       if (typeof waitUntil === 'function') waitUntil(task);
       else await task;
