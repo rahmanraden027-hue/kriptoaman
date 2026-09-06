@@ -114,7 +114,7 @@ export default function WhaleAlertCard() {
               </div>
             );
           })}
-          <p className="ka-muted text-[11px] pt-2 leading-relaxed">Sumber: Database Pasar KriptoAman. Rasio volume/kapitalisasi adalah indikator aktivitas pasar, bukan bukti transaksi whale, verifikasi legitimasi aset, atau rekomendasi investasi.</p>
+          <p className="ka-muted text-[11px] pt-2 leading-relaxed">Sumber: Database Pasar KriptoAman. Daftar dibatasi pada aset berkapitalisasi besar dalam 100 peringkat market cap teratas dengan ambang volume minimum US$5 juta per 24 jam. Rasio volume/kapitalisasi adalah indikator aktivitas pasar, bukan verifikasi legitimasi aset dan bukan rekomendasi investasi.</p>
         </div>
       )}
     </div>
