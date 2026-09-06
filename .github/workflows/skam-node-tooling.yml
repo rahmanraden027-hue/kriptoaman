@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'chain/solana-liquidity/**'
+      - 'src/lib/skamToken2022Builder.js'
+      - 'src/pages/AdminSKAMLaunch.jsx'
       - 'tests/skam-mainnet-orchestrator.test.mjs'
       - '.github/workflows/skam-node-tooling.yml'
   workflow_dispatch:
@@ -14,7 +16,7 @@ permissions:
 jobs:
   node-termux-compatible-tooling:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -23,6 +25,10 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: '24'
+          cache: npm
+
+      - name: Install application dependencies
+        run: npm ci --legacy-peer-deps
 
       - name: Install isolated Solana liquidity dependencies
         working-directory: chain/solana-liquidity
@@ -56,14 +62,18 @@ jobs:
           console.log('Required Node Solana/Token-2022/Raydium exports verified.');
           NODE
 
-      - name: Parse all operator scripts
+      - name: Compare browser Token-2022 instructions with official SPL encoders
         working-directory: chain/solana-liquidity
+        run: node verify-browser-token-builder.mjs
+
+      - name: Parse all operator scripts and browser builder
         run: |
-          node --check create-token-2022.mjs
-          node --check create-raydium-pool.mjs
-          node --check smoke-swap.mjs
-          node --check verify-dexscreener.mjs
-          bash -n launch-skam-mainnet.sh
+          node --check src/lib/skamToken2022Builder.js
+          node --check chain/solana-liquidity/create-token-2022.mjs
+          node --check chain/solana-liquidity/create-raydium-pool.mjs
+          node --check chain/solana-liquidity/smoke-swap.mjs
+          node --check chain/solana-liquidity/verify-dexscreener.mjs
+          bash -n chain/solana-liquidity/launch-skam-mainnet.sh
 
       - name: Run sKAM orchestrator regression test
         run: node --test tests/skam-mainnet-orchestrator.test.mjs

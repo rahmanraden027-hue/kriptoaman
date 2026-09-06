@@ -6,10 +6,22 @@ const page = await readFile(new URL('../src/pages/AdminSKAMLaunch.jsx', import.m
 const endpoint = await readFile(new URL('../functions/api/solana/skam-readiness.js', import.meta.url), 'utf8');
 const approvedWallet = '5Fg4FVvyvSRLMapHdYVZzUCbhC8CWdENF77AfGPVAfpK';
 
-test('sKAM admin page reads balance through same-origin server endpoint, not browser RPC', () => {
+test('sKAM balance readiness remains same-origin and server-authoritative', () => {
   assert.ok(page.includes("fetch('/api/solana/skam-readiness'"));
   assert.match(page, /credentials: 'same-origin'/);
-  assert.doesNotMatch(page, /new Connection\s*\(/);
+  assert.match(page, /setSolBalance\(payload\.balanceSol\)/);
+  assert.doesNotMatch(page, /\.getBalance\s*\(/);
+});
+
+test('browser Solana RPC is limited to transaction preparation, simulation and public verification', () => {
+  assert.match(page, /new Connection\s*\(/);
+  assert.match(page, /getLatestBlockhash/);
+  assert.match(page, /getAccountInfo/);
+  assert.match(page, /getMinimumBalanceForRentExemption/);
+  assert.match(page, /getFeeForMessage/);
+  assert.match(page, /method: 'simulateTransaction'/);
+  assert.doesNotMatch(page, /method: 'getBalance'/);
+  assert.doesNotMatch(page, /method: 'sendTransaction'/);
 });
 
 test('sKAM readiness endpoint is locked to verified admin and 2FA', () => {
