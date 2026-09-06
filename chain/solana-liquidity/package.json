@@ -3,12 +3,15 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "token:create": "node create-token-2022.mjs",
     "pool:create": "node create-raydium-pool.mjs",
     "swap:smoke": "node smoke-swap.mjs",
     "dexscreener:verify": "node verify-dexscreener.mjs"
   },
   "dependencies": {
     "@raydium-io/raydium-sdk-v2": "0.2.42-alpha",
+    "@solana/spl-token": "0.4.15",
+    "@solana/spl-token-metadata": "0.1.6",
     "@solana/web3.js": "^1.98.0",
     "bn.js": "^5.2.1",
     "decimal.js": "^10.6.0",
