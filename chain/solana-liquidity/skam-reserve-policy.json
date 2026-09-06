@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "status": "PREPARED_NOT_EXECUTED",
+  "network": "solana-mainnet-beta",
+  "token": {
+    "name": "Solana KAM",
+    "symbol": "sKAM",
+    "mint": "Dw9xf7EmMH5dD7rdqkFbzjJtcAWk4KXLBAXUkSRcLSLi",
+    "decimals": 9,
+    "fixedSupplyUi": "1000000000"
+  },
+  "operator": "5Fg4FVvyvSRLMapHdYVZzUCbhC8CWdENF77AfGPVAfpK",
+  "allocation": {
+    "strategicReserveUi": "200000000",
+    "ecosystemReserveUi": "100000000",
+    "availableEcosystemAllocationUi": "700000000",
+    "reservedTotalUi": "300000000"
+  },
+  "treasuryFoundation": {
+    "protocol": "Squads Protocol v4",
+    "programId": "SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf",
+    "requiredIndependentMembers": 3,
+    "threshold": 2,
+    "globalTimelockSeconds": 86400,
+    "configAuthority": null,
+    "spendingLimitsAllowedAtFoundation": false,
+    "strategicVaultOwner": null,
+    "ecosystemVaultOwner": null,
+    "multisigAddress": null
+  },
+  "authorityPolicy": {
+    "revokeMintAuthorityOnlyAfterReserveFundingVerified": true,
+    "revokeFreezeAuthorityOnlyAfterReserveFundingVerified": true,
+    "retainMetadataUpdateAuthorityForBrandingHardening": true,
+    "retainMetadataPointerAuthorityForBrandingHardening": true
+  },
+  "executionOrder": [
+    "Create a Squads v4 multisig with three independent signer wallets and a 2-of-3 threshold; do not use a unilateral config authority.",
+    "Enable a 24-hour global timelock and do not configure spending limits during the foundation phase.",
+    "Create or identify separate Strategic Reserve and Ecosystem Reserve vault owner addresses.",
+    "Perform a small test transfer to each vault and verify recovery/approval workflow before moving reserve-scale balances.",
+    "Transfer exactly 200000000 sKAM to the Strategic Reserve vault and exactly 100000000 sKAM to the Ecosystem Reserve vault.",
+    "Run the read-only reserve verifier and require exact reserve balances before any authority revocation.",
+    "Revoke sKAM Mint Authority in a dedicated Phantom-approved transaction and verify on-chain that it is null.",
+    "Revoke sKAM Freeze Authority in a separate Phantom-approved transaction and verify on-chain that it is null.",
+    "Run the final live audit again and publish the reserve addresses and governance policy as transparency evidence."
+  ],
+  "publicDisclosure": {
+    "claimFixedSupplyOnlyAfterMintAuthorityRevoked": true,
+    "claimNotFreezableOnlyAfterFreezeAuthorityRevoked": true,
+    "doNotDescribe700MAsExternallyVerifiedCirculatingSupply": true,
+    "reserveDescription": "300M sKAM is treasury-governed reserve allocation; 700M is the maximum available ecosystem allocation, not an externally verified circulating-supply figure."
+  },
+  "futureHardening": {
+    "fixedDateLockOrVesting": "OPTIONAL_AFTER_PROVIDER_COMPATIBILITY_COST_AND_AUDIT_REVIEW",
+    "note": "A governance multisig with a transaction timelock is not the same as an immutable fixed-date token lock. Do not market it as one."
+  }
+}
