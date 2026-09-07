@@ -7,9 +7,12 @@ TEMPLATE="$PROXY_DIR/default.conf.template"
 DASHBOARD_DIR="$PROXY_DIR/kam-dashboard"
 SOURCE="${1:-explorer-dashboard/index.html}"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
-BACKUP="$PROXY_DIR/default.conf.template.kam-v2.$STAMP.bak"
+BACKUP_NAME="default.conf.template.kam-v2.$STAMP.bak"
+PATCHED_TEMPLATE="$(mktemp)"
 
 fail() { echo "KAM Explorer V2 deploy: $*" >&2; exit 1; }
+cleanup() { rm -f "$PATCHED_TEMPLATE"; }
+trap cleanup EXIT
 
 [[ -d "$BASE" ]] || fail "Blockscout base directory not found"
 [[ -d "$PROXY_DIR" ]] || fail "Blockscout proxy directory not found"
@@ -19,26 +22,33 @@ grep -q 'data-kam-explorer-version="2.0.0"' "$SOURCE" || fail "dashboard version
 grep -q '/api/v2/blocks' "$SOURCE" || fail "verified blocks API binding missing"
 grep -q '/api/v2/transactions' "$SOURCE" || fail "verified transactions API binding missing"
 
-cp -a "$TEMPLATE" "$BACKUP"
-mkdir -p "$DASHBOARD_DIR"
-install -m 0644 "$SOURCE" "$DASHBOARD_DIR/index.html"
+cd "$BASE"
+PROXY_ID="$(docker compose ps -q proxy)"
+[[ -n "$PROXY_ID" ]] || fail "running Blockscout proxy container not found"
+PROXY_IMAGE="$(docker inspect "$PROXY_ID" --format '{{.Config.Image}}')"
+[[ -n "$PROXY_IMAGE" ]] || fail "proxy image could not be resolved"
+docker image inspect "$PROXY_IMAGE" >/dev/null 2>&1 || fail "proxy image is not locally available"
 
-rollback() {
-  local code=$?
-  echo "KAM Explorer V2 deployment failed; restoring previous proxy template." >&2
-  cp -a "$BACKUP" "$TEMPLATE" || true
-  cd "$BASE"
-  docker compose up -d --force-recreate proxy >/dev/null 2>&1 || true
-  exit "$code"
+# The runner can manage the existing proxy through Docker but cannot directly
+# write its root-owned bind mount. Keep privileged filesystem access narrowly
+# constrained to the existing Blockscout proxy directory and disable networking.
+proxy_fs() {
+  docker run --rm --network none -i \
+    -v "$PROXY_DIR:/target" \
+    "$PROXY_IMAGE" sh -c "$1"
 }
-trap rollback ERR
 
-python3 - "$TEMPLATE" <<'PY'
+proxy_fs "test -r /target/default.conf.template && test -w /target"
+proxy_fs "cp -a /target/default.conf.template /target/$BACKUP_NAME"
+proxy_fs "mkdir -p /target/kam-dashboard && cat > /target/kam-dashboard/index.html && chmod 0644 /target/kam-dashboard/index.html" < "$SOURCE"
+
+python3 - "$TEMPLATE" "$PATCHED_TEMPLATE" <<'PY'
 from pathlib import Path
 import sys
 
-path = Path(sys.argv[1])
-text = path.read_text()
+source = Path(sys.argv[1])
+out = Path(sys.argv[2])
+text = source.read_text()
 begin = '    # KAM_EXPLORER_V2_BEGIN\n'
 end = '    # KAM_EXPLORER_V2_END\n'
 
@@ -66,13 +76,26 @@ block = '''    # KAM_EXPLORER_V2_BEGIN
     # KAM_EXPLORER_V2_END
 '''
 text = text.replace(needle, block + needle, 1)
-path.write_text(text)
+out.write_text(text)
 PY
+
+grep -q 'KAM_EXPLORER_V2_BEGIN' "$PATCHED_TEMPLATE"
+grep -q 'alias /etc/nginx/templates/kam-dashboard/index.html' "$PATCHED_TEMPLATE"
+proxy_fs "cat > /target/default.conf.template" < "$PATCHED_TEMPLATE"
 
 grep -q 'KAM_EXPLORER_V2_BEGIN' "$TEMPLATE"
 grep -q 'alias /etc/nginx/templates/kam-dashboard/index.html' "$TEMPLATE"
 
-cd "$BASE"
+rollback() {
+  local code=$?
+  echo "KAM Explorer V2 deployment failed; restoring previous proxy template." >&2
+  proxy_fs "cp -a /target/$BACKUP_NAME /target/default.conf.template" || true
+  cd "$BASE"
+  docker compose up -d --force-recreate proxy >/dev/null 2>&1 || true
+  exit "$code"
+}
+trap rollback ERR
+
 docker compose up -d --force-recreate proxy
 sleep 4
 
@@ -89,4 +112,4 @@ curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/tx/$KNOWN_TX" >/dev/
 
 trap - ERR
 echo "KAM Explorer V2 deployed successfully. Root dashboard is live; Blockscout API and transaction routes remain healthy."
-echo "backup=$BACKUP"
+echo "backup=$PROXY_DIR/$BACKUP_NAME"

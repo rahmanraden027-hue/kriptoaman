@@ -11,7 +11,7 @@ test('KAM Explorer V2 uses verified live data surfaces', () => {
   assert.match(html, /\/api\/v2\/transactions/);
   assert.match(html, /\/api\/v2\/stats/);
   assert.match(html, /\/api\/v2\/stats\/charts\/transactions/);
-  assert.match(html, /https:\/\/rpc\.kriptoaman\.com/);
+  assert.equal(html.includes('https://rpc.kriptoaman.com'), true);
   assert.match(html, /Unavailable data is shown as unavailable—not invented/);
 });
 
@@ -21,11 +21,14 @@ test('KAM Explorer V2 does not ship mockup-only KPI values', () => {
   }
 });
 
-test('deployment is homepage-only and rollback-safe', () => {
+test('deployment is homepage-only, narrow, and rollback-safe', () => {
   assert.match(deploy, /KAM_EXPLORER_V2_BEGIN/);
   assert.match(deploy, /location = \/ /);
-  assert.match(deploy, /cp -a "\$BACKUP" "\$TEMPLATE"/);
+  assert.match(deploy, /docker run --rm --network none -i/);
+  assert.match(deploy, /-v "\$PROXY_DIR:\/target"/);
+  assert.match(deploy, /cp -a \/target\/\$BACKUP_NAME \/target\/default\.conf\.template/);
   assert.match(deploy, /docker compose up -d --force-recreate proxy/);
+  assert.doesNotMatch(deploy, /--privileged/);
   assert.doesNotMatch(deploy, /validator|genesis|treasury|private.?key/i);
   assert.match(deploy, /\/api\/v2\/blocks/);
   assert.match(deploy, /\/tx\/\$KNOWN_TX/);
