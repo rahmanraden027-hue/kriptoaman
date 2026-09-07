@@ -1,0 +1,32 @@
+name: sKAM Liquidity Read-Only Plan
+
+on:
+  pull_request:
+    paths:
+      - 'chain/solana-liquidity/plan-skam-liquidity-readonly.mjs'
+      - '.github/workflows/skam-liquidity-readonly-plan.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Parse planner
+        run: node --check chain/solana-liquidity/plan-skam-liquidity-readonly.mjs
+      - name: Run live read-only planner
+        run: node chain/solana-liquidity/plan-skam-liquidity-readonly.mjs
+      - name: Upload non-secret planning evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: skam-liquidity-readonly-plan
+          path: artifacts/skam-liquidity-readonly-plan.json
+          if-no-files-found: error
+          retention-days: 30
