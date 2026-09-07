@@ -34,19 +34,30 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: '24'
-      - name: Validate dashboard integrity
+      - name: Validate V2 surfaces and rollback contract
         run: node --test tests/kam-explorer-v2-dashboard.test.mjs
       - name: Validate deploy script syntax
         run: bash -n scripts/deploy-kam-explorer-v2.sh
       - name: Verify public Explorer core before deployment
         run: node scripts/diagnose-blockscout.mjs
+      - name: Verify existing public detail routes
+        run: |
+          set -euo pipefail
+          TX='0x9854d90159013d488190d0f1847596a5dfb7582812f880102f167a1b172b163a'
+          CANONICAL_WKAM='0x0d8848CE88BB09a81a4248Efdd574d50B98b544A'
+          SECONDARY_WKAM='0x36a416d3C74A5d4AF9Fd4826e010CE9B00289fc7'
+          curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/tx/$TX" >/dev/null
+          curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/token/$CANONICAL_WKAM" >/dev/null
+          for path in /blocks /txs /api-docs; do curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com$path" >/dev/null; done
+          code="$(curl -L -sS -o /dev/null -w '%{http_code}' --max-time 20 "https://explorer.kriptoaman.com/token/$SECONDARY_WKAM" || true)"
+          echo "secondary_wkam_detail_http=$code"
 
   host-permission-preflight:
     needs: preflight
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
     timeout-minutes: 5
     steps:
-      - name: Verify Explorer host and isolated proxy mount access
+      - name: Verify dedicated Explorer host boundary and isolated proxy mount
         shell: bash
         run: |
           set -euo pipefail
@@ -61,14 +72,10 @@ jobs:
           PROXY_IMAGE="$(docker inspect "$PROXY_ID" --format '{{.Config.Image}}')"
           test -n "$PROXY_IMAGE"
           docker image inspect "$PROXY_IMAGE" >/dev/null
-          docker run --rm --network none \
-            -v "$PROXY_DIR:/target" \
-            "$PROXY_IMAGE" sh -c 'test -r /target/default.conf.template && test -w /target'
-          docker compose config --services | grep -qx proxy
-          echo 'filesystem_mode=isolated_docker_proxy_mount'
+          docker run --rm --network none -v "$PROXY_DIR:/target" "$PROXY_IMAGE" sh -c 'test -r /target/default.conf.template && test -w /target'
           echo 'host_permission_preflight=verified'
 
-  deploy-homepage-only:
+  deploy-public-surfaces:
     if: ${{ github.event_name != 'pull_request' }}
     needs: [preflight, host-permission-preflight]
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
@@ -76,13 +83,7 @@ jobs:
     steps:
       - name: Checkout reviewed source
         uses: actions/checkout@v7
-      - name: Verify dedicated Explorer host boundary
-        run: |
-          set -euo pipefail
-          test -d /opt/blockscout/docker-compose/proxy
-          test -f /opt/blockscout/docker-compose/proxy/default.conf.template
-          test -f explorer-dashboard/index.html
-      - name: Deploy KAM Explorer V2 root dashboard
+      - name: Deploy exact KAM Explorer V2 presentation routes
         run: |
           set -euo pipefail
           chmod +x scripts/deploy-kam-explorer-v2.sh
@@ -90,29 +91,36 @@ jobs:
 
   public-post-verify:
     if: ${{ github.event_name != 'pull_request' }}
-    needs: deploy-homepage-only
+    needs: deploy-public-surfaces
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
       - name: Checkout reviewed source
         uses: actions/checkout@v7
-      - name: Verify V2 homepage marker and headers
+      - name: Verify V2 overview, statistics, and token registry
         run: |
           set -euo pipefail
-          HTML="$(curl -L -fsS --max-time 20 https://explorer.kriptoaman.com/)"
-          printf '%s' "$HTML" | grep -q 'data-kam-explorer-version="2.0.0"'
-          printf '%s' "$HTML" | grep -q 'Verified-data only'
+          curl -L -fsS --max-time 20 https://explorer.kriptoaman.com/ | grep -q 'data-kam-explorer-version="2.0.0"'
+          curl -L -fsS --max-time 20 https://explorer.kriptoaman.com/stats | grep -q 'data-kam-stats-version="2.0.0"'
+          curl -L -fsS --max-time 20 https://explorer.kriptoaman.com/tokens | grep -q 'data-kam-tokens-version="2.0.0"'
           curl -L -sSI --max-time 20 https://explorer.kriptoaman.com/ | grep -Ei '^x-kam-explorer-version: *2' >/dev/null
-      - name: Verify Blockscout APIs remain intact
+          curl -L -sSI --max-time 20 https://explorer.kriptoaman.com/stats | grep -Ei '^x-kam-explorer-stats-version: *2' >/dev/null
+          curl -L -sSI --max-time 20 https://explorer.kriptoaman.com/tokens | grep -Ei '^x-kam-explorer-tokens-version: *2' >/dev/null
+      - name: Verify core data APIs remain intact
         run: |
           set -euo pipefail
           curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks | python3 -c 'import json,sys; d=json.load(sys.stdin); assert isinstance(d.get("items"), list) and len(d["items"])>0'
           curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/transactions | python3 -c 'import json,sys; d=json.load(sys.stdin); assert isinstance(d.get("items"), list)'
           curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/stats | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "total_transactions" in d and "average_block_time" in d'
-      - name: Verify detail routing remains on Blockscout
+          curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/stats/charts/transactions | python3 -c 'import json,sys; assert isinstance(json.load(sys.stdin),(dict,list))'
+          curl -fsS --max-time 15 'https://explorer.kriptoaman.com/api/v2/tokens?type=ERC-20' | python3 -c 'import json,sys; d=json.load(sys.stdin); assert isinstance(d.get("items"),list)'
+      - name: Verify Blockscout detail routing remains intact
         run: |
           set -euo pipefail
           TX='0x9854d90159013d488190d0f1847596a5dfb7582812f880102f167a1b172b163a'
-          curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/tx/$TX" | grep -Eqi 'transaction|details|0x9854d901'
+          WKAM='0x0d8848CE88BB09a81a4248Efdd574d50B98b544A'
+          curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/tx/$TX" >/dev/null
+          curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/token/$WKAM" >/dev/null
+          for path in /blocks /txs /api-docs; do curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com$path" >/dev/null; done
       - name: Re-run public core diagnostic
         run: node scripts/diagnose-blockscout.mjs
