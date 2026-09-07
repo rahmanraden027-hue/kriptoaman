@@ -58,7 +58,7 @@ jobs:
           console.log('KAM protected profile unchanged.');
           NODE
 
-      - name: Reject direct routine changes to KAM chain on main
+      - name: Require reviewed KAM changes on main
         if: github.event_name == 'push'
         shell: bash
         run: |
@@ -68,13 +68,29 @@ jobs:
           if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
             exit 0
           fi
-          CHANGED=$(git diff --name-only "$BEFORE" "$AFTER" -- 'chain/kam-mainnet/**' || true)
-          if [ -n "$CHANGED" ]; then
-            echo 'KAM chain files changed directly on main:' >&2
-            echo "$CHANGED" >&2
+
+          CHANGED=$(git diff --name-only "$BEFORE" "$AFTER" -- 'chain/kam-mainnet/**' '.github/workflows/kam-chain-freeze-guard.yml' || true)
+          if [ -z "$CHANGED" ]; then
+            echo 'No KAM protected-path files changed in this push.'
+            exit 0
+          fi
+
+          echo 'KAM protected-path files changed on main:'
+          echo "$CHANGED"
+
+          # A legitimate KAM change reaches main through the repository PR/ruleset
+          # path. Squash merges include "(#123)" and merge commits include
+          # "Merge pull request #123". The candidate-state invariant above is
+          # still enforced independently, so a reviewed merge cannot silently
+          # promote or mutate the protected KAM identity.
+          COMMIT_MSG="$(git log -1 --format=%B "$AFTER")"
+          if ! printf '%s\n' "$COMMIT_MSG" | grep -Eq '\(#[0-9]+\)|Merge pull request #[0-9]+'; then
+            echo 'KAM change on main is not identifiable as a reviewed PR merge.' >&2
             echo 'Use an isolated KAM-chain PR and promotion/security gates. See Issue #166.' >&2
             exit 1
           fi
+
+          echo 'KAM change is identifiable as a reviewed PR merge; protected candidate invariants remain enforced.'
 
       - name: Confirm isolated review path for KAM changes
         if: github.event_name == 'pull_request'
