@@ -7,6 +7,7 @@ const SNAPSHOT_TTL_MS = 45_000;
 const STALE_SNAPSHOT_MAX_AGE_MS = 5 * 60 * 1000;
 const LAST_GOOD_TTL_MS = 10 * 60 * 1000;
 const MIN_ACTIVE_TARGET = 12;
+const DURABLE_READ_BUDGET_MS = 150;
 
 const NETWORKS = [
   { name: 'Bitcoin', type: 'bitcoin', timeoutMs: SLOW_PROVIDER_TIMEOUT_MS, urls: ['https://mempool.space/api/blocks/tip/height', 'https://blockstream.info/api/blocks/tip/height'] },
@@ -64,11 +65,27 @@ const scheduleBackground = (waitUntil, task) => {
   else task.catch(() => undefined);
 };
 
+async function withDeadline(task, timeoutMs, fallback = null) {
+  let timer;
+  try {
+    return await Promise.race([
+      Promise.resolve(task),
+      new Promise((resolve) => {
+        timer = setTimeout(() => resolve(fallback), timeoutMs);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function fetchWithTimeout(url, options = {}, timeoutMs = DEFAULT_PROVIDER_TIMEOUT_MS) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await fetch(url, { ...options, signal: controller.signal });
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    const bodyText = await response.text();
+    return { response, bodyText };
   } finally {
     clearTimeout(timer);
   }
@@ -79,35 +96,58 @@ const rpcBody = (method, params = []) => JSON.stringify({ jsonrpc: '2.0', id: 1,
 function requestHeaders(extra = {}) {
   return {
     Accept: 'application/json,text/plain,*/*',
-    'User-Agent': 'KriptoAman-Network-Health/4.1',
+    'User-Agent': 'KriptoAman-Network-Health/4.2',
     ...extra,
   };
+}
+
+function buildProbeRequest(item, url) {
+  if (item.type === 'evm') {
+    return {
+      options: { method: 'POST', headers: requestHeaders({ 'Content-Type': 'application/json' }), body: rpcBody('eth_blockNumber') },
+      responseMode: 'json',
+    };
+  }
+  if (item.type === 'solana') {
+    return {
+      options: { method: 'POST', headers: requestHeaders({ 'Content-Type': 'application/json' }), body: rpcBody('getBlockHeight') },
+      responseMode: 'json',
+    };
+  }
+  if (item.type === 'xrp') {
+    return {
+      options: { method: 'POST', headers: requestHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ method: 'server_info', params: [{}] }) },
+      responseMode: 'json',
+    };
+  }
+  if (item.type === 'polkadot') {
+    return {
+      options: { method: 'POST', headers: requestHeaders({ 'Content-Type': 'application/json' }), body: rpcBody('chain_getHeader') },
+      responseMode: 'json',
+    };
+  }
+  if (item.type === 'tron') {
+    return url === 'https://tron-evm-rpc.publicnode.com'
+      ? {
+          options: { method: 'POST', headers: requestHeaders({ 'Content-Type': 'application/json' }), body: rpcBody('eth_blockNumber') },
+          responseMode: 'json',
+        }
+      : {
+          options: { method: 'POST', headers: requestHeaders({ 'Content-Type': 'application/json' }), body: '{}' },
+          responseMode: 'json',
+        };
+  }
+  if (item.type === 'utxo' && url.includes('/blocks/tip/height')) {
+    return { options: { headers: requestHeaders() }, responseMode: 'height-text' };
+  }
+  return { options: { headers: requestHeaders() }, responseMode: item.type === 'bitcoin' ? 'height-text' : 'json' };
 }
 
 async function probeUrl(item, url) {
   const started = Date.now();
   const timeoutMs = Number(item.timeoutMs) || DEFAULT_PROVIDER_TIMEOUT_MS;
-  let response;
-  let responseMode = 'json';
-
-  if (item.type === 'evm') {
-    response = await fetchWithTimeout(url, { method: 'POST', headers: requestHeaders({ 'Content-Type': 'application/json' }), body: rpcBody('eth_blockNumber') }, timeoutMs);
-  } else if (item.type === 'solana') {
-    response = await fetchWithTimeout(url, { method: 'POST', headers: requestHeaders({ 'Content-Type': 'application/json' }), body: rpcBody('getBlockHeight') }, timeoutMs);
-  } else if (item.type === 'xrp') {
-    response = await fetchWithTimeout(url, { method: 'POST', headers: requestHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ method: 'server_info', params: [{}] }) }, timeoutMs);
-  } else if (item.type === 'polkadot') {
-    response = await fetchWithTimeout(url, { method: 'POST', headers: requestHeaders({ 'Content-Type': 'application/json' }), body: rpcBody('chain_getHeader') }, timeoutMs);
-  } else if (item.type === 'tron') {
-    response = url === 'https://tron-evm-rpc.publicnode.com'
-      ? await fetchWithTimeout(url, { method: 'POST', headers: requestHeaders({ 'Content-Type': 'application/json' }), body: rpcBody('eth_blockNumber') }, timeoutMs)
-      : await fetchWithTimeout(url, { method: 'POST', headers: requestHeaders({ 'Content-Type': 'application/json' }), body: '{}' }, timeoutMs);
-  } else if (item.type === 'utxo' && url.includes('/blocks/tip/height')) {
-    responseMode = 'height-text';
-    response = await fetchWithTimeout(url, { headers: requestHeaders() }, timeoutMs);
-  } else {
-    response = await fetchWithTimeout(url, { headers: requestHeaders() }, timeoutMs);
-  }
+  const { options, responseMode } = buildProbeRequest(item, url);
+  const { response, bodyText } = await fetchWithTimeout(url, options, timeoutMs);
 
   if (!response.ok) {
     const error = new Error(`HTTP ${response.status}`);
@@ -116,12 +156,18 @@ async function probeUrl(item, url) {
   }
 
   let detail = 'ok';
-  if (item.type === 'bitcoin' || responseMode === 'height-text') {
-    const height = Number((await response.text()).trim());
+  if (responseMode === 'height-text') {
+    const height = Number(bodyText.trim());
     if (!Number.isFinite(height) || height <= 0) throw new Error('Invalid block height response');
     detail = String(height);
   } else {
-    const payload = await response.json().catch(() => null);
+    let payload = null;
+    try {
+      payload = JSON.parse(bodyText);
+    } catch {
+      payload = null;
+    }
+
     if (item.type === 'evm') {
       if (!payload?.result) throw new Error('Invalid EVM RPC response');
       detail = payload.result;
@@ -237,6 +283,8 @@ async function buildSnapshot() {
       durableRecentSnapshotMaxAgeMs: STALE_SNAPSHOT_MAX_AGE_MS,
       durableRecentSnapshotTriggersBackgroundRefresh: true,
       durableSnapshotCrossPop: true,
+      durableReadBudgetMs: DURABLE_READ_BUDGET_MS,
+      responseBodyBoundedByProviderTimeout: true,
       fabricatedMetrics: false,
     },
   };
@@ -339,7 +387,8 @@ async function getSnapshot(forceRefresh = false, waitUntil, env) {
     return { snapshot: cachedSnapshot, deliveryMode: 'memory-fresh', ageMs };
   }
 
-  const durable = await readDurableSnapshot(env);
+  const durableRead = readDurableSnapshot(env);
+  const durable = await withDeadline(durableRead, DURABLE_READ_BUDGET_MS, null);
   if (durable) {
     scheduleBackground(
       waitUntil,
@@ -351,6 +400,7 @@ async function getSnapshot(forceRefresh = false, waitUntil, env) {
       ageMs: durable.ageMs,
     };
   }
+  scheduleBackground(waitUntil, durableRead.then(() => undefined).catch(() => undefined));
 
   if (cachedSnapshot && Number.isFinite(ageMs) && ageMs <= STALE_SNAPSHOT_MAX_AGE_MS) {
     scheduleBackground(
