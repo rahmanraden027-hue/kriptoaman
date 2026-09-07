@@ -68,6 +68,47 @@ jobs:
           echo 'filesystem_mode=isolated_docker_proxy_mount'
           echo 'host_permission_preflight=verified'
 
+      - name: Inspect legacy Blockscout route dependencies read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE=/opt/blockscout/docker-compose
+          FRONTEND_ENV="$BASE/envs/common-frontend.env"
+          TEMPLATE="$BASE/proxy/default.conf.template"
+          cd "$BASE"
+
+          echo '=== EXPLORER SERVICES ==='
+          docker compose ps frontend proxy backend stats || true
+
+          echo '=== SAFE FRONTEND PUBLIC API CONFIG ==='
+          grep -E '^(NEXT_PUBLIC_(API_(HOST|PROTOCOL|BASE_PATH)|STATS_API_(HOST|BASE_PATH)|NAVIGATION_LAYOUT|HOMEPAGE_(CHARTS|STATS)|GAS_TRACKER_ENABLED))=' "$FRONTEND_ENV" || true
+
+          STATS_HOST="$(grep '^NEXT_PUBLIC_STATS_API_HOST=' "$FRONTEND_ENV" | tail -n 1 | cut -d= -f2- | tr -d '\r' | sed -e "s/^['\"]//" -e "s/['\"]$//")"
+          STATS_BASE="$(grep '^NEXT_PUBLIC_STATS_API_BASE_PATH=' "$FRONTEND_ENV" | tail -n 1 | cut -d= -f2- | tr -d '\r' | sed -e "s/^['\"]//" -e "s/['\"]$//")"
+          echo "stats_api_host=${STATS_HOST:-<unset>}"
+          echo "stats_api_base_path=${STATS_BASE:-<unset>}"
+
+          echo '=== PROXY STATS ROUTES ==='
+          grep -nEi 'stats|api/v1' "$TEMPLATE" | head -n 120 || true
+
+          if [[ -n "$STATS_HOST" ]]; then
+            echo '=== STATS ENDPOINT STATUS ==='
+            for endpoint in /health /api/v1/counters /api/v1/lines /api/v1/pages/main /api/v1/pages/transactions; do
+              url="${STATS_HOST%/}${STATS_BASE%/}${endpoint}"
+              code="$(curl -L -sS -o /dev/null -w '%{http_code}' --max-time 15 "$url" || true)"
+              echo "$endpoint=$code"
+            done
+          fi
+
+          echo '=== PUBLIC LEGACY ROUTE HTTP STATUS ==='
+          for path in /stats /tokens /txs /api-docs /blocks; do
+            code="$(curl -L -sS -o /dev/null -w '%{http_code}' --max-time 20 "https://explorer.kriptoaman.com${path}" || true)"
+            echo "$path=$code"
+          done
+
+          echo '=== PUBLIC ERC20 TOKEN INDEX SAMPLE ==='
+          curl -L -fsS --max-time 20 'https://explorer.kriptoaman.com/api/v2/tokens?type=ERC-20' | python3 -c 'import json,sys; d=json.load(sys.stdin); items=d.get("items",[])[:20]; print("token_count_sample=",len(items)); [print({"address":(x.get("address") or x.get("address_hash")),"name":x.get("name"),"symbol":x.get("symbol"),"holders":x.get("holders_count"),"type":x.get("type")}) for x in items]'
+
   deploy-homepage-only:
     if: ${{ github.event_name != 'pull_request' }}
     needs: [preflight, host-permission-preflight]
