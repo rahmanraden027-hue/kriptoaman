@@ -18,9 +18,10 @@ const ALLOWED_METHODS = new Set([
 ]);
 
 const MAX_BODY_BYTES = 64 * 1024;
+const DEVELOPER_CONSOLE_URL = 'https://kriptoaman.com/KAMDeveloper';
 const CORS_HEADERS = {
   'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'POST, OPTIONS',
+  'access-control-allow-methods': 'GET, POST, OPTIONS',
   'access-control-allow-headers': 'content-type',
   'access-control-max-age': '86400',
 };
@@ -63,8 +64,14 @@ export default {
       });
     }
 
+    // Human/browser navigation gets the full Developer Console while the RPC
+    // contract at POST / remains unchanged for wallets, explorers and apps.
+    if (request.method === 'GET' && url.pathname === '/') {
+      return Response.redirect(DEVELOPER_CONSOLE_URL, 302);
+    }
+
     if (request.method !== 'POST' || url.pathname !== '/') {
-      return json({ error: 'JSON-RPC POST only' }, 405, { allow: 'POST, OPTIONS' });
+      return json({ error: 'JSON-RPC POST only' }, 405, { allow: 'GET, POST, OPTIONS' });
     }
 
     const contentLength = Number(request.headers.get('content-length') || 0);
