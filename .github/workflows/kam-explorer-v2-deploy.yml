@@ -1,6 +1,12 @@
 name: KAM Explorer V2 Deploy
 
 on:
+  pull_request:
+    paths:
+      - 'explorer-dashboard/**'
+      - 'scripts/deploy-kam-explorer-v2.sh'
+      - 'tests/kam-explorer-v2-dashboard.test.mjs'
+      - '.github/workflows/kam-explorer-v2-deploy.yml'
   push:
     branches: [main]
     paths:
@@ -14,7 +20,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: kam-explorer-v2-deploy
+  group: kam-explorer-v2-deploy-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -36,6 +42,7 @@ jobs:
         run: node scripts/diagnose-blockscout.mjs
 
   deploy-homepage-only:
+    if: ${{ github.event_name != 'pull_request' }}
     needs: preflight
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
     timeout-minutes: 12
@@ -55,10 +62,13 @@ jobs:
           bash scripts/deploy-kam-explorer-v2.sh
 
   public-post-verify:
+    if: ${{ github.event_name != 'pull_request' }}
     needs: deploy-homepage-only
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
+      - name: Checkout reviewed source
+        uses: actions/checkout@v7
       - name: Verify V2 homepage marker and headers
         run: |
           set -euo pipefail
