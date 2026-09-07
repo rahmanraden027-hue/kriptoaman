@@ -1,0 +1,63 @@
+name: KAM Explorer V2 Host Audit
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/kam-explorer-v2-host-audit.yml'
+      - 'explorer-dashboard/**'
+      - 'scripts/deploy-kam-explorer-v2.sh'
+
+permissions:
+  contents: read
+
+jobs:
+  host-layout-audit:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 5
+    steps:
+      - name: Checkout reviewed source
+        uses: actions/checkout@v7
+
+      - name: Verify host boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d /opt/blockscout/docker-compose
+          test -f /opt/blockscout/docker-compose/envs/common-frontend.env
+          echo 'host_boundary=verified'
+
+      - name: Inspect non-secret Blockscout layout
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /opt/blockscout/docker-compose
+          echo '=== services ==='
+          docker compose config --services
+          echo '=== proxy/front-end candidate files ==='
+          find . -maxdepth 3 -type f \( -iname '*nginx*' -o -iname '*proxy*' -o -iname '*frontend*' -o -iname 'docker-compose*.yml' -o -iname 'docker-compose*.yaml' \) -print | sort | head -n 120
+          echo '=== proxy mounts ==='
+          PROXY_ID="$(docker compose ps -q proxy 2>/dev/null || true)"
+          if [ -n "$PROXY_ID" ]; then
+            docker inspect "$PROXY_ID" --format '{{range .Mounts}}{{println .Type "|" .Source "->" .Destination}}{{end}}'
+          else
+            echo 'proxy_container=not_found'
+          fi
+          echo '=== frontend mounts ==='
+          FRONT_ID="$(docker compose ps -q frontend 2>/dev/null || true)"
+          if [ -n "$FRONT_ID" ]; then
+            docker inspect "$FRONT_ID" --format '{{range .Mounts}}{{println .Type "|" .Source "->" .Destination}}{{end}}'
+          else
+            echo 'frontend_container=not_found'
+          fi
+
+      - name: Show proxy config structure without secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /opt/blockscout/docker-compose
+          for f in proxy/default.conf.template proxy/default.conf proxy/nginx.conf nginx.conf; do
+            if [ -f "$f" ]; then
+              echo "=== $f ==="
+              sed -n '1,260p' "$f"
+            fi
+          done
