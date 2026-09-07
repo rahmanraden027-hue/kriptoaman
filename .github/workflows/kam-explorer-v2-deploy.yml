@@ -92,8 +92,19 @@ jobs:
           echo "stats_api_host=${STATS_HOST:-<unset>}"
           echo "stats_api_base_path=${STATS_BASE:-<unset>}"
 
-          echo '=== PROXY STATS ROUTES ==='
-          grep -nEi 'stats|api/v1' "$TEMPLATE" | head -n 120 || true
+          echo '=== PROXY STATS ROUTE CONTEXT ==='
+          sed -n '48,66p' "$TEMPLATE" || true
+
+          echo '=== STATS ENV KEY NAMES ONLY ==='
+          if [[ -f "$BASE/envs/common-stats.env" ]]; then
+            sed -n 's/^\([A-Za-z0-9_]*\)=.*/\1/p' "$BASE/envs/common-stats.env" | sort | grep -E '^(STATS|RUST|DATABASE|BLOCKSCOUT)' || true
+          fi
+
+          echo '=== SANITIZED STATS ERROR LOG TAIL ==='
+          docker compose logs --tail=120 stats 2>&1 \
+            | sed -E 's#(postgres(ql)?://)[^@[:space:]]+@#\1***@#g; s#((password|passwd|pwd)=)[^&[:space:]]+#\1***#Ig' \
+            | grep -Ei 'error|panic|failed|fatal|database|migration|relation|connect|configuration|invalid|permission|refused|timeout' \
+            | tail -n 80 || true
 
           if [[ -n "$STATS_HOST" ]]; then
             echo '=== STATS ENDPOINT STATUS ==='
