@@ -19,21 +19,34 @@ grep -q 'data-kam-explorer-version="2.0.0"' "$SOURCE" || fail "dashboard version
 grep -q '/api/v2/blocks' "$SOURCE" || fail "verified blocks API binding missing"
 grep -q '/api/v2/transactions' "$SOURCE" || fail "verified transactions API binding missing"
 
-cp -a "$TEMPLATE" "$BACKUP"
-mkdir -p "$DASHBOARD_DIR"
-install -m 0644 "$SOURCE" "$DASHBOARD_DIR/index.html"
+# Do not change ownership or permissions on the Blockscout host. If the dedicated
+# runner cannot write the proxy template directly, use only pre-authorized,
+# non-interactive sudo for the narrowly scoped proxy file operations below.
+PRIV=()
+if [[ ! -w "$PROXY_DIR" || ! -w "$TEMPLATE" ]]; then
+  command -v sudo >/dev/null 2>&1 || fail "proxy path is not writable and sudo is unavailable"
+  sudo -n true >/dev/null 2>&1 || fail "proxy path is not writable and passwordless sudo is unavailable"
+  PRIV=(sudo -n)
+  echo "filesystem_mode=preauthorized_sudo"
+else
+  echo "filesystem_mode=runner_write"
+fi
+
+"${PRIV[@]}" cp -a "$TEMPLATE" "$BACKUP"
+"${PRIV[@]}" mkdir -p "$DASHBOARD_DIR"
+"${PRIV[@]}" install -m 0644 "$SOURCE" "$DASHBOARD_DIR/index.html"
 
 rollback() {
   local code=$?
   echo "KAM Explorer V2 deployment failed; restoring previous proxy template." >&2
-  cp -a "$BACKUP" "$TEMPLATE" || true
+  "${PRIV[@]}" cp -a "$BACKUP" "$TEMPLATE" || true
   cd "$BASE"
   docker compose up -d --force-recreate proxy >/dev/null 2>&1 || true
   exit "$code"
 }
 trap rollback ERR
 
-python3 - "$TEMPLATE" <<'PY'
+"${PRIV[@]}" python3 - "$TEMPLATE" <<'PY'
 from pathlib import Path
 import sys
 
