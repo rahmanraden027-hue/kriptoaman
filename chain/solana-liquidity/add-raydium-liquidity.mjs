@@ -44,10 +44,6 @@ async function tokenBalanceUi(connection, owner, mint) {
   }, new Decimal(0));
 }
 
-function stringifyDecimal(value) {
-  return value instanceof Decimal ? value.toString() : value;
-}
-
 const executeMode = process.argv.includes('--execute');
 const previewMode = !executeMode;
 const rpcUrl = required('RPC_URL');
