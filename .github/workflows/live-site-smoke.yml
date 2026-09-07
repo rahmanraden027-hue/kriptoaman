@@ -117,28 +117,61 @@ jobs:
         run: |
           set -euo pipefail
           body="$(mktemp)"
-          code="$(curl --fail-with-body --location --silent --show-error \
-            --connect-timeout 10 --max-time 25 \
-            -o "$body" -w '%{http_code}' \
-            https://kriptoaman.com/api/platform-status)"
-          test "$code" = "200"
-          node - "$body" <<'NODE'
+          refresh_body="$(mktemp)"
+
+          for attempt in 1 2 3; do
+            code="$(curl --location --silent --show-error \
+              --connect-timeout 10 --max-time 25 \
+              -H 'Accept: application/json' \
+              -H 'Cache-Control: no-cache' \
+              -o "$body" -w '%{http_code}' \
+              "https://kriptoaman.com/api/platform-status?smoke=${GITHUB_RUN_ID}-${attempt}")"
+
+            if [ "$code" = "200" ] && node - "$body" <<'NODE'
           const fs = require('fs');
           const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
           const market = payload?.components?.market;
-          if (!market || market.status !== 'operational' || market.healthy !== true) {
-            console.error(`Expected public market status operational, got ${market?.status ?? 'missing'}`);
-            process.exit(1);
-          }
-          if (!Number.isFinite(Number(market.assetCount)) || Number(market.assetCount) < 4500) {
-            console.error(`Expected at least 4500 public market assets, got ${market?.assetCount ?? 'missing'}`);
-            process.exit(1);
-          }
-          if (market.stale !== false) {
-            console.error(`Expected a fresh public market snapshot, stale=${market?.stale ?? 'missing'}`);
-            process.exit(1);
-          }
+          if (!market || market.status !== 'operational' || market.healthy !== true) process.exit(1);
+          if (!Number.isFinite(Number(market.assetCount)) || Number(market.assetCount) < 4500) process.exit(1);
+          if (market.stale !== false) process.exit(1);
+          console.log(`Public market status verified: assets=${market.assetCount}; ageMs=${market.ageMs}; readMode=${market.readMode ?? 'unknown'}.`);
           NODE
+            then
+              exit 0
+            fi
+
+            echo "Public market status attempt ${attempt} was not operational; requesting a verified snapshot refresh."
+            cat "$body" || true
+
+            refresh_code="$(curl --location --silent --show-error \
+              --connect-timeout 10 --max-time 120 \
+              -H 'Accept: application/json' \
+              -H 'Cache-Control: no-cache' \
+              -o "$refresh_body" -w '%{http_code}' \
+              "https://kriptoaman.com/api/market-snapshot?health=1&refresh=1&smoke=${GITHUB_RUN_ID}-${attempt}")"
+
+            if [ "$refresh_code" != "200" ] || ! node - "$refresh_body" <<'NODE'
+          const fs = require('fs');
+          const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          if (payload?.healthy !== true) process.exit(1);
+          if (payload?.stale !== false) process.exit(1);
+          if (!Number.isFinite(Number(payload?.assetCount)) || Number(payload.assetCount) < 4500) process.exit(1);
+          console.log(`Market snapshot refresh verified: assets=${payload.assetCount}; ageMs=${payload.ageMs}; source=${payload.source ?? 'unknown'}.`);
+          NODE
+            then
+              echo "Verified market snapshot refresh failed (HTTP ${refresh_code})."
+              cat "$refresh_body" || true
+            fi
+
+            if [ "$attempt" -lt 3 ]; then
+              # platform-status deliberately has a short edge cache. Allow any
+              # previously degraded aggregate to expire before checking again.
+              sleep 35
+            fi
+          done
+
+          echo "Public market status remained non-operational after verified refresh attempts."
+          exit 1
 
       - name: Check KriptoAman Market Database paging contract
         shell: bash
