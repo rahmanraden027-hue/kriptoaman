@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 2,
-  "status": "MEMBERS_PINNED_AWAITING_INDEPENDENCE_ATTESTATION",
+  "schemaVersion": 3,
+  "status": "AUTHORITIES_REVOKED_MEMBERS_PINNED_AWAITING_INDEPENDENCE_ATTESTATION",
   "network": "solana-mainnet-beta",
   "token": {
     "name": "Solana KAM",
@@ -46,29 +46,30 @@
     "multisigAddress": null
   },
   "authorityPolicy": {
-    "revokeMintAuthorityOnlyAfterReserveFundingVerified": true,
-    "revokeFreezeAuthorityOnlyAfterReserveFundingVerified": true,
+    "mintAuthorityExpected": null,
+    "freezeAuthorityExpected": null,
+    "mintAuthorityRevoked": true,
+    "freezeAuthorityRevoked": true,
     "retainMetadataUpdateAuthorityForBrandingHardening": true,
     "retainMetadataPointerAuthorityForBrandingHardening": true
   },
   "executionOrder": [
+    "Verify read-only that sKAM Mint Authority and Freeze Authority remain null before any reserve operation.",
     "Confirm independent control of all three pinned signer addresses; do not expose any seed phrase or private key.",
     "Create a Squads v4 multisig using exactly the three pinned signer addresses with a 2-of-3 threshold and no unilateral config authority.",
     "Enable a 24-hour global timelock and do not configure spending limits during the foundation phase.",
     "Create or identify separate Strategic Reserve and Ecosystem Reserve vault owner addresses.",
     "Pin the resulting Squads multisig and vault owner addresses in a follow-up reviewed PR.",
     "Perform a small test transfer to each vault and verify the approval/recovery workflow before moving reserve-scale balances.",
-    "Transfer exactly 200000000 sKAM to the Strategic Reserve vault and exactly 100000000 sKAM to the Ecosystem Reserve vault.",
-    "Run the read-only reserve verifier and require exact reserve balances before any authority revocation.",
-    "Revoke sKAM Mint Authority in a dedicated wallet-approved transaction and verify on-chain that it is null.",
-    "Revoke sKAM Freeze Authority in a separate wallet-approved transaction and verify on-chain that it is null.",
+    "Transfer exactly 200000000 sKAM to the Strategic Reserve vault and exactly 100000000 sKAM to the Ecosystem Reserve vault only after governance verification.",
+    "Run the read-only reserve verifier and require exact reserve balances.",
     "Run the final live audit again and publish reserve addresses and governance policy as transparency evidence."
   ],
   "publicDisclosure": {
     "claimFixedSupplyOnlyAfterMintAuthorityRevoked": true,
     "claimNotFreezableOnlyAfterFreezeAuthorityRevoked": true,
     "doNotDescribe700MAsExternallyVerifiedCirculatingSupply": true,
-    "reserveDescription": "300M sKAM is treasury-governed reserve allocation; 700M is the maximum available ecosystem allocation, not an externally verified circulating-supply figure."
+    "reserveDescription": "300M sKAM is the planned treasury-governed reserve allocation; 700M is the maximum available ecosystem allocation, not an externally verified circulating-supply figure. Reserve balances must not be described as funded until independently verified on-chain."
   },
   "futureHardening": {
     "fixedDateLockOrVesting": "OPTIONAL_AFTER_PROVIDER_COMPATIBILITY_COST_AND_AUDIT_REVIEW",
