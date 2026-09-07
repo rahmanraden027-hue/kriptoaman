@@ -1,0 +1,70 @@
+name: Network Health Warm
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'functions/api/network-health.js'
+      - '.github/workflows/network-health-warm.yml'
+  schedule:
+    - cron: '*/5 * * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: network-health-warm-production
+  cancel-in-progress: false
+
+jobs:
+  warm-network-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Refresh and verify durable network health snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+
+          for attempt in 1 2 3; do
+            code="$(curl --location --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              -H 'Accept: application/json' \
+              -H 'Cache-Control: no-cache' \
+              -o "$body" -w '%{http_code}' \
+              "https://kriptoaman.com/api/network-health?refresh=1&watchdog=${GITHUB_RUN_ID}-${attempt}")"
+
+            if [ "$code" = "200" ]; then
+              if node - "$body" <<'NODE'
+          const fs = require('fs');
+          const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          const summary = payload?.summary;
+          const total = Number(summary?.total);
+          const online = Number(summary?.online);
+          const degraded = Number(summary?.degraded || 0);
+          const offline = Number(summary?.offline || 0);
+          const minimum = Number(summary?.minimum_active_target || 12);
+
+          if (!Array.isArray(payload?.networks) || payload.networks.length !== total) process.exit(1);
+          if (total !== 21) process.exit(1);
+          if (!Number.isFinite(online) || !Number.isFinite(degraded) || !Number.isFinite(offline)) process.exit(1);
+          if (online + degraded + offline !== total) process.exit(1);
+          if (online < minimum) process.exit(1);
+          if (payload?.delivery?.freshProbe !== true) process.exit(1);
+
+          console.log(`Network health refreshed: ${online}/${total} online; degraded=${degraded}; offline=${offline}; minimum=${minimum}.`);
+          NODE
+              then
+                exit 0
+              fi
+            fi
+
+            echo "Network health warm attempt ${attempt} failed (HTTP ${code})."
+            cat "$body" || true
+            if [ "$attempt" -lt 3 ]; then sleep $((attempt * 10)); fi
+          done
+
+          echo "Network health watchdog could not establish a verified fresh snapshot."
+          exit 1
