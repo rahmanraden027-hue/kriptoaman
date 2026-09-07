@@ -14,6 +14,10 @@ const SKAM_SUPPLY_UI = 1_000_000_000n;
 const SKAM_RAW_SUPPLY = SKAM_SUPPLY_UI * 10n ** BigInt(SKAM_DECIMALS);
 const METADATA_POINTER_EXTENSION_TYPE = 18;
 const TOKEN_METADATA_EXTENSION_TYPE = 19;
+const EXPECTED_MINT_EXTENSION_TYPES = new Set([
+  METADATA_POINTER_EXTENSION_TYPE,
+  TOKEN_METADATA_EXTENSION_TYPE,
+]);
 const RPC_URLS = [
   'https://solana-rpc.publicnode.com',
   'https://api.mainnet-beta.solana.com',
@@ -33,6 +37,27 @@ function parseMintBase(data) {
   return { mintAuthority, supply, decimals, initialized, freezeAuthority };
 }
 
+function listTlvExtensions(data) {
+  if (!(data instanceof Uint8Array) || data.length <= 166) return [];
+  const extensions = [];
+  let offset = 166;
+  while (offset + 4 <= data.length) {
+    const view = new DataView(data.buffer, data.byteOffset + offset, data.byteLength - offset);
+    const type = view.getUint16(0, true);
+    const length = view.getUint16(2, true);
+    const start = offset + 4;
+    const end = start + length;
+    if (end > data.length) throw new Error(`TLV extension ${type} exceeds mint account bounds.`);
+    if (type === 0 && length === 0) {
+      const remainder = data.slice(start);
+      if (remainder.every((byte) => byte === 0)) break;
+    }
+    extensions.push({ type, length });
+    offset = end;
+  }
+  return extensions;
+}
+
 function findTlvExtension(data, type) {
   if (!(data instanceof Uint8Array) || data.length <= 166) return null;
   let offset = 166;
@@ -44,6 +69,7 @@ function findTlvExtension(data, type) {
     const end = start + entryLength;
     if (end > data.length) return null;
     if (entryType === type) return data.slice(start, end);
+    if (entryType === 0 && entryLength === 0 && data.slice(start).every((byte) => byte === 0)) return null;
     offset = end;
   }
   return null;
@@ -125,6 +151,9 @@ async function auditMint() {
   if (base.decimals !== SKAM_DECIMALS) throw new Error(`Decimals mismatch: ${base.decimals}`);
   if (base.supply !== SKAM_RAW_SUPPLY) throw new Error(`Raw supply mismatch: ${base.supply.toString()}`);
 
+  const extensions = listTlvExtensions(data);
+  const extensionTypes = extensions.map((entry) => entry.type);
+  const unexpectedExtensionTypes = extensionTypes.filter((type) => !EXPECTED_MINT_EXTENSION_TYPES.has(type));
   const pointerRaw = findTlvExtension(data, METADATA_POINTER_EXTENSION_TYPE);
   const metadataRaw = findTlvExtension(data, TOKEN_METADATA_EXTENSION_TYPE);
   if (!pointerRaw) throw new Error('MetadataPointer extension missing.');
@@ -150,6 +179,10 @@ async function auditMint() {
     freezeAuthority: base.freezeAuthority,
     mintable: base.mintAuthority !== null,
     freezable: base.freezeAuthority !== null,
+    extensionTypes,
+    extensions,
+    unexpectedExtensionTypes,
+    onlyExpectedExtensions: unexpectedExtensionTypes.length === 0,
     metadataPointerAuthority: pointer.authority,
     metadataAddress: pointer.metadataAddress,
     metadataUpdateAuthority: metadata.updateAuthority,
@@ -171,11 +204,15 @@ async function auditOperator() {
     const amount = entry?.account?.data?.parsed?.info?.tokenAmount?.uiAmountString;
     return sum + Number(amount || 0);
   }, 0) ?? 0;
+  const concentrationPct = Number(SKAM_SUPPLY_UI) > 0
+    ? (tokenBalance / Number(SKAM_SUPPLY_UI)) * 100
+    : null;
   return {
     provider,
     operator: OPERATOR,
     solBalance: Number(balanceResult?.value || 0) / 1e9,
     skamBalanceUi: tokenBalance,
+    concentrationPct,
   };
 }
 
@@ -185,13 +222,16 @@ async function auditPublicMetadata() {
   const metadata = await metadataResponse.json();
   if (metadata.name !== SKAM_NAME || metadata.symbol !== SKAM_SYMBOL) throw new Error('Public metadata identity mismatch.');
   if (typeof metadata.image !== 'string' || !metadata.image.startsWith('https://')) throw new Error('Public metadata image is missing or not HTTPS.');
+  if (typeof metadata.external_url !== 'string' || !metadata.external_url.startsWith('https://')) throw new Error('Public metadata external_url is missing or not HTTPS.');
   const logoResponse = await fetchWithTimeout(metadata.image, { cache: 'no-store' });
   if (!logoResponse.ok) throw new Error(`Public logo HTTP ${logoResponse.status}`);
   await logoResponse.body?.cancel();
   return {
     name: metadata.name,
     symbol: metadata.symbol,
+    description: metadata.description || null,
     image: metadata.image,
+    externalUrl: metadata.external_url,
     metadataHttp: metadataResponse.status,
     logoHttp: logoResponse.status,
     logoContentType: logoResponse.headers.get('content-type') || null,
@@ -214,6 +254,8 @@ async function auditDexScreener() {
     const total = Number(bucket?.buys || 0) + Number(bucket?.sells || 0);
     return Math.max(max, total);
   }, 0);
+  const liquidityUsd = pair.liquidity?.usd == null ? null : Number(pair.liquidity.usd);
+  const fdv = pair.fdv == null ? null : Number(pair.fdv);
   return {
     indexed: true,
     pairAddress: pair.pairAddress,
@@ -223,8 +265,9 @@ async function auditDexScreener() {
     quoteToken: pair.quoteToken,
     priceUsd: pair.priceUsd == null ? null : Number(pair.priceUsd),
     priceNative: pair.priceNative == null ? null : Number(pair.priceNative),
-    liquidityUsd: pair.liquidity?.usd == null ? null : Number(pair.liquidity.usd),
-    fdv: pair.fdv == null ? null : Number(pair.fdv),
+    liquidityUsd,
+    fdv,
+    liquidityToFdvPct: liquidityUsd != null && fdv > 0 ? (liquidityUsd / fdv) * 100 : null,
     marketCap: pair.marketCap == null ? null : Number(pair.marketCap),
     pairCreatedAt: pair.pairCreatedAt ?? null,
     observedTxns,
@@ -245,15 +288,19 @@ const [mint, operator, publicMetadata, dex] = await Promise.all([
 const findings = [];
 if (mint.mintAuthority) findings.push({ severity: 'HIGH', code: 'MINT_AUTHORITY_ACTIVE', detail: `Additional sKAM can still be minted by ${mint.mintAuthority}.` });
 if (mint.freezeAuthority) findings.push({ severity: 'HIGH', code: 'FREEZE_AUTHORITY_ACTIVE', detail: `Token accounts can still be frozen by ${mint.freezeAuthority}.` });
+if (mint.unexpectedExtensionTypes.length > 0) findings.push({ severity: 'HIGH', code: 'UNEXPECTED_TOKEN_2022_EXTENSIONS', detail: `Unexpected Token-2022 mint extension types detected: ${mint.unexpectedExtensionTypes.join(', ')}.` });
 if (mint.metadataUpdateAuthority) findings.push({ severity: 'INFO', code: 'METADATA_UPDATE_AUTHORITY_ACTIVE', detail: `On-chain metadata remains mutable by ${mint.metadataUpdateAuthority}.` });
 if (mint.metadataPointerAuthority) findings.push({ severity: 'INFO', code: 'METADATA_POINTER_AUTHORITY_ACTIVE', detail: `Metadata pointer remains mutable by ${mint.metadataPointerAuthority}.` });
+if (operator.concentrationPct != null && operator.concentrationPct >= 90) findings.push({ severity: 'HIGH', code: 'OPERATOR_CONCENTRATION', detail: `Operator-controlled token accounts hold ${operator.concentrationPct.toFixed(6)}% of total supply. This is a material custody, market and third-party risk-classification signal until reserve governance/distribution is independently verifiable.` });
 if (dex.liquidityUsd == null || dex.liquidityUsd < 1_000) findings.push({ severity: 'HIGH', code: 'THIN_LIQUIDITY', detail: `DEX Screener liquidity is ${dex.liquidityUsd == null ? 'unknown' : `$${dex.liquidityUsd}`}; price and slippage are highly sensitive at this depth.` });
 if (dex.observedTxns < 1) findings.push({ severity: 'MEDIUM', code: 'NO_OBSERVED_DEX_TXNS', detail: 'DEX Screener has not observed a transaction for the expected pool.' });
+if (Number(dex.volume?.h24 || 0) < 100) findings.push({ severity: 'MEDIUM', code: 'LOW_OBSERVED_MARKET_ACTIVITY', detail: `DEX Screener 24h volume is $${Number(dex.volume?.h24 || 0)}. Do not manufacture volume or self-trade; allow legitimate activity to develop organically.` });
 if (operator.solBalance < 0.02) findings.push({ severity: 'MEDIUM', code: 'LOW_OPERATOR_SOL', detail: `Operator SOL balance is ${operator.solBalance}; keep enough SOL for legitimate operational transactions.` });
 
 const integrityPass = mint.mint === MINT
   && mint.decimals === SKAM_DECIMALS
   && mint.rawSupply === SKAM_RAW_SUPPLY.toString()
+  && mint.onlyExpectedExtensions
   && mint.metadata.name === SKAM_NAME
   && mint.metadata.symbol === SKAM_SYMBOL
   && mint.metadata.uri === SKAM_METADATA_URI
@@ -273,6 +320,22 @@ const report = {
   operator,
   publicMetadata,
   dexScreener: dex,
+  classificationReviewPacket: {
+    project: 'KriptoAman',
+    token: `${SKAM_NAME} (${SKAM_SYMBOL})`,
+    chain: 'Solana mainnet',
+    mint: MINT,
+    raydiumPool: POOL_ID,
+    metadata: SKAM_METADATA_URI,
+    projectUrl: publicMetadata.externalUrl,
+    evidence: {
+      fixedSupply: mint.mintAuthority === null,
+      freezeDisabled: mint.freezeAuthority === null,
+      expectedToken2022ExtensionsOnly: mint.onlyExpectedExtensions,
+      dexPairIndexed: dex.indexed,
+    },
+    caution: 'A clean identity/authority audit does not override third-party wallet classifications. Thin liquidity, concentrated custody and low market activity remain material risk signals and should be remediated transparently before requesting reclassification.',
+  },
   findings,
 };
 
