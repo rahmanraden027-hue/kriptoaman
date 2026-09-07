@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
+import gateway from '../chain/kam-mainnet/public-rpc-gateway/worker.js';
 import { isAdminRpcBlocked } from '../chain/kam-mainnet/scripts/rpc-security.mjs';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
@@ -37,4 +38,41 @@ test('KAM public verifier probes every sensitive namespace and records latency',
   assert.match(verifier, /sensitiveMethodsBlocked/);
   assert.match(verifier, /latencyMs/);
   assert.match(verifier, /every\(\(probe\) => probe\.ok\)/);
+});
+
+test('KAM RPC browser root redirects humans to the Developer Console', async () => {
+  const response = await gateway.fetch(new Request('https://rpc.kriptoaman.com/', { method: 'GET' }), {});
+  assert.equal(response.status, 302);
+  assert.equal(response.headers.get('location'), 'https://kriptoaman.com/KAMDeveloper');
+});
+
+test('KAM RPC health endpoint remains public and candidate-scoped', async () => {
+  const response = await gateway.fetch(new Request('https://rpc.kriptoaman.com/health', { method: 'GET' }), {});
+  assert.equal(response.status, 200);
+  const payload = await response.json();
+  assert.equal(payload.service, 'kam-public-rpc-gateway');
+  assert.equal(payload.expectedChainId, '0x560c');
+  assert.equal(payload.auditOnlyActivation, true);
+});
+
+test('KAM RPC public gateway still blocks privileged POST methods before upstream', async () => {
+  const response = await gateway.fetch(new Request('https://rpc.kriptoaman.com/', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'admin_peers', params: [] }),
+  }), {});
+  assert.equal(response.status, 403);
+  const payload = await response.json();
+  assert.equal(payload.error?.code, -32601);
+});
+
+test('KAM RPC allowed POST methods still require a configured protected origin', async () => {
+  const response = await gateway.fetch(new Request('https://rpc.kriptoaman.com/', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_chainId', params: [] }),
+  }), {});
+  assert.equal(response.status, 503);
+  const payload = await response.json();
+  assert.equal(payload.error, 'RPC origin not configured');
 });
