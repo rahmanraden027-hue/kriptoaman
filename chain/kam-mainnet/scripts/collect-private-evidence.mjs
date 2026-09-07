@@ -1,8 +1,14 @@
 import { createHash } from 'node:crypto';
+import { execFile } from 'node:child_process';
+import { stat } from 'node:fs/promises';
+import { promisify } from 'node:util';
 
+const execFileAsync = promisify(execFile);
 const rpcUrl = process.env.KAM_PRIVATE_RPC_URL || 'http://127.0.0.1:8545';
 const expectedChainId = '0x560c';
 const expectedValidatorCount = 4;
+const fourHostEvidencePath = '/var/lib/kam-evidence/four-host-topology-evidence.json';
+const protectedOriginInputPath = '/var/lib/kam-evidence/protected-rpc-origin-input.json';
 
 async function rpc(method, params = []) {
   const response = await fetch(rpcUrl, {
@@ -131,6 +137,80 @@ async function getValidators() {
   }
 }
 
+async function filePresent(path) {
+  try {
+    const details = await stat(path);
+    return details.isFile();
+  } catch {
+    return false;
+  }
+}
+
+function parseRedactedVerifierOutput(raw) {
+  try {
+    const parsed = JSON.parse(String(raw || '').trim());
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('not-object');
+    return parsed;
+  } catch {
+    return { ready: false, error: 'redacted-verifier-output-invalid' };
+  }
+}
+
+async function runRedactedVerifier(scriptPath, args) {
+  try {
+    const { stdout } = await execFileAsync(process.execPath, [scriptPath, ...args], {
+      cwd: process.cwd(),
+      timeout: 90_000,
+      maxBuffer: 512 * 1024,
+      env: process.env,
+    });
+    return parseRedactedVerifierOutput(stdout);
+  } catch (error) {
+    const parsed = parseRedactedVerifierOutput(error?.stdout);
+    if (parsed.error === 'redacted-verifier-output-invalid') {
+      return { ready: false, error: 'redacted-verifier-exit-nonzero' };
+    }
+    return parsed;
+  }
+}
+
+async function collectPrivateReadinessInventory() {
+  const topologyPresent = await filePresent(fourHostEvidencePath);
+  const protectedInputPresent = await filePresent(protectedOriginInputPath);
+
+  const fourHostTopology = topologyPresent
+    ? await runRedactedVerifier(
+        'chain/kam-mainnet/scripts/verify-four-host-topology.mjs',
+        [fourHostEvidencePath],
+      )
+    : { ready: false, error: 'four-host-topology-evidence-not-present' };
+
+  const protectedRpcOrigin = topologyPresent && protectedInputPresent
+    ? await runRedactedVerifier(
+        'chain/kam-mainnet/scripts/verify-protected-rpc-origin.mjs',
+        [protectedOriginInputPath, fourHostEvidencePath],
+      )
+    : {
+        ready: false,
+        error: protectedInputPresent
+          ? 'four-host-topology-evidence-not-present'
+          : 'protected-rpc-origin-input-not-present',
+      };
+
+  return {
+    endpointRedacted: true,
+    fourHostTopology: {
+      evidencePresent: topologyPresent,
+      verification: fourHostTopology,
+    },
+    protectedRpcOrigin: {
+      inputPresent: protectedInputPresent,
+      topologyEvidencePresent: topologyPresent,
+      verification: protectedRpcOrigin,
+    },
+  };
+}
+
 async function main() {
   const checkedAt = new Date().toISOString();
   const chainId = await rpc('eth_chainId');
@@ -162,6 +242,8 @@ async function main() {
     },
   };
 
+  const privateReadinessInventory = await collectPrivateReadinessInventory();
+
   const evidence = {
     schemaVersion: 1,
     checkedAt,
@@ -169,6 +251,7 @@ async function main() {
     source: 'private-self-hosted-runner',
     endpointRedacted: true,
     checks,
+    privateReadinessInventory,
     ready: Object.values(checks).every((check) => check.ok === true),
   };
 
