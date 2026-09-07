@@ -7,6 +7,9 @@ const MARKET_SNAPSHOT_FRESH_MS = 15 * 60 * 1000;
 const MARKET_SNAPSHOT_HEALTH_MAX_AGE_MS = MARKET_SNAPSHOT_FRESH_MS * 4;
 const COMPONENT_STATUS_TIMEOUT_MS = 700;
 const MARKET_STALE_REFRESH_TIMEOUT_MS = 20_000;
+const DURABLE_STATUS_READ_BUDGET_MS = 150;
+const MARKET_METADATA_READ_BUDGET_MS = 150;
+const MARKET_STALE_FAST_PATH_MS = 450;
 
 const DURABLE_STATUS_SCHEMA = `
 CREATE TABLE IF NOT EXISTS platform_status_snapshots (
@@ -26,6 +29,7 @@ let cachedStatus = null;
 let cachedStatusAt = 0;
 let statusInFlight = null;
 let durableSchemaReady = false;
+const waitUntilByRequest = new WeakMap();
 
 const json = (body, status = 200, extraHeaders = {}) => new Response(JSON.stringify(body), {
   status,
@@ -40,6 +44,25 @@ const withDelivery = (body, aggregateRead, snapshotAgeMs = 0, backgroundRefresh 
     backgroundRefresh,
   },
 });
+
+const scheduleBackground = (waitUntil, task) => {
+  if (typeof waitUntil === 'function') waitUntil(task);
+  else task.catch(() => undefined);
+};
+
+async function withDeadline(task, timeoutMs, fallback = null) {
+  let timer;
+  try {
+    return await Promise.race([
+      Promise.resolve(task),
+      new Promise((resolve) => {
+        timer = setTimeout(() => resolve(fallback), timeoutMs);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 async function readJson(url, timeoutMs = COMPONENT_STATUS_TIMEOUT_MS) {
   const controller = new AbortController();
@@ -58,44 +81,55 @@ async function readJson(url, timeoutMs = COMPONENT_STATUS_TIMEOUT_MS) {
   }
 }
 
-async function readMarketMetadata(env, origin) {
+function marketDirectResult(row) {
+  const assetCount = Number(row.asset_count);
+  const capturedAt = Number(row.captured_at);
+  const ageMs = Number.isFinite(capturedAt) ? Math.max(0, Date.now() - capturedAt) : null;
+  const stale = !Number.isFinite(ageMs) || ageMs > MARKET_SNAPSHOT_FRESH_MS;
+  return {
+    stale,
+    result: {
+      ok: true,
+      status: 200,
+      readMode: 'd1-direct',
+      payload: {
+        healthy: Number.isFinite(assetCount)
+          && assetCount >= MIN_PUBLIC_MARKET_ASSETS
+          && Number.isFinite(ageMs)
+          && ageMs <= MARKET_SNAPSHOT_HEALTH_MAX_AGE_MS,
+        source: row.source ?? null,
+        assetCount,
+        capturedAt,
+        ageMs,
+        stale,
+      },
+    },
+  };
+}
+
+async function readMarketMetadata(env, origin, waitUntil) {
   if (env?.AUTH_DB) {
     try {
-      const db = readSession(env.AUTH_DB);
-      const row = await db.prepare(
-        'SELECT source, asset_count, captured_at FROM market_snapshots WHERE id = ?',
-      ).bind('global').first();
-      if (row) {
-        const assetCount = Number(row.asset_count);
-        const capturedAt = Number(row.captured_at);
-        const ageMs = Number.isFinite(capturedAt) ? Math.max(0, Date.now() - capturedAt) : null;
-        const stale = !Number.isFinite(ageMs) || ageMs > MARKET_SNAPSHOT_FRESH_MS;
-        const directResult = {
-          ok: true,
-          status: 200,
-          readMode: 'd1-direct',
-          payload: {
-            healthy: Number.isFinite(assetCount)
-              && assetCount >= MIN_PUBLIC_MARKET_ASSETS
-              && Number.isFinite(ageMs)
-              && ageMs <= MARKET_SNAPSHOT_HEALTH_MAX_AGE_MS,
-            source: row.source ?? null,
-            assetCount,
-            capturedAt,
-            ageMs,
-            stale,
-          },
-        };
+      const directRead = (async () => {
+        const db = readSession(env.AUTH_DB);
+        return db.prepare(
+          'SELECT source, asset_count, captured_at FROM market_snapshots WHERE id = ?',
+        ).bind('global').first();
+      })();
+      const row = await withDeadline(directRead, MARKET_METADATA_READ_BUDGET_MS, null);
 
+      if (row) {
+        const { stale, result: directResult } = marketDirectResult(row);
         if (!stale) return directResult;
 
-        const refreshed = await readJson(
+        const refreshPromise = readJson(
           `${origin}/api/market-snapshot?health=1&refresh=1`,
           MARKET_STALE_REFRESH_TIMEOUT_MS,
         );
-        const refreshedAssetCount = Number(refreshed.payload?.assetCount);
+        const refreshed = await withDeadline(refreshPromise, MARKET_STALE_FAST_PATH_MS, null);
+        const refreshedAssetCount = Number(refreshed?.payload?.assetCount);
         const refreshVerified = Boolean(
-          refreshed.ok
+          refreshed?.ok
             && refreshed.payload?.healthy === true
             && refreshed.payload?.stale === false
             && Number.isFinite(refreshedAssetCount)
@@ -111,14 +145,17 @@ async function readMarketMetadata(env, origin) {
           };
         }
 
+        scheduleBackground(waitUntil, refreshPromise.then(() => undefined).catch(() => undefined));
         return {
           ...directResult,
           refreshAttempted: true,
           refreshRecovered: false,
-          refreshError: refreshed.error
-            ?? (refreshed.ok ? 'refresh_unhealthy_or_stale' : `http_${refreshed.status || 0}`),
+          refreshError: refreshed?.error
+            ?? (refreshed?.ok ? 'refresh_unhealthy_or_stale' : refreshed ? `http_${refreshed.status || 0}` : 'background_refresh_scheduled'),
         };
       }
+
+      scheduleBackground(waitUntil, directRead.then(() => undefined).catch(() => undefined));
     } catch (error) {
       console.error('Direct market metadata read failed; using HTTP fallback', {
         error: error?.message || String(error),
@@ -223,8 +260,9 @@ async function persistDurableStatus(env, result) {
 async function buildStatus(request, env) {
   const origin = new URL(request.url).origin;
   const generatedAt = new Date().toISOString();
+  const waitUntil = waitUntilByRequest.get(request);
   const [market, networks, kam] = await Promise.all([
-    readMarketMetadata(env, origin),
+    readMarketMetadata(env, origin, waitUntil),
     readJson(`${origin}/api/network-health`),
     readJson(`${origin}/api/kam/network-status`),
   ]);
@@ -312,6 +350,9 @@ async function buildStatus(request, env) {
         marketSnapshotFreshMs: MARKET_SNAPSHOT_FRESH_MS,
         marketStaleSelfHeal: true,
         marketStaleSelfHealTimeoutMs: MARKET_STALE_REFRESH_TIMEOUT_MS,
+        marketStaleFastPathMs: MARKET_STALE_FAST_PATH_MS,
+        marketMetadataReadBudgetMs: MARKET_METADATA_READ_BUDGET_MS,
+        durableStatusReadBudgetMs: DURABLE_STATUS_READ_BUDGET_MS,
         directMarketMetadataRead: true,
         networkHealthyRequiresMinimumTarget: true,
       },
@@ -345,12 +386,8 @@ async function getFreshStatus(request, env) {
   return startLiveRefresh(request, env);
 }
 
-const scheduleBackground = (waitUntil, task) => {
-  if (typeof waitUntil === 'function') waitUntil(task);
-  else task.catch(() => undefined);
-};
-
 export async function onRequestGet({ request, waitUntil, env }) {
+  waitUntilByRequest.set(request, waitUntil);
   const edgeCache = globalThis.caches?.default;
   const cacheKey = new Request(new URL(request.url).origin + '/api/platform-status', {
     method: 'GET',
@@ -375,7 +412,8 @@ export async function onRequestGet({ request, waitUntil, env }) {
     : null;
 
   if (!result) {
-    const durable = await readDurableStatus(env);
+    const durableRead = readDurableStatus(env);
+    const durable = await withDeadline(durableRead, DURABLE_STATUS_READ_BUDGET_MS, null);
     if (durable) {
       result = durable;
       scheduleBackground(
@@ -383,6 +421,7 @@ export async function onRequestGet({ request, waitUntil, env }) {
         startLiveRefresh(request, env).then((fresh) => persistDurableStatus(env, fresh)),
       );
     } else {
+      scheduleBackground(waitUntil, durableRead.then(() => undefined).catch(() => undefined));
       result = await getFreshStatus(request, env);
       scheduleBackground(waitUntil, persistDurableStatus(env, result));
     }
