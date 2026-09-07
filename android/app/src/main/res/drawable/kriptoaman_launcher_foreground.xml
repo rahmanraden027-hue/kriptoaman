@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Shield outline: blue left / gold right -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#0A9CFF"
+        android:strokeWidth="5"
+        android:strokeLineJoin="round"
+        android:pathData="M54,16 L28,27 L28,54 C28,72 38,84 54,92" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFC83D"
+        android:strokeWidth="5"
+        android:strokeLineJoin="round"
+        android:pathData="M54,16 L80,27 L80,51 M80,58 C77,73 68,84 54,92" />
+
+    <!-- K monogram -->
+    <path
+        android:fillColor="#12BFFF"
+        android:pathData="M38,36 L47,36 L47,52 L62,36 L73,36 L55,55 L74,73 L62,73 L47,59 L47,73 L38,73 Z" />
+
+    <!-- Verification check -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#14C8FF"
+        android:strokeWidth="6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M54,61 L62,69 L79,50" />
+
+    <!-- Keyhole -->
+    <path
+        android:fillColor="#159CFF"
+        android:pathData="M54,75 C50.7,75 48,77.7 48,81 C48,83.2 49.2,85.1 51,86.1 L49.5,91 L58.5,91 L57,86.1 C58.8,85.1 60,83.2 60,81 C60,77.7 57.3,75 54,75 Z" />
+</vector>
