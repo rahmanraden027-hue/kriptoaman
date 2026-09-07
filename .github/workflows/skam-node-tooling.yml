@@ -63,6 +63,8 @@ jobs:
             createInitializeInstruction: metadata.createInitializeInstruction,
             pack: metadata.pack,
             Raydium: raydium.Raydium,
+            Percent: raydium.Percent,
+            TxVersion: raydium.TxVersion,
           })) {
             if (value == null) throw new Error(`Missing required export: ${name}`);
           }
@@ -81,6 +83,7 @@ jobs:
           node --check src/lib/skamAuthorityRevocationBuilder.js
           node --check chain/solana-liquidity/create-token-2022.mjs
           node --check chain/solana-liquidity/create-raydium-pool.mjs
+          node --check chain/solana-liquidity/add-raydium-liquidity.mjs
           node --check chain/solana-liquidity/smoke-swap.mjs
           node --check chain/solana-liquidity/verify-dexscreener.mjs
           node --check chain/solana-liquidity/revoke-skam-authorities.mjs
