@@ -26,7 +26,7 @@ test('deployment is homepage-only, narrow, nginx-safe, and rollback-safe', () =>
   assert.match(deploy, /location = \/ /);
   assert.match(deploy, /root \/etc\/nginx\/templates;/);
   assert.match(deploy, /try_files \/kam-dashboard\/index\.html =404;/);
-  assert.doesNotMatch(deploy, /alias \/etc\/nginx\/templates\/kam-dashboard\/index\.html/);
+  assert.match(deploy, /! grep -q 'alias \/etc\/nginx\/templates\/kam-dashboard\/index\.html'/);
   assert.match(deploy, /docker run --rm --network none -i/);
   assert.match(deploy, /-v "\$PROXY_DIR:\/target"/);
   assert.match(deploy, /cp -a \/target\/\$BACKUP_NAME \/target\/default\.conf\.template/);
