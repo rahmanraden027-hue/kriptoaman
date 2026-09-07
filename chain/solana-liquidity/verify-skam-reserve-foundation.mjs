@@ -43,7 +43,7 @@ function requireValidDistinctMembers(members) {
   return addresses;
 }
 
-requirePolicyMatch(policy.schemaVersion, 2, 'schemaVersion');
+requirePolicyMatch(policy.schemaVersion, 3, 'schemaVersion');
 requirePolicyMatch(policy.token.mint, MINT, 'mint');
 requirePolicyMatch(policy.operator, OPERATOR, 'operator');
 requirePolicyMatch(policy.token.decimals, TOKEN_DECIMALS, 'decimals');
@@ -56,6 +56,8 @@ requirePolicyMatch(policy.treasuryFoundation.requiredIndependentMembers, 3, 'mul
 requirePolicyMatch(policy.treasuryFoundation.threshold, 2, 'multisig threshold');
 requirePolicyMatch(policy.treasuryFoundation.globalTimelockSeconds, 86400, 'global timelock');
 requirePolicyMatch(policy.treasuryFoundation.memberAddressesPinned, true, 'memberAddressesPinned');
+requirePolicyMatch(policy.authorityPolicy.mintAuthorityRevoked, true, 'mintAuthorityRevoked');
+requirePolicyMatch(policy.authorityPolicy.freezeAuthorityRevoked, true, 'freezeAuthorityRevoked');
 const pinnedMembers = requireValidDistinctMembers(policy.treasuryFoundation.members);
 
 function parseMintBase(data) {
@@ -119,26 +121,26 @@ if (mint.supply !== EXPECTED_SUPPLY) throw new Error(`Supply mismatch: ${mint.su
 
 const operatorRaw = await operatorTokenBalanceRaw();
 const operatorCanFund = operatorRaw >= RESERVED_TOTAL;
-const authoritiesStillOperator = mint.mintAuthority === OPERATOR && mint.freezeAuthority === OPERATOR;
-const technicalPrerequisitesPass = authoritiesStillOperator && operatorCanFund && pinnedMembers.length === 3;
+const authoritiesRevoked = mint.mintAuthority === null && mint.freezeAuthority === null;
+const technicalPrerequisitesPass = authoritiesRevoked && operatorCanFund && pinnedMembers.length === 3;
 const independentControlAttested = policy.treasuryFoundation.independentControlAttestationComplete === true;
 const safeToCreateMultisig = technicalPrerequisitesPass && independentControlAttested;
 
 const report = {
-  audit: 'sKAM reserve foundation read-only verifier — phase 1 member pinning',
+  audit: 'sKAM reserve foundation read-only verifier — post-authority-revocation phase',
   checkedAt: new Date().toISOString(),
   provider,
   stage: independentControlAttested ? 'READY_TO_CREATE_MULTISIG' : 'AWAITING_INDEPENDENT_SIGNER_ATTESTATION',
   technicalPrerequisitesPass,
   safeToCreateMultisig,
   safeToFundReserves: false,
-  safeToRevokeAuthorities: false,
   token: {
     mint: MINT,
     supplyUi: ui(mint.supply),
     decimals: mint.decimals,
     mintAuthority: mint.mintAuthority,
     freezeAuthority: mint.freezeAuthority,
+    authoritiesRevoked,
   },
   operator: {
     address: OPERATOR,
@@ -169,9 +171,8 @@ const report = {
   warnings: [
     ...(independentControlAttested ? [] : ['Independent signer control has not yet been attested. Do not create the multisig until each signer is confirmed to use independent seed material or an independent signing device.']),
     'Reserve vault addresses are not pinned yet. Do not move reserve-scale balances.',
-    'Authority revocation is intentionally blocked until a follow-up PR pins and verifies the Squads multisig and both reserve vaults.',
     ...(operatorCanFund ? [] : ['Operator does not currently hold enough sKAM to fund the full 300M reserve target.']),
-    ...(authoritiesStillOperator ? [] : ['Mint/freeze authority state changed from the approved pre-reserve state; stop and re-audit.']),
+    ...(authoritiesRevoked ? [] : ['Mint/freeze authority state is no longer the expected null/null hardened state; stop and re-audit.']),
   ],
 };
 
