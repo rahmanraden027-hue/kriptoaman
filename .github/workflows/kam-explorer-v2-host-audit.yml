@@ -61,3 +61,16 @@ jobs:
               sed -n '1,320p' "$f"
             fi
           done
+
+      - name: Sample public API shapes
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== blocks[0] ==='
+          curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks | jq '{item:(.items[0] // null)}'
+          echo '=== transactions[0] ==='
+          curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/transactions | jq '{item:(.items[0] // null)}'
+          echo '=== stats ==='
+          curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/stats | jq '{total_transactions,transactions_today,total_blocks,total_addresses,average_block_time,coin_price,total_supply,circulating_supply}'
+          echo '=== transaction chart tail ==='
+          curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/stats/charts/transactions | jq '{points:(.chart_data[-8:] // [])}'
