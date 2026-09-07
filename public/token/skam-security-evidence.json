@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-09-07T03:21:21Z",
+  "project": "KriptoAman",
+  "token": {
+    "name": "Solana KAM",
+    "symbol": "sKAM",
+    "network": "solana-mainnet-beta",
+    "mint": "Dw9xf7EmMH5dD7rdqkFbzjJtcAWk4KXLBAXUkSRcLSLi",
+    "program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+    "decimals": 9,
+    "fixedSupplyUi": "1000000000",
+    "mintAuthority": null,
+    "freezeAuthority": null
+  },
+  "identity": {
+    "website": "https://kriptoaman.com",
+    "metadata": "https://kriptoaman.com/token/skam.json",
+    "logo": "https://kriptoaman.com/token/skam-logo.png"
+  },
+  "market": {
+    "protocol": "Raydium CPMM",
+    "pool": "7vW6cmvM2YYHzoLTx7qJqACzj3X2Rq236b83YHpqCbyD",
+    "quoteMint": "So11111111111111111111111111111111111111112",
+    "dexScreenerUrl": "https://dexscreener.com/solana/7vW6cmvM2YYHzoLTx7qJqACzj3X2Rq236b83YHpqCbyD"
+  },
+  "confirmedLiquidityEvidence": {
+    "signature": "pg4BnKRoD18kUyBrhmgPc9xqftso85jPkst7b9RvygUppW7F1KTk7Z9jzGtdufMPhrN8CZH65nBUFU8vggDqNAh",
+    "explorer": "https://solscan.io/tx/pg4BnKRoD18kUyBrhmgPc9xqftso85jPkst7b9RvygUppW7F1KTk7Z9jzGtdufMPhrN8CZH65nBUFU8vggDqNAh",
+    "block": 444961704,
+    "timestampUtc": "2026-09-07T03:21:21Z",
+    "result": "SUCCESS",
+    "signer": "5Fg4FVvyvSRLMapHdYVZzUCbhC8CWdENF77AfGPVAfpK",
+    "balanceChanges": {
+      "operatorSolDebit": "0.002",
+      "raydiumWsolVaultCredit": "0.00198",
+      "operatorSkamDebit": "9769.086228475",
+      "raydiumSkamVaultCredit": "9769.086228475",
+      "lpTokenCredit": "4.396820048"
+    },
+    "observedBalances": {
+      "operatorSolBefore": "0.085139394",
+      "operatorSolAfter": "0.083139394",
+      "operatorSkamBefore": "998764419.352703047",
+      "operatorSkamAfter": "998754650.266474572",
+      "raydiumWsolVaultBefore": "0.250154091",
+      "raydiumWsolVaultAfter": "0.252134091",
+      "raydiumSkamVaultBefore": "1234221.058831351",
+      "raydiumSkamVaultAfter": "1243990.145059826"
+    }
+  },
+  "classificationReview": {
+    "purpose": "Public, non-secret evidence for factual third-party token/security classification review.",
+    "blockaidPortal": "https://report.blockaid.io/",
+    "metamaskSecurityAlertsHelp": "https://support.metamask.io/configure/wallet/security-alerts/",
+    "safety": "This evidence does not claim endorsement or guarantee safety. Thin liquidity, concentrated custody and low organic activity remain material risks. Never submit seed phrases, private keys or signing secrets."
+  }
+}
