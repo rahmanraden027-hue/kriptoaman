@@ -46,24 +46,26 @@ jobs:
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
     timeout-minutes: 5
     steps:
-      - name: Verify Explorer host and narrow write privilege
+      - name: Verify Explorer host and isolated proxy mount access
         shell: bash
         run: |
           set -euo pipefail
-          PROXY_DIR=/opt/blockscout/docker-compose/proxy
+          BASE=/opt/blockscout/docker-compose
+          PROXY_DIR="$BASE/proxy"
           TEMPLATE="$PROXY_DIR/default.conf.template"
           test -d "$PROXY_DIR"
           test -f "$TEMPLATE"
-          if [[ -w "$PROXY_DIR" && -w "$TEMPLATE" ]]; then
-            echo 'filesystem_mode=runner_write'
-          else
-            command -v sudo >/dev/null
-            sudo -n true
-            echo 'filesystem_mode=preauthorized_sudo'
-          fi
-          cd /opt/blockscout/docker-compose
+          cd "$BASE"
+          PROXY_ID="$(docker compose ps -q proxy)"
+          test -n "$PROXY_ID"
+          PROXY_IMAGE="$(docker inspect "$PROXY_ID" --format '{{.Config.Image}}')"
+          test -n "$PROXY_IMAGE"
+          docker image inspect "$PROXY_IMAGE" >/dev/null
+          docker run --rm --network none \
+            -v "$PROXY_DIR:/target" \
+            "$PROXY_IMAGE" sh -c 'test -r /target/default.conf.template && test -w /target'
           docker compose config --services | grep -qx proxy
-          docker compose ps -q proxy | grep -q .
+          echo 'filesystem_mode=isolated_docker_proxy_mount'
           echo 'host_permission_preflight=verified'
 
   deploy-homepage-only:
