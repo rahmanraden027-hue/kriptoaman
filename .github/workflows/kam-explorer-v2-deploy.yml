@@ -1,0 +1,81 @@
+name: KAM Explorer V2 Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'explorer-dashboard/**'
+      - 'scripts/deploy-kam-explorer-v2.sh'
+      - 'tests/kam-explorer-v2-dashboard.test.mjs'
+      - '.github/workflows/kam-explorer-v2-deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kam-explorer-v2-deploy
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout reviewed source
+        uses: actions/checkout@v7
+      - name: Setup Node 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Validate dashboard integrity
+        run: node --test tests/kam-explorer-v2-dashboard.test.mjs
+      - name: Validate deploy script syntax
+        run: bash -n scripts/deploy-kam-explorer-v2.sh
+      - name: Verify public Explorer core before deployment
+        run: node scripts/diagnose-blockscout.mjs
+
+  deploy-homepage-only:
+    needs: preflight
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 12
+    steps:
+      - name: Checkout reviewed source
+        uses: actions/checkout@v7
+      - name: Verify dedicated Explorer host boundary
+        run: |
+          set -euo pipefail
+          test -d /opt/blockscout/docker-compose/proxy
+          test -f /opt/blockscout/docker-compose/proxy/default.conf.template
+          test -f explorer-dashboard/index.html
+      - name: Deploy KAM Explorer V2 root dashboard
+        run: |
+          set -euo pipefail
+          chmod +x scripts/deploy-kam-explorer-v2.sh
+          bash scripts/deploy-kam-explorer-v2.sh
+
+  public-post-verify:
+    needs: deploy-homepage-only
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Verify V2 homepage marker and headers
+        run: |
+          set -euo pipefail
+          HTML="$(curl -L -fsS --max-time 20 https://explorer.kriptoaman.com/)"
+          printf '%s' "$HTML" | grep -q 'data-kam-explorer-version="2.0.0"'
+          printf '%s' "$HTML" | grep -q 'Verified-data only'
+          curl -L -sSI --max-time 20 https://explorer.kriptoaman.com/ | grep -Ei '^x-kam-explorer-version: *2' >/dev/null
+      - name: Verify Blockscout APIs remain intact
+        run: |
+          set -euo pipefail
+          curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks | python3 -c 'import json,sys; d=json.load(sys.stdin); assert isinstance(d.get("items"), list) and len(d["items"])>0'
+          curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/transactions | python3 -c 'import json,sys; d=json.load(sys.stdin); assert isinstance(d.get("items"), list)'
+          curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/stats | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "total_transactions" in d and "average_block_time" in d'
+      - name: Verify detail routing remains on Blockscout
+        run: |
+          set -euo pipefail
+          TX='0x9854d90159013d488190d0f1847596a5dfb7582812f880102f167a1b172b163a'
+          curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/tx/$TX" | grep -Eqi 'transaction|details|0x9854d901'
+      - name: Re-run public core diagnostic
+        run: node scripts/diagnose-blockscout.mjs
