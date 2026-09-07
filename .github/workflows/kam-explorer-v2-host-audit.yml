@@ -34,7 +34,7 @@ jobs:
           echo '=== services ==='
           docker compose config --services
           echo '=== proxy/front-end candidate files ==='
-          find . -maxdepth 3 -type f \( -iname '*nginx*' -o -iname '*proxy*' -o -iname '*frontend*' -o -iname 'docker-compose*.yml' -o -iname 'docker-compose*.yaml' \) -print | sort | head -n 120
+          find . -maxdepth 3 -type f \( -iname '*nginx*' -o -iname '*proxy*' -o -iname '*frontend*' -o -iname 'docker-compose*.yml' -o -iname 'docker-compose*.yaml' \) -print 2>/dev/null | sort | head -n 120 || true
           echo '=== proxy mounts ==='
           PROXY_ID="$(docker compose ps -q proxy 2>/dev/null || true)"
           if [ -n "$PROXY_ID" ]; then
@@ -50,14 +50,14 @@ jobs:
             echo 'frontend_container=not_found'
           fi
 
-      - name: Show proxy config structure without secrets
+      - name: Show routing structure without secrets
         shell: bash
         run: |
           set -euo pipefail
           cd /opt/blockscout/docker-compose
-          for f in proxy/default.conf.template proxy/default.conf proxy/nginx.conf nginx.conf; do
+          for f in services/nginx-explorer.yml services/nginx.yml external-frontend.yml docker-compose.yml proxy/default.conf.template proxy/default.conf proxy/nginx.conf nginx.conf; do
             if [ -f "$f" ]; then
               echo "=== $f ==="
-              sed -n '1,260p' "$f"
+              sed -n '1,320p' "$f"
             fi
           done
