@@ -2,6 +2,24 @@
 
 This file defines the final evidence gate for production release. Passing static tests alone is not sufficient.
 
+## Automated production checkpoint — 2026-09-07
+
+This checkpoint records repeatable automated evidence from current production. It does not replace the GO / CONDITIONAL GO / NO-GO policy below and does not imply third-party wallet, exchange, token-registry or regulator approval.
+
+Verified on production after commit `9c356eed2ef5a6a6496b5c372125bd84eefde79d`:
+- Production SLO Proof #55 completed with status `target_met`.
+- Six samples per endpoint completed with zero request failures.
+- `platform-status` p95: 545 ms.
+- `network-health` p95: 267 ms.
+- KAM `network-status` p95: 285 ms.
+- Multi-chain verification: 21/21 online, 0 degraded.
+- No SLO target misses and no hard-gate failures were reported.
+- CI, Security Audit, CodeQL, Live Capacity & Network Smoke, Live Core Readiness Smoke, Auth Live Smoke, Market Data Trust Gate and Disaster Recovery Proof passed on the production latency-hardening change before merge.
+
+KAM Explorer backend/indexer was separately revalidated read-only on 2026-09-07 with RPC height equal to Blockscout indexed height and indexer gap 0. Explorer frontend presentation cleanup is tracked separately and must not be represented as a chain-state or validator issue.
+
+sKAM is outside the KriptoAman web-platform GO decision. Its mint, liquidity, wallet detection and third-party listing states are governed by their own evidence and must not be inferred from this release gate.
+
 ## Dependency moderate cleanup
 
 Production release blocks on High/Critical dependency findings. Moderate findings are reviewed individually.
