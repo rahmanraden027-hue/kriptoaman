@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "REPLACE_WITH_CURRENT_UTC_TIMESTAMP",
+  "protectedOriginUrl": "REPLACE_WITH_PROTECTED_RPC_SENTRY_URL_ON_PRIVATE_RUNNER_ONLY",
+  "rpcSentryHostFingerprint": "REPLACE_WITH_RPC_SENTRY_HOST_SHA256_FROM_FOUR_HOST_EVIDENCE",
+  "cloudflareOriginSecretAttested": false,
+  "originPublicBypassBlockedAttested": false,
+  "explorerUsesProtectedPathAttested": false
+}
