@@ -1,0 +1,34 @@
+name: KAM Stats Host Diagnostic
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/kam-stats-host-diagnostic.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  stats-readonly:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 5
+    steps:
+      - name: Inspect Stats runtime without secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE=/opt/blockscout/docker-compose
+          cd "$BASE"
+          test -f envs/common-stats.env
+
+          echo '=== SAFE STATS RUNTIME SETTINGS ==='
+          grep -E '^(STATS__(CREATE_DATABASE|RUN_MIGRATIONS|FORCE_UPDATE_ON_START|DEFAULT_SCHEDULE|SERVER__HTTP__(ENABLED|ADDR)|SERVER__GRPC__(ENABLED|ADDR)|METRICS__(ENABLED|ADDR|ROUTE)|TRACING__ENABLED))=' envs/common-stats.env || true
+
+          STATS_ID="$(docker compose ps -q stats || true)"
+          test -n "$STATS_ID"
+          docker inspect "$STATS_ID" --format 'status={{.State.Status}} restart_count={{.RestartCount}} oom_killed={{.State.OOMKilled}} exit_code={{.State.ExitCode}} started_at={{.State.StartedAt}} finished_at={{.State.FinishedAt}} restart_policy={{.HostConfig.RestartPolicy.Name}}'
+
+          echo '=== SANITIZED STATS LOG TAIL ==='
+          docker compose logs --tail=80 stats 2>&1 \
+            | sed -E 's#(postgres(ql)?://)[^@[:space:]]+@#\1***@#g; s#((password|passwd|pwd)=)[^&[:space:]]+#\1***#Ig; s#(://)[^:/[:space:]@]+:[^@[:space:]]+@#\1***@#g' \
+            | tail -n 80
