@@ -18,7 +18,7 @@ jobs:
       run:
         working-directory: chain/solana-liquidity
     env:
-      RPC_URL: https://solana-rpc.publicnode.com
+      RPC_URL: https://api.mainnet-beta.solana.com
       LIQUIDITY_QUOTE_UI: '0.005'
       MAX_LIQUIDITY_QUOTE_UI: '0.005'
       MIN_OPERATOR_SOL_RESERVE: '0.025'
