@@ -5,6 +5,8 @@
   "scripts": {
     "token:create": "node create-token-2022.mjs",
     "pool:create": "node create-raydium-pool.mjs",
+    "pool:add:preview": "node add-raydium-liquidity.mjs",
+    "pool:add": "node add-raydium-liquidity.mjs --execute",
     "swap:smoke": "node smoke-swap.mjs",
     "dexscreener:verify": "node verify-dexscreener.mjs",
     "reserve:readiness": "node verify-skam-reserve-foundation.mjs",
