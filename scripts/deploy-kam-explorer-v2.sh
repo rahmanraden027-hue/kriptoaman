@@ -18,6 +18,7 @@ trap cleanup EXIT
 [[ -d "$PROXY_DIR" ]] || fail "Blockscout proxy directory not found"
 [[ -f "$TEMPLATE" ]] || fail "proxy/default.conf.template not found"
 [[ -f "$SOURCE" ]] || fail "dashboard source not found: $SOURCE"
+SOURCE="$(realpath "$SOURCE")"
 grep -q 'data-kam-explorer-version="2.0.0"' "$SOURCE" || fail "dashboard version marker missing"
 grep -q '/api/v2/blocks' "$SOURCE" || fail "verified blocks API binding missing"
 grep -q '/api/v2/transactions' "$SOURCE" || fail "verified transactions API binding missing"
