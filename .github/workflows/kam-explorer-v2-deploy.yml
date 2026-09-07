@@ -79,12 +79,16 @@ jobs:
 
           echo '=== EXPLORER SERVICES ==='
           docker compose ps frontend proxy backend stats || true
+          STATS_ID="$(docker compose ps -q stats || true)"
+          if [[ -n "$STATS_ID" ]]; then
+            docker inspect "$STATS_ID" --format 'stats_status={{.State.Status}} restart_count={{.RestartCount}} started_at={{.State.StartedAt}} finished_at={{.State.FinishedAt}} state_error={{.State.Error}}' || true
+          fi
 
           echo '=== SAFE FRONTEND PUBLIC API CONFIG ==='
           grep -E '^(NEXT_PUBLIC_(API_(HOST|PROTOCOL|BASE_PATH)|STATS_API_(HOST|BASE_PATH)|NAVIGATION_LAYOUT|HOMEPAGE_(CHARTS|STATS)|GAS_TRACKER_ENABLED))=' "$FRONTEND_ENV" || true
 
-          STATS_HOST="$(grep '^NEXT_PUBLIC_STATS_API_HOST=' "$FRONTEND_ENV" | tail -n 1 | cut -d= -f2- | tr -d '\r' | sed -e "s/^['\"]//" -e "s/['\"]$//")"
-          STATS_BASE="$(grep '^NEXT_PUBLIC_STATS_API_BASE_PATH=' "$FRONTEND_ENV" | tail -n 1 | cut -d= -f2- | tr -d '\r' | sed -e "s/^['\"]//" -e "s/['\"]$//")"
+          STATS_HOST="$( (grep '^NEXT_PUBLIC_STATS_API_HOST=' "$FRONTEND_ENV" || true) | tail -n 1 | cut -d= -f2- | tr -d '\r' | sed -e "s/^['\"]//" -e "s/['\"]$//")"
+          STATS_BASE="$( (grep '^NEXT_PUBLIC_STATS_API_BASE_PATH=' "$FRONTEND_ENV" || true) | tail -n 1 | cut -d= -f2- | tr -d '\r' | sed -e "s/^['\"]//" -e "s/['\"]$//")"
           echo "stats_api_host=${STATS_HOST:-<unset>}"
           echo "stats_api_base_path=${STATS_BASE:-<unset>}"
 
