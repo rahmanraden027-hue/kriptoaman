@@ -33,10 +33,13 @@ function uiToRaw(ui, decimals) {
 }
 
 async function tokenBalanceUi(connection, owner, mint) {
-  const result = await connection.getTokenAccountsByOwner(
+  // Use web3.js' parsed-token method instead of asking getTokenAccountsByOwner
+  // for jsonParsed data. The latter is validated against the raw-account schema
+  // and can throw a Superstruct StructError even when the RPC response itself is valid.
+  const result = await connection.getParsedTokenAccountsByOwner(
     owner,
     { mint },
-    { encoding: 'jsonParsed', commitment: 'confirmed' },
+    'confirmed',
   );
   return result.value.reduce((sum, entry) => {
     const amount = entry?.account?.data?.parsed?.info?.tokenAmount?.uiAmountString;
@@ -100,6 +103,7 @@ const raydium = await Raydium.load({
   connection,
   cluster: 'mainnet',
   disableFeatureCheck: true,
+  disableLoadToken: true,
   blockhashCommitment: 'finalized',
 });
 
