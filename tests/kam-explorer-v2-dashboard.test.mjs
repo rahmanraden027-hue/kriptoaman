@@ -21,9 +21,12 @@ test('KAM Explorer V2 does not ship mockup-only KPI values', () => {
   }
 });
 
-test('deployment is homepage-only, narrow, and rollback-safe', () => {
+test('deployment is homepage-only, narrow, nginx-safe, and rollback-safe', () => {
   assert.match(deploy, /KAM_EXPLORER_V2_BEGIN/);
   assert.match(deploy, /location = \/ /);
+  assert.match(deploy, /root \/etc\/nginx\/templates;/);
+  assert.match(deploy, /try_files \/kam-dashboard\/index\.html =404;/);
+  assert.match(deploy, /! grep -q 'alias \/etc\/nginx\/templates\/kam-dashboard\/index\.html'/);
   assert.match(deploy, /docker run --rm --network none -i/);
   assert.match(deploy, /-v "\$PROXY_DIR:\/target"/);
   assert.match(deploy, /cp -a \/target\/\$BACKUP_NAME \/target\/default\.conf\.template/);

@@ -64,9 +64,13 @@ needle = '    location / {\n'
 if needle not in text:
     raise SystemExit('frontend catch-all location was not found')
 
+# Use root + try_files rather than alias-to-file. With nginx 1.26.x an exact
+# root location plus a file-valued alias can resolve as "index.htmlindex.html"
+# and return HTTP 500. This pattern was reproduced and verified locally.
 block = '''    # KAM_EXPLORER_V2_BEGIN
     location = / {
-        alias /etc/nginx/templates/kam-dashboard/index.html;
+        root /etc/nginx/templates;
+        try_files /kam-dashboard/index.html =404;
         default_type text/html;
         add_header Cache-Control "no-store, max-age=0" always;
         add_header X-KAM-Explorer-Version "2" always;
@@ -81,11 +85,14 @@ out.write_text(text)
 PY
 
 grep -q 'KAM_EXPLORER_V2_BEGIN' "$PATCHED_TEMPLATE"
-grep -q 'alias /etc/nginx/templates/kam-dashboard/index.html' "$PATCHED_TEMPLATE"
+grep -q 'root /etc/nginx/templates;' "$PATCHED_TEMPLATE"
+grep -q 'try_files /kam-dashboard/index.html =404;' "$PATCHED_TEMPLATE"
+! grep -q 'alias /etc/nginx/templates/kam-dashboard/index.html' "$PATCHED_TEMPLATE"
 proxy_fs "cat > /target/default.conf.template" < "$PATCHED_TEMPLATE"
 
 grep -q 'KAM_EXPLORER_V2_BEGIN' "$TEMPLATE"
-grep -q 'alias /etc/nginx/templates/kam-dashboard/index.html' "$TEMPLATE"
+grep -q 'root /etc/nginx/templates;' "$TEMPLATE"
+grep -q 'try_files /kam-dashboard/index.html =404;' "$TEMPLATE"
 
 rollback() {
   local code=$?
