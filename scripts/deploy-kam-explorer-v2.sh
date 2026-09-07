@@ -6,6 +6,7 @@ PROXY_DIR="$BASE/proxy"
 TEMPLATE="$PROXY_DIR/default.conf.template"
 DASHBOARD_DIR="$PROXY_DIR/kam-dashboard"
 SOURCE="${1:-explorer-dashboard/index.html}"
+STATS_SOURCE="${2:-explorer-dashboard/stats.html}"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 BACKUP_NAME="default.conf.template.kam-v2.$STAMP.bak"
 PATCHED_TEMPLATE="$(mktemp)"
@@ -18,10 +19,15 @@ trap cleanup EXIT
 [[ -d "$PROXY_DIR" ]] || fail "Blockscout proxy directory not found"
 [[ -f "$TEMPLATE" ]] || fail "proxy/default.conf.template not found"
 [[ -f "$SOURCE" ]] || fail "dashboard source not found: $SOURCE"
+[[ -f "$STATS_SOURCE" ]] || fail "statistics source not found: $STATS_SOURCE"
 SOURCE="$(realpath "$SOURCE")"
+STATS_SOURCE="$(realpath "$STATS_SOURCE")"
 grep -q 'data-kam-explorer-version="2.0.0"' "$SOURCE" || fail "dashboard version marker missing"
 grep -q '/api/v2/blocks' "$SOURCE" || fail "verified blocks API binding missing"
 grep -q '/api/v2/transactions' "$SOURCE" || fail "verified transactions API binding missing"
+grep -q 'data-kam-stats-version="2.0.0"' "$STATS_SOURCE" || fail "statistics version marker missing"
+grep -q '/api/v2/stats/charts/transactions' "$STATS_SOURCE" || fail "verified statistics chart binding missing"
+grep -q 'Verified-data policy' "$STATS_SOURCE" || fail "verified statistics policy missing"
 
 cd "$BASE"
 PROXY_ID="$(docker compose ps -q proxy)"
@@ -31,8 +37,8 @@ PROXY_IMAGE="$(docker inspect "$PROXY_ID" --format '{{.Config.Image}}')"
 docker image inspect "$PROXY_IMAGE" >/dev/null 2>&1 || fail "proxy image is not locally available"
 
 # The runner can manage the existing proxy through Docker but cannot directly
-# write its root-owned bind mount. Keep privileged filesystem access narrowly
-# constrained to the existing Blockscout proxy directory and disable networking.
+# write its root-owned bind mount. Keep filesystem access narrowly constrained
+# to the existing Blockscout proxy directory and disable helper networking.
 proxy_fs() {
   docker run --rm --network none -i \
     -v "$PROXY_DIR:/target" \
@@ -42,6 +48,7 @@ proxy_fs() {
 proxy_fs "test -r /target/default.conf.template && test -w /target"
 proxy_fs "cp -a /target/default.conf.template /target/$BACKUP_NAME"
 proxy_fs "mkdir -p /target/kam-dashboard && cat > /target/kam-dashboard/index.html && chmod 0644 /target/kam-dashboard/index.html" < "$SOURCE"
+proxy_fs "mkdir -p /target/kam-dashboard && cat > /target/kam-dashboard/stats.html && chmod 0644 /target/kam-dashboard/stats.html" < "$STATS_SOURCE"
 
 python3 - "$TEMPLATE" "$PATCHED_TEMPLATE" <<'PY'
 from pathlib import Path
@@ -64,9 +71,9 @@ needle = '    location / {\n'
 if needle not in text:
     raise SystemExit('frontend catch-all location was not found')
 
-# Use root + try_files rather than alias-to-file. With nginx 1.26.x an exact
-# root location plus a file-valued alias can resolve as "index.htmlindex.html"
-# and return HTTP 500. This pattern was reproduced and verified locally.
+# Exact custom routes preserve all other Blockscout routing. Use root + try_files
+# rather than a file-valued alias; nginx 1.26.x can otherwise resolve the exact
+# root route as "index.htmlindex.html" and return HTTP 500.
 block = '''    # KAM_EXPLORER_V2_BEGIN
     location = / {
         root /etc/nginx/templates;
@@ -78,6 +85,17 @@ block = '''    # KAM_EXPLORER_V2_BEGIN
         add_header Referrer-Policy "strict-origin-when-cross-origin" always;
         add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://rpc.kriptoaman.com; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'" always;
     }
+
+    location = /stats {
+        root /etc/nginx/templates;
+        try_files /kam-dashboard/stats.html =404;
+        default_type text/html;
+        add_header Cache-Control "no-store, max-age=0" always;
+        add_header X-KAM-Explorer-Stats-Version "2" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'" always;
+    }
     # KAM_EXPLORER_V2_END
 '''
 text = text.replace(needle, block + needle, 1)
@@ -85,14 +103,16 @@ out.write_text(text)
 PY
 
 grep -q 'KAM_EXPLORER_V2_BEGIN' "$PATCHED_TEMPLATE"
+grep -q 'location = /stats {' "$PATCHED_TEMPLATE"
 grep -q 'root /etc/nginx/templates;' "$PATCHED_TEMPLATE"
 grep -q 'try_files /kam-dashboard/index.html =404;' "$PATCHED_TEMPLATE"
+grep -q 'try_files /kam-dashboard/stats.html =404;' "$PATCHED_TEMPLATE"
 ! grep -q 'alias /etc/nginx/templates/kam-dashboard/index.html' "$PATCHED_TEMPLATE"
 proxy_fs "cat > /target/default.conf.template" < "$PATCHED_TEMPLATE"
 
 grep -q 'KAM_EXPLORER_V2_BEGIN' "$TEMPLATE"
-grep -q 'root /etc/nginx/templates;' "$TEMPLATE"
 grep -q 'try_files /kam-dashboard/index.html =404;' "$TEMPLATE"
+grep -q 'try_files /kam-dashboard/stats.html =404;' "$TEMPLATE"
 
 rollback() {
   local code=$?
@@ -111,13 +131,20 @@ docker compose ps proxy
 PUBLIC_HTML="$(curl -L -fsS --max-time 20 https://explorer.kriptoaman.com/)"
 printf '%s' "$PUBLIC_HTML" | grep -q 'data-kam-explorer-version="2.0.0"'
 printf '%s' "$PUBLIC_HTML" | grep -q 'Verified-data only'
+STATS_HTML="$(curl -L -fsS --max-time 20 https://explorer.kriptoaman.com/stats)"
+printf '%s' "$STATS_HTML" | grep -q 'data-kam-stats-version="2.0.0"'
+printf '%s' "$STATS_HTML" | grep -q 'Verified-data policy'
+curl -L -sSI --max-time 20 https://explorer.kriptoaman.com/stats | grep -Ei '^x-kam-explorer-stats-version: *2' >/dev/null
 
 curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks | python3 -c 'import json,sys; d=json.load(sys.stdin); assert isinstance(d.get("items"), list) and len(d["items"])>0'
 curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/stats | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "total_transactions" in d'
+curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/stats/charts/transactions | python3 -c 'import json,sys; d=json.load(sys.stdin); assert isinstance(d, (dict,list))'
 
 KNOWN_TX="0x9854d90159013d488190d0f1847596a5dfb7582812f880102f167a1b172b163a"
+CANONICAL_WKAM="0x0d8848CE88BB09a81a4248Efdd574d50B98b544A"
 curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/tx/$KNOWN_TX" >/dev/null
+curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/token/$CANONICAL_WKAM" >/dev/null
 
 trap - ERR
-echo "KAM Explorer V2 deployed successfully. Root dashboard is live; Blockscout API and transaction routes remain healthy."
+echo "KAM Explorer V2 deployed successfully. Root and verified statistics surfaces are live; Blockscout API and detail routes remain healthy."
 echo "backup=$PROXY_DIR/$BACKUP_NAME"
