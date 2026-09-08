@@ -8,7 +8,7 @@ export default function GlobalLandingStyles() {
         --ka-border:#1f2a38; --ka-text:#ffffff; --ka-text2:#94a3b8;
         --ka-blue:#3b82f6; --ka-cyan:#3b82f6; --ka-gold:#F5B72E; --ka-green:#22C55E;
         --ka-btn-primary-bg:#2563eb; --ka-btn-primary-bg-hover:#1d4ed8;
-        --ka-radius:16px;
+        --ka-radius:20px;
         color:var(--ka-text); background:linear-gradient(180deg,var(--ka-bg1),var(--ka-bg2));
         font-family:Inter,system-ui,-apple-system,sans-serif;
         padding-bottom:max(24px,env(safe-area-inset-bottom));
@@ -19,7 +19,7 @@ export default function GlobalLandingStyles() {
         --ka-blue:#2563eb; --ka-cyan:#0EA5E9; --ka-gold:#D97706; --ka-green:#16A34A;
         --ka-btn-primary-bg:#2563eb; --ka-btn-primary-bg-hover:#1d4ed8;
       }
-      .ka-card{background:var(--ka-card);border:1px solid var(--ka-border);border-radius:var(--ka-radius);}
+      .ka-card{background:linear-gradient(145deg,color-mix(in srgb,var(--ka-card) 96%,var(--ka-blue) 4%),var(--ka-card));border:1px solid var(--ka-border);border-radius:var(--ka-radius);}
       .ka-card2{background:var(--ka-card2);border:1px solid var(--ka-border);border-radius:12px;}
       .ka-text{color:var(--ka-text);} .ka-text2{color:var(--ka-text2);}
       .ka-blue{color:var(--ka-blue);} .ka-cyan{color:var(--ka-cyan);}
@@ -44,6 +44,14 @@ export default function GlobalLandingStyles() {
       .ka-faq summary::-webkit-details-marker{display:none;}
       .ka-faq[open] .ka-faq-icon{transform:rotate(180deg);}
       .ka-sec-title{font-weight:800;letter-spacing:-0.02em;line-height:1.1;}
+      .ka-hero-console{border:1px solid color-mix(in srgb,var(--ka-blue) 32%,var(--ka-border));border-radius:28px;background:linear-gradient(160deg,rgba(15,30,48,.94),rgba(4,8,13,.98));box-shadow:0 32px 90px rgba(0,0,0,.46),0 0 70px rgba(37,99,235,.10);overflow:hidden;}
+      .ka-console-head{display:flex;align-items:center;justify-content:space-between;padding:20px 22px;border-bottom:1px solid var(--ka-border);gap:16px;text-align:left;}
+      .ka-console-head>div{display:flex;flex-direction:column;gap:4px}.ka-console-head strong{font-size:15px;color:var(--ka-text)}
+      .ka-console-kicker{font-size:10px;letter-spacing:.16em;font-weight:800;color:var(--ka-blue)}
+      .ka-live-state{display:inline-flex;align-items:center;gap:7px;color:var(--ka-gold);font-size:11px;font-weight:800}.ka-live-state i{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 12px currentColor}.ka-live-state.is-online{color:var(--ka-green)}
+      .ka-console-stage{padding:10px 22px 0;background:radial-gradient(circle at 50% 45%,rgba(37,99,235,.12),transparent 54%)}
+      .ka-console-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--ka-border);background:rgba(2,6,11,.55)}
+      .ka-console-metrics>div,.ka-console-metrics>a{display:flex;align-items:center;gap:10px;padding:16px;border-right:1px solid var(--ka-border);text-decoration:none;min-width:0}.ka-console-metrics>*:last-child{border-right:0}.ka-console-metrics svg{width:17px;height:17px;color:var(--ka-blue);flex:none}.ka-console-metrics span{display:flex;flex-direction:column;color:var(--ka-text2);font-size:10px;min-width:0}.ka-console-metrics b{font-size:15px;color:var(--ka-text);line-height:1.2;white-space:nowrap}
 
       /* Responsive safety net for stale/partial utility CSS. */
       .ka-landing header{position:fixed;top:0;left:0;right:0;z-index:50;}
@@ -111,6 +119,7 @@ export default function GlobalLandingStyles() {
         .ka-landing #fitur + section .ka-card2>p:first-child{font-size:clamp(20px,6.6vw,30px);}
         .ka-landing #keamanan{padding-left:14px!important;padding-right:14px!important;}
         .ka-landing #keamanan .ka-card{padding:18px!important;}
+        .ka-console-metrics{grid-template-columns:1fr}.ka-console-metrics>div,.ka-console-metrics>a{border-right:0;border-bottom:1px solid var(--ka-border);padding:13px 16px}.ka-console-metrics>*:last-child{border-bottom:0}
       }
 
       @media (min-width:640px){
