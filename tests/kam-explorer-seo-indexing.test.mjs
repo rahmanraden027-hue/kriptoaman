@@ -21,7 +21,7 @@ test('KAM Explorer SEO assets expose canonical crawl signals without indexing AP
   assert.doesNotMatch(sitemap, /\/api\/v2\//);
 });
 
-test('SEO deployment is idempotent, path-stable, readiness-gated, and isolated to the Explorer proxy', async () => {
+test('SEO deployment is idempotent, path-stable, readiness-gated, cache-safe, and isolated to the Explorer proxy', async () => {
   const script = await read('scripts/apply-kam-explorer-seo.sh');
 
   assert.match(script, /KAM_EXPLORER_SEO_BEGIN/);
@@ -51,4 +51,13 @@ test('SEO deployment is idempotent, path-stable, readiness-gated, and isolated t
   assert.match(script, /seo_ready=\$\{STAMP\}_\$\{attempt\}/);
   assert.match(script, /x-kam-explorer-stats-version: \*2/);
   assert.match(script, /KAM Explorer proxy did not become ready with verified canonical stats/);
+
+  // Every post-restart verification uses a cache-busting URL but still requires the canonical URL without query parameters.
+  assert.match(script, /seo_verify=\$\{STAMP\}_\$RANDOM/);
+  assert.match(script, /ROBOTS_URL="https:\/\/explorer\.kriptoaman\.com\/robots\.txt\?seo_verify=/);
+  assert.match(script, /SITEMAP_URL="https:\/\/explorer\.kriptoaman\.com\/sitemap\.xml\?seo_verify=/);
+  assert.match(script, /KAM Explorer SEO verification failed:/);
+  assert.match(script, /seo_page_verified=\$path/);
+  assert.match(script, /seo_asset_verified=\/robots\.txt/);
+  assert.match(script, /seo_asset_verified=\/sitemap\.xml/);
 });
