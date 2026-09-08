@@ -249,13 +249,19 @@ curl -L -fsS --retry 5 --retry-delay 2 --retry-all-errors --max-time 25 \
   -o "$VERIFY_BODY" "$SITEMAP_URL" || verification_error "sitemap.xml request failed"
 grep -Fq '<loc>https://explorer.kriptoaman.com/stats</loc>' "$VERIFY_BODY" || verification_error "stats canonical missing from live sitemap"
 grep -Fq '<loc>https://explorer.kriptoaman.com/developer/starter</loc>' "$VERIFY_BODY" || verification_error "starter canonical missing from live sitemap"
+grep -Eq '^<\?xml|<urlset[ >]' "$VERIFY_BODY" || verification_error "sitemap.xml body is not XML"
 echo 'seo_asset_verified=/sitemap.xml'
 
 : > "$VERIFY_HEADERS"
 curl -L -sSIf --retry 5 --retry-delay 2 --retry-all-errors --max-time 25 \
   -H 'Cache-Control: no-cache, no-store' -H 'Pragma: no-cache' \
   -o "$VERIFY_HEADERS" "$SITEMAP_URL" || verification_error "sitemap.xml HEAD request failed"
-grep -Eqi '^content-type: *application/xml' "$VERIFY_HEADERS" || verification_error "sitemap.xml content-type is not application/xml"
+if ! grep -Eqi '^content-type: *(application|text)/xml([;[:space:]]|$)' "$VERIFY_HEADERS"; then
+  echo '--- sitemap headers ---' >&2
+  cat "$VERIFY_HEADERS" >&2 || true
+  verification_error "sitemap.xml content-type is not an XML MIME type"
+fi
+! grep -Eqi '^content-type: *text/html' "$VERIFY_HEADERS" || verification_error "sitemap.xml must not be served as HTML"
 
 trap - ERR
 proxy_fs "rm -f /target/$BACKUP_NAME"
