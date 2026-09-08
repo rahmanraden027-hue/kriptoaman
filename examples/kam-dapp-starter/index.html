@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <title>KAM dApp Starter</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#020713;color:#eef7ff;font-family:Inter,system-ui,sans-serif}.app{width:min(760px,calc(100% - 24px));padding:26px;border:1px solid rgba(79,167,255,.22);border-radius:26px;background:linear-gradient(145deg,rgba(10,25,52,.9),rgba(4,11,25,.96));box-shadow:0 24px 90px rgba(0,35,90,.3)}h1{font-size:clamp(30px,6vw,52px);margin:8px 0}p{color:#94abc2;line-height:1.65}.tag{color:#70dcff;font-size:11px;font-weight:900;letter-spacing:.18em}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:18px 0}.card{padding:14px;border:1px solid rgba(90,160,235,.14);border-radius:16px;background:#041020}.card span{display:block;color:#7893ae;font-size:10px;text-transform:uppercase}.card b{display:block;margin-top:7px;word-break:break-word}.actions{display:flex;gap:9px;flex-wrap:wrap}.actions button,.actions a{appearance:none;border:1px solid rgba(80,165,255,.25);border-radius:12px;background:#081a31;color:#dceeff;padding:10px 13px;font-weight:800;cursor:pointer;text-decoration:none;font-size:12px}.actions .primary{border:0;background:linear-gradient(135deg,#1677ff,#6756ff);color:white}.output{margin-top:16px;padding:13px;border-radius:14px;border:1px solid rgba(90,160,235,.14);background:#010612;color:#9fc4df;font:11px/1.6 ui-monospace,monospace;white-space:pre-wrap;min-height:64px}@media(max-width:600px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="tag">KAM NETWORK · STARTER dAPP</div>
+    <h1>Connect. Verify. Build.</h1>
+    <p>A dependency-free starter that verifies Chain ID 22028, reads the latest block, and can request KriptoAman Mainnet in an injected EVM wallet. It never requests seed phrases or private keys.</p>
+    <section class="grid">
+      <div class="card"><span>Network</span><b>KriptoAman Mainnet</b></div>
+      <div class="card"><span>Chain ID</span><b>22028 · 0x560c</b></div>
+      <div class="card"><span>Native asset</span><b>KAM · 18 decimals</b></div>
+      <div class="card"><span>Explorer</span><b>explorer.kriptoaman.com</b></div>
+    </section>
+    <div class="actions">
+      <button class="primary" id="verify">Verify Network</button>
+      <button id="add">Add to Wallet</button>
+      <button id="connect">Connect Wallet</button>
+      <a href="https://explorer.kriptoaman.com/developer/docs">Developer Docs</a>
+    </div>
+    <pre class="output" id="output">Ready. Start with a read-only network verification.</pre>
+  </main>
+  <script type="module">
+    import { verifyNetwork, addToWallet, requestAccounts } from './kam-network.js';
+    const output = document.getElementById('output');
+    const show = value => { output.textContent = typeof value === 'string' ? value : JSON.stringify(value, null, 2); };
+    document.getElementById('verify').addEventListener('click', async () => {
+      try { show(await verifyNetwork()); } catch (error) { show(`Verification unavailable: ${error.message}`); }
+    });
+    document.getElementById('add').addEventListener('click', async () => {
+      try { await addToWallet(); show('Network request sent to the wallet.'); } catch (error) { show(error.message); }
+    });
+    document.getElementById('connect').addEventListener('click', async () => {
+      try { const accounts = await requestAccounts(); show({ connectedAddress: accounts?.[0] || null }); } catch (error) { show(error.message); }
+    });
+  </script>
+</body>
+</html>
