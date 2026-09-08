@@ -207,37 +207,55 @@ if ! wait_for_stats_ready 20; then
   false
 fi
 
+verification_error(){
+  echo "KAM Explorer SEO verification failed: $*" >&2
+  return 1
+}
+
 verify_page(){
   local path="$1" canonical="$2" marker="$3"
+  local url="https://explorer.kriptoaman.com${path}?seo_verify=${STAMP}_$RANDOM"
   : > "$VERIFY_BODY"
   curl -L -fsS --retry 6 --retry-delay 2 --retry-all-errors --max-time 25 \
-    -H 'Cache-Control: no-cache, no-store' -o "$VERIFY_BODY" "https://explorer.kriptoaman.com$path"
-  grep -Fq "$marker" "$VERIFY_BODY"
-  grep -Fq "<link rel=\"canonical\" href=\"$canonical\" />" "$VERIFY_BODY"
-  grep -Fq 'meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"' "$VERIFY_BODY"
+    -H 'Cache-Control: no-cache, no-store' -H 'Pragma: no-cache' \
+    -o "$VERIFY_BODY" "$url" || verification_error "request failed for $path"
+  grep -Fq "$marker" "$VERIFY_BODY" || verification_error "marker missing for $path: $marker"
+  grep -Fq "<link rel=\"canonical\" href=\"$canonical\" />" "$VERIFY_BODY" || verification_error "canonical missing for $path"
+  grep -Fq 'meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"' "$VERIFY_BODY" || verification_error "robots meta missing for $path"
+  echo "seo_page_verified=$path"
 }
 
 verify_page '/' 'https://explorer.kriptoaman.com/' 'data-kam-explorer-version="2.0.0"'
 verify_page '/stats' 'https://explorer.kriptoaman.com/stats' 'data-kam-stats-version="2.0.0"'
-! grep -Fq 'Placeholder Counter' "$VERIFY_BODY"
-! grep -Eqi 'amount in ETH|>ETH<' "$VERIFY_BODY"
+! grep -Fq 'Placeholder Counter' "$VERIFY_BODY" || verification_error "placeholder text exposed on /stats"
+! grep -Eqi 'amount in ETH|>ETH<' "$VERIFY_BODY" || verification_error "Ethereum fallback text exposed on /stats"
 verify_page '/tokens' 'https://explorer.kriptoaman.com/tokens' 'data-kam-tokens-version="2.0.0"'
 verify_page '/developer' 'https://explorer.kriptoaman.com/developer' 'data-kam-developer-version="1.0.0"'
 verify_page '/developer/starter' 'https://explorer.kriptoaman.com/developer/starter' 'data-kam-developer-starter-version="1.0.0"'
 
 : > "$VERIFY_BODY"
-curl -L -fsS --retry 5 --retry-delay 2 --retry-all-errors --max-time 25 -o "$VERIFY_BODY" 'https://explorer.kriptoaman.com/robots.txt'
-grep -Fq 'Sitemap: https://explorer.kriptoaman.com/sitemap.xml' "$VERIFY_BODY"
-grep -Fq 'Disallow: /api/' "$VERIFY_BODY"
+ROBOTS_URL="https://explorer.kriptoaman.com/robots.txt?seo_verify=${STAMP}_$RANDOM"
+curl -L -fsS --retry 5 --retry-delay 2 --retry-all-errors --max-time 25 \
+  -H 'Cache-Control: no-cache, no-store' -H 'Pragma: no-cache' \
+  -o "$VERIFY_BODY" "$ROBOTS_URL" || verification_error "robots.txt request failed"
+grep -Fq 'Sitemap: https://explorer.kriptoaman.com/sitemap.xml' "$VERIFY_BODY" || verification_error "robots sitemap directive missing live"
+grep -Fq 'Disallow: /api/' "$VERIFY_BODY" || verification_error "robots API exclusion missing live"
+echo 'seo_asset_verified=/robots.txt'
 
 : > "$VERIFY_BODY"
-curl -L -fsS --retry 5 --retry-delay 2 --retry-all-errors --max-time 25 -o "$VERIFY_BODY" 'https://explorer.kriptoaman.com/sitemap.xml'
-grep -Fq '<loc>https://explorer.kriptoaman.com/stats</loc>' "$VERIFY_BODY"
-grep -Fq '<loc>https://explorer.kriptoaman.com/developer/starter</loc>' "$VERIFY_BODY"
+SITEMAP_URL="https://explorer.kriptoaman.com/sitemap.xml?seo_verify=${STAMP}_$RANDOM"
+curl -L -fsS --retry 5 --retry-delay 2 --retry-all-errors --max-time 25 \
+  -H 'Cache-Control: no-cache, no-store' -H 'Pragma: no-cache' \
+  -o "$VERIFY_BODY" "$SITEMAP_URL" || verification_error "sitemap.xml request failed"
+grep -Fq '<loc>https://explorer.kriptoaman.com/stats</loc>' "$VERIFY_BODY" || verification_error "stats canonical missing from live sitemap"
+grep -Fq '<loc>https://explorer.kriptoaman.com/developer/starter</loc>' "$VERIFY_BODY" || verification_error "starter canonical missing from live sitemap"
+echo 'seo_asset_verified=/sitemap.xml'
 
 : > "$VERIFY_HEADERS"
-curl -L -sSIf --retry 5 --retry-delay 2 --retry-all-errors --max-time 25 -o "$VERIFY_HEADERS" 'https://explorer.kriptoaman.com/sitemap.xml'
-grep -Eqi '^content-type: *application/xml' "$VERIFY_HEADERS"
+curl -L -sSIf --retry 5 --retry-delay 2 --retry-all-errors --max-time 25 \
+  -H 'Cache-Control: no-cache, no-store' -H 'Pragma: no-cache' \
+  -o "$VERIFY_HEADERS" "$SITEMAP_URL" || verification_error "sitemap.xml HEAD request failed"
+grep -Eqi '^content-type: *application/xml' "$VERIFY_HEADERS" || verification_error "sitemap.xml content-type is not application/xml"
 
 trap - ERR
 proxy_fs "rm -f /target/$BACKUP_NAME"
