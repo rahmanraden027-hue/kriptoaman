@@ -28,12 +28,16 @@ Then open `http://localhost:8080`.
 
 - `KAM_NETWORK` — canonical public connection parameters.
 - `jsonRpc(method, params)` — small JSON-RPC helper.
-- `explorer(path)` — public Explorer REST helper.
+- `explorerBlocks()` — reads the public recent-blocks endpoint.
+- `explorerTransactions()` — reads the public recent-transactions endpoint.
+- `explorerStats()` — reads the public statistics endpoint.
 - `verifyNetwork()` — checks `eth_chainId` and latest block number.
 - `addToWallet()` — requests the network through `wallet_addEthereumChain`.
 - `switchToKAM()` — switches to KAM, adding it if the wallet returns error `4902`.
 - `requestAccounts()` — asks the injected wallet for account access.
 - `explorerTxUrl(hash)` and `explorerAddressUrl(address)` — validated Explorer links.
+
+The starter intentionally exposes fixed Explorer REST helpers instead of accepting an arbitrary path. This keeps the example narrow and prevents caller-controlled URL construction through the convenience API.
 
 ## Security model
 
