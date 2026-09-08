@@ -60,6 +60,8 @@ const endpoints = [
 ];
 
 const weightedEndpoints = endpoints.flatMap((endpoint) => Array.from({ length: endpoint.weight }, () => endpoint));
+const hasBody = (response) => typeof response?.body === 'string' && response.body.length > 0;
+const bodyIncludes = (response, needle) => hasBody(response) && response.body.includes(needle);
 
 export default function () {
   const endpoint = weightedEndpoints[Math.floor(Math.random() * weightedEndpoints.length)];
@@ -72,9 +74,9 @@ export default function () {
   endpointLatency.add(res.timings.duration, { endpoint: endpoint.name });
   const ok = check(res, {
     'HTTP status is successful': (r) => r.status >= 200 && r.status < 400,
-    'response is non-empty': (r) => typeof r.body === 'string' && r.body.length > 0,
-    'market hot contains BTC when selected': (r) => endpoint.name !== 'market-hot' || r.body.includes('"symbol":"BTC"'),
-    'market page returns bounded data when selected': (r) => endpoint.name !== 'market-page' || r.body.includes('"pageSize":100'),
+    'response is non-empty': (r) => hasBody(r),
+    'market hot contains BTC when selected': (r) => endpoint.name !== 'market-hot' || bodyIncludes(r, '"symbol":"BTC"'),
+    'market page returns bounded data when selected': (r) => endpoint.name !== 'market-page' || bodyIncludes(r, '"pageSize":100'),
   }, { endpoint: endpoint.name });
 
   endpointErrorRate.add(!ok, { endpoint: endpoint.name });
