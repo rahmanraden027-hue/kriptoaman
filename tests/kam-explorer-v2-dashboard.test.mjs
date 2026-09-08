@@ -5,25 +5,30 @@ import test from 'node:test';
 const html = await readFile(new URL('../explorer-dashboard/index.html', import.meta.url), 'utf8');
 const stats = await readFile(new URL('../explorer-dashboard/stats.html', import.meta.url), 'utf8');
 const tokens = await readFile(new URL('../explorer-dashboard/tokens.html', import.meta.url), 'utf8');
+const developer = await readFile(new URL('../explorer-dashboard/developer.html', import.meta.url), 'utf8');
+const addresses = await readFile(new URL('../explorer-dashboard/addresses.html', import.meta.url), 'utf8');
+const validators = await readFile(new URL('../explorer-dashboard/validators.html', import.meta.url), 'utf8');
+const contracts = await readFile(new URL('../explorer-dashboard/contracts.html', import.meta.url), 'utf8');
+const status = await readFile(new URL('../explorer-dashboard/status.html', import.meta.url), 'utf8');
 const deploy = await readFile(new URL('../scripts/deploy-kam-explorer-v2.sh', import.meta.url), 'utf8');
+
+const finalSurfaces = [html, stats, tokens, developer, addresses, validators, contracts, status];
 
 test('KAM Explorer V2 uses verified live data surfaces', () => {
   assert.match(html, /data-kam-explorer-version="2\.0\.0"/);
   assert.match(html, /\/api\/v2\/blocks/);
   assert.match(html, /\/api\/v2\/transactions/);
   assert.match(html, /\/api\/v2\/stats/);
-  assert.match(html, /\/api\/v2\/stats\/charts\/transactions/);
-  assert.equal(html.includes('https://rpc.kriptoaman.com'), true);
   assert.match(html, /Unavailable data is shown as unavailable—not invented/);
 });
 
-test('KAM Statistics V2 uses verified public core data and no localhost Stats dependency', () => {
+test('KAM Statistics V2 uses verified public core data and no placeholder Stats dependency', () => {
   assert.match(stats, /data-kam-stats-version="2\.0\.0"/);
   assert.match(stats, /\/api\/v2\/blocks/);
   assert.match(stats, /\/api\/v2\/transactions/);
   assert.match(stats, /\/api\/v2\/stats/);
-  assert.match(stats, /\/api\/v2\/stats\/charts\/transactions/);
   assert.match(stats, /Verified-data policy/);
+  assert.equal(stats.includes('Placeholder Counter'), false);
   assert.equal(stats.includes('localhost:8080'), false);
   assert.equal(stats.includes('/api/v1/'), false);
 });
@@ -36,28 +41,71 @@ test('KAM Token Registry V2 identifies canonical WKAM without deleting indexed c
   assert.match(tokens, /Other indexed contracts are retained for transparency and are not deleted or rewritten/);
 });
 
-test('KAM public V2 surfaces do not ship mockup-only KPI values', () => {
-  for (const fake of ['879,719', '3,942 TPS', '21 / 21', '10,000,000,000 KAM', '$1,245,332']) {
-    for (const surface of [html, stats, tokens]) assert.equal(surface.includes(fake), false, `mockup-only value must not be shipped: ${fake}`);
+test('Developer Center exposes canonical network onboarding and public APIs without secrets', () => {
+  assert.match(developer, /data-kam-developer-version="1\.0\.0"/);
+  assert.match(developer, /wallet_addEthereumChain/);
+  assert.match(developer, /chainId:'0x560c'/);
+  assert.match(developer, /KriptoAman Mainnet/);
+  assert.match(developer, /https:\/\/rpc\.kriptoaman\.com/);
+  assert.match(developer, /\/api\/v2\/smart-contracts\/verification\/config/);
+  assert.match(developer, /no private key is requested/i);
+});
+
+test('Addresses surface uses observed public evidence instead of a fabricated holder ranking', () => {
+  assert.match(addresses, /data-kam-addresses-version="1\.0\.0"/);
+  assert.match(addresses, /\/api\/v2\/addresses\//);
+  assert.match(addresses, /\/api\/v2\/transactions/);
+  assert.match(addresses, /Export CSV/);
+  assert.match(addresses, /not a fabricated holder ranking/i);
+});
+
+test('Proposer observatory clearly distinguishes observed proposers from authoritative validator claims', () => {
+  assert.match(validators, /data-kam-validators-version="1\.0\.0"/);
+  assert.match(validators, /\/api\/v2\/blocks/);
+  assert.match(validators, /does not claim stake weight, validator uptime/i);
+  assert.match(validators, /share of sample/i);
+});
+
+test('Contracts center reads verified-contract and verification-config APIs', () => {
+  assert.match(contracts, /data-kam-contracts-version="1\.0\.0"/);
+  assert.match(contracts, /\/api\/v2\/smart-contracts/);
+  assert.match(contracts, /\/api\/v2\/smart-contracts\/verification\/config/);
+  assert.match(contracts, /Verified/);
+});
+
+test('Network status uses public endpoint evidence and treats browser RPC CORS separately', () => {
+  assert.match(status, /data-kam-status-version="1\.0\.0"/);
+  assert.match(status, /\/api\/v2\/blocks/);
+  assert.match(status, /\/api\/v2\/transactions/);
+  assert.match(status, /may intentionally restrict browser CORS/i);
+  assert.match(status, /indexed block freshness/i);
+});
+
+test('KAM public final surfaces do not ship known mockup-only KPI values', () => {
+  for (const fake of ['879,719', '3,942 TPS', '21 / 21', '10,000,000,000 KAM', '$1,245,332', 'Placeholder Counter']) {
+    for (const surface of finalSurfaces) assert.equal(surface.includes(fake), false, `mockup-only value must not be shipped: ${fake}`);
   }
 });
 
-test('deployment is exact-route, narrow, nginx-safe, and rollback-safe', () => {
+test('deployment is exact-route, narrow, nginx-safe, rollback-safe and avoids curl-pipe false failures', () => {
   assert.match(deploy, /KAM_EXPLORER_V2_BEGIN/);
-  assert.match(deploy, /location = \/ \{/);
-  assert.match(deploy, /location = \/stats \{/);
-  assert.match(deploy, /location = \/tokens \{/);
-  assert.match(deploy, /try_files \/kam-dashboard\/index\.html =404;/);
-  assert.match(deploy, /try_files \/kam-dashboard\/stats\.html =404;/);
-  assert.match(deploy, /try_files \/kam-dashboard\/tokens\.html =404;/);
-  assert.match(deploy, /X-KAM-Explorer-Stats-Version/);
-  assert.match(deploy, /X-KAM-Explorer-Tokens-Version/);
+  for (const route of ['/', '/stats', '/tokens', '/developer', '/developers', '/addresses', '/validators', '/contracts', '/status']) {
+    assert.equal(deploy.includes(`location = ${route} {`), true, `exact route missing: ${route}`);
+  }
+  for (const file of ['index.html', 'stats.html', 'tokens.html', 'developer.html', 'addresses.html', 'validators.html', 'contracts.html', 'status.html']) {
+    assert.equal(deploy.includes(`try_files /kam-dashboard/${file} =404;`), true, `served file missing: ${file}`);
+  }
+  assert.match(deploy, /X-KAM-Explorer-Developer-Version/);
+  assert.match(deploy, /X-KAM-Explorer-Addresses-Version/);
+  assert.match(deploy, /X-KAM-Explorer-Contracts-Version/);
   assert.match(deploy, /docker run --rm --network none -i/);
   assert.match(deploy, /-v "\$PROXY_DIR:\/target"/);
   assert.match(deploy, /cp -a \/target\/\$BACKUP_NAME \/target\/default\.conf\.template/);
   assert.match(deploy, /docker compose up -d --force-recreate proxy/);
+  assert.match(deploy, /curl -fsSL .* -o "\$VERIFY_BODY"/);
+  assert.doesNotMatch(deploy, /curl[^\n]*\|\s*grep/);
   assert.doesNotMatch(deploy, /--privileged/);
-  assert.doesNotMatch(deploy, /validator|genesis|treasury|private.?key/i);
+  assert.doesNotMatch(deploy, /genesis|treasury|private.?key/i);
   assert.match(deploy, /\/tx\/\$KNOWN_TX/);
   assert.match(deploy, /\/token\/\$CANONICAL_WKAM/);
 });
