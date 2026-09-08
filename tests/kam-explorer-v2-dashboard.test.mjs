@@ -50,7 +50,7 @@ test('Developer Center exposes canonical network onboarding and public APIs with
   assert.match(developer, /wallet_addEthereumChain/);
   assert.match(developer, /chainId:'0x560c'/);
   assert.match(developer, /KriptoAman Mainnet/);
-  assert.match(developer, /https:\/\/rpc\.kriptoaman\.com/);
+  assert.equal(developer.includes('https://rpc.kriptoaman.com'), true);
   assert.match(developer, /\/api\/v2\/smart-contracts\/verification\/config/);
   assert.match(developer, /no private key is requested/i);
 });
@@ -58,7 +58,7 @@ test('Developer Center exposes canonical network onboarding and public APIs with
 test('Developer docs separate public endpoint facts from internal activation gates', () => {
   assert.match(docs, /data-kam-developer-docs-version="1\.0\.0"/);
   assert.match(docs, /Chain ID 22028/);
-  assert.match(docs, /https:\/\/rpc\.kriptoaman\.com/);
+  assert.equal(docs.includes('https://rpc.kriptoaman.com'), true);
   assert.match(docs, /\/developer\/network\.json/);
   assert.match(docs, /internal network-promotion gates/i);
   assert.match(docs, /does not expose validator administration/i);
