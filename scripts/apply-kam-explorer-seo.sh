@@ -22,6 +22,11 @@ trap cleanup EXIT
 [[ -f "$ROBOTS_SOURCE" ]] || fail "robots source missing: $ROBOTS_SOURCE"
 [[ -f "$SITEMAP_SOURCE" ]] || fail "sitemap source missing: $SITEMAP_SOURCE"
 
+# Resolve repository assets before changing into the Blockscout compose directory.
+# This keeps both scheduled Actions runs and manual invocations path-stable.
+ROBOTS_SOURCE="$(realpath "$ROBOTS_SOURCE")"
+SITEMAP_SOURCE="$(realpath "$SITEMAP_SOURCE")"
+
 grep -Fq 'Sitemap: https://explorer.kriptoaman.com/sitemap.xml' "$ROBOTS_SOURCE" || fail "robots sitemap directive missing"
 grep -Fq '<loc>https://explorer.kriptoaman.com/stats</loc>' "$SITEMAP_SOURCE" || fail "stats canonical missing from sitemap"
 grep -Fq '<loc>https://explorer.kriptoaman.com/</loc>' "$SITEMAP_SOURCE" || fail "explorer root missing from sitemap"
