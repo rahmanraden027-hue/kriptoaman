@@ -207,6 +207,12 @@ test('deployment is exact-route, narrow, nginx-safe, rollback-safe and avoids cu
   assert.match(deploy, /\/tx\/\$KNOWN_TX/);
   assert.match(deploy, /dynamic_route\('\^\/tx\/0x/);
   assert.match(deploy, /location ~ "\{pattern\}"/);
+  for (const header of ['Strict-Transport-Security', 'Permissions-Policy', 'Cross-Origin-Opener-Policy', 'Cross-Origin-Resource-Policy', 'X-Frame-Options']) {
+    assert.match(deploy, new RegExp(header));
+  }
+  assert.match(deploy, /limit_except GET \{\{ deny all; \}\}/);
+  assert.match(deploy, /upgrade-insecure-requests/);
+  assert.match(deploy, /form-action 'none'/);
   assert.match(deploy, /transaction-detail\.html/);
   assert.match(deploy, /block-detail\.html/);
   assert.match(deploy, /address-detail\.html/);
