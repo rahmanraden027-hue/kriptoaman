@@ -1,0 +1,100 @@
+name: KAM Explorer Stats Route Guard
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kam-explorer-stats-route-guard
+  cancel-in-progress: false
+
+jobs:
+  verify-and-heal-stats-route:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 12
+    steps:
+      - name: Checkout trusted main source
+        uses: actions/checkout@v7
+        with:
+          ref: main
+
+      - name: Probe canonical KAM statistics route
+        id: probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          BODY="$(mktemp)"
+          HEADERS="$(mktemp)"
+          trap 'rm -f "$BODY" "$HEADERS"' EXIT
+
+          probe_url="https://explorer.kriptoaman.com/stats?route_guard=$(date +%s)"
+          healthy=true
+
+          if ! curl -L -fsS \
+            -H 'Cache-Control: no-cache, no-store' \
+            -H 'Pragma: no-cache' \
+            --retry 3 --retry-delay 2 --retry-all-errors --max-time 25 \
+            -D "$HEADERS" -o "$BODY" "$probe_url"; then
+            healthy=false
+          fi
+
+          if ! grep -Fq 'data-kam-stats-version="2.0.0"' "$BODY"; then healthy=false; fi
+          if grep -Fq 'Placeholder Counter' "$BODY"; then healthy=false; fi
+          if grep -Eqi 'amount in ETH|>ETH<' "$BODY"; then healthy=false; fi
+          if ! grep -Eqi '^x-kam-explorer-stats-version: *2' "$HEADERS"; then healthy=false; fi
+
+          if [[ "$healthy" == "true" ]]; then
+            echo 'drift=false' >> "$GITHUB_OUTPUT"
+            echo 'stats_route=healthy'
+          else
+            echo 'drift=true' >> "$GITHUB_OUTPUT"
+            echo 'stats_route=drift_detected'
+            echo '--- headers ---'
+            cat "$HEADERS" || true
+            echo '--- first public body lines ---'
+            sed -n '1,80p' "$BODY" || true
+          fi
+
+      - name: Re-apply reviewed Explorer routes when drift is detected
+        if: ${{ steps.probe.outputs.drift == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x scripts/deploy-kam-explorer-v2.sh
+          bash scripts/deploy-kam-explorer-v2.sh
+
+      - name: Verify canonical and cache-busted stats surfaces
+        shell: bash
+        run: |
+          set -euo pipefail
+          BODY="$(mktemp)"
+          HEADERS="$(mktemp)"
+          trap 'rm -f "$BODY" "$HEADERS"' EXIT
+
+          verify() {
+            local url="$1"
+            : > "$BODY"
+            : > "$HEADERS"
+            curl -L -fsS \
+              -H 'Cache-Control: no-cache, no-store' \
+              -H 'Pragma: no-cache' \
+              --retry 5 --retry-delay 2 --retry-all-errors --max-time 25 \
+              -D "$HEADERS" -o "$BODY" "$url"
+            grep -Fq 'data-kam-stats-version="2.0.0"' "$BODY"
+            ! grep -Fq 'Placeholder Counter' "$BODY"
+            ! grep -Eqi 'amount in ETH|>ETH<' "$BODY"
+            grep -Eqi '^x-kam-explorer-stats-version: *2' "$HEADERS"
+          }
+
+          verify 'https://explorer.kriptoaman.com/stats'
+          verify "https://explorer.kriptoaman.com/stats?verified=$(date +%s)"
+
+          curl -fsS --retry 3 --retry-all-errors --max-time 15 \
+            'https://explorer.kriptoaman.com/api/v2/stats' |
+            python3 -c 'import json,sys; d=json.load(sys.stdin); assert "total_transactions" in d and "average_block_time" in d'
+
+          echo 'stats_route_guard=verified'
