@@ -19,13 +19,6 @@ const RISK_FEATURES = [
   { icon: BarChart3, title: 'Skor Risiko Indikatif', desc: 'Skor berdasarkan indikator aktivitas (bukan jaminan keamanan).' },
 ];
 
-const STEPS = [
-  { no: '01', title: 'Buat Akun', desc: 'Daftar dan amankan akun dengan PIN serta autentikasi.' },
-  { no: '02', title: 'Hubungkan Sumber Data', desc: 'Tambahkan aset atau koneksi bursa untuk dipantau.' },
-  { no: '03', title: 'Pantau & Verifikasi', desc: 'Lihat ringkasan risiko, harga, dan verifikasi transaksi.' },
-  { no: '04', title: 'Kelola Notifikasi', desc: 'Atur peringatan dan aset favorit sesuai kebutuhan Anda.' },
-];
-
 const FAQS = [
   { q: 'Apakah KriptoAman menjamin keamanan aset saya?', a: 'Tidak. KriptoAman adalah platform informasi, pemantauan, dan analisis risiko. Kami tidak menyimpan atau menjamin dana Anda. Selalu lakukan verifikasi mandiri.' },
   { q: 'Apakah data statistik di halaman ini real-time?', a: 'Angka cakupan aset dan jaringan diambil dari health endpoint KriptoAman. Selama pemeriksaan live masih berlangsung, halaman menampilkan status pemeriksaan. Status terbatas hanya ditampilkan setelah verifikasi selesai dan data memang belum dapat dikonfirmasi.' },
@@ -46,6 +39,9 @@ export default function GLandingBody({ stats }) {
   const verifiedNetworks = Array.isArray(stats?.networks)
     ? stats.networks.filter((network) => network?.status === 'online')
     : [];
+  const featuredNetworks = verifiedNetworks
+    .sort((a, b) => Number(b?.name === 'KAM Network') - Number(a?.name === 'KAM Network'))
+    .slice(0, 8);
   const assetCountValue = stats?.loading
     ? '…'
     : Number(stats?.assetCount) > 0
@@ -177,35 +173,23 @@ export default function GLandingBody({ stats }) {
 
       <section className="px-4 sm:px-6 py-14">
         <div className="max-w-[1440px] mx-auto">
-          <SectionHead eyebrow="Cara Kerja" title="Cara Kerja KriptoAman" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
-            {STEPS.map((s) => (
-              <div key={s.no} className="ka-card p-5">
-                <span className="text-xs font-bold ka-cyan">{s.no}</span>
-                <h3 className="font-bold text-sm ka-text mt-2">{s.title}</h3>
-                <p className="text-xs ka-text2 mt-1.5 leading-relaxed">{s.desc}</p>
-              </div>
-            ))}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <SectionHead eyebrow="Jaringan" title="Jaringan Terverifikasi Live" />
+            <a href="https://explorer.kriptoaman.com/developer" target="_blank" rel="noreferrer" className="text-sm font-bold ka-blue">Buka Developer Center →</a>
           </div>
-        </div>
-      </section>
-
-      <section className="px-4 sm:px-6 py-14">
-        <div className="max-w-[1440px] mx-auto">
-          <SectionHead eyebrow="Jaringan" title="Jaringan Terverifikasi Live" />
-          <div className="flex flex-wrap gap-2.5 mt-8 justify-center">
-            {verifiedNetworks.length > 0 ? verifiedNetworks.map((network) => (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-8">
+            {featuredNetworks.length > 0 ? featuredNetworks.map((network) => (
               <span key={network.name} className="ka-card2 px-4 py-2 text-xs font-semibold ka-text2 inline-flex items-center gap-2">
                 <Network className="w-3.5 h-3.5 ka-blue" />
                 {network.name}
-                <span className="text-[9px] rounded-full px-1.5 py-0.5 ka-green">Aktif · Live</span>
+                <span className="ml-auto inline-flex items-center gap-1.5 text-[10px] ka-green"><i className="w-1.5 h-1.5 rounded-full bg-[var(--ka-green)]" />Aktif · Live</span>
               </span>
             )) : (
               <span className="ka-card2 px-4 py-2 text-xs ka-text2">{stats.loading ? 'Memeriksa jaringan live…' : 'Verifikasi jaringan sedang diperbarui.'}</span>
             )}
           </div>
           <p className="text-[11px] ka-text2 mt-4 text-center opacity-70 max-w-3xl mx-auto">
-            Hanya jaringan yang berhasil merespons RPC, explorer, atau endpoint publik pada pemeriksaan terakhir yang ditampilkan sebagai Aktif · Live.
+            Menampilkan jaringan utama dari {verifiedNetworks.length || '—'} endpoint aktif yang berhasil merespons pemeriksaan publik.
             {networkChecked ? ` Pemeriksaan terakhir: ${networkChecked}.` : ''}
           </p>
         </div>

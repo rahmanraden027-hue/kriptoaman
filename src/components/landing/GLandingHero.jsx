@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, ArrowRight, CheckCircle } from 'lucide-react';
+import { Shield, ArrowRight, CheckCircle, Activity, Database, ExternalLink } from 'lucide-react';
 import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
 
 const INDICATORS = [
@@ -40,30 +40,33 @@ function NetworkVisual() {
   );
 }
 
-export default function GLandingHero() {
+export default function GLandingHero({ stats }) {
+  const assetCount = stats?.loading ? '—' : Number(stats?.assetCount || 0).toLocaleString('id-ID');
+  const networkCount = stats?.loading ? '—' : String(stats?.networkActiveCount ?? '—');
+  const isOperational = Boolean(stats?.marketAvailable);
+
   return (
-    <section id="beranda" className="relative pt-28 pb-16 px-4 sm:px-6 overflow-hidden">
+    <section id="beranda" className="relative pt-28 pb-10 px-4 sm:px-6 overflow-hidden">
       <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[640px] h-[640px] rounded-full blur-3xl pointer-events-none"
         style={{ background: 'radial-gradient(circle, rgba(0,200,255,0.10), transparent 60%)' }} />
-      <div className="ka-hero-grid max-w-[1440px] mx-auto grid lg:grid-cols-2 gap-10 lg:gap-8 items-center">
+      <div className="ka-hero-grid max-w-[1440px] mx-auto grid lg:grid-cols-[1.08fr_.92fr] gap-10 lg:gap-8 items-center">
         <div className="ka-hero-copy text-center lg:text-left">
           <span className="ka-chip inline-flex items-center gap-2 px-3.5 py-1.5 text-[11px] font-bold tracking-wide">
-            <Shield className="w-3.5 h-3.5" /> DIGITAL ASSET INTELLIGENCE · MONITORING · VERIFICATION
+            <Shield className="w-3.5 h-3.5" /> KRIPTOAMAN INTELLIGENCE NETWORK
           </span>
           <h1 className="ka-sec-title mt-5 text-[34px] sm:text-5xl lg:text-[54px]">
-            Intelijen Aset Digital,<br />
-            Dibangun untuk <span className="ka-blue">Kejelasan</span>
+            Pasar kripto bergerak cepat.<br />
+            Anda tetap <span className="ka-blue">terkendali.</span>
           </h1>
           <p className="ka-text2 mt-5 max-w-xl mx-auto lg:mx-0 text-sm sm:text-base leading-relaxed">
-            KriptoAman menyatukan informasi pasar, pemantauan aset, verifikasi berbasis sumber publik,
-            dan analisis risiko indikatif untuk membantu pengguna memahami aktivitas aset digital secara lebih terstruktur.
+            Satu ruang untuk membaca pasar, memantau aset, dan memverifikasi aktivitas on-chain—dengan sumber publik yang dapat ditelusuri.
           </p>
           <div className="ka-hero-actions mt-7 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
             <Link to="/login" className="ka-btn-primary inline-flex items-center justify-center gap-2 px-6 text-sm sm:text-base">
-              Jelajahi Platform <ArrowRight className="w-4 h-4" />
+              Buka Intelligence Hub <ArrowRight className="w-4 h-4" />
             </Link>
-            <a href="#fitur" className="ka-btn-outline inline-flex items-center justify-center px-6 text-sm sm:text-base">
-              Lihat Cara Kerja
+            <a href="https://explorer.kriptoaman.com" target="_blank" rel="noreferrer" className="ka-btn-outline inline-flex items-center justify-center gap-2 px-6 text-sm sm:text-base">
+              KAM Explorer <ExternalLink className="w-4 h-4" />
             </a>
           </div>
           <div className="ka-hero-indicators mt-8 flex flex-wrap gap-x-6 gap-y-3 justify-center lg:justify-start">
@@ -76,7 +79,16 @@ export default function GLandingHero() {
           </div>
         </div>
 
-        <div className="ka-hero-visual relative mx-auto w-full max-w-[420px] aspect-square" aria-label="Visual jaringan KriptoAman">
+        <div className="ka-hero-console relative mx-auto w-full max-w-[520px]" aria-label="Status langsung ekosistem KriptoAman">
+          <div className="ka-console-head">
+            <div>
+              <span className="ka-console-kicker">LIVE INTELLIGENCE</span>
+              <strong>Network command surface</strong>
+            </div>
+            <span className={`ka-live-state ${isOperational ? 'is-online' : ''}`}><i />{stats?.loading ? 'Memeriksa' : isOperational ? 'Operasional' : 'Terbatas'}</span>
+          </div>
+          <div className="ka-console-stage">
+            <div className="ka-hero-visual relative mx-auto w-full max-w-[360px] aspect-square">
           <NetworkVisual />
           <div className="ka-hero-center absolute inset-0 flex items-center justify-center ka-glow-cyan rounded-full">
             <div className="ka-hero-logo ka-glow-gold rounded-full">
@@ -89,9 +101,16 @@ export default function GLandingHero() {
               <span className="ka-coin-name ka-text2">{c.sub}</span>
             </div>
           ))}
+            </div>
+          </div>
+          <div className="ka-console-metrics">
+            <div><Database /><span><b>{assetCount}</b>Cakupan aset</span></div>
+            <div><Activity /><span><b>{networkCount}</b>Jaringan aktif</span></div>
+            <a href="https://explorer.kriptoaman.com" target="_blank" rel="noreferrer"><Shield /><span><b>22028</b>KAM Mainnet</span></a>
+          </div>
         </div>
       </div>
-      <p className="ka-text2 text-[11px] text-center mt-10 opacity-70">
+      <p className="ka-text2 text-xs text-center mt-8 opacity-70">
         Informasi dan analisis ditampilkan untuk tujuan pemantauan, riset, dan edukasi; bukan rekomendasi investasi.
       </p>
     </section>
