@@ -7,6 +7,12 @@ export const KAM_NETWORK = Object.freeze({
   nativeCurrency: Object.freeze({ name: 'KAM', symbol: 'KAM', decimals: 18 }),
 });
 
+const EXPLORER_ENDPOINTS = Object.freeze({
+  blocks: `${KAM_NETWORK.explorerUrl}/api/v2/blocks`,
+  transactions: `${KAM_NETWORK.explorerUrl}/api/v2/transactions`,
+  stats: `${KAM_NETWORK.explorerUrl}/api/v2/stats`,
+});
+
 export async function jsonRpc(method, params = []) {
   const response = await fetch(KAM_NETWORK.rpcUrl, {
     method: 'POST',
@@ -19,14 +25,25 @@ export async function jsonRpc(method, params = []) {
   return payload.result;
 }
 
-export async function explorer(path) {
-  const clean = String(path || '').replace(/^\/+/, '');
-  const response = await fetch(`${KAM_NETWORK.explorerUrl}/${clean}`, {
+async function fetchExplorerUrl(url) {
+  const response = await fetch(url, {
     headers: { accept: 'application/json' },
     cache: 'no-store',
   });
   if (!response.ok) throw new Error(`Explorer HTTP ${response.status}`);
   return response.json();
+}
+
+export function latestBlocks() {
+  return fetchExplorerUrl(EXPLORER_ENDPOINTS.blocks);
+}
+
+export function latestTransactions() {
+  return fetchExplorerUrl(EXPLORER_ENDPOINTS.transactions);
+}
+
+export function networkStats() {
+  return fetchExplorerUrl(EXPLORER_ENDPOINTS.stats);
 }
 
 export async function verifyNetwork() {
