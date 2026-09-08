@@ -206,6 +206,7 @@ test('deployment is exact-route, narrow, nginx-safe, rollback-safe and avoids cu
   assert.doesNotMatch(deploy, /genesis|treasury|private.?key(?!sRequired)/i);
   assert.match(deploy, /\/tx\/\$KNOWN_TX/);
   assert.match(deploy, /dynamic_route\('\^\/tx\/0x/);
+  assert.match(deploy, /location ~ "\{pattern\}"/);
   assert.match(deploy, /transaction-detail\.html/);
   assert.match(deploy, /block-detail\.html/);
   assert.match(deploy, /address-detail\.html/);
