@@ -1,0 +1,2 @@
+# Public Explorer security policy is maintained through the main KriptoAman security channels.
+# Do not submit private keys, seed phrases, validator credentials, or treasury secrets through public Explorer forms.
