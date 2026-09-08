@@ -38,13 +38,11 @@ test('SEO deployment is idempotent, path-stable, readiness-gated, cache-safe, an
   assert.match(script, /amount in ETH/);
   assert.match(script, /docker run --rm --network none -i/);
 
-  // Proxy replacement must never fan out into Blockscout dependencies.
   assert.match(script, /docker compose up -d --force-recreate --no-deps proxy/);
   assert.doesNotMatch(script, /docker compose up -d --force-recreate proxy/);
   assert.doesNotMatch(script, /docker compose (?:restart|up[^\n]*)(?:db|postgres|indexer|backend)/i);
   assert.doesNotMatch(script, /--privileged/);
 
-  // A transient 502 immediately after proxy recreation must be absorbed by bounded readiness polling.
   assert.match(script, /wait_for_stats_ready\(\)/);
   assert.match(script, /wait_for_stats_ready 20/);
   assert.match(script, /--connect-timeout 3 --max-time 8/);
@@ -52,7 +50,6 @@ test('SEO deployment is idempotent, path-stable, readiness-gated, cache-safe, an
   assert.match(script, /x-kam-explorer-stats-version: \*2/);
   assert.match(script, /KAM Explorer proxy did not become ready with verified canonical stats/);
 
-  // Every post-restart verification uses a cache-busting URL but still requires the canonical URL without query parameters.
   assert.match(script, /seo_verify=\$\{STAMP\}_\$RANDOM/);
   assert.match(script, /ROBOTS_URL="https:\/\/explorer\.kriptoaman\.com\/robots\.txt\?seo_verify=/);
   assert.match(script, /SITEMAP_URL="https:\/\/explorer\.kriptoaman\.com\/sitemap\.xml\?seo_verify=/);
@@ -60,4 +57,10 @@ test('SEO deployment is idempotent, path-stable, readiness-gated, cache-safe, an
   assert.match(script, /seo_page_verified=\$path/);
   assert.match(script, /seo_asset_verified=\/robots\.txt/);
   assert.match(script, /seo_asset_verified=\/sitemap\.xml/);
+
+  // Sitemap must be real XML and may use either standard XML MIME type, but never HTML.
+  assert.match(script, /sitemap\.xml body is not XML/);
+  assert.match(script, /\(application\|text\)\/xml/);
+  assert.match(script, /sitemap\.xml must not be served as HTML/);
+  assert.match(script, /--- sitemap headers ---/);
 });
