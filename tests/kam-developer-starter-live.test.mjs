@@ -3,6 +3,8 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 const starter = await readFile(new URL('../explorer-dashboard/developer-starter.html', import.meta.url), 'utf8');
+const developer = await readFile(new URL('../explorer-dashboard/developer.html', import.meta.url), 'utf8');
+const docs = await readFile(new URL('../explorer-dashboard/developer-docs.html', import.meta.url), 'utf8');
 const deploy = await readFile(new URL('../scripts/deploy-kam-developer-starter.sh', import.meta.url), 'utf8');
 
 test('live KAM starter is canonical and browser-safe', () => {
@@ -29,6 +31,14 @@ test('wallet onboarding stays user-approved and read-only-first', () => {
   assert.doesNotMatch(starter, /localStorage\.setItem/);
   assert.doesNotMatch(starter, /sessionStorage\.setItem/);
   assert.match(starter, /never asks for a seed phrase, private key/i);
+});
+
+test('Developer Center and Docs make the live starter directly discoverable', () => {
+  assert.match(developer, /href="\/developer\/starter"/);
+  assert.match(developer, /Run Live dApp Starter/);
+  assert.match(docs, /href="\/developer\/starter"/);
+  assert.match(docs, /KAM Live dApp Starter/);
+  assert.match(docs, /GitHub starter folder/);
 });
 
 test('live starter does not ship fabricated KPI claims', () => {
