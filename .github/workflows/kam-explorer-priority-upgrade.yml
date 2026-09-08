@@ -1,0 +1,122 @@
+name: KAM Explorer Priority Upgrade
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/refine-kam-explorer-priority.mjs'
+      - 'scripts/apply-kam-explorer-ui-priority.sh'
+      - '.github/workflows/kam-explorer-priority-upgrade.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/refine-kam-explorer-priority.mjs'
+      - 'scripts/apply-kam-explorer-ui-priority.sh'
+      - '.github/workflows/kam-explorer-priority-upgrade.yml'
+  workflow_run:
+    workflows: ['KAM Explorer V2 Deploy']
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kam-explorer-priority-upgrade
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout reviewed source
+        uses: actions/checkout@v7
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Validate refinement anchors
+        run: node scripts/refine-kam-explorer-priority.mjs --check
+      - name: Apply refinement in CI workspace
+        run: node scripts/refine-kam-explorer-priority.mjs
+      - name: Validate Explorer tests after refinement
+        run: node --test tests/kam-explorer-v2-dashboard.test.mjs
+      - name: Validate frontend-only scripts
+        run: |
+          bash -n scripts/apply-kam-explorer-ui-priority.sh
+          bash -n scripts/apply-kam-explorer-branding.sh
+          bash -n scripts/deploy-kam-explorer-v2.sh
+          git diff --check
+      - name: Public core diagnostic before deployment
+        if: ${{ github.event_name != 'pull_request' }}
+        run: node scripts/diagnose-blockscout.mjs
+
+  deploy:
+    if: ${{ github.event_name != 'pull_request' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') }}
+    needs: preflight
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 15
+    steps:
+      - name: Checkout reviewed source
+        uses: actions/checkout@v7
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Capture public health before frontend change
+        run: node scripts/diagnose-blockscout.mjs
+      - name: Apply reviewed Explorer refinement to checkout
+        run: node scripts/refine-kam-explorer-priority.mjs
+      - name: Apply native Blockscout KAM UI alignment
+        run: |
+          chmod +x scripts/apply-kam-explorer-ui-priority.sh
+          bash scripts/apply-kam-explorer-ui-priority.sh
+      - name: Deploy refined KAM Explorer public surfaces
+        run: |
+          chmod +x scripts/deploy-kam-explorer-v2.sh
+          bash scripts/deploy-kam-explorer-v2.sh
+      - name: Verify public health after frontend change
+        run: node scripts/diagnose-blockscout.mjs
+
+  public-post-verify:
+    if: ${{ github.event_name != 'pull_request' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') }}
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout reviewed source
+        uses: actions/checkout@v7
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Verify priority presentation is public
+        shell: bash
+        run: |
+          set -euo pipefail
+          HOME_HTML="$(curl -L -fsS --retry 6 --retry-delay 2 --retry-all-errors --max-time 25 https://explorer.kriptoaman.com/)"
+          STATUS_HTML="$(curl -L -fsS --retry 6 --retry-delay 2 --retry-all-errors --max-time 25 https://explorer.kriptoaman.com/status)"
+          VALIDATORS_HTML="$(curl -L -fsS --retry 6 --retry-delay 2 --retry-all-errors --max-time 25 https://explorer.kriptoaman.com/validators)"
+          ADDRESSES_HTML="$(curl -L -fsS --retry 6 --retry-delay 2 --retry-all-errors --max-time 25 https://explorer.kriptoaman.com/addresses)"
+          STATS_HTML="$(curl -L -fsS --retry 6 --retry-delay 2 --retry-all-errors --max-time 25 https://explorer.kriptoaman.com/stats)"
+          [[ "$HOME_HTML" == *'Browser access restricted'* ]]
+          [[ "$HOME_HTML" == *'Fresh indexed head'* ]]
+          [[ "$HOME_HTML" == *'href="/validators">Validators'* ]]
+          [[ "$HOME_HTML" == *'href="/developer">Network'* ]]
+          [[ "$STATUS_HTML" == *'Live operational evidence for KAM Network.'* ]]
+          [[ "$VALIDATORS_HTML" == *'KAM Validators & Proposers'* ]]
+          [[ "$ADDRESSES_HTML" == *'full Blockscout detail surface'* ]]
+          [[ "$STATS_HTML" == *'built on verifiable on-chain data.'* ]]
+      - name: Verify native Blockscout detail routes remain intact
+        shell: bash
+        run: |
+          set -euo pipefail
+          TX='0x9854d90159013d488190d0f1847596a5dfb7582812f880102f167a1b172b163a'
+          ADDRESS='0xab481451eaf642384d2d9888b355f10d327c5de9'
+          curl -L -fsS --retry 4 --retry-all-errors --max-time 20 "https://explorer.kriptoaman.com/tx/$TX" >/dev/null
+          curl -L -fsS --retry 4 --retry-all-errors --max-time 20 "https://explorer.kriptoaman.com/address/$ADDRESS" >/dev/null
+          for path in /blocks /txs /api-docs /developer/network.json; do
+            curl -L -fsS --retry 4 --retry-all-errors --max-time 20 "https://explorer.kriptoaman.com$path" >/dev/null
+          done
+      - name: Final public core diagnostic
+        run: node scripts/diagnose-blockscout.mjs
