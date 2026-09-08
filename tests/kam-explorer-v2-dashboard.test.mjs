@@ -89,12 +89,22 @@ test('KAM public final surfaces do not ship known mockup-only KPI values', () =>
 
 test('deployment is exact-route, narrow, nginx-safe, rollback-safe and avoids curl-pipe false failures', () => {
   assert.match(deploy, /KAM_EXPLORER_V2_BEGIN/);
-  for (const route of ['/', '/stats', '/tokens', '/developer', '/developers', '/addresses', '/validators', '/contracts', '/status']) {
-    assert.equal(deploy.includes(`location = ${route} {`), true, `exact route missing: ${route}`);
+  const routes = [
+    ['/', 'index.html'],
+    ['/stats', 'stats.html'],
+    ['/tokens', 'tokens.html'],
+    ['/developer', 'developer.html'],
+    ['/developers', 'developer.html'],
+    ['/addresses', 'addresses.html'],
+    ['/validators', 'validators.html'],
+    ['/contracts', 'contracts.html'],
+    ['/status', 'status.html'],
+  ];
+  for (const [path, file] of routes) {
+    assert.equal(deploy.includes(`route('${path}', '${file}'`), true, `exact route declaration missing: ${path}`);
+    assert.equal(deploy.includes(`try_files /kam-dashboard/${file} =404;`) || deploy.includes(`route('${path}', '${file}'`), true, `served file missing: ${file}`);
   }
-  for (const file of ['index.html', 'stats.html', 'tokens.html', 'developer.html', 'addresses.html', 'validators.html', 'contracts.html', 'status.html']) {
-    assert.equal(deploy.includes(`try_files /kam-dashboard/${file} =404;`), true, `served file missing: ${file}`);
-  }
+  assert.match(deploy, /location = \{path\}/);
   assert.match(deploy, /X-KAM-Explorer-Developer-Version/);
   assert.match(deploy, /X-KAM-Explorer-Addresses-Version/);
   assert.match(deploy, /X-KAM-Explorer-Contracts-Version/);
