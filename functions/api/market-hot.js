@@ -11,6 +11,9 @@ const HOT_HEALTHY_AGE_MS = 60 * 60 * 1000;
 const MAX_FALLBACK_AGE_MS = 365 * 24 * 60 * 60 * 1000;
 const REQUEST_TIMEOUT_MS = 5_000;
 const RETRY_DELAYS_MS = [150, 350];
+const DURABLE_READ_BUDGET_MS = 350;
+const PUBLIC_COLD_RESPONSE_BUDGET_MS = 1_800;
+const EDGE_CACHE_WRITE_BUDGET_MS = 350;
 
 const HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
@@ -27,6 +30,25 @@ const json = (body, status = 200, extraHeaders = {}) => new Response(JSON.string
   headers: { ...HEADERS, ...extraHeaders },
 });
 
+const scheduleBackground = (waitUntil, task) => {
+  if (typeof waitUntil === 'function') waitUntil(task);
+  else task.catch(() => undefined);
+};
+
+async function withDeadline(task, timeoutMs, fallback = null) {
+  let timer;
+  try {
+    return await Promise.race([
+      Promise.resolve(task),
+      new Promise((resolve) => {
+        timer = setTimeout(() => resolve(fallback), timeoutMs);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function fetchJson(url) {
   let lastError;
   const maxAttempts = RETRY_DELAYS_MS.length + 1;
@@ -35,7 +57,7 @@ async function fetchJson(url) {
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
       const response = await fetch(url, {
-        headers: { Accept: 'application/json', 'User-Agent': 'KriptoAman-Hot-Market/3.2' },
+        headers: { Accept: 'application/json', 'User-Agent': 'KriptoAman-Hot-Market/3.3' },
         signal: controller.signal,
       });
       if (!response.ok) throw new Error(`upstream HTTP ${response.status}`);
@@ -108,8 +130,17 @@ function freshnessState(ageMs) {
   return 'expired';
 }
 
+function snapshotAgeMs(snapshot, now = Date.now()) {
+  const capturedAt = Number(snapshot?.capturedAt);
+  return Number.isFinite(capturedAt) ? Math.max(0, now - capturedAt) : Infinity;
+}
+
+function isAvailableSnapshot(snapshot, now = Date.now()) {
+  return Boolean(snapshot && hasCoreSymbols(snapshot.data || []) && snapshotAgeMs(snapshot, now) <= MAX_FALLBACK_AGE_MS);
+}
+
 async function readPersistedFallback(env) {
-  if (!env.AUTH_DB) return null;
+  if (!env?.AUTH_DB) return null;
   const db = readSession(env.AUTH_DB);
   const row = await db.prepare(
     'SELECT source, captured_at, payload FROM market_snapshots WHERE id = ?',
@@ -118,11 +149,14 @@ async function readPersistedFallback(env) {
   try {
     const data = normalizePersisted(JSON.parse(row.payload));
     if (!hasCoreSymbols(data)) return null;
-    return {
+    const capturedAt = Number(row.captured_at);
+    if (!Number.isFinite(capturedAt)) return null;
+    const snapshot = {
       source: `snapshot:${row.source || 'persisted'}`,
-      capturedAt: Number(row.captured_at),
+      capturedAt,
       data,
     };
+    return isAvailableSnapshot(snapshot) ? snapshot : null;
   } catch {
     return null;
   }
@@ -154,26 +188,83 @@ async function refreshHot(env) {
   }
 }
 
-async function getHot(env) {
-  const now = Date.now();
-  if (memorySnapshot && now - Number(memorySnapshot.capturedAt) < MEMORY_TTL_MS) return memorySnapshot;
+function startRefresh(env) {
   if (!refreshInFlight) {
     refreshInFlight = refreshHot(env).finally(() => {
       refreshInFlight = null;
     });
   }
-  try {
-    return await refreshInFlight;
-  } catch (error) {
-    if (memorySnapshot && now - Number(memorySnapshot.capturedAt) <= MAX_FALLBACK_AGE_MS) return memorySnapshot;
-    throw error;
-  }
+  return refreshInFlight;
 }
 
-export async function onRequestGet({ env, request, waitUntil }) {
+async function getHot(env, waitUntil) {
+  const now = Date.now();
+  if (memorySnapshot && now - Number(memorySnapshot.capturedAt) < MEMORY_TTL_MS) {
+    return { snapshot: memorySnapshot, deliveryMode: 'memory-fresh' };
+  }
+
+  const durableRead = readPersistedFallback(env);
+  const durable = await withDeadline(durableRead, DURABLE_READ_BUDGET_MS, null);
+  if (durable) {
+    memorySnapshot = durable;
+    scheduleBackground(waitUntil, startRefresh(env).catch(() => undefined));
+    return { snapshot: durable, deliveryMode: 'durable-verified-background-refresh' };
+  }
+  scheduleBackground(
+    waitUntil,
+    durableRead.then((snapshot) => {
+      if (snapshot && isAvailableSnapshot(snapshot)) memorySnapshot = snapshot;
+    }).catch(() => undefined),
+  );
+
+  if (isAvailableSnapshot(memorySnapshot, now)) {
+    scheduleBackground(waitUntil, startRefresh(env).catch(() => undefined));
+    return { snapshot: memorySnapshot, deliveryMode: 'memory-stale-background-refresh' };
+  }
+
+  const refresh = startRefresh(env);
+  const snapshot = await withDeadline(refresh, PUBLIC_COLD_RESPONSE_BUDGET_MS, null);
+  if (snapshot && isAvailableSnapshot(snapshot)) {
+    return { snapshot, deliveryMode: 'fresh-or-fallback-probe' };
+  }
+
+  scheduleBackground(waitUntil, refresh.catch(() => undefined));
+  return { snapshot: null, deliveryMode: 'warming-background-refresh' };
+}
+
+function warmingPayload(requestId, deliveryMode) {
+  return {
+    schemaVersion: '1.4',
+    healthy: false,
+    available: false,
+    freshness: 'unavailable',
+    source: null,
+    capturedAt: null,
+    ageMs: null,
+    stale: false,
+    assetCount: 0,
+    data: [],
+    requestId,
+    availability: {
+      state: 'warming',
+      reason: 'verified_hot_market_snapshot_unavailable_within_response_budget',
+    },
+    delivery: {
+      mode: deliveryMode,
+      durableReadBudgetMs: DURABLE_READ_BUDGET_MS,
+      publicColdResponseBudgetMs: PUBLIC_COLD_RESPONSE_BUDGET_MS,
+      edgeCacheWriteBudgetMs: EDGE_CACHE_WRITE_BUDGET_MS,
+      backgroundRefreshContinues: true,
+      fabricatedMetrics: false,
+    },
+  };
+}
+
+export async function onRequestGet({ env = {}, request, waitUntil } = {}) {
   const requestId = crypto.randomUUID();
+  const requestUrl = new URL(request?.url || 'https://kriptoaman.com/api/market-hot');
   const edgeCache = globalThis.caches?.default;
-  const cacheKey = new Request(new URL(request.url).origin + '/api/market-hot', {
+  const cacheKey = new Request(requestUrl.origin + '/api/market-hot', {
     method: 'GET',
     headers: { Accept: 'application/json' },
   });
@@ -188,8 +279,16 @@ export async function onRequestGet({ env, request, waitUntil }) {
   }
 
   try {
-    const snapshot = await getHot(env);
-    const ageMs = Math.max(0, Date.now() - Number(snapshot.capturedAt));
+    const { snapshot, deliveryMode } = await getHot(env, waitUntil);
+    if (!snapshot) {
+      return json(warmingPayload(requestId, deliveryMode), 503, {
+        'Retry-After': '2',
+        'X-KriptoAman-Market-Cache': 'MISS',
+        'X-KriptoAman-Market-Delivery': deliveryMode,
+      });
+    }
+
+    const ageMs = snapshotAgeMs(snapshot);
     const freshness = freshnessState(ageMs);
     const stale = freshness !== 'live';
     const healthy = hasCoreSymbols(snapshot.data) && ageMs <= HOT_HEALTHY_AGE_MS;
@@ -198,13 +297,14 @@ export async function onRequestGet({ env, request, waitUntil }) {
     const extraHeaders = {
       'X-KriptoAman-Market-Cache': 'MISS',
       'X-KriptoAman-Market-Freshness': freshness,
+      'X-KriptoAman-Market-Delivery': deliveryMode,
       ...(stale ? {
         'X-KriptoAman-Market-Stale': 'true',
         Warning: '110 - "Response is stale"',
       } : {}),
     };
     const response = json({
-      schemaVersion: '1.3',
+      schemaVersion: '1.4',
       healthy,
       available,
       freshness,
@@ -216,27 +316,35 @@ export async function onRequestGet({ env, request, waitUntil }) {
       data: snapshot.data,
       requestId,
       delivery: {
+        mode: deliveryMode,
         memoryTtlMs: MEMORY_TTL_MS,
         healthyAgeMs: HOT_HEALTHY_AGE_MS,
         maxFallbackAgeMs: MAX_FALLBACK_AGE_MS,
         edgeSMaxAgeSeconds: 15,
+        durableReadBudgetMs: DURABLE_READ_BUDGET_MS,
+        publicColdResponseBudgetMs: PUBLIC_COLD_RESPONSE_BUDGET_MS,
+        edgeCacheWriteBudgetMs: EDGE_CACHE_WRITE_BUDGET_MS,
         d1SessionRead: Boolean(env.AUTH_DB && typeof env.AUTH_DB.withSession === 'function'),
         singleFlight: true,
+        durableFirstOnColdRead: true,
+        fabricatedMetrics: false,
       },
     }, responseStatus, extraHeaders);
 
     if (edgeCache && available) {
-      const task = edgeCache.put(cacheKey, response.clone());
-      if (typeof waitUntil === 'function') waitUntil(task);
-      else await task;
+      const cacheWrite = edgeCache.put(cacheKey, response.clone())
+        .then(() => true)
+        .catch(() => false);
+      const cacheWritten = await withDeadline(cacheWrite, EDGE_CACHE_WRITE_BUDGET_MS, false);
+      if (!cacheWritten) scheduleBackground(waitUntil, cacheWrite.then(() => undefined));
     }
     return response;
   } catch (error) {
-    console.error('Hot market unavailable', { requestId, error });
+    console.error('Hot market unavailable', { requestId, error: error?.message || String(error) });
     return json({
       error: 'Hot market unavailable',
       code: 'HOT_MARKET_UNAVAILABLE',
       requestId,
-    }, 503, { 'Retry-After': '15', 'X-KriptoAman-Market-Cache': 'MISS' });
+    }, 503, { 'Retry-After': '2', 'X-KriptoAman-Market-Cache': 'MISS' });
   }
 }
