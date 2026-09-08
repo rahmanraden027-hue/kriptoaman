@@ -12,8 +12,8 @@ test('live KAM starter is canonical and browser-safe', () => {
   assert.match(starter, /KriptoAman Mainnet/);
   assert.match(starter, /Chain ID 22028/);
   assert.match(starter, /0x560c/);
-  assert.match(starter, /https:\/\/rpc\.kriptoaman\.com/);
-  assert.match(starter, /https:\/\/explorer\.kriptoaman\.com/);
+  assert.equal(starter.includes('https://rpc.kriptoaman.com'), true);
+  assert.equal(starter.includes('https://explorer.kriptoaman.com'), true);
   assert.match(starter, /readJson\('\/developer\/network\.json'\)/);
   assert.match(starter, /readJson\('\/api\/v2\/blocks'\)/);
   assert.match(starter, /readJson\('\/api\/v2\/stats'\)/);
