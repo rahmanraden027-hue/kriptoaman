@@ -7,7 +7,9 @@ const SNAPSHOT_TTL_MS = 45_000;
 const STALE_SNAPSHOT_MAX_AGE_MS = 5 * 60 * 1000;
 const LAST_GOOD_TTL_MS = 10 * 60 * 1000;
 const MIN_ACTIVE_TARGET = 12;
-const DURABLE_READ_BUDGET_MS = 150;
+const DURABLE_READ_BUDGET_MS = 500;
+const PUBLIC_RESPONSE_BUDGET_MS = 6500;
+const EDGE_CACHE_WRITE_BUDGET_MS = 400;
 
 const NETWORKS = [
   { name: 'Bitcoin', type: 'bitcoin', timeoutMs: SLOW_PROVIDER_TIMEOUT_MS, urls: ['https://mempool.space/api/blocks/tip/height', 'https://blockstream.info/api/blocks/tip/height'] },
@@ -284,6 +286,8 @@ async function buildSnapshot() {
       durableRecentSnapshotTriggersBackgroundRefresh: true,
       durableSnapshotCrossPop: true,
       durableReadBudgetMs: DURABLE_READ_BUDGET_MS,
+      publicResponseBudgetMs: PUBLIC_RESPONSE_BUDGET_MS,
+      edgeCacheWriteBudgetMs: EDGE_CACHE_WRITE_BUDGET_MS,
       responseBodyBoundedByProviderTimeout: true,
       fabricatedMetrics: false,
     },
@@ -410,9 +414,44 @@ async function getSnapshot(forceRefresh = false, waitUntil, env) {
     return { snapshot: cachedSnapshot, deliveryMode: 'recent-verified-background-refresh', ageMs };
   }
 
-  const snapshot = await startRefresh();
+  const refresh = startRefresh();
+  const snapshot = await withDeadline(refresh, PUBLIC_RESPONSE_BUDGET_MS, null);
+  if (!snapshot) {
+    scheduleBackground(
+      waitUntil,
+      refresh.then((fresh) => persistDurableSnapshot(env, fresh)),
+    );
+    return { snapshot: null, deliveryMode: 'warming-background-refresh', ageMs: null };
+  }
+
   scheduleBackground(waitUntil, persistDurableSnapshot(env, snapshot));
   return { snapshot, deliveryMode: 'fresh-probe', ageMs: 0 };
+}
+
+function warmingPayload(deliveryMode) {
+  return {
+    summary: null,
+    networks: [],
+    checked_at: null,
+    availability: {
+      state: 'warming',
+      reason: 'verified_snapshot_unavailable_within_response_budget',
+    },
+    delivery: {
+      mode: deliveryMode,
+      snapshotAgeMs: null,
+      freshProbe: false,
+      edgeCacheEligible: false,
+    },
+    policy: {
+      valuesAreLiveVerifiedOnly: true,
+      unavailableMetricsUseNull: true,
+      fabricatedMetrics: false,
+      publicResponseBudgetMs: PUBLIC_RESPONSE_BUDGET_MS,
+      backgroundRefreshContinues: true,
+      refreshParameterAlwaysForcesFreshProbe: true,
+    },
+  };
 }
 
 export async function onRequestGet({ request, waitUntil, env } = {}) {
@@ -431,6 +470,13 @@ export async function onRequestGet({ request, waitUntil, env } = {}) {
   }
 
   const { snapshot, deliveryMode, ageMs } = await getSnapshot(forceRefresh, waitUntil, env);
+  if (!snapshot) {
+    return json(warmingPayload(deliveryMode), { status: 503 }, {
+      'X-KriptoAman-Network-Cache': 'MISS',
+      'X-KriptoAman-Network-Delivery': deliveryMode,
+    });
+  }
+
   const delivered = {
     ...snapshot,
     delivery: {
@@ -447,7 +493,11 @@ export async function onRequestGet({ request, waitUntil, env } = {}) {
   });
 
   if (!forceRefresh && edgeCache && status === 200 && deliveryMode === 'fresh-probe') {
-    scheduleBackground(waitUntil, edgeCache.put(cacheKey, response.clone()));
+    const cacheWrite = edgeCache.put(cacheKey, response.clone())
+      .then(() => true)
+      .catch(() => false);
+    const cacheWritten = await withDeadline(cacheWrite, EDGE_CACHE_WRITE_BUDGET_MS, false);
+    if (!cacheWritten) scheduleBackground(waitUntil, cacheWrite.then(() => undefined));
   }
 
   return response;
