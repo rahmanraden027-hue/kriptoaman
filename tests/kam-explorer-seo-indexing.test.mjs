@@ -21,11 +21,13 @@ test('KAM Explorer SEO assets expose canonical crawl signals without indexing AP
   assert.doesNotMatch(sitemap, /\/api\/v2\//);
 });
 
-test('SEO deployment is idempotent, canonicalizes verified surfaces, and preserves the Explorer V2 boundary', async () => {
+test('SEO deployment is idempotent, path-stable, canonicalizes verified surfaces, and preserves the Explorer V2 boundary', async () => {
   const script = await read('scripts/apply-kam-explorer-seo.sh');
 
   assert.match(script, /KAM_EXPLORER_SEO_BEGIN/);
   assert.match(script, /KAM_EXPLORER_V2_BEGIN/);
+  assert.match(script, /ROBOTS_SOURCE="\$\(realpath "\$ROBOTS_SOURCE"\)"/);
+  assert.match(script, /SITEMAP_SOURCE="\$\(realpath "\$SITEMAP_SOURCE"\)"/);
   assert.match(script, /<link rel="canonical" href="\{canonical\}" \/>/);
   assert.match(script, /meta property="og:url" content="\{canonical\}" \/>/);
   assert.match(script, /meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"/);
