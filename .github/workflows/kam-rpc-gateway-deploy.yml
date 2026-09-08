@@ -1,0 +1,59 @@
+name: KAM RPC Gateway Security Deploy
+
+on:
+  pull_request:
+    paths:
+      - 'chain/kam-mainnet/public-rpc-gateway/**'
+      - 'tests/kam-rpc-security.test.mjs'
+      - '.github/workflows/kam-rpc-gateway-deploy.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'chain/kam-mainnet/public-rpc-gateway/**'
+      - 'tests/kam-rpc-security.test.mjs'
+      - '.github/workflows/kam-rpc-gateway-deploy.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kam-rpc-gateway-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - run: node --test tests/kam-rpc-security.test.mjs
+
+  deploy:
+    if: ${{ github.event_name == 'push' }}
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    environment: production
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Validate Cloudflare deployment credentials
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+          test -n "$CLOUDFLARE_API_TOKEN"
+      - name: Deploy reviewed RPC gateway
+        working-directory: chain/kam-mainnet/public-rpc-gateway
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx --yes wrangler@4.36.0 deploy
+      - name: Verify public RPC security boundary
+        run: node chain/kam-mainnet/scripts/verify-public-endpoints.mjs
