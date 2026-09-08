@@ -147,7 +147,7 @@ export default function KriptoAmanGlobalLanding() {
       <GlobalLandingStyles />
       <GLandingHeader dark={dark} onToggleTheme={() => setDark((d) => !d)} active={active} />
       <main>
-        <GLandingHero />
+        <GLandingHero stats={stats} />
         <GLandingNews />
         <GLandingBody stats={stats} />
         <GLandingInstitutional />
