@@ -28,9 +28,9 @@ Then open `http://localhost:8080`.
 
 - `KAM_NETWORK` — canonical public connection parameters.
 - `jsonRpc(method, params)` — small JSON-RPC helper.
-- `explorerBlocks()` — reads the public recent-blocks endpoint.
-- `explorerTransactions()` — reads the public recent-transactions endpoint.
-- `explorerStats()` — reads the public statistics endpoint.
+- `latestBlocks()` — reads the fixed public recent-blocks endpoint.
+- `latestTransactions()` — reads the fixed public recent-transactions endpoint.
+- `networkStats()` — reads the fixed public statistics endpoint.
 - `verifyNetwork()` — checks `eth_chainId` and latest block number.
 - `addToWallet()` — requests the network through `wallet_addEthereumChain`.
 - `switchToKAM()` — switches to KAM, adding it if the wallet returns error `4902`.
