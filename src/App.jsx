@@ -4,7 +4,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config'
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -86,12 +86,23 @@ const PublicKAMWithDocument = ({ Page }) => (
 
 const PUBLIC_PAGE_KEYS = new Set(['AboutUs', 'Edukasi', 'Enterprise', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'RPCPrivacyPolicy', 'TermsOfService', 'AccountDeletion', 'Market', 'KAM', 'KAMCampaignNews', 'KAMDeveloper', 'KAMGlobalRoadmap', 'KAMLaunchReadiness', 'KAMNetwork', 'KAMNetworkDocs', 'KAMTokenomics']);
 
+const AUTH_OPTIONAL_PATHS = new Set([
+  '/', '/en', '/KriptoAmanGlobalLanding', '/login', '/register', '/forgot-password', '/reset-password',
+  '/LegalCorporateInformation', '/founder', '/company', '/research', '/research/kam-mainnet-architecture', '/SystemStatus',
+  ...Array.from(PUBLIC_PAGE_KEYS, (path) => path === 'KAMCampaignNews' ? '/news/kam-campaign-2026' : `/${path}`),
+]);
+
 const LayoutWrapper = ({ children, currentPageName }) => Layout ? <Layout currentPageName={currentPageName}>{children}</Layout> : <>{children}</>;
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
-  if (isLoadingPublicSettings || isLoadingAuth) return <WorkspaceState mode="loading" title="Menyiapkan KriptoAman" body="Memuat sesi dan workspace secara aman tanpa mengubah data akun." />;
-  if (authError && authError.type === 'user_not_registered') return <UserNotRegisteredError />;
+  const { pathname } = useLocation();
+  const canRenderWithoutAuth = AUTH_OPTIONAL_PATHS.has(pathname);
+
+  // Public information paints immediately while session detection continues
+  // in the background. Only account-required routes wait for authentication.
+  if (!canRenderWithoutAuth && (isLoadingPublicSettings || isLoadingAuth)) return <WorkspaceState mode="loading" title="Menyiapkan KriptoAman" body="Memuat sesi dan workspace secara aman tanpa mengubah data akun." />;
+  if (!canRenderWithoutAuth && authError && authError.type === 'user_not_registered') return <UserNotRegisteredError />;
 
   return (
     <Suspense fallback={<WorkspaceState mode="loading" title="Memuat workspace" body="Komponen sedang dimuat. Data tersimpan tidak berubah." />}>
