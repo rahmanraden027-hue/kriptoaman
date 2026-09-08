@@ -71,12 +71,12 @@ if begin in text:
 needle='    location / {\n'
 if needle not in text: raise SystemExit('frontend catch-all location not found')
 headers='''        add_header Cache-Control "no-store, max-age=0" always;\n        add_header X-Content-Type-Options "nosniff" always;\n        add_header Referrer-Policy "strict-origin-when-cross-origin" always;\n'''
-def route(path, filename, header, connect="'self'"):
-    return f'''    location = {path} {{\n        root /etc/nginx/templates;\n        try_files /kam-dashboard/{filename} =404;\n        default_type text/html;\n{headers}        add_header {header} "1" always;\n        add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src {connect}; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'" always;\n    }}\n'''
+def route(path, filename, header, version='1', connect="'self'"):
+    return f'''    location = {path} {{\n        root /etc/nginx/templates;\n        try_files /kam-dashboard/{filename} =404;\n        default_type text/html;\n{headers}        add_header {header} "{version}" always;\n        add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src {connect}; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'" always;\n    }}\n'''
 block='    # KAM_EXPLORER_V2_BEGIN\n'
-block+=route('/', 'index.html', 'X-KAM-Explorer-Version', "'self' https://rpc.kriptoaman.com")
-block+=route('/stats', 'stats.html', 'X-KAM-Explorer-Stats-Version')
-block+=route('/tokens', 'tokens.html', 'X-KAM-Explorer-Tokens-Version')
+block+=route('/', 'index.html', 'X-KAM-Explorer-Version', '2', "'self' https://rpc.kriptoaman.com")
+block+=route('/stats', 'stats.html', 'X-KAM-Explorer-Stats-Version', '2')
+block+=route('/tokens', 'tokens.html', 'X-KAM-Explorer-Tokens-Version', '2')
 block+=route('/developer', 'developer.html', 'X-KAM-Explorer-Developer-Version')
 block+=route('/developers', 'developer.html', 'X-KAM-Explorer-Developer-Version')
 block+=route('/addresses', 'addresses.html', 'X-KAM-Explorer-Addresses-Version')
@@ -136,9 +136,14 @@ assert_page '/addresses' 'data-kam-addresses-version="1.0.0"'
 assert_page '/validators' 'data-kam-validators-version="1.0.0"'
 assert_page '/contracts' 'data-kam-contracts-version="1.0.0"'
 assert_page '/status' 'data-kam-status-version="1.0.0"'
+assert_header '/' '^x-kam-explorer-version: *2'
+assert_header '/stats' '^x-kam-explorer-stats-version: *2'
+assert_header '/tokens' '^x-kam-explorer-tokens-version: *2'
 assert_header '/developer' '^x-kam-explorer-developer-version: *1'
 assert_header '/addresses' '^x-kam-explorer-addresses-version: *1'
+assert_header '/validators' '^x-kam-explorer-validators-version: *1'
 assert_header '/contracts' '^x-kam-explorer-contracts-version: *1'
+assert_header '/status' '^x-kam-explorer-status-version: *1'
 
 curl -fsS --retry 4 --retry-all-errors --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("items")'
 curl -fsS --retry 4 --retry-all-errors --max-time 15 https://explorer.kriptoaman.com/api/v2/stats | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "total_transactions" in d'

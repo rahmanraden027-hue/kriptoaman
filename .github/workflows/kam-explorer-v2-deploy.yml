@@ -97,15 +97,42 @@ jobs:
     steps:
       - name: Checkout reviewed source
         uses: actions/checkout@v7
-      - name: Verify V2 overview, statistics, and token registry
+      - name: Verify all KAM Explorer public presentation routes
         run: |
           set -euo pipefail
-          curl -L -fsS --max-time 20 https://explorer.kriptoaman.com/ | grep -q 'data-kam-explorer-version="2.0.0"'
-          curl -L -fsS --max-time 20 https://explorer.kriptoaman.com/stats | grep -q 'data-kam-stats-version="2.0.0"'
-          curl -L -fsS --max-time 20 https://explorer.kriptoaman.com/tokens | grep -q 'data-kam-tokens-version="2.0.0"'
-          curl -L -sSI --max-time 20 https://explorer.kriptoaman.com/ | grep -Ei '^x-kam-explorer-version: *2' >/dev/null
-          curl -L -sSI --max-time 20 https://explorer.kriptoaman.com/stats | grep -Ei '^x-kam-explorer-stats-version: *2' >/dev/null
-          curl -L -sSI --max-time 20 https://explorer.kriptoaman.com/tokens | grep -Ei '^x-kam-explorer-tokens-version: *2' >/dev/null
+          BODY="$(mktemp)"
+          HEADERS="$(mktemp)"
+          trap 'rm -f "$BODY" "$HEADERS"' EXIT
+          verify_body() {
+            local path="$1" marker="$2"
+            : > "$BODY"
+            curl -L -fsS --retry 5 --retry-delay 2 --retry-all-errors --max-time 25 -o "$BODY" "https://explorer.kriptoaman.com$path"
+            grep -Fq "$marker" "$BODY"
+          }
+          verify_header() {
+            local path="$1" pattern="$2"
+            : > "$HEADERS"
+            curl -L -sSIf --retry 5 --retry-delay 2 --retry-all-errors --max-time 25 -o "$HEADERS" "https://explorer.kriptoaman.com$path"
+            grep -Eqi "$pattern" "$HEADERS"
+          }
+          verify_body '/' 'data-kam-explorer-version="2.0.0"'
+          verify_body '/stats' 'data-kam-stats-version="2.0.0"'
+          ! grep -Fq 'Placeholder Counter' "$BODY"
+          ! grep -Eqi 'amount in ETH|>ETH<' "$BODY"
+          verify_body '/tokens' 'data-kam-tokens-version="2.0.0"'
+          verify_body '/developer' 'data-kam-developer-version="1.0.0"'
+          verify_body '/addresses' 'data-kam-addresses-version="1.0.0"'
+          verify_body '/validators' 'data-kam-validators-version="1.0.0"'
+          verify_body '/contracts' 'data-kam-contracts-version="1.0.0"'
+          verify_body '/status' 'data-kam-status-version="1.0.0"'
+          verify_header '/' '^x-kam-explorer-version: *2'
+          verify_header '/stats' '^x-kam-explorer-stats-version: *2'
+          verify_header '/tokens' '^x-kam-explorer-tokens-version: *2'
+          verify_header '/developer' '^x-kam-explorer-developer-version: *1'
+          verify_header '/addresses' '^x-kam-explorer-addresses-version: *1'
+          verify_header '/validators' '^x-kam-explorer-validators-version: *1'
+          verify_header '/contracts' '^x-kam-explorer-contracts-version: *1'
+          verify_header '/status' '^x-kam-explorer-status-version: *1'
       - name: Verify core data APIs remain intact
         run: |
           set -euo pipefail
