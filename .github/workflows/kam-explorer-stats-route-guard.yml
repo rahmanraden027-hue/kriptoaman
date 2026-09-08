@@ -4,6 +4,13 @@ on:
   schedule:
     - cron: '17 * * * *'
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'explorer-seo/**'
+      - 'scripts/apply-kam-explorer-seo.sh'
+      - 'tests/kam-explorer-seo-indexing.test.mjs'
+      - '.github/workflows/kam-explorer-stats-route-guard.yml'
 
 permissions:
   contents: read
@@ -15,12 +22,19 @@ concurrency:
 jobs:
   verify-and-heal-stats-route:
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - name: Checkout trusted main source
         uses: actions/checkout@v7
         with:
           ref: main
+
+      - name: Validate SEO guard source
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/apply-kam-explorer-seo.sh
+          node --test tests/kam-explorer-seo-indexing.test.mjs
 
       - name: Probe canonical KAM statistics route
         id: probe
@@ -67,6 +81,47 @@ jobs:
           chmod +x scripts/deploy-kam-explorer-v2.sh
           bash scripts/deploy-kam-explorer-v2.sh
 
+      - name: Probe Explorer canonical indexing signals
+        id: seo_probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          BODY="$(mktemp)"
+          trap 'rm -f "$BODY"' EXIT
+          healthy=true
+
+          if ! curl -L -fsS --max-time 25 -o "$BODY" 'https://explorer.kriptoaman.com/stats'; then
+            healthy=false
+          fi
+          if ! grep -Fq '<link rel="canonical" href="https://explorer.kriptoaman.com/stats" />' "$BODY"; then healthy=false; fi
+          if ! grep -Fq 'meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"' "$BODY"; then healthy=false; fi
+
+          if ! curl -L -fsS --max-time 25 -o "$BODY" 'https://explorer.kriptoaman.com/robots.txt'; then
+            healthy=false
+          fi
+          if ! grep -Fq 'Sitemap: https://explorer.kriptoaman.com/sitemap.xml' "$BODY"; then healthy=false; fi
+
+          if ! curl -L -fsS --max-time 25 -o "$BODY" 'https://explorer.kriptoaman.com/sitemap.xml'; then
+            healthy=false
+          fi
+          if ! grep -Fq '<loc>https://explorer.kriptoaman.com/stats</loc>' "$BODY"; then healthy=false; fi
+
+          if [[ "$healthy" == "true" ]]; then
+            echo 'drift=false' >> "$GITHUB_OUTPUT"
+            echo 'seo_signals=healthy'
+          else
+            echo 'drift=true' >> "$GITHUB_OUTPUT"
+            echo 'seo_signals=drift_detected'
+          fi
+
+      - name: Apply reviewed Explorer SEO signals when drift is detected
+        if: ${{ steps.seo_probe.outputs.drift == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x scripts/apply-kam-explorer-seo.sh
+          bash scripts/apply-kam-explorer-seo.sh
+
       - name: Verify canonical and cache-busted stats surfaces
         shell: bash
         run: |
@@ -88,6 +143,8 @@ jobs:
             ! grep -Fq 'Placeholder Counter' "$BODY"
             ! grep -Eqi 'amount in ETH|>ETH<' "$BODY"
             grep -Eqi '^x-kam-explorer-stats-version: *2' "$HEADERS"
+            grep -Fq '<link rel="canonical" href="https://explorer.kriptoaman.com/stats" />' "$BODY"
+            grep -Fq 'meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"' "$BODY"
           }
 
           verify 'https://explorer.kriptoaman.com/stats'
@@ -97,4 +154,7 @@ jobs:
             'https://explorer.kriptoaman.com/api/v2/stats' |
             python3 -c 'import json,sys; d=json.load(sys.stdin); assert "total_transactions" in d and "average_block_time" in d'
 
-          echo 'stats_route_guard=verified'
+          curl -L -fsS --max-time 20 'https://explorer.kriptoaman.com/robots.txt' | grep -Fq 'Sitemap: https://explorer.kriptoaman.com/sitemap.xml'
+          curl -L -fsS --max-time 20 'https://explorer.kriptoaman.com/sitemap.xml' | grep -Fq '<loc>https://explorer.kriptoaman.com/stats</loc>'
+
+          echo 'stats_route_and_seo_guard=verified'
