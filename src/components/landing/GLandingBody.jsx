@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import {
   Shield, Radar, ShieldCheck, Wallet, Eye, Search, AlertTriangle,
-  ArrowRight, Cpu, Network, Lock, BarChart3, ChevronDown,
+  ArrowRight, Network, Lock, BarChart3, ChevronDown,
 } from 'lucide-react';
 
 const FEATURES = [
@@ -58,7 +58,7 @@ export default function GLandingBody({ stats }) {
 
   return (
     <>
-      <section id="fitur" className="px-4 sm:px-6 py-14">
+      <section id="fitur" className="px-4 sm:px-6 py-10">
         <div className="max-w-[1440px] mx-auto">
           <div className="ka-card ka-glow p-5 sm:p-7">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -68,7 +68,7 @@ export default function GLandingBody({ stats }) {
                     <f.icon className="w-5 h-5 ka-blue" />
                   </div>
                   <h3 className="font-bold text-sm ka-text mb-1.5">{f.title}</h3>
-                  <p className="text-xs ka-text2 leading-relaxed">{f.desc}</p>
+                  <p className="text-sm ka-text2 leading-relaxed">{f.desc}</p>
                 </div>
               ))}
             </div>
@@ -80,7 +80,7 @@ export default function GLandingBody({ stats }) {
         <div className="ka-stats-card max-w-[1440px] mx-auto ka-card p-5 sm:p-7">
           <div className="ka-stats-head flex items-center justify-between mb-5">
             <h2 className="font-bold text-sm ka-text">Statistik Platform</h2>
-            <span className="text-[11px] ka-text2">Terakhir diperbarui: {statusTimestampLabel}</span>
+            <span className="text-xs ka-text2">Terakhir diperbarui: {statusTimestampLabel}</span>
           </div>
           <div className="ka-stats-grid grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
@@ -96,17 +96,17 @@ export default function GLandingBody({ stats }) {
                    s.value === 'Memeriksa' ? <span className="ka-blue">{s.value}</span> :
                    <span className="ka-text2">{s.value}</span>}
                 </p>
-                <p className="text-[11px] ka-text2 mt-1">{s.label}</p>
+                <p className="text-xs ka-text2 mt-1">{s.label}</p>
               </div>
             ))}
           </div>
-          <p className="text-[11px] ka-text2 mt-3 opacity-70">
+          <p className="text-xs ka-text2 mt-3">
             Angka cakupan aset berasal dari snapshot Database Pasar KriptoAman. Jaringan Aktif hanya menghitung jaringan yang merespons pemeriksaan live terakhir.
           </p>
         </div>
       </section>
 
-      <section id="keamanan" className="ka-security-preview px-4 sm:px-6 py-14">
+      <section id="keamanan" className="ka-security-preview px-4 sm:px-6 py-10">
         <div className="max-w-[1440px] mx-auto grid lg:grid-cols-2 gap-5">
           <div className="ka-card ka-glow p-6 sm:p-8 flex flex-col">
             <div className="flex flex-wrap items-center gap-2">
@@ -138,7 +138,7 @@ export default function GLandingBody({ stats }) {
                 ))}
               </div>
             </div>
-            <p className="text-[11px] ka-text2 mt-3 opacity-70">
+            <p className="text-xs ka-text2 mt-3">
               Preview ini hanya contoh antarmuka. Tidak menampilkan saldo, profit, performa investasi, atau data pengguna nyata.
             </p>
             <Link to="/login" className="ka-btn-primary inline-flex items-center justify-center gap-2 px-5 mt-5 text-sm w-max">
@@ -161,7 +161,7 @@ export default function GLandingBody({ stats }) {
                 <span className="text-[8px] ka-text2 text-center leading-tight">0x4a...e9f2 • Confirmed</span>
               </div>
             </div>
-            <p className="text-[11px] ka-text2 opacity-70">
+            <p className="text-xs ka-text2">
               KriptoAman tidak menyatakan transaksi “aman” sebelum pemeriksaan selesai.
             </p>
             <Link to="/TxHistory" className="ka-btn-primary inline-flex items-center justify-center gap-2 px-5 mt-5 text-sm w-max">
@@ -171,7 +171,7 @@ export default function GLandingBody({ stats }) {
         </div>
       </section>
 
-      <section className="px-4 sm:px-6 py-14">
+      <section className="px-4 sm:px-6 py-10">
         <div className="max-w-[1440px] mx-auto">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <SectionHead eyebrow="Jaringan" title="Jaringan Terverifikasi Live" />
@@ -188,14 +188,14 @@ export default function GLandingBody({ stats }) {
               <span className="ka-card2 px-4 py-2 text-xs ka-text2">{stats.loading ? 'Memeriksa jaringan live…' : 'Verifikasi jaringan sedang diperbarui.'}</span>
             )}
           </div>
-          <p className="text-[11px] ka-text2 mt-4 text-center opacity-70 max-w-3xl mx-auto">
+          <p className="text-xs ka-text2 mt-4 text-center max-w-3xl mx-auto">
             Menampilkan jaringan utama dari {verifiedNetworks.length || '—'} endpoint aktif yang berhasil merespons pemeriksaan publik.
             {networkChecked ? ` Pemeriksaan terakhir: ${networkChecked}.` : ''}
           </p>
         </div>
       </section>
 
-      <section className="px-4 sm:px-6 py-14">
+      <section className="px-4 sm:px-6 py-10">
         <div className="max-w-[1440px] mx-auto">
           <SectionHead eyebrow="Risiko" title="Fitur Pemeriksaan Risiko" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
@@ -205,13 +205,13 @@ export default function GLandingBody({ stats }) {
                   <f.icon className="w-4 h-4 ka-blue" />
                 </div>
                 <h3 className="font-bold text-sm ka-text">{f.title}</h3>
-                <p className="text-xs ka-text2 mt-1.5 leading-relaxed">{f.desc}</p>
+                <p className="text-sm ka-text2 mt-1.5 leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
           <div className="ka-card2 p-4 mt-6 flex items-start gap-3">
             <AlertTriangle className="w-4 h-4 ka-gold shrink-0 mt-0.5" />
-            <p className="text-[11px] ka-text2 leading-relaxed">
+            <p className="text-xs ka-text2 leading-relaxed">
               KriptoAman adalah platform informasi dan analisis risiko, bukan jaminan keamanan aset.
               Hasil pemeriksaan bersifat indikatif dan harus diverifikasi secara mandiri.
             </p>
@@ -219,28 +219,7 @@ export default function GLandingBody({ stats }) {
         </div>
       </section>
 
-      <section data-nosnippet="" className="px-4 sm:px-6 py-14">
-        <div className="max-w-[1440px] mx-auto ka-card p-5 sm:p-7">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <Cpu className="w-5 h-5 ka-blue" />
-              <h3 className="font-bold text-sm ka-text">Status Sistem</h3>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className={`w-2.5 h-2.5 rounded-full ${stats.loading ? 'bg-[var(--ka-blue)]' : systemOk ? 'bg-[var(--ka-green)]' : 'bg-[var(--ka-gold)]'} animate-pulse`} />
-              <span className="text-sm font-semibold">
-                {stats.loading ? <span className="ka-blue">Memeriksa data live</span> : systemOk ? <span className="ka-green">Operasional</span> : <span className="ka-gold">Layanan data terbatas</span>}
-              </span>
-              <span className="text-[11px] ka-text2">• {statusTimestampLabel}</span>
-            </div>
-          </div>
-          <p className="text-[11px] ka-text2 mt-3 opacity-70">
-            Status memeriksa snapshot pasar internal dan health jaringan publik. Gangguan provider tidak mengubah data tersimpan terakhir yang masih tersedia.
-          </p>
-        </div>
-      </section>
-
-      <section id="faq" className="px-4 sm:px-6 py-14">
+      <section id="faq" className="px-4 sm:px-6 py-10">
         <div className="max-w-[860px] mx-auto">
           <SectionHead eyebrow="FAQ" title="Pertanyaan Umum" center />
           <div className="mt-8 flex flex-col gap-3">
@@ -250,14 +229,14 @@ export default function GLandingBody({ stats }) {
                   <span className="font-semibold text-sm ka-text">{f.q}</span>
                   <ChevronDown className="w-4 h-4 ka-text2 ka-faq-icon transition-transform" />
                 </summary>
-                <p className="text-xs ka-text2 mt-3 leading-relaxed">{f.a}</p>
+                <p className="text-sm ka-text2 mt-3 leading-relaxed">{f.a}</p>
               </details>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="tentang" className="px-4 sm:px-6 py-16">
+      <section id="tentang" className="px-4 sm:px-6 py-12">
         <div className="max-w-[1440px] mx-auto ka-card ka-glow-cyan p-8 sm:p-12 text-center relative overflow-hidden">
           <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full blur-3xl pointer-events-none"
             style={{ background: 'radial-gradient(circle, rgba(8,124,240,0.18), transparent 60%)' }} />
@@ -283,7 +262,7 @@ export default function GLandingBody({ stats }) {
 function SectionHead({ eyebrow, title, center }) {
   return (
     <div className={center ? 'text-center' : ''}>
-      <span className="text-[11px] font-bold tracking-widest uppercase ka-cyan">{eyebrow}</span>
+      <span className="text-xs font-bold tracking-widest uppercase ka-cyan">{eyebrow}</span>
       <h2 className="ka-sec-title text-xl sm:text-2xl mt-1.5">{title}</h2>
     </div>
   );
