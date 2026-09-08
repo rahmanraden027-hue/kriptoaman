@@ -5,6 +5,7 @@ import test from 'node:test';
 const starter = await readFile(new URL('../explorer-dashboard/developer-starter.html', import.meta.url), 'utf8');
 const developer = await readFile(new URL('../explorer-dashboard/developer.html', import.meta.url), 'utf8');
 const docs = await readFile(new URL('../explorer-dashboard/developer-docs.html', import.meta.url), 'utf8');
+const networkConfig = JSON.parse(await readFile(new URL('../explorer-dashboard/developer-network.json', import.meta.url), 'utf8'));
 const deploy = await readFile(new URL('../scripts/deploy-kam-developer-starter.sh', import.meta.url), 'utf8');
 
 test('live KAM starter is canonical and browser-safe', () => {
@@ -12,8 +13,9 @@ test('live KAM starter is canonical and browser-safe', () => {
   assert.match(starter, /KriptoAman Mainnet/);
   assert.match(starter, /Chain ID 22028/);
   assert.match(starter, /0x560c/);
-  assert.equal(starter.includes('https://rpc.kriptoaman.com'), true);
-  assert.equal(starter.includes('https://explorer.kriptoaman.com'), true);
+  assert.equal(networkConfig.chainId, 22028);
+  assert.equal(networkConfig.chainIdHex, '0x560c');
+  assert.equal(networkConfig.nativeCurrency.symbol, 'KAM');
   assert.match(starter, /readJson\('\/developer\/network\.json'\)/);
   assert.match(starter, /readJson\('\/api\/v2\/blocks'\)/);
   assert.match(starter, /readJson\('\/api\/v2\/stats'\)/);
