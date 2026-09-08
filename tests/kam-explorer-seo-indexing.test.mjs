@@ -26,11 +26,12 @@ test('SEO deployment is idempotent, canonicalizes verified surfaces, and preserv
 
   assert.match(script, /KAM_EXPLORER_SEO_BEGIN/);
   assert.match(script, /KAM_EXPLORER_V2_BEGIN/);
-  assert.match(script, /<link rel=\"canonical\" href=\"\$canonical\" \/>/);
-  assert.match(script, /meta name=\"robots\" content=\"index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1\"/);
+  assert.match(script, /<link rel="canonical" href="\{canonical\}" \/>/);
+  assert.match(script, /meta property="og:url" content="\{canonical\}" \/>/);
+  assert.match(script, /meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"/);
   assert.match(script, /location = \/robots\.txt/);
   assert.match(script, /location = \/sitemap\.xml/);
-  assert.match(script, /data-kam-stats-version=\"2\.0\.0\"/);
+  assert.match(script, /data-kam-stats-version="2\.0\.0"/);
   assert.match(script, /Placeholder Counter/);
   assert.match(script, /amount in ETH/);
   assert.match(script, /docker run --rm --network none -i/);
