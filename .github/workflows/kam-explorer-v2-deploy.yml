@@ -121,6 +121,18 @@ jobs:
           ! grep -Eqi 'amount in ETH|>ETH<' "$BODY"
           verify_body '/tokens' 'data-kam-tokens-version="2.0.0"'
           verify_body '/developer' 'data-kam-developer-version="1.0.0"'
+          verify_body '/developer/docs' 'data-kam-developer-docs-version="1.0.0"'
+          verify_body '/developer/examples' 'data-kam-developer-examples-version="1.0.0"'
+          verify_body '/developer/verify' 'data-kam-developer-verify-version="1.0.0"'
+          : > "$BODY"
+          curl -L -fsS --retry 5 --retry-delay 2 --retry-all-errors --max-time 25 -o "$BODY" 'https://explorer.kriptoaman.com/developer/network.json'
+          python3 - "$BODY" <<'PY'
+          import json,sys
+          with open(sys.argv[1], encoding='utf-8') as fh: d=json.load(fh)
+          assert d['chainId']==22028 and d['chainIdHex']=='0x560c'
+          assert d['nativeCurrency']['symbol']=='KAM'
+          assert d['publicDeveloperAccess'] is True
+          PY
           verify_body '/addresses' 'data-kam-addresses-version="1.0.0"'
           verify_body '/validators' 'data-kam-validators-version="1.0.0"'
           verify_body '/contracts' 'data-kam-contracts-version="1.0.0"'
@@ -129,6 +141,10 @@ jobs:
           verify_header '/stats' '^x-kam-explorer-stats-version: *2'
           verify_header '/tokens' '^x-kam-explorer-tokens-version: *2'
           verify_header '/developer' '^x-kam-explorer-developer-version: *1'
+          verify_header '/developer/docs' '^x-kam-developer-docs-version: *1'
+          verify_header '/developer/examples' '^x-kam-developer-examples-version: *1'
+          verify_header '/developer/verify' '^x-kam-developer-verify-version: *1'
+          verify_header '/developer/network.json' '^x-kam-developer-network-version: *1'
           verify_header '/addresses' '^x-kam-explorer-addresses-version: *1'
           verify_header '/validators' '^x-kam-explorer-validators-version: *1'
           verify_header '/contracts' '^x-kam-explorer-contracts-version: *1'

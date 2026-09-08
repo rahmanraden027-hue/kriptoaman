@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "1.0.0",
+  "networkName": "KriptoAman Mainnet",
+  "chainId": 22028,
+  "chainIdHex": "0x560c",
+  "nativeCurrency": {
+    "name": "KAM",
+    "symbol": "KAM",
+    "decimals": 18
+  },
+  "rpcUrls": [
+    "https://rpc.kriptoaman.com"
+  ],
+  "blockExplorerUrls": [
+    "https://explorer.kriptoaman.com"
+  ],
+  "developerCenter": "https://explorer.kriptoaman.com/developer",
+  "apiDocs": "https://explorer.kriptoaman.com/api-docs",
+  "statusPage": "https://explorer.kriptoaman.com/status",
+  "publicDeveloperAccess": true,
+  "activationStatusNote": "Public endpoint availability does not by itself modify separate internal network-promotion/readiness gates.",
+  "security": {
+    "privateKeysRequired": false,
+    "validatorAdminEndpointsPublished": false,
+    "privilegedNamespacesDocumentedForPublicUse": false
+  }
+}

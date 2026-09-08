@@ -1,0 +1,41 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#020713"><title>KAM Developer Examples · KriptoAman</title><style>:root{--line:rgba(79,167,255,.2);--text:#eef7ff;--muted:#8ea6c0;--green:#29f2a2}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,rgba(20,120,255,.2),transparent 32%),linear-gradient(180deg,#020713,#030916 55%,#01040b);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}a{color:inherit;text-decoration:none}.shell{width:min(1180px,calc(100% - 24px));margin:auto;padding:18px 0 42px}.glass{background:linear-gradient(145deg,rgba(10,25,52,.86),rgba(4,11,25,.94));border:1px solid var(--line);box-shadow:0 20px 80px rgba(0,33,87,.25)}header{display:flex;justify-content:space-between;align-items:center;padding:13px 15px;border-radius:22px}.nav{display:flex;gap:7px}.nav a{padding:8px 11px;border-radius:11px;border:1px solid rgba(116,176,255,.17);font-size:12px;color:#bdd3e8}.hero,.card{margin-top:12px;padding:22px;border-radius:24px}.hero h1{font-size:clamp(30px,5vw,50px);margin:7px 0}.hero p,.card p{color:#90a8c1;line-height:1.65;font-size:12px}.eyebrow{font-size:11px;letter-spacing:.18em;color:#72dcff;font-weight:900}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.card h2{font-size:16px;margin:0}.code{position:relative;margin-top:12px}.code pre{margin:0;padding:15px;border-radius:14px;background:#010612;border:1px solid rgba(78,157,240,.14);font:11px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;color:#c5eaff;white-space:pre-wrap;word-break:break-word}.copy{position:absolute;right:8px;top:8px;border:1px solid rgba(32,215,255,.22);background:#07182b;color:#8ceaff;border-radius:8px;padding:6px 8px;font-size:10px;cursor:pointer}.note{margin-top:12px;padding:12px 14px;border-radius:15px;border:1px solid rgba(41,242,162,.15);background:rgba(41,242,162,.05);font-size:11px;line-height:1.6;color:#9eb7ce}.footer{padding:16px 4px;color:#657e98;font-size:10px}@media(max-width:760px){.grid{grid-template-columns:1fr}.nav{display:none}}</style></head><body><main class="shell" data-kam-developer-examples-version="1.0.0"><header class="glass"><a href="/developer"><b>KAM Developer Examples</b></a><nav class="nav"><a href="/developer">Center</a><a href="/developer/docs">Docs</a><a href="/developer/verify">Verify</a><a href="/status">Status</a></nav></header><section class="hero glass"><div class="eyebrow">COPY-PASTE QUICKSTARTS</div><h1>Start with read-only calls. Sign only in the user’s wallet.</h1><p>Examples below use canonical public endpoints and do not require project secrets. Package APIs can change by version; pin and review your dependency versions before production use.</p></section><section class="grid"><article class="card glass"><h2>cURL · Chain ID</h2><div class="code"><button class="copy">Copy</button><pre>curl -sS https://rpc.kriptoaman.com \
+  -H 'content-type: application/json' \
+  --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}'</pre></div><div class="note">Expected canonical Chain ID: <b>0x560c</b> (22028).</div></article><article class="card glass"><h2>Browser fetch · Latest blocks</h2><div class="code"><button class="copy">Copy</button><pre>const response = await fetch(
+  'https://explorer.kriptoaman.com/api/v2/blocks'
+);
+const data = await response.json();
+console.log(data.items?.[0]);</pre></div></article><article class="card glass"><h2>ethers v6 · Read provider</h2><div class="code"><button class="copy">Copy</button><pre>import { JsonRpcProvider } from 'ethers';
+
+const rpc = 'https://rpc.kriptoaman.com';
+const provider = new JsonRpcProvider(rpc, {
+  name: 'kriptoaman',
+  chainId: 22028
+});
+
+console.log(await provider.getBlockNumber());</pre></div></article><article class="card glass"><h2>viem · Public client</h2><div class="code"><button class="copy">Copy</button><pre>import { createPublicClient, http } from 'viem';
+
+const client = createPublicClient({
+  chain: {
+    id: 22028,
+    name: 'KriptoAman Mainnet',
+    nativeCurrency: { name: 'KAM', symbol: 'KAM', decimals: 18 },
+    rpcUrls: { default: { http: ['https://rpc.kriptoaman.com'] } }
+  },
+  transport: http()
+});
+
+console.log(await client.getBlockNumber());</pre></div></article><article class="card glass"><h2>Wallet onboarding</h2><div class="code"><button class="copy">Copy</button><pre>await window.ethereum.request({
+  method: 'wallet_addEthereumChain',
+  params: [{
+    chainId: '0x560c',
+    chainName: 'KriptoAman Mainnet',
+    nativeCurrency: { name: 'KAM', symbol: 'KAM', decimals: 18 },
+    rpcUrls: ['https://rpc.kriptoaman.com'],
+    blockExplorerUrls: ['https://explorer.kriptoaman.com']
+  }]
+});</pre></div><div class="note">This asks the wallet to add the network. It must never request a seed phrase or private key.</div></article><article class="card glass"><h2>Transaction confirmation</h2><div class="code"><button class="copy">Copy</button><pre>const hash = '0x...';
+const tx = await fetch(
+  `https://explorer.kriptoaman.com/api/v2/transactions/${hash}`
+).then(r => r.json());
+
+console.log(tx.status, tx.block);</pre></div></article></section><footer class="footer">KAM Developer Examples · safe public quickstarts · Chain ID 22028</footer></main><script>document.querySelectorAll('.code').forEach(box=>{const b=box.querySelector('.copy'),p=box.querySelector('pre');b.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(p.textContent);const t=b.textContent;b.textContent='Copied';setTimeout(()=>b.textContent=t,1000)}catch{b.textContent='Copy manually'}})})</script></body></html>

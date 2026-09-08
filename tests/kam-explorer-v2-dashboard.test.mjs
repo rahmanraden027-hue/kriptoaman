@@ -6,13 +6,17 @@ const html = await readFile(new URL('../explorer-dashboard/index.html', import.m
 const stats = await readFile(new URL('../explorer-dashboard/stats.html', import.meta.url), 'utf8');
 const tokens = await readFile(new URL('../explorer-dashboard/tokens.html', import.meta.url), 'utf8');
 const developer = await readFile(new URL('../explorer-dashboard/developer.html', import.meta.url), 'utf8');
+const docs = await readFile(new URL('../explorer-dashboard/developer-docs.html', import.meta.url), 'utf8');
+const examples = await readFile(new URL('../explorer-dashboard/developer-examples.html', import.meta.url), 'utf8');
+const verify = await readFile(new URL('../explorer-dashboard/developer-verify.html', import.meta.url), 'utf8');
+const networkConfig = JSON.parse(await readFile(new URL('../explorer-dashboard/developer-network.json', import.meta.url), 'utf8'));
 const addresses = await readFile(new URL('../explorer-dashboard/addresses.html', import.meta.url), 'utf8');
 const validators = await readFile(new URL('../explorer-dashboard/validators.html', import.meta.url), 'utf8');
 const contracts = await readFile(new URL('../explorer-dashboard/contracts.html', import.meta.url), 'utf8');
 const status = await readFile(new URL('../explorer-dashboard/status.html', import.meta.url), 'utf8');
 const deploy = await readFile(new URL('../scripts/deploy-kam-explorer-v2.sh', import.meta.url), 'utf8');
 
-const finalSurfaces = [html, stats, tokens, developer, addresses, validators, contracts, status];
+const finalSurfaces = [html, stats, tokens, developer, docs, examples, verify, addresses, validators, contracts, status];
 
 test('KAM Explorer V2 uses verified live data surfaces', () => {
   assert.match(html, /data-kam-explorer-version="2\.0\.0"/);
@@ -46,9 +50,47 @@ test('Developer Center exposes canonical network onboarding and public APIs with
   assert.match(developer, /wallet_addEthereumChain/);
   assert.match(developer, /chainId:'0x560c'/);
   assert.match(developer, /KriptoAman Mainnet/);
-  assert.match(developer, /https:\/\/rpc\.kriptoaman\.com/);
   assert.match(developer, /\/api\/v2\/smart-contracts\/verification\/config/);
   assert.match(developer, /no private key is requested/i);
+});
+
+test('Developer docs separate public endpoint facts from internal activation gates', () => {
+  assert.match(docs, /data-kam-developer-docs-version="1\.0\.0"/);
+  assert.match(docs, /Chain ID 22028/);
+  assert.match(docs, /\/developer\/network\.json/);
+  assert.match(docs, /internal network-promotion gates/i);
+  assert.match(docs, /does not expose validator administration/i);
+});
+
+test('Developer examples provide safe quickstarts and wallet onboarding', () => {
+  assert.match(examples, /data-kam-developer-examples-version="1\.0\.0"/);
+  assert.match(examples, /ethers v6/);
+  assert.match(examples, /viem/);
+  assert.match(examples, /wallet_addEthereumChain/);
+  assert.match(examples, /0x560c/);
+  assert.match(examples, /never request a seed phrase or private key/i);
+});
+
+test('Machine-readable developer network config is canonical and does not promote internal readiness state', () => {
+  assert.equal(networkConfig.schemaVersion, '1.0.0');
+  assert.equal(networkConfig.networkName, 'KriptoAman Mainnet');
+  assert.equal(networkConfig.chainId, 22028);
+  assert.equal(networkConfig.chainIdHex, '0x560c');
+  assert.deepEqual(networkConfig.rpcUrls, ['https://rpc.kriptoaman.com']);
+  assert.deepEqual(networkConfig.blockExplorerUrls, ['https://explorer.kriptoaman.com']);
+  assert.equal(networkConfig.nativeCurrency.symbol, 'KAM');
+  assert.equal(networkConfig.nativeCurrency.decimals, 18);
+  assert.equal(networkConfig.publicDeveloperAccess, true);
+  assert.equal(networkConfig.security.privateKeysRequired, false);
+  assert.match(networkConfig.activationStatusNote, /does not by itself modify separate internal network-promotion\/readiness gates/i);
+});
+
+test('Contract verification guide probes only public verification capabilities', () => {
+  assert.match(verify, /data-kam-developer-verify-version="1\.0\.0"/);
+  assert.match(verify, /\/api\/v2\/smart-contracts\/verification\/config/);
+  assert.match(verify, /\/api\/v2\/smart-contracts/);
+  assert.match(verify, /Never submit secrets/i);
+  assert.match(verify, /private key/);
 });
 
 test('Addresses surface uses observed public evidence instead of a fabricated holder ranking', () => {
@@ -95,6 +137,9 @@ test('deployment is exact-route, narrow, nginx-safe, rollback-safe and avoids cu
     ['/tokens', 'tokens.html'],
     ['/developer', 'developer.html'],
     ['/developers', 'developer.html'],
+    ['/developer/docs', 'developer-docs.html'],
+    ['/developer/examples', 'developer-examples.html'],
+    ['/developer/verify', 'developer-verify.html'],
     ['/addresses', 'addresses.html'],
     ['/validators', 'validators.html'],
     ['/contracts', 'contracts.html'],
@@ -104,8 +149,13 @@ test('deployment is exact-route, narrow, nginx-safe, rollback-safe and avoids cu
     assert.equal(deploy.includes(`route('${path}', '${file}'`), true, `exact route declaration missing: ${path}`);
     assert.equal(deploy.includes(`try_files /kam-dashboard/${file} =404;`) || deploy.includes(`route('${path}', '${file}'`), true, `served file missing: ${file}`);
   }
+  assert.equal(deploy.includes("json_route('/developer/network.json', 'developer-network.json'"), true);
   assert.match(deploy, /location = \{path\}/);
   assert.match(deploy, /X-KAM-Explorer-Developer-Version/);
+  assert.match(deploy, /X-KAM-Developer-Docs-Version/);
+  assert.match(deploy, /X-KAM-Developer-Examples-Version/);
+  assert.match(deploy, /X-KAM-Developer-Verify-Version/);
+  assert.match(deploy, /X-KAM-Developer-Network-Version/);
   assert.match(deploy, /X-KAM-Explorer-Addresses-Version/);
   assert.match(deploy, /X-KAM-Explorer-Contracts-Version/);
   assert.match(deploy, /docker run --rm --network none -i/);
@@ -115,7 +165,7 @@ test('deployment is exact-route, narrow, nginx-safe, rollback-safe and avoids cu
   assert.match(deploy, /curl -fsSL .* -o "\$VERIFY_BODY"/);
   assert.doesNotMatch(deploy, /curl[^\n]*\|\s*grep/);
   assert.doesNotMatch(deploy, /--privileged/);
-  assert.doesNotMatch(deploy, /genesis|treasury|private.?key/i);
+  assert.doesNotMatch(deploy, /genesis|treasury|private.?key(?!sRequired)/i);
   assert.match(deploy, /\/tx\/\$KNOWN_TX/);
   assert.match(deploy, /\/token\/\$CANONICAL_WKAM/);
 });

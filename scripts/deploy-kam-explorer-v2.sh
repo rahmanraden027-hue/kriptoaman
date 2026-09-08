@@ -12,6 +12,10 @@ ADDRESSES_SOURCE="${5:-explorer-dashboard/addresses.html}"
 VALIDATORS_SOURCE="${6:-explorer-dashboard/validators.html}"
 CONTRACTS_SOURCE="${7:-explorer-dashboard/contracts.html}"
 STATUS_SOURCE="${8:-explorer-dashboard/status.html}"
+DOCS_SOURCE="${9:-explorer-dashboard/developer-docs.html}"
+EXAMPLES_SOURCE="${10:-explorer-dashboard/developer-examples.html}"
+VERIFY_SOURCE="${11:-explorer-dashboard/developer-verify.html}"
+NETWORK_SOURCE="${12:-explorer-dashboard/developer-network.json}"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 BACKUP_NAME="default.conf.template.kam-v2.$STAMP.bak"
 PATCHED_TEMPLATE="$(mktemp)"
@@ -22,7 +26,7 @@ cleanup(){ rm -f "$PATCHED_TEMPLATE" "$VERIFY_BODY" "$VERIFY_HEADERS"; }
 trap cleanup EXIT
 
 [[ -d "$BASE" && -d "$PROXY_DIR" && -f "$TEMPLATE" ]] || fail "Blockscout proxy boundary unavailable"
-for f in "$SOURCE" "$STATS_SOURCE" "$TOKENS_SOURCE" "$DEVELOPER_SOURCE" "$ADDRESSES_SOURCE" "$VALIDATORS_SOURCE" "$CONTRACTS_SOURCE" "$STATUS_SOURCE"; do
+for f in "$SOURCE" "$STATS_SOURCE" "$TOKENS_SOURCE" "$DEVELOPER_SOURCE" "$ADDRESSES_SOURCE" "$VALIDATORS_SOURCE" "$CONTRACTS_SOURCE" "$STATUS_SOURCE" "$DOCS_SOURCE" "$EXAMPLES_SOURCE" "$VERIFY_SOURCE" "$NETWORK_SOURCE"; do
   [[ -f "$f" ]] || fail "source not found: $f"
 done
 SOURCE="$(realpath "$SOURCE")"
@@ -33,6 +37,10 @@ ADDRESSES_SOURCE="$(realpath "$ADDRESSES_SOURCE")"
 VALIDATORS_SOURCE="$(realpath "$VALIDATORS_SOURCE")"
 CONTRACTS_SOURCE="$(realpath "$CONTRACTS_SOURCE")"
 STATUS_SOURCE="$(realpath "$STATUS_SOURCE")"
+DOCS_SOURCE="$(realpath "$DOCS_SOURCE")"
+EXAMPLES_SOURCE="$(realpath "$EXAMPLES_SOURCE")"
+VERIFY_SOURCE="$(realpath "$VERIFY_SOURCE")"
+NETWORK_SOURCE="$(realpath "$NETWORK_SOURCE")"
 grep -q 'data-kam-explorer-version="2.0.0"' "$SOURCE" || fail "homepage marker missing"
 grep -q 'data-kam-stats-version="2.0.0"' "$STATS_SOURCE" || fail "stats marker missing"
 grep -q 'data-kam-tokens-version="2.0.0"' "$TOKENS_SOURCE" || fail "token registry marker missing"
@@ -41,6 +49,18 @@ grep -q 'data-kam-addresses-version="1.0.0"' "$ADDRESSES_SOURCE" || fail "addres
 grep -q 'data-kam-validators-version="1.0.0"' "$VALIDATORS_SOURCE" || fail "proposer observatory marker missing"
 grep -q 'data-kam-contracts-version="1.0.0"' "$CONTRACTS_SOURCE" || fail "contracts marker missing"
 grep -q 'data-kam-status-version="1.0.0"' "$STATUS_SOURCE" || fail "status marker missing"
+grep -q 'data-kam-developer-docs-version="1.0.0"' "$DOCS_SOURCE" || fail "developer docs marker missing"
+grep -q 'data-kam-developer-examples-version="1.0.0"' "$EXAMPLES_SOURCE" || fail "developer examples marker missing"
+grep -q 'data-kam-developer-verify-version="1.0.0"' "$VERIFY_SOURCE" || fail "developer verify marker missing"
+python3 - "$NETWORK_SOURCE" <<'PY'
+import json,sys
+with open(sys.argv[1], encoding='utf-8') as fh: d=json.load(fh)
+assert d['chainId']==22028 and d['chainIdHex']=='0x560c'
+assert d['nativeCurrency']['symbol']=='KAM' and d['nativeCurrency']['decimals']==18
+assert d['rpcUrls']==['https://rpc.kriptoaman.com']
+assert d['blockExplorerUrls']==['https://explorer.kriptoaman.com']
+assert d['security']['privateKeysRequired'] is False
+PY
 
 cd "$BASE"
 PROXY_ID="$(docker compose ps -q proxy)"
@@ -58,6 +78,10 @@ proxy_fs "cat > /target/kam-dashboard/addresses.html && chmod 0644 /target/kam-d
 proxy_fs "cat > /target/kam-dashboard/validators.html && chmod 0644 /target/kam-dashboard/validators.html" < "$VALIDATORS_SOURCE"
 proxy_fs "cat > /target/kam-dashboard/contracts.html && chmod 0644 /target/kam-dashboard/contracts.html" < "$CONTRACTS_SOURCE"
 proxy_fs "cat > /target/kam-dashboard/status.html && chmod 0644 /target/kam-dashboard/status.html" < "$STATUS_SOURCE"
+proxy_fs "cat > /target/kam-dashboard/developer-docs.html && chmod 0644 /target/kam-dashboard/developer-docs.html" < "$DOCS_SOURCE"
+proxy_fs "cat > /target/kam-dashboard/developer-examples.html && chmod 0644 /target/kam-dashboard/developer-examples.html" < "$EXAMPLES_SOURCE"
+proxy_fs "cat > /target/kam-dashboard/developer-verify.html && chmod 0644 /target/kam-dashboard/developer-verify.html" < "$VERIFY_SOURCE"
+proxy_fs "cat > /target/kam-dashboard/developer-network.json && chmod 0644 /target/kam-dashboard/developer-network.json" < "$NETWORK_SOURCE"
 
 python3 - "$TEMPLATE" "$PATCHED_TEMPLATE" <<'PY'
 from pathlib import Path
@@ -73,12 +97,18 @@ if needle not in text: raise SystemExit('frontend catch-all location not found')
 headers='''        add_header Cache-Control "no-store, max-age=0" always;\n        add_header X-Content-Type-Options "nosniff" always;\n        add_header Referrer-Policy "strict-origin-when-cross-origin" always;\n'''
 def route(path, filename, header, version='1', connect="'self'"):
     return f'''    location = {path} {{\n        root /etc/nginx/templates;\n        try_files /kam-dashboard/{filename} =404;\n        default_type text/html;\n{headers}        add_header {header} "{version}" always;\n        add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src {connect}; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'" always;\n    }}\n'''
+def json_route(path, filename, header, version='1'):
+    return f'''    location = {path} {{\n        root /etc/nginx/templates;\n        try_files /kam-dashboard/{filename} =404;\n        default_type application/json;\n{headers}        add_header {header} "{version}" always;\n        add_header Content-Security-Policy "default-src 'none'; frame-ancestors 'none'" always;\n    }}\n'''
 block='    # KAM_EXPLORER_V2_BEGIN\n'
 block+=route('/', 'index.html', 'X-KAM-Explorer-Version', '2', "'self' https://rpc.kriptoaman.com")
 block+=route('/stats', 'stats.html', 'X-KAM-Explorer-Stats-Version', '2')
 block+=route('/tokens', 'tokens.html', 'X-KAM-Explorer-Tokens-Version', '2')
 block+=route('/developer', 'developer.html', 'X-KAM-Explorer-Developer-Version')
 block+=route('/developers', 'developer.html', 'X-KAM-Explorer-Developer-Version')
+block+=route('/developer/docs', 'developer-docs.html', 'X-KAM-Developer-Docs-Version')
+block+=route('/developer/examples', 'developer-examples.html', 'X-KAM-Developer-Examples-Version')
+block+=route('/developer/verify', 'developer-verify.html', 'X-KAM-Developer-Verify-Version')
+block+=json_route('/developer/network.json', 'developer-network.json', 'X-KAM-Developer-Network-Version')
 block+=route('/addresses', 'addresses.html', 'X-KAM-Explorer-Addresses-Version')
 block+=route('/validators', 'validators.html', 'X-KAM-Explorer-Validators-Version')
 block+=route('/contracts', 'contracts.html', 'X-KAM-Explorer-Contracts-Version')
@@ -91,6 +121,10 @@ for needle in \
   'try_files /kam-dashboard/stats.html =404;' \
   'try_files /kam-dashboard/tokens.html =404;' \
   'try_files /kam-dashboard/developer.html =404;' \
+  'try_files /kam-dashboard/developer-docs.html =404;' \
+  'try_files /kam-dashboard/developer-examples.html =404;' \
+  'try_files /kam-dashboard/developer-verify.html =404;' \
+  'try_files /kam-dashboard/developer-network.json =404;' \
   'try_files /kam-dashboard/addresses.html =404;' \
   'try_files /kam-dashboard/validators.html =404;' \
   'try_files /kam-dashboard/contracts.html =404;' \
@@ -132,6 +166,16 @@ assert_page '/stats' 'data-kam-stats-version="2.0.0"'
 ! grep -Eqi 'amount in ETH|>ETH<' "$VERIFY_BODY"
 assert_page '/tokens' 'data-kam-tokens-version="2.0.0"'
 assert_page '/developer' 'data-kam-developer-version="1.0.0"'
+assert_page '/developer/docs' 'data-kam-developer-docs-version="1.0.0"'
+assert_page '/developer/examples' 'data-kam-developer-examples-version="1.0.0"'
+assert_page '/developer/verify' 'data-kam-developer-verify-version="1.0.0"'
+fetch_body 'https://explorer.kriptoaman.com/developer/network.json'
+python3 - "$VERIFY_BODY" <<'PY'
+import json,sys
+with open(sys.argv[1], encoding='utf-8') as fh: d=json.load(fh)
+assert d['chainId']==22028 and d['nativeCurrency']['symbol']=='KAM'
+assert d['publicDeveloperAccess'] is True
+PY
 assert_page '/addresses' 'data-kam-addresses-version="1.0.0"'
 assert_page '/validators' 'data-kam-validators-version="1.0.0"'
 assert_page '/contracts' 'data-kam-contracts-version="1.0.0"'
@@ -140,6 +184,10 @@ assert_header '/' '^x-kam-explorer-version: *2'
 assert_header '/stats' '^x-kam-explorer-stats-version: *2'
 assert_header '/tokens' '^x-kam-explorer-tokens-version: *2'
 assert_header '/developer' '^x-kam-explorer-developer-version: *1'
+assert_header '/developer/docs' '^x-kam-developer-docs-version: *1'
+assert_header '/developer/examples' '^x-kam-developer-examples-version: *1'
+assert_header '/developer/verify' '^x-kam-developer-verify-version: *1'
+assert_header '/developer/network.json' '^x-kam-developer-network-version: *1'
 assert_header '/addresses' '^x-kam-explorer-addresses-version: *1'
 assert_header '/validators' '^x-kam-explorer-validators-version: *1'
 assert_header '/contracts' '^x-kam-explorer-contracts-version: *1'
@@ -152,5 +200,5 @@ CANONICAL_WKAM="0x0d8848CE88BB09a81a4248Efdd574d50B98b544A"
 curl -L -fsS --retry 4 --retry-all-errors --max-time 20 "https://explorer.kriptoaman.com/tx/$KNOWN_TX" -o /dev/null
 curl -L -fsS --retry 4 --retry-all-errors --max-time 20 "https://explorer.kriptoaman.com/token/$CANONICAL_WKAM" -o /dev/null
 trap - ERR
-echo "KAM Explorer final public surfaces deployed successfully."
+echo "KAM Explorer and Developer Ecosystem public surfaces deployed successfully."
 echo "backup=$PROXY_DIR/$BACKUP_NAME"
