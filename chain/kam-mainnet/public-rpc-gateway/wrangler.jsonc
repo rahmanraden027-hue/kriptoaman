@@ -10,5 +10,17 @@
   "vars": {
     "KAM_NETWORK_STATUS": "mainnet-candidate-not-public",
     "KAM_EXPECTED_CHAIN_ID": "0x560c"
-  }
+  },
+  "ratelimits": [
+    {
+      "name": "RPC_RATE_LIMITER",
+      "namespace_id": "2202801",
+      "simple": { "limit": 120, "period": 60 }
+    },
+    {
+      "name": "RPC_HEAVY_RATE_LIMITER",
+      "namespace_id": "2202802",
+      "simple": { "limit": 30, "period": 60 }
+    }
+  ]
 }

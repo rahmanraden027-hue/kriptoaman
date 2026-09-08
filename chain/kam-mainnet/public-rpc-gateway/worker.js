@@ -18,6 +18,7 @@ const ALLOWED_METHODS = new Set([
 ]);
 
 const MAX_BODY_BYTES = 64 * 1024;
+const HEAVY_METHODS = new Set(['eth_getLogs', 'eth_call', 'eth_estimateGas', 'eth_feeHistory']);
 const DEVELOPER_CONSOLE_URL = 'https://kriptoaman.com/KAMDeveloper';
 const CORS_HEADERS = {
   'access-control-allow-origin': '*',
@@ -33,6 +34,10 @@ function json(body, status = 200, headers = {}) {
       'content-type': 'application/json; charset=utf-8',
       'cache-control': 'no-store',
       'x-content-type-options': 'nosniff',
+      'strict-transport-security': 'max-age=31536000; includeSubDomains',
+      'referrer-policy': 'no-referrer',
+      'x-frame-options': 'DENY',
+      'content-security-policy': "default-src 'none'; frame-ancestors 'none'",
       ...CORS_HEADERS,
       ...headers,
     },
@@ -74,8 +79,18 @@ export default {
       return json({ error: 'JSON-RPC POST only' }, 405, { allow: 'GET, POST, OPTIONS' });
     }
 
+    if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
+      return json({ error: 'Content-Type must be application/json' }, 415);
+    }
+
     const contentLength = Number(request.headers.get('content-length') || 0);
     if (contentLength > MAX_BODY_BYTES) return json({ error: 'Request too large' }, 413);
+
+    const clientKey = request.headers.get('cf-connecting-ip') || 'anonymous';
+    if (env.RPC_RATE_LIMITER) {
+      const { success } = await env.RPC_RATE_LIMITER.limit({ key: clientKey });
+      if (!success) return json({ error: 'Rate limit exceeded' }, 429, { 'retry-after': '60' });
+    }
 
     const raw = await request.text();
     if (new TextEncoder().encode(raw).byteLength > MAX_BODY_BYTES) return json({ error: 'Request too large' }, 413);
@@ -95,6 +110,11 @@ export default {
       if (!isAllowedRpcItem(item)) {
         return rpcError(item?.id, -32601, 'Method not available on public gateway', 403);
       }
+    }
+
+    if (env.RPC_HEAVY_RATE_LIMITER && items.some((item) => HEAVY_METHODS.has(item.method))) {
+      const { success } = await env.RPC_HEAVY_RATE_LIMITER.limit({ key: clientKey });
+      if (!success) return rpcError(items[0]?.id, -32005, 'Heavy RPC rate limit exceeded', 429);
     }
 
     if (!env.KAM_RPC_ORIGIN) return json({ error: 'RPC origin not configured' }, 503);
