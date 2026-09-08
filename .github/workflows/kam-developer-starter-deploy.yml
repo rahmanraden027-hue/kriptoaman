@@ -1,0 +1,110 @@
+name: KAM Developer Starter Deploy
+
+on:
+  pull_request:
+    paths:
+      - 'explorer-dashboard/developer-starter.html'
+      - 'explorer-dashboard/developer-docs.html'
+      - 'scripts/deploy-kam-developer-starter.sh'
+      - 'tests/kam-developer-starter-live.test.mjs'
+      - '.github/workflows/kam-developer-starter-deploy.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'explorer-dashboard/developer-starter.html'
+      - 'explorer-dashboard/developer-docs.html'
+      - 'scripts/deploy-kam-developer-starter.sh'
+      - 'tests/kam-developer-starter-live.test.mjs'
+      - '.github/workflows/kam-developer-starter-deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kam-explorer-v2-deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout reviewed source
+        uses: actions/checkout@v7
+      - name: Setup Node 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Validate live starter contract
+        run: node --test tests/kam-developer-starter-live.test.mjs
+      - name: Validate isolated deploy script syntax
+        run: bash -n scripts/deploy-kam-developer-starter.sh
+      - name: Verify public Explorer dependencies
+        run: |
+          set -euo pipefail
+          curl -fsS --retry 4 --retry-all-errors --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("items")'
+          curl -fsS --retry 4 --retry-all-errors --max-time 15 https://explorer.kriptoaman.com/developer/network.json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["chainId"]==22028 and d["chainIdHex"]=="0x560c"'
+
+  host-permission-preflight:
+    needs: preflight
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 5
+    steps:
+      - name: Verify dedicated Explorer proxy boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE=/opt/blockscout/docker-compose
+          PROXY_DIR="$BASE/proxy"
+          TEMPLATE="$PROXY_DIR/default.conf.template"
+          test -d "$PROXY_DIR"
+          test -f "$TEMPLATE"
+          cd "$BASE"
+          PROXY_ID="$(docker compose ps -q proxy)"
+          test -n "$PROXY_ID"
+          PROXY_IMAGE="$(docker inspect "$PROXY_ID" --format '{{.Config.Image}}')"
+          docker image inspect "$PROXY_IMAGE" >/dev/null
+          docker run --rm --network none -v "$PROXY_DIR:/target" "$PROXY_IMAGE" sh -c 'test -r /target/default.conf.template && test -w /target'
+          echo 'starter_host_permission_preflight=verified'
+
+  deploy-starter:
+    if: ${{ github.event_name != 'pull_request' }}
+    needs: [preflight, host-permission-preflight]
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 10
+    steps:
+      - name: Checkout reviewed source
+        uses: actions/checkout@v7
+      - name: Deploy exact live starter route
+        run: |
+          set -euo pipefail
+          chmod +x scripts/deploy-kam-developer-starter.sh
+          bash scripts/deploy-kam-developer-starter.sh
+
+  public-post-verify:
+    if: ${{ github.event_name != 'pull_request' }}
+    needs: deploy-starter
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Verify live starter body and version header
+        run: |
+          set -euo pipefail
+          BODY="$(mktemp)"
+          HEADERS="$(mktemp)"
+          trap 'rm -f "$BODY" "$HEADERS"' EXIT
+          curl -L -fsS --retry 6 --retry-delay 2 --retry-all-errors --max-time 25 -o "$BODY" 'https://explorer.kriptoaman.com/developer/starter'
+          grep -Fq 'data-kam-developer-starter-version="1.0.0"' "$BODY"
+          grep -Fq 'Verify Explorer' "$BODY"
+          grep -Fq 'wallet_switchEthereumChain' "$BODY"
+          grep -Fq "readJson('/api/v2/blocks')" "$BODY"
+          curl -L -sSIf --retry 6 --retry-delay 2 --retry-all-errors --max-time 25 -o "$HEADERS" 'https://explorer.kriptoaman.com/developer/starter'
+          grep -Eqi '^x-kam-developer-starter-version: *1' "$HEADERS"
+      - name: Verify dependent developer and Explorer surfaces remain intact
+        run: |
+          set -euo pipefail
+          curl -L -fsS --max-time 20 https://explorer.kriptoaman.com/developer/docs >/dev/null
+          curl -L -fsS --max-time 20 https://explorer.kriptoaman.com/developer >/dev/null
+          curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("items")'
+          curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/stats | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "total_transactions" in d'
