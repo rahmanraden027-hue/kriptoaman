@@ -125,7 +125,7 @@ def route(path, filename, header, version='1', connect="'self'"):
 def json_route(path, filename, header, version='1'):
     return f'''    location = {path} {{\n        root /etc/nginx/templates;\n        try_files /kam-dashboard/{filename} =404;\n        default_type application/json;\n{headers}        add_header {header} "{version}" always;\n        add_header Content-Security-Policy "default-src 'none'; frame-ancestors 'none'" always;\n    }}\n'''
 def dynamic_route(pattern, filename, header, version='1'):
-    return f'''    location ~ {pattern} {{\n        root /etc/nginx/templates;\n        try_files /kam-dashboard/{filename} =404;\n        default_type text/html;\n{headers}        add_header {header} "{version}" always;\n        add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data: https://kriptoaman.com; object-src 'none'; base-uri 'self'; frame-ancestors 'self'" always;\n    }}\n'''
+    return f'''    location ~ "{pattern}" {{\n        root /etc/nginx/templates;\n        try_files /kam-dashboard/{filename} =404;\n        default_type text/html;\n{headers}        add_header {header} "{version}" always;\n        add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data: https://kriptoaman.com; object-src 'none'; base-uri 'self'; frame-ancestors 'self'" always;\n    }}\n'''
 block='    # KAM_EXPLORER_V2_BEGIN\n'
 block+=route('/', 'index.html', 'X-KAM-Explorer-Version', '2', "'self' https://rpc.kriptoaman.com")
 block+=route('/stats', 'stats.html', 'X-KAM-Explorer-Stats-Version', '2')
