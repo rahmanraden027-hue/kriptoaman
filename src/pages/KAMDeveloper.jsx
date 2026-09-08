@@ -29,6 +29,9 @@ const NETWORK = {
   explorer: 'https://explorer.kriptoaman.com',
 };
 
+const DEVELOPER_CENTER = `${NETWORK.explorer}/developer`;
+const LIVE_STARTER = `${NETWORK.explorer}/developer/starter`;
+
 const SAFE_METHODS = [
   { method: 'eth_chainId', label: 'Chain ID', params: '[]' },
   { method: 'eth_blockNumber', label: 'Latest block', params: '[]' },
@@ -145,7 +148,9 @@ export default function KAMDeveloper() {
     let params = [];
     try { params = JSON.parse(paramsText || '[]'); } catch { params = []; }
     const payload = JSON.stringify({ jsonrpc: '2.0', id: 1, method, params });
-    return `curl -s ${NETWORK.rpc} \\\n  -H 'content-type: application/json' \\\n  --data '${payload}'`;
+    return `curl -s ${NETWORK.rpc} \\
+  -H 'content-type: application/json' \\
+  --data '${payload}'`;
   }, [method, paramsText]);
 
   const runPlayground = async () => {
@@ -278,6 +283,8 @@ export default function KAMDeveloper() {
               ))}
             </div>
             <button onClick={addToWallet} className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-sky-600 px-5 text-sm font-black text-white transition hover:bg-sky-500"><WalletCards className="h-4 w-4" /> Add KAM Network</button>
+            <a href={LIVE_STARTER} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-violet-400/20 bg-violet-400/10 px-5 text-xs font-black text-violet-200"><Play className="h-4 w-4" /> Open Live dApp Starter</a>
+            <a href={DEVELOPER_CENTER} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-sky-400/20 bg-sky-400/10 px-5 text-xs font-black text-sky-200"><Code2 className="h-4 w-4" /> Open Developer Center</a>
             <a href={NETWORK.explorer} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-5 text-xs font-black text-emerald-200"><ExternalLink className="h-4 w-4" /> Open KAM Explorer</a>
             {walletMessage && <p className="mt-3 text-xs leading-5 text-slate-400">{walletMessage}</p>}
             <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950/40 p-4 text-[10px] leading-5 text-slate-500"><strong className="text-slate-300">Browser note:</strong> opening the RPC URL directly uses HTTP GET and may return <code>405 Not Allowed</code>. That is expected for a POST-only JSON-RPC endpoint and does not mean the RPC is offline.</div>
@@ -321,9 +328,10 @@ export default function KAMDeveloper() {
           </div>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-3">
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <a href="/KAMNetwork" className="ka-command-panel p-5 transition hover:border-sky-400/30"><Network className="h-5 w-5 text-sky-300" /><h3 className="mt-3 font-black">Network Status</h3><p className="mt-1 text-xs leading-5 text-slate-500">Dedicated public network health, wallet metadata, and block progression view.</p></a>
           <a href="/KAMNetworkDocs" className="ka-command-panel p-5 transition hover:border-violet-400/30"><Server className="h-5 w-5 text-violet-300" /><h3 className="mt-3 font-black">Developer Docs</h3><p className="mt-1 text-xs leading-5 text-slate-500">Network configuration, RPC integration guidance, and EVM-compatible development references.</p></a>
+          <a href={LIVE_STARTER} target="_blank" rel="noreferrer" className="ka-command-panel p-5 transition hover:border-violet-400/30"><Play className="h-5 w-5 text-violet-300" /><h3 className="mt-3 font-black">Live dApp Starter</h3><p className="mt-1 text-xs leading-5 text-slate-500">Run verified read-only checks and user-approved wallet onboarding against the public KAM developer surface.</p></a>
           <a href={NETWORK.explorer} target="_blank" rel="noreferrer" className="ka-command-panel p-5 transition hover:border-emerald-400/30"><ExternalLink className="h-5 w-5 text-emerald-300" /><h3 className="mt-3 font-black">Block Explorer</h3><p className="mt-1 text-xs leading-5 text-slate-500">Inspect blocks, transactions, addresses, and public KAM network activity.</p></a>
         </section>
 
