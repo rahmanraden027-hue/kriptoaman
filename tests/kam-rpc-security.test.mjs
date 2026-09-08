@@ -76,3 +76,41 @@ test('KAM RPC allowed POST methods still require a configured protected origin',
   const payload = await response.json();
   assert.equal(payload.error, 'RPC origin not configured');
 });
+
+test('KAM RPC requires JSON content type before parsing a POST body', async () => {
+  const response = await gateway.fetch(new Request('https://rpc.kriptoaman.com/', {
+    method: 'POST',
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_chainId', params: [] }),
+  }), {});
+  assert.equal(response.status, 415);
+});
+
+test('KAM RPC applies general and heavy-method edge rate limits', async () => {
+  const denied = { limit: async () => ({ success: false }) };
+  const allowed = { limit: async () => ({ success: true }) };
+  const base = {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'cf-connecting-ip': '203.0.113.7' },
+  };
+  let response = await gateway.fetch(new Request('https://rpc.kriptoaman.com/', {
+    ...base,
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_chainId', params: [] }),
+  }), { RPC_RATE_LIMITER: denied });
+  assert.equal(response.status, 429);
+  assert.equal(response.headers.get('retry-after'), '60');
+
+  response = await gateway.fetch(new Request('https://rpc.kriptoaman.com/', {
+    ...base,
+    body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'eth_getLogs', params: [{}] }),
+  }), { RPC_RATE_LIMITER: allowed, RPC_HEAVY_RATE_LIMITER: denied });
+  assert.equal(response.status, 429);
+  assert.equal((await response.json()).error?.code, -32005);
+});
+
+test('KAM RPC rate-limit configuration has separate general and heavy budgets', async () => {
+  const config = await read('chain/kam-mainnet/public-rpc-gateway/wrangler.jsonc');
+  assert.match(config, /"RPC_RATE_LIMITER"/);
+  assert.match(config, /"limit": 120/);
+  assert.match(config, /"RPC_HEAVY_RATE_LIMITER"/);
+  assert.match(config, /"limit": 30/);
+});
