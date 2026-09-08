@@ -7,6 +7,8 @@ on:
   push:
     branches: [main]
     paths:
+      - 'explorer-dashboard/stats.html'
+      - 'scripts/deploy-kam-explorer-v2.sh'
       - 'explorer-seo/**'
       - 'scripts/apply-kam-explorer-seo.sh'
       - 'tests/kam-explorer-seo-indexing.test.mjs'
