@@ -17,9 +17,12 @@ const status = await readFile(new URL('../explorer-dashboard/status.html', impor
 const blocks = await readFile(new URL('../explorer-dashboard/blocks.html', import.meta.url), 'utf8');
 const transactions = await readFile(new URL('../explorer-dashboard/transactions.html', import.meta.url), 'utf8');
 const apiDocs = await readFile(new URL('../explorer-dashboard/api-docs.html', import.meta.url), 'utf8');
+const transactionDetail = await readFile(new URL('../explorer-dashboard/transaction-detail.html', import.meta.url), 'utf8');
+const blockDetail = await readFile(new URL('../explorer-dashboard/block-detail.html', import.meta.url), 'utf8');
+const addressDetail = await readFile(new URL('../explorer-dashboard/address-detail.html', import.meta.url), 'utf8');
 const deploy = await readFile(new URL('../scripts/deploy-kam-explorer-v2.sh', import.meta.url), 'utf8');
 
-const finalSurfaces = [html, stats, tokens, developer, docs, examples, verify, addresses, validators, contracts, status, blocks, transactions, apiDocs];
+const finalSurfaces = [html, stats, tokens, developer, docs, examples, verify, addresses, validators, contracts, status, blocks, transactions, apiDocs, transactionDetail, blockDetail, addressDetail];
 
 test('KAM Explorer V2 uses verified live data surfaces', () => {
   assert.match(html, /data-kam-explorer-version="2\.0\.0"/);
@@ -141,6 +144,20 @@ test('Blocks, transactions and API use one KAM brand system and verified same-or
   assert.match(apiDocs, /\/api\/v2\/stats/);
 });
 
+test('transaction, block and address details use branded verified API surfaces', () => {
+  assert.match(transactionDetail, /data-kam-transaction-detail-version="1\.0\.0"/);
+  assert.match(blockDetail, /data-kam-block-detail-version="1\.0\.0"/);
+  assert.match(addressDetail, /data-kam-address-detail-version="1\.0\.0"/);
+  for (const surface of [transactionDetail, blockDetail, addressDetail]) {
+    assert.match(surface, /kriptoaman-mark\.svg/);
+    assert.match(surface, /KriptoAman Mainnet/);
+    assert.match(surface, /No values are estimated/);
+  }
+  assert.match(transactionDetail, /\/api\/v2\/transactions\/\$\{hash\}/);
+  assert.match(blockDetail, /\/api\/v2\/blocks\/\$\{id\}/);
+  assert.match(addressDetail, /\/api\/v2\/addresses\/\$\{address\}/);
+});
+
 test('KAM public final surfaces do not ship known mockup-only KPI values', () => {
   for (const fake of ['879,719', '3,942 TPS', '21 / 21', '10,000,000,000 KAM', '$1,245,332', 'Placeholder Counter']) {
     for (const surface of finalSurfaces) assert.equal(surface.includes(fake), false, `mockup-only value must not be shipped: ${fake}`);
@@ -188,5 +205,9 @@ test('deployment is exact-route, narrow, nginx-safe, rollback-safe and avoids cu
   assert.doesNotMatch(deploy, /--privileged/);
   assert.doesNotMatch(deploy, /genesis|treasury|private.?key(?!sRequired)/i);
   assert.match(deploy, /\/tx\/\$KNOWN_TX/);
+  assert.match(deploy, /dynamic_route\('\^\/tx\/0x/);
+  assert.match(deploy, /transaction-detail\.html/);
+  assert.match(deploy, /block-detail\.html/);
+  assert.match(deploy, /address-detail\.html/);
   assert.match(deploy, /\/token\/\$CANONICAL_WKAM/);
 });

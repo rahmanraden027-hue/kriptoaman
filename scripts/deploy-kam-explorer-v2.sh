@@ -19,6 +19,9 @@ NETWORK_SOURCE="${12:-explorer-dashboard/developer-network.json}"
 BLOCKS_SOURCE="${13:-explorer-dashboard/blocks.html}"
 TRANSACTIONS_SOURCE="${14:-explorer-dashboard/transactions.html}"
 API_SOURCE="${15:-explorer-dashboard/api-docs.html}"
+TX_DETAIL_SOURCE="${16:-explorer-dashboard/transaction-detail.html}"
+BLOCK_DETAIL_SOURCE="${17:-explorer-dashboard/block-detail.html}"
+ADDRESS_DETAIL_SOURCE="${18:-explorer-dashboard/address-detail.html}"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 BACKUP_NAME="default.conf.template.kam-v2.$STAMP.bak"
 PATCHED_TEMPLATE="$(mktemp)"
@@ -29,7 +32,7 @@ cleanup(){ rm -f "$PATCHED_TEMPLATE" "$VERIFY_BODY" "$VERIFY_HEADERS"; }
 trap cleanup EXIT
 
 [[ -d "$BASE" && -d "$PROXY_DIR" && -f "$TEMPLATE" ]] || fail "Blockscout proxy boundary unavailable"
-for f in "$SOURCE" "$STATS_SOURCE" "$TOKENS_SOURCE" "$DEVELOPER_SOURCE" "$ADDRESSES_SOURCE" "$VALIDATORS_SOURCE" "$CONTRACTS_SOURCE" "$STATUS_SOURCE" "$DOCS_SOURCE" "$EXAMPLES_SOURCE" "$VERIFY_SOURCE" "$NETWORK_SOURCE" "$BLOCKS_SOURCE" "$TRANSACTIONS_SOURCE" "$API_SOURCE"; do
+for f in "$SOURCE" "$STATS_SOURCE" "$TOKENS_SOURCE" "$DEVELOPER_SOURCE" "$ADDRESSES_SOURCE" "$VALIDATORS_SOURCE" "$CONTRACTS_SOURCE" "$STATUS_SOURCE" "$DOCS_SOURCE" "$EXAMPLES_SOURCE" "$VERIFY_SOURCE" "$NETWORK_SOURCE" "$BLOCKS_SOURCE" "$TRANSACTIONS_SOURCE" "$API_SOURCE" "$TX_DETAIL_SOURCE" "$BLOCK_DETAIL_SOURCE" "$ADDRESS_DETAIL_SOURCE"; do
   [[ -f "$f" ]] || fail "source not found: $f"
 done
 SOURCE="$(realpath "$SOURCE")"
@@ -47,6 +50,9 @@ NETWORK_SOURCE="$(realpath "$NETWORK_SOURCE")"
 BLOCKS_SOURCE="$(realpath "$BLOCKS_SOURCE")"
 TRANSACTIONS_SOURCE="$(realpath "$TRANSACTIONS_SOURCE")"
 API_SOURCE="$(realpath "$API_SOURCE")"
+TX_DETAIL_SOURCE="$(realpath "$TX_DETAIL_SOURCE")"
+BLOCK_DETAIL_SOURCE="$(realpath "$BLOCK_DETAIL_SOURCE")"
+ADDRESS_DETAIL_SOURCE="$(realpath "$ADDRESS_DETAIL_SOURCE")"
 grep -q 'data-kam-explorer-version="2.0.0"' "$SOURCE" || fail "homepage marker missing"
 grep -q 'data-kam-stats-version="2.0.0"' "$STATS_SOURCE" || fail "stats marker missing"
 grep -q 'data-kam-tokens-version="2.0.0"' "$TOKENS_SOURCE" || fail "token registry marker missing"
@@ -61,6 +67,9 @@ grep -q 'data-kam-developer-verify-version="1.0.0"' "$VERIFY_SOURCE" || fail "de
 grep -q 'data-kam-blocks-version="1.0.0"' "$BLOCKS_SOURCE" || fail "blocks marker missing"
 grep -q 'data-kam-transactions-version="1.0.0"' "$TRANSACTIONS_SOURCE" || fail "transactions marker missing"
 grep -q 'data-kam-api-version="1.0.0"' "$API_SOURCE" || fail "API marker missing"
+grep -q 'data-kam-transaction-detail-version="1.0.0"' "$TX_DETAIL_SOURCE" || fail "transaction detail marker missing"
+grep -q 'data-kam-block-detail-version="1.0.0"' "$BLOCK_DETAIL_SOURCE" || fail "block detail marker missing"
+grep -q 'data-kam-address-detail-version="1.0.0"' "$ADDRESS_DETAIL_SOURCE" || fail "address detail marker missing"
 ! grep -Eq 'http://localhost|127\.0\.0\.1' "$API_SOURCE" || fail "API page must not reference localhost"
 python3 - "$NETWORK_SOURCE" <<'PY'
 import json,sys
@@ -95,6 +104,9 @@ proxy_fs "cat > /target/kam-dashboard/developer-network.json && chmod 0644 /targ
 proxy_fs "cat > /target/kam-dashboard/blocks.html && chmod 0644 /target/kam-dashboard/blocks.html" < "$BLOCKS_SOURCE"
 proxy_fs "cat > /target/kam-dashboard/transactions.html && chmod 0644 /target/kam-dashboard/transactions.html" < "$TRANSACTIONS_SOURCE"
 proxy_fs "cat > /target/kam-dashboard/api-docs.html && chmod 0644 /target/kam-dashboard/api-docs.html" < "$API_SOURCE"
+proxy_fs "cat > /target/kam-dashboard/transaction-detail.html && chmod 0644 /target/kam-dashboard/transaction-detail.html" < "$TX_DETAIL_SOURCE"
+proxy_fs "cat > /target/kam-dashboard/block-detail.html && chmod 0644 /target/kam-dashboard/block-detail.html" < "$BLOCK_DETAIL_SOURCE"
+proxy_fs "cat > /target/kam-dashboard/address-detail.html && chmod 0644 /target/kam-dashboard/address-detail.html" < "$ADDRESS_DETAIL_SOURCE"
 
 python3 - "$TEMPLATE" "$PATCHED_TEMPLATE" <<'PY'
 from pathlib import Path
@@ -112,6 +124,8 @@ def route(path, filename, header, version='1', connect="'self'"):
     return f'''    location = {path} {{\n        root /etc/nginx/templates;\n        try_files /kam-dashboard/{filename} =404;\n        default_type text/html;\n{headers}        add_header {header} "{version}" always;\n        add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src {connect}; img-src 'self' data: https://kriptoaman.com; object-src 'none'; base-uri 'self'; frame-ancestors 'self'" always;\n    }}\n'''
 def json_route(path, filename, header, version='1'):
     return f'''    location = {path} {{\n        root /etc/nginx/templates;\n        try_files /kam-dashboard/{filename} =404;\n        default_type application/json;\n{headers}        add_header {header} "{version}" always;\n        add_header Content-Security-Policy "default-src 'none'; frame-ancestors 'none'" always;\n    }}\n'''
+def dynamic_route(pattern, filename, header, version='1'):
+    return f'''    location ~ {pattern} {{\n        root /etc/nginx/templates;\n        try_files /kam-dashboard/{filename} =404;\n        default_type text/html;\n{headers}        add_header {header} "{version}" always;\n        add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data: https://kriptoaman.com; object-src 'none'; base-uri 'self'; frame-ancestors 'self'" always;\n    }}\n'''
 block='    # KAM_EXPLORER_V2_BEGIN\n'
 block+=route('/', 'index.html', 'X-KAM-Explorer-Version', '2', "'self' https://rpc.kriptoaman.com")
 block+=route('/stats', 'stats.html', 'X-KAM-Explorer-Stats-Version', '2')
@@ -129,6 +143,9 @@ block+=route('/status', 'status.html', 'X-KAM-Explorer-Status-Version')
 block+=route('/blocks', 'blocks.html', 'X-KAM-Explorer-Blocks-Version')
 block+=route('/txs', 'transactions.html', 'X-KAM-Explorer-Transactions-Version')
 block+=route('/api-docs', 'api-docs.html', 'X-KAM-Explorer-API-Version')
+block+=dynamic_route('^/tx/0x[0-9a-fA-F]{64}$', 'transaction-detail.html', 'X-KAM-Transaction-Detail-Version')
+block+=dynamic_route('^/block/(?:[0-9]+|0x[0-9a-fA-F]{64})$', 'block-detail.html', 'X-KAM-Block-Detail-Version')
+block+=dynamic_route('^/address/0x[0-9a-fA-F]{40}$', 'address-detail.html', 'X-KAM-Address-Detail-Version')
 block+='    # KAM_EXPLORER_V2_END\n'
 out.write_text(text.replace(needle,block+needle,1))
 PY
@@ -152,6 +169,12 @@ for needle in \
   'try_files /kam-dashboard/transactions.html =404;' \
   'try_files /kam-dashboard/api-docs.html =404;'; do
   grep -q "$needle" "$PATCHED_TEMPLATE" || fail "nginx route patch missing: $needle"
+done
+for needle in \
+  'try_files /kam-dashboard/transaction-detail.html =404;' \
+  'try_files /kam-dashboard/block-detail.html =404;' \
+  'try_files /kam-dashboard/address-detail.html =404;'; do
+  grep -q "$needle" "$PATCHED_TEMPLATE" || fail "nginx dynamic route patch missing: $needle"
 done
 proxy_fs "cat > /target/default.conf.template" < "$PATCHED_TEMPLATE"
 
@@ -227,6 +250,9 @@ curl -fsS --retry 4 --retry-all-errors --max-time 15 https://explorer.kriptoaman
 KNOWN_TX="0x9854d90159013d488190d0f1847596a5dfb7582812f880102f167a1b172b163a"
 CANONICAL_WKAM="0x0d8848CE88BB09a81a4248Efdd574d50B98b544A"
 curl -L -fsS --retry 4 --retry-all-errors --max-time 20 "https://explorer.kriptoaman.com/tx/$KNOWN_TX" -o /dev/null
+assert_page "/tx/$KNOWN_TX" 'data-kam-transaction-detail-version="1.0.0"'
+assert_page '/block/524248' 'data-kam-block-detail-version="1.0.0"'
+assert_page '/address/0x223762E5544063dd740D6E0a6EfD25C3e2D081B3' 'data-kam-address-detail-version="1.0.0"'
 curl -L -fsS --retry 4 --retry-all-errors --max-time 20 "https://explorer.kriptoaman.com/token/$CANONICAL_WKAM" -o /dev/null
 trap - ERR
 echo "KAM Explorer and Developer Ecosystem public surfaces deployed successfully."
