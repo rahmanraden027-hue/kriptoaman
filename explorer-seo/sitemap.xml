@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://explorer.kriptoaman.com/</loc></url>
+  <url><loc>https://explorer.kriptoaman.com/stats</loc></url>
+  <url><loc>https://explorer.kriptoaman.com/blocks</loc></url>
+  <url><loc>https://explorer.kriptoaman.com/txs</loc></url>
+  <url><loc>https://explorer.kriptoaman.com/tokens</loc></url>
+  <url><loc>https://explorer.kriptoaman.com/addresses</loc></url>
+  <url><loc>https://explorer.kriptoaman.com/validators</loc></url>
+  <url><loc>https://explorer.kriptoaman.com/contracts</loc></url>
+  <url><loc>https://explorer.kriptoaman.com/status</loc></url>
+  <url><loc>https://explorer.kriptoaman.com/developer</loc></url>
+  <url><loc>https://explorer.kriptoaman.com/developer/docs</loc></url>
+  <url><loc>https://explorer.kriptoaman.com/developer/examples</loc></url>
+  <url><loc>https://explorer.kriptoaman.com/developer/verify</loc></url>
+  <url><loc>https://explorer.kriptoaman.com/developer/starter</loc></url>
+  <url><loc>https://explorer.kriptoaman.com/api-docs</loc></url>
+</urlset>
