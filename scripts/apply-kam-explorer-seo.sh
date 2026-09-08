@@ -169,12 +169,43 @@ rollback(){
   code=$?
   echo "KAM Explorer SEO apply failed; restoring proxy template." >&2
   proxy_fs "cp -a /target/$BACKUP_NAME /target/default.conf.template" || true
-  docker compose up -d --force-recreate proxy >/dev/null 2>&1 || true
+  docker compose up -d --force-recreate --no-deps proxy >/dev/null 2>&1 || true
   exit "$code"
 }
 trap rollback ERR
 
-docker compose up -d --force-recreate proxy
+# Recreate only the reverse proxy. Dependencies are intentionally left untouched.
+docker compose up -d --force-recreate --no-deps proxy
+
+wait_for_stats_ready(){
+  local attempts="${1:-20}"
+  local attempt
+  for ((attempt=1; attempt<=attempts; attempt++)); do
+    : > "$VERIFY_BODY"
+    : > "$VERIFY_HEADERS"
+    if curl -L -fsS --connect-timeout 3 --max-time 8 \
+      -H 'Cache-Control: no-cache, no-store' \
+      -H 'Pragma: no-cache' \
+      -D "$VERIFY_HEADERS" -o "$VERIFY_BODY" \
+      "https://explorer.kriptoaman.com/stats?seo_ready=${STAMP}_${attempt}" \
+      && grep -Fq 'data-kam-stats-version="2.0.0"' "$VERIFY_BODY" \
+      && grep -Fq '<link rel="canonical" href="https://explorer.kriptoaman.com/stats" />' "$VERIFY_BODY" \
+      && grep -Fq 'meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"' "$VERIFY_BODY" \
+      && grep -Eqi '^x-kam-explorer-stats-version: *2' "$VERIFY_HEADERS" \
+      && ! grep -Fq 'Placeholder Counter' "$VERIFY_BODY" \
+      && ! grep -Eqi 'amount in ETH|>ETH<' "$VERIFY_BODY"; then
+      echo "KAM Explorer proxy ready after attempt $attempt/$attempts."
+      return 0
+    fi
+    sleep 2
+  done
+  return 1
+}
+
+if ! wait_for_stats_ready 20; then
+  echo "KAM Explorer proxy did not become ready with verified canonical stats." >&2
+  false
+fi
 
 verify_page(){
   local path="$1" canonical="$2" marker="$3"

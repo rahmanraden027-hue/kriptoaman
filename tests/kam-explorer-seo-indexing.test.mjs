@@ -21,7 +21,7 @@ test('KAM Explorer SEO assets expose canonical crawl signals without indexing AP
   assert.doesNotMatch(sitemap, /\/api\/v2\//);
 });
 
-test('SEO deployment is idempotent, path-stable, canonicalizes verified surfaces, and preserves the Explorer V2 boundary', async () => {
+test('SEO deployment is idempotent, path-stable, readiness-gated, and isolated to the Explorer proxy', async () => {
   const script = await read('scripts/apply-kam-explorer-seo.sh');
 
   assert.match(script, /KAM_EXPLORER_SEO_BEGIN/);
@@ -37,7 +37,18 @@ test('SEO deployment is idempotent, path-stable, canonicalizes verified surfaces
   assert.match(script, /Placeholder Counter/);
   assert.match(script, /amount in ETH/);
   assert.match(script, /docker run --rm --network none -i/);
-  assert.match(script, /docker compose up -d --force-recreate proxy/);
-  assert.doesNotMatch(script, /--privileged/);
+
+  // Proxy replacement must never fan out into Blockscout dependencies.
+  assert.match(script, /docker compose up -d --force-recreate --no-deps proxy/);
+  assert.doesNotMatch(script, /docker compose up -d --force-recreate proxy/);
   assert.doesNotMatch(script, /docker compose (?:restart|up[^\n]*)(?:db|postgres|indexer|backend)/i);
+  assert.doesNotMatch(script, /--privileged/);
+
+  // A transient 502 immediately after proxy recreation must be absorbed by bounded readiness polling.
+  assert.match(script, /wait_for_stats_ready\(\)/);
+  assert.match(script, /wait_for_stats_ready 20/);
+  assert.match(script, /--connect-timeout 3 --max-time 8/);
+  assert.match(script, /seo_ready=\$\{STAMP\}_\$\{attempt\}/);
+  assert.match(script, /x-kam-explorer-stats-version: \*2/);
+  assert.match(script, /KAM Explorer proxy did not become ready with verified canonical stats/);
 });
