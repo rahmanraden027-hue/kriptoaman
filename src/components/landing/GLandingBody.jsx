@@ -78,9 +78,15 @@ export default function GLandingBody({ stats }) {
 
       <section data-nosnippet="" className="ka-stats-section px-4 sm:px-6 py-6">
         <div className="ka-stats-card max-w-[1440px] mx-auto ka-card p-5 sm:p-7">
-          <div className="ka-stats-head flex items-center justify-between mb-5">
+          <div className="ka-stats-head flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-5">
             <h2 className="font-bold text-sm ka-text">Statistik Platform</h2>
-            <span className="text-xs ka-text2">Terakhir diperbarui: {statusTimestampLabel}</span>
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className={`w-2 h-2 rounded-full ${stats.loading ? 'bg-[var(--ka-blue)]' : systemOk ? 'bg-[var(--ka-green)]' : 'bg-[var(--ka-gold)]'} animate-pulse`} />
+              <span className="font-semibold">
+                {stats.loading ? <span className="ka-blue">Memeriksa data live</span> : systemOk ? <span className="ka-green">Operasional</span> : <span className="ka-gold">Layanan data terbatas</span>}
+              </span>
+              <span className="ka-text2">• {statusTimestampLabel}</span>
+            </div>
           </div>
           <div className="ka-stats-grid grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
