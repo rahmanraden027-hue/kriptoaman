@@ -16,6 +16,9 @@ DOCS_SOURCE="${9:-explorer-dashboard/developer-docs.html}"
 EXAMPLES_SOURCE="${10:-explorer-dashboard/developer-examples.html}"
 VERIFY_SOURCE="${11:-explorer-dashboard/developer-verify.html}"
 NETWORK_SOURCE="${12:-explorer-dashboard/developer-network.json}"
+BLOCKS_SOURCE="${13:-explorer-dashboard/blocks.html}"
+TRANSACTIONS_SOURCE="${14:-explorer-dashboard/transactions.html}"
+API_SOURCE="${15:-explorer-dashboard/api-docs.html}"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 BACKUP_NAME="default.conf.template.kam-v2.$STAMP.bak"
 PATCHED_TEMPLATE="$(mktemp)"
@@ -26,7 +29,7 @@ cleanup(){ rm -f "$PATCHED_TEMPLATE" "$VERIFY_BODY" "$VERIFY_HEADERS"; }
 trap cleanup EXIT
 
 [[ -d "$BASE" && -d "$PROXY_DIR" && -f "$TEMPLATE" ]] || fail "Blockscout proxy boundary unavailable"
-for f in "$SOURCE" "$STATS_SOURCE" "$TOKENS_SOURCE" "$DEVELOPER_SOURCE" "$ADDRESSES_SOURCE" "$VALIDATORS_SOURCE" "$CONTRACTS_SOURCE" "$STATUS_SOURCE" "$DOCS_SOURCE" "$EXAMPLES_SOURCE" "$VERIFY_SOURCE" "$NETWORK_SOURCE"; do
+for f in "$SOURCE" "$STATS_SOURCE" "$TOKENS_SOURCE" "$DEVELOPER_SOURCE" "$ADDRESSES_SOURCE" "$VALIDATORS_SOURCE" "$CONTRACTS_SOURCE" "$STATUS_SOURCE" "$DOCS_SOURCE" "$EXAMPLES_SOURCE" "$VERIFY_SOURCE" "$NETWORK_SOURCE" "$BLOCKS_SOURCE" "$TRANSACTIONS_SOURCE" "$API_SOURCE"; do
   [[ -f "$f" ]] || fail "source not found: $f"
 done
 SOURCE="$(realpath "$SOURCE")"
@@ -41,6 +44,9 @@ DOCS_SOURCE="$(realpath "$DOCS_SOURCE")"
 EXAMPLES_SOURCE="$(realpath "$EXAMPLES_SOURCE")"
 VERIFY_SOURCE="$(realpath "$VERIFY_SOURCE")"
 NETWORK_SOURCE="$(realpath "$NETWORK_SOURCE")"
+BLOCKS_SOURCE="$(realpath "$BLOCKS_SOURCE")"
+TRANSACTIONS_SOURCE="$(realpath "$TRANSACTIONS_SOURCE")"
+API_SOURCE="$(realpath "$API_SOURCE")"
 grep -q 'data-kam-explorer-version="2.0.0"' "$SOURCE" || fail "homepage marker missing"
 grep -q 'data-kam-stats-version="2.0.0"' "$STATS_SOURCE" || fail "stats marker missing"
 grep -q 'data-kam-tokens-version="2.0.0"' "$TOKENS_SOURCE" || fail "token registry marker missing"
@@ -52,6 +58,10 @@ grep -q 'data-kam-status-version="1.0.0"' "$STATUS_SOURCE" || fail "status marke
 grep -q 'data-kam-developer-docs-version="1.0.0"' "$DOCS_SOURCE" || fail "developer docs marker missing"
 grep -q 'data-kam-developer-examples-version="1.0.0"' "$EXAMPLES_SOURCE" || fail "developer examples marker missing"
 grep -q 'data-kam-developer-verify-version="1.0.0"' "$VERIFY_SOURCE" || fail "developer verify marker missing"
+grep -q 'data-kam-blocks-version="1.0.0"' "$BLOCKS_SOURCE" || fail "blocks marker missing"
+grep -q 'data-kam-transactions-version="1.0.0"' "$TRANSACTIONS_SOURCE" || fail "transactions marker missing"
+grep -q 'data-kam-api-version="1.0.0"' "$API_SOURCE" || fail "API marker missing"
+! grep -Eq 'http://localhost|127\.0\.0\.1' "$API_SOURCE" || fail "API page must not reference localhost"
 python3 - "$NETWORK_SOURCE" <<'PY'
 import json,sys
 with open(sys.argv[1], encoding='utf-8') as fh: d=json.load(fh)
@@ -82,6 +92,9 @@ proxy_fs "cat > /target/kam-dashboard/developer-docs.html && chmod 0644 /target/
 proxy_fs "cat > /target/kam-dashboard/developer-examples.html && chmod 0644 /target/kam-dashboard/developer-examples.html" < "$EXAMPLES_SOURCE"
 proxy_fs "cat > /target/kam-dashboard/developer-verify.html && chmod 0644 /target/kam-dashboard/developer-verify.html" < "$VERIFY_SOURCE"
 proxy_fs "cat > /target/kam-dashboard/developer-network.json && chmod 0644 /target/kam-dashboard/developer-network.json" < "$NETWORK_SOURCE"
+proxy_fs "cat > /target/kam-dashboard/blocks.html && chmod 0644 /target/kam-dashboard/blocks.html" < "$BLOCKS_SOURCE"
+proxy_fs "cat > /target/kam-dashboard/transactions.html && chmod 0644 /target/kam-dashboard/transactions.html" < "$TRANSACTIONS_SOURCE"
+proxy_fs "cat > /target/kam-dashboard/api-docs.html && chmod 0644 /target/kam-dashboard/api-docs.html" < "$API_SOURCE"
 
 python3 - "$TEMPLATE" "$PATCHED_TEMPLATE" <<'PY'
 from pathlib import Path
@@ -96,7 +109,7 @@ needle='    location / {\n'
 if needle not in text: raise SystemExit('frontend catch-all location not found')
 headers='''        add_header Cache-Control "no-store, max-age=0" always;\n        add_header X-Content-Type-Options "nosniff" always;\n        add_header Referrer-Policy "strict-origin-when-cross-origin" always;\n'''
 def route(path, filename, header, version='1', connect="'self'"):
-    return f'''    location = {path} {{\n        root /etc/nginx/templates;\n        try_files /kam-dashboard/{filename} =404;\n        default_type text/html;\n{headers}        add_header {header} "{version}" always;\n        add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src {connect}; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'" always;\n    }}\n'''
+    return f'''    location = {path} {{\n        root /etc/nginx/templates;\n        try_files /kam-dashboard/{filename} =404;\n        default_type text/html;\n{headers}        add_header {header} "{version}" always;\n        add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src {connect}; img-src 'self' data: https://kriptoaman.com; object-src 'none'; base-uri 'self'; frame-ancestors 'self'" always;\n    }}\n'''
 def json_route(path, filename, header, version='1'):
     return f'''    location = {path} {{\n        root /etc/nginx/templates;\n        try_files /kam-dashboard/{filename} =404;\n        default_type application/json;\n{headers}        add_header {header} "{version}" always;\n        add_header Content-Security-Policy "default-src 'none'; frame-ancestors 'none'" always;\n    }}\n'''
 block='    # KAM_EXPLORER_V2_BEGIN\n'
@@ -113,6 +126,9 @@ block+=route('/addresses', 'addresses.html', 'X-KAM-Explorer-Addresses-Version')
 block+=route('/validators', 'validators.html', 'X-KAM-Explorer-Validators-Version')
 block+=route('/contracts', 'contracts.html', 'X-KAM-Explorer-Contracts-Version')
 block+=route('/status', 'status.html', 'X-KAM-Explorer-Status-Version')
+block+=route('/blocks', 'blocks.html', 'X-KAM-Explorer-Blocks-Version')
+block+=route('/txs', 'transactions.html', 'X-KAM-Explorer-Transactions-Version')
+block+=route('/api-docs', 'api-docs.html', 'X-KAM-Explorer-API-Version')
 block+='    # KAM_EXPLORER_V2_END\n'
 out.write_text(text.replace(needle,block+needle,1))
 PY
@@ -129,6 +145,12 @@ for needle in \
   'try_files /kam-dashboard/validators.html =404;' \
   'try_files /kam-dashboard/contracts.html =404;' \
   'try_files /kam-dashboard/status.html =404;'; do
+  grep -q "$needle" "$PATCHED_TEMPLATE" || fail "nginx route patch missing: $needle"
+done
+for needle in \
+  'try_files /kam-dashboard/blocks.html =404;' \
+  'try_files /kam-dashboard/transactions.html =404;' \
+  'try_files /kam-dashboard/api-docs.html =404;'; do
   grep -q "$needle" "$PATCHED_TEMPLATE" || fail "nginx route patch missing: $needle"
 done
 proxy_fs "cat > /target/default.conf.template" < "$PATCHED_TEMPLATE"
@@ -180,6 +202,10 @@ assert_page '/addresses' 'data-kam-addresses-version="1.0.0"'
 assert_page '/validators' 'data-kam-validators-version="1.0.0"'
 assert_page '/contracts' 'data-kam-contracts-version="1.0.0"'
 assert_page '/status' 'data-kam-status-version="1.0.0"'
+assert_page '/blocks' 'data-kam-blocks-version="1.0.0"'
+assert_page '/txs' 'data-kam-transactions-version="1.0.0"'
+assert_page '/api-docs' 'data-kam-api-version="1.0.0"'
+! grep -Eq 'http://localhost|127\.0\.0\.1' "$VERIFY_BODY"
 assert_header '/' '^x-kam-explorer-version: *2'
 assert_header '/stats' '^x-kam-explorer-stats-version: *2'
 assert_header '/tokens' '^x-kam-explorer-tokens-version: *2'
@@ -192,6 +218,9 @@ assert_header '/addresses' '^x-kam-explorer-addresses-version: *1'
 assert_header '/validators' '^x-kam-explorer-validators-version: *1'
 assert_header '/contracts' '^x-kam-explorer-contracts-version: *1'
 assert_header '/status' '^x-kam-explorer-status-version: *1'
+assert_header '/blocks' '^x-kam-explorer-blocks-version: *1'
+assert_header '/txs' '^x-kam-explorer-transactions-version: *1'
+assert_header '/api-docs' '^x-kam-explorer-api-version: *1'
 
 curl -fsS --retry 4 --retry-all-errors --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("items")'
 curl -fsS --retry 4 --retry-all-errors --max-time 15 https://explorer.kriptoaman.com/api/v2/stats | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "total_transactions" in d'

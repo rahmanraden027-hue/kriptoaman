@@ -137,6 +137,10 @@ jobs:
           verify_body '/validators' 'data-kam-validators-version="1.0.0"'
           verify_body '/contracts' 'data-kam-contracts-version="1.0.0"'
           verify_body '/status' 'data-kam-status-version="1.0.0"'
+          verify_body '/blocks' 'data-kam-blocks-version="1.0.0"'
+          verify_body '/txs' 'data-kam-transactions-version="1.0.0"'
+          verify_body '/api-docs' 'data-kam-api-version="1.0.0"'
+          ! grep -Eq 'http://localhost|127\.0\.0\.1' "$BODY"
           verify_header '/' '^x-kam-explorer-version: *2'
           verify_header '/stats' '^x-kam-explorer-stats-version: *2'
           verify_header '/tokens' '^x-kam-explorer-tokens-version: *2'
@@ -149,6 +153,9 @@ jobs:
           verify_header '/validators' '^x-kam-explorer-validators-version: *1'
           verify_header '/contracts' '^x-kam-explorer-contracts-version: *1'
           verify_header '/status' '^x-kam-explorer-status-version: *1'
+          verify_header '/blocks' '^x-kam-explorer-blocks-version: *1'
+          verify_header '/txs' '^x-kam-explorer-transactions-version: *1'
+          verify_header '/api-docs' '^x-kam-explorer-api-version: *1'
       - name: Verify core data APIs remain intact
         run: |
           set -euo pipefail

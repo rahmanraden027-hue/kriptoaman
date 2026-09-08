@@ -14,9 +14,12 @@ const addresses = await readFile(new URL('../explorer-dashboard/addresses.html',
 const validators = await readFile(new URL('../explorer-dashboard/validators.html', import.meta.url), 'utf8');
 const contracts = await readFile(new URL('../explorer-dashboard/contracts.html', import.meta.url), 'utf8');
 const status = await readFile(new URL('../explorer-dashboard/status.html', import.meta.url), 'utf8');
+const blocks = await readFile(new URL('../explorer-dashboard/blocks.html', import.meta.url), 'utf8');
+const transactions = await readFile(new URL('../explorer-dashboard/transactions.html', import.meta.url), 'utf8');
+const apiDocs = await readFile(new URL('../explorer-dashboard/api-docs.html', import.meta.url), 'utf8');
 const deploy = await readFile(new URL('../scripts/deploy-kam-explorer-v2.sh', import.meta.url), 'utf8');
 
-const finalSurfaces = [html, stats, tokens, developer, docs, examples, verify, addresses, validators, contracts, status];
+const finalSurfaces = [html, stats, tokens, developer, docs, examples, verify, addresses, validators, contracts, status, blocks, transactions, apiDocs];
 
 test('KAM Explorer V2 uses verified live data surfaces', () => {
   assert.match(html, /data-kam-explorer-version="2\.0\.0"/);
@@ -123,6 +126,21 @@ test('Network status uses public endpoint evidence and treats browser RPC CORS s
   assert.match(status, /indexed block freshness/i);
 });
 
+test('Blocks, transactions and API use one KAM brand system and verified same-origin data', () => {
+  assert.match(blocks, /data-kam-blocks-version="1\.0\.0"/);
+  assert.match(transactions, /data-kam-transactions-version="1\.0\.0"/);
+  assert.match(apiDocs, /data-kam-api-version="1\.0\.0"/);
+  for (const surface of [blocks, transactions, apiDocs]) {
+    assert.match(surface, /kriptoaman-mark\.svg/);
+    assert.match(surface, /KriptoAman Mainnet/);
+    assert.equal(surface.includes('http://localhost'), false);
+    assert.equal(surface.includes('127.0.0.1'), false);
+  }
+  assert.match(blocks, /\/api\/v2\/blocks/);
+  assert.match(transactions, /\/api\/v2\/transactions/);
+  assert.match(apiDocs, /\/api\/v2\/stats/);
+});
+
 test('KAM public final surfaces do not ship known mockup-only KPI values', () => {
   for (const fake of ['879,719', '3,942 TPS', '21 / 21', '10,000,000,000 KAM', '$1,245,332', 'Placeholder Counter']) {
     for (const surface of finalSurfaces) assert.equal(surface.includes(fake), false, `mockup-only value must not be shipped: ${fake}`);
@@ -144,6 +162,9 @@ test('deployment is exact-route, narrow, nginx-safe, rollback-safe and avoids cu
     ['/validators', 'validators.html'],
     ['/contracts', 'contracts.html'],
     ['/status', 'status.html'],
+    ['/blocks', 'blocks.html'],
+    ['/txs', 'transactions.html'],
+    ['/api-docs', 'api-docs.html'],
   ];
   for (const [path, file] of routes) {
     assert.equal(deploy.includes(`route('${path}', '${file}'`), true, `exact route declaration missing: ${path}`);
