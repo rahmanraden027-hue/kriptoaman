@@ -5,7 +5,7 @@ export default function GlobalLandingStyles() {
     <style>{`
       .ka-landing{
         --ka-bg1:#05070a; --ka-bg2:#0b1016; --ka-card:#111821; --ka-card2:#0b1016;
-        --ka-border:#1f2a38; --ka-text:#ffffff; --ka-text2:#94a3b8;
+        --ka-border:#263446; --ka-text:#ffffff; --ka-text2:#a9b7c9;
         --ka-blue:#3b82f6; --ka-cyan:#3b82f6; --ka-gold:#F5B72E; --ka-green:#22C55E;
         --ka-btn-primary-bg:#2563eb; --ka-btn-primary-bg-hover:#1d4ed8;
         --ka-radius:20px;
@@ -22,6 +22,7 @@ export default function GlobalLandingStyles() {
       .ka-card{background:linear-gradient(145deg,color-mix(in srgb,var(--ka-card) 96%,var(--ka-blue) 4%),var(--ka-card));border:1px solid var(--ka-border);border-radius:var(--ka-radius);}
       .ka-card2{background:var(--ka-card2);border:1px solid var(--ka-border);border-radius:12px;}
       .ka-text{color:var(--ka-text);} .ka-text2{color:var(--ka-text2);}
+      .ka-landing p.ka-text2{line-height:1.65;}
       .ka-blue{color:var(--ka-blue);} .ka-cyan{color:var(--ka-cyan);}
       .ka-gold{color:var(--ka-gold);} .ka-green{color:var(--ka-green);}
       .ka-glow{box-shadow:0 0 30px rgba(59,130,246,0.15);}
@@ -51,7 +52,7 @@ export default function GlobalLandingStyles() {
       .ka-live-state{display:inline-flex;align-items:center;gap:7px;color:var(--ka-gold);font-size:11px;font-weight:800}.ka-live-state i{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 12px currentColor}.ka-live-state.is-online{color:var(--ka-green)}
       .ka-console-stage{padding:10px 22px 0;background:radial-gradient(circle at 50% 45%,rgba(37,99,235,.12),transparent 54%)}
       .ka-console-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--ka-border);background:rgba(2,6,11,.55)}
-      .ka-console-metrics>div,.ka-console-metrics>a{display:flex;align-items:center;gap:10px;padding:16px;border-right:1px solid var(--ka-border);text-decoration:none;min-width:0}.ka-console-metrics>*:last-child{border-right:0}.ka-console-metrics svg{width:17px;height:17px;color:var(--ka-blue);flex:none}.ka-console-metrics span{display:flex;flex-direction:column;color:var(--ka-text2);font-size:10px;min-width:0}.ka-console-metrics b{font-size:15px;color:var(--ka-text);line-height:1.2;white-space:nowrap}
+      .ka-console-metrics>div,.ka-console-metrics>a{display:flex;align-items:center;gap:10px;padding:16px;border-right:1px solid var(--ka-border);text-decoration:none;min-width:0}.ka-console-metrics>*:last-child{border-right:0}.ka-console-metrics svg{width:17px;height:17px;color:var(--ka-blue);flex:none}.ka-console-metrics span{display:flex;flex-direction:column;color:var(--ka-text2);font-size:12px;min-width:0}.ka-console-metrics b{font-size:16px;color:var(--ka-text);line-height:1.2;white-space:nowrap}
 
       /* Responsive safety net for stale/partial utility CSS. */
       .ka-landing header{position:fixed;top:0;left:0;right:0;z-index:50;}
