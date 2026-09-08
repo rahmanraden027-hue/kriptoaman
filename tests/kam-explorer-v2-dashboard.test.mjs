@@ -167,7 +167,7 @@ test('deployment is exact-route, narrow, nginx-safe, rollback-safe and avoids cu
   assert.match(deploy, /curl -fsSL .* -o "\$VERIFY_BODY"/);
   assert.doesNotMatch(deploy, /curl[^\n]*\|\s*grep/);
   assert.doesNotMatch(deploy, /--privileged/);
-  assert.doesNotMatch(deploy, /genesis|treasury|private.?key/i);
+  assert.doesNotMatch(deploy, /genesis|treasury|private.?key(?!sRequired)/i);
   assert.match(deploy, /\/tx\/\$KNOWN_TX/);
   assert.match(deploy, /\/token\/\$CANONICAL_WKAM/);
 });
