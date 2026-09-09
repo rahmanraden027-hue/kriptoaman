@@ -1,101 +1,87 @@
-# KAM Roadmap
+# KAM Global Campaign Roadmap 2026–2027
 
-Status: Working roadmap — milestones are gated by technical, security, compliance, and operational readiness. This document is not a promise of listing, price, liquidity, exchange availability, or regulatory approval.
+Status: **Roadmap kampanye resmi terbaru — berorientasi pada kemajuan yang terukur dan dapat diverifikasi**
 
-## Phase 1 — KAM Points Foundation
+KAM bergerak maju melalui teknologi yang kuat, transparansi terbuka, tata kelola yang disiplin, dan pencapaian yang dapat diperiksa publik. Roadmap ini menjadi sumber resmi tunggal untuk komunikasi kampanye KriptoAman dan KAM.
 
-**Objective:** establish a transparent, auditable off-chain participation system before any public token functionality.
+## Pilar Kampanye
 
-- KAM Points ledger per authenticated user.
-- Immutable reward history with source, reason, reference ID, metadata, and timestamp.
-- Automatic one-time rewards for verifiable account milestones.
-- Anti-duplication through deterministic reward references.
-- KAM Points displayed separately from crypto asset balances.
-- No transfer, withdrawal, trading, redemption, or market-price claim.
+1. **Technology First** — memperkuat jaringan, validator, RPC, explorer, observability, backup, dan kesiapan operasional.
+2. **Transparency** — menyajikan status, dokumentasi, tokenomics, risiko, dan kemajuan berdasarkan bukti yang tersedia.
+3. **Governance** — menjaga treasury, vesting, perubahan parameter, dan keputusan material melalui kontrol yang terdokumentasi.
+4. **Verifiable Milestones** — mengukur kemajuan dari data jaringan, rilis produk, dokumentasi, dan integrasi yang dapat diverifikasi.
 
-**Current reward rules**
-- Verified email: 100 KAM Points.
-- Completed basic profile: 50 KAM Points.
-- Approved KYC: 500 KAM Points.
-- Official campaign/community rewards: configurable by authorized admin with audit trail.
+## Fase 1 — Fondasi Jaringan Terverifikasi
 
-**Release gate:** ledger integrity, authentication/session security, D1 persistence, reward abuse testing, and clear user disclosures.
+**Fokus: September 2026**
 
-## Phase 2 — Reward & Community Layer
+- Mempertahankan produksi blok dan stabilitas KAM Network.
+- Memantau validator/proposer, RPC publik, explorer, indexer, backup, dan pemulihan.
+- Menampilkan Chain ID 22028 dan identitas jaringan melalui kanal resmi.
+- Mempublikasikan status aktual secara konsisten dan dapat diperiksa.
 
-**Objective:** expand participation while preserving traceability and anti-abuse controls.
+**Hasil yang dituju:** fondasi jaringan yang tangguh, transparan, dan siap mendukung pertumbuhan utilitas.
 
-- Campaign IDs and one-grant-per-user campaign protection.
-- Verified referral event model; reward only after referral validity criteria are satisfied.
-- Community missions with published eligibility criteria.
-- Admin reward dashboard with 2FA-protected controls.
-- Reward caps, rate limits, anomaly detection, and abuse review.
-- User-visible reward history and campaign terms.
+## Fase 2 — Transparansi & Kepercayaan
 
-**Release gate:** anti-fraud controls, campaign auditability, privacy review, and operational monitoring.
+**Fokus: September–Oktober 2026**
 
-## Phase 3 — KAM Network Readiness
+- Menyatukan Tokenomics v1, kebijakan treasury, vesting, dan change control.
+- Memperkuat status page, dokumentasi teknis, audit trail, serta standar komunikasi.
+- Menerbitkan pembaruan kampanye berkala dengan bukti pencapaian.
+- Menjaga penjelasan yang jelas antara KAM Points, aset KAM, dan referensi skenario indikatif.
 
-**Objective:** prepare the technical foundation required before any KAM on-chain distribution.
+**Hasil yang dituju:** informasi publik yang konsisten, profesional, dan mudah diverifikasi.
 
-- Freeze and document final network architecture.
-- Define genesis/network parameters and validator/node strategy.
-- Establish secure key-management and signing procedures.
-- Prepare public RPC, explorer, monitoring, backups, and incident response.
-- Define final KAM token economics, supply rules, allocation, vesting, and governance policy.
-- Independent security review of network and token-related code.
-- Public technical documentation and official verification channels.
+## Fase 3 — Utilitas & Ekosistem Developer
 
-**Release gate:** reproducible network build, security review completion, stable public infrastructure, incident-response readiness, and approved final token parameters.
+**Fokus: Oktober–Desember 2026**
 
-## Phase 4 — Migration Design & Snapshot
+- Memperluas dokumentasi developer, contoh integrasi, dan pemantauan jaringan.
+- Mengembangkan penggunaan KAM untuk biaya jaringan dan layanan ekosistem yang tervalidasi.
+- Menyiapkan metadata jaringan dan panduan wallet melalui jalur resmi.
+- Mendorong aplikasi, tooling, dan pengalaman pengguna yang memberi manfaat nyata.
 
-**Objective:** create a controlled bridge from eligible KAM Points participation records to any future on-chain distribution model.
+**Hasil yang dituju:** utilitas yang semakin kuat dan ekosistem developer yang semakin mudah diakses.
 
-- Define eligibility and exclusion rules.
-- Publish conversion methodology only after final approval.
-- Take a signed, timestamped eligibility snapshot.
-- Run duplicate-account, sanctions/compliance, fraud, and integrity checks as applicable.
-- Provide user verification and dispute/review process.
-- Produce an auditable migration manifest without exposing unnecessary personal data.
+## Fase 4 — Kampanye Global & Pertumbuhan Komunitas
 
-**Important:** KAM Points do not automatically guarantee KAM tokens. Any conversion or migration requires separately published final rules.
+**Fokus: berjalan sepanjang 2026**
 
-**Release gate:** finalized distribution policy, verified snapshot integrity, legal/compliance review, and security sign-off.
+- Menjalankan kampanye edukasi melalui kanal resmi KriptoAman.
+- Mengangkat teknologi, utilitas, transparansi, governance, dan pencapaian terverifikasi.
+- Mengembangkan konten komunitas, AMA, pembaruan developer, dan materi bilingual.
+- Mengukur pertumbuhan melalui jangkauan, partisipasi, aktivitas jaringan, dan penggunaan produk.
 
-## Phase 5 — Public Network Launch
+**Hasil yang dituju:** komunitas yang memahami teknologi KAM dan bertumbuh melalui informasi yang berkualitas.
 
-**Objective:** launch only when the network is technically and operationally ready.
+## Fase 5 — Akses Global & Kesiapan Pasar
 
-- Public mainnet genesis and validator activation.
-- Official RPC and explorer publication.
-- Official contract/token/network identifiers published through verified KriptoAman channels.
-- Monitoring, alerting, backups, and status reporting active.
-- Controlled initial distribution according to published rules.
-- Post-launch security monitoring and incident-response procedures.
+**Fokus: berbasis kelayakan dan kesiapan**
 
-**Release gate:** stable mainnet operation and verified public endpoints. No exchange or liquidity claims are made by this milestone alone.
+- Memperluas dukungan wallet dan registry metadata yang relevan.
+- Menyiapkan paket data untuk agregator pasar sesuai persyaratan masing-masing pihak.
+- Membangun kerangka likuiditas yang transparan dan price discovery berbasis pasar nyata.
+- Menjalankan integrasi pihak ketiga hanya melalui proses resmi yang dapat diverifikasi.
 
-## Phase 6 — Ecosystem & Market Access
+**Hasil yang dituju:** akses internasional yang lebih luas dengan disiplin risiko dan transparansi.
 
-**Objective:** expand utility only after core network stability.
+## Fase 6 — Ekspansi Ekosistem 2027
 
-- Wallet integrations and verified network metadata.
-- Developer documentation, SDK/API support, and ecosystem tooling.
-- Utility features based on technically and legally validated use cases.
-- DEX/CEX integration considered only through independent listing/integration processes.
-- Liquidity programs, if any, disclosed transparently with risks and terms.
-- Ongoing security, compliance, governance, and transparency reporting.
+- Memperluas SDK, API, aplikasi, dan infrastruktur.
+- Meningkatkan ketahanan jaringan dan kapasitas operasional.
+- Mengembangkan governance secara bertahap setelah review teknis, keamanan, dan legal.
+- Membuka peluang kolaborasi teknologi dan kemitraan internasional.
+- Menerbitkan laporan jaringan, treasury, keamanan, dan pertumbuhan secara berkala.
 
-## Non-Negotiable Launch Principles
+## Standar Komunikasi Resmi
 
-1. **No invented price or guaranteed return.** Market value is not presented before a real market exists.
-2. **No fake listing status.** Exchange availability is published only after independently verifiable confirmation.
-3. **No hidden migration rule.** Any KAM Points conversion methodology must be published before execution.
-4. **No seed phrase/private-key collection.** KriptoAman monitoring and reward flows do not require users to surrender private credentials.
-5. **Auditability first.** Reward and migration events must be traceable and protected from duplication.
-6. **Security gates before growth.** Public launch follows infrastructure, security, and operational readiness—not a calendar deadline alone.
+- Pencapaian dipublikasikan setelah tersedia bukti yang dapat diperiksa.
+- Integrasi wallet, aggregator, DEX, atau CEX dinyatakan aktif hanya setelah terkonfirmasi oleh pihak terkait.
+- Referensi US$29.37 tetap diklasifikasikan sebagai **skenario indikatif**, bukan harga pasar, janji nilai, atau jaminan hasil.
+- Nilai pasar aktual hanya ditampilkan dari perdagangan dan likuiditas nyata yang dapat diverifikasi.
+- Setiap perubahan material pada supply, allocation, vesting, treasury, burn policy, atau governance harus terdokumentasi dan disetujui melalui change control.
 
-## Current Position
+## Pesan Kampanye
 
-KriptoAman is in **Phase 1 — KAM Points Foundation**, with the first Reward Engine controls being implemented. Phase advancement should occur only after the preceding release gates are met and documented.
+**KAM dibangun dengan teknologi yang kuat, transparansi yang terbuka, tata kelola yang disiplin, dan kemajuan yang dapat diverifikasi—menuju ekosistem digital yang semakin terhubung secara global.**
