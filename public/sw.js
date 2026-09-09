@@ -1,5 +1,5 @@
 /**
- * KriptoAman Service Worker v2.4.0
+ * KriptoAman Service Worker v2.4.1
  * Fail-safe policy:
  * - navigation is always network-first and never falls back to a cached app shell
  * - internal APIs are never cached by the service worker
@@ -8,11 +8,12 @@
  */
 
 const CACHE_PREFIX = 'kriptoaman-';
-const STATIC_CACHE = `${CACHE_PREFIX}static-v2.4.0`;
-const IMMUTABLE_CACHE = `${CACHE_PREFIX}immutable-v2.4.0`;
+const STATIC_CACHE = `${CACHE_PREFIX}static-v2.4.1`;
+const IMMUTABLE_CACHE = `${CACHE_PREFIX}immutable-v2.4.1`;
 const CURRENT_CACHES = new Set([STATIC_CACHE, IMMUTABLE_CACHE]);
 
 const OPTIONAL_STATIC_ASSETS = [
+  '/brand/kriptoaman-mark.svg',
   '/kriptoaman-logo-primary.png',
   '/icons/kriptoaman-192.png',
   '/icons/kriptoaman-512.png',
@@ -121,7 +122,9 @@ self.addEventListener('fetch', (event) => {
   }
 
   const isStableImage = isSameOrigin && request.destination === 'image' && (
-    url.pathname.startsWith('/icons/') || url.pathname === '/kriptoaman-logo-primary.png'
+    url.pathname.startsWith('/icons/') ||
+    url.pathname === '/kriptoaman-logo-primary.png' ||
+    url.pathname === '/brand/kriptoaman-mark.svg'
   );
 
   if (isStableImage) {
@@ -182,4 +185,4 @@ self.addEventListener('sync', (event) => {
   }
 });
 
-console.log('[SW] KriptoAman Service Worker v2.4.0 loaded');
+console.log('[SW] KriptoAman Service Worker v2.4.1 loaded');
