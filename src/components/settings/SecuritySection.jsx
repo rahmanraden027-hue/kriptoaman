@@ -349,7 +349,7 @@ export default function SecuritySection({ onNavigateTo }) {
       </div>
 
       {/* 2FA Card */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5 space-y-4">
+      <div className="!mt-10 lg:!mt-12 bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${is2FAEnabled ? 'bg-green-500/20' : 'bg-slate-700'}`}>
