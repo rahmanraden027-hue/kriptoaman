@@ -1,7 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
-  <title id="title">KriptoAman</title>
-  <desc id="desc">A gold geometric K encircled by a four-node blockchain data orbit on a midnight navy field.</desc>
-  <rect width="512" height="512" fill="#07182E"/>
+  <title id="title">KriptoAman symbol</title>
+  <desc id="desc">A gold geometric K encircled by a four-node blockchain data orbit.</desc>
   <g fill="none" stroke="#D6A83C" stroke-width="15" stroke-linecap="round">
     <path d="M256 75A181 181 0 0 1 437 256"/><path d="M437 256A181 181 0 0 1 256 437"/>
     <path d="M256 437A181 181 0 0 1 75 256"/><path d="M75 256A181 181 0 0 1 256 75"/>

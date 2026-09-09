@@ -1,8 +1,8 @@
 import React from 'react';
 
 /**
- * KriptoAmanLogo — Concept C resmi KriptoAman.
- * Premium gold + neon cyan shield monogram.
+ * KriptoAmanLogo — market intelligence identity.
+ * Gold K + four-node blockchain data orbit.
  * Props:
  *   size: number (px, default 32)
  *   showText: bool (default true)
@@ -10,8 +10,8 @@ import React from 'react';
  *   animate: bool (default true)
  *   className: string
  */
-const PREMIUM_GOLD = '#D4AF37';
-const NEON_CYAN = '#00E5FF';
+const PREMIUM_GOLD = '#D6A83C';
+const NEON_CYAN = '#20C9E8';
 
 export default function KriptoAmanLogo({ size = 32, showText = true, textSize = 'text-sm', animate = true, className = '' }) {
   return (
