@@ -45,8 +45,8 @@ const PUBLIC_ROUTE_SEO = {
         description: 'Informasi resmi KAM di KriptoAman, termasuk dokumentasi publik, perkembangan jaringan, roadmap, dan sumber verifikasi yang tersedia.',
     },
     '/KAMGlobalRoadmap': {
-        title: 'KAM Global Roadmap | KriptoAman',
-        description: 'Roadmap publik KAM yang merangkum tahapan pengembangan, kesiapan teknologi, dokumentasi, dan arah pengembangan ekosistem.',
+        title: 'KAM Global Campaign Roadmap 2026–2027 | KriptoAman',
+        description: 'Roadmap kampanye resmi terbaru KAM: Technology First, Transparency, Governance, utility, global access, dan Verifiable Milestones.',
     },
     '/KAMTokenomics': {
         title: 'KAM Tokenomics | KriptoAman',
