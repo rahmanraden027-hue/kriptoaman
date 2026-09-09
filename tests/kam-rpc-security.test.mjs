@@ -37,7 +37,10 @@ test('KAM public verifier probes every sensitive namespace and records latency',
   }
   assert.match(verifier, /sensitiveMethodsBlocked/);
   assert.match(verifier, /latencyMs/);
-  assert.match(verifier, /every\(\(probe\) => probe\.ok\)/);
+  assert.match(verifier, /KAM_RPC_MAX_LATENCY_MS/);
+  assert.match(verifier, /KAM_EXPLORER_MAX_LATENCY_MS/);
+  assert.match(verifier, /latencyWithinLimit/);
+  assert.match(verifier, /every\(\(probe\) => probe\.ok && probe\.latencyWithinLimit\)/);
 });
 
 test('KAM RPC browser root redirects humans to the Developer Console', async () => {

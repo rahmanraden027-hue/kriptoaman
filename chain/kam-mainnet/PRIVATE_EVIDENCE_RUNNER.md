@@ -6,7 +6,7 @@ This package collects the promotion evidence that must never be exposed through 
 
 - Run only on a protected self-hosted GitHub Actions runner labelled `kam-mainnet-evidence`.
 - Install the runner on a private validator or protected operations host.
-- Bind the evidence RPC to `127.0.0.1:8545`; do not create a public DNS record.
+- Bind the evidence-only RPC proxy to `127.0.0.1:8648`; do not create a public DNS record. The validator's own management RPC may remain on a separate loopback port, but the workflow consumes only the constrained evidence endpoint on `8648`.
 - Do not commit validator keys, enodes, private IPs, RPC credentials, database archives, or raw backup files.
 - The uploaded evidence contains counts, block heights, and SHA-256 fingerprints only.
 
@@ -14,7 +14,7 @@ This package collects the promotion evidence that must never be exposed through 
 
 1. Linux x64 host with Node.js-compatible networking.
 2. GitHub Actions runner labels: `self-hosted`, `linux`, `x64`, `kam-mainnet-evidence`.
-3. Local RPC at `http://127.0.0.1:8545` with:
+3. Constrained local evidence RPC at `http://127.0.0.1:8648` with:
    - `eth_chainId`
    - `eth_blockNumber`
    - `net_peerCount`
