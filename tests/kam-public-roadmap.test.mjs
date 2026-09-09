@@ -11,7 +11,7 @@ test('KAM global roadmap is registered as a public page', async () => {
   assert.match(app, /'KAMGlobalRoadmap'/);
   assert.match(app, /href="\/KAMGlobalRoadmap"/);
   assert.match(app, /KAM Global Roadmap/);
-  assert.match(app, /US\$29\.37 · Indicative Scenario Reference/);
+  assert.match(app, /Technology · Transparency · Governance · Verifiable Progress/);
   assert.doesNotMatch(app, /fixed bottom-5 right-4/);
 });
 
