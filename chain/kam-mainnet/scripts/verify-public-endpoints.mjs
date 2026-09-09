@@ -4,6 +4,8 @@ const rpcUrl = process.env.KAM_RPC_URL || 'https://rpc.kriptoaman.com';
 const explorerUrl = process.env.KAM_EXPLORER_URL || 'https://explorer.kriptoaman.com';
 const expectedChainId = '0x560c';
 const maxExplorerDistanceBlocks = Number.parseInt(process.env.KAM_EXPLORER_MAX_DISTANCE_BLOCKS || '5', 10);
+const maxRpcLatencyMs = Number.parseInt(process.env.KAM_RPC_MAX_LATENCY_MS || '5000', 10);
+const maxExplorerLatencyMs = Number.parseInt(process.env.KAM_EXPLORER_MAX_LATENCY_MS || '8000', 10);
 
 const SENSITIVE_METHOD_PROBES = [
   { namespace: 'admin', method: 'admin_peers', params: [] },
@@ -43,6 +45,8 @@ async function probeBlockedMethod({ namespace, method, params }) {
     rpcErrorCode: payload?.error?.code ?? null,
     rpcErrorMessage: payload?.error?.message ?? null,
     latencyMs,
+    latencyWithinLimit: latencyMs <= maxRpcLatencyMs,
+    maxLatencyMs: maxRpcLatencyMs,
   };
 }
 
@@ -51,7 +55,12 @@ async function checkExplorer() {
   const response = await fetch(explorerUrl, { redirect: 'follow' });
   const latencyMs = Math.round(performance.now() - startedAt);
   if (!response.ok) throw new Error(`Explorer HTTP ${response.status}`);
-  return { ok: true, finalUrl: response.url, latencyMs };
+  return {
+    ok: latencyMs <= maxExplorerLatencyMs,
+    finalUrl: response.url,
+    latencyMs,
+    maxLatencyMs: maxExplorerLatencyMs,
+  };
 }
 
 async function checkExplorerHeight(rpcBlockHex) {
@@ -74,13 +83,15 @@ async function checkExplorerHeight(rpcBlockHex) {
       && Number.isFinite(rpcHeight)
       && Number.isFinite(maxExplorerDistanceBlocks)
       && maxExplorerDistanceBlocks >= 0
-      && distanceBlocks <= maxExplorerDistanceBlocks,
+      && distanceBlocks <= maxExplorerDistanceBlocks
+      && latencyMs <= maxExplorerLatencyMs,
     apiUrl,
     rpcHeight,
     explorerHeight,
     distanceBlocks,
     maxDistanceBlocks: maxExplorerDistanceBlocks,
     latencyMs,
+    maxLatencyMs: maxExplorerLatencyMs,
   };
 }
 
@@ -97,9 +108,10 @@ async function main() {
   try {
     const chainId = await rpc('eth_chainId');
     result.checks.chainId = {
-      ok: chainId.result === expectedChainId,
+      ok: chainId.result === expectedChainId && chainId.latencyMs <= maxRpcLatencyMs,
       value: chainId.result,
       latencyMs: chainId.latencyMs,
+      maxLatencyMs: maxRpcLatencyMs,
     };
 
     const block1 = await rpc('eth_blockNumber');
@@ -108,17 +120,23 @@ async function main() {
     const n1 = Number.parseInt(block1.result, 16);
     const n2 = Number.parseInt(block2.result, 16);
     result.checks.blockProgress = {
-      ok: Number.isFinite(n1) && Number.isFinite(n2) && n2 > n1,
+      ok: Number.isFinite(n1)
+        && Number.isFinite(n2)
+        && n2 > n1
+        && block1.latencyMs <= maxRpcLatencyMs
+        && block2.latencyMs <= maxRpcLatencyMs,
       from: block1.result,
       to: block2.result,
       firstLatencyMs: block1.latencyMs,
       secondLatencyMs: block2.latencyMs,
+      maxLatencyMs: maxRpcLatencyMs,
     };
 
     const sensitiveMethods = await Promise.all(SENSITIVE_METHOD_PROBES.map(probeBlockedMethod));
     result.checks.sensitiveMethodsBlocked = {
-      ok: sensitiveMethods.every((probe) => probe.ok),
+      ok: sensitiveMethods.every((probe) => probe.ok && probe.latencyWithinLimit),
       methods: sensitiveMethods,
+      maxLatencyMs: maxRpcLatencyMs,
     };
 
     result.checks.explorer = await checkExplorer();
