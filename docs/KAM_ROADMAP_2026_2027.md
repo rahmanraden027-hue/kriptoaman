@@ -1,88 +1,87 @@
-# KAM Roadmap 2026–2027
+# KAM Global Campaign Roadmap 2026–2027
 
-Status: **Adopted roadmap baseline — aligned to technical readiness gates**
+Status: **Roadmap kampanye resmi terbaru — berorientasi pada kemajuan yang terukur dan dapat diverifikasi**
 
-This roadmap is designed to keep KriptoAman and KAM communications factual, auditable and globally presentable. Milestones are readiness targets, not guarantees of exchange listing, token price, regulatory approval or commercial launch timing.
+KAM bergerak maju melalui teknologi yang kuat, transparansi terbuka, tata kelola yang disiplin, dan pencapaian yang dapat diperiksa publik. Roadmap ini menjadi sumber resmi tunggal untuk komunikasi kampanye KriptoAman dan KAM.
 
-## Phase 1 — Foundation & Mainnet Candidate
+## Pilar Kampanye
 
-Target: 2026 Q3
+1. **Technology First** — memperkuat jaringan, validator, RPC, explorer, observability, backup, dan kesiapan operasional.
+2. **Transparency** — menyajikan status, dokumentasi, tokenomics, risiko, dan kemajuan berdasarkan bukti yang tersedia.
+3. **Governance** — menjaga treasury, vesting, perubahan parameter, dan keputusan material melalui kontrol yang terdokumentasi.
+4. **Verifiable Milestones** — mengukur kemajuan dari data jaringan, rilis produk, dokumentasi, dan integrasi yang dapat diverifikasi.
 
-- Maintain versioned KAM network profile and genesis configuration.
-- Validate QBFT validator topology, block production and chain stability.
-- Verify candidate Chain ID and collision checks.
-- Harden public RPC gateway and block administrative/debug namespaces.
-- Validate explorer connectivity and public observability.
-- Complete backup/restore and infrastructure recovery procedures.
-- Maintain transparent mainnet-candidate status until all public-launch gates pass.
+## Fase 1 — Fondasi Jaringan Terverifikasi
 
-## Phase 2 — Tokenomics & Governance Readiness
+**Fokus: September 2026**
 
-Target: 2026 Q3–Q4
+- Mempertahankan produksi blok dan stabilitas KAM Network.
+- Memantau validator/proposer, RPC publik, explorer, indexer, backup, dan pemulihan.
+- Menampilkan Chain ID 22028 dan identitas jaringan melalui kanal resmi.
+- Mempublikasikan status aktual secara konsisten dan dapat diperiksa.
 
-- KAM Tokenomics v1 adopted as the project economic baseline.
-- Publish allocation, vesting and treasury controls.
-- Define governance/change-control policy for material economic parameters.
-- Establish public treasury transparency policy.
-- Finalize risk disclosures and communication standards.
-- Prepare machine-readable token metadata for ecosystem integrations.
+**Hasil yang dituju:** fondasi jaringan yang tangguh, transparan, dan siap mendukung pertumbuhan utilitas.
 
-## Phase 3 — Developer & Wallet Ecosystem
+## Fase 2 — Transparansi & Kepercayaan
 
-Target: 2026 Q4
+**Fokus: September–Oktober 2026**
 
-- Publish RPC and explorer access only after production readiness is verified.
-- Publish developer documentation and network configuration examples.
-- Add verified wallet/network configuration guidance.
-- Provide sample dApp integration and transaction workflows.
-- Establish status monitoring for RPC, explorer and chain health.
+- Menyatukan Tokenomics v1, kebijakan treasury, vesting, dan change control.
+- Memperkuat status page, dokumentasi teknis, audit trail, serta standar komunikasi.
+- Menerbitkan pembaruan kampanye berkala dengan bukti pencapaian.
+- Menjaga penjelasan yang jelas antara KAM Points, aset KAM, dan referensi skenario indikatif.
 
-## Phase 4 — Community & Global Campaign
+**Hasil yang dituju:** informasi publik yang konsisten, profesional, dan mudah diverifikasi.
 
-Target: 2026 Q4
+## Fase 3 — Utilitas & Ekosistem Developer
 
-- Run educational KriptoAman + KAM campaigns across X, TikTok, Instagram and YouTube.
-- Focus messaging on technology, utility, transparency and ecosystem growth.
-- Publish recurring development updates and milestone evidence.
-- Launch community education, AMA and developer content.
-- Track reach, verified community growth, website traffic and developer participation.
+**Fokus: Oktober–Desember 2026**
 
-## Phase 5 — Public Launch Readiness
+- Memperluas dokumentasi developer, contoh integrasi, dan pemantauan jaringan.
+- Mengembangkan penggunaan KAM untuk biaya jaringan dan layanan ekosistem yang tervalidasi.
+- Menyiapkan metadata jaringan dan panduan wallet melalui jalur resmi.
+- Mendorong aplikasi, tooling, dan pengalaman pengguna yang memberi manfaat nyata.
 
-Target: Gate-based, not date-only
+**Hasil yang dituju:** utilitas yang semakin kuat dan ekosistem developer yang semakin mudah diakses.
 
-Public/commercial launch may proceed only when all required gates are satisfied:
+## Fase 4 — Kampanye Global & Pertumbuhan Komunitas
 
-- Chain stability and block growth verified.
-- RPC security and availability verified.
-- Explorer operational.
-- Validator production evidence verified.
-- Backup/restore validated.
-- Monitoring and incident response active.
-- Tokenomics formally adopted.
-- Treasury/governance controls documented.
-- Applicable legal and regulatory review completed.
-- Public disclosures consistent with actual system state.
+**Fokus: berjalan sepanjang 2026**
 
-## Phase 6 — Market/Data Infrastructure
+- Menjalankan kampanye edukasi melalui kanal resmi KriptoAman.
+- Mengangkat teknologi, utilitas, transparansi, governance, dan pencapaian terverifikasi.
+- Mengembangkan konten komunitas, AMA, pembaruan developer, dan materi bilingual.
+- Mengukur pertumbuhan melalui jangkauan, partisipasi, aktivitas jaringan, dan penggunaan produk.
 
-Target: Post-launch-readiness
+**Hasil yang dituju:** komunitas yang memahami teknologi KAM dan bertumbuh melalui informasi yang berkualitas.
 
-- Prepare CoinGecko/CoinMarketCap-style metadata package.
-- Publish supply methodology and circulating-supply policy.
-- Maintain verified explorer and official social links.
-- Pursue data-aggregator integrations when eligibility requirements are met.
-- Evaluate exchange/liquidity integrations only through compliant and transparent processes.
+## Fase 5 — Akses Global & Kesiapan Pasar
 
-## Phase 7 — 2027 Ecosystem Expansion
+**Fokus: berbasis kelayakan dan kesiapan**
 
-- Expand developer tooling and SDKs.
-- Grow applications using KAM network infrastructure.
-- Increase validator/infrastructure resilience where technically appropriate.
-- Introduce governance functions only after design, security and legal review.
-- Expand international partnerships and integrations.
-- Publish periodic ecosystem, treasury and network-health reports.
+- Memperluas dukungan wallet dan registry metadata yang relevan.
+- Menyiapkan paket data untuk agregator pasar sesuai persyaratan masing-masing pihak.
+- Membangun kerangka likuiditas yang transparan dan price discovery berbasis pasar nyata.
+- Menjalankan integrasi pihak ketiga hanya melalui proses resmi yang dapat diverifikasi.
 
-## Daily campaign operating rule
+**Hasil yang dituju:** akses internasional yang lebih luas dengan disiplin risiko dan transparansi.
 
-Daily campaign content may evolve, but total supply, allocation percentages, vesting, treasury controls, burn policy and price claims must never change automatically. Any proposed material change must be versioned, reviewed and explicitly approved before replacing this baseline.
+## Fase 6 — Ekspansi Ekosistem 2027
+
+- Memperluas SDK, API, aplikasi, dan infrastruktur.
+- Meningkatkan ketahanan jaringan dan kapasitas operasional.
+- Mengembangkan governance secara bertahap setelah review teknis, keamanan, dan legal.
+- Membuka peluang kolaborasi teknologi dan kemitraan internasional.
+- Menerbitkan laporan jaringan, treasury, keamanan, dan pertumbuhan secara berkala.
+
+## Standar Komunikasi Resmi
+
+- Pencapaian dipublikasikan setelah tersedia bukti yang dapat diperiksa.
+- Integrasi wallet, aggregator, DEX, atau CEX dinyatakan aktif hanya setelah terkonfirmasi oleh pihak terkait.
+- Referensi US$29.37 tetap diklasifikasikan sebagai **skenario indikatif**, bukan harga pasar, janji nilai, atau jaminan hasil.
+- Nilai pasar aktual hanya ditampilkan dari perdagangan dan likuiditas nyata yang dapat diverifikasi.
+- Setiap perubahan material pada supply, allocation, vesting, treasury, burn policy, atau governance harus terdokumentasi dan disetujui melalui change control.
+
+## Pesan Kampanye
+
+**KAM dibangun dengan teknologi yang kuat, transparansi yang terbuka, tata kelola yang disiplin, dan kemajuan yang dapat diverifikasi—menuju ekosistem digital yang semakin terhubung secara global.**
