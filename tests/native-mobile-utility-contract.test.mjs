@@ -55,5 +55,5 @@ test('Android splash and adaptive icon follow the KriptoAman dark identity', () 
   assert.match(styles, /windowSplashScreenBackground/);
   assert.match(styles, /windowSplashScreenAnimatedIcon/);
   assert.match(styles, /postSplashScreenTheme/);
-  assert.match(iconBackground, /#050D18/i);
+  assert.match(iconBackground, /#07182E/i);
 });
