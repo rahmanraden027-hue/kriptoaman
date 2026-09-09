@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">KriptoAman compact icon</title>
+  <desc id="desc">Flat production icon with a gold geometric K, security shield and four-node blockchain orbit on deep navy.</desc>
+  <rect width="512" height="512" rx="44" fill="#07182E"/>
+  <g fill="none" stroke="#E1B23D" stroke-width="13" stroke-linecap="round">
+    <path d="M256 70A186 186 0 0 1 442 256"/>
+    <path d="M442 256A186 186 0 0 1 256 442"/>
+    <path d="M256 442A186 186 0 0 1 70 256"/>
+    <path d="M70 256A186 186 0 0 1 256 70"/>
+  </g>
+  <path d="M256 116L365 155V246C365 320 322 375 256 405C190 375 147 320 147 246V155Z" fill="#0A2B54" stroke="#E1B23D" stroke-width="13" stroke-linejoin="round"/>
+  <g fill="#E1B23D">
+    <path d="M188 174H229V338H188Z"/>
+    <path d="M229 244L302 174H351L267 258Z"/>
+    <path d="M263 259L340 332H291L229 280Z"/>
+  </g>
+  <g fill="#20C9E8" stroke="#E1B23D" stroke-width="8">
+    <circle cx="256" cy="70" r="19"/>
+    <circle cx="442" cy="256" r="19"/>
+    <circle cx="256" cy="442" r="19"/>
+    <circle cx="70" cy="256" r="19"/>
+  </g>
+</svg>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+    <group
+        android:pivotX="256"
+        android:pivotY="256"
+        android:scaleX="0.72"
+        android:scaleY="0.72">
+        <path
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="#E1B23D"
+            android:strokeWidth="13"
+            android:strokeLineCap="round"
+            android:pathData="M256,70 A186,186 0,0 1,442,256 M442,256 A186,186 0,0 1,256,442 M256,442 A186,186 0,0 1,70,256 M70,256 A186,186 0,0 1,256,70"/>
+        <path
+            android:fillColor="#0A2B54"
+            android:strokeColor="#E1B23D"
+            android:strokeWidth="13"
+            android:strokeLineJoin="round"
+            android:pathData="M256,116 L365,155 V246 C365,320 322,375 256,405 C190,375 147,320 147,246 V155 Z"/>
+        <path android:fillColor="#E1B23D" android:pathData="M188,174 H229 V338 H188 Z"/>
+        <path android:fillColor="#E1B23D" android:pathData="M229,244 L302,174 H351 L267,258 Z"/>
+        <path android:fillColor="#E1B23D" android:pathData="M263,259 L340,332 H291 L229,280 Z"/>
+        <path
+            android:fillColor="#20C9E8"
+            android:strokeColor="#E1B23D"
+            android:strokeWidth="8"
+            android:pathData="M256,51 a19,19 0,1 0,0,38 a19,19 0,1 0,0,-38"/>
+        <path
+            android:fillColor="#20C9E8"
+            android:strokeColor="#E1B23D"
+            android:strokeWidth="8"
+            android:pathData="M442,237 a19,19 0,1 0,0,38 a19,19 0,1 0,0,-38"/>
+        <path
+            android:fillColor="#20C9E8"
+            android:strokeColor="#E1B23D"
+            android:strokeWidth="8"
+            android:pathData="M256,423 a19,19 0,1 0,0,38 a19,19 0,1 0,0,-38"/>
+        <path
+            android:fillColor="#20C9E8"
+            android:strokeColor="#E1B23D"
+            android:strokeWidth="8"
+            android:pathData="M70,237 a19,19 0,1 0,0,38 a19,19 0,1 0,0,-38"/>
+    </group>
+</vector>
