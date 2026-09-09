@@ -12,6 +12,7 @@ const NETWORK = {
 const MAX_TRIAL_KAM = '1';
 const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
 const HASH_RE = /^0x[a-fA-F0-9]{64}$/;
+const METAMASK_DAPP_LINK = 'https://link.metamask.io/dapp/kriptoaman.com/KAMTransactionLab';
 
 function parseKam(value) {
   const normalized = String(value).trim();
@@ -81,6 +82,11 @@ export default function KAMTransactionLab() {
       provider.removeListener?.('chainChanged', sync);
     };
   }, []);
+
+  const openMetaMask = () => {
+    setMessage('Membuka KAM Transaction Lab di MetaMask…');
+    window.location.assign(METAMASK_DAPP_LINK);
+  };
 
   const connect = async () => {
     setStage('connecting');
@@ -169,7 +175,7 @@ export default function KAMTransactionLab() {
         </section>
 
         <section className="grid gap-4 md:grid-cols-3">
-          <div className="ka-command-panel p-5"><p className="text-sm font-bold text-slate-400">Wallet</p><p className="mt-3 text-lg font-black">{account ? short(account) : 'Belum terhubung'}</p><button onClick={account ? refreshWallet : connect} disabled={busy} className="mt-4 min-h-11 w-full rounded-xl bg-sky-600 px-4 text-sm font-black hover:bg-sky-500 disabled:opacity-50">{stage === 'connecting' ? 'Menghubungkan…' : account ? 'Perbarui Wallet' : 'Hubungkan Wallet'}</button></div>
+          <div className="ka-command-panel p-5"><p className="text-sm font-bold text-slate-400">Wallet</p><p className="mt-3 text-lg font-black">{account ? short(account) : 'Belum terhubung'}</p><button onClick={account ? refreshWallet : walletAvailable ? connect : openMetaMask} disabled={busy} className="mt-4 min-h-11 w-full rounded-xl bg-sky-600 px-4 text-sm font-black hover:bg-sky-500 disabled:opacity-50">{stage === 'connecting' ? 'Menghubungkan…' : account ? 'Perbarui Wallet' : walletAvailable ? 'Hubungkan Wallet' : 'Buka di MetaMask'}</button>{!walletAvailable && <p className="mt-3 text-sm leading-6 text-slate-400">Browser ini belum menyediakan koneksi wallet. Buka halaman ini di MetaMask untuk melanjutkan dengan aman.</p>}</div>
           <div className="ka-command-panel p-5"><p className="text-sm font-bold text-slate-400">Jaringan</p><p className={`mt-3 text-lg font-black ${chainReady ? 'text-emerald-300' : 'text-amber-300'}`}>{chainReady ? 'KAM Network' : chainId ? `Chain ${parseInt(chainId, 16)}` : 'Belum terdeteksi'}</p><button onClick={switchNetwork} disabled={busy || chainReady} className="mt-4 min-h-11 w-full rounded-xl border border-sky-400/25 bg-sky-500/10 px-4 text-sm font-black text-sky-200 disabled:opacity-50">{chainReady ? 'Jaringan Sesuai' : 'Pilih KAM Network'}</button></div>
           <div className="ka-command-panel p-5"><p className="text-sm font-bold text-slate-400">Saldo tersedia</p><p className="mt-3 text-lg font-black">{balance == null ? '—' : `${balance} KAM`}</p><p className="mt-4 text-sm leading-6 text-slate-500">Dibaca langsung dari wallet pada blok terbaru.</p></div>
         </section>
