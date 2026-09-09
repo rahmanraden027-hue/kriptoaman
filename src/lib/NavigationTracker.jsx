@@ -12,7 +12,7 @@ const INDEXABLE_PAGE_KEYS = new Set([
 
 const INDEXABLE_DIRECT_PATHS = new Set([
     '/', '/en', '/enterprise', '/founder', '/company', '/LegalCorporateInformation', '/SystemStatus', '/news/kam-campaign-2026',
-    '/research', '/research/kam-mainnet-architecture',
+    '/research', '/research/kam-mainnet-architecture', '/KAMTransactionLab',
 ]);
 
 const PUBLIC_ROUTE_SEO = {
@@ -55,6 +55,10 @@ const PUBLIC_ROUTE_SEO = {
     '/KAMNetwork': {
         title: 'KAM Network | KriptoAman',
         description: 'Informasi publik mengenai KAM Network, status jaringan yang tersedia, parameter teknis, dan sumber verifikasi KriptoAman.',
+    },
+    '/KAMTransactionLab': {
+        title: 'KAM Transaction Lab | KriptoAman',
+        description: 'Halaman resmi untuk menghubungkan wallet, memvalidasi Chain ID 22028, dan mencoba transaksi KAM bernilai kecil dengan konfirmasi langsung di wallet pengguna.',
     },
     '/KAMNetworkDocs': {
         title: 'KAM Network Documentation | KriptoAman',

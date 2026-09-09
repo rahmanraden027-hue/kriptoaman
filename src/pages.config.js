@@ -7,7 +7,7 @@ const PAGE_NAMES = [
   'AMLDashboard', 'AboutUs', 'AdminKAMAnalytics', 'AdminKAMBulkRewards', 'AdminKAMRewards', 'AdminKAMSnapshotApproval', 'AdminKAMSnapshotReadiness', 'AdminSKAMLaunch', 'AdminKYCManagement', 'AdminPlatformAssets',
   'AdminProfitAnalytics', 'AdminUserBalances', 'Alerts', 'AppBuildAnalytics',
   'AssetManager', 'AutoTrading', 'Contact', 'DEXSavings', 'Disclaimer', 'Edukasi', 'Enterprise',
-  'Founder', 'Home', 'IntelligenceHub', 'KAM', 'KAMCampaignNews', 'KAMDeveloper', 'KAMDEX', 'KAMGlobalRoadmap', 'KAMIncidentResponse', 'KAMLaunchReadiness', 'KAMNetwork', 'KAMNetworkDocs', 'KAMTokenomics', 'KYC', 'KYCVerificationPage', 'LandingPage', 'Market', 'MarketResearch',
+  'Founder', 'Home', 'IntelligenceHub', 'KAM', 'KAMCampaignNews', 'KAMDeveloper', 'KAMDEX', 'KAMGlobalRoadmap', 'KAMIncidentResponse', 'KAMLaunchReadiness', 'KAMNetwork', 'KAMNetworkDocs', 'KAMTokenomics', 'KAMTransactionLab', 'KYC', 'KYCVerificationPage', 'LandingPage', 'Market', 'MarketResearch',
   'P2PLending', 'PWAValidation', 'PaperTrading', 'PlatformDocs', 'PortfolioOverview', 'Premium',
   'PriceTracker', 'PrivacyPolicy', 'RPCPrivacyPolicy', 'Profile', 'Referral', 'RegulatoryDocs',
   'SEOLanding', 'SecureVault', 'SecurityCenter', 'ServerControl', 'Settings', 'SystemStatus',
