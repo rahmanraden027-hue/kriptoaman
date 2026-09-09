@@ -6,8 +6,8 @@ const PDF_URL = '/docs/KriptoAman_KAM_USD29_37_Positive_Confident_Roadmap.pdf';
 
 const COPY = {
   id: {
-    badge: 'KAM GLOBAL ROADMAP',
-    title: 'KAM Global Growth Scenario & Strategic Roadmap',
+    badge: 'KAM GLOBAL CAMPAIGN ROADMAP 2026–2027',
+    title: 'KAM Global Campaign Roadmap 2026–2027',
     subtitle: 'Membangun Jaringan. Memperluas Utilitas. Menghubungkan Pasar Global.',
     referenceLabel: 'Referensi Skenario Indikatif',
     referenceMeta: 'Kerangka arah pertumbuhan berbasis fundamental',
@@ -27,8 +27,8 @@ const COPY = {
     ],
     scenarioPositioning: 'Scenario Positioning',
     scenarioPositioningBody: 'Referensi US$29.37 ditempatkan sebagai skenario strategis yang terhubung dengan kemajuan fundamental. Harga pasar aktual akan menggunakan data perdagangan dan likuiditas nyata saat pasar KAM aktif.',
-    roadmapTitle: 'KAM Scenario Drivers Roadmap',
-    roadmapIntro: 'Delapan pilar pertumbuhan yang memperkuat posisi KAM sebagai aset native dalam ekosistem KriptoAman.',
+    roadmapTitle: 'Roadmap Kampanye Terbaru KAM',
+    roadmapIntro: 'Delapan pilar kampanye yang menyatukan teknologi, transparansi, governance, utilitas, dan kemajuan yang dapat diverifikasi.',
     columns: ['Fase', 'Milestone Utama', 'Indikator Utama', 'Dampak Strategis'],
     rows: [
       ['Foundation', 'Public mainnet terdistribusi', '4 host produksi, RPC/explorer terlindungi, stabilitas 24 jam+', 'Memperkuat ketahanan jaringan dan standar infrastruktur.'],
@@ -61,8 +61,8 @@ const COPY = {
     impact: 'Dampak Strategis',
   },
   en: {
-    badge: 'KAM GLOBAL ROADMAP',
-    title: 'KAM Global Growth Scenario & Strategic Roadmap',
+    badge: 'KAM GLOBAL CAMPAIGN ROADMAP 2026–2027',
+    title: 'KAM Global Campaign Roadmap 2026–2027',
     subtitle: 'Build the Network. Expand Utility. Connect Global Markets.',
     referenceLabel: 'Indicative Scenario Reference',
     referenceMeta: 'Fundamental growth direction framework',
@@ -82,8 +82,8 @@ const COPY = {
     ],
     scenarioPositioning: 'Scenario Positioning',
     scenarioPositioningBody: 'US$29.37 is positioned as a strategic scenario connected to fundamental progress. Actual market price will use real trading and liquidity data when the KAM market becomes active.',
-    roadmapTitle: 'KAM Scenario Drivers Roadmap',
-    roadmapIntro: 'Eight growth pillars strengthening KAM as the native asset of the KriptoAman ecosystem.',
+    roadmapTitle: 'Latest KAM Campaign Roadmap',
+    roadmapIntro: 'Eight campaign pillars uniting technology, transparency, governance, utility, and verifiable progress.',
     columns: ['Phase', 'Primary Milestone', 'Core Indicator', 'Strategic Impact'],
     rows: [
       ['Foundation', 'Distributed public mainnet', '4 production hosts, protected RPC/explorer, 24h+ stability', 'Strengthens network resilience and infrastructure standards.'],
