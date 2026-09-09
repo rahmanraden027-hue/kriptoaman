@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "status": "inventory-in-progress",
+  "claim": "crypto-agile-and-quantum-migration-ready-target",
+  "publicQuantumSafeClaimAllowed": false,
+  "systems": [
+    {"system":"EVM user accounts","current":"secp256k1","quantumRisk":"high","migration":"Upgradeable smart-account hybrid signature prototype using a standardized post-quantum signature","state":"required"},
+    {"system":"QBFT validator identity","current":"classical EVM-compatible keys","quantumRisk":"high","migration":"Protocol-compatible dual authorization research and validator key rotation runbook","state":"required"},
+    {"system":"Treasury and privileged contracts","current":"classical wallet or multisig","quantumRisk":"high","migration":"Contract-wallet policy supporting classical plus ML-DSA or SLH-DSA verification after benchmarking and audit","state":"required"},
+    {"system":"TLS, VPN and internal service transport","current":"provider-dependent classical TLS","quantumRisk":"harvest-now-decrypt-later","migration":"Provider-supported hybrid key establishment based on standardized ML-KEM with classical fallback during transition","state":"inventory-required"},
+    {"system":"Software release signing","current":"GitHub and platform signing controls","quantumRisk":"medium","migration":"Algorithm-agile signed provenance and post-quantum capable release verification when supported","state":"inventory-required"},
+    {"system":"Backups and long-lived sensitive data","current":"deployment-dependent","quantumRisk":"harvest-now-decrypt-later","migration":"AES-256-class data encryption, isolated key management, rotation, minimization and hybrid-PQC transport","state":"evidence-required"}
+  ],
+  "standards": ["FIPS 203 ML-KEM", "FIPS 204 ML-DSA", "FIPS 205 SLH-DSA"]
+}

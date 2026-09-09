@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "network": "KAM Mainnet Candidate",
+  "chainId": 22028,
+  "status": "mainnet-candidate-not-public",
+  "policy": {
+    "allGatesRequired": true,
+    "criticalOrHighFindingsAllowed": 0,
+    "minimumContinuityHours": 24,
+    "recommendedSoakDays": 30,
+    "currentValidatorCount": 4,
+    "highResilienceValidatorTarget": 7,
+    "publicQuantumSafeClaimAllowed": false
+  },
+  "gates": {
+    "networkIdentityFreeze": {
+      "passed": true,
+      "evidence": ["network-profile.json", ".github/workflows/kam-chain-freeze-guard.yml"]
+    },
+    "validatorFaultTolerance": {
+      "passed": false,
+      "evidence": [],
+      "required": "Fresh proof of four distinct validator hosts and a controlled one-validator outage without loss of block production"
+    },
+    "loadAndSoak": {
+      "passed": false,
+      "evidence": [],
+      "required": "Read-only staged load evidence plus at least 24 continuous healthy hourly buckets; 30-day soak is recommended before unrestricted launch"
+    },
+    "independentSecurityReview": {
+      "passed": false,
+      "evidence": [],
+      "required": "Independent infrastructure, smart-contract and application reports with zero unresolved reachable Critical or High findings"
+    },
+    "backupAndRecovery": {
+      "passed": true,
+      "evidence": ["promotion-readiness.json:backupRestore", "scripts/verify-backup-restore-evidence.mjs"]
+    },
+    "rpcAndObservability": {
+      "passed": false,
+      "evidence": [],
+      "required": "Dedicated protected RPC origin, sensitive namespaces blocked, alerting and current latency/availability evidence"
+    },
+    "postQuantumCryptoAgility": {
+      "passed": false,
+      "evidence": ["../../docs/SECURITY_PQC_BASELINE_2026.md", "pqc-crypto-inventory.json"],
+      "required": "Reviewed cryptographic inventory and testnet prototype of hybrid authorization; no quantum-safe public claim before independent review"
+    },
+    "finalRehearsalAndGovernance": {
+      "passed": false,
+      "evidence": [],
+      "required": "Documented go/no-go rehearsal, rollback, incident roles, multisig approval and reviewed promotion commit"
+    }
+  }
+}

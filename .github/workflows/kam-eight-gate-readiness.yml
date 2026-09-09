@@ -1,0 +1,34 @@
+name: KAM Eight-Gate Readiness
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'chain/kam-mainnet/**'
+      - 'docs/KAM_MAINNET_EIGHT_GATE_EXECUTION.md'
+      - 'tests/kam-eight-gate-readiness.test.mjs'
+      - '.github/workflows/kam-eight-gate-readiness.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate policy regression tests
+        run: node --test tests/kam-eight-gate-readiness.test.mjs
+      - name: Publish current go or no-go decision
+        continue-on-error: true
+        run: node chain/kam-mainnet/scripts/evaluate-eight-gates.mjs | tee kam-eight-gate-decision.json
+      - name: Upload decision evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: kam-eight-gate-decision
+          path: kam-eight-gate-decision.json
+          if-no-files-found: error
+          retention-days: 90
