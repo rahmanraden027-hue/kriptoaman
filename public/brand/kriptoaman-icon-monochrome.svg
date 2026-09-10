@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">KriptoAman monochrome icon</title>
+  <desc id="desc">Single-color KriptoAman shield, K monogram and four-cube blockchain orbit.</desc>
+  <g fill="none" stroke="currentColor" stroke-width="15" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="256" cy="256" r="186"/>
+    <path d="M256 116L365 155V246C365 320 322 375 256 405C190 375 147 320 147 246V155Z"/>
+    <path d="M188 174V338M222 256L309 174M225 271L306 338" stroke-width="32"/>
+    <path d="M256 43L281 57V84L256 98L231 84V57ZM442 229L467 243V270L442 284L417 270V243ZM256 415L281 429V456L256 470L231 456V429ZM70 229L95 243V270L70 284L45 270V243Z"/>
+  </g>
+</svg>

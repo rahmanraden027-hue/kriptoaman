@@ -14,10 +14,16 @@
     <path d="M229 244L302 174H351L267 258Z"/>
     <path d="M263 259L340 332H291L229 280Z"/>
   </g>
-  <g fill="#20C9E8" stroke="#E1B23D" stroke-width="8">
-    <circle cx="256" cy="70" r="19"/>
-    <circle cx="442" cy="256" r="19"/>
-    <circle cx="256" cy="442" r="19"/>
-    <circle cx="70" cy="256" r="19"/>
+  <g fill="#0A2B54" stroke="#E1B23D" stroke-width="7" stroke-linejoin="round">
+    <path d="M256 43L281 57V84L256 98L231 84V57Z"/>
+    <path d="M442 229L467 243V270L442 284L417 270V243Z"/>
+    <path d="M256 415L281 429V456L256 470L231 456V429Z"/>
+    <path d="M70 229L95 243V270L70 284L45 270V243Z"/>
+  </g>
+  <g fill="none" stroke="#20C9E8" stroke-width="5" stroke-linecap="round">
+    <path d="M256 48V93M236 60L256 71L276 60M256 71V93"/>
+    <path d="M442 234V279M422 246L442 257L462 246M442 257V279"/>
+    <path d="M256 420V465M236 432L256 443L276 432M256 443V465"/>
+    <path d="M70 234V279M50 246L70 257L90 246M70 257V279"/>
   </g>
 </svg>
