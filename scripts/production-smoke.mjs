@@ -24,7 +24,9 @@ async function timedFetch(url, init = {}) {
 }
 
 function errorMessage(error) {
-  return error?.name === 'AbortError' ? 'request_timeout' : String(error?.message || error || 'request_error');
+  return error?.name === 'AbortError'
+    ? 'request_timeout'
+    : String(error?.message || error || 'request_error');
 }
 
 async function httpCheck(name, url) {
@@ -64,7 +66,7 @@ async function jsonHttpCheck(name, url, validate) {
   }
 }
 
-async function rpcCheck(name, method, validate) {
+async function rpc(method, params = []) {
   try {
     const { response, ms } = await timedFetch(RPC, {
       method: 'POST',
@@ -73,7 +75,7 @@ async function rpcCheck(name, method, validate) {
         accept: 'application/json',
         'user-agent': 'KriptoAman-Production-Smoke/1.1',
       },
-      body: JSON.stringify({ jsonrpc: '2.0', id: method, method, params: [] }),
+      body: JSON.stringify({ jsonrpc: '2.0', id: method, method, params }),
     });
 
     const text = await response.text();
@@ -81,23 +83,29 @@ async function rpcCheck(name, method, validate) {
     try {
       body = JSON.parse(text);
     } catch {
-      return { name, ok: false, status: response.status, ms, error: 'invalid_json' };
+      return { ok: false, status: response.status, ms, error: 'invalid_json', result: null };
     }
 
     if (!response.ok || body?.error) {
       return {
-        name,
         ok: false,
         status: response.status,
         ms,
         error: body?.error ? `rpc_error:${JSON.stringify(body.error)}` : `http_${response.status}`,
+        result: body?.result ?? null,
       };
     }
 
-    return { name, ...validate(body?.result, ms), status: response.status };
+    return { ok: true, status: response.status, ms, result: body?.result ?? null };
   } catch (error) {
-    return { name, ok: false, status: 0, error: errorMessage(error) };
+    return { ok: false, status: 0, error: errorMessage(error), result: null };
   }
+}
+
+async function validateRpcResult(name, rpcPromise, validate) {
+  const call = await rpcPromise;
+  if (!call.ok) return { name, ...call };
+  return { name, status: call.status, ...validate(call.result, call.ms) };
 }
 
 const checks = await Promise.all([
@@ -115,22 +123,22 @@ const checks = await Promise.all([
     `${EXPLORER}/api/v2/stats`,
     (body) => Boolean(body) && typeof body === 'object' && !Array.isArray(body),
   ),
-  rpcCheck('rpc-chain-id', 'eth_chainId', (result, ms) => ({
-    ok: typeof result === 'string' && result.toLowerCase() === EXPECTED_CHAIN_ID,
-    value: result ?? null,
-    expected: EXPECTED_CHAIN_ID,
-    ms,
-    error:
-      typeof result === 'string' && result.toLowerCase() === EXPECTED_CHAIN_ID
-        ? undefined
-        : 'unexpected_chain_id',
-  })),
-  rpcCheck('rpc-block-number', 'eth_blockNumber', (result, ms) => {
+  validateRpcResult('rpc-chain-id', rpc('eth_chainId'), (result, ms) => {
+    const ok = typeof result === 'string' && result.toLowerCase() === EXPECTED_CHAIN_ID;
+    return {
+      ok,
+      value: result,
+      expected: EXPECTED_CHAIN_ID,
+      ms,
+      error: ok ? undefined : 'unexpected_chain_id',
+    };
+  }),
+  validateRpcResult('rpc-block-number', rpc('eth_blockNumber'), (result, ms) => {
     const height = typeof result === 'string' ? Number.parseInt(result, 16) : NaN;
     const ok = Number.isSafeInteger(height) && height >= 0;
     return {
       ok,
-      value: result ?? null,
+      value: result,
       height: ok ? height : null,
       ms,
       error: ok ? undefined : 'invalid_block_number',
