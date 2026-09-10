@@ -11,6 +11,7 @@ permissions:
 
 env:
   KAM_RESEARCH_OUT: research/kam-mainnet/data
+  KAM_CONTINUITY_EPOCH: research/kam-mainnet/continuity-epoch.json
 
 concurrency:
   group: kam-research-72h-evidence
@@ -32,9 +33,9 @@ jobs:
           mkdir -p "$KAM_RESEARCH_OUT" /tmp/kam-evidence-restore
           : > /tmp/kam-evidence-restore/combined.ndjson
 
-          # Backfill from recent non-expired artifacts. Historical runs created
-          # one or more samples per artifact, so combining them preserves a true
-          # rolling evidence window without mutating chain state.
+          # Backfill recent non-expired research artifacts. When the final-mainnet
+          # continuity epoch is active, samples older than that reviewed epoch are
+          # rejected even if they are still inside the ordinary 72-hour window.
           gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts?per_page=100" \
             --jq '.artifacts[] | select(.expired == false and (.name | startswith("kam-research-evidence-"))) | [.id,.name] | @tsv' \
             > /tmp/kam-evidence-restore/artifacts.tsv
@@ -56,8 +57,23 @@ jobs:
           const fs = require('node:fs');
           const outDir = process.env.KAM_RESEARCH_OUT;
           const input = '/tmp/kam-evidence-restore/combined.ndjson';
+          const epochPath = process.env.KAM_CONTINUITY_EPOCH;
           const now = Date.now();
-          const cutoff = now - 72 * 60 * 60 * 1000;
+          const rollingCutoff = now - 72 * 60 * 60 * 1000;
+
+          const epoch = JSON.parse(fs.readFileSync(epochPath, 'utf8'));
+          const epochActive = epoch.status === 'active';
+          const epochStartedAt = epochActive ? Date.parse(epoch.startedAt) : NaN;
+          if (epochActive && !Number.isFinite(epochStartedAt)) {
+            throw new Error('Active continuity epoch requires a valid startedAt timestamp');
+          }
+          if (Number.isFinite(epochStartedAt) && epochStartedAt > now + 5 * 60 * 1000) {
+            throw new Error('Continuity epoch startedAt cannot be in the future');
+          }
+
+          const cutoff = Number.isFinite(epochStartedAt)
+            ? Math.max(rollingCutoff, epochStartedAt)
+            : rollingCutoff;
           const byTimestamp = new Map();
           if (fs.existsSync(input)) {
             for (const line of fs.readFileSync(input, 'utf8').split('\n')) {
@@ -71,9 +87,16 @@ jobs:
               } catch {}
             }
           }
+
           const samples = [...byTimestamp.values()].sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
           fs.mkdirSync(outDir, { recursive: true });
           fs.writeFileSync(`${outDir}/samples.ndjson`, samples.map(x => JSON.stringify(x)).join('\n') + (samples.length ? '\n' : ''));
+          fs.writeFileSync(`${outDir}/continuity-epoch.json`, JSON.stringify({
+            ...epoch,
+            epochActive,
+            effectiveCutoff: new Date(cutoff).toISOString()
+          }, null, 2) + '\n');
+          console.log(`continuityEpochStatus=${epoch.status}`);
           console.log(`restoredSamples=${samples.length}`);
           if (samples.length) console.log(`restoredWindow=${samples[0].timestamp}..${samples.at(-1).timestamp}`);
           NODE
@@ -102,6 +125,8 @@ jobs:
           const fs = require('node:fs');
           const path = `${process.env.KAM_RESEARCH_OUT}/summary.json`;
           const s = JSON.parse(fs.readFileSync(path, 'utf8'));
+          const epoch = JSON.parse(fs.readFileSync(process.env.KAM_CONTINUITY_EPOCH, 'utf8'));
+          const epochActive = epoch.status === 'active' && Number.isFinite(Date.parse(epoch.startedAt));
           const first = Date.parse(s.firstSampleAt);
           const last = Date.parse(s.lastSampleAt);
           const spanHours = Number.isFinite(first) && Number.isFinite(last) ? (last - first) / 3600000 : 0;
@@ -112,9 +137,19 @@ jobs:
             && (s.explorerConsistencyPct == null || s.explorerConsistencyPct >= 99)
             && Number.isFinite(s.blockDelta)
             && s.blockDelta > 0;
+          const metricStatus = pass ? 'PASS' : mature ? 'FAIL' : 'COLLECTING';
+          const promotionStatus = epochActive
+            ? metricStatus
+            : 'BLOCKED_UNTIL_FINAL_TOPOLOGY_EPOCH';
           const report = {
             generatedAt: new Date().toISOString(),
-            status: pass ? 'PASS' : mature ? 'FAIL' : 'COLLECTING',
+            status: promotionStatus,
+            metricStatus,
+            promotionEligible: epochActive && pass,
+            continuityEpoch: {
+              status: epoch.status,
+              startedAt: epoch.startedAt
+            },
             spanHours: Number(spanHours.toFixed(2)),
             sampleCount: s.sampleCount,
             thresholds: {
