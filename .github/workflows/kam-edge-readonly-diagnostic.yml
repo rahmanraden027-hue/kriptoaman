@@ -1,0 +1,38 @@
+name: KAM Edge Readonly Diagnostic
+
+on:
+  push:
+    branches:
+      - diag/kam-origin-readonly-20260910
+
+permissions:
+  contents: read
+
+jobs:
+  edge-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe DNS TLS and HTTP edges
+        shell: bash
+        run: |
+          set -u
+          echo '=== DNS ==='
+          for host in rpc.kriptoaman.com explorer.kriptoaman.com; do
+            echo "--- ${host} ---"
+            getent ahosts "$host" || true
+          done
+
+          echo '=== TLS ==='
+          for host in rpc.kriptoaman.com explorer.kriptoaman.com; do
+            echo "--- ${host} ---"
+            timeout 8 openssl s_client -connect "${host}:443" -servername "$host" </dev/null 2>&1 \
+              | grep -E 'subject=|issuer=|Verify return code|CONNECTED|connect:' || true
+          done
+
+          echo '=== HTTP ==='
+          curl -sS -I --connect-timeout 5 --max-time 12 https://explorer.kriptoaman.com/ || true
+          curl -sS -D - --connect-timeout 5 --max-time 12 \
+            -H 'content-type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+            https://rpc.kriptoaman.com/ || true
