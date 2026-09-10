@@ -1,0 +1,94 @@
+name: KAM Mainnet One-Shot Evidence Check
+
+on:
+  push:
+    branches:
+      - ops/kam-mainnet-one-shot-evidence
+    paths:
+      - '.github/workflows/kam-mainnet-one-shot-evidence-check.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-four-host:
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Verify four-host evidence exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f /var/lib/kam-evidence/four-host-topology-evidence.json
+
+      - name: Verify four-host validator topology and RPC sentry separation
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          node chain/kam-mainnet/scripts/verify-four-host-topology.mjs \
+            /var/lib/kam-evidence/four-host-topology-evidence.json \
+            | tee artifacts/kam-four-host-redundancy-evidence.json
+
+      - name: Upload redacted four-host evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: kam-four-host-redundancy-evidence-one-shot
+          path: artifacts/kam-four-host-redundancy-evidence.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+  verify-protected-origin:
+    needs: verify-four-host
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Verify protected input permissions
+        shell: bash
+        run: |
+          set -euo pipefail
+          INPUT='/var/lib/kam-evidence/protected-rpc-origin-input.json'
+          TOPOLOGY='/var/lib/kam-evidence/four-host-topology-evidence.json'
+          test -f "$INPUT"
+          test -f "$TOPOLOGY"
+          mode="$(stat -c '%a' "$INPUT")"
+          case "$mode" in
+            400|600) ;;
+            *) echo "Protected origin input must use mode 0400 or 0600; got $mode"; exit 1 ;;
+          esac
+
+      - name: Verify dedicated protected RPC origin
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          node chain/kam-mainnet/scripts/verify-protected-rpc-origin.mjs \
+            /var/lib/kam-evidence/protected-rpc-origin-input.json \
+            /var/lib/kam-evidence/four-host-topology-evidence.json \
+            | tee artifacts/kam-protected-rpc-origin-evidence.json
+
+      - name: Upload redacted protected-origin evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: kam-protected-rpc-origin-evidence-one-shot
+          path: artifacts/kam-protected-rpc-origin-evidence.json
+          if-no-files-found: ignore
+          retention-days: 30
