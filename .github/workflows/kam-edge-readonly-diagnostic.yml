@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Probe DNS TLS HTTP gateway health and last-known host reachability
+      - name: Probe DNS TLS HTTP gateway health and KAM host reachability
         shell: bash
         run: |
           set -u
@@ -40,12 +40,22 @@ jobs:
             --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
             https://rpc.kriptoaman.com/ || true
 
-          echo '=== LAST-KNOWN HOST REACHABILITY ==='
-          HOST=159.223.40.171
+          echo '=== PRIMARY HOST REACHABILITY ==='
+          PRIMARY=159.223.40.171
           for port in 22 80 443 8080 8545 8648; do
-            if timeout 4 bash -c "</dev/tcp/${HOST}/${port}" 2>/dev/null; then
-              echo "port_${port}=reachable"
+            if timeout 4 bash -c "</dev/tcp/${PRIMARY}/${port}" 2>/dev/null; then
+              echo "primary_port_${port}=reachable"
             else
-              echo "port_${port}=not_reachable"
+              echo "primary_port_${port}=not_reachable"
+            fi
+          done
+
+          echo '=== SECONDARY HOST REACHABILITY ==='
+          SECONDARY=167.71.28.197
+          for port in 22 8545 8648; do
+            if timeout 4 bash -c "</dev/tcp/${SECONDARY}/${port}" 2>/dev/null; then
+              echo "secondary_port_${port}=reachable"
+            else
+              echo "secondary_port_${port}=not_reachable"
             fi
           done
