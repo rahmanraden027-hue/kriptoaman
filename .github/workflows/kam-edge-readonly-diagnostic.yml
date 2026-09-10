@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Probe DNS TLS and HTTP edges
+      - name: Probe DNS TLS HTTP and last-known host reachability
         shell: bash
         run: |
           set -u
@@ -36,3 +36,13 @@ jobs:
             -H 'content-type: application/json' \
             --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
             https://rpc.kriptoaman.com/ || true
+
+          echo '=== LAST-KNOWN HOST REACHABILITY ==='
+          HOST=159.223.40.171
+          for port in 22 80 443 8080 8545 8648; do
+            if timeout 4 bash -c "</dev/tcp/${HOST}/${port}" 2>/dev/null; then
+              echo "port_${port}=reachable"
+            else
+              echo "port_${port}=not_reachable"
+            fi
+          done
