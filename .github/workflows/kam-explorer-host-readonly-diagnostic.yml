@@ -1,0 +1,52 @@
+name: KAM Explorer Host Readonly Diagnostic
+
+on:
+  push:
+    branches:
+      - diag/kam-origin-readonly-20260910
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kam-explorer-host-readonly-diagnostic
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 10
+    steps:
+      - name: Probe Explorer host and Blockscout services read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=/opt/blockscout/docker-compose
+          host_boundary=false
+          docker_ok=false
+          total=0
+          running=0
+          unhealthy=0
+
+          if [ -d "$ROOT" ]; then host_boundary=true; fi
+          if docker info >/dev/null 2>&1; then docker_ok=true; fi
+
+          if [ "$host_boundary" = true ] && [ "$docker_ok" = true ]; then
+            cd "$ROOT"
+            mapfile -t STATES < <(docker compose ps --all --format '{{.State}}' 2>/dev/null || true)
+            total=${#STATES[@]}
+            for state in "${STATES[@]}"; do
+              case "$state" in
+                running) running=$((running + 1)) ;;
+                *) unhealthy=$((unhealthy + 1)) ;;
+              esac
+            done
+          fi
+
+          printf '{"checkedAt":"%s","endpointDetailsRedacted":true,"hostBoundaryPresent":%s,"dockerReachable":%s,"composeServiceCount":%d,"runningServiceCount":%d,"nonRunningServiceCount":%d}\n' \
+            "$(date -u +%FT%TZ)" "$host_boundary" "$docker_ok" "$total" "$running" "$unhealthy"
+
+          [ "$host_boundary" = true ]
+          [ "$docker_ok" = true ]
+          [ "$total" -gt 0 ]
+          [ "$unhealthy" -eq 0 ]
