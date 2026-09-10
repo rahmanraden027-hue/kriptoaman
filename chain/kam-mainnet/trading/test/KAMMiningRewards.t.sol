@@ -113,5 +113,61 @@ contract KAMMiningRewardsTest {
         mining.notifyRewardAmount{value: 400 ether}(366 days);
     }
 
+    function testActiveProgramCanBeExtendedAndPrincipalRemainsSolvent() public {
+        mining.notifyRewardAmount{value: 70 ether}(7 days);
+
+        vm.prank(alice);
+        mining.stake{value: 10 ether}();
+
+        vm.warp(block.timestamp + 1 days);
+        uint256 accruedBeforeExtension = mining.earned(alice);
+        require(accruedBeforeExtension > 9.99 ether, "reward did not accrue before extension");
+
+        mining.notifyRewardAmount{value: 35 ether}(7 days);
+        require(address(mining).balance >= mining.totalStaked(), "principal insolvent after extension");
+        require(mining.availableRewardBalance() == address(mining).balance - mining.totalStaked(), "reward balance mismatch");
+
+        vm.prank(alice);
+        mining.claimReward();
+        require(address(mining).balance >= mining.totalStaked(), "claim consumed principal");
+    }
+
+    function testTwoStepOwnershipTransfer() public {
+        mining.transferOwnership(alice);
+        require(mining.owner() == address(this), "owner changed before acceptance");
+        require(mining.pendingOwner() == alice, "pending owner not set");
+
+        vm.prank(bob);
+        vm.expectRevert(bytes("KAMMining: not pending owner"));
+        mining.acceptOwnership();
+
+        vm.prank(alice);
+        mining.acceptOwnership();
+        require(mining.owner() == alice, "ownership not transferred");
+        require(mining.pendingOwner() == address(0), "pending owner not cleared");
+    }
+
+    function testExitReturnsPrincipalAndClaimableReward() public {
+        mining.notifyRewardAmount{value: 70 ether}(7 days);
+        vm.prank(alice);
+        mining.stake{value: 10 ether}();
+
+        vm.warp(block.timestamp + 1 days);
+        uint256 beforeBalance = alice.balance;
+        vm.prank(alice);
+        mining.exit();
+
+        require(mining.stakedBalance(alice) == 0, "exit left stake behind");
+        require(alice.balance > beforeBalance + 19.99 ether, "exit did not return principal and reward");
+        require(address(mining).balance >= mining.totalStaked(), "exit broke principal solvency");
+    }
+
+    function testAccidentalPlainTransferIsRejected() public {
+        vm.prank(alice);
+        (bool ok,) = address(mining).call{value: 1 ether}("");
+        require(!ok, "plain native transfer should revert");
+        require(address(mining).balance == 0, "reverted transfer changed balance");
+    }
+
     receive() external payable {}
 }
