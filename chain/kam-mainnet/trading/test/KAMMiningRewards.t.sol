@@ -134,6 +134,51 @@ contract KAMMiningRewardsTest {
         require(address(mining).balance >= mining.totalStaked(), "claim consumed principal");
     }
 
+    function testClaimThenExtendThroughProgramEndRemainsSolvent() public {
+        mining.notifyRewardAmount{value: 70 ether}(7 days);
+
+        vm.prank(alice);
+        mining.stake{value: 10 ether}();
+
+        vm.warp(block.timestamp + 1 days);
+        vm.prank(alice);
+        mining.claimReward();
+        require(address(mining).balance >= mining.totalStaked(), "first claim consumed principal");
+
+        mining.notifyRewardAmount{value: 35 ether}(7 days);
+        require(address(mining).balance >= mining.totalStaked(), "extension consumed principal");
+
+        vm.warp(block.timestamp + 7 days);
+        vm.prank(alice);
+        mining.claimReward();
+        require(address(mining).balance >= mining.totalStaked(), "final claim consumed principal");
+
+        vm.prank(alice);
+        mining.withdraw(10 ether);
+        require(mining.totalStaked() == 0, "principal remained staked");
+        require(mining.availableRewardBalance() == address(mining).balance, "reward balance mismatch after exit");
+    }
+
+    function testFuzzPrincipalRemainsRecoverable(uint96 rawStake, uint32 rawWarp) public {
+        uint256 stakeAmount = (uint256(rawStake) % 50 ether) + 1;
+        uint256 elapsed = uint256(rawWarp) % 7 days;
+
+        mining.notifyRewardAmount{value: 70 ether}(7 days);
+        vm.prank(alice);
+        mining.stake{value: stakeAmount}();
+
+        vm.warp(block.timestamp + elapsed);
+        require(address(mining).balance >= mining.totalStaked(), "principal insolvent before withdraw");
+
+        uint256 beforeBalance = alice.balance;
+        vm.prank(alice);
+        mining.withdraw(stakeAmount);
+
+        require(alice.balance == beforeBalance + stakeAmount, "principal recovery mismatch");
+        require(mining.totalStaked() == 0, "stake remained after full withdraw");
+        require(address(mining).balance >= mining.totalStaked(), "principal insolvent after withdraw");
+    }
+
     function testTwoStepOwnershipTransfer() public {
         mining.transferOwnership(alice);
         require(mining.owner() == address(this), "owner changed before acceptance");
