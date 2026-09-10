@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, Copy, ExternalLink, Loader2, Network, RefreshCw, ShieldCheck, WalletCards } from 'lucide-react';
+import { CheckCircle2, Copy, ExternalLink, Loader2, Network, Pickaxe, RefreshCw, ShieldCheck, WalletCards } from 'lucide-react';
 
 const NETWORK = {
   chainId: '0x560c',
@@ -224,8 +224,9 @@ export default function KAMNetwork() {
         </section>
 
         <section className="ka-command-panel flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
-          <div><p className="text-sm font-black">KriptoAman Explorer</p><p className="mt-1 text-xs text-slate-500">Lihat blok, transaksi, alamat, dan aktivitas jaringan KAM.</p></div>
+          <div><p className="text-sm font-black">KriptoAman Explorer & KAM Mining</p><p className="mt-1 text-xs text-slate-500">Uji transaksi KAM, buka Explorer, atau lihat pilot reward mining berbasis staking.</p></div>
           <div className="flex flex-col gap-3 sm:flex-row">
+            <a href="/KAMMining" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-500/10 px-4 text-sm font-black text-cyan-200 hover:bg-cyan-500/15"><Pickaxe className="h-4 w-4" /> KAM Mining</a>
             <a href="/KAMTransactionLab" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 text-sm font-black text-white hover:bg-sky-500"><WalletCards className="h-4 w-4" /> Coba Transaksi KAM</a>
             <a href={NETWORK.blockExplorerUrls[0]} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 text-sm font-black text-emerald-200"><ExternalLink className="h-4 w-4" /> Open Explorer</a>
           </div>
