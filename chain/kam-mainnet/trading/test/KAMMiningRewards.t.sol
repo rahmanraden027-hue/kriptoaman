@@ -125,7 +125,9 @@ contract KAMMiningRewardsTest {
 
         mining.notifyRewardAmount{value: 35 ether}(7 days);
         require(address(mining).balance >= mining.totalStaked(), "principal insolvent after extension");
-        require(mining.availableRewardBalance() == address(mining).balance - mining.totalStaked(), "reward balance mismatch");
+        require(
+            mining.availableRewardBalance() == address(mining).balance - mining.totalStaked(), "reward balance mismatch"
+        );
 
         vm.prank(alice);
         mining.claimReward();
