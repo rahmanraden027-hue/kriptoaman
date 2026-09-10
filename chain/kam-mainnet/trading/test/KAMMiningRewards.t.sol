@@ -10,6 +10,32 @@ interface VmMining {
     function expectRevert(bytes calldata) external;
 }
 
+contract ReenteringExitReceiver {
+    KAMMiningRewards internal immutable mining;
+    bool public attempted;
+    bool public reentrySucceeded;
+
+    constructor(KAMMiningRewards mining_) {
+        mining = mining_;
+    }
+
+    function stake() external payable {
+        mining.stake{value: msg.value}();
+    }
+
+    function exit() external {
+        mining.exit();
+    }
+
+    receive() external payable {
+        if (!attempted) {
+            attempted = true;
+            (bool ok,) = address(mining).call(abi.encodeWithSelector(KAMMiningRewards.exit.selector));
+            reentrySucceeded = ok;
+        }
+    }
+}
+
 contract KAMMiningRewardsTest {
     VmMining internal constant vm = VmMining(address(uint160(uint256(keccak256("hevm cheat code")))));
 
@@ -207,6 +233,22 @@ contract KAMMiningRewardsTest {
         require(mining.stakedBalance(alice) == 0, "exit left stake behind");
         require(alice.balance > beforeBalance + 19.99 ether, "exit did not return principal and reward");
         require(address(mining).balance >= mining.totalStaked(), "exit broke principal solvency");
+    }
+
+    function testExitBlocksReceiverReentrancy() public {
+        mining.notifyRewardAmount{value: 70 ether}(7 days);
+        ReenteringExitReceiver receiver = new ReenteringExitReceiver(mining);
+        receiver.stake{value: 10 ether}();
+
+        vm.warp(block.timestamp + 1 days);
+        receiver.exit();
+
+        require(receiver.attempted(), "receiver did not attempt reentry");
+        require(!receiver.reentrySucceeded(), "reentrant exit unexpectedly succeeded");
+        require(mining.stakedBalance(address(receiver)) == 0, "attacker stake remained");
+        require(mining.rewards(address(receiver)) == 0, "attacker reward remained");
+        require(address(receiver).balance > 19.99 ether, "receiver did not receive intended payout");
+        require(address(mining).balance >= mining.totalStaked(), "reentry broke principal solvency");
     }
 
     function testAccidentalPlainTransferIsRejected() public {
