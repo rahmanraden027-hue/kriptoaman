@@ -23,46 +23,120 @@ async function timedFetch(url, init = {}) {
   }
 }
 
+function errorMessage(error) {
+  return error?.name === 'AbortError' ? 'request_timeout' : String(error?.message || error || 'request_error');
+}
+
 async function httpCheck(name, url) {
   try {
     const { response, ms } = await timedFetch(url, { method: 'GET', redirect: 'follow' });
     return { name, ok: response.ok, status: response.status, ms };
   } catch (error) {
-    return { name, ok: false, status: 0, error: error?.name || 'request_error' };
+    return { name, ok: false, status: 0, error: errorMessage(error) };
   }
 }
 
-async function rpc(method, params = []) {
-  const { response, ms } = await timedFetch(RPC, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', 'user-agent': 'KriptoAman-Production-Smoke/1.0' },
-    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
-  });
-  const body = await response.json();
-  if (!response.ok || body.error) throw new Error(`${method}: HTTP ${response.status} ${JSON.stringify(body.error || {})}`);
-  return { result: body.result, ms };
+async function jsonHttpCheck(name, url, validate) {
+  try {
+    const { response, ms } = await timedFetch(url, {
+      method: 'GET',
+      redirect: 'follow',
+      headers: { accept: 'application/json', 'user-agent': 'KriptoAman-Production-Smoke/1.1' },
+    });
+    const text = await response.text();
+    let body;
+    try {
+      body = JSON.parse(text);
+    } catch {
+      return { name, ok: false, status: response.status, ms, error: 'invalid_json' };
+    }
+
+    const valid = response.ok && validate(body);
+    return {
+      name,
+      ok: valid,
+      status: response.status,
+      ms,
+      error: valid ? undefined : response.ok ? 'invalid_payload' : `http_${response.status}`,
+    };
+  } catch (error) {
+    return { name, ok: false, status: 0, error: errorMessage(error) };
+  }
 }
 
-const checks = [];
-checks.push(await httpCheck('homepage', `${SITE}/`));
-checks.push(await httpCheck('auth-readiness', `${SITE}/api/auth/readiness`));
-checks.push(await httpCheck('system-status', `${SITE}/SystemStatus`));
-checks.push(await httpCheck('explorer-ui', `${EXPLORER}/`));
+async function rpcCheck(name, method, validate) {
+  try {
+    const { response, ms } = await timedFetch(RPC, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        accept: 'application/json',
+        'user-agent': 'KriptoAman-Production-Smoke/1.1',
+      },
+      body: JSON.stringify({ jsonrpc: '2.0', id: method, method, params: [] }),
+    });
 
-try {
-  const chainId = await rpc('eth_chainId');
-  checks.push({ name: 'rpc-chain-id', ok: chainId.result?.toLowerCase() === EXPECTED_CHAIN_ID, value: chainId.result, expected: EXPECTED_CHAIN_ID, ms: chainId.ms });
-} catch (error) {
-  checks.push({ name: 'rpc-chain-id', ok: false, error: error.message });
+    const text = await response.text();
+    let body;
+    try {
+      body = JSON.parse(text);
+    } catch {
+      return { name, ok: false, status: response.status, ms, error: 'invalid_json' };
+    }
+
+    if (!response.ok || body?.error) {
+      return {
+        name,
+        ok: false,
+        status: response.status,
+        ms,
+        error: body?.error ? `rpc_error:${JSON.stringify(body.error)}` : `http_${response.status}`,
+      };
+    }
+
+    return { name, ...validate(body?.result, ms), status: response.status };
+  } catch (error) {
+    return { name, ok: false, status: 0, error: errorMessage(error) };
+  }
 }
 
-try {
-  const block = await rpc('eth_blockNumber');
-  const height = typeof block.result === 'string' ? Number.parseInt(block.result, 16) : NaN;
-  checks.push({ name: 'rpc-block-number', ok: Number.isSafeInteger(height) && height >= 0, value: block.result, height, ms: block.ms });
-} catch (error) {
-  checks.push({ name: 'rpc-block-number', ok: false, error: error.message });
-}
+const checks = await Promise.all([
+  httpCheck('homepage', `${SITE}/`),
+  httpCheck('auth-readiness', `${SITE}/api/auth/readiness`),
+  httpCheck('system-status', `${SITE}/SystemStatus`),
+  httpCheck('explorer-ui', `${EXPLORER}/`),
+  jsonHttpCheck(
+    'explorer-blocks-api',
+    `${EXPLORER}/api/v2/blocks`,
+    (body) => Array.isArray(body?.items) && body.items.length > 0,
+  ),
+  jsonHttpCheck(
+    'explorer-stats-api',
+    `${EXPLORER}/api/v2/stats`,
+    (body) => Boolean(body) && typeof body === 'object' && !Array.isArray(body),
+  ),
+  rpcCheck('rpc-chain-id', 'eth_chainId', (result, ms) => ({
+    ok: typeof result === 'string' && result.toLowerCase() === EXPECTED_CHAIN_ID,
+    value: result ?? null,
+    expected: EXPECTED_CHAIN_ID,
+    ms,
+    error:
+      typeof result === 'string' && result.toLowerCase() === EXPECTED_CHAIN_ID
+        ? undefined
+        : 'unexpected_chain_id',
+  })),
+  rpcCheck('rpc-block-number', 'eth_blockNumber', (result, ms) => {
+    const height = typeof result === 'string' ? Number.parseInt(result, 16) : NaN;
+    const ok = Number.isSafeInteger(height) && height >= 0;
+    return {
+      ok,
+      value: result ?? null,
+      height: ok ? height : null,
+      ms,
+      error: ok ? undefined : 'invalid_block_number',
+    };
+  }),
+]);
 
 const ok = checks.every((check) => check.ok);
 console.log(JSON.stringify({ checkedAt: new Date().toISOString(), ok, checks }, null, 2));
