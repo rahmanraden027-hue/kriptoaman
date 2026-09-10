@@ -1,0 +1,122 @@
+name: KAM Origin Readonly Diagnostic
+
+on:
+  push:
+    branches:
+      - diag/kam-origin-readonly-20260910
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kam-origin-readonly-diagnostic
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 10
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Probe protected local RPC and public RPC read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const LOCAL = 'http://127.0.0.1:8648';
+          const PUBLIC = 'https://rpc.kriptoaman.com';
+          const EXPECTED = '0x560c';
+          const TIMEOUT_MS = 8000;
+
+          async function rpc(url, method) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+            const started = Date.now();
+            try {
+              const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ jsonrpc: '2.0', id: method, method, params: [] }),
+                signal: controller.signal,
+              });
+              const text = await response.text();
+              let body = null;
+              try { body = JSON.parse(text); } catch {}
+              return {
+                reachable: true,
+                httpOk: response.ok,
+                status: response.status,
+                result: body?.result ?? null,
+                rpcError: Boolean(body?.error),
+                latencyMs: Date.now() - started,
+              };
+            } catch (error) {
+              return {
+                reachable: false,
+                error: error?.name === 'AbortError' ? 'timeout' : 'request_failed',
+                latencyMs: Date.now() - started,
+              };
+            } finally {
+              clearTimeout(timer);
+            }
+          }
+
+          const [localChain, localBlock1, localPeers, publicChain, publicBlock] = await Promise.all([
+            rpc(LOCAL, 'eth_chainId'),
+            rpc(LOCAL, 'eth_blockNumber'),
+            rpc(LOCAL, 'net_peerCount'),
+            rpc(PUBLIC, 'eth_chainId'),
+            rpc(PUBLIC, 'eth_blockNumber'),
+          ]);
+
+          await new Promise((resolve) => setTimeout(resolve, 4000));
+          const localBlock2 = await rpc(LOCAL, 'eth_blockNumber');
+
+          const parseHex = (value) => typeof value === 'string' ? Number.parseInt(value, 16) : NaN;
+          const localHeight1 = parseHex(localBlock1.result);
+          const localHeight2 = parseHex(localBlock2.result);
+          const peerCount = parseHex(localPeers.result);
+          const localHealthy =
+            localChain.reachable && localChain.httpOk && !localChain.rpcError &&
+            String(localChain.result || '').toLowerCase() === EXPECTED &&
+            Number.isFinite(localHeight1) && Number.isFinite(localHeight2) &&
+            localHeight2 > localHeight1;
+          const publicHealthy =
+            publicChain.reachable && publicChain.httpOk && !publicChain.rpcError &&
+            String(publicChain.result || '').toLowerCase() === EXPECTED &&
+            publicBlock.reachable && publicBlock.httpOk && !publicBlock.rpcError &&
+            Number.isFinite(parseHex(publicBlock.result));
+
+          let classification = 'unknown';
+          if (localHealthy && publicHealthy) classification = 'local_and_public_rpc_healthy';
+          else if (localHealthy && !publicHealthy) classification = 'local_origin_healthy_public_path_failed';
+          else if (!localHealthy && publicHealthy) classification = 'local_probe_unhealthy_public_rpc_healthy';
+          else classification = 'local_and_public_rpc_unhealthy';
+
+          const report = {
+            checkedAt: new Date().toISOString(),
+            endpointDetailsRedacted: true,
+            expectedChainId: EXPECTED,
+            local: {
+              chainIdOk: String(localChain.result || '').toLowerCase() === EXPECTED,
+              block1Reachable: Boolean(localBlock1.reachable && localBlock1.httpOk && !localBlock1.rpcError),
+              block2Reachable: Boolean(localBlock2.reachable && localBlock2.httpOk && !localBlock2.rpcError),
+              blockAdvanced: Number.isFinite(localHeight1) && Number.isFinite(localHeight2) && localHeight2 > localHeight1,
+              peerCountOk: Number.isFinite(peerCount) && peerCount >= 3,
+              peerCount: Number.isFinite(peerCount) ? peerCount : null,
+            },
+            public: {
+              chainIdReachable: Boolean(publicChain.reachable && publicChain.httpOk && !publicChain.rpcError),
+              chainIdOk: String(publicChain.result || '').toLowerCase() === EXPECTED,
+              blockNumberReachable: Boolean(publicBlock.reachable && publicBlock.httpOk && !publicBlock.rpcError),
+            },
+            classification,
+          };
+
+          console.log(JSON.stringify(report, null, 2));
+          if (!localHealthy || !publicHealthy) process.exitCode = 1;
+          NODE
