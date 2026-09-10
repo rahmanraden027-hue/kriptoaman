@@ -101,53 +101,61 @@ contract KAMMiningRewards {
 
     /// @notice Withdraw principal. Intentionally remains available while paused.
     function withdraw(uint256 amount) public nonReentrant updateReward(msg.sender) {
-        require(amount > 0, "KAMMining: zero withdraw");
-        require(amount <= stakedBalance[msg.sender], "KAMMining: insufficient stake");
-
-        stakedBalance[msg.sender] -= amount;
-        totalStaked -= amount;
-
-        (bool success,) = payable(msg.sender).call{value: amount}("");
-        require(success, "KAMMining: withdraw transfer failed");
-        emit Withdrawn(msg.sender, amount);
+        _withdraw(msg.sender, amount);
     }
 
     function claimReward() public nonReentrant whenNotPaused updateReward(msg.sender) {
-        uint256 reward = rewards[msg.sender];
-        require(reward > 0, "KAMMining: no reward");
-        require(reward <= availableRewardBalance(), "KAMMining: reward pool insufficient");
-
-        rewards[msg.sender] = 0;
-        totalRewardsPaid += reward;
-        (bool success,) = payable(msg.sender).call{value: reward}("");
-        require(success, "KAMMining: reward transfer failed");
-        emit RewardPaid(msg.sender, reward);
+        _claimReward(msg.sender);
     }
 
-    function exit() external {
-        uint256 balance = stakedBalance[msg.sender];
-        if (balance > 0) withdraw(balance);
-        if (!paused && earned(msg.sender) > 0) claimReward();
+    /// @notice Withdraw all principal and, when unpaused, claim all accrued reward atomically.
+    /// @dev All accounting is finalized before the single native-KAM transfer so a receiver
+    ///      cannot reenter between principal withdrawal and reward settlement.
+    function exit() external nonReentrant updateReward(msg.sender) {
+        address account = msg.sender;
+        uint256 principal = stakedBalance[account];
+        uint256 reward = paused ? 0 : rewards[account];
+        uint256 rewardBalanceBefore = availableRewardBalance();
+
+        if (reward > 0) {
+            require(reward <= rewardBalanceBefore, "KAMMining: reward pool insufficient");
+        }
+
+        if (principal > 0) {
+            stakedBalance[account] = 0;
+            totalStaked -= principal;
+            emit Withdrawn(account, principal);
+        }
+
+        if (reward > 0) {
+            rewards[account] = 0;
+            totalRewardsPaid += reward;
+            emit RewardPaid(account, reward);
+        }
+
+        uint256 payout = principal + reward;
+        if (payout > 0) {
+            (bool success,) = payable(account).call{value: payout}("");
+            require(success, "KAMMining: exit transfer failed");
+        }
     }
 
     /// @notice Fund or extend a reward program. Rewards are native KAM supplied up front.
-    function notifyRewardAmount(uint256 duration) external payable onlyOwner nonReentrant updateReward(address(0)) {
+    function notifyRewardAmount(uint256 duration) external payable nonReentrant onlyOwner updateReward(address(0)) {
         require(!paused, "KAMMining: paused");
         require(msg.value > 0, "KAMMining: zero reward funding");
         require(duration >= MIN_REWARD_DURATION, "KAMMining: duration too short");
         require(duration <= MAX_REWARD_DURATION, "KAMMining: duration too long");
 
-        uint256 newRewardRate;
-        if (block.timestamp >= periodFinish) {
-            newRewardRate = msg.value / duration;
-        } else {
+        uint256 rewardBudget = msg.value;
+        if (block.timestamp < periodFinish) {
             uint256 remaining = periodFinish - block.timestamp;
-            uint256 leftover = remaining * rewardRate;
-            newRewardRate = (msg.value + leftover) / duration;
+            rewardBudget += remaining * rewardRate;
         }
 
+        require(rewardBudget <= availableRewardBalance(), "KAMMining: reward funding mismatch");
+        uint256 newRewardRate = rewardBudget / duration;
         require(newRewardRate > 0, "KAMMining: reward rate zero");
-        require(newRewardRate * duration <= availableRewardBalance(), "KAMMining: reward funding mismatch");
 
         rewardRate = newRewardRate;
         lastUpdateTime = block.timestamp;
@@ -180,5 +188,30 @@ contract KAMMiningRewards {
         owner = pendingOwner;
         pendingOwner = address(0);
         emit OwnershipTransferred(previousOwner, owner);
+    }
+
+    function _withdraw(address account, uint256 amount) internal {
+        require(amount > 0, "KAMMining: zero withdraw");
+        require(amount <= stakedBalance[account], "KAMMining: insufficient stake");
+
+        stakedBalance[account] -= amount;
+        totalStaked -= amount;
+        emit Withdrawn(account, amount);
+
+        (bool success,) = payable(account).call{value: amount}("");
+        require(success, "KAMMining: withdraw transfer failed");
+    }
+
+    function _claimReward(address account) internal {
+        uint256 reward = rewards[account];
+        require(reward > 0, "KAMMining: no reward");
+        require(reward <= availableRewardBalance(), "KAMMining: reward pool insufficient");
+
+        rewards[account] = 0;
+        totalRewardsPaid += reward;
+        emit RewardPaid(account, reward);
+
+        (bool success,) = payable(account).call{value: reward}("");
+        require(success, "KAMMining: reward transfer failed");
     }
 }
