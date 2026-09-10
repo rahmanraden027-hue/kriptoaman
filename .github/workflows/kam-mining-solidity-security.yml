@@ -1,0 +1,45 @@
+name: KAM Mining Solidity Security
+
+on:
+  pull_request:
+    paths:
+      - 'chain/kam-mainnet/trading/contracts/KAMMiningRewards.sol'
+      - 'chain/kam-mainnet/trading/test/KAMMiningRewards.t.sol'
+      - '.github/workflows/kam-mining-solidity-security.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  slither-high-severity-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Slither
+        run: python -m pip install --disable-pip-version-check slither-analyzer
+
+      - name: Build mining contracts
+        working-directory: chain/kam-mainnet/trading
+        run: forge build
+
+      - name: Slither high-severity gate
+        working-directory: chain/kam-mainnet/trading
+        run: |
+          slither . \
+            --filter-paths 'test|script' \
+            --exclude-dependencies \
+            --fail-high
