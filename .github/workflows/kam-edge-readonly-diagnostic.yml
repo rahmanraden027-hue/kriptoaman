@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Probe DNS TLS HTTP and last-known host reachability
+      - name: Probe DNS TLS HTTP gateway health and last-known host reachability
         shell: bash
         run: |
           set -u
@@ -30,7 +30,10 @@ jobs:
               | grep -E 'subject=|issuer=|Verify return code|CONNECTED|connect:' || true
           done
 
-          echo '=== HTTP ==='
+          echo '=== RPC GATEWAY STATIC HEALTH ==='
+          curl -sS -D - --connect-timeout 5 --max-time 8 https://rpc.kriptoaman.com/health || true
+
+          echo '=== UPSTREAM-DEPENDENT HTTP ==='
           curl -sS -I --connect-timeout 5 --max-time 12 https://explorer.kriptoaman.com/ || true
           curl -sS -D - --connect-timeout 5 --max-time 12 \
             -H 'content-type: application/json' \
