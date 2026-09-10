@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "purpose": "final-mainnet-continuity",
+  "status": "inactive",
+  "startedAt": null,
+  "activationRule": "Set status to active with a current UTC startedAt only after fresh four-host and protected RPC-origin evidence both pass on the final production topology."
+}
