@@ -131,13 +131,7 @@ contract KAMMiningRewards {
     }
 
     /// @notice Fund or extend a reward program. Rewards are native KAM supplied up front.
-    function notifyRewardAmount(uint256 duration)
-        external
-        payable
-        onlyOwner
-        nonReentrant
-        updateReward(address(0))
-    {
+    function notifyRewardAmount(uint256 duration) external payable onlyOwner nonReentrant updateReward(address(0)) {
         require(!paused, "KAMMining: paused");
         require(msg.value > 0, "KAMMining: zero reward funding");
         require(duration >= MIN_REWARD_DURATION, "KAMMining: duration too short");
