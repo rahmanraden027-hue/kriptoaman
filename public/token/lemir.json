@@ -1,0 +1,21 @@
+{
+  "name": "LEMIRMEN",
+  "symbol": "LEMIR",
+  "description": "LEMIRMEN is a Solana community memecoin featuring the LEMIRMEN cyber identity artwork and KriptoAman Platform branding. No promise of profit, yield, redemption, or guaranteed value is made.",
+  "image": "https://kriptoaman.com/token/lemir-logo.png",
+  "external_url": "https://kriptoaman.com",
+  "attributes": [
+    { "trait_type": "Network", "value": "Solana" },
+    { "trait_type": "Category", "value": "Memecoin" },
+    { "trait_type": "Platform", "value": "KriptoAman" }
+  ],
+  "properties": {
+    "category": "image",
+    "files": [
+      {
+        "uri": "https://kriptoaman.com/token/lemir-logo.png",
+        "type": "image/png"
+      }
+    ]
+  }
+}
