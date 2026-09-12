@@ -19,6 +19,8 @@ const COINGECKO_PAGE_SIZE = 250;
 const COINGECKO_PUBLIC_PAGE_DELAY_MS = 350;
 const MARKET_CHUNK_SIZE = 100;
 const CHUNK_WRITE_BATCH_SIZE = 10;
+const PRIMARY_SNAPSHOT_ID = 'global';
+const BACKUP_SNAPSHOT_ID = 'global-backup';
 
 const SNAPSHOT_SCHEMA = `
 CREATE TABLE IF NOT EXISTS market_snapshots (
@@ -71,7 +73,7 @@ async function fetchJson(url, {
       const response = await fetch(url, {
         headers: {
           Accept: 'application/json',
-          'User-Agent': 'KriptoAman-Market-Snapshot/4.0',
+          'User-Agent': 'KriptoAman-Market-Snapshot/4.1',
           ...requestHeaders,
         },
         signal: controller.signal,
@@ -196,8 +198,6 @@ async function fetchCoinGecko(env = {}) {
     rows.push(...payload);
     if (payload.length < COINGECKO_PAGE_SIZE || rows.length >= MARKET_ASSET_LIMIT) break;
 
-    // Keyless traffic uses a shared, dynamically throttled pool. Keep emergency
-    // fallback deliberately slow rather than creating a burst that causes 429s.
     if (!config.authenticated) await sleep(COINGECKO_PUBLIC_PAGE_DELAY_MS);
   }
 
@@ -279,16 +279,94 @@ async function ensureSchemas(db) {
   await ensureMarketProviderCircuitSchema(db);
 }
 
-async function readSnapshotMetadata(db) {
+async function readSnapshotMetadata(db, snapshotId = PRIMARY_SNAPSHOT_ID) {
   return db.prepare(
     'SELECT source, asset_count, captured_at FROM market_snapshots WHERE id = ?',
-  ).bind('global').first();
+  ).bind(snapshotId).first();
 }
 
-async function readSnapshot(db) {
+async function readSnapshot(db, snapshotId = PRIMARY_SNAPSHOT_ID) {
   return db.prepare(
     'SELECT source, asset_count, captured_at, payload FROM market_snapshots WHERE id = ?',
-  ).bind('global').first();
+  ).bind(snapshotId).first();
+}
+
+function decodeSnapshot(row, snapshotId = PRIMARY_SNAPSHOT_ID) {
+  if (!row) return null;
+  try {
+    const data = JSON.parse(row.payload);
+    const assetCount = Number(row.asset_count);
+    const capturedAt = Number(row.captured_at);
+    if (!Array.isArray(data)
+      || data.length < MIN_ACCEPTED_ASSETS
+      || !Number.isFinite(assetCount)
+      || assetCount !== data.length
+      || !Number.isFinite(capturedAt)
+      || capturedAt <= 0) {
+      return null;
+    }
+    return { ...row, snapshot_id: snapshotId, data };
+  } catch {
+    return null;
+  }
+}
+
+async function readBestSnapshot(db) {
+  const primary = decodeSnapshot(await readSnapshot(db, PRIMARY_SNAPSHOT_ID), PRIMARY_SNAPSHOT_ID);
+  if (primary) return primary;
+  return decodeSnapshot(await readSnapshot(db, BACKUP_SNAPSHOT_ID), BACKUP_SNAPSHOT_ID);
+}
+
+async function readPrimaryOrBackupMetadata(db) {
+  const primary = await readSnapshotMetadata(db, PRIMARY_SNAPSHOT_ID);
+  if (primary) return { ...primary, snapshot_id: PRIMARY_SNAPSHOT_ID };
+  const backup = await readSnapshotMetadata(db, BACKUP_SNAPSHOT_ID);
+  return backup ? { ...backup, snapshot_id: BACKUP_SNAPSHOT_ID } : null;
+}
+
+async function readBackupDurability(db) {
+  try {
+    const backup = await readSnapshotMetadata(db, BACKUP_SNAPSHOT_ID);
+    const assetCount = Number(backup?.asset_count || 0);
+    const capturedAt = Number(backup?.captured_at || 0);
+    return {
+      backupAvailable: assetCount >= MIN_ACCEPTED_ASSETS && capturedAt > 0,
+      backupAssetCount: assetCount || 0,
+      backupCapturedAt: capturedAt || null,
+      backupAgeMs: capturedAt > 0 ? Math.max(0, Date.now() - capturedAt) : null,
+    };
+  } catch {
+    return {
+      backupAvailable: false,
+      backupAssetCount: 0,
+      backupCapturedAt: null,
+      backupAgeMs: null,
+    };
+  }
+}
+
+async function copyPrimarySnapshotToBackup(db) {
+  const primaryRow = await readSnapshot(db, PRIMARY_SNAPSHOT_ID);
+  const current = decodeSnapshot(primaryRow, PRIMARY_SNAPSHOT_ID);
+  if (!current) return false;
+
+  await db.prepare(`
+    INSERT INTO market_snapshots (id, source, asset_count, captured_at, payload, updated_at)
+    VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    ON CONFLICT(id) DO UPDATE SET
+      source = excluded.source,
+      asset_count = excluded.asset_count,
+      captured_at = excluded.captured_at,
+      payload = excluded.payload,
+      updated_at = CURRENT_TIMESTAMP
+  `).bind(
+    BACKUP_SNAPSHOT_ID,
+    current.source,
+    Number(current.asset_count),
+    Number(current.captured_at),
+    primaryRow.payload,
+  ).run();
+  return true;
 }
 
 async function readChunkCoverage(db, snapshot) {
@@ -305,7 +383,7 @@ async function readChunkCoverage(db, snapshot) {
         MAX(captured_at) AS max_captured_at
       FROM market_snapshot_chunks
       WHERE snapshot_id = ?
-    `).bind('global').first();
+    `).bind(PRIMARY_SNAPSHOT_ID).first();
     const chunkCount = Number(row?.chunk_count || 0);
     const minCapturedAt = Number(row?.min_captured_at || 0);
     const maxCapturedAt = Number(row?.max_captured_at || 0);
@@ -324,7 +402,7 @@ async function readChunkCoverage(db, snapshot) {
   }
 }
 
-async function persistChunks(db, data, capturedAt, source = 'coinlore') {
+async function persistChunks(db, data, capturedAt, source = 'coinlore', snapshotId = PRIMARY_SNAPSHOT_ID) {
   const chunkCount = Math.ceil(data.length / MARKET_CHUNK_SIZE);
   const statements = [];
   for (let chunkIndex = 0; chunkIndex < chunkCount; chunkIndex += 1) {
@@ -338,7 +416,7 @@ async function persistChunks(db, data, capturedAt, source = 'coinlore') {
         asset_count = excluded.asset_count,
         payload = excluded.payload,
         updated_at = CURRENT_TIMESTAMP
-    `).bind('global', chunkIndex, source, capturedAt, data.length, JSON.stringify(chunk)));
+    `).bind(snapshotId, chunkIndex, source, capturedAt, data.length, JSON.stringify(chunk)));
   }
 
   for (let offset = 0; offset < statements.length; offset += CHUNK_WRITE_BATCH_SIZE) {
@@ -351,7 +429,7 @@ async function persistChunks(db, data, capturedAt, source = 'coinlore') {
 
   await db.prepare(
     'DELETE FROM market_snapshot_chunks WHERE snapshot_id = ? AND chunk_index >= ?',
-  ).bind('global', chunkCount).run();
+  ).bind(snapshotId, chunkCount).run();
 }
 
 async function refreshSnapshot(dbBinding, env = {}) {
@@ -359,6 +437,8 @@ async function refreshSnapshot(dbBinding, env = {}) {
   await ensureSchemas(db);
   const { source, data } = await fetchMarketData(db, env);
   const capturedAt = Date.now();
+  const backupCreated = await copyPrimarySnapshotToBackup(db);
+
   await db.prepare(`
     INSERT INTO market_snapshots (id, source, asset_count, captured_at, payload, updated_at)
     VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
@@ -368,9 +448,16 @@ async function refreshSnapshot(dbBinding, env = {}) {
       captured_at = excluded.captured_at,
       payload = excluded.payload,
       updated_at = CURRENT_TIMESTAMP
-  `).bind('global', source, data.length, capturedAt, JSON.stringify(data)).run();
-  await persistChunks(db, data, capturedAt, source);
-  return { source, asset_count: data.length, captured_at: capturedAt, data };
+  `).bind(PRIMARY_SNAPSHOT_ID, source, data.length, capturedAt, JSON.stringify(data)).run();
+  await persistChunks(db, data, capturedAt, source, PRIMARY_SNAPSHOT_ID);
+  return {
+    source,
+    asset_count: data.length,
+    captured_at: capturedAt,
+    snapshot_id: PRIMARY_SNAPSHOT_ID,
+    backupCreated,
+    data,
+  };
 }
 
 async function refreshSnapshotSingleFlight(db, env = {}) {
@@ -382,28 +469,19 @@ async function refreshSnapshotSingleFlight(db, env = {}) {
   return refreshInFlight;
 }
 
-function decodeSnapshot(row) {
-  if (!row) return null;
-  try {
-    const data = JSON.parse(row.payload);
-    return Array.isArray(data) ? { ...row, data } : null;
-  } catch {
-    return null;
-  }
-}
-
 async function backfillChunksFromPersistedSnapshot(dbBinding) {
   if (!chunkBackfillInFlight) {
     chunkBackfillInFlight = (async () => {
       const db = primarySession(dbBinding);
       await ensureSchemas(db);
-      const snapshot = decodeSnapshot(await readSnapshot(db));
+      const snapshot = await readBestSnapshot(db);
       if (!snapshot) throw new Error('Persisted market snapshot is unavailable for chunk backfill');
       await persistChunks(
         db,
         snapshot.data,
         Number(snapshot.captured_at),
         snapshot.source || 'coinlore',
+        PRIMARY_SNAPSHOT_ID,
       );
       return readChunkCoverage(db, snapshot);
     })().finally(() => {
@@ -413,7 +491,7 @@ async function backfillChunksFromPersistedSnapshot(dbBinding) {
   return chunkBackfillInFlight;
 }
 
-function metadataFor(snapshot, requestId, refreshPerformed, refreshScheduled) {
+function metadataFor(snapshot, requestId, refreshPerformed, refreshScheduled, durability = {}) {
   const ageMs = Math.max(0, Date.now() - Number(snapshot.captured_at));
   const stale = ageMs > SNAPSHOT_FRESH_MS;
   const refreshDue = ageMs >= SNAPSHOT_FRESH_MS - SNAPSHOT_REFRESH_AHEAD_MS;
@@ -436,6 +514,13 @@ function metadataFor(snapshot, requestId, refreshPerformed, refreshScheduled) {
       cooldownMs: PROVIDER_COOLDOWN_MS,
       recoveryMode: 'cooldown-then-probe',
     },
+    durability: {
+      primarySnapshotId: PRIMARY_SNAPSHOT_ID,
+      backupSnapshotId: BACKUP_SNAPSHOT_ID,
+      backupMode: 'rolling-full-row',
+      recoverySnapshot: snapshot.snapshot_id === BACKUP_SNAPSHOT_ID,
+      ...durability,
+    },
     chunkSize: MARKET_CHUNK_SIZE,
     requestId,
   };
@@ -455,19 +540,21 @@ export async function onRequestGet(context) {
     const readDb = readSession(env.AUTH_DB);
 
     if (healthOnly) {
-      let metadataRow = await readSnapshotMetadata(readDb).catch(() => null);
+      let metadataRow = await readPrimaryOrBackupMetadata(readDb).catch(() => null);
       if (!metadataRow) {
         const initialized = await refreshSnapshotSingleFlight(env.AUTH_DB, env);
         metadataRow = initialized;
       }
 
-      let meta = metadataFor(metadataRow, requestId, false, false);
+      let durability = await readBackupDurability(readDb);
+      let meta = metadataFor(metadataRow, requestId, false, false, durability);
       let chunkCoverage = null;
       let chunkBackfilled = false;
 
       if (forceRefresh && meta.refreshDue) {
         metadataRow = await refreshSnapshotSingleFlight(env.AUTH_DB, env);
-        meta = metadataFor(metadataRow, requestId, true, false);
+        durability = await readBackupDurability(readSession(env.AUTH_DB));
+        meta = metadataFor(metadataRow, requestId, true, false, durability);
       }
 
       if (forceRefresh) {
@@ -482,7 +569,7 @@ export async function onRequestGet(context) {
         context.waitUntil(refreshSnapshotSingleFlight(env.AUTH_DB, env).catch((error) => {
           console.error('Background market snapshot refresh failed', { requestId, error });
         }));
-        meta = metadataFor(metadataRow, requestId, false, true);
+        meta = metadataFor(metadataRow, requestId, false, true, durability);
       }
 
       return json({
@@ -496,15 +583,16 @@ export async function onRequestGet(context) {
       }, 200, { 'X-KriptoAman-Market-Read': 'metadata-only' });
     }
 
-    let snapshot = decodeSnapshot(await readSnapshot(readDb));
+    let snapshot = await readBestSnapshot(readDb);
     if (!snapshot) snapshot = await refreshSnapshotSingleFlight(env.AUTH_DB, env);
-    let meta = metadataFor(snapshot, requestId, false, false);
+    const durability = await readBackupDurability(readDb);
+    let meta = metadataFor(snapshot, requestId, false, false, durability);
 
     if (meta.refreshDue && typeof context.waitUntil === 'function') {
       context.waitUntil(refreshSnapshotSingleFlight(env.AUTH_DB, env).catch((error) => {
         console.error('Background market snapshot refresh failed', { requestId, error });
       }));
-      meta = metadataFor(snapshot, requestId, false, true);
+      meta = metadataFor(snapshot, requestId, false, true, durability);
     }
 
     return json({ ...meta, data: snapshot.data });
