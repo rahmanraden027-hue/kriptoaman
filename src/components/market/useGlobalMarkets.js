@@ -2,6 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 
 const CACHE_KEY = 'ka_global_markets_v1';
 const CACHE_TTL_MS = 60 * 60 * 1000;
+const REQUEST_DEDUPE_MS = 15 * 1000;
+
+let sharedRequest = null;
+let sharedPayload = null;
+let sharedFetchedAt = 0;
 
 const readCache = () => {
   try {
@@ -23,6 +28,29 @@ const writeCache = payload => {
   }
 };
 
+const fetchSharedGlobalMarkets = async () => {
+  if (sharedPayload && (Date.now() - sharedFetchedAt) < REQUEST_DEDUPE_MS) return sharedPayload;
+  if (sharedRequest) return sharedRequest;
+
+  sharedRequest = fetch('/api/global-markets', {
+    headers: { Accept: 'application/json' },
+    cache: 'no-store',
+  }).then(async response => {
+    const payload = await response.json().catch(() => null);
+    if (!response.ok || !payload?.instruments?.length) {
+      throw new Error(payload?.code || 'GLOBAL_MARKETS_UNAVAILABLE');
+    }
+    sharedPayload = payload;
+    sharedFetchedAt = Date.now();
+    writeCache(payload);
+    return payload;
+  }).finally(() => {
+    sharedRequest = null;
+  });
+
+  return sharedRequest;
+};
+
 export default function useGlobalMarkets() {
   const cached = useMemo(() => readCache(), []);
   const [data, setData] = useState(cached?.payload || null);
@@ -31,26 +59,18 @@ export default function useGlobalMarkets() {
   const [usingCache, setUsingCache] = useState(Boolean(cached?.payload));
 
   useEffect(() => {
-    const controller = new AbortController();
+    let active = true;
 
     const load = async () => {
-      setLoading(!data);
+      setLoading(current => current || !data);
       try {
-        const response = await fetch('/api/global-markets', {
-          headers: { Accept: 'application/json' },
-          cache: 'no-store',
-          signal: controller.signal,
-        });
-        const payload = await response.json().catch(() => null);
-        if (!response.ok || !payload?.instruments?.length) {
-          throw new Error(payload?.code || 'GLOBAL_MARKETS_UNAVAILABLE');
-        }
+        const payload = await fetchSharedGlobalMarkets();
+        if (!active) return;
         setData(payload);
         setError(null);
         setUsingCache(false);
-        writeCache(payload);
       } catch (err) {
-        if (err?.name === 'AbortError') return;
+        if (!active) return;
         setError(err);
         const fallback = readCache();
         if (fallback?.payload) {
@@ -58,19 +78,20 @@ export default function useGlobalMarkets() {
           setUsingCache(true);
         }
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
     load();
     const timer = window.setInterval(load, 5 * 60 * 1000);
     return () => {
-      controller.abort();
+      active = false;
       window.clearInterval(timer);
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const cacheAgeMs = cached?.savedAt ? Date.now() - cached.savedAt : null;
+  const currentCache = readCache();
+  const cacheAgeMs = currentCache?.savedAt ? Date.now() - currentCache.savedAt : null;
   const cacheFresh = cacheAgeMs != null && cacheAgeMs <= CACHE_TTL_MS;
 
   return {
