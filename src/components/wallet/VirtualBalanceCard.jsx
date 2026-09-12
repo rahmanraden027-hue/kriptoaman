@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { getReadOnlyMarketPrices } from '@/lib/readOnlyMarketPrices';
 import { Wallet, RefreshCw, ArrowDownToLine, ArrowUpFromLine, Clock, CreditCard } from 'lucide-react';
 import IDRTopupModal from './IDRTopupModal';
 
@@ -11,13 +12,7 @@ const COIN_INFO = {
   IDR:  { label: 'Saldo IDR', color: '#22C55E', icon: 'Rp' },
 };
 
-// CoinGecko IDs for price lookup
-const COINGECKO_IDS = {
-  SOL: 'solana',
-  ETH: 'ethereum',
-  BTC: 'bitcoin',
-  USDT: 'tether',
-};
+const DISPLAY_PRICE_SYMBOLS = ['USDT', 'SOL', 'ETH', 'BTC'];
 
 export default function VirtualBalanceCard({ userEmail, onDeposit, onWithdraw }) {
   const [balances, setBalances] = useState([]);
@@ -28,14 +23,13 @@ export default function VirtualBalanceCard({ userEmail, onDeposit, onWithdraw })
 
   const loadPrices = async () => {
     try {
-      const ids = Object.values(COINGECKO_IDS).join(',');
-      const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`);
-      const data = await res.json();
-      const p = {};
-      Object.entries(COINGECKO_IDS).forEach(([coin, id]) => {
-        if (data[id]) p[coin] = data[id].usd;
+      const marketPrices = await getReadOnlyMarketPrices();
+      const nextPrices = {};
+      DISPLAY_PRICE_SYMBOLS.forEach((symbol) => {
+        const price = Number(marketPrices?.[symbol]?.price);
+        if (Number.isFinite(price) && price > 0) nextPrices[symbol] = price;
       });
-      setPrices(p);
+      setPrices(nextPrices);
     } catch (_) {}
   };
 
