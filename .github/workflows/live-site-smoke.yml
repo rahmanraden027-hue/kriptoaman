@@ -58,6 +58,36 @@ jobs:
           }
           NODE
 
+      - name: Verify official K-orbit production identity
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          headers="$(mktemp)"
+          mark="$(mktemp)"
+          worker="$(mktemp)"
+
+          mark_code="$(curl --fail-with-body --location --silent --show-error \
+            --connect-timeout 10 --max-time 25 \
+            -H 'Cache-Control: no-cache' \
+            -D "$headers" -o "$mark" -w '%{http_code}' \
+            "https://kriptoaman.com/brand/kriptoaman-mark.svg?identity=${GITHUB_RUN_ID}")"
+          test "$mark_code" = "200"
+          grep -qi '^content-type:.*image/svg' "$headers"
+          grep -q 'KriptoAman Official Mark' "$mark"
+          grep -q 'dimensional gold and electric-blue K with a network ring' "$mark"
+          grep -q 'orbital sweep' "$mark"
+
+          worker_code="$(curl --fail-with-body --location --silent --show-error \
+            --connect-timeout 10 --max-time 25 \
+            -H 'Cache-Control: no-cache' \
+            -o "$worker" -w '%{http_code}' \
+            "https://kriptoaman.com/sw.js?identity=${GITHUB_RUN_ID}")"
+          test "$worker_code" = "200"
+          grep -q "'/brand/kriptoaman-mark.svg'" "$worker"
+
+          echo 'Official K-orbit identity is present on the production brand asset and service worker.'
+
       - name: Check homepage response and security headers
         shell: bash
         run: |
