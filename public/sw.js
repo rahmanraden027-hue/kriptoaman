@@ -14,6 +14,7 @@ const CURRENT_CACHES = new Set([STATIC_CACHE, IMMUTABLE_CACHE]);
 
 const OPTIONAL_STATIC_ASSETS = [
   '/brand/kriptoaman-mark-premium.webp',
+  '/brand/kriptoaman-mark.svg',
 ];
 
 const APP_METADATA_PATHS = new Set([
@@ -172,4 +173,4 @@ self.addEventListener('sync', (event) => {
   }
 });
 
-console.log('[SW] KriptoAman Service Worker v2.4.0 loaded');
+console.log('[SW] KriptoAman Service Worker v2.4.3 loaded');
