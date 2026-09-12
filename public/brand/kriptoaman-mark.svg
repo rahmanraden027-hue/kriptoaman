@@ -1,59 +1,43 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
   <title id="title">KriptoAman</title>
-  <desc id="desc">KriptoAman master mark: a geometric gold K protected by a shield and surrounded by a four-node blockchain orbit.</desc>
+  <desc id="desc">KriptoAman final mark: metallic gold and electric-blue K encircled by a blockchain orbit with diamond nodes.</desc>
   <defs>
-    <radialGradient id="bg" cx="50%" cy="44%" r="72%">
-      <stop offset="0" stop-color="#0B2B55"/>
-      <stop offset="0.58" stop-color="#071A34"/>
-      <stop offset="1" stop-color="#041021"/>
-    </radialGradient>
-    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#FFE47A"/>
-      <stop offset="0.34" stop-color="#F4C84C"/>
-      <stop offset="0.7" stop-color="#D9A62F"/>
-      <stop offset="1" stop-color="#B77B18"/>
-    </linearGradient>
-    <linearGradient id="shieldFill" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0B2E5D"/>
-      <stop offset="1" stop-color="#06182E"/>
-    </linearGradient>
-    <radialGradient id="node" cx="50%" cy="42%" r="62%">
-      <stop offset="0" stop-color="#62F5FF"/>
-      <stop offset="0.42" stop-color="#14D8F2"/>
-      <stop offset="1" stop-color="#0798BA"/>
-    </radialGradient>
-    <filter id="softShadow" x="-35%" y="-35%" width="170%" height="170%">
-      <feDropShadow dx="0" dy="7" stdDeviation="9" flood-color="#000A16" flood-opacity="0.58"/>
-    </filter>
-    <filter id="nodeGlow" x="-100%" y="-100%" width="300%" height="300%">
-      <feGaussianBlur stdDeviation="4" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
+    <radialGradient id="bg" cx="50%" cy="44%" r="72%"><stop offset="0" stop-color="#0b315c"/><stop offset=".52" stop-color="#061b38"/><stop offset="1" stop-color="#020a18"/></radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff7b0"/><stop offset=".18" stop-color="#ffe36a"/><stop offset=".45" stop-color="#f2b932"/><stop offset=".72" stop-color="#c77b12"/><stop offset="1" stop-color="#7b4106"/></linearGradient>
+    <linearGradient id="goldEdge" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6b3"/><stop offset=".55" stop-color="#e5a21d"/><stop offset="1" stop-color="#8a4d08"/></linearGradient>
+    <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b8ffff"/><stop offset=".22" stop-color="#12efff"/><stop offset=".55" stop-color="#00a9ff"/><stop offset="1" stop-color="#0648d8"/></linearGradient>
+    <linearGradient id="deepBlue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#061126"/><stop offset=".5" stop-color="#063d7a"/><stop offset="1" stop-color="#020711"/></linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#00040c" flood-opacity=".78"/></filter>
+    <filter id="cyanGlow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="goldGlow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <clipPath id="innerK"><path d="M126 118 L181 91 L181 221 L276 133 L362 124 L250 245 L371 381 L299 410 L181 295 L181 420 L126 449 Z"/></clipPath>
   </defs>
-
-  <rect width="512" height="512" rx="44" fill="url(#bg)"/>
-
-  <g fill="none" stroke="url(#gold)" stroke-width="11" stroke-linecap="round">
-    <path d="M256 71 A185 185 0 0 1 441 256"/>
-    <path d="M441 256 A185 185 0 0 1 256 441"/>
-    <path d="M256 441 A185 185 0 0 1 71 256"/>
-    <path d="M71 256 A185 185 0 0 1 256 71"/>
+  <rect width="512" height="512" rx="56" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="196" fill="none" stroke="#008aff" stroke-width="5" opacity=".7" filter="url(#cyanGlow)"/>
+  <g fill="none" stroke="url(#goldEdge)" stroke-width="14" stroke-linecap="square" filter="url(#goldGlow)">
+    <path d="M292 63 A196 196 0 0 1 393 114"/><path d="M432 174 A196 196 0 0 1 449 290"/>
+    <path d="M436 341 A196 196 0 0 1 349 427"/><path d="M219 449 A196 196 0 0 1 171 439"/>
+    <path d="M91 386 A196 196 0 0 1 64 280"/><path d="M70 220 A196 196 0 0 1 112 132"/>
+    <path d="M158 91 A196 196 0 0 1 220 65"/>
   </g>
-
-  <path d="M256 116 L365 155 V246 C365 320 322 375 256 405 C190 375 147 320 147 246 V155 Z"
-        fill="url(#shieldFill)" stroke="url(#gold)" stroke-width="12" stroke-linejoin="round" filter="url(#softShadow)"/>
-
-  <g fill="url(#gold)" filter="url(#softShadow)">
-    <path d="M188 174 H229 V338 H188 Z"/>
-    <path d="M229 244 L302 174 H351 L267 258 Z"/>
-    <path d="M263 259 L340 332 H291 L229 280 Z"/>
+  <g filter="url(#shadow)">
+    <path d="M126 118 L181 91 L181 221 L276 133 L362 124 L250 245 L371 381 L299 410 L181 295 L181 420 L126 449 Z" fill="url(#gold)" stroke="#fff0a0" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M149 139 L168 128 L168 407 L149 421 Z" fill="url(#deepBlue)" stroke="url(#cyan)" stroke-width="4"/>
+    <path d="M184 243 L286 148 L331 143 L226 255 L331 374 L301 388 L205 291 L205 342 L182 319 L182 274 Z" fill="url(#deepBlue)" stroke="url(#cyan)" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M139 127 L168 112 L168 137 L145 151 Z" fill="#fff5a0" opacity=".9"/>
+    <path d="M286 143 L347 135 L326 155 L275 162 Z" fill="#fff7b5" opacity=".82"/>
+    <path d="M301 385 L348 368 L367 389 L307 407 Z" fill="#9a570a" opacity=".6"/>
   </g>
-  <path d="M230 176 H244 V330 H230 Z" fill="#FFE98A" opacity="0.34"/>
-
-  <g stroke="url(#gold)" stroke-width="8">
-    <g filter="url(#nodeGlow)"><circle cx="256" cy="71" r="20" fill="#071A34"/><circle cx="256" cy="71" r="10" fill="url(#node)" stroke="none"/></g>
-    <g filter="url(#nodeGlow)"><circle cx="441" cy="256" r="20" fill="#071A34"/><circle cx="441" cy="256" r="10" fill="url(#node)" stroke="none"/></g>
-    <g filter="url(#nodeGlow)"><circle cx="256" cy="441" r="20" fill="#071A34"/><circle cx="256" cy="441" r="10" fill="url(#node)" stroke="none"/></g>
-    <g filter="url(#nodeGlow)"><circle cx="71" cy="256" r="20" fill="#071A34"/><circle cx="71" cy="256" r="10" fill="url(#node)" stroke="none"/></g>
+  <g clip-path="url(#innerK)" opacity=".4" stroke="#2df6ff" stroke-width="1.5">
+    <path d="M145 180h35m-22 0v35m-13 55h36m-18 0v46m30-80h52m-30 0v34m29 35h55m-31 0v42m-95 15h50" fill="none"/>
+    <circle cx="158" cy="180" r="3" fill="#8bffff"/><circle cx="163" cy="270" r="3" fill="#8bffff"/><circle cx="214" cy="236" r="3" fill="#8bffff"/><circle cx="268" cy="305" r="3" fill="#8bffff"/>
   </g>
+  <g transform="rotate(-17 256 256)" fill="none" stroke-linecap="round">
+    <ellipse cx="256" cy="256" rx="229" ry="82" stroke="#00bfff" stroke-width="9" opacity=".75" filter="url(#cyanGlow)"/>
+    <ellipse cx="256" cy="256" rx="229" ry="82" stroke="url(#gold)" stroke-width="10" filter="url(#goldGlow)"/>
+    <ellipse cx="256" cy="251" rx="229" ry="82" stroke="#fff0a0" stroke-width="2.2" opacity=".9"/>
+  </g>
+  <g transform="translate(256 55)" filter="url(#cyanGlow)"><path d="M0 -26 L25 0 L0 31 L-25 0 Z" fill="#061a38" stroke="url(#gold)" stroke-width="7"/><path d="M0 -14 L13 0 L0 16 L-13 0 Z" fill="url(#cyan)"/><path d="M0 -40 V-27 M0 31 V48" stroke="#f7c840" stroke-width="4"/><path d="M0 -12 V14 M-10 0 H10" stroke="#d8ffff" stroke-width="2"/></g>
+  <g transform="translate(256 457)" filter="url(#cyanGlow)"><path d="M0 -27 L25 0 L0 31 L-25 0 Z" fill="#061a38" stroke="url(#gold)" stroke-width="7"/><path d="M0 -14 L13 0 L0 16 L-13 0 Z" fill="url(#cyan)"/><path d="M0 -45 V-28 M0 31 V43" stroke="#f7c840" stroke-width="4"/><path d="M0 -12 V14 M-10 0 H10" stroke="#d8ffff" stroke-width="2"/></g>
+  <g transform="translate(431 174)" filter="url(#cyanGlow)"><circle r="32" fill="#06162f" stroke="url(#gold)" stroke-width="9"/><circle r="20" fill="url(#deepBlue)" stroke="url(#cyan)" stroke-width="3"/><path d="M-18 0H18M0-18V18M-13-13L13 13M13-13L-13 13" stroke="#7cefff" stroke-width="1.4" opacity=".8"/><circle cx="7" cy="-7" r="6" fill="#d8ffff" opacity=".9"/></g>
 </svg>

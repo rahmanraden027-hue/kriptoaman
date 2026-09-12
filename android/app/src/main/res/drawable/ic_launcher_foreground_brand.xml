@@ -7,30 +7,72 @@
     <group
         android:pivotX="256"
         android:pivotY="256"
-        android:scaleX="0.72"
-        android:scaleY="0.72">
+        android:scaleX="0.74"
+        android:scaleY="0.74">
+
+        <!-- Electric-blue foundation ring -->
         <path
             android:fillColor="@android:color/transparent"
-            android:strokeColor="#E1B23D"
-            android:strokeWidth="13"
+            android:strokeColor="#00AAFF"
+            android:strokeWidth="6"
             android:strokeLineCap="round"
-            android:pathData="M256,70 A186,186 0,0 1,442,256 M442,256 A186,186 0,0 1,256,442 M256,442 A186,186 0,0 1,70,256 M70,256 A186,186 0,0 1,256,70"/>
+            android:pathData="M256,60 A196,196 0,1 1,255.9,60"/>
+
+        <!-- Segmented premium-gold outer blockchain ring -->
+        <path android:fillColor="@android:color/transparent" android:strokeColor="#F2C14E" android:strokeWidth="14" android:strokeLineCap="square" android:pathData="M292,63 A196,196 0,0 1,393,114"/>
+        <path android:fillColor="@android:color/transparent" android:strokeColor="#F2C14E" android:strokeWidth="14" android:strokeLineCap="square" android:pathData="M432,174 A196,196 0,0 1,449,290"/>
+        <path android:fillColor="@android:color/transparent" android:strokeColor="#F2C14E" android:strokeWidth="14" android:strokeLineCap="square" android:pathData="M436,341 A196,196 0,0 1,349,427"/>
+        <path android:fillColor="@android:color/transparent" android:strokeColor="#F2C14E" android:strokeWidth="14" android:strokeLineCap="square" android:pathData="M219,449 A196,196 0,0 1,171,439"/>
+        <path android:fillColor="@android:color/transparent" android:strokeColor="#F2C14E" android:strokeWidth="14" android:strokeLineCap="square" android:pathData="M91,386 A196,196 0,0 1,64,280"/>
+        <path android:fillColor="@android:color/transparent" android:strokeColor="#F2C14E" android:strokeWidth="14" android:strokeLineCap="square" android:pathData="M70,220 A196,196 0,0 1,112,132"/>
+        <path android:fillColor="@android:color/transparent" android:strokeColor="#F2C14E" android:strokeWidth="14" android:strokeLineCap="square" android:pathData="M158,91 A196,196 0,0 1,220,65"/>
+
+        <!-- Final angular K -->
         <path
-            android:fillColor="#0A2B54"
-            android:strokeColor="#E1B23D"
-            android:strokeWidth="13"
+            android:fillColor="#E2A11C"
+            android:strokeColor="#FFE773"
+            android:strokeWidth="4"
             android:strokeLineJoin="round"
-            android:pathData="M256,116 L365,155 V246 C365,320 322,375 256,405 C190,375 147,320 147,246 V155 Z"/>
-        <path android:fillColor="#E1B23D" android:pathData="M188,174 H229 V338 H188 Z"/>
-        <path android:fillColor="#E1B23D" android:pathData="M229,244 L302,174 H351 L267,258 Z"/>
-        <path android:fillColor="#E1B23D" android:pathData="M263,259 L340,332 H291 L229,280 Z"/>
-        <path android:fillColor="#0A2B54" android:strokeColor="#E1B23D" android:strokeWidth="7" android:strokeLineJoin="round" android:pathData="M256,43 L281,57 V84 L256,98 L231,84 V57 Z"/>
-        <path android:fillColor="#0A2B54" android:strokeColor="#E1B23D" android:strokeWidth="7" android:strokeLineJoin="round" android:pathData="M442,229 L467,243 V270 L442,284 L417,270 V243 Z"/>
-        <path android:fillColor="#0A2B54" android:strokeColor="#E1B23D" android:strokeWidth="7" android:strokeLineJoin="round" android:pathData="M256,415 L281,429 V456 L256,470 L231,456 V429 Z"/>
-        <path android:fillColor="#0A2B54" android:strokeColor="#E1B23D" android:strokeWidth="7" android:strokeLineJoin="round" android:pathData="M70,229 L95,243 V270 L70,284 L45,270 V243 Z"/>
-        <path android:fillColor="@android:color/transparent" android:strokeColor="#20C9E8" android:strokeWidth="5" android:strokeLineCap="round" android:pathData="M256,48 V93 M236,60 L256,71 L276,60 M256,71 V93"/>
-        <path android:fillColor="@android:color/transparent" android:strokeColor="#20C9E8" android:strokeWidth="5" android:strokeLineCap="round" android:pathData="M442,234 V279 M422,246 L442,257 L462,246 M442,257 V279"/>
-        <path android:fillColor="@android:color/transparent" android:strokeColor="#20C9E8" android:strokeWidth="5" android:strokeLineCap="round" android:pathData="M256,420 V465 M236,432 L256,443 L276,432 M256,443 V465"/>
-        <path android:fillColor="@android:color/transparent" android:strokeColor="#20C9E8" android:strokeWidth="5" android:strokeLineCap="round" android:pathData="M70,234 V279 M50,246 L70,257 L90,246 M70,257 V279"/>
+            android:pathData="M126,118 L181,91 L181,221 L276,133 L362,124 L250,245 L371,381 L299,410 L181,295 L181,420 L126,449 Z"/>
+
+        <!-- Dark-blue dimensional channels inside K -->
+        <path
+            android:fillColor="#061B38"
+            android:strokeColor="#1EEEFF"
+            android:strokeWidth="4"
+            android:pathData="M149,139 L168,128 L168,407 L149,421 Z"/>
+        <path
+            android:fillColor="#061B38"
+            android:strokeColor="#00AAFF"
+            android:strokeWidth="5"
+            android:strokeLineJoin="round"
+            android:pathData="M184,243 L286,148 L331,143 L226,255 L331,374 L301,388 L205,291 L205,342 L182,319 L182,274 Z"/>
+
+        <!-- Orbital data ellipse -->
+        <path
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="#00CFFF"
+            android:strokeWidth="8"
+            android:strokeLineCap="round"
+            android:pathData="M42,319 C77,411 219,440 350,383 C481,326 511,230 434,177 C357,124 216,129 105,190 C-6,251 7,363 116,402"/>
+        <path
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="#F2C14E"
+            android:strokeWidth="10"
+            android:strokeLineCap="round"
+            android:pathData="M42,313 C77,405 219,434 350,377 C481,320 511,224 434,171 C357,118 216,123 105,184 C-6,245 7,357 116,396"/>
+
+        <!-- Top diamond node -->
+        <path android:fillColor="#061B38" android:strokeColor="#F2C14E" android:strokeWidth="7" android:strokeLineJoin="round" android:pathData="M256,29 L281,55 L256,86 L231,55 Z"/>
+        <path android:fillColor="#00CFFF" android:pathData="M256,41 L269,55 L256,71 L243,55 Z"/>
+
+        <!-- Bottom diamond node -->
+        <path android:fillColor="#061B38" android:strokeColor="#F2C14E" android:strokeWidth="7" android:strokeLineJoin="round" android:pathData="M256,430 L281,457 L256,488 L231,457 Z"/>
+        <path android:fillColor="#00CFFF" android:pathData="M256,443 L269,457 L256,473 L243,457 Z"/>
+
+        <!-- Upper-right intelligence orb -->
+        <path android:fillColor="#061B38" android:strokeColor="#F2C14E" android:strokeWidth="8" android:pathData="M431,142 a32,32 0,1 0,0,64 a32,32 0,1 0,0,-64"/>
+        <path android:fillColor="#063D7A" android:strokeColor="#1EEEFF" android:strokeWidth="3" android:pathData="M431,154 a20,20 0,1 0,0,40 a20,20 0,1 0,0,-40"/>
+        <path android:fillColor="@android:color/transparent" android:strokeColor="#8BFFFF" android:strokeWidth="2" android:pathData="M413,174 H449 M431,156 V192 M418,161 L444,187 M444,161 L418,187"/>
     </group>
 </vector>

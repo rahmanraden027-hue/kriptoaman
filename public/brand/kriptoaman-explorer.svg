@@ -1,33 +1,44 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1536 480" role="img" aria-labelledby="title desc">
-  <title id="title">Kripto Aman Explorer — KAM Mainnet</title>
-  <desc id="desc">Official Kripto Aman Explorer horizontal brand mark for KAM Mainnet.</desc>
+  <title id="title">KriptoAman Explorer — KAM Mainnet</title>
+  <desc id="desc">Official KriptoAman Explorer horizontal identity using the 2026 gold K and electric-blue blockchain orbit.</desc>
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#020305"/><stop offset="1" stop-color="#000000"/></linearGradient>
-    <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8ffcff"/><stop offset=".18" stop-color="#00eaff"/><stop offset=".55" stop-color="#00b9f2"/><stop offset="1" stop-color="#0058d9"/></linearGradient>
-    <linearGradient id="cyanEdge" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d7ffff"/><stop offset=".28" stop-color="#00eaff"/><stop offset="1" stop-color="#0073ff"/></linearGradient>
-    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff7b2"/><stop offset=".18" stop-color="#ffe94a"/><stop offset=".48" stop-color="#ffbd00"/><stop offset=".78" stop-color="#ff8c00"/><stop offset="1" stop-color="#8a4300"/></linearGradient>
-    <linearGradient id="silver" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".38" stop-color="#dfe7f4"/><stop offset=".7" stop-color="#8ea1c2"/><stop offset="1" stop-color="#f5f7ff"/></linearGradient>
-    <linearGradient id="shieldEdge" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#00eaff"/><stop offset=".48" stop-color="#00bdf5"/><stop offset=".5" stop-color="#ffde00"/><stop offset="1" stop-color="#ff9500"/></linearGradient>
-    <filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    <filter id="shadow" x="-30%" y="-30%" width="170%" height="170%"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity=".9"/></filter>
+    <radialGradient id="bg" cx="36%" cy="42%" r="95%"><stop offset="0" stop-color="#0a2549"/><stop offset=".52" stop-color="#06162e"/><stop offset="1" stop-color="#020711"/></radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff7b0"/><stop offset=".22" stop-color="#ffe36a"/><stop offset=".52" stop-color="#f2b932"/><stop offset=".78" stop-color="#c77b12"/><stop offset="1" stop-color="#7b4106"/></linearGradient>
+    <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b8ffff"/><stop offset=".25" stop-color="#1eeeff"/><stop offset=".58" stop-color="#00a9ff"/><stop offset="1" stop-color="#0648d8"/></linearGradient>
+    <linearGradient id="silver" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".48" stop-color="#e8eef6"/><stop offset="1" stop-color="#9eafc5"/></linearGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="shadow" x="-30%" y="-30%" width="170%" height="170%"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity=".82"/></filter>
   </defs>
-  <rect width="1536" height="480" fill="url(#bg)"/>
-  <g transform="translate(48 35)" filter="url(#shadow)">
-    <path d="M180 20 345 86v126c0 107-60 165-165 207C75 377 15 319 15 212V86z" fill="#05142a" stroke="url(#shieldEdge)" stroke-width="18"/>
-    <path d="M180 42 322 99v108c0 91-49 140-142 180C87 347 38 298 38 207V99z" fill="url(#bg)" stroke="#65f6ff" stroke-opacity=".35" stroke-width="4"/>
-    <path d="M102 120h68v88l78-88h86l-108 114 114 109h-88l-82-80v80h-68z" fill="url(#cyan)" stroke="url(#cyanEdge)" stroke-width="4"/>
-    <path d="M173 207 248 120h86L226 234l61 58-37 38-77-67z" fill="#bafcff" opacity=".38"/>
-    <path d="M184 72 207 105 184 139 161 105z" fill="url(#cyan)" filter="url(#softGlow)"/>
-    <path d="M170 272 215 319 311 212" fill="none" stroke="url(#cyan)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" filter="url(#softGlow)"/>
-    <circle cx="153" cy="340" r="18" fill="#041629" stroke="url(#cyan)" stroke-width="8"/>
-    <path d="M153 358v28" stroke="url(#cyan)" stroke-width="10" stroke-linecap="round"/>
+
+  <rect width="1536" height="480" rx="34" fill="url(#bg)"/>
+
+  <g transform="translate(38 22) scale(.85)" filter="url(#shadow)">
+    <circle cx="256" cy="256" r="196" fill="none" stroke="#00aaff" stroke-width="6" opacity=".72"/>
+    <g fill="none" stroke="url(#gold)" stroke-width="14" stroke-linecap="square">
+      <path d="M292 63A196 196 0 0 1 393 114"/><path d="M432 174A196 196 0 0 1 449 290"/>
+      <path d="M436 341A196 196 0 0 1 349 427"/><path d="M219 449A196 196 0 0 1 171 439"/>
+      <path d="M91 386A196 196 0 0 1 64 280"/><path d="M70 220A196 196 0 0 1 112 132"/>
+      <path d="M158 91A196 196 0 0 1 220 65"/>
+    </g>
+    <path d="M126 118 181 91v130l95-88 86-9-112 121 121 136-72 29-118-115v125l-55 29z" fill="url(#gold)" stroke="#fff0a0" stroke-width="3"/>
+    <path d="M149 139 168 128v279l-19 14z" fill="#061b38" stroke="url(#cyan)" stroke-width="4"/>
+    <path d="m184 243 102-95 45-5-105 112 105 119-30 14-96-97v51l-23-23v-45z" fill="#061b38" stroke="url(#cyan)" stroke-width="5"/>
+    <g transform="rotate(-17 256 256)" fill="none" stroke-linecap="round">
+      <ellipse cx="256" cy="256" rx="229" ry="82" stroke="#00bfff" stroke-width="9" opacity=".7" filter="url(#glow)"/>
+      <ellipse cx="256" cy="256" rx="229" ry="82" stroke="url(#gold)" stroke-width="10"/>
+    </g>
+    <g transform="translate(256 55)"><path d="M0-26 25 0 0 31-25 0Z" fill="#061a38" stroke="url(#gold)" stroke-width="7"/><path d="M0-14 13 0 0 16-13 0Z" fill="url(#cyan)"/></g>
+    <g transform="translate(256 457)"><path d="M0-27 25 0 0 31-25 0Z" fill="#061a38" stroke="url(#gold)" stroke-width="7"/><path d="M0-14 13 0 0 16-13 0Z" fill="url(#cyan)"/></g>
+    <g transform="translate(431 174)"><circle r="32" fill="#06162f" stroke="url(#gold)" stroke-width="9"/><circle r="20" fill="#063d7a" stroke="url(#cyan)" stroke-width="3"/></g>
   </g>
-  <g transform="translate(410 66)" filter="url(#shadow)">
-    <text x="0" y="112" font-family="Inter,Arial,sans-serif" font-size="104" font-weight="900" letter-spacing="2" fill="url(#gold)" stroke="#ffbf00" stroke-width="1.5">KRIPTO</text>
-    <text x="575" y="112" font-family="Inter,Arial,sans-serif" font-size="104" font-weight="900" letter-spacing="2" fill="url(#cyan)" stroke="#00c9ff" stroke-width="1.5">AMAN</text>
-    <line x1="0" y1="175" x2="155" y2="175" stroke="url(#cyan)" stroke-width="7" filter="url(#softGlow)"/>
-    <text x="195" y="194" font-family="Inter,Arial,sans-serif" font-size="58" font-weight="700" letter-spacing="16" fill="url(#silver)" stroke="#ffffff" stroke-opacity=".25" stroke-width="1">EXPLORER</text>
-    <line x1="895" y1="175" x2="1050" y2="175" stroke="url(#cyan)" stroke-width="7" filter="url(#softGlow)"/>
-    <text x="330" y="275" font-family="Inter,Arial,sans-serif" font-size="43" font-weight="900" letter-spacing="18" fill="url(#gold)" stroke="#ffb800" stroke-width="1">KAM MAINNET</text>
+
+  <g transform="translate(510 96)" filter="url(#shadow)">
+    <text x="0" y="86" font-family="Inter,Arial,sans-serif" font-size="92" font-weight="900" letter-spacing="1" fill="url(#silver)">Kripto</text>
+    <text x="292" y="86" font-family="Inter,Arial,sans-serif" font-size="92" font-weight="900" letter-spacing="1" fill="url(#gold)">Aman</text>
+    <line x1="0" y1="135" x2="910" y2="135" stroke="#163e65" stroke-width="2"/>
+    <text x="0" y="215" font-family="Inter,Arial,sans-serif" font-size="55" font-weight="800" letter-spacing="14" fill="url(#cyan)">EXPLORER</text>
+    <text x="3" y="294" font-family="Inter,Arial,sans-serif" font-size="32" font-weight="800" letter-spacing="11" fill="url(#gold)">KAM MAINNET</text>
+    <circle cx="830" cy="278" r="7" fill="#1eeeff" filter="url(#glow)"/>
+    <text x="855" y="289" font-family="Inter,Arial,sans-serif" font-size="25" font-weight="700" letter-spacing="3" fill="#b9c7d8">NETWORK EXPLORER</text>
   </g>
 </svg>
