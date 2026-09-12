@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 const SITE_URL = 'https://kriptoaman.com';
-const DEFAULT_IMAGE = `${SITE_URL}/brand/kriptoaman-mark.svg`;
+const DEFAULT_IMAGE = `${SITE_URL}/brand/kriptoaman-mark-premium.webp`;
 
 const PUBLIC_META = {
   '/': {

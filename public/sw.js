@@ -1,5 +1,5 @@
 /**
- * KriptoAman Service Worker v2.4.0
+ * KriptoAman Service Worker v2.4.1
  * Fail-safe policy:
  * - navigation is always network-first and never falls back to a cached app shell
  * - internal APIs are never cached by the service worker
@@ -8,12 +8,12 @@
  */
 
 const CACHE_PREFIX = 'kriptoaman-';
-const STATIC_CACHE = `${CACHE_PREFIX}static-v2.4.0`;
-const IMMUTABLE_CACHE = `${CACHE_PREFIX}immutable-v2.4.0`;
+const STATIC_CACHE = `${CACHE_PREFIX}static-v2.4.1`;
+const IMMUTABLE_CACHE = `${CACHE_PREFIX}immutable-v2.4.1`;
 const CURRENT_CACHES = new Set([STATIC_CACHE, IMMUTABLE_CACHE]);
 
 const OPTIONAL_STATIC_ASSETS = [
-  '/brand/kriptoaman-mark.svg',
+  '/brand/kriptoaman-mark-premium.webp',
 ];
 
 const APP_METADATA_PATHS = new Set([
@@ -137,8 +137,8 @@ self.addEventListener('push', (event) => {
   const data = event.data ? event.data.json() : {};
   const options = {
     body: data.body || 'Ada notifikasi baru dari KriptoAman',
-    icon: '/brand/kriptoaman-mark.svg',
-    badge: '/brand/kriptoaman-mark.svg',
+    icon: '/brand/kriptoaman-mark-premium.webp',
+    badge: '/brand/kriptoaman-mark-premium.webp',
     vibrate: [100, 50, 100],
     data: { url: data.url || '/' },
     actions: [

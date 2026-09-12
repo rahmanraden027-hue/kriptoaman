@@ -22,11 +22,11 @@ export default function KriptoAmanLogo({ size = 32, showText = true, textSize = 
           .animate-ka-luxury-glow { animation: ka-luxury-glow 3.2s ease-in-out infinite; }
         `}</style>
         <img
-          src="/brand/kriptoaman-mark.svg"
+          src="/brand/kriptoaman-mark-premium.webp"
           alt="KriptoAman"
           width={size}
           height={size}
-          className="h-full w-full object-contain"
+          className="h-full w-full rounded-[18%] object-contain"
           decoding="async"
         />
       </div>

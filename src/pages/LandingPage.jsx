@@ -10,7 +10,7 @@ const FEATURES = [
   { icon: Globe, title: 'Indonesia, Global Standard', desc: 'Bahasa Indonesia dan Inggris dengan pengalaman produk yang dirancang untuk berkembang secara global.' },
 ];
 
-function LogoSVG({ size = 40 }) { return <img src="/brand/kriptoaman-mark.svg" width={size} height={size} alt="KriptoAman" className="object-contain" />; }
+function LogoSVG({ size = 40 }) { return <img src="/brand/kriptoaman-mark-premium.webp" width={size} height={size} alt="KriptoAman" className="rounded-[18%] object-contain" />; }
 
 function NavBar() {
   const [scrolled, setScrolled] = useState(false); const [mobileOpen, setMobileOpen] = useState(false);
