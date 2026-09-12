@@ -1,8 +1,8 @@
 import React from 'react';
 
 /**
- * KriptoAmanLogo — market intelligence identity.
- * Gold K + four-node blockchain data orbit.
+ * KriptoAmanLogo — final 2026 brand identity.
+ * Metallic gold K + electric-blue blockchain orbit.
  * Props:
  *   size: number (px, default 32)
  *   showText: bool (default true)
@@ -10,8 +10,8 @@ import React from 'react';
  *   animate: bool (default true)
  *   className: string
  */
-const PREMIUM_GOLD = '#D6A83C';
-const NEON_CYAN = '#20C9E8';
+const PREMIUM_GOLD = '#F2C14E';
+const SILVER_WHITE = '#E8EEF6';
 
 export default function KriptoAmanLogo({ size = 32, showText = true, textSize = 'text-sm', animate = true, className = '' }) {
   return (
@@ -22,8 +22,8 @@ export default function KriptoAmanLogo({ size = 32, showText = true, textSize = 
       >
         <style>{`
           @keyframes ka-luxury-glow {
-            0%, 100% { filter: drop-shadow(0 0 3px rgba(212,175,55,.35)) drop-shadow(0 0 5px rgba(0,229,255,.22)); }
-            50% { filter: drop-shadow(0 0 8px rgba(212,175,55,.55)) drop-shadow(0 0 12px rgba(0,229,255,.38)); }
+            0%, 100% { filter: drop-shadow(0 0 3px rgba(242,193,78,.34)) drop-shadow(0 0 5px rgba(0,207,255,.22)); }
+            50% { filter: drop-shadow(0 0 8px rgba(242,193,78,.54)) drop-shadow(0 0 12px rgba(0,207,255,.38)); }
           }
           .animate-ka-luxury-glow { animation: ka-luxury-glow 3.2s ease-in-out infinite; }
         `}</style>
@@ -38,9 +38,9 @@ export default function KriptoAmanLogo({ size = 32, showText = true, textSize = 
       </div>
 
       {showText && (
-        <span className={`font-black tracking-[0.12em] uppercase ${textSize}`} aria-label="KriptoAman">
-          <span style={{ color: PREMIUM_GOLD }}>Kripto</span>
-          <span style={{ color: NEON_CYAN }}>Aman</span>
+        <span className={`font-black tracking-[0.035em] ${textSize}`} aria-label="KriptoAman">
+          <span style={{ color: SILVER_WHITE }}>Kripto</span>
+          <span style={{ color: PREMIUM_GOLD }}>Aman</span>
         </span>
       )}
     </div>
