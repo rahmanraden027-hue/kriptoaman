@@ -1,29 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
   <title id="title">KriptoAman compact icon</title>
-  <desc id="desc">Flat production icon with a gold geometric K, security shield and four-node blockchain orbit on deep navy.</desc>
-  <rect width="512" height="512" rx="44" fill="#07182E"/>
-  <g fill="none" stroke="#E1B23D" stroke-width="13" stroke-linecap="round">
-    <path d="M256 70A186 186 0 0 1 442 256"/>
-    <path d="M442 256A186 186 0 0 1 256 442"/>
-    <path d="M256 442A186 186 0 0 1 70 256"/>
-    <path d="M70 256A186 186 0 0 1 256 70"/>
+  <desc id="desc">Flat final KriptoAman icon with an angular gold K, electric-blue channels, blockchain orbit and diamond nodes on deep navy.</desc>
+  <rect width="512" height="512" rx="56" fill="#020A18"/>
+  <circle cx="256" cy="256" r="196" fill="none" stroke="#00AAFF" stroke-width="6" opacity=".72"/>
+  <g fill="none" stroke="#F2C14E" stroke-width="14" stroke-linecap="square">
+    <path d="M292 63A196 196 0 0 1 393 114"/><path d="M432 174A196 196 0 0 1 449 290"/>
+    <path d="M436 341A196 196 0 0 1 349 427"/><path d="M219 449A196 196 0 0 1 171 439"/>
+    <path d="M91 386A196 196 0 0 1 64 280"/><path d="M70 220A196 196 0 0 1 112 132"/><path d="M158 91A196 196 0 0 1 220 65"/>
   </g>
-  <path d="M256 116L365 155V246C365 320 322 375 256 405C190 375 147 320 147 246V155Z" fill="#0A2B54" stroke="#E1B23D" stroke-width="13" stroke-linejoin="round"/>
-  <g fill="#E1B23D">
-    <path d="M188 174H229V338H188Z"/>
-    <path d="M229 244L302 174H351L267 258Z"/>
-    <path d="M263 259L340 332H291L229 280Z"/>
-  </g>
-  <g fill="#0A2B54" stroke="#E1B23D" stroke-width="7" stroke-linejoin="round">
-    <path d="M256 43L281 57V84L256 98L231 84V57Z"/>
-    <path d="M442 229L467 243V270L442 284L417 270V243Z"/>
-    <path d="M256 415L281 429V456L256 470L231 456V429Z"/>
-    <path d="M70 229L95 243V270L70 284L45 270V243Z"/>
-  </g>
-  <g fill="none" stroke="#20C9E8" stroke-width="5" stroke-linecap="round">
-    <path d="M256 48V93M236 60L256 71L276 60M256 71V93"/>
-    <path d="M442 234V279M422 246L442 257L462 246M442 257V279"/>
-    <path d="M256 420V465M236 432L256 443L276 432M256 443V465"/>
-    <path d="M70 234V279M50 246L70 257L90 246M70 257V279"/>
-  </g>
+  <path d="M126 118 181 91v130l95-88 86-9-112 121 121 136-72 29-118-115v125l-55 29z" fill="#E2A11C" stroke="#FFE773" stroke-width="4"/>
+  <path d="M149 139 168 128v279l-19 14z" fill="#061B38" stroke="#1EEEFF" stroke-width="4"/>
+  <path d="m184 243 102-95 45-5-105 112 105 119-30 14-96-97v51l-23-23v-45z" fill="#061B38" stroke="#00AAFF" stroke-width="5"/>
+  <g transform="rotate(-17 256 256)" fill="none" stroke-linecap="round"><ellipse cx="256" cy="256" rx="229" ry="82" stroke="#00CFFF" stroke-width="8"/><ellipse cx="256" cy="256" rx="229" ry="82" stroke="#F2C14E" stroke-width="10"/></g>
+  <g transform="translate(256 55)"><path d="M0-26 25 0 0 31-25 0Z" fill="#061B38" stroke="#F2C14E" stroke-width="7"/><path d="M0-14 13 0 0 16-13 0Z" fill="#00CFFF"/></g>
+  <g transform="translate(256 457)"><path d="M0-27 25 0 0 31-25 0Z" fill="#061B38" stroke="#F2C14E" stroke-width="7"/><path d="M0-14 13 0 0 16-13 0Z" fill="#00CFFF"/></g>
+  <g transform="translate(431 174)"><circle r="32" fill="#06162F" stroke="#F2C14E" stroke-width="9"/><circle r="20" fill="#063D7A" stroke="#1EEEFF" stroke-width="3"/></g>
 </svg>
