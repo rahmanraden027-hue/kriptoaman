@@ -1,8 +1,8 @@
 import React from 'react';
 
 /**
- * KriptoAmanLogo — market intelligence identity.
- * Gold K + four-node blockchain data orbit.
+ * KriptoAmanLogo — official KriptoAman identity.
+ * Gold + electric-blue K with blockchain orbit.
  * Props:
  *   size: number (px, default 32)
  *   showText: bool (default true)
@@ -28,7 +28,7 @@ export default function KriptoAmanLogo({ size = 32, showText = true, textSize = 
           .animate-ka-luxury-glow { animation: ka-luxury-glow 3.2s ease-in-out infinite; }
         `}</style>
         <img
-          src="/brand/kriptoaman-mark.svg"
+          src="/icons/kriptoaman-192.png"
           alt="KriptoAman"
           width={size}
           height={size}
