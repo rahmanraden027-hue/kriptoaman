@@ -24,7 +24,7 @@ const PAGE_OVERRIDES = {
   AdminUserBalances: 'AdminUserBalancesModern',
   Alerts: 'NotificationCenterV2',
   Home: 'HomeV3',
-  Market: 'MarketWithKAM',
+  Market: 'MarketGlobal',
   PaperTrading: 'PaperTradingV3',
   SecurityCenter: 'SecurityCenterV2',
   ServerControl: 'ServerControlModern',
