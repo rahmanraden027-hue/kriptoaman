@@ -13,8 +13,8 @@ const browserFiles = [
 test('priority browser market surfaces use first-party KriptoAman gateways', () => {
   for (const path of browserFiles) {
     const source = read(path);
-    assert.doesNotMatch(source, /api\.coingecko\.com/i, `${path} must not call CoinGecko directly from the browser`);
-    assert.doesNotMatch(source, /api\.alternative\.me/i, `${path} must not call Alternative.me directly from the browser`);
+    assert.equal(source.toLowerCase().includes('api.coingecko.com'), false, `${path} must not call CoinGecko directly from the browser`);
+    assert.equal(source.toLowerCase().includes('api.alternative.me'), false, `${path} must not call Alternative.me directly from the browser`);
   }
 
   assert.match(read('src/components/wallet/VirtualBalanceCard.jsx'), /getReadOnlyMarketPrices/);
@@ -29,5 +29,5 @@ test('market overview is D1-first with explicit backup and methodology metadata'
   assert.match(source, /readBestSnapshot/);
   assert.match(source, /market-cap-weighted-snapshot/);
   assert.match(source, /recoverySnapshot/);
-  assert.doesNotMatch(source, /api\.coingecko\.com\/api\/v3\/global/i);
+  assert.equal(source.toLowerCase().includes('api.coingecko.com/api/v3/global'), false);
 });
