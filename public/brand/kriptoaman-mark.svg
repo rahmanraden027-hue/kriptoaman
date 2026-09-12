@@ -1,59 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
-  <title id="title">KriptoAman</title>
-  <desc id="desc">KriptoAman master mark: a geometric gold K protected by a shield and surrounded by a four-node blockchain orbit.</desc>
-  <defs>
-    <radialGradient id="bg" cx="50%" cy="44%" r="72%">
-      <stop offset="0" stop-color="#0B2B55"/>
-      <stop offset="0.58" stop-color="#071A34"/>
-      <stop offset="1" stop-color="#041021"/>
-    </radialGradient>
-    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#FFE47A"/>
-      <stop offset="0.34" stop-color="#F4C84C"/>
-      <stop offset="0.7" stop-color="#D9A62F"/>
-      <stop offset="1" stop-color="#B77B18"/>
-    </linearGradient>
-    <linearGradient id="shieldFill" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0B2E5D"/>
-      <stop offset="1" stop-color="#06182E"/>
-    </linearGradient>
-    <radialGradient id="node" cx="50%" cy="42%" r="62%">
-      <stop offset="0" stop-color="#62F5FF"/>
-      <stop offset="0.42" stop-color="#14D8F2"/>
-      <stop offset="1" stop-color="#0798BA"/>
-    </radialGradient>
-    <filter id="softShadow" x="-35%" y="-35%" width="170%" height="170%">
-      <feDropShadow dx="0" dy="7" stdDeviation="9" flood-color="#000A16" flood-opacity="0.58"/>
-    </filter>
-    <filter id="nodeGlow" x="-100%" y="-100%" width="300%" height="300%">
-      <feGaussianBlur stdDeviation="4" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-  </defs>
-
-  <rect width="512" height="512" rx="44" fill="url(#bg)"/>
-
-  <g fill="none" stroke="url(#gold)" stroke-width="11" stroke-linecap="round">
-    <path d="M256 71 A185 185 0 0 1 441 256"/>
-    <path d="M441 256 A185 185 0 0 1 256 441"/>
-    <path d="M256 441 A185 185 0 0 1 71 256"/>
-    <path d="M71 256 A185 185 0 0 1 256 71"/>
-  </g>
-
-  <path d="M256 116 L365 155 V246 C365 320 322 375 256 405 C190 375 147 320 147 246 V155 Z"
-        fill="url(#shieldFill)" stroke="url(#gold)" stroke-width="12" stroke-linejoin="round" filter="url(#softShadow)"/>
-
-  <g fill="url(#gold)" filter="url(#softShadow)">
-    <path d="M188 174 H229 V338 H188 Z"/>
-    <path d="M229 244 L302 174 H351 L267 258 Z"/>
-    <path d="M263 259 L340 332 H291 L229 280 Z"/>
-  </g>
-  <path d="M230 176 H244 V330 H230 Z" fill="#FFE98A" opacity="0.34"/>
-
-  <g stroke="url(#gold)" stroke-width="8">
-    <g filter="url(#nodeGlow)"><circle cx="256" cy="71" r="20" fill="#071A34"/><circle cx="256" cy="71" r="10" fill="url(#node)" stroke="none"/></g>
-    <g filter="url(#nodeGlow)"><circle cx="441" cy="256" r="20" fill="#071A34"/><circle cx="441" cy="256" r="10" fill="url(#node)" stroke="none"/></g>
-    <g filter="url(#nodeGlow)"><circle cx="256" cy="441" r="20" fill="#071A34"/><circle cx="256" cy="441" r="10" fill="url(#node)" stroke="none"/></g>
-    <g filter="url(#nodeGlow)"><circle cx="71" cy="256" r="20" fill="#071A34"/><circle cx="71" cy="256" r="10" fill="url(#node)" stroke="none"/></g>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+<title id="title">KriptoAman official mark</title>
+<desc id="desc">Official KriptoAman K monogram with gold and electric-blue blockchain orbit.</desc>
+<rect width="512" height="512" fill="#020916"/>
+<image x="0" y="0" width="512" height="512" preserveAspectRatio="xMidYMid meet" href="data:image/png;base64,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"/>
 </svg>
