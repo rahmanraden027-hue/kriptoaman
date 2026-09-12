@@ -16,7 +16,7 @@ permissions:
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - name: Allow production deployment to settle
         if: github.event_name == 'push'
@@ -63,30 +63,54 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          headers="$(mktemp)"
-          mark="$(mktemp)"
-          worker="$(mktemp)"
 
-          mark_code="$(curl --fail-with-body --location --silent --show-error \
-            --connect-timeout 10 --max-time 25 \
-            -H 'Cache-Control: no-cache' \
-            -D "$headers" -o "$mark" -w '%{http_code}' \
-            "https://kriptoaman.com/brand/kriptoaman-mark.svg?identity=${GITHUB_RUN_ID}")"
-          test "$mark_code" = "200"
-          grep -qi '^content-type:.*image/svg' "$headers"
-          grep -q 'KriptoAman Official Mark' "$mark"
-          grep -q 'dimensional gold and electric-blue K with a network ring' "$mark"
-          grep -q 'orbital sweep' "$mark"
+          for attempt in 1 2 3 4 5 6; do
+            headers="$(mktemp)"
+            mark="$(mktemp)"
+            worker="$(mktemp)"
 
-          worker_code="$(curl --fail-with-body --location --silent --show-error \
-            --connect-timeout 10 --max-time 25 \
-            -H 'Cache-Control: no-cache' \
-            -o "$worker" -w '%{http_code}' \
-            "https://kriptoaman.com/sw.js?identity=${GITHUB_RUN_ID}")"
-          test "$worker_code" = "200"
-          grep -q "'/brand/kriptoaman-mark.svg'" "$worker"
+            mark_code="$(curl --location --silent --show-error \
+              --connect-timeout 10 --max-time 25 \
+              -H 'Cache-Control: no-cache' \
+              -D "$headers" -o "$mark" -w '%{http_code}' \
+              "https://kriptoaman.com/brand/kriptoaman-mark.svg?identity=${GITHUB_RUN_ID}-${attempt}")"
 
-          echo 'Official K-orbit identity is present on the production brand asset and service worker.'
+            worker_code="$(curl --location --silent --show-error \
+              --connect-timeout 10 --max-time 25 \
+              -H 'Cache-Control: no-cache' \
+              -o "$worker" -w '%{http_code}' \
+              "https://kriptoaman.com/sw.js?identity=${GITHUB_RUN_ID}-${attempt}")"
+
+            mark_content_type=0
+            mark_title=0
+            mark_description=0
+            mark_orbit=0
+            worker_svg_ref=0
+            grep -qi '^content-type:.*image/svg' "$headers" && mark_content_type=1 || true
+            grep -q 'KriptoAman Official Mark' "$mark" && mark_title=1 || true
+            grep -q 'dimensional gold and electric-blue K with a network ring' "$mark" && mark_description=1 || true
+            grep -q 'orbital sweep' "$mark" && mark_orbit=1 || true
+            grep -q "'/brand/kriptoaman-mark.svg'" "$worker" && worker_svg_ref=1 || true
+
+            if [ "$mark_code" = "200" ] \
+              && [ "$worker_code" = "200" ] \
+              && [ "$mark_content_type" = "1" ] \
+              && [ "$mark_title" = "1" ] \
+              && [ "$mark_description" = "1" ] \
+              && [ "$mark_orbit" = "1" ] \
+              && [ "$worker_svg_ref" = "1" ]; then
+              echo "Official K-orbit identity verified on production at attempt ${attempt}."
+              exit 0
+            fi
+
+            echo "Identity attempt ${attempt} incomplete: mark_http=${mark_code}; worker_http=${worker_code}; svg_content_type=${mark_content_type}; title=${mark_title}; description=${mark_description}; orbit=${mark_orbit}; worker_svg_ref=${worker_svg_ref}."
+            if [ "$attempt" -lt 6 ]; then
+              sleep 15
+            fi
+          done
+
+          echo 'Official K-orbit identity did not converge on production after retries.'
+          exit 1
 
       - name: Check homepage response and security headers
         shell: bash
@@ -142,6 +166,60 @@ jobs:
           grep -qi '^cache-control:.*no-store' "$headers"
           node -e "const fs=require('fs'); const p=JSON.parse(fs.readFileSync(process.argv[1],'utf8')); if (typeof p !== 'object' || p === null) process.exit(1)" "$body"
 
+      - name: Check Global Markets Forex and XAUUSD contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          code="$(curl --location --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            -H 'Accept: application/json' \
+            -H 'Cache-Control: no-cache' \
+            -o "$body" -w '%{http_code}' \
+            "https://kriptoaman.com/api/global-markets?smoke=${GITHUB_RUN_ID}")"
+
+          if [ "$code" != "200" ]; then
+            echo "Global Markets endpoint returned HTTP ${code}."
+            cat "$body" || true
+            exit 1
+          fi
+
+          node - "$body" <<'NODE'
+          const fs = require('fs');
+          const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          const required = ['EUR/USD', 'GBP/USD', 'USD/JPY', 'USD/CHF', 'AUD/USD', 'USD/CAD', 'NZD/USD', 'XAU/USD'];
+          if (!Array.isArray(payload?.instruments)) {
+            console.error('Global Markets response has no instruments array.');
+            process.exit(1);
+          }
+          const bySymbol = new Map(payload.instruments.map(item => [item?.symbol, item]));
+          const missing = required.filter(symbol => !bySymbol.has(symbol));
+          if (missing.length) {
+            console.error(`Global Markets missing required instruments: ${missing.join(', ')}`);
+            process.exit(1);
+          }
+          for (const symbol of required) {
+            const price = Number(bySymbol.get(symbol)?.price);
+            if (!Number.isFinite(price) || price <= 0) {
+              console.error(`Global Markets has invalid price for ${symbol}.`);
+              process.exit(1);
+            }
+          }
+          if (!['professional', 'fallback-reference'].includes(payload?.providerMode)) {
+            console.error(`Unexpected Global Markets provider mode: ${payload?.providerMode ?? 'missing'}`);
+            process.exit(1);
+          }
+          if (payload?.marketUse !== 'information-only') {
+            console.error('Global Markets must remain information-only.');
+            process.exit(1);
+          }
+          if (payload?.disclosure?.executionPrice !== false || payload?.disclosure?.investmentAdvice !== false || payload?.disclosure?.derivativesExecution !== false) {
+            console.error('Global Markets safety disclosure contract changed.');
+            process.exit(1);
+          }
+          console.log(`Global Markets verified: provider=${payload.provider ?? 'unknown'}; mode=${payload.providerMode}; professionalConfigured=${Boolean(payload.professionalProviderConfigured)}; instruments=${payload.instruments.length}.`);
+          NODE
+
       - name: Check public platform market status consistency
         shell: bash
         run: |
@@ -194,8 +272,6 @@ jobs:
             fi
 
             if [ "$attempt" -lt 3 ]; then
-              # platform-status deliberately has a short edge cache. Allow any
-              # previously degraded aggregate to expire before checking again.
               sleep 35
             fi
           done
@@ -232,7 +308,7 @@ jobs:
           JOB_STATUS: ${{ job.status }}
           SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           REPO: ${{ github.repository }}
-          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          RUN_URL: https://github.com/${{ github.repository}/actions/runs/${{ github.run_id }}
         shell: bash
         run: |
           set -euo pipefail
