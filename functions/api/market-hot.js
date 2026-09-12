@@ -14,6 +14,7 @@ const RETRY_DELAYS_MS = [150, 350];
 const DURABLE_READ_BUDGET_MS = 350;
 const PUBLIC_COLD_RESPONSE_BUDGET_MS = 1_800;
 const EDGE_CACHE_WRITE_BUDGET_MS = 350;
+const SNAPSHOT_IDS = ['global', 'global-backup'];
 
 const HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
@@ -57,7 +58,7 @@ async function fetchJson(url) {
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
       const response = await fetch(url, {
-        headers: { Accept: 'application/json', 'User-Agent': 'KriptoAman-Hot-Market/3.3' },
+        headers: { Accept: 'application/json', 'User-Agent': 'KriptoAman-Hot-Market/3.4' },
         signal: controller.signal,
       });
       if (!response.ok) throw new Error(`upstream HTTP ${response.status}`);
@@ -142,24 +143,32 @@ function isAvailableSnapshot(snapshot, now = Date.now()) {
 async function readPersistedFallback(env) {
   if (!env?.AUTH_DB) return null;
   const db = readSession(env.AUTH_DB);
-  const row = await db.prepare(
-    'SELECT source, captured_at, payload FROM market_snapshots WHERE id = ?',
-  ).bind('global').first();
-  if (!row?.payload) return null;
-  try {
-    const data = normalizePersisted(JSON.parse(row.payload));
-    if (!hasCoreSymbols(data)) return null;
-    const capturedAt = Number(row.captured_at);
-    if (!Number.isFinite(capturedAt)) return null;
-    const snapshot = {
-      source: `snapshot:${row.source || 'persisted'}`,
-      capturedAt,
-      data,
-    };
-    return isAvailableSnapshot(snapshot) ? snapshot : null;
-  } catch {
-    return null;
+
+  for (const snapshotId of SNAPSHOT_IDS) {
+    const row = await db.prepare(
+      'SELECT source, captured_at, payload FROM market_snapshots WHERE id = ?',
+    ).bind(snapshotId).first();
+    if (!row?.payload) continue;
+
+    try {
+      const data = normalizePersisted(JSON.parse(row.payload));
+      if (!hasCoreSymbols(data)) continue;
+      const capturedAt = Number(row.captured_at);
+      if (!Number.isFinite(capturedAt)) continue;
+      const snapshot = {
+        source: snapshotId === 'global-backup'
+          ? `snapshot-backup:${row.source || 'persisted'}`
+          : `snapshot:${row.source || 'persisted'}`,
+        capturedAt,
+        data,
+      };
+      if (isAvailableSnapshot(snapshot)) return snapshot;
+    } catch {
+      // Try the rolling backup before declaring durable data unavailable.
+    }
   }
+
+  return null;
 }
 
 async function fetchLiveHot() {
@@ -327,6 +336,7 @@ export async function onRequestGet({ env = {}, request, waitUntil } = {}) {
         d1SessionRead: Boolean(env.AUTH_DB && typeof env.AUTH_DB.withSession === 'function'),
         singleFlight: true,
         durableFirstOnColdRead: true,
+        rollingBackupFallback: true,
         fabricatedMetrics: false,
       },
     }, responseStatus, extraHeaders);
