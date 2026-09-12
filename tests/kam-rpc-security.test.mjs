@@ -49,13 +49,46 @@ test('KAM RPC browser root redirects humans to the Developer Console', async () 
   assert.equal(response.headers.get('location'), 'https://kriptoaman.com/KAMDeveloper');
 });
 
-test('KAM RPC health endpoint remains public and candidate-scoped', async () => {
-  const response = await gateway.fetch(new Request('https://rpc.kriptoaman.com/health', { method: 'GET' }), {});
+test('KAM RPC health endpoint remains public, candidate-scoped, and reports only origin presence', async () => {
+  let response = await gateway.fetch(new Request('https://rpc.kriptoaman.com/health', { method: 'GET' }), {});
   assert.equal(response.status, 200);
-  const payload = await response.json();
+  let payload = await response.json();
   assert.equal(payload.service, 'kam-public-rpc-gateway');
   assert.equal(payload.expectedChainId, '0x560c');
   assert.equal(payload.auditOnlyActivation, true);
+  assert.equal(payload.originConfigured, false);
+
+  response = await gateway.fetch(new Request('https://rpc.kriptoaman.com/health', { method: 'GET' }), {
+    KAM_RPC_ORIGIN: 'https://private-origin.invalid',
+  });
+  payload = await response.json();
+  assert.equal(payload.originConfigured, true);
+  assert.equal(JSON.stringify(payload).includes('private-origin.invalid'), false);
+});
+
+test('KAM RPC readiness endpoint fails closed when protected origin is not configured', async () => {
+  const response = await gateway.fetch(new Request('https://rpc.kriptoaman.com/ready', { method: 'GET' }), {});
+  assert.equal(response.status, 503);
+  const payload = await response.json();
+  assert.equal(payload.ready, false);
+  assert.equal(payload.reason, 'origin-not-configured');
+  assert.equal(payload.expectedChainId, '0x560c');
+  assert.equal(payload.chainId, null);
+  assert.equal(payload.blockNumber, null);
+});
+
+test('KAM RPC origin forwarding is bounded and readiness requires real chain plus block evidence', async () => {
+  const worker = await read('chain/kam-mainnet/public-rpc-gateway/worker.js');
+  assert.match(worker, /const UPSTREAM_TIMEOUT_MS = 2500;/);
+  assert.match(worker, /setTimeout\(\(\) => controller\.abort\(\), timeoutMs\)/);
+  assert.match(worker, /signal: controller\.signal/);
+  assert.match(worker, /chainId !== EXPECTED_CHAIN_ID/);
+  assert.match(worker, /Number\.isSafeInteger\(blockNumber\)/);
+  assert.match(worker, /'origin-timeout'/);
+  assert.match(worker, /'origin-unreachable'/);
+  assert.match(worker, /RPC upstream timeout/);
+  assert.match(worker, /RPC upstream unavailable/);
+  assert.doesNotMatch(worker, /KAM_RPC_ORIGIN.*console/);
 });
 
 test('KAM RPC public gateway still blocks privileged POST methods before upstream', async () => {
