@@ -41,7 +41,12 @@ test('reset token updates the stored password hash and is single-use', () => {
 test('authenticated home remains vertically scrollable', () => {
   const home = read('src/pages/Home.jsx');
   const css = read('src/index.css');
+  const layout = read('src/Layout.jsx');
   assert.match(home, /min-h-screen/);
   assert.match(css, /overflow-x:\s*hidden/);
+  assert.match(css, /@media \(display-mode: standalone\)[\s\S]*touch-action:\s*pan-y/);
+  assert.match(layout, /overflow-y:\s*auto/);
+  assert.match(layout, /-webkit-overflow-scrolling:\s*touch/);
+  assert.doesNotMatch(layout, /html\s*\{\s*overflow:\s*hidden/);
   assert.doesNotMatch(css, /body\s*\{[^}]*overflow-y:\s*hidden/s);
 });

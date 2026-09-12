@@ -115,6 +115,29 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Keep vertical scrolling native in installed PWA/standalone mode. */
+html,
+body,
+#root {
+  min-height: 100%;
+  height: auto;
+}
+
+html,
+body {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (display-mode: standalone) {
+  html,
+  body {
+    touch-action: pan-y;
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: contain;
+  }
+}
+
 #root {
   min-height: 100dvh;
   isolation: isolate;
