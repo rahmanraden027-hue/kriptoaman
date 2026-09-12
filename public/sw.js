@@ -14,11 +14,6 @@ const CURRENT_CACHES = new Set([STATIC_CACHE, IMMUTABLE_CACHE]);
 
 const OPTIONAL_STATIC_ASSETS = [
   '/brand/kriptoaman-mark.svg',
-  '/kriptoaman-logo-primary.png',
-  '/icons/kriptoaman-192.png',
-  '/icons/kriptoaman-512.png',
-  '/icons/kriptoaman-maskable-192.png',
-  '/icons/kriptoaman-maskable-512.png',
 ];
 
 const APP_METADATA_PATHS = new Set([
@@ -119,11 +114,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  const isStableImage = isSameOrigin && request.destination === 'image' && (
-    url.pathname.startsWith('/icons/') ||
-    url.pathname.startsWith('/brand/') ||
-    url.pathname === '/kriptoaman-logo-primary.png'
-  );
+  const isStableImage = isSameOrigin && request.destination === 'image' && url.pathname.startsWith('/brand/');
 
   if (isStableImage) {
     event.respondWith((async () => {
