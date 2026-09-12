@@ -7,7 +7,10 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: '17 * * * *'
+    # Staggered 15-minute synthetic verification for web, auth, security headers,
+    # and the durable market-data path. Market refresh itself remains owned by
+    # market-snapshot-warm, so this monitor does not increase provider cadence.
+    - cron: '7,22,37,52 * * * *'
 
 permissions:
   contents: read
@@ -21,6 +24,7 @@ jobs:
       PRIMARY_ORIGIN: https://kriptoaman.com
       SECONDARY_ORIGIN: ${{ vars.SECONDARY_ORIGIN }}
       REQUIRE_SECONDARY: ${{ vars.REQUIRE_SECONDARY_ORIGIN || 'false' }}
+      MIN_MARKET_ASSETS: '4500'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,10 +44,10 @@ jobs:
         run: |
           set -euo pipefail
           state="failure"
-          description="Web/auth resilience verification failed"
+          description="Web/auth/data resilience verification failed"
           if [ "$JOB_STATUS" = "success" ]; then
             state="success"
-            description="Web/auth resilience verification passed"
+            description="Web/auth/data resilience verification passed"
           fi
           curl --fail-with-body --silent --show-error \
             -X POST \
