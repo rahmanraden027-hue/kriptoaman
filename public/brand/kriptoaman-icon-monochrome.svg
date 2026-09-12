@@ -1,10 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
   <title id="title">KriptoAman monochrome icon</title>
-  <desc id="desc">Single-color KriptoAman shield, K monogram and four-cube blockchain orbit.</desc>
-  <g fill="none" stroke="currentColor" stroke-width="15" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="256" cy="256" r="186"/>
-    <path d="M256 116L365 155V246C365 320 322 375 256 405C190 375 147 320 147 246V155Z"/>
-    <path d="M188 174V338M222 256L309 174M225 271L306 338" stroke-width="32"/>
-    <path d="M256 43L281 57V84L256 98L231 84V57ZM442 229L467 243V270L442 284L417 270V243ZM256 415L281 429V456L256 470L231 456V429ZM70 229L95 243V270L70 284L45 270V243Z"/>
+  <desc id="desc">Single-color production version of the final KriptoAman K-orbit identity.</desc>
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <path stroke-width="13" d="M145 103A189 189 0 0 1 244 68M286 69A189 189 0 0 1 396 117M423 156A189 189 0 0 1 435 347M394 394A189 189 0 0 1 291 442M221 441A189 189 0 0 1 103 383M76 342A189 189 0 0 1 89 166"/>
+    <path stroke-width="38" d="M164 116V414M184 269L330 130M186 286L330 407"/>
+    <ellipse cx="257" cy="267" rx="220" ry="86" transform="rotate(-18 257 267)" stroke-width="13"/>
+    <path stroke-width="8" d="M256 35L282 61L256 92L230 61ZM256 420L282 447L256 478L230 447Z"/>
+    <circle cx="430" cy="132" r="28" stroke-width="9"/>
   </g>
 </svg>
