@@ -41,7 +41,8 @@ body {
 
 .ka-global-shell {
   min-height: 100dvh;
-  overflow: clip;
+  overflow-x: clip;
+  overflow-y: visible;
   background:
     radial-gradient(900px 560px at 84% -10%, rgba(44, 167, 255, .11), transparent 64%),
     radial-gradient(720px 520px at -8% 58%, rgba(69, 99, 255, .07), transparent 68%),

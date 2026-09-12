@@ -138,12 +138,18 @@ export default function Layout({ children, currentPageName }) {
           <style>{`
             body {
               background: #050d18;
-              overscroll-behavior: none;
+              overscroll-behavior-x: none;
+              overscroll-behavior-y: auto;
               -webkit-tap-highlight-color: transparent;
               -webkit-touch-callout: none;
             }
-            html { overflow: hidden; height: 100%; }
-            body { overflow: auto; height: 100%; }
+            html, body {
+              min-height: 100%;
+              height: auto;
+              overflow-x: hidden;
+              overflow-y: auto;
+              -webkit-overflow-scrolling: touch;
+            }
             .safe-area-pb { padding-bottom: env(safe-area-inset-bottom, 16px); }
             .safe-area-pt { padding-top: env(safe-area-inset-top, 0px); }
             .ka-embedded-nav {
