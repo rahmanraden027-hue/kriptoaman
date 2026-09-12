@@ -85,18 +85,36 @@ export async function broadcastTransaction(hex) {
 
 export async function getBtcPrice() {
   try {
-    const res = await fetch(
-  'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',
-  {
-    method: 'GET',
-    headers: {
-      'x-cg-pro-api-key': import.meta.env.COINGECKO_API_KEY
+    const hot = await fetch('/api/market-hot', {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+    });
+    if (hot.ok) {
+      const payload = await hot.json();
+      const btc = Array.isArray(payload?.data)
+        ? payload.data.find((item) => String(item?.symbol || '').toUpperCase() === 'BTC')
+        : null;
+      const price = Number(btc?.price);
+      if (Number.isFinite(price) && price > 0) return price;
     }
+  } catch {
+    // Continue to the paged durable snapshot before giving up.
   }
-);
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.bitcoin?.usd || null;
+
+  try {
+    const snapshot = await fetch('/api/market-snapshot-page?page=0&limit=500', {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+    });
+    if (!snapshot.ok) return null;
+    const payload = await snapshot.json();
+    const btc = Array.isArray(payload?.data)
+      ? payload.data.find((item) => String(item?.symbol || '').toUpperCase() === 'BTC')
+      : null;
+    const price = Number(btc?.current_price);
+    return Number.isFinite(price) && price > 0 ? price : null;
   } catch {
     return null;
   }
