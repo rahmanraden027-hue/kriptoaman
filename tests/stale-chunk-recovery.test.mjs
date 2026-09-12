@@ -6,7 +6,7 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('service worker prevents stale app-shell navigation and only caches fingerprinted UI assets', async () => {
   const sw = await read('public/sw.js');
-  assert.match(sw, /KriptoAman Service Worker v2\.4\.0/);
+  assert.match(sw, /KriptoAman Service Worker v2\.4\.3/);
   assert.match(sw, /isImmutableAsset/);
   assert.match(sw, /IMMUTABLE_CACHE/);
   assert.match(sw, /request\.mode === 'navigate'/);
