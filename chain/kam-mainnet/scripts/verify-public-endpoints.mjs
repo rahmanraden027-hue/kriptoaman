@@ -22,10 +22,31 @@ async function rpc(method, params = []) {
     body: JSON.stringify({ jsonrpc: '2.0', id: method, method, params }),
   });
   const latencyMs = Math.round(performance.now() - startedAt);
-  if (!response.ok) throw new Error(`${method}: HTTP ${response.status}`);
-  const data = await response.json();
-  if (data.error) throw new Error(`${method}: ${data.error.message || 'RPC error'}`);
-  return { result: data.result, latencyMs };
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
+    const detail = payload?.error || payload?.reason || payload?.message || null;
+    throw new Error(`${method}: HTTP ${response.status}${detail ? ` (${detail})` : ''}`);
+  }
+  if (payload?.error) throw new Error(`${method}: ${payload.error.message || 'RPC error'}`);
+  return { result: payload?.result, latencyMs };
+}
+
+async function checkGatewayEndpoint(path) {
+  const startedAt = performance.now();
+  try {
+    const response = await fetch(`${rpcUrl.replace(/\/$/, '')}${path}`, { redirect: 'follow' });
+    const latencyMs = Math.round(performance.now() - startedAt);
+    const payload = await response.json().catch(() => null);
+    return { ok: response.ok, status: response.status, latencyMs, payload };
+  } catch (error) {
+    return {
+      ok: false,
+      status: null,
+      latencyMs: Math.round(performance.now() - startedAt),
+      error: String(error?.message || error),
+      payload: null,
+    };
+  }
 }
 
 async function probeBlockedMethod({ namespace, method, params }) {
@@ -105,6 +126,9 @@ async function main() {
     ready: false,
   };
 
+  result.checks.gatewayHealth = await checkGatewayEndpoint('/health');
+  result.checks.gatewayReady = await checkGatewayEndpoint('/ready');
+
   try {
     const chainId = await rpc('eth_chainId');
     result.checks.chainId = {
@@ -141,10 +165,19 @@ async function main() {
 
     result.checks.explorer = await checkExplorer();
     result.checks.explorerHeight = await checkExplorerHeight(block2.result);
-    result.ready = Object.values(result.checks).every((check) => check.ok === true);
   } catch (error) {
     result.error = String(error?.message || error);
   }
+
+  result.ready = Boolean(
+    result.checks.gatewayHealth?.ok
+    && result.checks.gatewayReady?.ok
+    && result.checks.chainId?.ok
+    && result.checks.blockProgress?.ok
+    && result.checks.sensitiveMethodsBlocked?.ok
+    && result.checks.explorer?.ok
+    && result.checks.explorerHeight?.ok
+  );
 
   console.log(JSON.stringify(result, null, 2));
   if (!result.ready) process.exitCode = 1;
