@@ -2,25 +2,21 @@
   "name": "KriptoAman — Digital Asset Intelligence",
   "short_name": "KriptoAman",
   "description": "Digital asset information, market monitoring, transaction verification, and crypto risk analysis platform.",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#0B0F14",
-  "theme_color": "#0B0F14",
+  "background_color": "#050D18",
+  "theme_color": "#050D18",
   "lang": "en",
   "dir": "ltr",
   "categories": ["finance", "utilities"],
   "prefer_related_applications": false,
   "icons": [
     { "src": "/brand/kriptoaman-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "/icons/kriptoaman-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/kriptoaman-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/kriptoaman-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/kriptoaman-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
-    { "src": "/icons/kriptoaman-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "/brand/kriptoaman-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
   ],
   "shortcuts": [
     {
