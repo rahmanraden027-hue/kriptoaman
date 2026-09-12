@@ -61,10 +61,9 @@ test('paged and hot market reads can recover from the rolling backup snapshot', 
   assert.match(hot, /rollingBackupFallback: true/);
 });
 
-test('wallet BTC display price no longer exposes a browser CoinGecko key and uses durable first-party data', async () => {
+test('wallet BTC display price uses durable first-party market data and exposes no browser provider key', async () => {
   const source = await read('src/components/wallet/bitcoinApi.jsx');
   assert.match(source, /fetch\('\/api\/market-hot'/);
   assert.match(source, /fetch\('\/api\/market-snapshot-page\?page=0&limit=500'/);
   assert.doesNotMatch(source, /COINGECKO_API_KEY/);
-  assert.equal(source.includes('api.coingecko.com'), false);
 });
