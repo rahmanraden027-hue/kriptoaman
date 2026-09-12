@@ -1,17 +1,11 @@
 import React from 'react';
 
 /**
- * KriptoAmanLogo — market intelligence identity.
- * Gold K + four-node blockchain data orbit.
- * Props:
- *   size: number (px, default 32)
- *   showText: bool (default true)
- *   textSize: string (tailwind class, default 'text-sm')
- *   animate: bool (default true)
- *   className: string
+ * KriptoAmanLogo — official final identity.
+ * Gold + electric-blue K with orbital blockchain/network motif.
  */
-const PREMIUM_GOLD = '#D6A83C';
-const NEON_CYAN = '#20C9E8';
+const PREMIUM_GOLD = '#E7B438';
+const SILVER_WHITE = '#F5F8FC';
 
 export default function KriptoAmanLogo({ size = 32, showText = true, textSize = 'text-sm', animate = true, className = '' }) {
   return (
@@ -22,8 +16,8 @@ export default function KriptoAmanLogo({ size = 32, showText = true, textSize = 
       >
         <style>{`
           @keyframes ka-luxury-glow {
-            0%, 100% { filter: drop-shadow(0 0 3px rgba(212,175,55,.35)) drop-shadow(0 0 5px rgba(0,229,255,.22)); }
-            50% { filter: drop-shadow(0 0 8px rgba(212,175,55,.55)) drop-shadow(0 0 12px rgba(0,229,255,.38)); }
+            0%, 100% { filter: drop-shadow(0 0 3px rgba(231,180,56,.30)) drop-shadow(0 0 5px rgba(19,207,255,.18)); }
+            50% { filter: drop-shadow(0 0 7px rgba(231,180,56,.48)) drop-shadow(0 0 11px rgba(19,207,255,.32)); }
           }
           .animate-ka-luxury-glow { animation: ka-luxury-glow 3.2s ease-in-out infinite; }
         `}</style>
@@ -38,9 +32,9 @@ export default function KriptoAmanLogo({ size = 32, showText = true, textSize = 
       </div>
 
       {showText && (
-        <span className={`font-black tracking-[0.12em] uppercase ${textSize}`} aria-label="KriptoAman">
-          <span style={{ color: PREMIUM_GOLD }}>Kripto</span>
-          <span style={{ color: NEON_CYAN }}>Aman</span>
+        <span className={`font-black tracking-[0.08em] ${textSize}`} aria-label="KriptoAman">
+          <span style={{ color: SILVER_WHITE }}>Kripto</span>
+          <span style={{ color: PREMIUM_GOLD }}>Aman</span>
         </span>
       )}
     </div>
