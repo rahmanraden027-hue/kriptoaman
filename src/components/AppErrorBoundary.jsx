@@ -25,8 +25,8 @@ function SafePublicLanding() {
   return (
     <main data-ka-safe-public="true" className="min-h-screen bg-slate-950 text-white px-5 py-10 flex items-center justify-center">
       <section className="w-full max-w-xl text-center">
-        <img src="/kriptoaman-logo-primary.png" alt="KriptoAman" className="mx-auto h-20 w-auto object-contain" />
-        <h1 className="mt-6 text-3xl font-black tracking-tight">KriptoAman</h1>
+        <img src="/brand/kriptoaman-mark.svg" alt="KriptoAman" className="mx-auto h-20 w-auto object-contain" />
+        <h1 className="mt-6 text-3xl font-black tracking-tight"><span className="text-slate-100">Kripto</span><span className="text-amber-400">Aman</span></h1>
         <p className="mt-3 text-sm leading-6 text-slate-300">Crypto intelligence, digital asset monitoring, education, and security information.</p>
         <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <a href="/Market" className="min-h-12 rounded-xl bg-sky-600 px-5 py-3 font-bold">Pasar</a>
