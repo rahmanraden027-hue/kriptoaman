@@ -77,7 +77,7 @@ export default function AboutUs() {
           name: 'PT KRIPTO AMAN INDONESIA',
           alternateName: 'KriptoAman',
           url: 'https://kriptoaman.com/',
-          logo: 'https://kriptoaman.com/brand/kriptoaman-mark.svg',
+          logo: 'https://kriptoaman.com/brand/kriptoaman-mark-premium.webp',
           founder: { '@id': 'https://kriptoaman.com/founder#raden-abdul-rahman' },
         },
         {

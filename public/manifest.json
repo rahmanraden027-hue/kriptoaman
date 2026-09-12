@@ -15,9 +15,8 @@
   "categories": ["finance", "utilities"],
   "prefer_related_applications": false,
   "icons": [
-    { "src": "/brand/kriptoaman-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "/brand/kriptoaman-mark.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "maskable" },
-    { "src": "/brand/kriptoaman-mark.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "maskable" }
+    { "src": "/brand/kriptoaman-mark-premium-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/brand/kriptoaman-mark-premium-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "shortcuts": [
     {
@@ -25,21 +24,21 @@
       "short_name": "Market",
       "description": "Monitor digital asset and market data.",
       "url": "/Market",
-      "icons": [{ "src": "/brand/kriptoaman-mark.svg", "sizes": "any", "type": "image/svg+xml" }]
+      "icons": [{ "src": "/brand/kriptoaman-mark-premium-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Wallet Monitor",
       "short_name": "Wallet",
       "description": "Open wallet and public-address monitoring.",
       "url": "/Wallet",
-      "icons": [{ "src": "/brand/kriptoaman-mark.svg", "sizes": "any", "type": "image/svg+xml" }]
+      "icons": [{ "src": "/brand/kriptoaman-mark-premium-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Security Center",
       "short_name": "Security",
       "description": "Open account security settings and status.",
       "url": "/SecurityHub",
-      "icons": [{ "src": "/brand/kriptoaman-mark.svg", "sizes": "any", "type": "image/svg+xml" }]
+      "icons": [{ "src": "/brand/kriptoaman-mark-premium-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }
