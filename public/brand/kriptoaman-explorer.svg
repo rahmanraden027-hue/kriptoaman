@@ -1,33 +1,38 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1536 480" role="img" aria-labelledby="title desc">
-  <title id="title">Kripto Aman Explorer — KAM Mainnet</title>
-  <desc id="desc">Official Kripto Aman Explorer horizontal brand mark for KAM Mainnet.</desc>
+  <title id="title">KriptoAman Explorer — KAM Mainnet</title>
+  <desc id="desc">Official KriptoAman Explorer identity using the final K-orbit KriptoAman mark.</desc>
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#020305"/><stop offset="1" stop-color="#000000"/></linearGradient>
-    <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8ffcff"/><stop offset=".18" stop-color="#00eaff"/><stop offset=".55" stop-color="#00b9f2"/><stop offset="1" stop-color="#0058d9"/></linearGradient>
-    <linearGradient id="cyanEdge" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d7ffff"/><stop offset=".28" stop-color="#00eaff"/><stop offset="1" stop-color="#0073ff"/></linearGradient>
-    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff7b2"/><stop offset=".18" stop-color="#ffe94a"/><stop offset=".48" stop-color="#ffbd00"/><stop offset=".78" stop-color="#ff8c00"/><stop offset="1" stop-color="#8a4300"/></linearGradient>
-    <linearGradient id="silver" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".38" stop-color="#dfe7f4"/><stop offset=".7" stop-color="#8ea1c2"/><stop offset="1" stop-color="#f5f7ff"/></linearGradient>
-    <linearGradient id="shieldEdge" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#00eaff"/><stop offset=".48" stop-color="#00bdf5"/><stop offset=".5" stop-color="#ffde00"/><stop offset="1" stop-color="#ff9500"/></linearGradient>
-    <filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    <filter id="shadow" x="-30%" y="-30%" width="170%" height="170%"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity=".9"/></filter>
+    <radialGradient id="bg" cx="38%" cy="45%" r="90%"><stop offset="0" stop-color="#092A53"/><stop offset=".55" stop-color="#06182F"/><stop offset="1" stop-color="#020814"/></radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF4A4"/><stop offset=".25" stop-color="#FFD85A"/><stop offset=".58" stop-color="#E7B438"/><stop offset="1" stop-color="#A96B12"/></linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8EFAFF"/><stop offset=".3" stop-color="#16D8FF"/><stop offset=".68" stop-color="#0878E8"/><stop offset="1" stop-color="#032D6F"/></linearGradient>
+    <linearGradient id="silver" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#DCE6F4"/><stop offset="1" stop-color="#8FA2BF"/></linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="shadow" x="-30%" y="-30%" width="170%" height="170%"><feDropShadow dx="0" dy="8" stdDeviation="9" flood-color="#000" flood-opacity=".75"/></filter>
   </defs>
   <rect width="1536" height="480" fill="url(#bg)"/>
-  <g transform="translate(48 35)" filter="url(#shadow)">
-    <path d="M180 20 345 86v126c0 107-60 165-165 207C75 377 15 319 15 212V86z" fill="#05142a" stroke="url(#shieldEdge)" stroke-width="18"/>
-    <path d="M180 42 322 99v108c0 91-49 140-142 180C87 347 38 298 38 207V99z" fill="url(#bg)" stroke="#65f6ff" stroke-opacity=".35" stroke-width="4"/>
-    <path d="M102 120h68v88l78-88h86l-108 114 114 109h-88l-82-80v80h-68z" fill="url(#cyan)" stroke="url(#cyanEdge)" stroke-width="4"/>
-    <path d="M173 207 248 120h86L226 234l61 58-37 38-77-67z" fill="#bafcff" opacity=".38"/>
-    <path d="M184 72 207 105 184 139 161 105z" fill="url(#cyan)" filter="url(#softGlow)"/>
-    <path d="M170 272 215 319 311 212" fill="none" stroke="url(#cyan)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" filter="url(#softGlow)"/>
-    <circle cx="153" cy="340" r="18" fill="#041629" stroke="url(#cyan)" stroke-width="8"/>
-    <path d="M153 358v28" stroke="url(#cyan)" stroke-width="10" stroke-linecap="round"/>
+  <g transform="translate(44 26) scale(.82)" filter="url(#shadow)">
+    <g fill="none" stroke-linecap="round">
+      <path d="M145 103A189 189 0 0 1 244 68M286 69A189 189 0 0 1 396 117M423 156A189 189 0 0 1 435 347M394 394A189 189 0 0 1 291 442M221 441A189 189 0 0 1 103 383M76 342A189 189 0 0 1 89 166" stroke="url(#gold)" stroke-width="13"/>
+      <path d="M147 117A173 173 0 0 1 375 119M416 174A173 173 0 0 1 405 354M365 406A173 173 0 0 1 155 397M104 353A173 173 0 0 1 105 169" stroke="#13CFFF" stroke-width="5" filter="url(#glow)"/>
+    </g>
+    <path d="M133 124L196 90V405L133 438Z" fill="url(#gold)" stroke="#FFF0A2" stroke-width="3"/>
+    <path d="M164 142L190 129V375L164 390Z" fill="url(#blue)"/>
+    <path d="M196 242L305 132H383L249 273Z" fill="url(#gold)" stroke="#FFF0A2" stroke-width="3"/>
+    <path d="M218 247L309 154H348L241 264Z" fill="url(#blue)"/>
+    <path d="M240 276L381 394L310 410L196 303Z" fill="url(#gold)" stroke="#FFF0A2" stroke-width="3"/>
+    <path d="M229 296L309 373L342 366L258 286Z" fill="url(#blue)"/>
+    <ellipse cx="257" cy="267" rx="220" ry="86" transform="rotate(-18 257 267)" fill="none" stroke="url(#gold)" stroke-width="13"/>
+    <path d="M46 333C123 392 325 326 456 153" fill="none" stroke="#17D8FF" stroke-width="4" filter="url(#glow)"/>
+    <path d="M256 35L282 61L256 92L230 61Z" fill="#071B35" stroke="url(#gold)" stroke-width="8"/><path d="M256 48L268 62L256 76L244 62Z" fill="url(#blue)"/>
+    <path d="M256 420L282 447L256 478L230 447Z" fill="#071B35" stroke="url(#gold)" stroke-width="8"/><path d="M256 434L268 447L256 462L244 447Z" fill="url(#blue)"/>
+    <circle cx="430" cy="132" r="28" fill="#07162B" stroke="url(#gold)" stroke-width="9"/><circle cx="430" cy="132" r="18" fill="url(#blue)" filter="url(#glow)"/>
   </g>
-  <g transform="translate(410 66)" filter="url(#shadow)">
-    <text x="0" y="112" font-family="Inter,Arial,sans-serif" font-size="104" font-weight="900" letter-spacing="2" fill="url(#gold)" stroke="#ffbf00" stroke-width="1.5">KRIPTO</text>
-    <text x="575" y="112" font-family="Inter,Arial,sans-serif" font-size="104" font-weight="900" letter-spacing="2" fill="url(#cyan)" stroke="#00c9ff" stroke-width="1.5">AMAN</text>
-    <line x1="0" y1="175" x2="155" y2="175" stroke="url(#cyan)" stroke-width="7" filter="url(#softGlow)"/>
-    <text x="195" y="194" font-family="Inter,Arial,sans-serif" font-size="58" font-weight="700" letter-spacing="16" fill="url(#silver)" stroke="#ffffff" stroke-opacity=".25" stroke-width="1">EXPLORER</text>
-    <line x1="895" y1="175" x2="1050" y2="175" stroke="url(#cyan)" stroke-width="7" filter="url(#softGlow)"/>
-    <text x="330" y="275" font-family="Inter,Arial,sans-serif" font-size="43" font-weight="900" letter-spacing="18" fill="url(#gold)" stroke="#ffb800" stroke-width="1">KAM MAINNET</text>
+  <g transform="translate(500 90)">
+    <text x="0" y="95" font-family="Inter,Arial,sans-serif" font-size="96" font-weight="900" letter-spacing="1" fill="url(#silver)">Kripto</text>
+    <text x="285" y="95" font-family="Inter,Arial,sans-serif" font-size="96" font-weight="900" letter-spacing="1" fill="url(#gold)">Aman</text>
+    <line x1="4" y1="145" x2="160" y2="145" stroke="#17D8FF" stroke-width="6" filter="url(#glow)"/>
+    <text x="196" y="165" font-family="Inter,Arial,sans-serif" font-size="58" font-weight="750" letter-spacing="14" fill="url(#silver)">EXPLORER</text>
+    <line x1="824" y1="145" x2="980" y2="145" stroke="#17D8FF" stroke-width="6" filter="url(#glow)"/>
+    <text x="286" y="252" font-family="Inter,Arial,sans-serif" font-size="42" font-weight="900" letter-spacing="14" fill="url(#gold)">KAM MAINNET</text>
   </g>
 </svg>
