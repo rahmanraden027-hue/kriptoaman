@@ -4,10 +4,12 @@ import test from 'node:test';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('Market is wrapped with the dedicated KAM audit-status surface', async () => {
+test('Market preserves the dedicated KAM audit-status surface inside the multi-asset composition', async () => {
   const config = await read('src/pages.config.js');
+  const globalPage = await read('src/pages/MarketGlobal.jsx');
   const page = await read('src/pages/MarketWithKAM.jsx');
-  assert.match(config, /Market: 'MarketWithKAM'/);
+  assert.match(config, /Market: 'MarketGlobal'/);
+  assert.match(globalPage, /MarketWithKAM/);
   assert.match(page, /AUDIT BERLANGSUNG/);
   assert.match(page, /AUDIT IN PROGRESS/);
   assert.match(page, /Review independen · production hold/);
