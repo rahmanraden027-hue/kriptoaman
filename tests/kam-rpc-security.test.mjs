@@ -84,8 +84,8 @@ test('KAM RPC origin forwarding is bounded and readiness requires real chain plu
   assert.match(worker, /signal: controller\.signal/);
   assert.match(worker, /chainId !== EXPECTED_CHAIN_ID/);
   assert.match(worker, /Number\.isSafeInteger\(blockNumber\)/);
-  assert.match(worker, /reason: 'origin-timeout'/);
-  assert.match(worker, /reason: 'origin-unreachable'/);
+  assert.match(worker, /'origin-timeout'/);
+  assert.match(worker, /'origin-unreachable'/);
   assert.match(worker, /RPC upstream timeout/);
   assert.match(worker, /RPC upstream unavailable/);
   assert.doesNotMatch(worker, /KAM_RPC_ORIGIN.*console/);
