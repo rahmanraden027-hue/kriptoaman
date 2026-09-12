@@ -66,5 +66,5 @@ test('wallet BTC display price no longer exposes a browser CoinGecko key and use
   assert.match(source, /fetch\('\/api\/market-hot'/);
   assert.match(source, /fetch\('\/api\/market-snapshot-page\?page=0&limit=500'/);
   assert.doesNotMatch(source, /COINGECKO_API_KEY/);
-  assert.doesNotMatch(source, /api\.coingecko\.com/);
+  assert.equal(source.includes('api.coingecko.com'), false);
 });
