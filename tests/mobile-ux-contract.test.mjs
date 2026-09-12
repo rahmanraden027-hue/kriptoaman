@@ -37,8 +37,8 @@ test('market trust widgets disclose source time and asset quality', async () => 
   assert.match(overview, /\/api\/market-overview/);
   assert.match(overview, /Diperbarui/);
   assert.match(overview, /Data informatif, bukan harga eksekusi/);
-  assert.doesNotMatch(overview, /api\.coingecko\.com/);
-  assert.doesNotMatch(overview, /api\.alternative\.me/);
+  assert.equal(overview.toLowerCase().includes('api.coingecko.com'), false);
+  assert.equal(overview.toLowerCase().includes('api.alternative.me'), false);
 });
 
 test('empty and sparse pages provide useful next actions', async () => {
