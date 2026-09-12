@@ -13,11 +13,7 @@ const IMMUTABLE_CACHE = `${CACHE_PREFIX}immutable-v2.4.0`;
 const CURRENT_CACHES = new Set([STATIC_CACHE, IMMUTABLE_CACHE]);
 
 const OPTIONAL_STATIC_ASSETS = [
-  '/kriptoaman-logo-primary.png',
-  '/icons/kriptoaman-192.png',
-  '/icons/kriptoaman-512.png',
-  '/icons/kriptoaman-maskable-192.png',
-  '/icons/kriptoaman-maskable-512.png',
+  '/brand/kriptoaman-mark.svg',
 ];
 
 const APP_METADATA_PATHS = new Set([
@@ -86,8 +82,6 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.protocol === 'chrome-extension:') return;
 
-  // The service worker must never become an availability or staleness layer for
-  // application APIs, authentication, RPC-like endpoints, or deployment metadata.
   if (url.origin === self.location.origin && (
     url.pathname.startsWith('/api/') ||
     APP_METADATA_PATHS.has(url.pathname)
@@ -120,9 +114,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  const isStableImage = isSameOrigin && request.destination === 'image' && (
-    url.pathname.startsWith('/icons/') || url.pathname === '/kriptoaman-logo-primary.png'
-  );
+  const isStableImage = isSameOrigin && request.destination === 'image' && url.pathname.startsWith('/brand/');
 
   if (isStableImage) {
     event.respondWith((async () => {
@@ -138,8 +130,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Everything else is network-first. Cache failure is never allowed to block
-  // a valid response and no generic response is persisted as an app-shell fallback.
   event.respondWith(fetchWithDeadline(new Request(request, { cache: 'no-store' })));
 });
 
@@ -147,8 +137,8 @@ self.addEventListener('push', (event) => {
   const data = event.data ? event.data.json() : {};
   const options = {
     body: data.body || 'Ada notifikasi baru dari KriptoAman',
-    icon: '/icons/kriptoaman-192.png',
-    badge: '/icons/kriptoaman-192.png',
+    icon: '/brand/kriptoaman-mark.svg',
+    badge: '/brand/kriptoaman-mark.svg',
     vibrate: [100, 50, 100],
     data: { url: data.url || '/' },
     actions: [

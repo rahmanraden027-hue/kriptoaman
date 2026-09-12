@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 const SITE_URL = 'https://kriptoaman.com';
-const DEFAULT_IMAGE = `${SITE_URL}/kriptoaman-logo-primary.png`;
+const DEFAULT_IMAGE = `${SITE_URL}/brand/kriptoaman-mark.svg`;
 
 const PUBLIC_META = {
   '/': {
@@ -152,7 +152,7 @@ export default function RouteSeo() {
     upsertMeta('og:description', description, 'property');
     upsertMeta('og:url', url, 'property');
     upsertMeta('og:image', DEFAULT_IMAGE, 'property');
-    upsertMeta('og:image:alt', 'KriptoAman digital asset intelligence platform', 'property');
+    upsertMeta('og:image:alt', 'KriptoAman official K-orbit digital asset intelligence identity', 'property');
     upsertMeta('og:locale', locale, 'property');
     upsertMeta('twitter:card', 'summary_large_image');
     upsertMeta('twitter:title', title);

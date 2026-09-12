@@ -1,59 +1,42 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
-  <title id="title">KriptoAman</title>
-  <desc id="desc">KriptoAman master mark: a geometric gold K protected by a shield and surrounded by a four-node blockchain orbit.</desc>
+  <title id="title">KriptoAman Official Mark</title>
+  <desc id="desc">Official KriptoAman identity: a dimensional gold and electric-blue K with a network ring, orbital sweep, diamond nodes, and a luminous network sphere.</desc>
   <defs>
-    <radialGradient id="bg" cx="50%" cy="44%" r="72%">
-      <stop offset="0" stop-color="#0B2B55"/>
-      <stop offset="0.58" stop-color="#071A34"/>
-      <stop offset="1" stop-color="#041021"/>
-    </radialGradient>
-    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#FFE47A"/>
-      <stop offset="0.34" stop-color="#F4C84C"/>
-      <stop offset="0.7" stop-color="#D9A62F"/>
-      <stop offset="1" stop-color="#B77B18"/>
-    </linearGradient>
-    <linearGradient id="shieldFill" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0B2E5D"/>
-      <stop offset="1" stop-color="#06182E"/>
-    </linearGradient>
-    <radialGradient id="node" cx="50%" cy="42%" r="62%">
-      <stop offset="0" stop-color="#62F5FF"/>
-      <stop offset="0.42" stop-color="#14D8F2"/>
-      <stop offset="1" stop-color="#0798BA"/>
-    </radialGradient>
-    <filter id="softShadow" x="-35%" y="-35%" width="170%" height="170%">
-      <feDropShadow dx="0" dy="7" stdDeviation="9" flood-color="#000A16" flood-opacity="0.58"/>
-    </filter>
-    <filter id="nodeGlow" x="-100%" y="-100%" width="300%" height="300%">
-      <feGaussianBlur stdDeviation="4" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
+    <radialGradient id="bg" cx="50%" cy="46%" r="72%"><stop offset="0" stop-color="#092A53"/><stop offset="0.55" stop-color="#061B36"/><stop offset="1" stop-color="#020A16"/></radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF6B0"/><stop offset="0.22" stop-color="#FFD95C"/><stop offset="0.55" stop-color="#E7B438"/><stop offset="0.8" stop-color="#B87813"/><stop offset="1" stop-color="#FFE683"/></linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8EFAFF"/><stop offset="0.28" stop-color="#00D7FF"/><stop offset="0.62" stop-color="#0878E8"/><stop offset="1" stop-color="#032D6F"/></linearGradient>
+    <radialGradient id="orb" cx="38%" cy="34%" r="72%"><stop offset="0" stop-color="#C7FFFF"/><stop offset="0.22" stop-color="#00E9FF"/><stop offset="0.58" stop-color="#0867D5"/><stop offset="1" stop-color="#03162F"/></radialGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="shadow" x="-35%" y="-35%" width="170%" height="170%"><feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#000713" flood-opacity="0.72"/></filter>
   </defs>
-
-  <rect width="512" height="512" rx="44" fill="url(#bg)"/>
-
-  <g fill="none" stroke="url(#gold)" stroke-width="11" stroke-linecap="round">
-    <path d="M256 71 A185 185 0 0 1 441 256"/>
-    <path d="M441 256 A185 185 0 0 1 256 441"/>
-    <path d="M256 441 A185 185 0 0 1 71 256"/>
-    <path d="M71 256 A185 185 0 0 1 256 71"/>
+  <rect width="512" height="512" rx="54" fill="url(#bg)"/>
+  <g fill="none" stroke-linecap="round">
+    <path d="M145 103 A189 189 0 0 1 244 68" stroke="url(#gold)" stroke-width="13"/>
+    <path d="M286 69 A189 189 0 0 1 396 117" stroke="url(#gold)" stroke-width="13"/>
+    <path d="M423 156 A189 189 0 0 1 435 347" stroke="url(#gold)" stroke-width="13"/>
+    <path d="M394 394 A189 189 0 0 1 291 442" stroke="url(#gold)" stroke-width="13"/>
+    <path d="M221 441 A189 189 0 0 1 103 383" stroke="url(#gold)" stroke-width="13"/>
+    <path d="M76 342 A189 189 0 0 1 89 166" stroke="url(#gold)" stroke-width="13"/>
+    <path d="M147 117 A173 173 0 0 1 375 119" stroke="#13CFFF" stroke-width="5" filter="url(#glow)" opacity=".88"/>
+    <path d="M416 174 A173 173 0 0 1 405 354" stroke="#13CFFF" stroke-width="5" filter="url(#glow)" opacity=".88"/>
+    <path d="M365 406 A173 173 0 0 1 155 397" stroke="#13CFFF" stroke-width="5" filter="url(#glow)" opacity=".88"/>
+    <path d="M104 353 A173 173 0 0 1 105 169" stroke="#13CFFF" stroke-width="5" filter="url(#glow)" opacity=".88"/>
   </g>
-
-  <path d="M256 116 L365 155 V246 C365 320 322 375 256 405 C190 375 147 320 147 246 V155 Z"
-        fill="url(#shieldFill)" stroke="url(#gold)" stroke-width="12" stroke-linejoin="round" filter="url(#softShadow)"/>
-
-  <g fill="url(#gold)" filter="url(#softShadow)">
-    <path d="M188 174 H229 V338 H188 Z"/>
-    <path d="M229 244 L302 174 H351 L267 258 Z"/>
-    <path d="M263 259 L340 332 H291 L229 280 Z"/>
+  <g filter="url(#shadow)">
+    <path d="M133 124 L196 90 L196 405 L133 438 Z" fill="url(#gold)" stroke="#FFF0A2" stroke-width="3"/>
+    <path d="M164 142 L190 129 L190 375 L164 390 Z" fill="url(#blue)" opacity=".95"/>
+    <path d="M196 242 L305 132 L383 132 L249 273 Z" fill="url(#gold)" stroke="#FFF0A2" stroke-width="3"/>
+    <path d="M218 247 L309 154 L348 154 L241 264 Z" fill="url(#blue)" opacity=".88"/>
+    <path d="M240 276 L381 394 L310 410 L196 303 Z" fill="url(#gold)" stroke="#FFF0A2" stroke-width="3"/>
+    <path d="M229 296 L309 373 L342 366 L258 286 Z" fill="url(#blue)" opacity=".9"/>
   </g>
-  <path d="M230 176 H244 V330 H230 Z" fill="#FFE98A" opacity="0.34"/>
-
-  <g stroke="url(#gold)" stroke-width="8">
-    <g filter="url(#nodeGlow)"><circle cx="256" cy="71" r="20" fill="#071A34"/><circle cx="256" cy="71" r="10" fill="url(#node)" stroke="none"/></g>
-    <g filter="url(#nodeGlow)"><circle cx="441" cy="256" r="20" fill="#071A34"/><circle cx="441" cy="256" r="10" fill="url(#node)" stroke="none"/></g>
-    <g filter="url(#nodeGlow)"><circle cx="256" cy="441" r="20" fill="#071A34"/><circle cx="256" cy="441" r="10" fill="url(#node)" stroke="none"/></g>
-    <g filter="url(#nodeGlow)"><circle cx="71" cy="256" r="20" fill="#071A34"/><circle cx="71" cy="256" r="10" fill="url(#node)" stroke="none"/></g>
+  <g fill="none" stroke="url(#gold)" stroke-width="13" stroke-linecap="round" filter="url(#shadow)">
+    <ellipse cx="257" cy="267" rx="220" ry="86" transform="rotate(-18 257 267)"/>
   </g>
+  <path d="M46 333 C123 392 325 326 456 153" fill="none" stroke="#17D8FF" stroke-width="4" stroke-linecap="round" filter="url(#glow)" opacity=".82"/>
+  <g filter="url(#glow)">
+    <path d="M256 35 L282 61 L256 92 L230 61 Z" fill="#071B35" stroke="url(#gold)" stroke-width="8"/><path d="M256 48 L268 62 L256 76 L244 62 Z" fill="url(#blue)"/>
+    <path d="M256 420 L282 447 L256 478 L230 447 Z" fill="#071B35" stroke="url(#gold)" stroke-width="8"/><path d="M256 434 L268 447 L256 462 L244 447 Z" fill="url(#blue)"/>
+  </g>
+  <g filter="url(#glow)"><circle cx="430" cy="132" r="28" fill="#07162B" stroke="url(#gold)" stroke-width="9"/><circle cx="430" cy="132" r="18" fill="url(#orb)"/><path d="M413 132 H447 M430 115 V149" stroke="#B7FAFF" stroke-width="2" opacity=".78"/></g>
 </svg>
