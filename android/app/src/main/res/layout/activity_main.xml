@@ -7,6 +7,10 @@
     tools:context=".MainActivity">
 
     <WebView
+        android:id="@+id/webview"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:scrollbars="vertical"
+        android:overScrollMode="ifContentScrolls"
+        android:nestedScrollingEnabled="true" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
