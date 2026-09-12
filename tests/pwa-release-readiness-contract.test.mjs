@@ -7,13 +7,15 @@ const manifest = JSON.parse(await readFile(new URL('../public/manifest.json', im
 const readiness = await readFile(new URL('../src/pages/PWAValidation.jsx', import.meta.url), 'utf8');
 const pwaInitializer = await readFile(new URL('../src/components/pwa/PWAInitializer.jsx', import.meta.url), 'utf8');
 const androidManifest = await readFile(new URL('../android/app/src/main/AndroidManifest.xml', import.meta.url), 'utf8');
+const androidActivity = await readFile(new URL('../android/app/src/main/java/com/kriptoaman/app/MainActivity.java', import.meta.url), 'utf8');
+const androidActivityLayout = await readFile(new URL('../android/app/src/main/res/layout/activity_main.xml', import.meta.url), 'utf8');
 const androidBuild = await readFile(new URL('../android/app/build.gradle', import.meta.url), 'utf8');
 const androidVariables = await readFile(new URL('../android/variables.gradle', import.meta.url), 'utf8');
 const capacitorConfig = JSON.parse(await readFile(new URL('../capacitor.config.json', import.meta.url), 'utf8'));
 
-test('PWA manifest is aligned with Android 1.5 release identity', () => {
+test('PWA manifest is aligned with Android 1.5.1 release identity', () => {
   assert.equal(manifest.short_name, 'KriptoAman');
-  assert.equal(manifest.version, '1.5.0');
+  assert.equal(manifest.version, '1.5.1');
   assert.equal(manifest.display, 'standalone');
   assert.equal(manifest.start_url, '/');
   assert.equal(manifest.scope, '/');
@@ -53,8 +55,8 @@ test('Android release identity and target SDK remain Play-ready', () => {
   assert.equal(capacitorConfig.appId, 'com.kriptoaman.app');
   assert.equal(capacitorConfig.appName, 'KriptoAman');
   assert.match(androidBuild, /applicationId\s+"com\.kriptoaman\.app"/);
-  assert.match(androidBuild, /versionCode\s+6/);
-  assert.match(androidBuild, /versionName\s+"1\.5"/);
+  assert.match(androidBuild, /versionCode\s+7/);
+  assert.match(androidBuild, /versionName\s+"1\.5\.1"/);
   assert.match(androidVariables, /compileSdkVersion\s*=\s*36/);
   assert.match(androidVariables, /targetSdkVersion\s*=\s*36/);
 });
@@ -62,4 +64,13 @@ test('Android release identity and target SDK remain Play-ready', () => {
 test('Android release disables application backup for sensitive app state', () => {
   assert.match(androidManifest, /android:allowBackup="false"/);
   assert.doesNotMatch(androidManifest, /android:allowBackup="true"/);
+});
+
+test('Android WebView preserves native vertical touch scrolling', () => {
+  assert.match(androidActivityLayout, /android:id="@\+id\/webview"/);
+  assert.match(androidActivityLayout, /android:scrollbars="vertical"/);
+  assert.match(androidActivityLayout, /android:nestedScrollingEnabled="true"/);
+  assert.match(androidActivity, /setVerticalScrollBarEnabled\(true\)/);
+  assert.match(androidActivity, /setNestedScrollingEnabled\(true\)/);
+  assert.match(androidActivity, /OVER_SCROLL_IF_CONTENT_SCROLLS/);
 });

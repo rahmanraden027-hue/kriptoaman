@@ -128,7 +128,12 @@
 
 /* Standalone/PWA mode gets slightly tighter native-app framing. */
 @media (display-mode: standalone) {
-  html, body { overscroll-behavior-y: none; }
+  html, body {
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
   body { user-select: none; }
   input, textarea { user-select: text; }
   .ka-global-topbar { background: rgba(3,9,20,.96) !important; }
