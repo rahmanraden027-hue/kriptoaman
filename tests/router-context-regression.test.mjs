@@ -27,6 +27,15 @@ test('PWA install prompt continues to use the router location contract', async (
   assert.match(source, /const \{ pathname \} = useLocation\(\)/);
 });
 
+test('PWA install prompt stays compact and clears the mobile bottom navigation', async () => {
+  const source = await read('src/components/pwa/PWAInstallPrompt.jsx');
+
+  assert.match(source, /bottom-\[calc\(5\.5rem\+env\(safe-area-inset-bottom,0px\)\)\]/);
+  assert.match(source, /right-3/);
+  assert.match(source, /sm:hidden[^>]*>Pasang</);
+  assert.doesNotMatch(source, /left-1\/2[^\n]*-translate-x-1\/2/);
+});
+
 test('normal public landing exposes a browser-smoke readiness marker', async () => {
   const source = await read('src/pages/KriptoAmanGlobalLanding.jsx');
   assert.match(source, /data-ka-public-landing="ready"/);
