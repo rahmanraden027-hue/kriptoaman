@@ -51,7 +51,7 @@ export default function GLandingHero({ stats }) {
         style={{ background: 'radial-gradient(circle, rgba(0,200,255,0.10), transparent 60%)' }} />
       <div className="ka-hero-grid max-w-[1440px] mx-auto grid lg:grid-cols-[1.08fr_.92fr] gap-10 lg:gap-8 items-center">
         <div className="ka-hero-copy text-center lg:text-left">
-          <span className="ka-chip inline-flex items-center gap-2 px-3.5 py-1.5 text-[11px] font-bold tracking-wide">
+          <span className="ka-chip inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold tracking-wide">
             <Shield className="w-3.5 h-3.5" /> KRIPTOAMAN INTELLIGENCE NETWORK
           </span>
           <h1 className="ka-sec-title mt-5 text-[34px] sm:text-5xl lg:text-[54px]">
@@ -110,7 +110,7 @@ export default function GLandingHero({ stats }) {
           </div>
         </div>
       </div>
-      <p className="ka-text2 text-xs text-center mt-8 opacity-70">
+      <p className="ka-text2 text-sm text-center mt-6">
         Informasi dan analisis ditampilkan untuk tujuan pemantauan, riset, dan edukasi; bukan rekomendasi investasi.
       </p>
     </section>
