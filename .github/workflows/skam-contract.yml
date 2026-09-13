@@ -1,0 +1,45 @@
+name: sKAM Contract
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - 'chain/kam-mainnet/trading/contracts/SKAM.sol'
+      - 'chain/kam-mainnet/trading/test/SKAM.t.sol'
+      - 'chain/kam-mainnet/trading/test/SKAMFuzzInvariant.t.sol'
+      - 'chain/kam-mainnet/trading/script/DeploySKAM.s.sol'
+      - 'chain/kam-mainnet/trading/SKAM_README.md'
+      - 'chain/kam-mainnet/trading/contracts/WKAM.sol'
+      - 'chain/kam-mainnet/trading/foundry.toml'
+      - '.github/workflows/skam-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: chain/kam-mainnet/trading
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - name: Format check
+        run: forge fmt --check
+      - name: Build Paris-compatible bytecode
+        run: forge build --sizes --evm-version paris
+      - name: WKAM regression tests
+        run: forge test --match-path test/WKAM.t.sol -vvv --evm-version paris
+      - name: sKAM tests
+        run: forge test --match-path test/SKAM.t.sol -vvv --evm-version paris
+      - name: sKAM fuzz and invariant hardening
+        run: forge test --match-path test/SKAMFuzzInvariant.t.sol -vvv --evm-version paris
+      - name: Ensure CI has no signing secrets
+        run: |
+          test -z "${DEPLOYER_PRIVATE_KEY:-}"
+          test -z "${WKAM_ADDRESS:-}"
