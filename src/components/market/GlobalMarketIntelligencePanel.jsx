@@ -35,6 +35,9 @@ const COPY = {
     providerFallback: 'Mode referensi aktif',
     updated: 'Pembaruan analitik',
     noData: 'Belum tersedia',
+    statusReady: 'Data profesional tersedia',
+    statusPending: 'Menunggu data profesional',
+    statusUnavailable: 'Data sementara tidak tersedia',
   },
   en: {
     eyebrow: 'CROSS-ASSET INTELLIGENCE',
@@ -65,6 +68,9 @@ const COPY = {
     providerFallback: 'Reference mode active',
     updated: 'Analytics updated',
     noData: 'Unavailable',
+    statusReady: 'Professional data available',
+    statusPending: 'Awaiting professional data',
+    statusUnavailable: 'Data temporarily unavailable',
   },
 };
 
@@ -130,6 +136,13 @@ export default function GlobalMarketIntelligencePanel({ instruments = [], provid
   const dxyInstrument = instruments.find(item => item.symbol === 'DXY');
   const dxyPrice = dxyInstrument?.price ?? intelligence?.latest?.dxy;
   const professionalActive = providerMode === 'professional';
+  const intelligenceStatus = availability?.intelligence === 'available'
+    ? text.statusReady
+    : availability?.intelligence === 'PROFESSIONAL_MARKET_DATA_NOT_CONFIGURED'
+      ? text.statusPending
+      : availability?.intelligence
+        ? text.statusUnavailable
+        : '—';
 
   return (
     <section className="mt-4 rounded-[26px] border border-sky-400/15 bg-[#07111d]/86 p-4 sm:p-5" aria-labelledby="cross-asset-title">
@@ -179,7 +192,7 @@ export default function GlobalMarketIntelligencePanel({ instruments = [], provid
           <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
             <p className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-500">{text.updated}</p>
             <p className="mt-2 text-sm font-black text-white">{updatedAt ? new Date(updatedAt).toLocaleString(language === 'en' ? 'en-US' : 'id-ID') : text.noData}</p>
-            <p className="mt-1 text-[9px] text-slate-600">{availability?.intelligence || '—'}</p>
+            <p className="mt-1 text-[10px] text-slate-500">{intelligenceStatus}</p>
           </div>
         </div>
       </div>
