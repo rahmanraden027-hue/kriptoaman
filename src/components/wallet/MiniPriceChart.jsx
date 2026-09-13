@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, YAxis, XAxis, CartesianGrid } from 'recharts';
 import { Loader2 } from 'lucide-react';
-import { COINS } from './multiCoinApi';
 import { getMarketChart } from '../market/marketDataService';
 
 export default function MiniPriceChart({ coinId, color, days = 7, height = 80, showAxes = false }) {
@@ -25,7 +24,7 @@ export default function MiniPriceChart({ coinId, color, days = 7, height = 80, s
 
   if (!data || data.length < 2) return (
     <div className="flex items-center justify-center text-slate-600 text-xs" style={{ height }}>
-      Tidak ada data grafik
+      Riwayat grafik belum tersedia
     </div>
   );
 
@@ -33,9 +32,15 @@ export default function MiniPriceChart({ coinId, color, days = 7, height = 80, s
                      (data[0]?.price ?? data[0]?.close ?? 0);
   const chartColor = isPositive ? '#22c55e' : '#ef4444';
   const dataKey = data[0]?.price !== undefined ? 'price' : 'close';
+  const isCached = Boolean(data[0]?.cached);
 
   return (
-    <div className="w-full" style={{ height }}>
+    <div className="w-full relative" style={{ height }}>
+      {isCached && (
+        <span className="absolute top-0 right-0 z-10 text-[8px] text-amber-300 bg-slate-950/80 rounded px-1 py-0.5" role="status">
+          Snapshot tersimpan
+        </span>
+      )}
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
           <defs>
