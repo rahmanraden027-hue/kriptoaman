@@ -77,22 +77,23 @@ export default function PWAInstallPrompt() {
   return (
     <>
       <div
-        className={`fixed left-1/2 z-[70] -translate-x-1/2 sm:left-auto sm:right-6 sm:translate-x-0 ${isPublicKamDocument ? 'bottom-4' : 'bottom-24 lg:bottom-6'}`}
+        className={`fixed z-[70] max-w-[calc(100vw-1.5rem)] ${isPublicKamDocument ? 'bottom-[calc(.75rem+env(safe-area-inset-bottom,0px))] right-3' : 'bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] right-3 lg:bottom-6 lg:right-6'}`}
       >
-        <div className="flex items-center overflow-hidden rounded-2xl border border-sky-300/30 bg-sky-700 text-white shadow-2xl shadow-sky-950/50">
+        <div className="flex items-center overflow-hidden rounded-full border border-sky-300/30 bg-sky-700/95 text-white shadow-xl shadow-sky-950/50 backdrop-blur-md sm:rounded-2xl">
           <button
             type="button"
             onClick={install}
-            className="flex min-h-12 items-center gap-2 px-4 py-3 text-sm font-bold hover:bg-sky-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+            className="flex min-h-11 items-center gap-2 px-3 py-2.5 text-xs font-bold hover:bg-sky-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 sm:min-h-12 sm:px-4 sm:py-3 sm:text-sm"
             aria-label="Pasang aplikasi KriptoAman"
           >
             <Download className="h-4 w-4 shrink-0" />
-            <span className="whitespace-nowrap">Pasang KriptoAman</span>
+            <span className="whitespace-nowrap sm:hidden">Pasang</span>
+            <span className="hidden whitespace-nowrap sm:inline">Pasang KriptoAman</span>
           </button>
           <button
             type="button"
             onClick={() => setDismissed(true)}
-            className="flex min-h-12 min-w-11 items-center justify-center border-l border-white/20 px-3 hover:bg-sky-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/80"
+            className="flex min-h-11 min-w-10 items-center justify-center border-l border-white/20 px-2.5 hover:bg-sky-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/80 sm:min-h-12 sm:min-w-11 sm:px-3"
             aria-label="Tutup tombol instalasi KriptoAman"
           >
             <X className="h-4 w-4" />
