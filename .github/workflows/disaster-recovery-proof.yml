@@ -8,12 +8,17 @@ on:
       - 'functions/api/market-snapshot.js'
       - 'functions/api/market-snapshot-page.js'
       - 'functions/api/market-benchmark-history.js'
+      - 'functions/api/market-history.js'
       - 'functions/api/network-health.js'
       - 'functions/_shared/d1-session.js'
+      - 'functions/_shared/market-timeseries.js'
       - 'src/components/home/HomeMarketMovers.jsx'
       - 'src/components/home/HomePortfolioPerformance.jsx'
       - 'src/components/home/WhaleAlertCard.jsx'
       - 'src/components/market/MarketOverviewWidget.jsx'
+      - 'src/components/market/marketDataService.jsx'
+      - 'src/components/charting/AdvancedPriceChart.jsx'
+      - 'src/components/wallet/MiniPriceChart.jsx'
       - 'src/components/wallet/useMarketData.jsx'
       - 'src/lib/readOnlyMarketPrices.js'
       - 'src/lib/aiIntelligence.js'
@@ -21,7 +26,10 @@ on:
       - 'tests/disaster-recovery-simulation.test.mjs'
       - 'tests/data-resilience-v3.test.mjs'
       - 'tests/data-resilience-v3-phase2.test.mjs'
+      - 'tests/data-resilience-v3-phase3.test.mjs'
+      - 'tests/market-timeseries.test.mjs'
       - 'docs/DATA_RESILIENCE_V3.md'
+      - 'docs/MARKET_TIMESERIES_POLICY.md'
       - '.github/workflows/disaster-recovery-proof.yml'
   push:
     branches: [main]
@@ -30,12 +38,17 @@ on:
       - 'functions/api/market-snapshot.js'
       - 'functions/api/market-snapshot-page.js'
       - 'functions/api/market-benchmark-history.js'
+      - 'functions/api/market-history.js'
       - 'functions/api/network-health.js'
       - 'functions/_shared/d1-session.js'
+      - 'functions/_shared/market-timeseries.js'
       - 'src/components/home/HomeMarketMovers.jsx'
       - 'src/components/home/HomePortfolioPerformance.jsx'
       - 'src/components/home/WhaleAlertCard.jsx'
       - 'src/components/market/MarketOverviewWidget.jsx'
+      - 'src/components/market/marketDataService.jsx'
+      - 'src/components/charting/AdvancedPriceChart.jsx'
+      - 'src/components/wallet/MiniPriceChart.jsx'
       - 'src/components/wallet/useMarketData.jsx'
       - 'src/lib/readOnlyMarketPrices.js'
       - 'src/lib/aiIntelligence.js'
@@ -43,7 +56,10 @@ on:
       - 'tests/disaster-recovery-simulation.test.mjs'
       - 'tests/data-resilience-v3.test.mjs'
       - 'tests/data-resilience-v3-phase2.test.mjs'
+      - 'tests/data-resilience-v3-phase3.test.mjs'
+      - 'tests/market-timeseries.test.mjs'
       - 'docs/DATA_RESILIENCE_V3.md'
+      - 'docs/MARKET_TIMESERIES_POLICY.md'
       - '.github/workflows/disaster-recovery-proof.yml'
   workflow_dispatch:
 
@@ -60,7 +76,7 @@ jobs:
         with:
           node-version: '22'
       - name: Simulate provider RPC AI and long-duration market failures
-        run: node --test tests/disaster-recovery-simulation.test.mjs tests/data-resilience-v3.test.mjs tests/data-resilience-v3-phase2.test.mjs
+        run: node --test tests/disaster-recovery-simulation.test.mjs tests/data-resilience-v3.test.mjs tests/data-resilience-v3-phase2.test.mjs tests/data-resilience-v3-phase3.test.mjs tests/market-timeseries.test.mjs
       - name: Verify production remains read-only healthy
         shell: bash
         run: |
