@@ -20,6 +20,7 @@ jobs:
           set -euo pipefail
           node <<'NODE'
           const base = 'https://kriptoaman.com';
+          const rpcBase = 'https://rpc.kriptoaman.com';
 
           async function get(path, options = {}) {
             const controller = new AbortController();
@@ -37,10 +38,35 @@ jobs:
             }
           }
 
+          async function getRpcDiagnostic(path) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 10000);
+            try {
+              const response = await fetch(rpcBase + path, {
+                redirect: 'error',
+                signal: controller.signal,
+                headers: { Accept: 'application/json', 'User-Agent': 'KriptoAman-KAM-Landing-Smoke/1.0' },
+              });
+              const text = await response.text();
+              return { status: response.status, text: text.slice(0, 1200) };
+            } catch (error) {
+              return { status: 0, text: `probe-error:${error?.name || 'unknown'}` };
+            } finally {
+              clearTimeout(timer);
+            }
+          }
+
           const kam = await get('/api/kam/network-status', { headers: { Accept: 'application/json' } });
           if (!kam.response.ok) throw new Error(`KAM status HTTP ${kam.response.status}`);
           const kamPayload = JSON.parse(kam.text);
           if (kamPayload?.verified !== true || Number(kamPayload?.chainId) !== 22028) {
+            const [rpcHealth, rpcReady] = await Promise.all([
+              getRpcDiagnostic('/health'),
+              getRpcDiagnostic('/ready'),
+            ]);
+            console.log(`KAM_STATUS_DIAGNOSTIC: verified=${kamPayload?.verified ?? false} reason=${kamPayload?.reason ?? 'unknown'} probeDurationMs=${kamPayload?.probeDurationMs ?? 'unknown'}`);
+            console.log(`RPC_HEALTH_DIAGNOSTIC: status=${rpcHealth.status} body=${rpcHealth.text}`);
+            console.log(`RPC_READY_DIAGNOSTIC: status=${rpcReady.status} body=${rpcReady.text}`);
             throw new Error('KAM RPC is not independently verified with Chain ID 22028');
           }
 
