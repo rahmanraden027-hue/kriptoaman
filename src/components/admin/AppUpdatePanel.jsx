@@ -62,7 +62,7 @@ export default function AppUpdatePanel() {
       if (!response.ok) throw new Error(data?.error || 'Gagal membaca status broadcast');
       setBroadcastInfo(data);
       if (data.alreadySent) {
-        setBroadcastResult({ ok: true, msg: `Update September 2026 sudah terkirim${data.sentAt ? ` pada ${new Date(data.sentAt).toLocaleString('id-ID')}` : ''}.` });
+        setBroadcastResult({ ok: true, msg: `Update Ekspansi Global 16 September 2026 sudah terkirim${data.sentAt ? ` pada ${new Date(data.sentAt).toLocaleString('id-ID')}` : ''}.` });
       }
     } catch (e) {
       setBroadcastResult({ ok: false, msg: 'Gagal memeriksa penerima: ' + e.message });
@@ -84,7 +84,7 @@ export default function AppUpdatePanel() {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ confirmation: 'KIRIM UPDATE SEPTEMBER 2026' }),
+        body: JSON.stringify({ confirmation: 'KIRIM UPDATE EKSPANSI GLOBAL 16 SEPTEMBER 2026' }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data?.error || 'Broadcast ditolak');
@@ -175,9 +175,9 @@ export default function AppUpdatePanel() {
       <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-xl p-4 space-y-3">
         <div className="flex items-center gap-2">
           <Mail className="w-4 h-4 text-cyan-300" />
-          <p className="text-cyan-200 font-semibold text-sm">Broadcast Perkembangan Ekosistem — September 2026</p>
+          <p className="text-cyan-200 font-semibold text-sm">Broadcast Ekspansi Global — 16 September 2026</p>
         </div>
-        <p className="text-slate-400 text-xs">Bahasa email dipertahankan seperti contoh yang telah disetujui. Visual perkembangan ditampilkan di bagian atas email. Semua pengguna terverifikasi menerima email secara individual melalui Resend.</p>
+        <p className="text-slate-400 text-xs">Kampanye baru ini menggunakan naskah uji yang telah disetujui: roadmap ekspansi 25 negara, Forex dan multi-asset global, serta data internal pertumbuhan yang disertai catatan rekonsiliasi. Semua pengguna dengan email terverifikasi menerima email secara individual melalui Resend.</p>
         <img
           src="/assets/kriptoaman-ecosystem-progress-september-2026.svg"
           alt="Kemajuan Positif Ekosistem KriptoAman"
@@ -194,7 +194,7 @@ export default function AppUpdatePanel() {
             disabled={broadcasting || !broadcastInfo || broadcastInfo.alreadySent || !broadcastInfo.recipientCount || broadcastInfo.recipientCount > broadcastInfo.maxRecipients}
             className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 text-white rounded-lg text-xs font-semibold transition-colors">
             <Mail className={`w-3.5 h-3.5 ${broadcasting ? 'animate-pulse' : ''}`} />
-            {broadcasting ? 'Mengirim...' : 'Kirim Update September 2026'}
+            {broadcasting ? 'Mengirim...' : 'Kirim Update Ekspansi Global'}
           </button>
         </div>
         {broadcastInfo && (
