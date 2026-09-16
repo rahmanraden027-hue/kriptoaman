@@ -30,6 +30,19 @@ function normalizeRow(row) {
   };
 }
 
+function normalizeStats(row) {
+  return {
+    totalUsers: Number(row?.total_users || 0),
+    regularUsers: Number(row?.regular_users || 0),
+    adminUsers: Number(row?.admin_users || 0),
+    emailVerifiedUsers: Number(row?.email_verified_users || 0),
+    kycNone: Number(row?.kyc_none || 0),
+    kycPending: Number(row?.kyc_pending || 0),
+    kycApproved: Number(row?.kyc_approved || 0),
+    kycRejected: Number(row?.kyc_rejected || 0),
+  };
+}
+
 export async function onRequestGet({ request, env }) {
   try {
     requireBindings(env, ['AUTH_DB', 'SESSION_SECRET']);
@@ -41,15 +54,34 @@ export async function onRequestGet({ request, env }) {
     const requestedLimit = Number(url.searchParams.get('limit') || 200);
     const limit = Math.max(1, Math.min(500, Number.isFinite(requestedLimit) ? requestedLimit : 200));
 
-    const result = await env.AUTH_DB.prepare(`
-      SELECT id, email, full_name, role, email_verified, kyc_status, created_at, updated_at
-      FROM auth_users
-      ORDER BY created_at DESC
-      LIMIT ?
-    `).bind(limit).all();
+    const [result, statsRow] = await Promise.all([
+      env.AUTH_DB.prepare(`
+        SELECT id, email, full_name, role, email_verified, kyc_status, created_at, updated_at
+        FROM auth_users
+        ORDER BY created_at DESC
+        LIMIT ?
+      `).bind(limit).all(),
+      env.AUTH_DB.prepare(`
+        SELECT
+          COUNT(*) AS total_users,
+          SUM(CASE WHEN role = 'user' THEN 1 ELSE 0 END) AS regular_users,
+          SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) AS admin_users,
+          SUM(CASE WHEN email_verified = 1 THEN 1 ELSE 0 END) AS email_verified_users,
+          SUM(CASE WHEN COALESCE(kyc_status, 'none') = 'none' THEN 1 ELSE 0 END) AS kyc_none,
+          SUM(CASE WHEN kyc_status = 'pending' THEN 1 ELSE 0 END) AS kyc_pending,
+          SUM(CASE WHEN kyc_status = 'approved' THEN 1 ELSE 0 END) AS kyc_approved,
+          SUM(CASE WHEN kyc_status = 'rejected' THEN 1 ELSE 0 END) AS kyc_rejected
+        FROM auth_users
+      `).first(),
+    ]);
 
     const users = (result.results || []).map(normalizeRow);
-    return json({ users, count: users.length });
+    return json({
+      users,
+      count: users.length,
+      stats: normalizeStats(statsRow),
+      asOf: new Date().toISOString(),
+    }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     console.error('Admin user list failed', error);
     return json({ error: 'Admin user service unavailable' }, { status: 503 });
