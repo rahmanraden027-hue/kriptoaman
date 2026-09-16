@@ -11,12 +11,16 @@ export default function AdminUserBalances() {
   const [actionError, setActionError] = useState('');
   const queryClient = useQueryClient();
 
-  const { data: users = [], isLoading, error } = useQuery({
+  const { data: directory = null, isLoading, error } = useQuery({
     queryKey: ['adminFirstPartyUsers'],
-    queryFn: () => kriptoAuth.getAdminUsers(500),
+    queryFn: () => kriptoAuth.getAdminUserDirectory(500),
     enabled: user?.role === 'admin',
     staleTime: 30_000,
+    refetchInterval: 60_000,
   });
+
+  const users = directory?.users || [];
+  const stats = directory?.stats || null;
 
   const handleKYCUpdate = async (targetUser, newStatus) => {
     setActionError('');
@@ -53,9 +57,13 @@ export default function AdminUserBalances() {
     );
   }
 
-  const pending = users.filter((item) => item.kycStatus === 'pending').length;
-  const approved = users.filter((item) => item.kycStatus === 'approved').length;
-  const rejected = users.filter((item) => item.kycStatus === 'rejected').length;
+  const totalUsers = stats?.totalUsers ?? users.length;
+  const pending = stats?.kycPending ?? users.filter((item) => item.kycStatus === 'pending').length;
+  const approved = stats?.kycApproved ?? users.filter((item) => item.kycStatus === 'approved').length;
+  const rejected = stats?.kycRejected ?? users.filter((item) => item.kycStatus === 'rejected').length;
+  const lastUpdated = directory?.asOf
+    ? new Date(directory.asOf).toLocaleString('id-ID')
+    : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6 pb-20">
@@ -66,7 +74,10 @@ export default function AdminUserBalances() {
               <Users className="w-8 h-8 text-blue-400" />
               <h1 className="text-3xl font-bold text-white">Admin — Pengguna & KYC</h1>
             </div>
-            <p className="text-slate-400">Data nyata dari database first-party KriptoAman. Tidak menggunakan data contoh atau angka sintetis.</p>
+            <p className="text-slate-400">Statistik dihitung langsung dari seluruh database first-party KriptoAman, bukan dari jumlah baris tabel yang sedang ditampilkan.</p>
+            <p className="text-xs text-slate-500 mt-1">
+              Sinkron otomatis setiap 60 detik{lastUpdated ? ` · Diperbarui ${lastUpdated}` : ''}.
+            </p>
           </div>
           <div className="flex items-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
             <ShieldCheck className="w-4 h-4" />
@@ -81,13 +92,16 @@ export default function AdminUserBalances() {
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Total Pengguna" value={users.length} />
+          <StatCard label="Total Pengguna" value={totalUsers} />
           <StatCard label="KYC Pending" value={pending} tone="yellow" />
           <StatCard label="KYC Approved" value={approved} tone="green" />
           <StatCard label="KYC Rejected" value={rejected} tone="red" />
         </div>
 
         <div className="bg-slate-800/60 border border-slate-700/40 rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-700/40 bg-slate-900/60">
+            <p className="text-xs text-slate-400">Tabel menampilkan maksimal 500 akun terbaru. Kartu statistik di atas menghitung seluruh akun pada database.</p>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -146,7 +160,7 @@ function StatCard({ label, value, tone = 'default' }) {
   return (
     <div className={`bg-slate-800/60 border rounded-xl p-4 ${toneClass.split(' ').slice(1).join(' ')}`}>
       <p className="text-slate-400 text-sm mb-1">{label}</p>
-      <p className={`text-3xl font-bold ${toneClass.split(' ')[0]}`}>{value.toLocaleString('id-ID')}</p>
+      <p className={`text-3xl font-bold ${toneClass.split(' ')[0]}`}>{Number(value ?? 0).toLocaleString('id-ID')}</p>
     </div>
   );
 }
