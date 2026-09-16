@@ -94,11 +94,14 @@ test('admin user management is first-party and server-authorized', async () => {
     read('src/lib/kriptoAuth.js'),
   ]);
   assert.doesNotMatch(page, /asServiceRole/);
-  assert.match(page, /kriptoAuth\.getAdminUsers/);
+  assert.match(page, /kriptoAuth\.getAdminUserDirectory/);
   assert.match(page, /kriptoAuth\.updateAdminUserKyc/);
   assert.match(endpoint, /getActiveSession/);
   assert.match(endpoint, /user\.role !== 'admin'/);
   assert.match(endpoint, /requireSameOrigin/);
   assert.match(endpoint, /recordAdminAudit/);
+  assert.match(endpoint, /COUNT\(\*\) AS total_users/);
+  assert.match(endpoint, /Cache-Control': 'no-store/);
+  assert.match(authClient, /getAdminUserDirectory/);
   assert.match(authClient, /\/api\/auth\/admin\/users/);
 });
