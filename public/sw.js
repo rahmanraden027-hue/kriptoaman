@@ -1,5 +1,5 @@
 /**
- * KriptoAman Service Worker v2.4.3
+ * KriptoAman Service Worker v2.4.4
  * Fail-safe policy:
  * - navigation is always network-first and never falls back to a cached app shell
  * - internal APIs are never cached by the service worker
@@ -8,8 +8,8 @@
  */
 
 const CACHE_PREFIX = 'kriptoaman-';
-const STATIC_CACHE = `${CACHE_PREFIX}static-v2.4.3`;
-const IMMUTABLE_CACHE = `${CACHE_PREFIX}immutable-v2.4.3`;
+const STATIC_CACHE = `${CACHE_PREFIX}static-v2.4.4`;
+const IMMUTABLE_CACHE = `${CACHE_PREFIX}immutable-v2.4.4`;
 const CURRENT_CACHES = new Set([STATIC_CACHE, IMMUTABLE_CACHE]);
 
 const OPTIONAL_STATIC_ASSETS = [
@@ -173,4 +173,4 @@ self.addEventListener('sync', (event) => {
   }
 });
 
-console.log('[SW] KriptoAman Service Worker v2.4.3 loaded');
+console.log('[SW] KriptoAman Service Worker v2.4.4 loaded');

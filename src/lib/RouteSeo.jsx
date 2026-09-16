@@ -152,7 +152,7 @@ export default function RouteSeo() {
     upsertMeta('og:description', description, 'property');
     upsertMeta('og:url', url, 'property');
     upsertMeta('og:image', DEFAULT_IMAGE, 'property');
-    upsertMeta('og:image:alt', 'KriptoAman official K-orbit digital asset intelligence identity', 'property');
+    upsertMeta('og:image:alt', 'KriptoAman official blue-and-gold security shield', 'property');
     upsertMeta('og:locale', locale, 'property');
     upsertMeta('twitter:card', 'summary_large_image');
     upsertMeta('twitter:title', title);
