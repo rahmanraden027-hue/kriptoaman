@@ -1,8 +1,8 @@
 import React from 'react';
 
 /**
- * KriptoAmanLogo — official final identity.
- * Gold + electric-blue K with orbital blockchain/network motif.
+ * KriptoAmanLogo — official shield identity.
+ * Electric-blue + gold K/check shield with a security keyhole.
  */
 const PREMIUM_GOLD = '#E7B438';
 const SILVER_WHITE = '#F5F8FC';
@@ -15,18 +15,18 @@ export default function KriptoAmanLogo({ size = 32, showText = true, textSize = 
         style={{ width: size, height: size, minWidth: size }}
       >
         <style>{`
-          @keyframes ka-luxury-glow {
+          @keyframes ka-shield-glow {
             0%, 100% { filter: drop-shadow(0 0 3px rgba(231,180,56,.30)) drop-shadow(0 0 5px rgba(19,207,255,.18)); }
             50% { filter: drop-shadow(0 0 7px rgba(231,180,56,.48)) drop-shadow(0 0 11px rgba(19,207,255,.32)); }
           }
-          .animate-ka-luxury-glow { animation: ka-luxury-glow 3.2s ease-in-out infinite; }
+          .animate-ka-luxury-glow { animation: ka-shield-glow 3.2s ease-in-out infinite; }
         `}</style>
         <img
           src="/brand/kriptoaman-mark-premium.webp"
           alt="KriptoAman"
           width={size}
           height={size}
-          className="h-full w-full rounded-[18%] object-contain"
+          className="h-full w-full object-contain"
           decoding="async"
         />
       </div>

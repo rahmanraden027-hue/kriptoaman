@@ -52,13 +52,13 @@ jobs:
           node - "$body" <<'NODE'
           const fs = require('fs');
           const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
-          if (payload.version !== '1.5.1') {
-            console.error(`Expected production web version 1.5.1, got ${payload.version ?? 'missing'}`);
+          if (payload.version !== '1.5.2') {
+            console.error(`Expected production web version 1.5.2, got ${payload.version ?? 'missing'}`);
             process.exit(1);
           }
           NODE
 
-      - name: Verify official K-orbit production identity
+      - name: Verify official shield production identity
         if: github.event_name != 'pull_request'
         shell: bash
         run: |
@@ -84,12 +84,12 @@ jobs:
             mark_content_type=0
             mark_title=0
             mark_description=0
-            mark_orbit=0
+            mark_shield=0
             worker_svg_ref=0
             grep -qi '^content-type:.*image/svg' "$headers" && mark_content_type=1 || true
-            grep -q 'KriptoAman Official Mark' "$mark" && mark_title=1 || true
-            grep -q 'dimensional gold and electric-blue K with a network ring' "$mark" && mark_description=1 || true
-            grep -q 'orbital sweep' "$mark" && mark_orbit=1 || true
+            grep -q 'KriptoAman Official Shield' "$mark" && mark_title=1 || true
+            grep -q 'blue-and-gold KriptoAman security shield' "$mark" && mark_description=1 || true
+            grep -q 'checkmark, and keyhole' "$mark" && mark_shield=1 || true
             grep -q "'/brand/kriptoaman-mark.svg'" "$worker" && worker_svg_ref=1 || true
 
             if [ "$mark_code" = "200" ] \
@@ -97,19 +97,19 @@ jobs:
               && [ "$mark_content_type" = "1" ] \
               && [ "$mark_title" = "1" ] \
               && [ "$mark_description" = "1" ] \
-              && [ "$mark_orbit" = "1" ] \
+              && [ "$mark_shield" = "1" ] \
               && [ "$worker_svg_ref" = "1" ]; then
-              echo "Official K-orbit identity verified on production at attempt ${attempt}."
+              echo "Official shield identity verified on production at attempt ${attempt}."
               exit 0
             fi
 
-            echo "Identity attempt ${attempt} incomplete: mark_http=${mark_code}; worker_http=${worker_code}; svg_content_type=${mark_content_type}; title=${mark_title}; description=${mark_description}; orbit=${mark_orbit}; worker_svg_ref=${worker_svg_ref}."
+            echo "Identity attempt ${attempt} incomplete: mark_http=${mark_code}; worker_http=${worker_code}; svg_content_type=${mark_content_type}; title=${mark_title}; description=${mark_description}; shield=${mark_shield}; worker_svg_ref=${worker_svg_ref}."
             if [ "$attempt" -lt 6 ]; then
               sleep 15
             fi
           done
 
-          echo 'Official K-orbit identity did not converge on production after retries.'
+          echo 'Official shield identity did not converge on production after retries.'
           exit 1
 
       - name: Check homepage response and security headers
