@@ -17,8 +17,8 @@ test('broadcast delivery metrics are admin-only, aggregated, and privacy preserv
   assert.match(endpoint, /deliveredOrEngaged/);
   assert.match(endpoint, /deliveryRateObserved/);
   assert.match(endpoint, /failureRateObserved/);
-  assert.match(endpoint, /ecosystem-progress-2026-09-03/);
-  assert.match(endpoint, /Perkembangan Positif Ekosistem KriptoAman/);
+  assert.match(endpoint, /global-expansion-2026-09-16/);
+  assert.match(endpoint, /KriptoAman Memasuki Fase Ekspansi Global/);
 
   // The response must expose aggregate counts only, never recipient addresses.
   assert.doesNotMatch(endpoint, /return json\(\{[^}]*\bto\s*:/s);

@@ -15,21 +15,25 @@ test('progress broadcast is admin-only, branded, deduplicated, and privacy prese
   assert.match(endpoint, /user\.role !== 'admin'/);
   assert.match(endpoint, /email_verified = 1/);
   assert.match(endpoint, /COUNT\(DISTINCT LOWER\(TRIM\(email\)\)\)/);
-  assert.match(endpoint, /KIRIM UPDATE SEPTEMBER 2026/);
+  assert.match(endpoint, /KIRIM UPDATE EKSPANSI GLOBAL 16 SEPTEMBER 2026/);
   assert.match(endpoint, /broadcast\.progress\.sent/);
   assert.match(endpoint, /emails\/batch/);
   assert.match(endpoint, /Idempotency-Key/);
   assert.match(endpoint, /MAX_RECIPIENTS = 100/);
-  assert.match(endpoint, /ecosystem-progress-2026-09-03/);
+  assert.match(endpoint, /global-expansion-2026-09-16/);
   assert.match(endpoint, /kriptoaman-logo-primary\.png/);
-  assert.match(endpoint, /Official Ecosystem Update/);
+  assert.match(endpoint, /Official Global Expansion Update/);
   assert.match(endpoint, /kriptoaman-ecosystem-progress-september-2026\.svg/);
+  assert.match(endpoint, /25 negara/);
+  assert.match(endpoint, /78\.542/);
+  assert.match(endpoint, /rekonsiliasi dan verifikasi terhadap sumber data produksi/);
   assert.doesNotMatch(endpoint, /return json\(\{\s*recipients\s*[,}]/);
 
   assert.match(panel, /\/api\/auth\/admin\/broadcast-progress/);
-  assert.match(panel, /KIRIM UPDATE SEPTEMBER 2026/);
+  assert.match(panel, /KIRIM UPDATE EKSPANSI GLOBAL 16 SEPTEMBER 2026/);
   assert.match(panel, /window\.confirm/);
-  assert.match(panel, /Semua pengguna terverifikasi/);
+  assert.match(panel, /Semua pengguna dengan email terverifikasi/);
+  assert.match(panel, /Kirim Update Ekspansi Global/);
 
   assert.match(asset, /Kemajuan Positif KriptoAman/);
   assert.match(asset, /KAM Mainnet/);

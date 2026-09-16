@@ -5,47 +5,43 @@ import { getActiveSession } from '../../../../server/auth/sessions.js';
 import { getUserById } from '../../../../server/auth/users.js';
 import { recordAdminAudit } from '../../../../server/auth/adminAudit.js';
 
-const CAMPAIGN_ID = 'ecosystem-progress-2026-09-03';
-const SUBJECT = 'Perkembangan Positif Ekosistem KriptoAman — September 2026';
-const CONFIRMATION = 'KIRIM UPDATE SEPTEMBER 2026';
+const CAMPAIGN_ID = 'global-expansion-2026-09-16';
+const SUBJECT = 'KriptoAman Memasuki Fase Ekspansi Global — 16 September 2026';
+const CONFIRMATION = 'KIRIM UPDATE EKSPANSI GLOBAL 16 SEPTEMBER 2026';
 const LOGO_URL = 'https://kriptoaman.com/kriptoaman-logo-primary.png';
 const IMAGE_URL = 'https://kriptoaman.com/assets/kriptoaman-ecosystem-progress-september-2026.svg';
 const MAX_RECIPIENTS = 100;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const EMAIL_TEXT = `Halo,
+const EMAIL_TEXT = `Yth. Pengguna KriptoAman,
 
-Kami dengan senang hati membagikan perkembangan terbaru Ekosistem KriptoAman. Dalam beberapa waktu terakhir, kami telah mencapai sejumlah kemajuan penting yang memperkuat fondasi teknologi, operasional, jaringan blockchain, dan kesiapan pengembangan KriptoAman untuk tahap pertumbuhan berikutnya.
+Dengan semangat besar dan penuh optimisme, kami menyampaikan perkembangan terbaru KriptoAman. Kami terus bergerak maju dengan arah yang semakin kuat: membangun KriptoAman sebagai platform informasi, intelijen pasar, dan analisis aset digital yang modern, aman, luas, dan siap berkembang secara internasional.
 
-Beberapa capaian utama saat ini antara lain:
+Berdasarkan data internal yang disampaikan untuk materi komunikasi ini, KriptoAman mencatat lebih dari 2.000 akun terdaftar lintas kanal serta 78.542 calon pengguna dalam daftar tunggu dari berbagai negara di dunia. Angka tersebut masih memerlukan rekonsiliasi dan verifikasi terhadap sumber data produksi sebelum dipublikasikan sebagai data pengguna terverifikasi.
 
-• Platform KriptoAman semakin matang secara operasional. Pemeriksaan production health, website publik, keamanan dasar, status sistem, database, login, serta pemulihan kata sandi telah berjalan dengan baik dalam pengujian produksi terbaru.
+Memasuki fase pengembangan berikutnya, KriptoAman menyiapkan roadmap ekspansi bertahap ke 25 negara. Langkah ini dirancang untuk memperluas jangkauan layanan, meningkatkan kesiapan multi-bahasa, memperkuat akses terhadap informasi pasar global, serta membangun fondasi produk yang dapat digunakan oleh komunitas internasional.
 
-• Infrastruktur market intelligence semakin kuat. Mekanisme market snapshot, freshness monitoring, database market, serta sinkronisasi status publik telah diperkuat agar ketersediaan data tetap terjaga dan lebih konsisten.
+Kami juga sedang memperluas cakupan Market Intelligence KriptoAman. Selain aset kripto, platform akan dikembangkan untuk mencakup data dan analisis Forex serta berbagai kelas aset global. Arah pengembangan multi-asset ini mencakup pasangan mata uang utama dunia, emas dan logam mulia, komoditas, indeks pasar, serta aset global lainnya secara bertahap sesuai kesiapan data, integrasi, dan kepatuhan yang berlaku.
 
-• KAM Mainnet terus menunjukkan perkembangan positif. Jaringan menggunakan Chain ID 22028 (0x560c), dengan RPC publik, explorer, block progression, serta monitoring 24/7 yang sudah tersedia sebagai bagian dari infrastruktur jaringan.
+Visi kami jelas: KriptoAman tidak berhenti sebagai platform pemantauan kripto. Kami sedang membangun fondasi ekosistem intelijen pasar global yang menghubungkan teknologi blockchain, data pasar real-time, analisis multi-aset, keamanan, dan pengalaman pengguna dalam satu platform yang semakin terpadu.
 
-• Identitas KAM Mainnet semakin dikenal di ekosistem Web3. Metadata KriptoAman Mainnet telah diterima dan digabungkan ke registry ethereum-lists/chains, memperkuat fondasi interoperabilitas dan pengenalan jaringan dalam tooling EVM.
+Sejumlah kemajuan penting terus berjalan, termasuk peningkatan dashboard administrasi, verifikasi data pengguna, penyempurnaan infrastruktur produksi, penguatan keamanan, pengembangan aplikasi Android, perluasan Market Intelligence, serta peningkatan kesiapan ekosistem jaringan KriptoAman.
 
-• Sistem monitoring dan quality gate semakin lengkap. KriptoAman kini memiliki berbagai pemeriksaan otomatis untuk production health, live-site smoke, authentication, access resilience, market freshness, KAM promotion gate, serta evidence monitoring.
+Kami antusias menyambut fase berikutnya. Setiap peningkatan yang dilakukan hari ini merupakan bagian dari langkah yang lebih besar untuk membawa KriptoAman menuju skala internasional dengan standar yang semakin tinggi, lebih profesional, lebih kuat, dan lebih siap menghadapi kebutuhan pasar global.
 
-• Penguatan identitas perusahaan dan ekosistem digital terus dilakukan. Kehadiran PT Kripto Aman Indonesia, halaman legal, dokumentasi jaringan, research, sitemap, dan struktur SEO terus diperkuat agar informasi publik semakin mudah ditemukan dan diverifikasi.
+Terima kasih telah menjadi bagian dari perjalanan KriptoAman. Dukungan dan kepercayaan Anda menjadi bagian penting dari pertumbuhan ekosistem ini.
 
-• KriptoAman terus bergerak menuju fase distribusi dan adopsi yang lebih luas. Fokus berikutnya mencakup penguatan integrasi wallet, registry eksternal, distribusi aplikasi, kesiapan listing, peningkatan pengalaman pengguna, serta perluasan jangkauan internasional secara bertahap dan terukur.
+KriptoAman — Global by Design. Built for the Future.
 
-Kami memandang seluruh kemajuan ini sebagai bagian dari perjalanan jangka panjang untuk membangun ekosistem blockchain dan financial intelligence yang aman, transparan, modern, mudah digunakan, dan berorientasi pada kebutuhan pengguna global.
+Hormat kami,
 
-Terima kasih telah menjadi bagian dari perjalanan KriptoAman. Kami akan terus menjaga kualitas, memperkuat teknologi, dan menghadirkan perkembangan yang semakin berarti bagi seluruh pengguna dan komunitas.
+PT KRIPTO AMAN INDONESIA
 
-Salam,
+KriptoAman
 
-Raden Abdul Rahman
+https://kriptoaman.com
 
-Founder & CEO KriptoAman
-
-PT Kripto Aman Indonesia
-
-KriptoAman.com`;
+Catatan: Ekspansi 25 negara dan penambahan cakupan Forex/multi-asset merupakan roadmap pengembangan bertahap dan akan diterapkan sesuai kesiapan teknis, data, operasional, serta ketentuan yang berlaku.`;
 
 async function requireAdmin(request, env) {
   const session = await verifySessionToken(env.SESSION_SECRET, getSessionToken(request));
@@ -74,8 +70,8 @@ function buildHtml() {
     if (line.startsWith('• ')) {
       return `<p style="margin:0 0 14px;color:#dbeafe;font-size:15px;line-height:1.7"><span style="color:#38bdf8;font-weight:700">•</span> ${safe.slice(2)}</p>`;
     }
-    if (line === 'Raden Abdul Rahman') return `<p style="margin:0;color:#ffffff;font-weight:700;font-size:15px">${safe}</p>`;
-    if (line === 'Founder & CEO KriptoAman' || line === 'PT Kripto Aman Indonesia' || line === 'KriptoAman.com') {
+    if (line === 'PT KRIPTO AMAN INDONESIA') return `<p style="margin:0;color:#ffffff;font-weight:700;font-size:15px">${safe}</p>`;
+    if (line === 'KriptoAman' || line === 'https://kriptoaman.com') {
       return `<p style="margin:0;color:#94a3b8;font-size:14px;line-height:1.6">${safe}</p>`;
     }
     return `<p style="margin:0;color:#dbeafe;font-size:15px;line-height:1.7">${safe}</p>`;
@@ -86,7 +82,7 @@ function buildHtml() {
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:760px;background:#0b1930;border:1px solid #1e3a5f;border-radius:18px;overflow:hidden">
       <tr><td align="center" style="padding:24px 24px 18px;background:#061328;border-bottom:1px solid #16304d">
         <img src="${LOGO_URL}" alt="KriptoAman" width="196" style="display:block;width:196px;max-width:72%;height:auto;border:0;margin:0 auto 8px" />
-        <div style="font-size:11px;line-height:1.4;letter-spacing:1.4px;text-transform:uppercase;color:#7dd3fc;font-weight:700">Official Ecosystem Update</div>
+        <div style="font-size:11px;line-height:1.4;letter-spacing:1.4px;text-transform:uppercase;color:#7dd3fc;font-weight:700">Official Global Expansion Update</div>
       </td></tr>
       <tr><td style="padding:0;background:#08172c">
         <img src="${IMAGE_URL}" alt="Kemajuan Positif Ekosistem KriptoAman" width="760" style="display:block;width:100%;max-width:760px;height:auto;border:0" />
@@ -203,7 +199,7 @@ export async function onRequestPost({ request, env }) {
       text: EMAIL_TEXT,
       tags: [
         { name: 'category', value: 'product_update' },
-        { name: 'campaign', value: 'ecosystem_progress_sep2026' },
+        { name: 'campaign', value: 'global_expansion_20260916' },
       ],
     }));
 

@@ -4,8 +4,8 @@ import { getSessionToken, verifySessionToken } from '../../../../server/auth/ses
 import { getActiveSession } from '../../../../server/auth/sessions.js';
 import { getUserById } from '../../../../server/auth/users.js';
 
-const CAMPAIGN_ID = 'ecosystem-progress-2026-09-03';
-const SUBJECT = 'Perkembangan Positif Ekosistem KriptoAman — September 2026';
+const CAMPAIGN_ID = 'global-expansion-2026-09-16';
+const SUBJECT = 'KriptoAman Memasuki Fase Ekspansi Global — 16 September 2026';
 const MAX_PAGES = 3;
 const PAGE_LIMIT = 100;
 const BEFORE_AUDIT_MS = 10 * 60 * 1000;
