@@ -15,163 +15,89 @@ jobs:
     name: Verify production user aggregates
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    env:
-      CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
     steps:
-      - name: Validate Cloudflare credentials
+      - name: Query deployed aggregate-only verification endpoint
         shell: bash
         run: |
           set -euo pipefail
-          if [[ -z "${CF_ACCOUNT_ID:-}" || -z "${CF_API_TOKEN:-}" ]]; then
-            echo "Required Cloudflare repository secrets are missing."
-            exit 1
-          fi
-          account_id="$(printf '%s' "${CF_ACCOUNT_ID}" | tr -d '[:space:]')"
-          api_token="$(printf '%s' "${CF_API_TOKEN}" | tr -d '\r\n')"
-          echo "::add-mask::${api_token}"
-          printf 'CF_ACCOUNT_ID_CLEAN=%s\n' "${account_id}" >> "$GITHUB_ENV"
-          printf 'CF_API_TOKEN_CLEAN=%s\n' "${api_token}" >> "$GITHUB_ENV"
-
-      - name: Discover D1 database containing auth_users
-        shell: bash
-        run: |
-          set -euo pipefail
+          endpoint='https://kriptoaman.com/api/internal-verification-20260916'
           mkdir -p verification
 
-          response="$(curl --silent --show-error \
-            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID_CLEAN}/d1/database?per_page=100" \
-            --header "Authorization: Bearer ${CF_API_TOKEN_CLEAN}" \
-            --header "Accept: application/json")"
+          response=''
+          status='000'
+          for attempt in $(seq 1 18); do
+            body_file="$(mktemp)"
+            status="$(curl --silent --show-error --location \
+              --connect-timeout 10 --max-time 25 \
+              --output "${body_file}" --write-out '%{http_code}' \
+              --header 'Accept: application/json' \
+              --header 'Cache-Control: no-cache' \
+              "${endpoint}?t=$(date +%s)-${attempt}" || true)"
+            response="$(cat "${body_file}")"
+            rm -f "${body_file}"
 
-          if [[ "$(jq -r '.success // false' <<<"${response}")" != "true" ]]; then
-            echo "Cloudflare D1 database discovery failed."
-            jq -c '{errors: [.errors[]? | {code, message}]}' <<<"${response}"
+            if [[ "${status}" == '200' ]] && jq -e '.source == "production AUTH_DB" and (.stats.totalUsers | type == "number")' >/dev/null 2>&1 <<<"${response}"; then
+              break
+            fi
+            echo "Verification endpoint not ready yet (attempt ${attempt}, HTTP ${status})."
+            sleep 10
+          done
+
+          if [[ "${status}" != '200' ]]; then
+            echo "Production verification endpoint never returned HTTP 200."
             exit 1
           fi
-
-          jq -c '.result // []' <<<"${response}" > verification/d1-databases.json
-          candidate_file="verification/auth-db-candidates.jsonl"
-          : > "${candidate_file}"
-
-          while IFS=$'\t' read -r database_id database_name; do
-            [[ -n "${database_id}" ]] || continue
-            echo "::add-mask::${database_id}"
-            probe_payload="$(jq -n --arg sql "SELECT COUNT(*) AS present FROM sqlite_master WHERE type='table' AND name='auth_users';" '{sql:$sql, params:[]}')"
-            probe="$(curl --silent --show-error \
-              --request POST \
-              "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID_CLEAN}/d1/database/${database_id}/query" \
-              --header "Authorization: Bearer ${CF_API_TOKEN_CLEAN}" \
-              --header "Content-Type: application/json" \
-              --data "${probe_payload}")"
-
-            if [[ "$(jq -r '.success // false' <<<"${probe}")" != "true" ]]; then
-              continue
-            fi
-            present="$(jq -r '.result[0].results[0].present // 0' <<<"${probe}")"
-            if [[ "${present}" == "1" ]]; then
-              jq -nc --arg id "${database_id}" --arg name "${database_name}" '{id:$id,name:$name}' >> "${candidate_file}"
-            fi
-          done < <(jq -r '.result[]? | [(.uuid // .id // ""), (.name // "unnamed")] | @tsv' <<<"${response}")
-
-          candidate_count="$(wc -l < "${candidate_file}" | tr -d ' ')"
-          echo "AUTH_DB candidate databases found: ${candidate_count}"
-          if [[ "${candidate_count}" -eq 0 ]]; then
-            echo "No D1 database containing auth_users was accessible with the configured token."
+          if ! jq -e '.source == "production AUTH_DB"' >/dev/null 2>&1 <<<"${response}"; then
+            echo "Unexpected verification source."
             exit 2
           fi
 
-          if [[ "${candidate_count}" -gt 1 ]]; then
-            echo "Multiple D1 databases contain auth_users; all will be queried and reported as aggregate-only candidates."
+          printf '%s\n' "${response}" | jq '.' | tee verification/user-data-verification.json
+
+          verified="$(jq -r '.verified' <<<"${response}")"
+          total="$(jq -r '.stats.totalUsers' <<<"${response}")"
+          regular="$(jq -r '.stats.regularUsers' <<<"${response}")"
+          admins="$(jq -r '.stats.adminUsers' <<<"${response}")"
+          email_verified="$(jq -r '.stats.emailVerifiedUsers' <<<"${response}")"
+          kyc_none="$(jq -r '.stats.kyc.none' <<<"${response}")"
+          kyc_pending="$(jq -r '.stats.kyc.pending' <<<"${response}")"
+          kyc_approved="$(jq -r '.stats.kyc.approved' <<<"${response}")"
+          kyc_rejected="$(jq -r '.stats.kyc.rejected' <<<"${response}")"
+          kyc_other="$(jq -r '.stats.kyc.other' <<<"${response}")"
+          missing_id="$(jq -r '.stats.missingId' <<<"${response}")"
+          missing_email="$(jq -r '.stats.missingEmail' <<<"${response}")"
+          duplicate_email="$(jq -r '.stats.duplicateEmailRows' <<<"${response}")"
+          invalid_verified="$(jq -r '.stats.invalidEmailVerified' <<<"${response}")"
+          as_of="$(jq -r '.asOf' <<<"${response}")"
+
+          {
+            echo '# Production user data verification'
+            echo
+            echo '- Source: **production AUTH_DB binding**'
+            echo "- Total users: **${total}**"
+            echo "- Regular users: **${regular}**"
+            echo "- Admin users: **${admins}**"
+            echo "- Email verified: **${email_verified}**"
+            echo "- KYC none/pending/approved/rejected/other: **${kyc_none}/${kyc_pending}/${kyc_approved}/${kyc_rejected}/${kyc_other}**"
+            echo "- Missing ID: **${missing_id}**"
+            echo "- Missing email: **${missing_email}**"
+            echo "- Duplicate email rows: **${duplicate_email}**"
+            echo "- Invalid email_verified values: **${invalid_verified}**"
+            echo "- Aggregate integrity: **${verified}**"
+            echo "- Verified at: **${as_of}**"
+            echo
+            echo 'No individual email, ID, name, phone number, or other user PII is returned.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "${verified}" != 'true' ]]; then
+            echo 'Production user aggregate integrity verification failed.'
+            exit 3
           fi
 
-      - name: Query and verify candidate user aggregates
-        shell: bash
-        run: |
-          set -euo pipefail
-          results_file="verification/user-data-verification.jsonl"
-          : > "${results_file}"
+          echo "PRODUCTION_USER_TOTAL=${total}"
+          echo 'Production user dataset aggregate verification passed.'
 
-          sql="SELECT COUNT(*) AS total_users, SUM(CASE WHEN role = 'user' THEN 1 ELSE 0 END) AS regular_users, SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) AS admin_users, SUM(CASE WHEN role NOT IN ('user','admin') OR role IS NULL THEN 1 ELSE 0 END) AS other_roles, SUM(CASE WHEN email_verified = 1 THEN 1 ELSE 0 END) AS email_verified_users, SUM(CASE WHEN email_verified NOT IN (0,1) OR email_verified IS NULL THEN 1 ELSE 0 END) AS invalid_email_verified, SUM(CASE WHEN COALESCE(kyc_status,'none') = 'none' THEN 1 ELSE 0 END) AS kyc_none, SUM(CASE WHEN kyc_status = 'pending' THEN 1 ELSE 0 END) AS kyc_pending, SUM(CASE WHEN kyc_status = 'approved' THEN 1 ELSE 0 END) AS kyc_approved, SUM(CASE WHEN kyc_status = 'rejected' THEN 1 ELSE 0 END) AS kyc_rejected, SUM(CASE WHEN kyc_status NOT IN ('none','pending','approved','rejected') AND kyc_status IS NOT NULL THEN 1 ELSE 0 END) AS kyc_other, SUM(CASE WHEN id IS NULL OR TRIM(id) = '' THEN 1 ELSE 0 END) AS missing_id, SUM(CASE WHEN email IS NULL OR TRIM(email) = '' THEN 1 ELSE 0 END) AS missing_email, COUNT(*) - COUNT(DISTINCT LOWER(TRIM(email))) AS duplicate_email_rows FROM auth_users;"
-          payload="$(jq -n --arg sql "$sql" '{sql:$sql, params:[]}')"
-
-          while IFS= read -r candidate; do
-            database_id="$(jq -r '.id' <<<"${candidate}")"
-            database_name="$(jq -r '.name' <<<"${candidate}")"
-            echo "::add-mask::${database_id}"
-            response="$(curl --silent --show-error \
-              --request POST \
-              "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID_CLEAN}/d1/database/${database_id}/query" \
-              --header "Authorization: Bearer ${CF_API_TOKEN_CLEAN}" \
-              --header "Content-Type: application/json" \
-              --data "${payload}")"
-
-            if [[ "$(jq -r '.success // false' <<<"${response}")" != "true" ]]; then
-              echo "Aggregate query failed for candidate database ${database_name}."
-              exit 3
-            fi
-
-            row="$(jq -c '.result[0].results[0] // empty' <<<"${response}")"
-            [[ -n "${row}" ]] || { echo "Aggregate query returned no row for ${database_name}."; exit 3; }
-
-            total="$(jq -r '.total_users // 0' <<<"${row}")"
-            regular="$(jq -r '.regular_users // 0' <<<"${row}")"
-            admins="$(jq -r '.admin_users // 0' <<<"${row}")"
-            other_roles="$(jq -r '.other_roles // 0' <<<"${row}")"
-            kyc_none="$(jq -r '.kyc_none // 0' <<<"${row}")"
-            kyc_pending="$(jq -r '.kyc_pending // 0' <<<"${row}")"
-            kyc_approved="$(jq -r '.kyc_approved // 0' <<<"${row}")"
-            kyc_rejected="$(jq -r '.kyc_rejected // 0' <<<"${row}")"
-            kyc_other="$(jq -r '.kyc_other // 0' <<<"${row}")"
-            missing_id="$(jq -r '.missing_id // 0' <<<"${row}")"
-            missing_email="$(jq -r '.missing_email // 0' <<<"${row}")"
-            dupes="$(jq -r '.duplicate_email_rows // 0' <<<"${row}")"
-            invalid_verified="$(jq -r '.invalid_email_verified // 0' <<<"${row}")"
-
-            role_sum=$((regular + admins + other_roles))
-            kyc_sum=$((kyc_none + kyc_pending + kyc_approved + kyc_rejected + kyc_other))
-            verified=true
-            [[ "${role_sum}" -eq "${total}" ]] || verified=false
-            [[ "${kyc_sum}" -eq "${total}" ]] || verified=false
-            [[ "${missing_id}" -eq 0 ]] || verified=false
-            [[ "${missing_email}" -eq 0 ]] || verified=false
-            [[ "${dupes}" -eq 0 ]] || verified=false
-            [[ "${invalid_verified}" -eq 0 ]] || verified=false
-
-            timestamp="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-            jq -nc \
-              --arg asOf "${timestamp}" \
-              --arg databaseName "${database_name}" \
-              --argjson verified "${verified}" \
-              --argjson aggregates "${row}" \
-              '{asOf:$asOf,databaseName:$databaseName,verified:$verified,source:"Cloudflare D1",aggregates:$aggregates}' \
-              >> "${results_file}"
-          done < verification/auth-db-candidates.jsonl
-
-          jq -s '.' "${results_file}" > verification/user-data-verification.json
-          candidate_count="$(jq 'length' verification/user-data-verification.json)"
-          verified_count="$(jq '[.[] | select(.verified == true)] | length' verification/user-data-verification.json)"
-
-          echo "# Production user data verification" >> "$GITHUB_STEP_SUMMARY"
-          echo >> "$GITHUB_STEP_SUMMARY"
-          jq -r '.[] | "- Database candidate: **\(.databaseName)** — total users **\(.aggregates.total_users)**; regular **\(.aggregates.regular_users)**; admin **\(.aggregates.admin_users)**; email verified **\(.aggregates.email_verified_users)**; KYC none/pending/approved/rejected/other **\(.aggregates.kyc_none)/\(.aggregates.kyc_pending)/\(.aggregates.kyc_approved)/\(.aggregates.kyc_rejected)/\(.aggregates.kyc_other)**; integrity **\(.verified)**; as of **\(.asOf)**"' verification/user-data-verification.json >> "$GITHUB_STEP_SUMMARY"
-          echo >> "$GITHUB_STEP_SUMMARY"
-          echo "No user email, ID, name, phone number, or other PII is emitted by this workflow." >> "$GITHUB_STEP_SUMMARY"
-
-          cat verification/user-data-verification.json
-
-          if [[ "${candidate_count}" -ne 1 ]]; then
-            echo "Verification is not definitive because ${candidate_count} D1 databases contain auth_users."
-            exit 4
-          fi
-          if [[ "${verified_count}" -ne 1 ]]; then
-            echo "The sole auth_users database failed aggregate integrity checks."
-            exit 5
-          fi
-
-          echo "Production user dataset aggregate verification passed."
-
-      - name: Upload verification artifact
+      - name: Upload aggregate verification artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
