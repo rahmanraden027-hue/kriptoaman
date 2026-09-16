@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MASTER_SOURCE="${1:-$ROOT_DIR/design/kriptoaman-shield-master.png}"
 WORK_DIR="$ROOT_DIR/tmp/shield-brand"
-NAVY="#050D18"
+NAVY="#071525"
 
 if [[ ! -f "$MASTER_SOURCE" ]]; then
   echo "Missing master logo: $MASTER_SOURCE" >&2
@@ -15,7 +15,7 @@ mkdir -p "$WORK_DIR" "$ROOT_DIR/public/brand" "$ROOT_DIR/public/icons" "$ROOT_DI
 
 # Remove only the connected black canvas; the dark shield interior remains intact.
 convert "$MASTER_SOURCE" -alpha on -bordercolor black -border 1 \
-  -fill none -draw 'matte 0,0 floodfill' -shave 1x1 \
+  -fill none -draw 'alpha 0,0 floodfill' -shave 1x1 \
   -trim +repage -resize 880x880 \
   -gravity center -background none -extent 1024x1024 \
   "$WORK_DIR/shield-transparent-1024.png"
