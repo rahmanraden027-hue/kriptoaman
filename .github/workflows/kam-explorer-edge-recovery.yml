@@ -1,0 +1,101 @@
+name: KAM Explorer Edge Recovery
+
+on:
+  push:
+    branches: [ops/explorer-edge-recovery-20260918]
+    paths:
+      - 'chain/kam-mainnet/explorer-edge-recovery/**'
+      - '.github/workflows/kam-explorer-edge-recovery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-recovery-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    environment: production
+    steps:
+      - name: Checkout recovery branch
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Validate Explorer recovery source
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check chain/kam-mainnet/explorer-edge-recovery/worker.js
+          grep -Fq 'data-kam-explorer-version="2.0.0"' explorer-dashboard/index.html
+          grep -Fq 'Unavailable data is shown as unavailable—not invented' explorer-dashboard/index.html
+          ! grep -Fq 'Placeholder Counter' explorer-dashboard/index.html
+          echo 'explorer_recovery_source_verified=true'
+
+      - name: Stage reviewed Explorer assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          TARGET='chain/kam-mainnet/explorer-edge-recovery/public'
+          rm -rf "$TARGET"
+          mkdir -p "$TARGET"
+          cp -a explorer-dashboard/. "$TARGET/"
+          test -f "$TARGET/index.html"
+          test -f "$TARGET/blocks.html"
+          test -f "$TARGET/transactions.html"
+          test -f "$TARGET/transaction-detail.html"
+          test -f "$TARGET/block-detail.html"
+          test -f "$TARGET/address-detail.html"
+
+      - name: Deploy recovery preview at Cloudflare edge
+        working-directory: chain/kam-mainnet/explorer-edge-recovery
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+          test -n "$CLOUDFLARE_API_TOKEN"
+          npx --yes wrangler@4.134.0 deploy --message 'KAM Explorer non-destructive edge recovery preview'
+
+      - name: Verify recovery preview presentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://explorer-recovery.kriptoaman.com'
+          READY=false
+          for attempt in $(seq 1 18); do
+            CODE="$(curl -L -sS -o /tmp/home.html -w '%{http_code}' --max-time 20 "$BASE/" || true)"
+            if [ "$CODE" = '200' ] && grep -Fq 'data-kam-explorer-version="2.0.0"' /tmp/home.html; then READY=true; break; fi
+            echo "presentation_attempt=$attempt http=$CODE"
+            test "$attempt" -lt 18
+            sleep 8
+          done
+          test "$READY" = true
+          for path in /blocks /txs /stats /tokens /status /developer; do
+            code="$(curl -L -sS -o /dev/null -w '%{http_code}' --max-time 20 "$BASE$path" || true)"
+            test "$code" = '200'
+          done
+          echo 'explorer_recovery_presentation_verified=true'
+
+      - name: Report verified live data readiness
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://explorer-recovery.kriptoaman.com'
+          CODE="$(curl -sS -o /tmp/edge-health.json -w '%{http_code}' --max-time 20 "$BASE/edge-health" || true)"
+          echo "edge_health_http=$CODE"
+          cat /tmp/edge-health.json || true
+          if [ "$CODE" = '200' ]; then
+            node - /tmp/edge-health.json <<'NODE'
+          const fs=require('fs'); const p=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+          if (!(p.ok===true && p.chainId==='0x560c' && Number.isInteger(p.blockNumber))) process.exit(1);
+          console.log(`explorer_recovery_live_data_ready block=${p.blockNumber}`);
+          NODE
+          else
+            echo 'explorer_recovery_live_data_pending_rpc=true'
+          fi
