@@ -17,10 +17,33 @@ jobs:
         shell: bash
         run: |
           set +e
-          curl -sS -o /dev/null -w 'rpc_health=%{http_code} time=%{time_total}\n' --connect-timeout 8 --max-time 15 https://rpc.kriptoaman.com/health || true
-          curl -sS -o /dev/null -w 'rpc_ready=%{http_code} time=%{time_total}\n' --connect-timeout 8 --max-time 15 https://rpc.kriptoaman.com/ready || true
-          curl -sS -o /dev/null -w 'explorer_home=%{http_code} time=%{time_total}\n' --connect-timeout 8 --max-time 15 https://explorer.kriptoaman.com/ || true
-          curl -sS -o /dev/null -w 'explorer_blocks=%{http_code} time=%{time_total}\n' --connect-timeout 8 --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks || true
+          show_get() {
+            url="$1"
+            echo "=== GET $url"
+            code="$(curl -sS -o /tmp/body --connect-timeout 8 --max-time 15 -w '%{http_code}' "$url" || true)"
+            echo "http=$code"
+            head -c 800 /tmp/body 2>/dev/null || true
+            echo
+          }
+          show_post() {
+            url="$1"
+            method="$2"
+            echo "=== POST $url $method"
+            code="$(curl -sS -o /tmp/body --connect-timeout 8 --max-time 15 -w '%{http_code}' -H 'content-type: application/json' --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"$method\",\"params\":[]}" "$url" || true)"
+            echo "http=$code"
+            head -c 800 /tmp/body 2>/dev/null || true
+            echo
+          }
+          show_get https://rpc.kriptoaman.com/health
+          show_get https://rpc.kriptoaman.com/ready
+          show_post https://rpc.kriptoaman.com eth_chainId
+          show_post https://rpc.kriptoaman.com eth_blockNumber
+          show_get https://explorer.kriptoaman.com/
+          show_get https://explorer.kriptoaman.com/api/v2/blocks
+          echo '=== recovery droplet public probes'
+          show_get http://152.42.199.82/
+          show_post http://152.42.199.82:8545 eth_chainId
+          show_post http://152.42.199.82:8545 eth_blockNumber
 
   host:
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
