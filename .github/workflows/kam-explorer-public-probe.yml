@@ -1,0 +1,42 @@
+name: KAM Explorer Public Probe
+
+on:
+  push:
+    branches: [kam-reconstruction-20260917]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify Explorer page is publicly reachable
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          code="$(curl --location --silent --show-error --connect-timeout 10 --max-time 25 -o "$body" -w '%{http_code}' https://explorer.kriptoaman.com/)"
+          echo "explorer_http=$code"
+          test "$code" = "200"
+          grep -q 'KriptoAman Explorer' "$body"
+          grep -q 'KAM Mainnet' "$body"
+
+      - name: Verify Explorer edge health
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          code="$(curl --location --silent --show-error --connect-timeout 10 --max-time 25 -o "$body" -w '%{http_code}' https://explorer.kriptoaman.com/health)"
+          echo "explorer_health_http=$code"
+          cat "$body"
+          test "$code" = "200"
+          jq -e '.status == "ok" and .service == "kam-mainnet-explorer-edge" and .chainId == "0x560c"' "$body"
+
+      - name: Report public RPC readiness without hiding Explorer result
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --location --silent --show-error --connect-timeout 10 --max-time 25 https://rpc.kriptoaman.com/ready || true
