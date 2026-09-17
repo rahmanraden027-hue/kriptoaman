@@ -232,7 +232,7 @@ async function main() {
       }
     }));
     return {
-      ok: methods.every((probe) => probe.ok && probe.latencyWithinLimit !== false),
+      ok: methods.every((probe) => probe.ok && probe.latencyWithinLimit),
       methods,
       maxLatencyMs: maxRpcLatencyMs,
     };
