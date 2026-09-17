@@ -1,5 +1,6 @@
 name: KAM RPC Readonly Diagnose
 
+# Read-only production diagnostics. No host mutation is performed.
 on:
   push:
     branches:
