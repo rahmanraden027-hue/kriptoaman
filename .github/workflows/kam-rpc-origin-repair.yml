@@ -16,7 +16,7 @@ jobs:
     timeout-minutes: 12
     environment: production
     steps:
-      - name: Checkout reviewed production code
+      - name: Checkout clean production gateway
         uses: actions/checkout@v7
         with:
           ref: main
@@ -26,63 +26,27 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Verify recovery origin identity, progression, and RPC boundary
-        shell: bash
-        run: |
-          set -euo pipefail
-          ORIGIN='http://152.42.199.82/rpc'
-          rpc() {
-            local method="$1" params="${2:-[]}"
-            curl -fsS --connect-timeout 5 --max-time 10 \
-              -H 'content-type: application/json' \
-              --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"$method\",\"params\":$params}" \
-              "$ORIGIN"
-          }
-          CHAIN="$(rpc eth_chainId | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).result||''))")"
-          test "$CHAIN" = '0x560c'
-          B1="$(rpc eth_blockNumber | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).result||''))")"
-          sleep 7
-          B2="$(rpc eth_blockNumber | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).result||''))")"
-          node - "$B1" "$B2" <<'NODE'
-          const a=BigInt(process.argv[2]); const b=BigInt(process.argv[3]);
-          if (b <= a) throw new Error(`block height did not advance: ${a} -> ${b}`);
-          console.log(`origin_block_progress=${a}->${b}`);
-          NODE
-          for method in admin_peers debug_traceTransaction personal_listAccounts qbft_getValidatorsByBlockNumber; do
-            BODY="$(rpc "$method" '["latest"]' || true)"
-            node - "$BODY" <<'NODE'
-          const p=JSON.parse(process.argv[2]);
-          if (!p.error || ![-32601,-32604].includes(Number(p.error.code))) throw new Error(`privileged RPC not blocked: ${process.argv[2]}`);
-          NODE
-          done
-          echo 'recovery_origin_verified=true'
-
-      - name: Validate Cloudflare credentials
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: |
-          test -n "$CLOUDFLARE_ACCOUNT_ID"
-          test -n "$CLOUDFLARE_API_TOKEN"
-
-      - name: Verify hostname-resolved recovery origin
+      - name: Verify recovery origin before any edge change
         shell: bash
         run: |
           set -euo pipefail
           HOST='152-42-199-82.sslip.io'
-          RESOLVED="$(getent ahostsv4 "$HOST" | awk 'NR==1{print $1}' || true)"
-          echo "origin_hostname_resolves_to=$RESOLVED"
-          test "$RESOLVED" = '152.42.199.82'
-          curl -fsS --connect-timeout 5 --max-time 10 "http://$HOST/health" -o /tmp/origin-health.json
-          node - /tmp/origin-health.json <<'NODE'
+          test "$(getent ahostsv4 "$HOST" | awk 'NR==1{print $1}')" = '152.42.199.82'
+          curl -fsS --max-time 10 "http://$HOST/health" -o /tmp/health.json
+          node - /tmp/health.json <<'NODE'
           const fs=require('fs'); const p=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
-          if (!(p.status==='ok' && p.chainId==='0x560c')) throw new Error(`unexpected origin health: ${JSON.stringify(p)}`);
+          if (!(p.status==='ok' && p.chainId==='0x560c')) throw new Error('KAM origin health mismatch');
           NODE
-          BODY="$(curl -fsS --connect-timeout 5 --max-time 10 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' "http://$HOST/rpc")"
-          test "$(node -e "const p=JSON.parse(process.argv[1]);process.stdout.write(p.result||'')" "$BODY")" = '0x560c'
-          echo 'hostname_origin_verified=true'
+          rpc(){ curl -fsS --max-time 10 -H 'content-type: application/json' --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"$1\",\"params\":[]}" "http://$HOST/rpc"; }
+          test "$(rpc eth_chainId | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).result||''))")" = '0x560c'
+          B1="$(rpc eth_blockNumber | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).result||''))")"
+          sleep 7
+          B2="$(rpc eth_blockNumber | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).result||''))")"
+          node - "$B1" "$B2" <<'NODE'
+          const a=BigInt(process.argv[2]), b=BigInt(process.argv[3]); if (b<=a) throw new Error(`origin block stalled ${a}->${b}`); console.log(`origin_block_progress=${a}->${b}`);
+          NODE
 
-      - name: Point Worker to hostname-resolved verified recovery origin
+      - name: Persist verified origin as Worker secret
         working-directory: chain/kam-mainnet/public-rpc-gateway
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -90,42 +54,49 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npx --yes wrangler@4.134.0 deploy \
-            --keep-vars \
-            --var 'KAM_RPC_ORIGIN:http://152-42-199-82.sslip.io/rpc' \
-            --message 'Recover KAM public RPC via hostname-resolved verified recovery origin'
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+          test -n "$CLOUDFLARE_API_TOKEN"
+          printf '%s' 'http://152-42-199-82.sslip.io/rpc' | npx --yes wrangler@4.134.0 secret put KAM_RPC_ORIGIN
+          npx --yes wrangler@4.134.0 secret list | grep -q 'KAM_RPC_ORIGIN'
+          echo 'kam_rpc_origin_secret_verified=true'
 
-      - name: Verify public RPC recovered
+      - name: Deploy clean production gateway from main
+        working-directory: chain/kam-mainnet/public-rpc-gateway
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4.134.0 deploy --message 'Final KAM public RPC recovery using verified persistent origin secret'
+
+      - name: Verify public RPC identity, progression, and security boundary
         shell: bash
         run: |
           set -euo pipefail
           READY=false
-          for attempt in $(seq 1 18); do
+          for attempt in $(seq 1 12); do
             CODE="$(curl -sS --max-time 15 -o /tmp/ready.json -w '%{http_code}' https://rpc.kriptoaman.com/ready || true)"
             if [ "$CODE" = '200' ] && node - /tmp/ready.json <<'NODE'
           const fs=require('fs'); const p=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
-          if (!(p.ready===true && p.chainId==='0x560c' && Number.isInteger(p.blockNumber) && p.blockNumber>=0)) process.exit(1);
+          if (!(p.ready===true && p.chainId==='0x560c' && Number.isInteger(p.blockNumber))) process.exit(1);
           console.log(`public_rpc_ready block=${p.blockNumber}`);
           NODE
             then READY=true; break; fi
-            echo "readiness_attempt=$attempt http=$CODE body=$(cat /tmp/ready.json 2>/dev/null || true)"
-            test "$attempt" -lt 18
-            sleep 10
+            echo "ready_attempt=$attempt http=$CODE body=$(cat /tmp/ready.json 2>/dev/null || true)"
+            sleep 5
           done
           test "$READY" = true
-          rpc_public() {
-            local method="$1" params="${2:-[]}"
-            curl -fsS --max-time 15 -H 'content-type: application/json' \
-              --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"$method\",\"params\":$params}" \
-              https://rpc.kriptoaman.com
-          }
-          test "$(rpc_public eth_chainId | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).result||''))")" = '0x560c'
-          B1="$(rpc_public eth_blockNumber | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).result||''))")"
+          rpc(){ curl -fsS --max-time 15 -H 'content-type: application/json' --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"$1\",\"params\":[]}" https://rpc.kriptoaman.com; }
+          test "$(rpc eth_chainId | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).result||''))")" = '0x560c'
+          B1="$(rpc eth_blockNumber | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).result||''))")"
           sleep 7
-          B2="$(rpc_public eth_blockNumber | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).result||''))")"
+          B2="$(rpc eth_blockNumber | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).result||''))")"
           node - "$B1" "$B2" <<'NODE'
-          const a=BigInt(process.argv[2]); const b=BigInt(process.argv[3]); if (b<=a) throw new Error(`public blocks stalled ${a}->${b}`); console.log(`public_block_progress=${a}->${b}`);
+          const a=BigInt(process.argv[2]), b=BigInt(process.argv[3]); if (b<=a) throw new Error(`public block stalled ${a}->${b}`); console.log(`public_block_progress=${a}->${b}`);
           NODE
-          ADMIN_CODE="$(curl -sS -o /tmp/admin.json -w '%{http_code}' --max-time 15 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"admin_peers","params":[]}' https://rpc.kriptoaman.com)"
-          test "$ADMIN_CODE" = '403'
-          echo 'public_rpc_recovery_verified=true'
+          for method in admin_peers debug_traceTransaction personal_listAccounts qbft_getValidatorsByBlockNumber; do
+            CODE="$(curl -sS -o /tmp/blocked.json -w '%{http_code}' --max-time 15 -H 'content-type: application/json' --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"$method\",\"params\":[]}" https://rpc.kriptoaman.com)"
+            test "$CODE" = '403'
+          done
+          echo 'public_rpc_final_recovery_verified=true'
