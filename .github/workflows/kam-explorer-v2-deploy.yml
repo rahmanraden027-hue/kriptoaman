@@ -54,7 +54,12 @@ jobs:
           else
             echo 'transaction_detail_route=unavailable_no_indexed_transactions'
           fi
-          curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/token/$CANONICAL_WKAM" >/dev/null
+          WKAM_INDEXED="$(curl -fsS --max-time 20 'https://explorer.kriptoaman.com/api/v2/tokens?type=ERC-20' | python3 -c 'import json,sys; d=json.load(sys.stdin); needle="0x0d8848ce88bb09a81a4248efdd574d50b98b544a"; print("yes" if needle in json.dumps(d).lower() else "no")')"
+          if [ "$WKAM_INDEXED" = 'yes' ]; then
+            curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/token/$CANONICAL_WKAM" >/dev/null
+          else
+            echo 'canonical_wkam_detail_route=unavailable_not_indexed'
+          fi
           for path in /blocks /txs /api-docs; do curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com$path" >/dev/null; done
           code="$(curl -L -sS -o /dev/null -w '%{http_code}' --max-time 20 "https://explorer.kriptoaman.com/token/$SECONDARY_WKAM" || true)"
           echo "secondary_wkam_detail_http=$code"
@@ -182,7 +187,12 @@ jobs:
           else
             echo 'transaction_detail_route=unavailable_no_indexed_transactions'
           fi
-          curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/token/$WKAM" >/dev/null
+          WKAM_INDEXED="$(curl -fsS --max-time 20 'https://explorer.kriptoaman.com/api/v2/tokens?type=ERC-20' | python3 -c 'import json,sys; d=json.load(sys.stdin); needle="0x0d8848ce88bb09a81a4248efdd574d50b98b544a"; print("yes" if needle in json.dumps(d).lower() else "no")')"
+          if [ "$WKAM_INDEXED" = 'yes' ]; then
+            curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/token/$WKAM" >/dev/null
+          else
+            echo 'canonical_wkam_detail_route=unavailable_not_indexed'
+          fi
           for path in /blocks /txs /api-docs; do curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com$path" >/dev/null; done
       - name: Re-run public core diagnostic
         run: node scripts/diagnose-blockscout.mjs
