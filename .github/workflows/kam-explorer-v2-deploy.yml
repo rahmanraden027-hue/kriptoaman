@@ -5,6 +5,7 @@ on:
     paths:
       - 'explorer-dashboard/**'
       - 'scripts/deploy-kam-explorer-v2.sh'
+      - 'scripts/diagnose-blockscout.mjs'
       - 'tests/kam-explorer-v2-dashboard.test.mjs'
       - '.github/workflows/kam-explorer-v2-deploy.yml'
   push:
@@ -12,6 +13,7 @@ on:
     paths:
       - 'explorer-dashboard/**'
       - 'scripts/deploy-kam-explorer-v2.sh'
+      - 'scripts/diagnose-blockscout.mjs'
       - 'tests/kam-explorer-v2-dashboard.test.mjs'
       - '.github/workflows/kam-explorer-v2-deploy.yml'
   workflow_dispatch:
