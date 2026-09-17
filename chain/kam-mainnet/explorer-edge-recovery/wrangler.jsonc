@@ -6,7 +6,7 @@
   "workers_dev": false,
   "routes": [
     {
-      "pattern": "explorer-recovery.kriptoaman.com",
+      "pattern": "explorer.kriptoaman.com",
       "custom_domain": true
     }
   ],
