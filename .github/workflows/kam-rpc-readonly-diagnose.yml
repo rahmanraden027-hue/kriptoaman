@@ -16,6 +16,64 @@ permissions:
   contents: read
 
 jobs:
+  external-diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read-only external DNS, origin and edge diagnostics
+        shell: bash
+        run: |
+          set +e
+          RECOVERY_IP='152.42.199.82'
+          echo "checked_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "rpc_dns=$(getent ahostsv4 rpc.kriptoaman.com | awk 'NR==1{print $1}' || true)"
+          echo "origin_dns=$(getent ahostsv4 kam-origin.kriptoaman.com | awk 'NR==1{print $1}' || true)"
+
+          edge_code="$(curl -sS -o /tmp/edge.json -w '%{http_code}' --max-time 8 \
+            -H 'content-type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+            https://rpc.kriptoaman.com 2>/dev/null)"
+          edge_result="$(sed -n 's/.*"result":"\([^"]*\)".*/\1/p' /tmp/edge.json | head -1)"
+          echo "rpc_edge_http=${edge_code:-000} chain=${edge_result:-none}"
+
+          explorer_code="$(curl -sS -o /tmp/blocks.json -w '%{http_code}' --max-time 8 \
+            -H 'accept: application/json' https://explorer.kriptoaman.com/api/v2/blocks 2>/dev/null)"
+          explorer_items="$(python3 - <<'PY'
+import json
+try:
+    d=json.load(open('/tmp/blocks.json'))
+    print(len(d.get('items') or []))
+except Exception:
+    print('invalid')
+PY
+)"
+          echo "explorer_blocks_http=${explorer_code:-000} items=${explorer_items}"
+
+          for port in 80 443 8545 8645 8646 8647 8648; do
+            if timeout 3 bash -c "</dev/tcp/${RECOVERY_IP}/${port}" 2>/dev/null; then
+              echo "recovery_ip_port_${port}=open"
+            else
+              echo "recovery_ip_port_${port}=closed_or_filtered"
+            fi
+          done
+
+          origin_http="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 6 \
+            -H 'Host: kam-origin.kriptoaman.com' "http://${RECOVERY_IP}/" 2>/dev/null)"
+          rpc_host_http="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 6 \
+            -H 'Host: rpc.kriptoaman.com' "http://${RECOVERY_IP}/" 2>/dev/null)"
+          echo "recovery_origin_http=${origin_http:-000}"
+          echo "recovery_rpc_host_http=${rpc_host_http:-000}"
+
+          origin_tls="$(curl -k -sS -o /dev/null -w '%{http_code}' --max-time 8 \
+            --resolve "kam-origin.kriptoaman.com:443:${RECOVERY_IP}" \
+            https://kam-origin.kriptoaman.com/ 2>/dev/null)"
+          rpc_tls="$(curl -k -sS -o /dev/null -w '%{http_code}' --max-time 8 \
+            --resolve "rpc.kriptoaman.com:443:${RECOVERY_IP}" \
+            https://rpc.kriptoaman.com/ 2>/dev/null)"
+          echo "recovery_origin_https=${origin_tls:-000}"
+          echo "recovery_rpc_host_https=${rpc_tls:-000}"
+          echo "diagnostic_mode=external_read_only"
+
   diagnose:
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
     timeout-minutes: 5
