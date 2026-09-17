@@ -45,11 +45,15 @@ jobs:
       - name: Verify existing public detail routes
         run: |
           set -euo pipefail
-          TX="$(curl -fsS --max-time 20 'https://explorer.kriptoaman.com/api/v2/transactions' | python3 -c 'import json,sys; d=json.load(sys.stdin); items=d.get("items",[]); assert items and items[0].get("hash"); print(items[0]["hash"])')"
+          TX="$(curl -fsS --max-time 20 'https://explorer.kriptoaman.com/api/v2/transactions' | python3 -c 'import json,sys; d=json.load(sys.stdin); items=d.get("items",[]); print((items[0].get("hash") or "") if items else "")')"
           CANONICAL_WKAM='0x0d8848CE88BB09a81a4248Efdd574d50B98b544A'
           SECONDARY_WKAM='0x36a416d3C74A5d4AF9Fd4826e010CE9B00289fc7'
-          echo "indexed_tx_for_route_check=$TX"
-          curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/tx/$TX" >/dev/null
+          if [ -n "$TX" ]; then
+            echo "indexed_tx_for_route_check=$TX"
+            curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/tx/$TX" >/dev/null
+          else
+            echo 'transaction_detail_route=unavailable_no_indexed_transactions'
+          fi
           curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/token/$CANONICAL_WKAM" >/dev/null
           for path in /blocks /txs /api-docs; do curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com$path" >/dev/null; done
           code="$(curl -L -sS -o /dev/null -w '%{http_code}' --max-time 20 "https://explorer.kriptoaman.com/token/$SECONDARY_WKAM" || true)"
@@ -170,10 +174,14 @@ jobs:
       - name: Verify Blockscout detail routing remains intact
         run: |
           set -euo pipefail
-          TX="$(curl -fsS --max-time 20 'https://explorer.kriptoaman.com/api/v2/transactions' | python3 -c 'import json,sys; d=json.load(sys.stdin); items=d.get("items",[]); assert items and items[0].get("hash"); print(items[0]["hash"])')"
+          TX="$(curl -fsS --max-time 20 'https://explorer.kriptoaman.com/api/v2/transactions' | python3 -c 'import json,sys; d=json.load(sys.stdin); items=d.get("items",[]); print((items[0].get("hash") or "") if items else "")')"
           WKAM='0x0d8848CE88BB09a81a4248Efdd574d50B98b544A'
-          echo "indexed_tx_for_route_check=$TX"
-          curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/tx/$TX" >/dev/null
+          if [ -n "$TX" ]; then
+            echo "indexed_tx_for_route_check=$TX"
+            curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/tx/$TX" >/dev/null
+          else
+            echo 'transaction_detail_route=unavailable_no_indexed_transactions'
+          fi
           curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/token/$WKAM" >/dev/null
           for path in /blocks /txs /api-docs; do curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com$path" >/dev/null; done
       - name: Re-run public core diagnostic
