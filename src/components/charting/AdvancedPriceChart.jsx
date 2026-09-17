@@ -1,76 +1,49 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createChart, CrosshairMode } from 'lightweight-charts';
 import { RefreshCw, CandlestickChart, LineChart, TrendingUp, TrendingDown, X } from 'lucide-react';
+import { getHistoricalSeries } from '@/components/market/marketDataService';
+import { getReadOnlyMarketPrices } from '@/lib/readOnlyMarketPrices';
 
 const TIMEFRAMES = [
-  { label: '1H', days: 1, interval: 'hourly', cgDays: 2 },
-  { label: '24H', days: 1, interval: 'hourly', cgDays: 1 },
-  { label: '7D', days: 7, interval: 'daily', cgDays: 7 },
-  { label: '1M', days: 30, interval: 'daily', cgDays: 30 },
-  { label: '1Y', days: 365, interval: 'daily', cgDays: 365 },
+  { label: '24H', days: 1 },
+  { label: '7D', days: 7 },
+  { label: '1M', days: 30 },
+  { label: '6M', days: 180 },
+  { label: '1Y', days: 365 },
 ];
 
-const COIN_GECKO_IDS = {
-  BTC: 'bitcoin', ETH: 'ethereum', BNB: 'binancecoin',
-  SOL: 'solana', DOGE: 'dogecoin', MATIC: 'matic-network',
-  LTC: 'litecoin', USDT: 'tether', USDC: 'usd-coin',
-  XRP: 'ripple', ADA: 'cardano', DOT: 'polkadot',
-};
+const mapCandles = (candles) => candles.map((candle) => ({
+  time: Math.floor(Number(candle.openTime) / 1000),
+  open: Number(candle.open),
+  high: Number(candle.high),
+  low: Number(candle.low),
+  close: Number(candle.close),
+})).filter((row) =>
+  Number.isFinite(row.time) &&
+  Number.isFinite(row.open) &&
+  Number.isFinite(row.high) &&
+  Number.isFinite(row.low) &&
+  Number.isFinite(row.close),
+);
 
-async function fetchOHLC(coinId, cgDays) {
-  const geckoId = COIN_GECKO_IDS[coinId?.toUpperCase()] || coinId?.toLowerCase();
-  // Use OHLC endpoint for candlestick
-  const ohlcRes = await fetch(
-    `https://api.coingecko.com/api/v3/coins/${geckoId}/ohlc?vs_currency=usd&days=${cgDays}`
-  );
-  if (!ohlcRes.ok) throw new Error('Failed to fetch OHLC');
-  const ohlc = await ohlcRes.json();
-  return ohlc.map(([time, open, high, low, close]) => ({
-    time: Math.floor(time / 1000),
-    open, high, low, close,
-  }));
-}
-
-async function fetchLine(coinId, cgDays) {
-  const geckoId = COIN_GECKO_IDS[coinId?.toUpperCase()] || coinId?.toLowerCase();
-  const res = await fetch(
-    `https://api.coingecko.com/api/v3/coins/${geckoId}/market_chart?vs_currency=usd&days=${cgDays}`
-  );
-  if (!res.ok) throw new Error('Failed to fetch line data');
-  const data = await res.json();
-  const prices = data.prices || [];
-  // Deduplicate by time
-  const seen = new Set();
-  return prices.reduce((acc, [ts, price]) => {
-    const t = Math.floor(ts / 1000);
-    if (!seen.has(t)) { seen.add(t); acc.push({ time: t, value: price }); }
-    return acc;
-  }, []);
-}
-
-async function fetchCurrentPrice(coinId) {
-  const geckoId = COIN_GECKO_IDS[coinId?.toUpperCase()] || coinId?.toLowerCase();
-  const res = await fetch(
-    `https://api.coingecko.com/api/v3/simple/price?ids=${geckoId}&vs_currencies=usd&include_24hr_change=true`
-  );
-  const data = await res.json();
-  const info = data[geckoId];
-  return { price: info?.usd, change24h: info?.usd_24h_change };
-}
+const mapLine = (candles) => candles.map((candle) => ({
+  time: Math.floor(Number(candle.openTime) / 1000),
+  value: Number(candle.close),
+})).filter((row) => Number.isFinite(row.time) && Number.isFinite(row.value));
 
 export default function AdvancedPriceChart({ coinId = 'BTC', coinName = 'Bitcoin', onClose }) {
   const chartContainerRef = useRef(null);
   const chartRef = useRef(null);
   const seriesRef = useRef(null);
 
-  const [timeframe, setTimeframe] = useState(TIMEFRAMES[2]); // 7D default
-  const [chartType, setChartType] = useState('candlestick'); // 'candlestick' | 'line'
+  const [timeframe, setTimeframe] = useState(TIMEFRAMES[1]);
+  const [chartType, setChartType] = useState('candlestick');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [priceInfo, setPriceInfo] = useState({ price: null, change24h: null });
+  const [priceInfo, setPriceInfo] = useState({ price: null, change24h: null, freshness: null, capturedAt: null });
+  const [historyInfo, setHistoryInfo] = useState({ source: null, cached: false, gaps: 0, capturedAt: null });
   const [crosshairPrice, setCrosshairPrice] = useState(null);
 
-  // Init chart
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
@@ -113,9 +86,7 @@ export default function AdvancedPriceChart({ coinId = 'BTC', coinName = 'Bitcoin
     });
 
     const handleResize = () => {
-      if (chartContainerRef.current) {
-        chart.applyOptions({ width: chartContainerRef.current.clientWidth });
-      }
+      if (chartContainerRef.current) chart.applyOptions({ width: chartContainerRef.current.clientWidth });
     };
     window.addEventListener('resize', handleResize);
 
@@ -131,18 +102,41 @@ export default function AdvancedPriceChart({ coinId = 'BTC', coinName = 'Bitcoin
     setLoading(true);
     setError(null);
 
-    // Remove old series
     if (seriesRef.current) {
       try { chartRef.current.removeSeries(seriesRef.current); } catch {}
       seriesRef.current = null;
     }
 
     try {
-      const [priceData] = await Promise.all([fetchCurrentPrice(coinId)]);
-      setPriceInfo(priceData);
+      const symbol = String(coinId || '').toUpperCase();
+      const [history, marketPrices] = await Promise.all([
+        getHistoricalSeries(symbol, timeframe.days),
+        getReadOnlyMarketPrices(),
+      ]);
+
+      const current = marketPrices?.[symbol] || null;
+      setPriceInfo({
+        price: Number.isFinite(Number(current?.price)) ? Number(current.price) : null,
+        change24h: Number.isFinite(Number(current?.change24h)) ? Number(current.change24h) : null,
+        freshness: current?.freshness || null,
+        capturedAt: Number(current?.capturedAt) || null,
+      });
+
+      const candles = Array.isArray(history?.candles) ? history.candles : [];
+      setHistoryInfo({
+        source: history?.source || null,
+        cached: Boolean(history?.cached),
+        gaps: Array.isArray(history?.gaps) ? history.gaps.length : 0,
+        capturedAt: Number(history?.capturedAt) || null,
+      });
+
+      if (candles.length < 2) {
+        throw new Error('Riwayat tersimpan belum tersedia untuk aset/periode ini');
+      }
 
       if (chartType === 'candlestick') {
-        const ohlcData = await fetchOHLC(coinId, timeframe.cgDays);
+        const ohlcData = mapCandles(candles);
+        if (ohlcData.length < 2) throw new Error('Data candlestick tersimpan belum mencukupi');
         const series = chartRef.current.addCandlestickSeries({
           upColor: '#22c55e',
           downColor: '#ef4444',
@@ -154,8 +148,12 @@ export default function AdvancedPriceChart({ coinId = 'BTC', coinName = 'Bitcoin
         series.setData(ohlcData);
         seriesRef.current = series;
       } else {
-        const lineData = await fetchLine(coinId, timeframe.cgDays);
-        const isUp = (priceData.change24h || 0) >= 0;
+        const lineData = mapLine(candles);
+        if (lineData.length < 2) throw new Error('Data line tersimpan belum mencukupi');
+        const referenceChange = Number(current?.change24h);
+        const isUp = Number.isFinite(referenceChange)
+          ? referenceChange >= 0
+          : lineData[lineData.length - 1].value >= lineData[0].value;
         const series = chartRef.current.addAreaSeries({
           lineColor: isUp ? '#22c55e' : '#ef4444',
           topColor: isUp ? '#22c55e33' : '#ef444433',
@@ -169,7 +167,7 @@ export default function AdvancedPriceChart({ coinId = 'BTC', coinName = 'Bitcoin
 
       chartRef.current.timeScale().fitContent();
     } catch (e) {
-      setError('Gagal memuat data chart');
+      setError(e?.message || 'Riwayat chart belum tersedia');
     } finally {
       setLoading(false);
     }
@@ -179,15 +177,16 @@ export default function AdvancedPriceChart({ coinId = 'BTC', coinName = 'Bitcoin
 
   const isUp = (priceInfo.change24h || 0) >= 0;
   const displayPrice = crosshairPrice ?? priceInfo.price;
+  const priceIsArchived = priceInfo.freshness === 'archived' || priceInfo.freshness === 'stale';
+  const historyIsCached = historyInfo.cached || historyInfo.source === 'browser-last-known-good';
 
   return (
     <div className="bg-slate-900 border border-slate-700/60 rounded-2xl overflow-hidden flex flex-col">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
         <div className="flex items-center gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-white font-bold text-base">{coinId}/USDT</span>
+              <span className="text-white font-bold text-base">{coinId}/USD</span>
               <span className="text-slate-400 text-xs">{coinName}</span>
             </div>
             <div className="flex items-center gap-2 mt-0.5">
@@ -202,33 +201,30 @@ export default function AdvancedPriceChart({ coinId = 'BTC', coinName = 'Bitcoin
                   {isUp ? '+' : ''}{priceInfo.change24h.toFixed(2)}%
                 </span>
               )}
+              {priceIsArchived && <span className="text-[9px] text-amber-300">harga snapshot</span>}
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={loadData} disabled={loading} className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-colors">
+          <button onClick={loadData} disabled={loading} className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-colors" aria-label="Refresh chart">
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           </button>
           {onClose && (
-            <button onClick={onClose} className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-colors">
+            <button onClick={onClose} className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-colors" aria-label="Close chart">
               <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
       </div>
 
-      {/* Controls */}
       <div className="flex items-center justify-between px-4 py-2 bg-slate-900/80">
-        {/* Timeframes */}
         <div className="flex gap-1 bg-slate-800 border border-slate-700 rounded-lg p-0.5">
           {TIMEFRAMES.map(tf => (
             <button
               key={tf.label}
               onClick={() => setTimeframe(tf)}
               className={`text-xs px-2.5 py-1 rounded-md font-semibold transition-all ${
-                timeframe.label === tf.label
-                  ? 'bg-blue-600 text-white'
-                  : 'text-slate-500 hover:text-slate-300'
+                timeframe.label === tf.label ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-slate-300'
               }`}
             >
               {tf.label}
@@ -236,7 +232,6 @@ export default function AdvancedPriceChart({ coinId = 'BTC', coinName = 'Bitcoin
           ))}
         </div>
 
-        {/* Chart type toggle */}
         <div className="flex gap-1 bg-slate-800 border border-slate-700 rounded-lg p-0.5">
           <button
             onClick={() => setChartType('candlestick')}
@@ -255,7 +250,13 @@ export default function AdvancedPriceChart({ coinId = 'BTC', coinName = 'Bitcoin
         </div>
       </div>
 
-      {/* Chart area */}
+      {(historyIsCached || historyInfo.gaps > 0) && (
+        <div className="px-4 py-2 text-[10px] text-amber-300 bg-amber-500/5 border-t border-amber-500/10" role="status">
+          {historyIsCached ? 'Menampilkan riwayat terakhir yang tersimpan.' : 'Riwayat tersedia sebagian.'}
+          {historyInfo.gaps > 0 ? ` ${historyInfo.gaps} rentang data tidak tersedia dan tidak diisi secara sintetis.` : ''}
+        </div>
+      )}
+
       <div className="relative" style={{ height: 320 }}>
         <div ref={chartContainerRef} className="w-full h-full" />
         {loading && (
@@ -264,16 +265,15 @@ export default function AdvancedPriceChart({ coinId = 'BTC', coinName = 'Bitcoin
           </div>
         )}
         {error && !loading && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <p className="text-red-400 text-sm">{error}</p>
+          <div className="absolute inset-0 flex items-center justify-center px-6 text-center">
+            <p className="text-amber-300 text-sm">{error}</p>
           </div>
         )}
       </div>
 
-      {/* Footer hint */}
-      <div className="px-4 py-2 border-t border-slate-800 flex items-center justify-between">
+      <div className="px-4 py-2 border-t border-slate-800 flex items-center justify-between gap-3">
         <span className="text-slate-600 text-[10px]">Scroll/pinch untuk zoom · Drag untuk pan</span>
-        <span className="text-slate-600 text-[10px]">Data: CoinGecko</span>
+        <span className="text-slate-600 text-[10px] text-right">Data historis: KriptoAman persisted store · tidak untuk eksekusi transaksi</span>
       </div>
     </div>
   );
