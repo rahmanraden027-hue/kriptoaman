@@ -56,6 +56,36 @@ jobs:
           test -n "$CLOUDFLARE_ACCOUNT_ID"
           test -n "$CLOUDFLARE_API_TOKEN"
 
+      - name: Ensure dedicated KAM recovery origin DNS
+        shell: bash
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          API='https://api.cloudflare.com/client/v4'
+          AUTH="Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"
+          ZONES="$(curl -fsS -H "$AUTH" -H 'Content-Type: application/json' \
+            "${API}/zones?name=kriptoaman.com&account.id=${CLOUDFLARE_ACCOUNT_ID}")"
+          ZONE_ID="$(jq -r 'if .success and (.result | length > 0) then .result[0].id else empty end' <<<"$ZONES")"
+          test -n "$ZONE_ID"
+
+          RECORDS="$(curl -fsS -H "$AUTH" -H 'Content-Type: application/json' \
+            "${API}/zones/${ZONE_ID}/dns_records?type=A&name=kam-origin.kriptoaman.com")"
+          RECORD_ID="$(jq -r '.result[0].id // empty' <<<"$RECORDS")"
+          PAYLOAD='{"type":"A","name":"kam-origin.kriptoaman.com","content":"152.42.199.82","ttl":1,"proxied":false}'
+
+          if [ -n "$RECORD_ID" ]; then
+            RESULT="$(curl -fsS -X PUT -H "$AUTH" -H 'Content-Type: application/json' \
+              --data "$PAYLOAD" "${API}/zones/${ZONE_ID}/dns_records/${RECORD_ID}")"
+          else
+            RESULT="$(curl -fsS -X POST -H "$AUTH" -H 'Content-Type: application/json' \
+              --data "$PAYLOAD" "${API}/zones/${ZONE_ID}/dns_records")"
+          fi
+
+          jq -e '.success == true and .result.name == "kam-origin.kriptoaman.com" and .result.content == "152.42.199.82" and .result.proxied == false' <<<"$RESULT"
+          echo 'Dedicated origin DNS record is ready.'
+
       - name: Verify resolvable KAM recovery origin
         run: |
           set -euo pipefail
