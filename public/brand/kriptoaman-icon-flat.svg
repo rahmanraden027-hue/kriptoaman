@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
   <title id="title">KriptoAman Compact Shield</title>
   <desc id="desc">Compact production version of the official KriptoAman security shield.</desc>
-  <rect width="512" height="512" rx="96" fill="#050D18"/>
+  <rect width="512" height="512" rx="96" fill="#071525"/>
   <image href="/brand/kriptoaman-logo-final-transparent.png" x="72" y="72" width="368" height="368" preserveAspectRatio="xMidYMid meet"/>
 </svg>
