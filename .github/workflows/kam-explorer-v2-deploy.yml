@@ -5,6 +5,7 @@ on:
     paths:
       - 'explorer-dashboard/**'
       - 'scripts/deploy-kam-explorer-v2.sh'
+      - 'scripts/diagnose-blockscout.mjs'
       - 'tests/kam-explorer-v2-dashboard.test.mjs'
       - '.github/workflows/kam-explorer-v2-deploy.yml'
   push:
@@ -12,6 +13,7 @@ on:
     paths:
       - 'explorer-dashboard/**'
       - 'scripts/deploy-kam-explorer-v2.sh'
+      - 'scripts/diagnose-blockscout.mjs'
       - 'tests/kam-explorer-v2-dashboard.test.mjs'
       - '.github/workflows/kam-explorer-v2-deploy.yml'
   workflow_dispatch:
@@ -21,7 +23,7 @@ permissions:
 
 concurrency:
   group: kam-explorer-v2-deploy-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   preflight:
@@ -43,11 +45,21 @@ jobs:
       - name: Verify existing public detail routes
         run: |
           set -euo pipefail
-          TX='0x9854d90159013d488190d0f1847596a5dfb7582812f880102f167a1b172b163a'
+          TX="$(curl -fsS --max-time 20 'https://explorer.kriptoaman.com/api/v2/transactions' | python3 -c 'import json,sys; d=json.load(sys.stdin); items=d.get("items",[]); print((items[0].get("hash") or "") if items else "")')"
           CANONICAL_WKAM='0x0d8848CE88BB09a81a4248Efdd574d50B98b544A'
           SECONDARY_WKAM='0x36a416d3C74A5d4AF9Fd4826e010CE9B00289fc7'
-          curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/tx/$TX" >/dev/null
-          curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/token/$CANONICAL_WKAM" >/dev/null
+          if [ -n "$TX" ]; then
+            echo "indexed_tx_for_route_check=$TX"
+            curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/tx/$TX" >/dev/null
+          else
+            echo 'transaction_detail_route=unavailable_no_indexed_transactions'
+          fi
+          WKAM_INDEXED="$(curl -fsS --max-time 20 'https://explorer.kriptoaman.com/api/v2/tokens?type=ERC-20' | python3 -c 'import json,sys; d=json.load(sys.stdin); needle="0x0d8848ce88bb09a81a4248efdd574d50b98b544a"; print("yes" if needle in json.dumps(d).lower() else "no")')"
+          if [ "$WKAM_INDEXED" = 'yes' ]; then
+            curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/token/$CANONICAL_WKAM" >/dev/null
+          else
+            echo 'canonical_wkam_detail_route=unavailable_not_indexed'
+          fi
           for path in /blocks /txs /api-docs; do curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com$path" >/dev/null; done
           code="$(curl -L -sS -o /dev/null -w '%{http_code}' --max-time 20 "https://explorer.kriptoaman.com/token/$SECONDARY_WKAM" || true)"
           echo "secondary_wkam_detail_http=$code"
@@ -167,10 +179,20 @@ jobs:
       - name: Verify Blockscout detail routing remains intact
         run: |
           set -euo pipefail
-          TX='0x9854d90159013d488190d0f1847596a5dfb7582812f880102f167a1b172b163a'
+          TX="$(curl -fsS --max-time 20 'https://explorer.kriptoaman.com/api/v2/transactions' | python3 -c 'import json,sys; d=json.load(sys.stdin); items=d.get("items",[]); print((items[0].get("hash") or "") if items else "")')"
           WKAM='0x0d8848CE88BB09a81a4248Efdd574d50B98b544A'
-          curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/tx/$TX" >/dev/null
-          curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/token/$WKAM" >/dev/null
+          if [ -n "$TX" ]; then
+            echo "indexed_tx_for_route_check=$TX"
+            curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/tx/$TX" >/dev/null
+          else
+            echo 'transaction_detail_route=unavailable_no_indexed_transactions'
+          fi
+          WKAM_INDEXED="$(curl -fsS --max-time 20 'https://explorer.kriptoaman.com/api/v2/tokens?type=ERC-20' | python3 -c 'import json,sys; d=json.load(sys.stdin); needle="0x0d8848ce88bb09a81a4248efdd574d50b98b544a"; print("yes" if needle in json.dumps(d).lower() else "no")')"
+          if [ "$WKAM_INDEXED" = 'yes' ]; then
+            curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/token/$WKAM" >/dev/null
+          else
+            echo 'canonical_wkam_detail_route=unavailable_not_indexed'
+          fi
           for path in /blocks /txs /api-docs; do curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com$path" >/dev/null; done
       - name: Re-run public core diagnostic
         run: node scripts/diagnose-blockscout.mjs

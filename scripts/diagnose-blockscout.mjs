@@ -1,7 +1,7 @@
 const rpcUrl = process.env.KAM_RPC_URL || 'https://rpc.kriptoaman.com';
 const explorerUrl = (process.env.KAM_EXPLORER_URL || 'https://explorer.kriptoaman.com').replace(/\/$/, '');
 const expectedChainId = '0x560c';
-const knownTxHash = process.env.KNOWN_TX_HASH || '0x90dbcf26bfc0c9398b2a2b235e4f5d9de6dc7151bfbf9b662ba79a1af0c0f33e';
+const knownTxHash = process.env.KNOWN_TX_HASH || '0x9854d90159013d488190d0f1847596a5dfb7582812f880102f167a1b172b163a';
 const timeoutMs = 10000;
 
 function errorMessage(error) {
@@ -107,6 +107,7 @@ report.checks.rpcHead = head.reachable
 report.checks.knownTransactionReceipt = receipt.reachable
   ? {
       ok: receipt.result.response.ok && Boolean(receipt.result.payload?.result),
+      advisory: true,
       reachable: true,
       httpStatus: receipt.result.response.status,
       transactionHash: knownTxHash,
@@ -116,12 +117,14 @@ report.checks.knownTransactionReceipt = receipt.reachable
     }
   : {
       ...unreachableCheck(receipt),
+      advisory: true,
       transactionHash: knownTxHash,
     };
 
-const firstBlock = blocks.reachable && Array.isArray(blocks.result.payload?.items)
-  ? blocks.result.payload.items[0]
-  : null;
+const blockItems = blocks.reachable && Array.isArray(blocks.result.payload?.items)
+  ? blocks.result.payload.items
+  : [];
+const firstBlock = blockItems[0] ?? null;
 const explorerHeight = Number(firstBlock?.height);
 report.checks.explorerBlocksApi = blocks.reachable
   ? {
@@ -169,6 +172,51 @@ report.checks.explorerMarketChartApi = marketChart.reachable
     }
   : unreachableCheck(marketChart);
 
+// Verify a live block that exists in both sources. This is a stronger core-data
+// invariant than relying on one historical transaction receipt, which may be
+// unavailable after node/indexer recovery while the current chain is healthy.
+let commonExplorerBlock = null;
+if (Number.isFinite(rpcHeight)) {
+  commonExplorerBlock = blockItems.find((item) => {
+    const height = Number(item?.height);
+    return Number.isFinite(height) && height <= rpcHeight;
+  }) ?? null;
+}
+
+if (commonExplorerBlock) {
+  const commonHeight = Number(commonExplorerBlock.height);
+  const explorerHash = String(commonExplorerBlock.hash ?? commonExplorerBlock.block_hash ?? '').toLowerCase();
+  const rpcBlockProbe = await probe('commonBlock', () => rpc('eth_getBlockByNumber', [`0x${commonHeight.toString(16)}`, false]));
+  if (rpcBlockProbe.reachable) {
+    const rpcHash = String(rpcBlockProbe.result.payload?.result?.hash ?? '').toLowerCase();
+    report.checks.rpcExplorerBlockIdentity = {
+      ok: rpcBlockProbe.result.response.ok && Boolean(explorerHash) && Boolean(rpcHash) && explorerHash === rpcHash,
+      reachable: true,
+      height: commonHeight,
+      explorerHash: explorerHash || null,
+      rpcHash: rpcHash || null,
+      httpStatus: rpcBlockProbe.result.response.status,
+      latencyMs: rpcBlockProbe.result.latencyMs,
+    };
+  } else {
+    report.checks.rpcExplorerBlockIdentity = {
+      ...unreachableCheck(rpcBlockProbe),
+      height: commonHeight,
+      explorerHash: explorerHash || null,
+      rpcHash: null,
+    };
+  }
+} else {
+  report.checks.rpcExplorerBlockIdentity = {
+    ok: false,
+    reachable: Boolean(blocks.reachable && head.reachable),
+    height: null,
+    explorerHash: null,
+    rpcHash: null,
+    error: 'no_common_block_sample',
+  };
+}
+
 const rpcTransportDown = !chain.reachable && !head.reachable;
 const explorerTransportDown = !blocks.reachable && !stats.reachable;
 
@@ -186,17 +234,16 @@ if (rpcTransportDown && explorerTransportDown) {
   report.classification = 'blockscout_indexer_not_populating_blocks';
 } else {
   const distance = Math.abs(rpcHeight - explorerHeight);
+  const heightWithinTolerance = distance <= 5;
   report.checks.heightDistance = { rpcHeight, explorerHeight, distance };
-  if (distance <= 5) {
-    if (!report.checks.knownTransactionReceipt.ok) {
-      report.classification = 'known_transaction_receipt_unavailable';
-    } else if (!report.checks.explorerTransactionsChartApi.ok || !report.checks.explorerMarketChartApi.ok) {
-      report.classification = 'blockscout_stats_chart_api_unhealthy';
-    } else {
-      report.classification = 'healthy';
-    }
-  } else {
+  if (!heightWithinTolerance) {
     report.classification = 'blockscout_indexer_lagging';
+  } else if (!report.checks.rpcExplorerBlockIdentity.ok) {
+    report.classification = 'rpc_explorer_block_identity_mismatch';
+  } else if (!report.checks.explorerTransactionsChartApi.ok || !report.checks.explorerMarketChartApi.ok) {
+    report.classification = 'blockscout_stats_chart_api_unhealthy';
+  } else {
+    report.classification = 'healthy';
   }
 }
 
