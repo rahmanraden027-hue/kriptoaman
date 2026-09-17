@@ -13,7 +13,7 @@ permissions:
 jobs:
   repair:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     environment: production
     steps:
       - name: Checkout reviewed production code
@@ -48,7 +48,7 @@ jobs:
           if (b <= a) throw new Error(`block height did not advance: ${a} -> ${b}`);
           console.log(`origin_block_progress=${a}->${b}`);
           NODE
-          for method in admin_peers personal_listAccounts qbft_getValidatorsByBlockNumber; do
+          for method in admin_peers debug_traceTransaction personal_listAccounts qbft_getValidatorsByBlockNumber; do
             BODY="$(rpc "$method" '["latest"]' || true)"
             node - "$BODY" <<'NODE'
           const p=JSON.parse(process.argv[2]);
@@ -65,7 +65,79 @@ jobs:
           test -n "$CLOUDFLARE_ACCOUNT_ID"
           test -n "$CLOUDFLARE_API_TOKEN"
 
-      - name: Point Worker to verified recovery origin
+      - name: Ensure dedicated unproxied recovery origin DNS
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          API='https://api.cloudflare.com/client/v4'
+          ZONE_NAME='kriptoaman.com'
+          RECORD_NAME='rpc-origin.kriptoaman.com'
+          ORIGIN_IP='152.42.199.82'
+          auth=(-H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H 'Content-Type: application/json')
+
+          curl -fsS "${auth[@]}" "$API/zones?name=$ZONE_NAME&status=active&per_page=50" -o /tmp/zones.json
+          ZONE_ID="$(node - /tmp/zones.json <<'NODE'
+          const fs=require('fs'); const p=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+          if (!p.success || !Array.isArray(p.result) || p.result.length!==1) process.exit(2);
+          process.stdout.write(p.result[0].id);
+          NODE
+          )"
+          test -n "$ZONE_ID"
+
+          curl -fsS "${auth[@]}" "$API/zones/$ZONE_ID/dns_records?type=A&name=$RECORD_NAME&per_page=50" -o /tmp/records.json
+          RECORD_COUNT="$(node - /tmp/records.json <<'NODE'
+          const fs=require('fs'); const p=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+          if (!p.success || !Array.isArray(p.result)) process.exit(2);
+          process.stdout.write(String(p.result.length));
+          NODE
+          )"
+
+          if [ "$RECORD_COUNT" = '0' ]; then
+            payload="$(node -e "process.stdout.write(JSON.stringify({type:'A',name:'$RECORD_NAME',content:'$ORIGIN_IP',ttl:300,proxied:false,comment:'KAM recovery RPC origin; do not proxy to avoid Worker recursion'}))")"
+            curl -fsS -X POST "${auth[@]}" --data "$payload" "$API/zones/$ZONE_ID/dns_records" -o /tmp/create-record.json
+            node - /tmp/create-record.json <<'NODE'
+          const fs=require('fs'); const p=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+          if (!p.success) throw new Error(`DNS create failed: ${JSON.stringify(p.errors||[])}`);
+          console.log(`origin_dns_created=${p.result?.name||'unknown'}`);
+          NODE
+          elif [ "$RECORD_COUNT" = '1' ]; then
+            node - /tmp/records.json "$ORIGIN_IP" <<'NODE'
+          const fs=require('fs'); const p=JSON.parse(fs.readFileSync(process.argv[2],'utf8')); const expected=process.argv[3];
+          const r=p.result[0];
+          if (r.type!=='A' || r.content!==expected || r.proxied!==false) {
+            throw new Error(`Refusing to overwrite unexpected existing DNS record: type=${r.type} content=${r.content} proxied=${r.proxied}`);
+          }
+          console.log('origin_dns_existing_verified=true');
+          NODE
+          else
+            echo "Refusing ambiguous DNS state: found $RECORD_COUNT A records for $RECORD_NAME" >&2
+            exit 3
+          fi
+
+      - name: Verify owned origin hostname resolves and serves KAM
+        shell: bash
+        run: |
+          set -euo pipefail
+          HOST='rpc-origin.kriptoaman.com'
+          for attempt in $(seq 1 18); do
+            RESOLVED="$(getent ahostsv4 "$HOST" | awk 'NR==1{print $1}' || true)"
+            if [ "$RESOLVED" = '152.42.199.82' ]; then break; fi
+            test "$attempt" -lt 18
+            sleep 5
+          done
+          test "$(getent ahostsv4 "$HOST" | awk 'NR==1{print $1}')" = '152.42.199.82'
+          curl -fsS --connect-timeout 5 --max-time 10 "http://$HOST/health" -o /tmp/origin-health.json
+          node - /tmp/origin-health.json <<'NODE'
+          const fs=require('fs'); const p=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+          if (!(p.status==='ok' && p.chainId==='0x560c')) throw new Error(`unexpected origin health: ${JSON.stringify(p)}`);
+          NODE
+          BODY="$(curl -fsS --connect-timeout 5 --max-time 10 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' "http://$HOST/rpc")"
+          test "$(node -e "const p=JSON.parse(process.argv[1]);process.stdout.write(p.result||'')" "$BODY")" = '0x560c'
+          echo 'owned_origin_hostname_verified=true'
+
+      - name: Point Worker to owned verified recovery origin
         working-directory: chain/kam-mainnet/public-rpc-gateway
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -75,24 +147,24 @@ jobs:
           set -euo pipefail
           npx --yes wrangler@4.134.0 deploy \
             --keep-vars \
-            --var 'KAM_RPC_ORIGIN:http://152.42.199.82/rpc' \
-            --message 'Recover KAM public RPC upstream to verified DigitalOcean origin'
+            --var 'KAM_RPC_ORIGIN:http://rpc-origin.kriptoaman.com/rpc' \
+            --message 'Recover KAM public RPC via verified owned recovery origin hostname'
 
       - name: Verify public RPC recovered
         shell: bash
         run: |
           set -euo pipefail
           READY=false
-          for attempt in 1 2 3 4 5 6; do
-            if curl -fsS --max-time 15 https://rpc.kriptoaman.com/ready -o /tmp/ready.json; then
-              if node - /tmp/ready.json <<'NODE'
+          for attempt in $(seq 1 18); do
+            CODE="$(curl -sS --max-time 15 -o /tmp/ready.json -w '%{http_code}' https://rpc.kriptoaman.com/ready || true)"
+            if [ "$CODE" = '200' ] && node - /tmp/ready.json <<'NODE'
           const fs=require('fs'); const p=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
           if (!(p.ready===true && p.chainId==='0x560c' && Number.isInteger(p.blockNumber) && p.blockNumber>=0)) process.exit(1);
           console.log(`public_rpc_ready block=${p.blockNumber}`);
           NODE
-              then READY=true; break; fi
-            fi
-            test "$attempt" -lt 6
+            then READY=true; break; fi
+            echo "readiness_attempt=$attempt http=$CODE body=$(cat /tmp/ready.json 2>/dev/null || true)"
+            test "$attempt" -lt 18
             sleep 10
           done
           test "$READY" = true
