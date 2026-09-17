@@ -5,7 +5,10 @@
   "compatibility_date": "2026-09-17",
   "workers_dev": false,
   "routes": [
-    { "pattern": "explorer.kriptoaman.com", "custom_domain": true }
+    {
+      "pattern": "explorer.kriptoaman.com/*",
+      "zone_name": "kriptoaman.com"
+    }
   ],
   "vars": {
     "KAM_EXPLORER_ORIGIN": "http://152.42.199.82"
