@@ -6,8 +6,8 @@
   "workers_dev": false,
   "routes": [
     {
-      "pattern": "explorer.kriptoaman.com",
-      "custom_domain": true
+      "pattern": "explorer.kriptoaman.com/*",
+      "zone_name": "kriptoaman.com"
     }
   ],
   "vars": {
