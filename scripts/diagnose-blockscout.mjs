@@ -234,8 +234,9 @@ if (rpcTransportDown && explorerTransportDown) {
   report.classification = 'blockscout_indexer_not_populating_blocks';
 } else {
   const distance = Math.abs(rpcHeight - explorerHeight);
+  const heightWithinTolerance = distance <= 5;
   report.checks.heightDistance = { rpcHeight, explorerHeight, distance };
-  if (distance > 5) {
+  if (!heightWithinTolerance) {
     report.classification = 'blockscout_indexer_lagging';
   } else if (!report.checks.rpcExplorerBlockIdentity.ok) {
     report.classification = 'rpc_explorer_block_identity_mismatch';
