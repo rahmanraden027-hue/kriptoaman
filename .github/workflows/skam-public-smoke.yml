@@ -1,0 +1,105 @@
+name: sKAM Public Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '29 * * * *'
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  verify-public-skam:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Verify sKAM public metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          code="$(curl --fail-with-body --location --silent --show-error \
+            --connect-timeout 10 --max-time 25 \
+            -o "$body" -w '%{http_code}' \
+            https://kriptoaman.com/token/skam.json)"
+          test "$code" = "200"
+          node - "$body" <<'NODE'
+          const fs = require('fs');
+          const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          const expected = {
+            name: 'Solana KAM',
+            symbol: 'sKAM',
+            image: 'https://kriptoaman.com/token/skam-logo.png',
+            external_url: 'https://kriptoaman.com',
+          };
+          for (const [key, value] of Object.entries(expected)) {
+            if (payload?.[key] !== value) {
+              console.error(`Unexpected sKAM metadata ${key}: ${payload?.[key] ?? 'missing'}`);
+              process.exit(1);
+            }
+          }
+          NODE
+
+      - name: Verify dedicated sKAM PNG logo
+        shell: bash
+        run: |
+          set -euo pipefail
+          headers="$(mktemp)"
+          image="$(mktemp)"
+          code="$(curl --fail-with-body --location --silent --show-error \
+            --connect-timeout 10 --max-time 25 \
+            -D "$headers" -o "$image" -w '%{http_code}' \
+            https://kriptoaman.com/token/skam-logo.png)"
+          test "$code" = "200"
+          grep -qi '^content-type:.*image/png' "$headers"
+          node - "$image" <<'NODE'
+          const fs = require('fs');
+          const data = fs.readFileSync(process.argv[2]);
+          const png = Buffer.from([0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a]);
+          if (data.length < png.length || !data.subarray(0, png.length).equals(png)) {
+            console.error('sKAM logo response is not a valid PNG payload.');
+            process.exit(1);
+          }
+          NODE
+
+      - name: Verify admin sKAM launch route resolves
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          code="$(curl --fail-with-body --location --silent --show-error \
+            --connect-timeout 10 --max-time 25 \
+            -o "$body" -w '%{http_code}' \
+            https://kriptoaman.com/AdminSKAMLaunch)"
+          test "$code" = "200"
+          grep -qi 'KriptoAman' "$body"
+
+      - name: Publish sKAM public smoke commit status
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JOB_STATUS: ${{ job.status }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          REPO: ${{ github.repository }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          state="failure"
+          description="sKAM public metadata/route smoke failed"
+          if [ "$JOB_STATUS" = "success" ]; then
+            state="success"
+            description="sKAM public metadata/route smoke passed"
+          fi
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$REPO/statuses/$SHA" \
+            -d "{\"state\":\"$state\",\"context\":\"kriptoaman/skam-public-smoke\",\"description\":\"$description\",\"target_url\":\"$RUN_URL\"}" >/dev/null
