@@ -73,13 +73,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          printf '%s' 'http://152.42.199.82/rpc' | npx --yes wrangler@4.36.0 secret put KAM_RPC_ORIGIN
-          npx --yes wrangler@4.36.0 deploy
+          npx --yes wrangler@4.134.0 deploy \
+            --keep-vars \
+            --var 'KAM_RPC_ORIGIN:http://152.42.199.82/rpc' \
+            --message 'Recover KAM public RPC upstream to verified DigitalOcean origin'
 
       - name: Verify public RPC recovered
         shell: bash
         run: |
           set -euo pipefail
+          READY=false
           for attempt in 1 2 3 4 5 6; do
             if curl -fsS --max-time 15 https://rpc.kriptoaman.com/ready -o /tmp/ready.json; then
               if node - /tmp/ready.json <<'NODE'
@@ -87,11 +90,12 @@ jobs:
           if (!(p.ready===true && p.chainId==='0x560c' && Number.isInteger(p.blockNumber) && p.blockNumber>=0)) process.exit(1);
           console.log(`public_rpc_ready block=${p.blockNumber}`);
           NODE
-              then break; fi
+              then READY=true; break; fi
             fi
             test "$attempt" -lt 6
             sleep 10
           done
+          test "$READY" = true
           rpc_public() {
             local method="$1" params="${2:-[]}"
             curl -fsS --max-time 15 -H 'content-type: application/json' \
@@ -99,6 +103,12 @@ jobs:
               https://rpc.kriptoaman.com
           }
           test "$(rpc_public eth_chainId | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).result||''))")" = '0x560c'
+          B1="$(rpc_public eth_blockNumber | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).result||''))")"
+          sleep 7
+          B2="$(rpc_public eth_blockNumber | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).result||''))")"
+          node - "$B1" "$B2" <<'NODE'
+          const a=BigInt(process.argv[2]); const b=BigInt(process.argv[3]); if (b<=a) throw new Error(`public blocks stalled ${a}->${b}`); console.log(`public_block_progress=${a}->${b}`);
+          NODE
           ADMIN_CODE="$(curl -sS -o /tmp/admin.json -w '%{http_code}' --max-time 15 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"admin_peers","params":[]}' https://rpc.kriptoaman.com)"
           test "$ADMIN_CODE" = '403'
           echo 'public_rpc_recovery_verified=true'
