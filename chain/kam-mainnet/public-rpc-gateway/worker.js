@@ -146,6 +146,51 @@ async function probeOrigin(env) {
   }
 }
 
+async function classifyFetch(label, url, init = {}) {
+  const startedAt = Date.now();
+  try {
+    const response = await fetch(url, { redirect: 'manual', ...init });
+    const text = await response.text().catch(() => '');
+    return {
+      label,
+      ok: response.ok,
+      status: response.status,
+      durationMs: Date.now() - startedAt,
+      bodyPrefix: text.slice(0, 160),
+    };
+  } catch (error) {
+    return {
+      label,
+      ok: false,
+      status: null,
+      durationMs: Date.now() - startedAt,
+      errorName: String(error?.name || 'Error'),
+      errorMessage: String(error?.message || error || 'unknown').slice(0, 220),
+    };
+  }
+}
+
+async function transportDiagnostic(env) {
+  const rpcBody = JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_chainId', params: [] });
+  const origin = String(env.KAM_RPC_ORIGIN || '');
+  const checks = await Promise.all([
+    classifyFetch('https-control', 'https://example.com/'),
+    classifyFetch('http-control', 'http://example.com/'),
+    classifyFetch('recovery-ip-health', 'http://152.42.199.82/health'),
+    classifyFetch('recovery-host-health', 'http://152-42-199-82.sslip.io/health'),
+    classifyFetch('configured-origin-rpc', origin || 'http://invalid.invalid/', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: rpcBody,
+    }),
+  ]);
+  return json({
+    diagnostic: 'kam-rpc-origin-transport-v1',
+    originConfigured: Boolean(origin),
+    checks,
+  });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -176,6 +221,10 @@ export default {
         blockNumber: readiness.blockNumber ?? null,
         probeDurationMs: readiness.probeDurationMs ?? null,
       }, readiness.status);
+    }
+
+    if (url.pathname === '/transport-diagnostic' && request.method === 'GET') {
+      return transportDiagnostic(env);
     }
 
     // Human/browser navigation gets the full Developer Console while the RPC
