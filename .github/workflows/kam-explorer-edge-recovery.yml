@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 jobs:
-  deploy-recovery-preview:
+  deploy-recovery:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     environment: production
@@ -50,7 +50,7 @@ jobs:
           test -f "$TARGET/block-detail.html"
           test -f "$TARGET/address-detail.html"
 
-      - name: Deploy recovery preview at Cloudflare edge
+      - name: Deploy production recovery at Cloudflare edge
         working-directory: chain/kam-mainnet/explorer-edge-recovery
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -60,42 +60,56 @@ jobs:
           set -euo pipefail
           test -n "$CLOUDFLARE_ACCOUNT_ID"
           test -n "$CLOUDFLARE_API_TOKEN"
-          npx --yes wrangler@4.134.0 deploy --message 'KAM Explorer non-destructive edge recovery preview'
+          npx --yes wrangler@4.134.0 deploy --message 'KAM Explorer production non-destructive edge recovery'
 
-      - name: Verify recovery preview presentation
+      - name: Verify production presentation
         shell: bash
         run: |
           set -euo pipefail
-          BASE='https://explorer-recovery.kriptoaman.com'
+          BASE='https://explorer.kriptoaman.com'
           READY=false
           for attempt in $(seq 1 18); do
             CODE="$(curl -L -sS -o /tmp/home.html -w '%{http_code}' --max-time 20 "$BASE/" || true)"
             if [ "$CODE" = '200' ] && grep -Fq 'data-kam-explorer-version="2.0.0"' /tmp/home.html; then READY=true; break; fi
             echo "presentation_attempt=$attempt http=$CODE"
-            test "$attempt" -lt 18
-            sleep 8
+            if [ "$attempt" -lt 18 ]; then sleep 8; fi
           done
           test "$READY" = true
-          for path in /blocks /txs /stats /tokens /status /developer; do
+          for path in /blocks /txs /stats /tokens /status /developer /api-docs; do
             code="$(curl -L -sS -o /dev/null -w '%{http_code}' --max-time 20 "$BASE$path" || true)"
             test "$code" = '200'
           done
-          echo 'explorer_recovery_presentation_verified=true'
+          echo 'explorer_production_presentation_verified=true'
 
-      - name: Report verified live data readiness
+      - name: Verify production live KAM data
         shell: bash
         run: |
           set -euo pipefail
-          BASE='https://explorer-recovery.kriptoaman.com'
-          CODE="$(curl -sS -o /tmp/edge-health.json -w '%{http_code}' --max-time 20 "$BASE/edge-health" || true)"
-          echo "edge_health_http=$CODE"
-          cat /tmp/edge-health.json || true
-          if [ "$CODE" = '200' ]; then
-            node - /tmp/edge-health.json <<'NODE'
+          BASE='https://explorer.kriptoaman.com'
+          DATA_READY=false
+          for attempt in $(seq 1 12); do
+            CODE="$(curl -sS -o /tmp/edge-health.json -w '%{http_code}' --max-time 20 "$BASE/edge-health" || true)"
+            if [ "$CODE" = '200' ] && node - /tmp/edge-health.json <<'NODE'
           const fs=require('fs'); const p=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
           if (!(p.ok===true && p.chainId==='0x560c' && Number.isInteger(p.blockNumber))) process.exit(1);
-          console.log(`explorer_recovery_live_data_ready block=${p.blockNumber}`);
+          console.log(`explorer_live_block=${p.blockNumber}`);
           NODE
-          else
-            echo 'explorer_recovery_live_data_pending_rpc=true'
-          fi
+            then DATA_READY=true; break; fi
+            echo "data_attempt=$attempt http=$CODE body=$(cat /tmp/edge-health.json 2>/dev/null || true)"
+            if [ "$attempt" -lt 12 ]; then sleep 5; fi
+          done
+          test "$DATA_READY" = true
+          curl -fsS --max-time 25 "$BASE/api/v2/blocks" -o /tmp/blocks.json
+          curl -fsS --max-time 25 "$BASE/api/v2/transactions" -o /tmp/txs.json
+          curl -fsS --max-time 25 "$BASE/api/v2/stats" -o /tmp/stats.json
+          node - /tmp/blocks.json /tmp/txs.json /tmp/stats.json <<'NODE'
+          const fs=require('fs');
+          const b=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+          const t=JSON.parse(fs.readFileSync(process.argv[3],'utf8'));
+          const s=JSON.parse(fs.readFileSync(process.argv[4],'utf8'));
+          if (!Array.isArray(b.items) || b.items.length===0) throw new Error('no verified blocks');
+          if (!Array.isArray(t.items)) throw new Error('transactions payload invalid');
+          if (!Number.isInteger(Number(s.latest_block))) throw new Error('latest block missing');
+          console.log(`verified_blocks=${b.items.length} verified_transactions=${t.items.length} latest_block=${s.latest_block}`);
+          NODE
+          echo 'explorer_production_live_data_verified=true'
