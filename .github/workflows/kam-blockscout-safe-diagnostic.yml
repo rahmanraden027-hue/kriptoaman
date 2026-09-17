@@ -1,0 +1,97 @@
+name: KAM Blockscout Safe Diagnostic
+
+on:
+  push:
+    branches: [ops/explorer-edge-recovery-20260918]
+    paths:
+      - '.github/workflows/kam-blockscout-safe-diagnostic.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kam-blockscout-safe-diagnostic
+  cancel-in-progress: false
+
+jobs:
+  inspect:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 12
+    steps:
+      - name: Checkout reviewed source
+        uses: actions/checkout@v7
+
+      - name: Verify host boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d /opt/blockscout/docker-compose
+          cd /opt/blockscout/docker-compose
+          docker compose version
+          echo 'host_boundary=ok'
+
+      - name: Capture Blockscout service state
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /opt/blockscout/docker-compose
+          echo '=== services ==='
+          docker compose ps --services
+          echo '=== running state ==='
+          docker compose ps
+          echo '=== sanitized relevant config ==='
+          docker compose config 2>/dev/null \
+            | grep -E 'ETHEREUM_JSONRPC|CHAIN_ID|NETWORK|SUBNETWORK|COIN|API_V2|INDEXER' \
+            | sed -E 's#(DATABASE_URL|SECRET_KEY_BASE|REDIS_URL|ACCOUNT_|KEY|PASSWORD|TOKEN):.*#\1: [REDACTED]#' \
+            || true
+
+      - name: Verify public KAM RPC from Explorer host
+        shell: bash
+        run: |
+          set -euo pipefail
+          RPC='https://rpc.kriptoaman.com'
+          CHAIN="$(curl -fsS --max-time 15 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' "$RPC")"
+          HEAD="$(curl -fsS --max-time 15 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}' "$RPC")"
+          node -e "const c=JSON.parse(process.argv[1]),h=JSON.parse(process.argv[2]); if(c.result!=='0x560c') throw new Error('wrong chain '+c.result); if(!/^0x[0-9a-f]+$/i.test(h.result||'')) throw new Error('invalid head'); console.log('rpc_chain='+c.result); console.log('rpc_head='+parseInt(h.result,16));" "$CHAIN" "$HEAD"
+
+      - name: Inspect backend and indexer logs safely
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /opt/blockscout/docker-compose
+          SERVICES="$(docker compose ps --services)"
+          for svc in $SERVICES; do
+            case "$svc" in
+              *backend*|*indexer*|blockscout)
+                echo "=== logs:$svc ==="
+                docker compose logs --tail=120 "$svc" 2>&1 \
+                  | sed -E 's#(postgres(ql)?://)[^ @]+@#\1[REDACTED]@#g; s#(DATABASE_URL|SECRET_KEY_BASE|PASSWORD|TOKEN|API_KEY)=([^ ]+)#\1=[REDACTED]#g' \
+                  || true
+                ;;
+            esac
+          done
+
+      - name: Probe local Blockscout endpoints without mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /opt/blockscout/docker-compose
+          echo '=== published ports ==='
+          docker compose ps --format json || true
+          for url in \
+            http://127.0.0.1:4000/api/v2/stats \
+            http://127.0.0.1:4000/api/v2/blocks \
+            http://127.0.0.1:80/api/v2/stats \
+            http://127.0.0.1/api/v2/stats; do
+            code="$(curl -sS -o /tmp/probe.$$ -w '%{http_code}' --max-time 8 "$url" || true)"
+            echo "probe=$url http=$code"
+            if [ "$code" = '200' ]; then head -c 1200 /tmp/probe.$$; echo; fi
+          done
+          rm -f /tmp/probe.$$
+
+      - name: Confirm no destructive action performed
+        shell: bash
+        run: |
+          echo 'diagnostic_mode=read_only'
+          echo 'database_mutated=false'
+          echo 'services_restarted=false'
