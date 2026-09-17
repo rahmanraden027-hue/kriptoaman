@@ -2,6 +2,10 @@ name: KAM Mainnet 24x7 Read-Only Monitor
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/kam-mainnet-24x7-monitor.yml'
+      - 'chain/kam-mainnet/scripts/verify-public-endpoints.mjs'
   pull_request:
     paths:
       - '.github/workflows/kam-mainnet-24x7-monitor.yml'
