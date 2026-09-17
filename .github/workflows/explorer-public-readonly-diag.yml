@@ -1,0 +1,72 @@
+name: Explorer Public Readonly Diagnose
+
+on:
+  push:
+    branches:
+      - ops/explorer-public-diagnose-20260918
+    paths:
+      - '.github/workflows/explorer-public-readonly-diag.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe public KAM services without mutation
+        shell: bash
+        run: |
+          set +e
+          echo "checked_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          probe_get() {
+            name="$1"; url="$2"
+            code="$(curl -L -sS -o /tmp/${name}.body -w '%{http_code}' --max-time 12 "$url" 2>/dev/null)"
+            ctype="$(curl -L -sSI --max-time 8 "$url" 2>/dev/null | awk -F': ' 'tolower($1)=="content-type"{print $2}' | tr -d '\r' | tail -1)"
+            size="$(wc -c < /tmp/${name}.body 2>/dev/null | tr -d ' ')"
+            echo "${name}_http=${code:-000} bytes=${size:-0} content_type=${ctype:-unknown}"
+          }
+          probe_get site_home https://kriptoaman.com/
+          probe_get site_kam_status https://kriptoaman.com/api/kam/network-status
+          probe_get explorer_home https://explorer.kriptoaman.com/
+          probe_get explorer_blocks https://explorer.kriptoaman.com/blocks
+          probe_get explorer_txs https://explorer.kriptoaman.com/txs
+          probe_get explorer_stats https://explorer.kriptoaman.com/api/v2/stats
+          probe_get explorer_api_blocks https://explorer.kriptoaman.com/api/v2/blocks
+
+          rpc_code="$(curl -sS -o /tmp/rpc.body -w '%{http_code}' --max-time 12 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' https://rpc.kriptoaman.com 2>/dev/null)"
+          rpc_chain="$(python3 - <<'PY'
+import json
+try:
+ d=json.load(open('/tmp/rpc.body')); print(d.get('result','none'))
+except Exception: print('invalid')
+PY
+)"
+          echo "rpc_edge_http=${rpc_code:-000} chain=${rpc_chain}"
+
+          rpc_block_code="$(curl -sS -o /tmp/rpcblock.body -w '%{http_code}' --max-time 12 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}' https://rpc.kriptoaman.com 2>/dev/null)"
+          rpc_head="$(python3 - <<'PY'
+import json
+try:
+ d=json.load(open('/tmp/rpcblock.body')); print(d.get('result','none'))
+except Exception: print('invalid')
+PY
+)"
+          echo "rpc_block_http=${rpc_block_code:-000} head=${rpc_head}"
+
+          RECOVERY_IP=152.42.199.82
+          for port in 80 443 8545 8645 8646 8647 8648; do
+            if timeout 3 bash -c "</dev/tcp/${RECOVERY_IP}/${port}" 2>/dev/null; then
+              echo "recovery_port_${port}=open"
+            else
+              echo "recovery_port_${port}=closed_or_filtered"
+            fi
+          done
+
+          origin_http="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 8 -H 'Host: kam-origin.kriptoaman.com' http://${RECOVERY_IP}/ 2>/dev/null)"
+          rpc_host_http="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 8 -H 'Host: rpc.kriptoaman.com' http://${RECOVERY_IP}/ 2>/dev/null)"
+          echo "recovery_origin_http=${origin_http:-000}"
+          echo "recovery_rpc_host_http=${rpc_host_http:-000}"
+          echo "diagnostic_mode=read_only"
