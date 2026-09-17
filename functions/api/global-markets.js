@@ -5,7 +5,8 @@ const HEADERS = {
 };
 
 const TWELVE_DATA_BASE = 'https://api.twelvedata.com';
-const FALLBACK_URL = 'https://api.exchangerate.fun/latest?base=USD';
+const EXCHANGE_RATE_FUN_URL = 'https://api.exchangerate.fun/latest?base=USD';
+const FRANKFURTER_URL = 'https://api.frankfurter.dev/v2/rates?base=usd&quotes=eur,gbp,jpy,chf,aud,cad,nzd,xau';
 
 const CORE_INSTRUMENTS = [
   { symbol: 'EUR/USD', name: 'Euro / US Dollar', assetClass: 'forex', precision: 5 },
@@ -52,6 +53,20 @@ const normalizeBatchQuote = (payload, symbol) => {
   return null;
 };
 
+async function boundedFetch(url, options = {}, parentSignal, timeoutMs = 3200) {
+  const controller = new AbortController();
+  const abortFromParent = () => controller.abort();
+  if (parentSignal?.aborted) controller.abort();
+  else parentSignal?.addEventListener?.('abort', abortFromParent, { once: true });
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+    parentSignal?.removeEventListener?.('abort', abortFromParent);
+  }
+}
+
 async function fetchProfessionalMarketData(env, signal) {
   const apiKey = String(env?.TWELVE_DATA_API_KEY || '').trim();
   if (!apiKey) return null;
@@ -64,14 +79,13 @@ async function fetchProfessionalMarketData(env, signal) {
   const symbols = definitions.map(item => item.symbol).join(',');
   const url = `${TWELVE_DATA_BASE}/quote?symbol=${encodeURIComponent(symbols)}`;
 
-  const response = await fetch(url, {
+  const response = await boundedFetch(url, {
     headers: {
       Accept: 'application/json',
       Authorization: `apikey ${apiKey}`,
-      'User-Agent': 'KriptoAman-Global-Markets/2.0',
+      'User-Agent': 'KriptoAman-Global-Markets/2.1',
     },
-    signal,
-  });
+  }, signal, 3000);
 
   if (!response.ok) throw new Error(`TWELVE_DATA_HTTP_${response.status}`);
   const payload = await response.json();
@@ -116,18 +130,7 @@ async function fetchProfessionalMarketData(env, signal) {
   };
 }
 
-async function fetchReferenceFallback(signal) {
-  const response = await fetch(FALLBACK_URL, {
-    headers: {
-      Accept: 'application/json',
-      'User-Agent': 'KriptoAman-Global-Markets/2.0',
-    },
-    signal,
-  });
-
-  if (!response.ok) throw new Error(`FALLBACK_HTTP_${response.status}`);
-  const payload = await response.json();
-  const rates = payload?.rates || {};
+function buildReferenceInstruments(rates) {
   const bySymbol = {
     'EUR/USD': inverse(rates.EUR),
     'GBP/USD': inverse(rates.GBP),
@@ -138,11 +141,23 @@ async function fetchReferenceFallback(signal) {
     'NZD/USD': inverse(rates.NZD),
     'XAU/USD': inverse(rates.XAU),
   };
-  const instruments = CORE_INSTRUMENTS
+  return CORE_INSTRUMENTS
     .map(definition => instrument(definition, bySymbol[definition.symbol]))
     .filter(item => item.price != null);
+}
 
-  if (instruments.length < 4) throw new Error('GLOBAL_MARKETS_PARTIAL_DATA');
+async function fetchExchangeRateFunReference(signal) {
+  const response = await boundedFetch(EXCHANGE_RATE_FUN_URL, {
+    headers: {
+      Accept: 'application/json',
+      'User-Agent': 'KriptoAman-Global-Markets/2.1',
+    },
+  }, signal, 2800);
+  if (!response.ok) throw new Error(`EXCHANGE_RATE_FUN_HTTP_${response.status}`);
+  const payload = await response.json();
+  const rates = payload?.rates || {};
+  const instruments = buildReferenceInstruments(rates);
+  if (instruments.length < CORE_INSTRUMENTS.length) throw new Error('EXCHANGE_RATE_FUN_PARTIAL_DATA');
 
   return {
     schemaVersion: '2.0',
@@ -158,10 +173,64 @@ async function fetchReferenceFallback(signal) {
   };
 }
 
+async function fetchFrankfurterReference(signal) {
+  const response = await boundedFetch(FRANKFURTER_URL, {
+    headers: {
+      Accept: 'application/json',
+      'User-Agent': 'KriptoAman-Global-Markets/2.1',
+    },
+  }, signal, 3200);
+  if (!response.ok) throw new Error(`FRANKFURTER_HTTP_${response.status}`);
+  const payload = await response.json();
+  if (!Array.isArray(payload)) throw new Error('FRANKFURTER_INVALID_RESPONSE');
+
+  const rates = {};
+  let newestDate = null;
+  for (const row of payload) {
+    const quote = String(row?.quote || '').toUpperCase();
+    const rate = safeNumber(row?.rate);
+    if (quote && rate) rates[quote] = rate;
+    const date = typeof row?.date === 'string' ? row.date : null;
+    if (date && (!newestDate || date > newestDate)) newestDate = date;
+  }
+
+  const instruments = buildReferenceInstruments(rates);
+  if (instruments.length < CORE_INSTRUMENTS.length) throw new Error('FRANKFURTER_PARTIAL_DATA');
+
+  return {
+    schemaVersion: '2.0',
+    status: 'reference',
+    base: 'USD',
+    provider: 'Frankfurter',
+    providerCadence: 'institutional-reference',
+    providerMode: 'fallback-reference',
+    marketUse: 'information-only',
+    capturedAt: newestDate || new Date().toISOString(),
+    instruments,
+    attribution: {
+      required: false,
+      label: 'Reference rates via Frankfurter',
+      url: 'https://frankfurter.dev/',
+    },
+  };
+}
+
+async function fetchReferenceFallback(signal) {
+  const failures = [];
+  for (const provider of [fetchExchangeRateFunReference, fetchFrankfurterReference]) {
+    try {
+      return await provider(signal);
+    } catch (error) {
+      failures.push(String(error?.message || 'REFERENCE_PROVIDER_UNAVAILABLE'));
+    }
+  }
+  throw new Error(`REFERENCE_PROVIDERS_FAILED:${failures.join('|')}`);
+}
+
 export async function onRequestGet({ env }) {
   const requestId = crypto.randomUUID();
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
+  const timeout = setTimeout(() => controller.abort(), 10000);
 
   try {
     let result = null;

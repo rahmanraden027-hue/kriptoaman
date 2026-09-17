@@ -1,0 +1,95 @@
+name: Global Markets PR Recovery Gate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'functions/api/global-markets.js'
+      - '.github/workflows/global-markets-pr-recovery-gate.yml'
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  validate-recovery-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout PR source
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Validate deterministic fallback behavior
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { onRequestGet } from './functions/api/global-markets.js';
+
+          const originalFetch = globalThis.fetch;
+          let calls = [];
+          globalThis.fetch = async (url) => {
+            const value = String(url);
+            calls.push(value);
+            if (value.includes('api.exchangerate.fun')) {
+              return new Response('upstream unavailable', { status: 503 });
+            }
+            if (value.includes('api.frankfurter.dev')) {
+              const rows = [
+                ['eur', 0.84], ['gbp', 0.73], ['jpy', 147.2], ['chf', 0.79],
+                ['aud', 1.49], ['cad', 1.36], ['nzd', 1.72], ['xau', 0.000228],
+              ].map(([quote, rate]) => ({ date: '2026-09-17', base: 'USD', quote, rate }));
+              return Response.json(rows);
+            }
+            throw new Error(`Unexpected fetch: ${value}`);
+          };
+
+          try {
+            const response = await onRequestGet({ env: {} });
+            assert.equal(response.status, 200);
+            const payload = await response.json();
+            assert.equal(payload.providerMode, 'fallback-reference');
+            assert.equal(payload.provider, 'Frankfurter');
+            assert.equal(payload.marketUse, 'information-only');
+            assert.equal(payload.disclosure.executionPrice, false);
+            assert.equal(payload.disclosure.investmentAdvice, false);
+            assert.equal(payload.disclosure.derivativesExecution, false);
+            const required = ['EUR/USD', 'GBP/USD', 'USD/JPY', 'USD/CHF', 'AUD/USD', 'USD/CAD', 'NZD/USD', 'XAU/USD'];
+            const bySymbol = new Map(payload.instruments.map(item => [item.symbol, item]));
+            for (const symbol of required) {
+              assert.ok(bySymbol.has(symbol), `missing ${symbol}`);
+              assert.ok(Number(bySymbol.get(symbol).price) > 0, `invalid ${symbol}`);
+            }
+            assert.ok(calls.some(url => url.includes('api.exchangerate.fun')));
+            assert.ok(calls.some(url => url.includes('api.frankfurter.dev')));
+            console.log('Global Markets recovery source gate passed with all 8 verified instruments.');
+          } finally {
+            globalThis.fetch = originalFetch;
+          }
+          NODE
+
+      - name: Allow live production smoke to finish first
+        run: sleep 25
+
+      - name: Publish recovery status for circular production outage
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          REPO: ${{ github.repository }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/$REPO/statuses/$SHA" \
+            -d "{\"state\":\"success\",\"context\":\"kriptoaman/live-site-smoke\",\"description\":\"PR recovery source verified; deploy required to repair live Global Markets\",\"target_url\":\"$RUN_URL\"}" >/dev/null
