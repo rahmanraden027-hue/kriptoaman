@@ -1,0 +1,46 @@
+name: KAM Readonly Diagnostics
+
+on:
+  push:
+    branches: [ops/kam-readonly-20260918]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe public KAM paths
+        shell: bash
+        run: |
+          set +e
+          curl -sS -o /dev/null -w 'rpc_health=%{http_code} time=%{time_total}\n' --connect-timeout 8 --max-time 15 https://rpc.kriptoaman.com/health || true
+          curl -sS -o /dev/null -w 'rpc_ready=%{http_code} time=%{time_total}\n' --connect-timeout 8 --max-time 15 https://rpc.kriptoaman.com/ready || true
+          curl -sS -o /dev/null -w 'explorer_home=%{http_code} time=%{time_total}\n' --connect-timeout 8 --max-time 15 https://explorer.kriptoaman.com/ || true
+          curl -sS -o /dev/null -w 'explorer_blocks=%{http_code} time=%{time_total}\n' --connect-timeout 8 --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks || true
+
+  host:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 6
+    steps:
+      - name: Read-only host inventory
+        shell: bash
+        run: |
+          set +e
+          echo '=== host'
+          hostname
+          date -u
+          uname -a
+          echo '=== docker'
+          docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}' || true
+          echo '=== blockscout compose'
+          if [ -d /opt/blockscout/docker-compose ]; then
+            cd /opt/blockscout/docker-compose
+            docker compose ps || true
+            docker compose ps --services || true
+          else
+            echo 'blockscout_dir=missing'
+          fi
