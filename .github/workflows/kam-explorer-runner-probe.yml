@@ -1,0 +1,41 @@
+name: KAM Explorer Runner Read-Only Probe
+
+on:
+  push:
+    paths:
+      - '.github/workflows/kam-explorer-runner-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kam-explorer-runner-read-only-probe
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 7
+    steps:
+      - name: Probe Explorer host without changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "blockscout_compose_dir=$([[ -d /opt/blockscout/docker-compose ]] && echo present || echo missing)"
+          echo "frontend_env=$([[ -f /opt/blockscout/docker-compose/envs/common-frontend.env ]] && echo present || echo missing)"
+          echo "docker_cli=$([[ -x $(command -v docker 2>/dev/null || true) ]] && echo present || echo missing)"
+          if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+            echo "docker_daemon=reachable"
+            echo "running_container_count=$(docker ps -q | wc -l | tr -d ' ')"
+          else
+            echo "docker_daemon=unreachable"
+            echo "running_container_count=unknown"
+          fi
+          for port in 80 443 3000 4000; do
+            if ss -lnt 2>/dev/null | awk '{print $4}' | grep -Eq "(^|:)$port$"; then
+              echo "listen_${port}=yes"
+            else
+              echo "listen_${port}=no"
+            fi
+          done
