@@ -7,7 +7,7 @@
   "routes": [
     { "pattern": "explorer.kriptoaman.com", "custom_domain": true }
   ],
-  "secrets": {
-    "required": ["KAM_EXPLORER_ORIGIN"]
+  "vars": {
+    "KAM_EXPLORER_ORIGIN": "http://152.42.199.82"
   }
 }
