@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "kam-mainnet-explorer-gateway",
-  "main": "worker.js",
+  "main": "worker-production.js",
   "compatibility_date": "2026-09-17",
   "workers_dev": false,
   "routes": [
