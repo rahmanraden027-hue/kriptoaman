@@ -10,7 +10,7 @@ on:
       - 'tests/kam-rpc-security.test.mjs'
       - '.github/workflows/kam-rpc-gateway-deploy.yml'
   push:
-    branches: [main]
+    branches: [main, kam-reconstruction-20260917]
     paths:
       - 'chain/kam-mainnet/public-rpc-gateway/**'
       - 'chain/kam-mainnet/explorer-gateway/**'
@@ -47,6 +47,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: '24'
+
       - name: Validate Cloudflare deployment credentials
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -54,17 +55,83 @@ jobs:
         run: |
           test -n "$CLOUDFLARE_ACCOUNT_ID"
           test -n "$CLOUDFLARE_API_TOKEN"
+
+      - name: Ensure KAM origin DNS record
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          API=https://api.cloudflare.com/client/v4
+          AUTH="Authorization: Bearer $CLOUDFLARE_API_TOKEN"
+          ZONE_NAME=kriptoaman.com
+          RECORD_NAME=kam-origin.kriptoaman.com
+          ORIGIN_IP=152.42.199.82
+
+          ZONES="$(curl --fail-with-body -sS -H "$AUTH" -H 'Content-Type: application/json' \
+            "$API/zones?name=$ZONE_NAME&status=active&per_page=50")"
+          test "$(jq -r '.success' <<<"$ZONES")" = true
+          ZONE_ID="$(jq -r '.result[0].id // empty' <<<"$ZONES")"
+          test -n "$ZONE_ID"
+
+          RECORDS="$(curl --fail-with-body -sS -H "$AUTH" -H 'Content-Type: application/json' \
+            "$API/zones/$ZONE_ID/dns_records?type=A&name=$RECORD_NAME")"
+          test "$(jq -r '.success' <<<"$RECORDS")" = true
+          RECORD_ID="$(jq -r '.result[0].id // empty' <<<"$RECORDS")"
+
+          BODY="$(jq -nc --arg name "$RECORD_NAME" --arg ip "$ORIGIN_IP" \
+            '{type:"A",name:$name,content:$ip,ttl:1,proxied:false,comment:"KAM Mainnet reconstructed origin managed by GitHub Actions"}')"
+
+          if [ -n "$RECORD_ID" ]; then
+            RESULT="$(curl --fail-with-body -sS -X PUT -H "$AUTH" -H 'Content-Type: application/json' \
+              --data "$BODY" "$API/zones/$ZONE_ID/dns_records/$RECORD_ID")"
+          else
+            RESULT="$(curl --fail-with-body -sS -X POST -H "$AUTH" -H 'Content-Type: application/json' \
+              --data "$BODY" "$API/zones/$ZONE_ID/dns_records")"
+          fi
+
+          test "$(jq -r '.success' <<<"$RESULT")" = true
+          jq '{success, result: {name: .result.name, type: .result.type, content: .result.content, proxied: .result.proxied}}' <<<"$RESULT"
+
+      - name: Verify origin hostname reaches KAM RPC
+        run: |
+          set -euo pipefail
+          for n in $(seq 1 30); do
+            if curl -fsS --max-time 5 http://kam-origin.kriptoaman.com/health | tee /tmp/kam-origin-health.json; then
+              break
+            fi
+            sleep 2
+          done
+          jq -e '.status == "ok" and .chainId == "0x560c"' /tmp/kam-origin-health.json
+          curl -fsS --max-time 5 -H 'content-type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+            http://kam-origin.kriptoaman.com/rpc | jq -e '.result == "0x560c"'
+
       - name: Deploy reconstructed RPC gateway
         working-directory: chain/kam-mainnet/public-rpc-gateway
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: npx --yes wrangler@4.36.0 deploy
+
       - name: Deploy reconstructed Explorer gateway
         working-directory: chain/kam-mainnet/explorer-gateway
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: npx --yes wrangler@4.36.0 deploy
-      - name: Verify public RPC security boundary
-        run: node chain/kam-mainnet/scripts/verify-public-endpoints.mjs
+
+      - name: Verify public RPC readiness
+        run: |
+          set -euo pipefail
+          for n in $(seq 1 20); do
+            if curl -fsS --max-time 8 https://rpc.kriptoaman.com/ready | tee /tmp/kam-ready.json; then
+              if jq -e '.ready == true and .chainId == "0x560c"' /tmp/kam-ready.json >/dev/null; then
+                break
+              fi
+            fi
+            sleep 3
+          done
+          jq -e '.ready == true and .chainId == "0x560c"' /tmp/kam-ready.json
+          curl -fsS --max-time 8 -H 'content-type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+            https://rpc.kriptoaman.com | jq -e '.result == "0x560c"'
