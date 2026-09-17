@@ -65,69 +65,14 @@ jobs:
           test -n "$CLOUDFLARE_ACCOUNT_ID"
           test -n "$CLOUDFLARE_API_TOKEN"
 
-      - name: Ensure dedicated unproxied recovery origin DNS
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      - name: Verify hostname-resolved recovery origin
         shell: bash
         run: |
           set -euo pipefail
-          API='https://api.cloudflare.com/client/v4'
-          ZONE_NAME='kriptoaman.com'
-          RECORD_NAME='rpc-origin.kriptoaman.com'
-          ORIGIN_IP='152.42.199.82'
-          auth=(-H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H 'Content-Type: application/json')
-
-          curl -fsS "${auth[@]}" "$API/zones?name=$ZONE_NAME&status=active&per_page=50" -o /tmp/zones.json
-          ZONE_ID="$(node - /tmp/zones.json <<'NODE'
-          const fs=require('fs'); const p=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
-          if (!p.success || !Array.isArray(p.result) || p.result.length!==1) process.exit(2);
-          process.stdout.write(p.result[0].id);
-          NODE
-          )"
-          test -n "$ZONE_ID"
-
-          curl -fsS "${auth[@]}" "$API/zones/$ZONE_ID/dns_records?type=A&name=$RECORD_NAME&per_page=50" -o /tmp/records.json
-          RECORD_COUNT="$(node - /tmp/records.json <<'NODE'
-          const fs=require('fs'); const p=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
-          if (!p.success || !Array.isArray(p.result)) process.exit(2);
-          process.stdout.write(String(p.result.length));
-          NODE
-          )"
-
-          if [ "$RECORD_COUNT" = '0' ]; then
-            payload="$(node -e "process.stdout.write(JSON.stringify({type:'A',name:'$RECORD_NAME',content:'$ORIGIN_IP',ttl:300,proxied:false,comment:'KAM recovery RPC origin; do not proxy to avoid Worker recursion'}))")"
-            curl -fsS -X POST "${auth[@]}" --data "$payload" "$API/zones/$ZONE_ID/dns_records" -o /tmp/create-record.json
-            node - /tmp/create-record.json <<'NODE'
-          const fs=require('fs'); const p=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
-          if (!p.success) throw new Error(`DNS create failed: ${JSON.stringify(p.errors||[])}`);
-          console.log(`origin_dns_created=${p.result?.name||'unknown'}`);
-          NODE
-          elif [ "$RECORD_COUNT" = '1' ]; then
-            node - /tmp/records.json "$ORIGIN_IP" <<'NODE'
-          const fs=require('fs'); const p=JSON.parse(fs.readFileSync(process.argv[2],'utf8')); const expected=process.argv[3];
-          const r=p.result[0];
-          if (r.type!=='A' || r.content!==expected || r.proxied!==false) {
-            throw new Error(`Refusing to overwrite unexpected existing DNS record: type=${r.type} content=${r.content} proxied=${r.proxied}`);
-          }
-          console.log('origin_dns_existing_verified=true');
-          NODE
-          else
-            echo "Refusing ambiguous DNS state: found $RECORD_COUNT A records for $RECORD_NAME" >&2
-            exit 3
-          fi
-
-      - name: Verify owned origin hostname resolves and serves KAM
-        shell: bash
-        run: |
-          set -euo pipefail
-          HOST='rpc-origin.kriptoaman.com'
-          for attempt in $(seq 1 18); do
-            RESOLVED="$(getent ahostsv4 "$HOST" | awk 'NR==1{print $1}' || true)"
-            if [ "$RESOLVED" = '152.42.199.82' ]; then break; fi
-            test "$attempt" -lt 18
-            sleep 5
-          done
-          test "$(getent ahostsv4 "$HOST" | awk 'NR==1{print $1}')" = '152.42.199.82'
+          HOST='152-42-199-82.sslip.io'
+          RESOLVED="$(getent ahostsv4 "$HOST" | awk 'NR==1{print $1}' || true)"
+          echo "origin_hostname_resolves_to=$RESOLVED"
+          test "$RESOLVED" = '152.42.199.82'
           curl -fsS --connect-timeout 5 --max-time 10 "http://$HOST/health" -o /tmp/origin-health.json
           node - /tmp/origin-health.json <<'NODE'
           const fs=require('fs'); const p=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
@@ -135,9 +80,9 @@ jobs:
           NODE
           BODY="$(curl -fsS --connect-timeout 5 --max-time 10 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' "http://$HOST/rpc")"
           test "$(node -e "const p=JSON.parse(process.argv[1]);process.stdout.write(p.result||'')" "$BODY")" = '0x560c'
-          echo 'owned_origin_hostname_verified=true'
+          echo 'hostname_origin_verified=true'
 
-      - name: Point Worker to owned verified recovery origin
+      - name: Point Worker to hostname-resolved verified recovery origin
         working-directory: chain/kam-mainnet/public-rpc-gateway
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -147,8 +92,8 @@ jobs:
           set -euo pipefail
           npx --yes wrangler@4.134.0 deploy \
             --keep-vars \
-            --var 'KAM_RPC_ORIGIN:http://rpc-origin.kriptoaman.com/rpc' \
-            --message 'Recover KAM public RPC via verified owned recovery origin hostname'
+            --var 'KAM_RPC_ORIGIN:http://152-42-199-82.sslip.io/rpc' \
+            --message 'Recover KAM public RPC via hostname-resolved verified recovery origin'
 
       - name: Verify public RPC recovered
         shell: bash
