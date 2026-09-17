@@ -70,7 +70,7 @@ async function fetchOrigin(env, body, timeoutMs = UPSTREAM_TIMEOUT_MS) {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body,
-      redirect: 'error',
+      redirect: 'manual',
       signal: controller.signal,
     });
   } finally {
@@ -184,8 +184,6 @@ export default {
       }, readiness.status);
     }
 
-    // Human/browser navigation gets the full Developer Console while the RPC
-    // contract at POST / remains unchanged for wallets, explorers and apps.
     if (request.method === 'GET' && url.pathname === '/') {
       return Response.redirect(DEVELOPER_CONSOLE_URL, 302);
     }
