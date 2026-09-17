@@ -11,7 +11,7 @@ permissions:
 jobs:
   public:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 6
     steps:
       - name: Probe public KAM paths
         shell: bash
@@ -28,8 +28,9 @@ jobs:
           show_post() {
             url="$1"
             method="$2"
+            params="${3:-[]}"
             echo "=== POST $url $method"
-            code="$(curl -sS -o /tmp/body --connect-timeout 5 --max-time 10 -w '%{http_code}' -H 'content-type: application/json' --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"$method\",\"params\":[]}" "$url" || true)"
+            code="$(curl -sS -o /tmp/body --connect-timeout 5 --max-time 10 -w '%{http_code}' -H 'content-type: application/json' --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"$method\",\"params\":$params}" "$url" || true)"
             echo "http=$code"
             head -c 600 /tmp/body 2>/dev/null || true
             echo
@@ -40,12 +41,18 @@ jobs:
           show_post https://rpc.kriptoaman.com eth_blockNumber
           show_get https://explorer.kriptoaman.com/
           show_get https://explorer.kriptoaman.com/api/v2/blocks
-          echo '=== recovery droplet public probes'
-          for path in / /health /ready /rpc /jsonrpc /api /api/v2/blocks; do show_get "http://152.42.199.82$path"; done
-          for path in / /rpc /jsonrpc; do
-            show_post "http://152.42.199.82$path" eth_chainId
-            show_post "http://152.42.199.82$path" eth_blockNumber
-          done
+          echo '=== recovery droplet identity and progression'
+          show_get http://152.42.199.82/health
+          show_post http://152.42.199.82/rpc eth_chainId
+          show_post http://152.42.199.82/rpc eth_blockNumber
+          sleep 7
+          show_post http://152.42.199.82/rpc eth_blockNumber
+          echo '=== recovery droplet privileged namespace boundary'
+          show_post http://152.42.199.82/rpc admin_peers
+          show_post http://152.42.199.82/rpc debug_traceTransaction '["0x0000000000000000000000000000000000000000000000000000000000000000"]'
+          show_post http://152.42.199.82/rpc personal_listAccounts
+          show_post http://152.42.199.82/rpc qbft_getValidatorsByBlockNumber '["latest"]'
+          echo '=== alternate public ports should remain closed'
           for port in 8545 8546 4000 3000 8080; do
             show_post "http://152.42.199.82:$port" eth_chainId
           done
