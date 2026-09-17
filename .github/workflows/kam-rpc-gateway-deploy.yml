@@ -56,14 +56,16 @@ jobs:
           test -n "$CLOUDFLARE_ACCOUNT_ID"
           test -n "$CLOUDFLARE_API_TOKEN"
 
-      - name: Verify direct KAM recovery origin
+      - name: Verify resolvable KAM recovery origin
         run: |
           set -euo pipefail
-          curl -fsS --max-time 8 http://152.42.199.82/health | tee /tmp/kam-origin-health.json
+          ORIGIN=http://152-42-199-82.sslip.io
+          getent ahostsv4 152-42-199-82.sslip.io | head
+          curl -fsS --max-time 8 "$ORIGIN/health" | tee /tmp/kam-origin-health.json
           jq -e '.status == "ok" and .chainId == "0x560c"' /tmp/kam-origin-health.json
           curl -fsS --max-time 8 -H 'content-type: application/json' \
             --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
-            http://152.42.199.82/rpc | jq -e '.result == "0x560c"'
+            "$ORIGIN/rpc" | jq -e '.result == "0x560c"'
 
       - name: Deploy reconstructed RPC gateway
         working-directory: chain/kam-mainnet/public-rpc-gateway
@@ -83,13 +85,14 @@ jobs:
         run: |
           set -euo pipefail
           for n in $(seq 1 20); do
-            if curl -fsS --max-time 8 https://rpc.kriptoaman.com/ready | tee /tmp/kam-ready.json; then
+            if curl -sS --max-time 8 https://rpc.kriptoaman.com/ready | tee /tmp/kam-ready.json; then
               if jq -e '.ready == true and .chainId == "0x560c"' /tmp/kam-ready.json >/dev/null; then
                 break
               fi
             fi
             sleep 3
           done
+          cat /tmp/kam-ready.json
           jq -e '.ready == true and .chainId == "0x560c"' /tmp/kam-ready.json
           curl -fsS --max-time 8 -H 'content-type: application/json' \
             --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
