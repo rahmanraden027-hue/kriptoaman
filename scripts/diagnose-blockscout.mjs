@@ -1,7 +1,7 @@
 const rpcUrl = process.env.KAM_RPC_URL || 'https://rpc.kriptoaman.com';
 const explorerUrl = (process.env.KAM_EXPLORER_URL || 'https://explorer.kriptoaman.com').replace(/\/$/, '');
 const expectedChainId = '0x560c';
-const knownTxHash = process.env.KNOWN_TX_HASH || '0x90dbcf26bfc0c9398b2a2b235e4f5d9de6dc7151bfbf9b662ba79a1af0c0f33e';
+const knownTxHash = process.env.KNOWN_TX_HASH || '0x9854d90159013d488190d0f1847596a5dfb7582812f880102f167a1b172b163a';
 const timeoutMs = 10000;
 
 function errorMessage(error) {
