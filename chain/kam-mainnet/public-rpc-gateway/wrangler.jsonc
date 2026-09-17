@@ -11,6 +11,9 @@
     "KAM_NETWORK_STATUS": "mainnet-candidate-not-public",
     "KAM_EXPECTED_CHAIN_ID": "0x560c"
   },
+  "secrets": {
+    "required": ["KAM_RPC_ORIGIN"]
+  },
   "ratelimits": [
     {
       "name": "RPC_RATE_LIMITER",
