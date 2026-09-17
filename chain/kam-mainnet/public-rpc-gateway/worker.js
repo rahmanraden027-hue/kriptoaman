@@ -54,13 +54,19 @@ function isAllowedRpcItem(item) {
   return item && item.jsonrpc === '2.0' && typeof item.method === 'string' && ALLOWED_METHODS.has(item.method);
 }
 
+function rpcOrigin(env) {
+  const value = env.KAM_RPC_UPSTREAM || env.KAM_RPC_ORIGIN;
+  return typeof value === 'string' ? value.trim() : '';
+}
+
 async function fetchOrigin(env, body, timeoutMs = UPSTREAM_TIMEOUT_MS) {
-  if (!env.KAM_RPC_ORIGIN) throw new Error('origin-not-configured');
+  const origin = rpcOrigin(env);
+  if (!origin) throw new Error('origin-not-configured');
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await fetch(env.KAM_RPC_ORIGIN, {
+    return await fetch(origin, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body,
@@ -73,7 +79,7 @@ async function fetchOrigin(env, body, timeoutMs = UPSTREAM_TIMEOUT_MS) {
 }
 
 async function probeOrigin(env) {
-  if (!env.KAM_RPC_ORIGIN) {
+  if (!rpcOrigin(env)) {
     return { ready: false, reason: 'origin-not-configured', status: 503 };
   }
 
@@ -160,7 +166,7 @@ export default {
         network: 'KriptoAman Mainnet Candidate',
         expectedChainId: EXPECTED_CHAIN_ID,
         auditOnlyActivation: true,
-        originConfigured: Boolean(env.KAM_RPC_ORIGIN),
+        originConfigured: Boolean(rpcOrigin(env)),
       });
     }
 
@@ -226,7 +232,7 @@ export default {
       if (!success) return rpcError(items[0]?.id, -32005, 'Heavy RPC rate limit exceeded', 429);
     }
 
-    if (!env.KAM_RPC_ORIGIN) return json({ error: 'RPC origin not configured' }, 503);
+    if (!rpcOrigin(env)) return json({ error: 'RPC origin not configured' }, 503);
 
     let upstream;
     try {
