@@ -45,9 +45,10 @@ jobs:
       - name: Verify existing public detail routes
         run: |
           set -euo pipefail
-          TX='0x9854d90159013d488190d0f1847596a5dfb7582812f880102f167a1b172b163a'
+          TX="$(curl -fsS --max-time 20 'https://explorer.kriptoaman.com/api/v2/transactions' | python3 -c 'import json,sys; d=json.load(sys.stdin); items=d.get("items",[]); assert items and items[0].get("hash"); print(items[0]["hash"])')"
           CANONICAL_WKAM='0x0d8848CE88BB09a81a4248Efdd574d50B98b544A'
           SECONDARY_WKAM='0x36a416d3C74A5d4AF9Fd4826e010CE9B00289fc7'
+          echo "indexed_tx_for_route_check=$TX"
           curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/tx/$TX" >/dev/null
           curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/token/$CANONICAL_WKAM" >/dev/null
           for path in /blocks /txs /api-docs; do curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com$path" >/dev/null; done
@@ -169,8 +170,9 @@ jobs:
       - name: Verify Blockscout detail routing remains intact
         run: |
           set -euo pipefail
-          TX='0x9854d90159013d488190d0f1847596a5dfb7582812f880102f167a1b172b163a'
+          TX="$(curl -fsS --max-time 20 'https://explorer.kriptoaman.com/api/v2/transactions' | python3 -c 'import json,sys; d=json.load(sys.stdin); items=d.get("items",[]); assert items and items[0].get("hash"); print(items[0]["hash"])')"
           WKAM='0x0d8848CE88BB09a81a4248Efdd574d50B98b544A'
+          echo "indexed_tx_for_route_check=$TX"
           curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/tx/$TX" >/dev/null
           curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/token/$WKAM" >/dev/null
           for path in /blocks /txs /api-docs; do curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com$path" >/dev/null; done
