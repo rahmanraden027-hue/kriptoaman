@@ -22,6 +22,9 @@ test('cutover workflow does not route broken API v2 through the legacy asset wor
   assert.doesNotMatch(workflow, /API_ROUTE_PATTERN/);
   assert.doesNotMatch(workflow, /Route Blockscout API v2 to preserved Explorer gateway/);
   assert.match(workflow, /blockscout_api_state=/);
+  assert.match(workflow, /EXPECTED_API_WORKER: kam-mainnet-blockscout-api/);
+  assert.match(workflow, /api_worker=/);
+  assert.doesNotMatch(workflow, /Unexpected API v2 route override exists/);
   assert.match(workflow, /x-kam-explorer-browser-rpc: same-origin/);
   assert.match(workflow, /curl -sS -D - -o \/dev\/null/);
   assert.equal(workflow.includes('curl -sSI --retry'), false);

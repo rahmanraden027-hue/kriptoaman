@@ -86,6 +86,7 @@ jobs:
       ROUTE_PATTERN: explorer.kriptoaman.com/*
       NEW_WORKER: kam-mainnet-explorer-cutover
       EXPECTED_OLD_WORKER: kam-mainnet-explorer-gateway
+      EXPECTED_API_WORKER: kam-mainnet-blockscout-api
     steps:
       - name: Checkout reviewed source
         uses: actions/checkout@v7
@@ -129,9 +130,12 @@ jobs:
             exit 1
           fi
 
-          stale_api_route_count="$(jq '[.result[] | select(.pattern == "explorer.kriptoaman.com/api/v2/*")] | length' <<<"${routes}")"
-          if [[ "${stale_api_route_count}" -ne 0 ]]; then
-            echo "Unexpected API v2 route override exists; refusing cutover." >&2
+          api_route_count="$(jq '[.result[] | select(.pattern == "explorer.kriptoaman.com/api/v2/*")] | length' <<<"${routes}")"
+          test "${api_route_count}" -eq 1
+          api_worker="$(jq -r '.result[] | select(.pattern == "explorer.kriptoaman.com/api/v2/*") | (.script // "")' <<<"${routes}")"
+          echo "api_worker=${api_worker}"
+          if [[ "${api_worker}" != "${EXPECTED_API_WORKER}" ]]; then
+            echo "Unexpected Worker owns API v2 route: ${api_worker}" >&2
             exit 1
           fi
 
