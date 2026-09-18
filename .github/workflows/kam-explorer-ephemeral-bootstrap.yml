@@ -1,0 +1,168 @@
+name: KAM Explorer Ephemeral Host Bootstrap
+
+on:
+  push:
+    branches:
+      - ops/explorer-bootstrap-ephemeral-20260918
+    paths:
+      - '.github/workflows/kam-explorer-ephemeral-bootstrap.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - name: Checkout bootstrap branch
+        uses: actions/checkout@v7
+
+      - name: Generate in-memory bootstrap SSH key
+        id: key
+        shell: bash
+        run: |
+          set -euo pipefail
+          KEY=/tmp/kam-explorer-bootstrap
+          ssh-keygen -t ed25519 -N '' -C 'kam-explorer-ephemeral-github-runner' -f "$KEY" >/dev/null
+          chmod 600 "$KEY"
+          echo "key_path=$KEY" >> "$GITHUB_OUTPUT"
+          echo "::notice title=KAM_BOOTSTRAP_PUBLIC_KEY::$(cat "$KEY.pub")"
+
+      - name: Wait for replacement droplet target
+        id: target
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          deadline=$((SECONDS+900))
+          while (( SECONDS < deadline )); do
+            content="$(gh api -X GET "repos/$GITHUB_REPOSITORY/contents/ops/explorer-bootstrap-target.json" -f ref="$GITHUB_REF_NAME" --jq .content | base64 -d)"
+            ip="$(jq -r '.ip // "PENDING"' <<<"$content")"
+            droplet_id="$(jq -r '.droplet_id // 0' <<<"$content")"
+            if [[ "$ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ "$droplet_id" =~ ^[0-9]+$ ]] && (( droplet_id > 0 )); then
+              echo "ip=$ip" >> "$GITHUB_OUTPUT"
+              echo "droplet_id=$droplet_id" >> "$GITHUB_OUTPUT"
+              echo "Target accepted ip=$ip droplet_id=$droplet_id"
+              exit 0
+            fi
+            echo "Waiting for target rendezvous..."
+            sleep 10
+          done
+          echo "Target rendezvous timed out" >&2
+          exit 1
+
+      - name: Wait for SSH and verify fresh host
+        env:
+          TARGET_IP: ${{ steps.target.outputs.ip }}
+          KEY: ${{ steps.key.outputs.key_path }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          deadline=$((SECONDS+600))
+          while (( SECONDS < deadline )); do
+            if ssh -i "$KEY" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 root@"$TARGET_IP" 'printf ready' 2>/dev/null | grep -q ready; then
+              echo "ssh_ready=true"
+              exit 0
+            fi
+            sleep 8
+          done
+          echo "SSH did not become ready" >&2
+          exit 1
+
+      - name: Copy reviewed bootstrap script
+        env:
+          TARGET_IP: ${{ steps.target.outputs.ip }}
+          KEY: ${{ steps.key.outputs.key_path }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          scp -i "$KEY" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null             scripts/bootstrap-kam-blockscout-vps.sh root@"$TARGET_IP":/root/bootstrap-kam-blockscout-vps.sh
+
+      - name: Bootstrap KAM Blockscout
+        env:
+          TARGET_IP: ${{ steps.target.outputs.ip }}
+          DROPLET_ID: ${{ steps.target.outputs.droplet_id }}
+          KEY: ${{ steps.key.outputs.key_path }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -i "$KEY" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@"$TARGET_IP"             "chmod 700 /root/bootstrap-kam-blockscout-vps.sh && KAM_PUBLIC_IP='$TARGET_IP' KAM_DROPLET_ID='$DROPLET_ID' KAM_RPC_URL='https://explorer.kriptoaman.com/rpc' /root/bootstrap-kam-blockscout-vps.sh"
+
+      - name: Wait until indexer catches KAM head
+        id: sync
+        env:
+          TARGET_IP: ${{ steps.target.outputs.ip }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          deadline=$((SECONDS+1200))
+          synced=false
+          latest=0
+          rpc_dec=0
+          while (( SECONDS < deadline )); do
+            rpc_hex="$(curl -fsS --retry 3 --retry-delay 2 --max-time 15               -H 'content-type: application/json'               --data '{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}'               https://explorer.kriptoaman.com/rpc | jq -r '.result // empty' || true)"
+            if [[ "$rpc_hex" =~ ^0x[0-9a-fA-F]+$ ]]; then
+              rpc_dec=$((16#${rpc_hex#0x}))
+            fi
+
+            blocks="$(curl -fsS --max-time 15 "http://$TARGET_IP/api/v2/blocks" 2>/dev/null || true)"
+            latest="$(jq -r '.items[0].height // 0' <<<"$blocks" 2>/dev/null || echo 0)"
+            [[ "$latest" =~ ^[0-9]+$ ]] || latest=0
+
+            echo "index_progress latest=$latest rpc_head=$rpc_dec"
+            if (( rpc_dec > 0 && latest >= rpc_dec - 3 )); then
+              synced=true
+              break
+            fi
+            sleep 10
+          done
+
+          stats="$(curl -fsS --max-time 15 "http://$TARGET_IP/api/v2/stats")"
+          txs="$(curl -fsS --max-time 15 "http://$TARGET_IP/api/v2/transactions")"
+          test "$(jq -r '(.items|type=="array")' <<<"$txs")" = "true"
+          test "$(jq -r '(.total_transactions != null) and (.average_block_time != null)' <<<"$stats")" = "true"
+          test "$synced" = "true"
+
+          jq -n             --arg ip "$TARGET_IP"             --argjson latest "$latest"             --argjson rpc_head "$rpc_dec"             --argjson total_transactions "$(jq '.total_transactions // 0' <<<"$stats")"             --argjson total_addresses "$(jq '.total_addresses // 0' <<<"$stats")"             '{ip:$ip,latest_indexed_block:$latest,rpc_head:$rpc_head,total_transactions:$total_transactions,total_addresses:$total_addresses,synced:true}'             | tee artifacts/bootstrap-summary.json
+
+      - name: Hold access until final cutover signal
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET_IP: ${{ steps.target.outputs.ip }}
+          KEY: ${{ steps.key.outputs.key_path }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          deadline=$((SECONDS+1200))
+          while (( SECONDS < deadline )); do
+            content="$(gh api -X GET "repos/$GITHUB_REPOSITORY/contents/ops/explorer-bootstrap-finalize.json" -f ref="$GITHUB_REF_NAME" --jq .content | base64 -d)"
+            finalize="$(jq -r '.finalize // false' <<<"$content")"
+            curl -fsS --max-time 10 "http://$TARGET_IP/healthz" >/dev/null
+            echo "origin_health=ok finalize=$finalize"
+            if [[ "$finalize" == "true" ]]; then
+              ssh -i "$KEY" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@"$TARGET_IP"                 "python3 - <<'PY'
+from pathlib import Path
+p=Path('/root/.ssh/authorized_keys')
+if p.exists():
+    lines=[ln for ln in p.read_text().splitlines() if 'kam-explorer-ephemeral-github-runner' not in ln]
+    p.write_text('\n'.join(lines)+'\n')
+PY"
+              echo "ephemeral_key_removed=true"
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "Finalize signal timed out; leaving ephemeral key in place for recovery." >&2
+          exit 1
+
+      - name: Upload bootstrap evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: kam-blockscout-bootstrap-${{ github.run_id }}
+          path: artifacts/*
+          if-no-files-found: warn
+          retention-days: 30
