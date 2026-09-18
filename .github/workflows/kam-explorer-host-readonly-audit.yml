@@ -1,0 +1,79 @@
+name: KAM Explorer Host Readonly Audit
+
+on:
+  push:
+    branches:
+      - audit/explorer-workers-20260918
+    paths:
+      - '.github/workflows/kam-explorer-host-readonly-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit-host:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 8
+    steps:
+      - name: Inspect Blockscout services and local API
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE=/opt/blockscout/docker-compose
+          test -d "$BASE"
+          cd "$BASE"
+
+          echo "=== SERVICES ==="
+          docker compose ps --services
+          echo "=== STATUS ==="
+          docker compose ps
+
+          echo "=== LOCAL ROOT ==="
+          curl -sSI --max-time 10 http://127.0.0.1:8080/ | head -n 8 || true
+
+          probe_json() {
+            local name="$1" url="$2" body code ctype
+            body="$(mktemp)"
+            code="$(curl -sS -o "$body" -w '%{http_code}' --max-time 15 "$url" || true)"
+            ctype="$(curl -sSI --max-time 10 "$url" 2>/dev/null | tr -d '\r' | awk -F': ' 'tolower($1)=="content-type"{print $2; exit}' || true)"
+            echo "PROBE $name code=$code content_type=${ctype:-unknown} bytes=$(wc -c < "$body" | tr -d ' ')"
+            python3 - "$name" "$body" <<'PY'
+          import json,sys
+          name,path=sys.argv[1:]
+          raw=open(path,'rb').read()
+          try:
+              data=json.loads(raw)
+              out={'name':name,'json':True,'type':type(data).__name__}
+              if isinstance(data,dict):
+                  out['keys']=sorted(data.keys())[:30]
+                  items=data.get('items')
+                  if isinstance(items,list):
+                      out['items_count']=len(items)
+                      if items and isinstance(items[0],dict):
+                          first=items[0]
+                          out['first_item_keys']=sorted(first.keys())[:30]
+                          out['first_block_number']=first.get('height',first.get('number',first.get('block_number')))
+                  for k in ('total_transactions','total_transactions_number','transactions_count','total_addresses','addresses_count'):
+                      if k in data:
+                          out[k]=data.get(k)
+              print(json.dumps(out,sort_keys=True))
+          except Exception:
+              sample=raw[:180].decode('utf-8','replace').replace('\n',' ')
+              print(json.dumps({'name':name,'json':False,'sample':sample},sort_keys=True))
+          PY
+            rm -f "$body"
+          }
+
+          probe_json blocks http://127.0.0.1:8080/api/v2/blocks
+          probe_json stats http://127.0.0.1:8080/api/v2/stats
+          probe_json txs http://127.0.0.1:8080/api/v2/transactions
+
+          echo "=== CONTAINER STATES ==="
+          for svc in proxy frontend backend db; do
+            id="$(docker compose ps -q "$svc" 2>/dev/null || true)"
+            if [ -n "$id" ]; then
+              docker inspect "$id" --format "$svc status={{.State.Status}} running={{.State.Running}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}} restart_count={{.RestartCount}}"
+            else
+              echo "$svc unavailable"
+            fi
+          done
