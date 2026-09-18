@@ -29,7 +29,7 @@ try {
     throw new Error(`Production health returned an unknown state: ${JSON.stringify(payload)}`);
   }
 
-  const requiredServices = ['app', 'database', 'coinlore'];
+  const requiredServices = ['app', 'database', 'coinlore', 'coinbase-market'];
   const services = Array.isArray(payload.services) ? payload.services : [];
 
   for (const id of requiredServices) {
@@ -40,10 +40,16 @@ try {
     }
   }
 
+  if (payload.market_redundancy?.healthy !== true
+      || Number(payload.market_redundancy?.operational_provider_count || 0) < 2) {
+    throw new Error(`Market redundancy is insufficient: ${JSON.stringify(payload.market_redundancy)}`);
+  }
+
   console.log(JSON.stringify({
     status: payload.overall === 'degraded' ? 'healthy_with_fallback' : 'healthy',
     overall: payload.overall,
     checkedAt: payload.checked_at,
+    marketRedundancy: payload.market_redundancy,
     services: services.map(({ id, state, latency_ms }) => ({ id, state, latency_ms })),
   }));
 } finally {
