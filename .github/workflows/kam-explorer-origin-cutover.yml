@@ -176,7 +176,7 @@ jobs:
             test "${code}" = "200"
           done
 
-          headers="$(curl -sSI --retry 5 --retry-delay 2 --retry-all-errors --max-time 20 "${PUBLIC}/" | tr -d '\r')"
+          headers="$(curl -sS -D - -o /dev/null --retry 5 --retry-delay 2 --retry-all-errors --max-time 20 "${PUBLIC}/" | tr -d '\r')"
           grep -qi '^x-kam-explorer-cutover: explorer-new$' <<<"${headers}"
           grep -qi '^x-kam-explorer-origin: explorer-new\.kriptoaman\.com$' <<<"${headers}"
           grep -qi '^x-kam-explorer-browser-rpc: same-origin$' <<<"${headers}"
