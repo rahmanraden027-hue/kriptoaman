@@ -149,4 +149,5 @@ test('KAM RPC rate-limit configuration has separate general and heavy budgets', 
   assert.match(config, /"limit": 120/);
   assert.match(config, /"RPC_HEAVY_RATE_LIMITER"/);
   assert.match(config, /"limit": 30/);
+  assert.match(config, /"KAM_RPC_ORIGIN"\s*:\s*"https:\/\/explorer-new\.kriptoaman\.com\/rpc"/);
 });

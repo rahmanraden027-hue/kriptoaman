@@ -9,7 +9,8 @@
   ],
   "vars": {
     "KAM_NETWORK_STATUS": "mainnet-candidate-not-public",
-    "KAM_EXPECTED_CHAIN_ID": "0x560c"
+    "KAM_EXPECTED_CHAIN_ID": "0x560c",
+    "KAM_RPC_ORIGIN": "https://explorer-new.kriptoaman.com/rpc"
   },
   "ratelimits": [
     {
