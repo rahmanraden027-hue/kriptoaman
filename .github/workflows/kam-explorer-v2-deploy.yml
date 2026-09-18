@@ -6,6 +6,7 @@ on:
       - 'explorer-dashboard/**'
       - 'scripts/deploy-kam-explorer-v2.sh'
       - 'scripts/diagnose-blockscout.mjs'
+      - 'scripts/diagnose-kam-rpc-origins.mjs'
       - 'scripts/verify-kam-explorer-five-indicators.mjs'
       - 'tests/kam-explorer-v2-dashboard.test.mjs'
       - '.github/workflows/kam-explorer-v2-deploy.yml'
@@ -42,6 +43,8 @@ jobs:
         run: node --test tests/kam-explorer-v2-dashboard.test.mjs
       - name: Validate deploy script syntax
         run: bash -n scripts/deploy-kam-explorer-v2.sh
+      - name: Diagnose KAM RPC origin paths
+        run: node scripts/diagnose-kam-rpc-origins.mjs
       - name: Verify public Explorer core before deployment
         run: node scripts/diagnose-blockscout.mjs
       - name: Verify five live Explorer production indicators
