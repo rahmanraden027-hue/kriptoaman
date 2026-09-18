@@ -143,6 +143,24 @@ test('KAM RPC applies general and heavy-method edge rate limits', async () => {
   assert.equal((await response.json()).error?.code, -32005);
 });
 
+test('KAM RPC can use the Explorer Worker service binding without exposing privileged RPC', async () => {
+  const explorerBinding = {
+    fetch: async (request) => {
+      const payload = JSON.parse(await request.text());
+      assert.equal(new URL(request.url).pathname, '/rpc');
+      assert.equal(payload.method, 'eth_chainId');
+      return Response.json({ jsonrpc: '2.0', id: payload.id, result: '0x560c' });
+    },
+  };
+  const response = await gateway.fetch(new Request('https://rpc.kriptoaman.com/', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 7, method: 'eth_chainId', params: [] }),
+  }), { KAM_EXPLORER_GATEWAY: explorerBinding });
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).result, '0x560c');
+});
+
 test('KAM RPC rate-limit configuration has separate general and heavy budgets', async () => {
   const config = await read('chain/kam-mainnet/public-rpc-gateway/wrangler.jsonc');
   assert.match(config, /"RPC_RATE_LIMITER"/);
@@ -150,4 +168,6 @@ test('KAM RPC rate-limit configuration has separate general and heavy budgets', 
   assert.match(config, /"RPC_HEAVY_RATE_LIMITER"/);
   assert.match(config, /"limit": 30/);
   assert.match(config, /"KAM_RPC_ORIGIN"\s*:\s*"https:\/\/explorer-new\.kriptoaman\.com\/rpc"/);
+  assert.match(config, /"binding"\s*:\s*"KAM_EXPLORER_GATEWAY"/);
+  assert.match(config, /"service"\s*:\s*"kam-mainnet-explorer-cutover"/);
 });
