@@ -46,3 +46,23 @@ async function probe(target) {
 const results = [];
 for (const target of targets) results.push(await probe(target));
 console.log(JSON.stringify({ checkedAt: new Date().toISOString(), results }, null, 2));
+
+async function getJson(name, url) {
+  const started = Date.now();
+  try {
+    const response = await fetch(url, { signal: AbortSignal.timeout(10000), cache: 'no-store' });
+    const text = await response.text();
+    let payload = null;
+    try { payload = JSON.parse(text); } catch {}
+    return { name, url, status: response.status, payload, bodyPreview: payload ? undefined : text.slice(0,160), latencyMs: Date.now()-started };
+  } catch (error) {
+    return { name, url, status: null, error: String(error?.message || error), latencyMs: Date.now()-started };
+  }
+}
+
+console.log(JSON.stringify({
+  gateway: [
+    await getJson('public-rpc-health', 'https://rpc.kriptoaman.com/health'),
+    await getJson('public-rpc-ready', 'https://rpc.kriptoaman.com/ready'),
+  ],
+}, null, 2));
