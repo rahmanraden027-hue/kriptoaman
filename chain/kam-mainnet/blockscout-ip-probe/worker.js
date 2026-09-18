@@ -3,7 +3,7 @@ import { connect } from "cloudflare:sockets";
 export default {
   async fetch() {
     try {
-      const socket = connect({ hostname: "146.190.93.254", port: 80 });
+      const socket = connect({ hostname: "146.190.93.254", port: 80 }, { allowHalfOpen: true });
       const writer = socket.writable.getWriter();
       await writer.write(new TextEncoder().encode(
         "GET /api/v2/blocks HTTP/1.0\r\n" +
