@@ -1,4 +1,4 @@
-const ORIGIN = "http://146.190.93.254";
+const ORIGIN = "http://blockscout-origin.kriptoaman.com";
 
 export default {
   async fetch(request) {
