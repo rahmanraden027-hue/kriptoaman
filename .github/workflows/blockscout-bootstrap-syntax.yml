@@ -1,9 +1,13 @@
 name: Blockscout Bootstrap Syntax
 
 on:
+  pull_request:
+    paths:
+      - 'scripts/bootstrap-kam-blockscout-vps.sh'
+      - '.github/workflows/blockscout-bootstrap-syntax.yml'
   push:
     branches:
-      - fix/blockscout-source-build-clean-20260918
+      - main
     paths:
       - 'scripts/bootstrap-kam-blockscout-vps.sh'
       - '.github/workflows/blockscout-bootstrap-syntax.yml'
