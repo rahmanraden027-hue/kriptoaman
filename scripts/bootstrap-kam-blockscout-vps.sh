@@ -6,6 +6,8 @@ BLOCKSCOUT_TAG="${BLOCKSCOUT_TAG:-v11.2.3}"
 BLOCKSCOUT_DIR="${BLOCKSCOUT_DIR:-/opt/blockscout}"
 COMPOSE_DIR="${BLOCKSCOUT_DIR}/docker-compose"
 RPC_URL="${KAM_RPC_URL:-https://explorer.kriptoaman.com/rpc}"
+PUBLIC_IP="${KAM_PUBLIC_IP:-}"
+DROPLET_ID="${KAM_DROPLET_ID:-unknown}"
 CHAIN_ID_DEC=22028
 CHAIN_ID_HEX=0x560c
 
@@ -13,6 +15,7 @@ log(){ printf '[kam-blockscout] %s\n' "$*"; }
 die(){ printf '[kam-blockscout] ERROR: %s\n' "$*" >&2; exit 1; }
 
 [[ "${EUID}" -eq 0 ]] || die "Run as root."
+[[ "${PUBLIC_IP}" =~ ^[0-9]+.[0-9]+.[0-9]+.[0-9]+$ ]] || die "KAM_PUBLIC_IP must be an IPv4 address"
 
 log "Installing probe dependencies"
 export DEBIAN_FRONTEND=noninteractive
@@ -76,12 +79,12 @@ fi
 source "${SECRETS_FILE}"
 
 log "Writing KAM production Blockscout configuration"
-python3 - "${COMPOSE_DIR}" "${DB_PASS}" "${STATS_PASS}" "${SECRET_KEY_BASE}" "${RPC_URL}" <<'PY'
+python3 - "${COMPOSE_DIR}" "${DB_PASS}" "${STATS_PASS}" "${SECRET_KEY_BASE}" "${RPC_URL}" "${PUBLIC_IP}" <<'PY'
 from pathlib import Path
 import sys
 
 base=Path(sys.argv[1])
-db_pass, stats_pass, secret_key, rpc = sys.argv[2:]
+db_pass, stats_pass, secret_key, rpc, public_ip = sys.argv[2:]
 
 env=base/'envs/common-blockscout.env'
 text=env.read_text()
@@ -133,7 +136,7 @@ env.write_text('\n'.join(out)+'\n')
 front=base/'envs/common-frontend.env'
 ft=front.read_text()
 fvals={
-    'NEXT_PUBLIC_API_HOST':'159.65.129.12',
+    'NEXT_PUBLIC_API_HOST':public_ip,
     'NEXT_PUBLIC_API_PROTOCOL':'http',
     'NEXT_PUBLIC_NETWORK_NAME':'KAM Mainnet',
     'NEXT_PUBLIC_NETWORK_SHORT_NAME':'KAM',
@@ -141,7 +144,7 @@ fvals={
     'NEXT_PUBLIC_NETWORK_CURRENCY_NAME':'KAM',
     'NEXT_PUBLIC_NETWORK_CURRENCY_SYMBOL':'KAM',
     'NEXT_PUBLIC_NETWORK_CURRENCY_DECIMALS':'18',
-    'NEXT_PUBLIC_APP_HOST':'159.65.129.12',
+    'NEXT_PUBLIC_APP_HOST':public_ip,
     'NEXT_PUBLIC_APP_PROTOCOL':'http',
     'NEXT_PUBLIC_IS_TESTNET':'false',
 }
@@ -277,8 +280,8 @@ if [[ -n "${stats}" ]]; then
 fi
 
 cat >/root/KAM_BLOCKSCOUT_STATUS.txt <<EOF
-droplet_id=601605918
-public_ip=159.65.129.12
+droplet_id=${DROPLET_ID}
+public_ip=${PUBLIC_IP}
 blockscout_tag=${BLOCKSCOUT_TAG}
 chain_id=${CHAIN_ID_DEC}
 rpc_url=${RPC_URL}
@@ -291,4 +294,4 @@ chmod 600 /root/KAM_BLOCKSCOUT_STATUS.txt
 
 log "Bootstrap complete"
 log "Local health: http://127.0.0.1/healthz"
-log "API origin: http://159.65.129.12/api/v2/blocks"
+log "API origin: http://${PUBLIC_IP}/api/v2/blocks"
