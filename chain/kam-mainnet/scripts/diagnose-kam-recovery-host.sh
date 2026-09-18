@@ -1,137 +1,158 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Read-only, redacted KAM recovery-host diagnostic.
-# Never prints validator keys, enodes, IP addresses, passwords, tokens, or file contents.
+# KAM recovery-host diagnostic.
+# READ-ONLY and REDACTED: never prints validator keys, enodes, IP addresses,
+# passwords, tokens, seed phrases, or configuration file contents.
 
 EXPECTED_CHAIN_ID="0x560c"
 RPC_PORTS=(8545 8648)
-OUT_DIR="${KAM_DIAG_OUT_DIR:-/tmp}"
-OUT="${OUT_DIR%/}/kam-recovery-host-diagnostic.json"
 
 need() { command -v "$1" >/dev/null 2>&1; }
-json_escape() {
-  python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().strip()))' 2>/dev/null || jq -Rs .
-}
 sha_text() { printf '%s' "$1" | sha256sum | awk '{print $1}'; }
+
+rpc_call() {
+  local url="$1"
+  local method="$2"
+  local params="${3:-[]}"
+  local body
+  body="$(printf '{"jsonrpc":"2.0","id":1,"method":"%s","params":%s}' "$method" "$params")"
+  curl -fsS --max-time 5     -H 'content-type: application/json'     --data "$body"     "$url" 2>/dev/null || true
+}
+
+hex_to_dec() {
+  local value="${1:-}"
+  if [[ "$value" =~ ^0x[0-9a-fA-F]+$ ]]; then
+    printf '%d\n' "$((16#${value#0x}))"
+  else
+    printf 'unavailable\n'
+  fi
+}
 
 HOST_FP="$( (cat /etc/machine-id 2>/dev/null || hostname) | sha256sum | awk '{print $1}' )"
 OS_NAME="$(. /etc/os-release 2>/dev/null && printf '%s %s' "${NAME:-Linux}" "${VERSION_ID:-unknown}" || uname -s)"
 KERNEL="$(uname -r)"
 ARCH="$(uname -m)"
-NTP_SYNC="$(timedatectl show -p NTPSynchronized --value 2>/dev/null || echo unknown)"
+NTP_SYNC="$(timedatectl show -p NTPSynchronized --value 2>/dev/null || printf 'unknown')"
 
 BESU_VERSION="unavailable"
 if need besu; then
-  BESU_VERSION="$(besu --version 2>/dev/null | head -1 || true)"
+  BESU_VERSION="$(besu --version 2>/dev/null | head -1 || printf 'unavailable')"
 fi
 
-SYSTEMD_UNITS="[]"
-if need systemctl; then
-  SYSTEMD_UNITS="$(systemctl list-units --type=service --all --no-legend 2>/dev/null     | awk '{print $1" "$3" "$4}'     | grep -Ei 'besu|kam|qbft'     | sed -E 's/[[:space:]]+/ /g'     | jq -Rsc 'split("\n")|map(select(length>0))' 2>/dev/null || echo '[]')"
-fi
-
-CONTAINERS="[]"
-if need docker; then
-  CONTAINERS="$(docker ps --format '{{.Names}}|{{.Image}}|{{.Status}}' 2>/dev/null     | grep -Ei 'besu|kam|qbft'     | jq -Rsc 'split("\n")|map(select(length>0))' 2>/dev/null || echo '[]')"
-fi
-
-rpc_call() {
-  local url="$1" method="$2" params="${3:-[]}"
-  curl -fsS --max-time 4     -H 'content-type: application/json'     --data "{"jsonrpc":"2.0","id":1,"method":"${method}","params":${params}}"     "$url" 2>/dev/null || true
-}
-
-RPC_URL=""
-CHAIN_ID=""
+CHAIN_ID="unavailable"
 BLOCK_HEX=""
 PEER_HEX=""
-VALIDATOR_COUNT=""
-VALIDATOR_FP=""
+VALIDATOR_COUNT="unavailable"
+VALIDATOR_FP="unavailable"
+RPC_PORT="unavailable"
+
 for port in "${RPC_PORTS[@]}"; do
   candidate="http://127.0.0.1:${port}"
   payload="$(rpc_call "$candidate" eth_chainId '[]')"
   result="$(jq -r '.result // empty' <<<"$payload" 2>/dev/null || true)"
   if [[ "$result" == "$EXPECTED_CHAIN_ID" ]]; then
-    RPC_URL="$candidate"
+    RPC_PORT="$port"
     CHAIN_ID="$result"
     BLOCK_HEX="$(jq -r '.result // empty' <<<"$(rpc_call "$candidate" eth_blockNumber '[]')" 2>/dev/null || true)"
     PEER_HEX="$(jq -r '.result // empty' <<<"$(rpc_call "$candidate" net_peerCount '[]')" 2>/dev/null || true)"
-    vals="$(jq -c '.result // empty' <<<"$(rpc_call "$candidate" qbft_getValidatorsByBlockNumber '["latest"]')" 2>/dev/null || true)"
-    if [[ -n "$vals" && "$vals" != "null" ]]; then
-      VALIDATOR_COUNT="$(jq 'length' <<<"$vals" 2>/dev/null || true)"
-      if [[ "$VALIDATOR_COUNT" =~ ^[0-9]+$ ]]; then
-        canonical="$(jq -r '.[]' <<<"$vals" | tr '[:upper:]' '[:lower:]' | sort | tr '\n' ',' )"
-        VALIDATOR_FP="$(sha_text "$canonical")"
-      fi
+    validators="$(jq -c '.result // empty' <<<"$(rpc_call "$candidate" qbft_getValidatorsByBlockNumber '["latest"]')" 2>/dev/null || true)"
+    if [[ -n "$validators" && "$validators" != "null" ]] && jq -e 'type=="array"' >/dev/null 2>&1 <<<"$validators"; then
+      VALIDATOR_COUNT="$(jq 'length' <<<"$validators")"
+      canonical="$(jq -r '.[]' <<<"$validators" | tr '[:upper:]' '[:lower:]' | sort | tr '\n' ',')"
+      VALIDATOR_FP="$(sha_text "$canonical")"
     fi
     break
   fi
 done
 
-BLOCK_DEC="null"
-if [[ "$BLOCK_HEX" =~ ^0x[0-9a-fA-F]+$ ]]; then BLOCK_DEC="$((16#${BLOCK_HEX#0x}))"; fi
-PEER_DEC="null"
-if [[ "$PEER_HEX" =~ ^0x[0-9a-fA-F]+$ ]]; then PEER_DEC="$((16#${PEER_HEX#0x}))"; fi
-[[ "$VALIDATOR_COUNT" =~ ^[0-9]+$ ]] || VALIDATOR_COUNT="null"
+BLOCK_DEC="$(hex_to_dec "$BLOCK_HEX")"
+PEER_DEC="$(hex_to_dec "$PEER_HEX")"
 
-RPC_BINDINGS="[]"
+RPC_BINDING_CLASSES="none"
 if need ss; then
-  RPC_BINDINGS="$(ss -lnt 2>/dev/null | awk 'NR>1 {print $4}'     | grep -E ':(8545|8546|8648)$'     | awk '
-      {
-        a=$0
-        cls="restricted"
-        if (a ~ /^127\./ || a ~ /^\[::1\]/ || a ~ /^::1:/) cls="loopback"
-        else if (a ~ /^0\.0\.0\.0:/ || a ~ /^\[::\]:/ || a ~ /^\*:/) cls="wildcard"
-        print cls
-      }' | sort -u | jq -Rsc 'split("\n")|map(select(length>0))' 2>/dev/null || echo '[]')"
+  classes=""
+  while IFS= read -r addr; do
+    [[ -n "$addr" ]] || continue
+    cls="restricted"
+    case "$addr" in
+      127.*|localhost:*|[::1]:*|::1:*) cls="loopback" ;;
+      0.0.0.0:*|[::]:*|*:*) cls="wildcard" ;;
+    esac
+    if [[ ",$classes," != *",$cls,"* ]]; then
+      classes="${classes:+$classes,}$cls"
+    fi
+  done < <(ss -lnt 2>/dev/null | awk 'NR>1 {print $4}' | grep -E ':(8545|8546|8648)$' || true)
+  [[ -n "$classes" ]] && RPC_BINDING_CLASSES="$classes"
 fi
 
-DATA_DIRS="[]"
+SYSTEMD_MATCHES="none"
+if need systemctl; then
+  SYSTEMD_MATCHES="$(
+    systemctl list-units --type=service --all --no-legend 2>/dev/null       | awk '{print $1":"$3":"$4}'       | grep -Ei 'besu|kam|qbft'       | tr '\n' ','       | sed 's/,$//' || true
+  )"
+  [[ -n "$SYSTEMD_MATCHES" ]] || SYSTEMD_MATCHES="none"
+fi
+
+CONTAINER_MATCHES="none"
+if need docker; then
+  CONTAINER_MATCHES="$(
+    docker ps --format '{{.Names}}|{{.Image}}|{{.Status}}' 2>/dev/null       | grep -Ei 'besu|kam|qbft'       | tr '\n' ';'       | sed 's/;$//' || true
+  )"
+  [[ -n "$CONTAINER_MATCHES" ]] || CONTAINER_MATCHES="none"
+fi
+
+DATA_DIR_SUMMARY="none"
 for d in /var/lib/besu /opt/besu/data /var/lib/kam/besu /var/lib/kam-mainnet /opt/kam-mainnet/data; do
   if [[ -d "$d" ]]; then
-    fs="$(findmnt -n -o FSTYPE --target "$d" 2>/dev/null || echo unknown)"
-    usage="$(du -sh "$d" 2>/dev/null | awk '{print $1}' || echo unknown)"
-    entry="$(jq -nc --arg path "$d" --arg fs "$fs" --arg usage "$usage" '{path:$path,filesystem:$fs,usage:$usage}')"
-    DATA_DIRS="$(jq -c --argjson e "$entry" '. + [$e]' <<<"$DATA_DIRS")"
+    usage="$(du -sh "$d" 2>/dev/null | awk '{print $1}' || printf 'unknown')"
+    fs="$(findmnt -n -o FSTYPE --target "$d" 2>/dev/null || printf 'unknown')"
+    item="$(basename "$d"):${usage}:${fs}"
+    if [[ "$DATA_DIR_SUMMARY" == "none" ]]; then
+      DATA_DIR_SUMMARY="$item"
+    else
+      DATA_DIR_SUMMARY="$DATA_DIR_SUMMARY;$item"
+    fi
   fi
 done
 
-GENESIS="[]"
+GENESIS_FINGERPRINTS="none"
 while IFS= read -r g; do
   [[ -n "$g" ]] || continue
   h="$(sha256sum "$g" 2>/dev/null | awk '{print $1}' || true)"
   [[ -n "$h" ]] || continue
-  base="$(basename "$g")"
-  entry="$(jq -nc --arg name "$base" --arg sha256 "$h" '{name:$name,sha256:$sha256}')"
-  GENESIS="$(jq -c --argjson e "$entry" '. + [$e]' <<<"$GENESIS")"
+  item="$(basename "$g"):$h"
+  if [[ "$GENESIS_FINGERPRINTS" == "none" ]]; then
+    GENESIS_FINGERPRINTS="$item"
+  else
+    GENESIS_FINGERPRINTS="$GENESIS_FINGERPRINTS;$item"
+  fi
 done < <(find /etc /opt /var/lib -maxdepth 5 -type f \( -name 'genesis.json' -o -name '*genesis*.json' \) 2>/dev/null | head -20)
 
-READY=false
-if [[ "$CHAIN_ID" == "$EXPECTED_CHAIN_ID" && "$VALIDATOR_COUNT" == "4" && "$BLOCK_DEC" != "null" ]]; then
-  READY=true
+READY="false"
+if [[ "$CHAIN_ID" == "$EXPECTED_CHAIN_ID" && "$VALIDATOR_COUNT" == "4" && "$BLOCK_DEC" != "unavailable" ]]; then
+  READY="true"
 fi
 
-mkdir -p "$OUT_DIR"
-jq -n   --arg checkedAt "$(date -u +%FT%TZ)"   --arg hostFingerprint "$HOST_FP"   --arg os "$OS_NAME"   --arg kernel "$KERNEL"   --arg arch "$ARCH"   --arg ntp "$NTP_SYNC"   --arg besuVersion "$BESU_VERSION"   --arg chainId "${CHAIN_ID:-unavailable}"   --arg validatorFingerprint "${VALIDATOR_FP:-unavailable}"   --argjson blockNumber "$BLOCK_DEC"   --argjson peerCount "$PEER_DEC"   --argjson validatorCount "$VALIDATOR_COUNT"   --argjson systemdUnits "$SYSTEMD_UNITS"   --argjson containers "$CONTAINERS"   --argjson rpcBindings "$RPC_BINDINGS"   --argjson dataDirs "$DATA_DIRS"   --argjson genesis "$GENESIS"   --argjson ready "$READY"   '{
-    schemaVersion:1,
-    checkedAt:$checkedAt,
-    redacted:true,
-    hostFingerprint:$hostFingerprint,
-    platform:{os:$os,kernel:$kernel,arch:$arch,ntpSynchronized:$ntp},
-    besuVersion:$besuVersion,
-    services:{systemd:$systemdUnits,containers:$containers},
-    rpc:{
-      chainId:$chainId,
-      blockNumber:$blockNumber,
-      peerCount:$peerCount,
-      validatorCount:$validatorCount,
-      validatorSetFingerprint:$validatorFingerprint,
-      bindingClasses:$rpcBindings
-    },
-    storage:{dataDirs:$dataDirs,genesisFingerprints:$genesis},
-    readyForMigrationPlanning:$ready
-  }' | tee "$OUT"
-
-echo
-echo "Diagnostic written to: $OUT"
-echo "Safe to share: YES (redacted fingerprints/counts only)."
+echo "=== KAM RECOVERY HOST DIAGNOSTIC ==="
+echo "checked_at=$(date -u +%FT%TZ)"
+echo "redacted=true"
+echo "host_fingerprint=$HOST_FP"
+echo "os=$OS_NAME"
+echo "kernel=$KERNEL"
+echo "arch=$ARCH"
+echo "ntp_synchronized=$NTP_SYNC"
+echo "besu_version=$BESU_VERSION"
+echo "systemd_matches=$SYSTEMD_MATCHES"
+echo "container_matches=$CONTAINER_MATCHES"
+echo "rpc_port=$RPC_PORT"
+echo "chain_id=$CHAIN_ID"
+echo "block_number=$BLOCK_DEC"
+echo "peer_count=$PEER_DEC"
+echo "validator_count=$VALIDATOR_COUNT"
+echo "validator_set_fingerprint=$VALIDATOR_FP"
+echo "rpc_binding_classes=$RPC_BINDING_CLASSES"
+echo "data_dirs=$DATA_DIR_SUMMARY"
+echo "genesis_fingerprints=$GENESIS_FINGERPRINTS"
+echo "ready_for_migration_planning=$READY"
+echo "=== END KAM DIAGNOSTIC ==="
