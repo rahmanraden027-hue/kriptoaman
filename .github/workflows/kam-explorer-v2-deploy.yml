@@ -23,7 +23,9 @@ permissions:
 
 concurrency:
   group: kam-explorer-v2-deploy-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  # Safety guard: a newer main deployment supersedes an older queued deployment.
+  # This prevents a stale Explorer UI commit from deploying after a newer approved UI.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.ref == 'refs/heads/main' }}
 
 jobs:
   preflight:
