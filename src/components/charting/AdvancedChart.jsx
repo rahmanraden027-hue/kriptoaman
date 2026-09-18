@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { LineChart, Line, AreaChart, Area, ComposedChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Line, AreaChart, Area, ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import ChartIndicators from './ChartIndicators';

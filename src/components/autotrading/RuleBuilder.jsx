@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Plus, Trash2, Info } from 'lucide-react';
+import React from 'react';
+import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';

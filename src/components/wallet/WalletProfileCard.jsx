@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { QrCode, X, Copy, Check, Shield, Wallet } from 'lucide-react';
+import { QrCode, X, Copy, Check, Wallet } from 'lucide-react';
 import KriptoAmanLogo from '../brand/KriptoAmanLogo';
 
 function QRCodeCanvas({ value, size = 180 }) {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPublicClient, http, formatUnits } from 'viem';
 import { mainnet, bsc, polygon } from 'viem/chains';
-import { useWeb3, SUPPORTED_CHAINS } from './Web3Provider';
+import { useWeb3 } from './Web3Provider';
 import { RefreshCw, ExternalLink, TrendingUp } from 'lucide-react';
 
 const ERC20_ABI = [

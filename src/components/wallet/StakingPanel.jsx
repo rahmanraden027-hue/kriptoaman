@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   ExternalLink, Info, Award, Lock, RefreshCw, BarChart2, GitCompare,
-  RotateCcw, CheckCircle2, TrendingUp, Bell, BellOff, ArrowDownToLine,
+  RotateCcw, TrendingUp, Bell, ArrowDownToLine,
   Wallet, Zap, X, AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';

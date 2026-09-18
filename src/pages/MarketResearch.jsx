@@ -3,12 +3,11 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { 
-  TrendingUp, Users, DollarSign, Target, Globe, Star, 
-  BarChart3, PieChart, AlertTriangle, CheckCircle2, Zap, ArrowUpRight
+  TrendingUp, Users, DollarSign, Globe, Star,
+  BarChart3, AlertTriangle, CheckCircle2, ArrowUpRight
 } from 'lucide-react';
-import {
-  LineChart, Line, BarChart, Bar, PieChart as RePieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area
+import { BarChart, Bar, PieChart as RePieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area
 } from 'recharts';
 
 // === DATA RISET (sumber: OJK, Bappebti, Statista, SensorTower, IDN Times 2025-2026) ===

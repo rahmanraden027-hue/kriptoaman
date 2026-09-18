@@ -1,7 +1,7 @@
 import React from 'react';
 import { useWeb3 } from './Web3Provider';
 import Web3WalletButton from './Web3WalletButton';
-import { Shield, Wifi, WifiOff } from 'lucide-react';
+import { Wifi, WifiOff } from 'lucide-react';
 
 export default function Web3StatusBar() {
   const { isConnected, account, chainId, currentChain } = useWeb3();

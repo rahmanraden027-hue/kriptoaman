@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { HardDrive, Package, Zap, TrendingUp, BarChart3, Download } from 'lucide-react';
+import { HardDrive, Package, Zap, TrendingUp, Download } from 'lucide-react';
 
 const BUILD_DATA = {
   timestamp: '2026-03-04T10:15:00Z',

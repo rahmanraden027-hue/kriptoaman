@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Search, TrendingUp, TrendingDown, RefreshCw, Wallet, ArrowRight, ShoppingCart, Info } from 'lucide-react';
+import { Search, TrendingUp, RefreshCw, Wallet, ShoppingCart, Info } from 'lucide-react';
 import BaseSqlRunner from '@/components/coinbase/BaseSqlRunner';
 
 export default function CoinbaseTrade() {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { CheckCircle2, XCircle, Clock, Loader2, ChevronDown, ChevronUp, AlertTriangle, MessageSquare, ExternalLink, Image, Filter } from 'lucide-react';
+import { CheckCircle2, XCircle, Clock, Loader2, ChevronDown, ChevronUp, AlertTriangle, MessageSquare, ExternalLink, Image } from 'lucide-react';
 
 export default function PendingDepositsPanel() {
   const qc = useQueryClient();

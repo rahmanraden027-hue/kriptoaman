@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, YAxis, XAxis, CartesianGrid } from 'recharts';
 import { Loader2 } from 'lucide-react';
-import { COINS } from './multiCoinApi';
 import { getMarketChart } from '../market/marketDataService';
 
 export default function MiniPriceChart({ coinId, color, days = 7, height = 80, showAxes = false }) {

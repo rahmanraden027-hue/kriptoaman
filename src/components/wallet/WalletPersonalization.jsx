@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
-  Settings2, Eye, EyeOff, GripVertical, ArrowUpDown,
+  Settings2, Eye, EyeOff, GripVertical,
   SortAsc, SortDesc, Sun, Moon, X, Check, RotateCcw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';

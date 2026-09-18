@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { getAddressInfo, getRecommendedFees, broadcastTransaction } from './bitcoinApi';
+import { getAddressInfo, getRecommendedFees } from './bitcoinApi';
 import { decryptData, satoshiToBtc, btcToSatoshi } from './walletUtils';
 import { X, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
 import { HDKey } from '@scure/bip32';

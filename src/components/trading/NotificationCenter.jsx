@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Bell, X, AlertCircle, Info, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Bell, X, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const ICON_MAP = {

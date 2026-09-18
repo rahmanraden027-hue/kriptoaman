@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { X, AlertTriangle, CheckCircle2, Loader2, ExternalLink } from 'lucide-react';
-import { COINS, getBalance, getRecommendedFeesByCoin, formatAmount } from './multiCoinApi';
+import { COINS, getBalance, getRecommendedFeesByCoin } from './multiCoinApi';
 import { decryptData } from './walletUtils';
 import { collectTransactionFee } from './collectFeeHelper';
 

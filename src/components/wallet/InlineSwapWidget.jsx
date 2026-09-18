@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  ArrowLeftRight, ChevronDown, Loader2, AlertTriangle,
-  CheckCircle2, Zap, RefreshCw, Info
+  ArrowLeftRight, ChevronDown, Loader2,
+  CheckCircle2, Zap, Info
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

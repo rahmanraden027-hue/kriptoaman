@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Shield, ShieldCheck, ShieldOff, Smartphone, Monitor, Globe, Clock, Trash2, CheckCircle2, XCircle, Key, RefreshCw, AlertTriangle, Copy, Check, Lock, Fingerprint, Timer, FileText, Badge as BadgeIcon } from 'lucide-react';
+import { ShieldCheck, ShieldOff, Smartphone, Monitor, Globe, Clock, Trash2, CheckCircle2, XCircle, AlertTriangle, Copy, Check, Lock, Fingerprint, Timer, FileText, Badge as BadgeIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PinSetup, PIN_ENABLED_KEY, BIOMETRIC_ENABLED_KEY, PIN_STORAGE_KEY } from '../security/PinLock';
-import { TOTPSetup, TOTPVerify } from '../security/TOTP2FA';
+import { TOTPSetup } from '../security/TOTP2FA';
 import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
 

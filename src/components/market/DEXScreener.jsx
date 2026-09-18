@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { TrendingUp, TrendingDown, RefreshCw, Search, Filter, Zap, Star, Copy, ExternalLink, CheckCircle2, AlertTriangle, Flame } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { TrendingUp, TrendingDown, RefreshCw, Search, Filter, Zap, Copy, ExternalLink, CheckCircle2, AlertTriangle, Flame } from 'lucide-react';
 
 const CHAINS = [
   { id: 'all', label: '🌐 Semua' },

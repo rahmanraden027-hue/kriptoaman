@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Pencil, Trash2, TrendingUp, TrendingDown, Activity, ChevronDown } from 'lucide-react';
+import { Pencil, Trash2, ChevronDown } from 'lucide-react';
 import TradingRuleForm from './TradingRuleForm';
 
 const SIGNAL_COLORS = {

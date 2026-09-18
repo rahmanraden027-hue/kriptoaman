@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Copy, Download, Share2, Check } from 'lucide-react';
+import { X, Copy, Share2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const COIN_ICONS = {

@@ -1,9 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+import { XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, BarChart, Bar, Cell, ReferenceLine, AreaChart, Area, ComposedChart
 } from 'recharts';
-import { TrendingUp, TrendingDown, Target, AlertCircle, Download, BarChart3, ChevronDown } from 'lucide-react';
+import { Download, BarChart3, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import MonteCarloAnalytics from './MonteCarloAnalytics';

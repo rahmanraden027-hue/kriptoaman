@@ -88,7 +88,7 @@ export default function useGlobalMarkets() {
       active = false;
       window.clearInterval(timer);
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const currentCache = readCache();
   const cacheAgeMs = currentCache?.savedAt ? Date.now() - currentCache.savedAt : null;

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, Check, X, Bitcoin, Building2, Wallet, AlertCircle, Copy, CheckCheck } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { Plus, Pencil, Trash2, Check, X, Building2, Wallet, AlertCircle, Copy, CheckCheck } from 'lucide-react';
 
 // ── Crypto address regex validators ──────────────────────────────────────────
 const CRYPTO_VALIDATORS = {

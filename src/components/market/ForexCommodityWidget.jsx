@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Globe, Gem } from 'lucide-react';
+import { Globe, Gem } from 'lucide-react';
 import { getForexRates, getCommodityRates } from './marketDataService';
 
 const FOREX_PAIRS = ['EUR/USD', 'GBP/USD', 'USD/JPY', 'USD/IDR', 'AUD/USD', 'XAU/USD'];

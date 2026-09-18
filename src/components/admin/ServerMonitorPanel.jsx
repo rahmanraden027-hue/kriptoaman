@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, CheckCircle2, XCircle, Clock, RefreshCw, AlertTriangle, Wifi, WifiOff } from 'lucide-react';
+import { RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import AdminAuditLogPanel from './AdminAuditLogPanel';
 
 const ENDPOINTS = [

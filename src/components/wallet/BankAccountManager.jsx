@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Building2, Plus, Trash2, CheckCircle2, Shield, ChevronDown, X, AlertTriangle } from 'lucide-react';
+import { Building2, Plus, Trash2, CheckCircle2, Shield, ChevronDown, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, ArrowDownToLine, ArrowUpFromLine, Building2, CheckCircle2, AlertTriangle, Loader2, RefreshCw, Info } from 'lucide-react';
+import { X, ArrowDownToLine, ArrowUpFromLine, Building2, CheckCircle2, AlertTriangle, Loader2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import BankAccountManager, { loadBankAccounts } from './BankAccountManager';

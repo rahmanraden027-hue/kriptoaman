@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   PiggyBank, TrendingUp, ArrowLeftRight, Shield, Zap,
-  Plus, Minus, CheckCircle2, ChevronDown,
-  Coins, Wallet, RefreshCw, AlertTriangle, Star, Globe
+  Plus, Minus, CheckCircle2,
+  Coins, Wallet, RefreshCw, Star, Globe
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
