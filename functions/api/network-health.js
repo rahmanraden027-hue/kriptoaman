@@ -13,7 +13,7 @@ const EDGE_CACHE_WRITE_BUDGET_MS = 400;
 
 const NETWORKS = [
   { name: 'Bitcoin', type: 'bitcoin', timeoutMs: SLOW_PROVIDER_TIMEOUT_MS, urls: ['https://mempool.space/api/blocks/tip/height', 'https://blockstream.info/api/blocks/tip/height'] },
-  { name: 'Ethereum', type: 'evm', urls: ['https://ethereum-rpc.publicnode.com', 'https://eth.llamarpc.com'] },
+  { name: 'Ethereum', type: 'evm', urls: ['https://eth.drpc.org', 'https://rpc.flashbots.net', 'https://ethereum-rpc.publicnode.com', 'https://eth.llamarpc.com'] },
   { name: 'BNB Chain', type: 'evm', urls: ['https://bsc-dataseed.binance.org', 'https://bsc-rpc.publicnode.com'] },
   { name: 'Polygon', type: 'evm', urls: ['https://polygon-bor-rpc.publicnode.com', 'https://polygon.drpc.org'] },
   { name: 'Arbitrum', type: 'evm', urls: ['https://arb1.arbitrum.io/rpc', 'https://arbitrum-one-rpc.publicnode.com'] },
