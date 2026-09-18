@@ -21,11 +21,9 @@ jobs:
           set -euo pipefail
           rpc='https://explorer.kriptoaman.com/rpc'
           call() {
-            local method="$1" params="$2"
-            curl -fsS --retry 3 --retry-delay 1 --max-time 20 \
-              -H 'content-type: application/json' \
-              --data "{"jsonrpc":"2.0","id":1,"method":"$method","params":$params}" \
-              "$rpc"
+            local method="$1" params="$2" payload
+            payload="$(jq -nc --arg m "$method" --argjson p "$params" '{jsonrpc:"2.0",id:1,method:$m,params:$p}')"
+            curl -fsS --retry 3 --retry-delay 1 --max-time 20               -H 'content-type: application/json'               --data "$payload"               "$rpc"
           }
 
           chain="$(call eth_chainId '[]')"
