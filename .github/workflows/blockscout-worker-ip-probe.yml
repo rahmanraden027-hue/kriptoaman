@@ -1,0 +1,55 @@
+name: Blockscout Worker IP Probe
+
+on:
+  push:
+    branches:
+      - audit/blockscout-worker-ip-probe-20260918
+    paths:
+      - 'chain/kam-mainnet/blockscout-ip-probe/**'
+      - '.github/workflows/blockscout-worker-ip-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Deploy temporary probe worker
+        working-directory: chain/kam-mainnet/blockscout-ip-probe
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx --yes wrangler@4.36.0 deploy
+      - name: Resolve workers.dev subdomain and probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${CF_API_TOKEN}"
+          sub="$(curl --fail-with-body -sS             "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/subdomain"             -H "Authorization: Bearer ${CF_API_TOKEN}"             -H 'Accept: application/json')"
+          test "$(jq -r '.success' <<<"${sub}")" = "true"
+          name="$(jq -r '.result.subdomain' <<<"${sub}")"
+          test -n "${name}"
+          url="https://kam-blockscout-ip-probe.${name}.workers.dev/"
+          echo "probe_url=${url}"
+          for i in $(seq 1 8); do
+            if out="$(curl -fsS --max-time 20 "${url}" 2>/dev/null)"; then
+              echo "${out}" | jq .
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
+      - name: Delete temporary worker
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${CF_API_TOKEN}"
+          response="$(curl --fail-with-body -sS -X DELETE             "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts/kam-blockscout-ip-probe"             -H "Authorization: Bearer ${CF_API_TOKEN}"             -H 'Accept: application/json')"
+          echo "${response}" | jq .
