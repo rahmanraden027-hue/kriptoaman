@@ -44,12 +44,14 @@ jobs:
 
           blocks="$(curl -fsS --max-time 20 "${ORIGIN}/api/v2/blocks")"
           stats="$(curl -fsS --max-time 20 "${ORIGIN}/api/v2/stats")"
+          txs="$(curl -fsS --max-time 20 "${ORIGIN}/api/v2/transactions")"
 
           latest="$(jq -r '.items[0].height // .items[0].number // empty' <<<"${blocks}")"
           test -n "${latest}"
           test "${latest}" -ge 1
 
           test "$(jq -r '(.items | type == "array") and (.items | length > 0)' <<<"${blocks}")" = "true"
+          test "$(jq -r '(.items | type == "array")' <<<"${txs}")" = "true"
           test "$(jq -r '(.total_transactions != null) and (.total_addresses != null)' <<<"${stats}")" = "true"
 
           chain_id="$(curl -fsS --max-time 20             -H 'content-type: application/json'             --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}'             "${RPC}" | jq -r '.result // empty')"
@@ -76,8 +78,6 @@ jobs:
       ZONE_NAME: kriptoaman.com
       ROUTE_PATTERN: explorer.kriptoaman.com/api/v2/*
       NEW_WORKER: kam-mainnet-blockscout-api
-      ORIGIN_DNS: blockscout-origin.kriptoaman.com
-      ORIGIN_IP: 146.190.93.254
     steps:
       - uses: actions/checkout@v7
 
@@ -95,31 +95,6 @@ jobs:
           test "$(jq '[.result[]] | length' <<<"${zones}")" -eq 1
           zone_id="$(jq -r '.result[0].id' <<<"${zones}")"
           echo "ZONE_ID=${zone_id}" >> "${GITHUB_ENV}"
-
-          dns_records="$(curl --fail-with-body -sS --get             "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records"             -H "Authorization: Bearer ${CF_API_TOKEN}"             -H 'Accept: application/json'             --data-urlencode "type=A"             --data-urlencode "name=${ORIGIN_DNS}")"
-          test "$(jq -r '.success' <<<"${dns_records}")" = "true"
-          dns_count="$(jq '[.result[]] | length' <<<"${dns_records}")"
-          test "${dns_count}" -le 1
-
-          if [[ "${dns_count}" -eq 1 ]]; then
-            dns_id="$(jq -r '.result[0].id' <<<"${dns_records}")"
-            dns_content="$(jq -r '.result[0].content' <<<"${dns_records}")"
-            dns_proxied="$(jq -r '.result[0].proxied' <<<"${dns_records}")"
-            test "${dns_content}" = "${ORIGIN_IP}"
-            test "${dns_proxied}" = "false"
-            echo "DNS_RECORD_CREATED=false" >> "${GITHUB_ENV}"
-            echo "DNS_RECORD_ID=${dns_id}" >> "${GITHUB_ENV}"
-            echo "origin_dns=existing"
-          else
-            dns_payload="$(jq -nc               --arg type "A"               --arg name "${ORIGIN_DNS}"               --arg content "${ORIGIN_IP}"               '{type:$type,name:$name,content:$content,ttl:120,proxied:false}')"
-            dns_response="$(curl --fail-with-body -sS -X POST               "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records"               -H "Authorization: Bearer ${CF_API_TOKEN}"               -H 'Content-Type: application/json'               --data "${dns_payload}")"
-            test "$(jq -r '.success' <<<"${dns_response}")" = "true"
-            dns_id="$(jq -r '.result.id' <<<"${dns_response}")"
-            echo "DNS_RECORD_CREATED=true" >> "${GITHUB_ENV}"
-            echo "DNS_RECORD_ID=${dns_id}" >> "${GITHUB_ENV}"
-            jq . <<<"${dns_response}" > artifacts/origin-dns-create.json
-            echo "origin_dns=created"
-          fi
 
           routes="$(curl --fail-with-body -sS             "https://api.cloudflare.com/client/v4/zones/${zone_id}/workers/routes"             -H "Authorization: Bearer ${CF_API_TOKEN}"             -H 'Accept: application/json')"
           jq . <<<"${routes}" > artifacts/routes-before.json
@@ -141,20 +116,6 @@ jobs:
             echo "OLD_WORKER=" >> "${GITHUB_ENV}"
             echo "existing_api_worker=none"
           fi
-
-      - name: Verify DNS-only Blockscout origin
-        shell: bash
-        run: |
-          set -euo pipefail
-          for i in $(seq 1 12); do
-            if body="$(curl -fsS --max-time 10 "http://${ORIGIN_DNS}/healthz" 2>/dev/null)" && [[ "${body}" = "kam-blockscout-origin-ok" ]]; then
-              echo "origin_dns_health=OK"
-              exit 0
-            fi
-            sleep 2
-          done
-          echo "Origin hostname did not become healthy in time" >&2
-          exit 1
 
       - name: Deploy Blockscout API Worker
         working-directory: chain/kam-mainnet/blockscout-api-worker
@@ -191,12 +152,15 @@ jobs:
 
           blocks_headers="$(mktemp)"
           blocks_body="$(mktemp)"
-          curl -fsS -D "${blocks_headers}" -o "${blocks_body}"             --retry 5 --retry-delay 2 --retry-all-errors --max-time 20             "${PUBLIC}/api/v2/blocks"
+          curl -fsS -D "${blocks_headers}" -o "${blocks_body}"             --retry 5 --retry-delay 2 --retry-all-errors --max-time 25             "${PUBLIC}/api/v2/blocks"
 
-          stats="$(curl -fsS --retry 5 --retry-delay 2 --retry-all-errors --max-time 20             "${PUBLIC}/api/v2/stats")"
+          stats="$(curl -fsS --retry 5 --retry-delay 2 --retry-all-errors --max-time 25             "${PUBLIC}/api/v2/stats")"
+          txs="$(curl -fsS --retry 5 --retry-delay 2 --retry-all-errors --max-time 25             "${PUBLIC}/api/v2/transactions")"
 
           grep -qi '^x-kam-blockscout-edge: api-v2' "${blocks_headers}"
+          grep -qi '^x-kam-blockscout-transport: tcp-socket' "${blocks_headers}"
           test "$(jq -r '(.items | type == "array") and (.items | length > 0)' "${blocks_body}")" = "true"
+          test "$(jq -r '(.items | type == "array")' <<<"${txs}")" = "true"
           test "$(jq -r '(.total_transactions != null) and (.total_addresses != null)' <<<"${stats}")" = "true"
 
           latest="$(jq -r '.items[0].height // .items[0].number' "${blocks_body}")"
@@ -216,12 +180,6 @@ jobs:
             response="$(curl --fail-with-body -sS -X DELETE               "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes/${CREATED_ROUTE_ID}"               -H "Authorization: Bearer ${CF_API_TOKEN}"               -H 'Accept: application/json')"
             jq . <<<"${response}" > artifacts/route-rollback-delete.json
             test "$(jq -r '.success' <<<"${response}")" = "true"
-          fi
-
-          if [[ "${DNS_RECORD_CREATED:-false}" = "true" && -n "${DNS_RECORD_ID:-}" ]]; then
-            dns_delete="$(curl --fail-with-body -sS -X DELETE               "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records/${DNS_RECORD_ID}"               -H "Authorization: Bearer ${CF_API_TOKEN}"               -H 'Accept: application/json')"
-            jq . <<<"${dns_delete}" > artifacts/origin-dns-rollback-delete.json
-            test "$(jq -r '.success' <<<"${dns_delete}")" = "true"
           fi
 
       - name: Capture final routes
