@@ -1,7 +1,7 @@
 const rpcUrl = process.env.KAM_RPC_URL || 'https://rpc.kriptoaman.com';
 const explorerUrl = (process.env.KAM_EXPLORER_URL || 'https://explorer.kriptoaman.com').replace(/\/$/, '');
 const expectedChainId = '0x560c';
-const knownTxHash = process.env.KNOWN_TX_HASH || '0x9854d90159013d488190d0f1847596a5dfb7582812f880102f167a1b172b163a';
+const knownTxHash = process.env.KNOWN_TX_HASH || null;
 const timeoutMs = 10000;
 
 function errorMessage(error) {
@@ -66,7 +66,7 @@ const report = {
 const probes = await Promise.all([
   probe('chain', () => rpc('eth_chainId')),
   probe('head', () => rpc('eth_blockNumber')),
-  probe('receipt', () => rpc('eth_getTransactionReceipt', [knownTxHash])),
+  ...(knownTxHash ? [probe('receipt', () => rpc('eth_getTransactionReceipt', [knownTxHash]))] : []),
   probe('blocks', () => fetchJson(`${explorerUrl}/api/v2/blocks`, { headers: { accept: 'application/json' } })),
   probe('stats', () => fetchJson(`${explorerUrl}/api/v2/stats`, { headers: { accept: 'application/json' } })),
   probe('transactionChart', () => fetchJson(`${explorerUrl}/api/v2/stats/charts/transactions`, { headers: { accept: 'application/json' } })),
@@ -76,7 +76,7 @@ const probes = await Promise.all([
 const results = Object.fromEntries(probes.map((entry) => [entry.name, entry]));
 const chain = results.chain;
 const head = results.head;
-const receipt = results.receipt;
+const receipt = results.receipt ?? null;
 const blocks = results.blocks;
 const stats = results.stats;
 const transactionChart = results.transactionChart;
@@ -104,21 +104,32 @@ report.checks.rpcHead = head.reachable
     }
   : unreachableCheck(head);
 
-report.checks.knownTransactionReceipt = receipt.reachable
-  ? {
-      ok: receipt.result.response.ok && Boolean(receipt.result.payload?.result),
-      advisory: true,
-      reachable: true,
-      httpStatus: receipt.result.response.status,
-      transactionHash: knownTxHash,
-      blockNumber: receipt.result.payload?.result?.blockNumber ?? null,
-      status: receipt.result.payload?.result?.status ?? null,
-      latencyMs: receipt.result.latencyMs,
-    }
+report.checks.knownTransactionReceipt = knownTxHash
+  ? (receipt?.reachable
+    ? {
+        ok: receipt.result.response.ok && Boolean(receipt.result.payload?.result),
+        advisory: true,
+        configured: true,
+        reachable: true,
+        httpStatus: receipt.result.response.status,
+        transactionHash: knownTxHash,
+        blockNumber: receipt.result.payload?.result?.blockNumber ?? null,
+        status: receipt.result.payload?.result?.status ?? null,
+        latencyMs: receipt.result.latencyMs,
+      }
+    : {
+        ...unreachableCheck(receipt),
+        advisory: true,
+        configured: true,
+        transactionHash: knownTxHash,
+      })
   : {
-      ...unreachableCheck(receipt),
+      ok: true,
       advisory: true,
-      transactionHash: knownTxHash,
+      configured: false,
+      reachable: null,
+      transactionHash: null,
+      note: 'No canonical production transaction hash configured; live block identity is the default continuity check.',
     };
 
 const blockItems = blocks.reachable && Array.isArray(blocks.result.payload?.items)
