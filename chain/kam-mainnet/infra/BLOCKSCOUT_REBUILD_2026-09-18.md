@@ -3,8 +3,8 @@
 Production recovery target:
 
 - Droplet: `kam-explorer-blockscout-01`
-- DigitalOcean ID: `601605918`
-- Public IP: `159.65.129.12`
+- DigitalOcean ID: `601607427`
+- Public IP: `146.190.93.254`
 - Region: `sgp1`
 - Size: 4 vCPU / 8 GB RAM / 160 GB SSD
 - OS: Ubuntu 24.04 LTS
