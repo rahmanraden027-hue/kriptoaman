@@ -66,7 +66,8 @@ test('production monitor accepts supporting-provider degradation but rejects out
   assert.match(monitor, /payload\.ok !== true \|\| payload\.overall === 'outage'/);
   assert.match(monitor, /\['ok', 'degraded'\]\.includes\(payload\.overall\)/);
   assert.match(monitor, /healthy_with_fallback/);
-  assert.match(monitor, /requiredServices = \['app', 'database', 'coinlore'\]/);
+  assert.match(monitor, /requiredServices = \['app', 'database', 'coinlore', 'coinbase-market'\]/);
+  assert.match(monitor, /payload\.market_redundancy\?\.healthy !== true/);
 });
 
 test('Android signing restore safely normalizes and validates Base64 secrets', async () => {
@@ -113,4 +114,19 @@ test('GitHub workflows use the reviewed current action majors', async () => {
   assert.match(combined, /actions\/checkout@v7/);
   assert.match(combined, /actions\/setup-node@v7/);
   assert.match(combined, /actions\/upload-artifact@v7/);
+});
+
+
+test('system health distinguishes operational market redundancy from advisory CoinGecko throttling', async () => {
+  const health = await read('functions/api/health.js');
+
+  assert.match(health, /id: 'coinbase-market'/);
+  assert.match(health, /role: 'market-secondary-consensus'/);
+  assert.match(health, /id: 'coingecko'/);
+  assert.match(health, /degradesOverall: false/);
+  assert.match(health, /state: response\.ok \? 'ok' : response\.status === 429 \? 'rate_limited' : 'error'/);
+  assert.match(health, /required_operational_providers: 2/);
+  assert.match(health, /operational_provider_count/);
+  assert.match(health, /COINGECKO_PRO_API_KEY/);
+  assert.match(health, /COINGECKO_DEMO_API_KEY \|\| env\.COINGECKO_API_KEY/);
 });
