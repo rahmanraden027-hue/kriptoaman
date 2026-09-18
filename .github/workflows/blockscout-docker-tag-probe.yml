@@ -1,0 +1,29 @@
+name: Blockscout Docker Tag Probe
+
+on:
+  push:
+    branches:
+      - fix/blockscout-docker-tag-20260918
+    paths:
+      - '.github/workflows/blockscout-docker-tag-probe.yml'
+      - 'scripts/bootstrap-kam-blockscout-vps.sh'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify Blockscout image tags
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker buildx imagetools inspect ghcr.io/blockscout/blockscout:11.2.3 >/tmp/ok.txt
+          echo "docker_tag_11.2.3=available"
+          if docker buildx imagetools inspect ghcr.io/blockscout/blockscout:v11.2.3 >/tmp/bad.txt 2>&1; then
+            echo "docker_tag_v11.2.3=available"
+          else
+            echo "docker_tag_v11.2.3=unavailable"
+          fi
