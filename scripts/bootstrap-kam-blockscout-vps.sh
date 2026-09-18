@@ -182,6 +182,18 @@ s=s.replace("postgres://stats:n0uejXPl61ci6ldCuE2gQU5Y@stats-db:5432/stats",f"po
 s=s.replace("postgresql://blockscout:ceWb1MeLBEeOIfk65gU8EjF8@db:5432/blockscout",f"postgresql://blockscout:{db_pass}@db:5432/blockscout")
 stats.write_text(s)
 
+userops=base/'services/user-ops-indexer.yml'
+u=userops.read_text()
+u=u.replace(
+    "USER_OPS_INDEXER__INDEXER__RPC_URL=${USER_OPS_INDEXER__INDEXER__RPC_URL:-ws://host.docker.internal:8545/}",
+    f"USER_OPS_INDEXER__INDEXER__RPC_URL=${{USER_OPS_INDEXER__INDEXER__RPC_URL:-{rpc}}}"
+)
+u=u.replace(
+    "USER_OPS_INDEXER__DATABASE__CONNECT__URL=${USER_OPS_INDEXER__DATABASE__CONNECT__URL:-postgresql://blockscout:ceWb1MeLBEeOIfk65gU8EjF8@db:5432/blockscout}",
+    f"USER_OPS_INDEXER__DATABASE__CONNECT__URL=${{USER_OPS_INDEXER__DATABASE__CONNECT__URL:-postgresql://blockscout:{db_pass}@db:5432/blockscout}}"
+)
+userops.write_text(u)
+
 ng=base/'services/nginx.yml'
 n=ng.read_text()
 n=n.replace("target: 8080\n        published: 8080","target: 8080\n        host_ip: 127.0.0.1\n        published: 8080")
