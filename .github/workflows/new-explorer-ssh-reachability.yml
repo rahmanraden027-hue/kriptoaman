@@ -1,0 +1,29 @@
+name: New Explorer SSH Reachability
+
+on:
+  push:
+    branches:
+      - audit/new-explorer-ssh-20260918
+    paths:
+      - '.github/workflows/new-explorer-ssh-reachability.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Probe new Explorer VPS ports
+        shell: bash
+        run: |
+          set -euo pipefail
+          host=159.65.129.12
+          for p in 22 80 443; do
+            if timeout 5 bash -c "echo >/dev/tcp/$host/$p" 2>/dev/null; then
+              echo "port_$p=open"
+            else
+              echo "port_$p=closed"
+            fi
+          done
