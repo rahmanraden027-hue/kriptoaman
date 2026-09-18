@@ -69,6 +69,7 @@ jobs:
       CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       ZONE_NAME: kriptoaman.com
       ROUTE_PATTERN: explorer.kriptoaman.com/*
+      API_ROUTE_PATTERN: explorer.kriptoaman.com/api/v2/*
       NEW_WORKER: kam-mainnet-explorer-cutover
       EXPECTED_OLD_WORKER: kam-mainnet-explorer-gateway
     steps:
@@ -113,6 +114,20 @@ jobs:
           echo "ROUTE_ID=${route_id}" >> "${GITHUB_ENV}"
           echo "OLD_WORKER=${old_worker}" >> "${GITHUB_ENV}"
 
+          api_route_count="$(jq --arg p "${API_ROUTE_PATTERN}" '[.result[] | select(.pattern == $p)] | length' <<<"${routes}")"
+          test "${api_route_count}" -le 1
+          if [[ "${api_route_count}" -eq 1 ]]; then
+            api_route_id="$(jq -r --arg p "${API_ROUTE_PATTERN}" '.result[] | select(.pattern == $p) | .id' <<<"${routes}")"
+            api_old_worker="$(jq -r --arg p "${API_ROUTE_PATTERN}" '.result[] | select(.pattern == $p) | (.script // "")' <<<"${routes}")"
+            echo "API_ROUTE_EXISTED=true" >> "${GITHUB_ENV}"
+            echo "API_ROUTE_ID=${api_route_id}" >> "${GITHUB_ENV}"
+            echo "API_OLD_WORKER=${api_old_worker}" >> "${GITHUB_ENV}"
+          else
+            echo "API_ROUTE_EXISTED=false" >> "${GITHUB_ENV}"
+            echo "API_ROUTE_ID=" >> "${GITHUB_ENV}"
+            echo "API_OLD_WORKER=" >> "${GITHUB_ENV}"
+          fi
+
           if [[ "${old_worker}" != "${EXPECTED_OLD_WORKER}" && "${old_worker}" != "${NEW_WORKER}" ]]; then
             echo "Unexpected Worker currently owns the production route: ${old_worker}" >&2
             exit 1
@@ -148,6 +163,38 @@ jobs:
           test "$(jq -r '.success' <<<"${response}")" = "true"
           test "$(jq -r '.result.script' <<<"${response}")" = "${NEW_WORKER}"
           echo "changed=true" >> "${GITHUB_OUTPUT}"
+
+      - name: Route Blockscout API v2 to preserved Explorer gateway
+        id: api_route
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${API_ROUTE_EXISTED}" = "true" ]]; then
+            if [[ "${API_OLD_WORKER}" = "${EXPECTED_OLD_WORKER}" ]]; then
+              echo "API v2 route already points to ${EXPECTED_OLD_WORKER}; no mutation needed."
+              echo "API_ROUTE_ID_EFFECTIVE=${API_ROUTE_ID}" >> "${GITHUB_ENV}"
+              exit 0
+            fi
+            if [[ "${API_OLD_WORKER}" != "${NEW_WORKER}" ]]; then
+              echo "Unexpected Worker owns API v2 route: ${API_OLD_WORKER}" >&2
+              exit 1
+            fi
+            payload="$(jq -nc --arg pattern "${API_ROUTE_PATTERN}" --arg script "${EXPECTED_OLD_WORKER}" '{pattern:$pattern,script:$script}')"
+            response="$(curl --fail-with-body -sS -X PUT               "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes/${API_ROUTE_ID}"               -H "Authorization: Bearer ${CF_API_TOKEN}"               -H 'Content-Type: application/json'               --data "${payload}")"
+            jq . <<<"${response}" > artifacts/api-route-cutover.json
+            test "$(jq -r '.success' <<<"${response}")" = "true"
+            test "$(jq -r '.result.script' <<<"${response}")" = "${EXPECTED_OLD_WORKER}"
+            echo "API_ROUTE_ID_EFFECTIVE=${API_ROUTE_ID}" >> "${GITHUB_ENV}"
+          else
+            payload="$(jq -nc --arg pattern "${API_ROUTE_PATTERN}" --arg script "${EXPECTED_OLD_WORKER}" '{pattern:$pattern,script:$script}')"
+            response="$(curl --fail-with-body -sS -X POST               "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes"               -H "Authorization: Bearer ${CF_API_TOKEN}"               -H 'Content-Type: application/json'               --data "${payload}")"
+            jq . <<<"${response}" > artifacts/api-route-create.json
+            test "$(jq -r '.success' <<<"${response}")" = "true"
+            created_id="$(jq -r '.result.id' <<<"${response}")"
+            test -n "${created_id}"
+            echo "API_ROUTE_ID_EFFECTIVE=${created_id}" >> "${GITHUB_ENV}"
+          fi
 
       - name: Verify production is served by explorer-new
         id: verify
@@ -185,6 +232,11 @@ jobs:
           public_dec="$((16#${public_head#0x}))"
           test "${public_dec}" -ge "${origin_dec}"
 
+          blocks_json="$(curl -fsS --retry 5 --retry-delay 2 --retry-all-errors --max-time 20 "${PUBLIC}/api/v2/blocks")"
+          stats_json="$(curl -fsS --retry 5 --retry-delay 2 --retry-all-errors --max-time 20 "${PUBLIC}/api/v2/stats")"
+          test "$(jq -r '(.items | type == "array") and (.items | length > 0)' <<<"${blocks_json}")" = "true"
+          test "$(jq -r '(.total_transactions != null) or (.total_transactions_number != null) or (.transactions_count != null)' <<<"${stats_json}")" = "true"
+
       - name: Roll back production route on verification failure
         if: ${{ steps.verify.outcome == 'failure' }}
         shell: bash
@@ -196,6 +248,17 @@ jobs:
           jq . <<<"${response}" > artifacts/route-rollback.json
           test "$(jq -r '.success' <<<"${response}")" = "true"
           test "$(jq -r '.result.script' <<<"${response}")" = "${EXPECTED_OLD_WORKER}"
+
+          if [[ "${API_ROUTE_EXISTED}" = "true" ]]; then
+            api_payload="$(jq -nc --arg pattern "${API_ROUTE_PATTERN}" --arg script "${API_OLD_WORKER}" '{pattern:$pattern,script:$script}')"
+            api_response="$(curl --fail-with-body -sS -X PUT               "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes/${API_ROUTE_ID}"               -H "Authorization: Bearer ${CF_API_TOKEN}"               -H 'Content-Type: application/json'               --data "${api_payload}")"
+            jq . <<<"${api_response}" > artifacts/api-route-rollback.json
+            test "$(jq -r '.success' <<<"${api_response}")" = "true"
+          elif [[ -n "${API_ROUTE_ID_EFFECTIVE:-}" ]]; then
+            api_response="$(curl --fail-with-body -sS -X DELETE               "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes/${API_ROUTE_ID_EFFECTIVE}"               -H "Authorization: Bearer ${CF_API_TOKEN}"               -H 'Accept: application/json')"
+            jq . <<<"${api_response}" > artifacts/api-route-delete-rollback.json
+            test "$(jq -r '.success' <<<"${api_response}")" = "true"
+          fi
 
       - name: Capture final route state
         if: always()
