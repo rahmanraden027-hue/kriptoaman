@@ -13,9 +13,7 @@ on:
     paths:
       - 'explorer-dashboard/**'
       - 'scripts/deploy-kam-explorer-v2.sh'
-      - 'scripts/diagnose-blockscout.mjs'
       - 'tests/kam-explorer-v2-dashboard.test.mjs'
-      - '.github/workflows/kam-explorer-v2-deploy.yml'
   workflow_dispatch:
 
 permissions:
@@ -67,6 +65,7 @@ jobs:
           echo "secondary_wkam_detail_http=$code"
 
   host-permission-preflight:
+    if: ${{ github.event_name != 'pull_request' }}
     needs: preflight
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
     timeout-minutes: 5
