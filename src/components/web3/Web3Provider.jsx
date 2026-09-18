@@ -7,7 +7,7 @@ const WALLETCONNECT_PROJECT_ID = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID?.
 const READ_ONLY_RELEASE = true;
 
 export const SUPPORTED_CHAINS = {
-  1:     { name: 'Ethereum', symbol: 'ETH',  rpc: 'https://eth.llamarpc.com',          explorer: 'https://etherscan.io',            color: '#627EEA' },
+  1:     { name: 'Ethereum', symbol: 'ETH',  rpc: 'https://eth.drpc.org',          explorer: 'https://etherscan.io',            color: '#627EEA' },
   56:    { name: 'BNB Chain', symbol: 'BNB',  rpc: 'https://bsc-dataseed.binance.org',   explorer: 'https://bscscan.com',             color: '#F3BA2F' },
   137:   { name: 'Polygon',   symbol: 'MATIC', rpc: 'https://polygon-rpc.com',            explorer: 'https://polygonscan.com',         color: '#8247E5' },
   42161: { name: 'Arbitrum',  symbol: 'ETH',  rpc: 'https://arb1.arbitrum.io/rpc',       explorer: 'https://arbiscan.io',             color: '#28A0F0' },
