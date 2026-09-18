@@ -1,0 +1,35 @@
+name: KAM Explorer Exact Stale Queue Cleanup
+
+on:
+  push:
+    branches:
+      - audit/explorer-workers-20260918
+    paths:
+      - '.github/workflows/kam-explorer-exact-stale-cleanup.yml'
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Cancel exactly two stale queued Explorer runs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for id in 35290771550 35252400437; do
+            state="$(gh api "repos/$REPO/actions/runs/$id" --jq '.status')"
+            echo "run=$id status=$state"
+            if [[ "$state" == "queued" || "$state" == "pending" ]]; then
+              gh api --method POST "repos/$REPO/actions/runs/$id/cancel" >/dev/null
+              echo "cancelled=$id"
+            else
+              echo "skip=$id status=$state"
+            fi
+          done
