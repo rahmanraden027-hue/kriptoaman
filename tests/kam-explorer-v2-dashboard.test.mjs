@@ -29,6 +29,10 @@ test('KAM Explorer V2 uses verified live data surfaces', () => {
   assert.match(html, /\/api\/v2\/blocks/);
   assert.match(html, /\/api\/v2\/transactions/);
   assert.match(html, /\/api\/v2\/stats/);
+  assert.match(html, /const EXPECTED_CHAIN=22028,RPC='\/rpc',API='\/api\/v2'/);
+  assert.match(html, /Same-origin \/rpc gateway/);
+  assert.equal(html.includes("RPC='https://rpc.kriptoaman.com'"), false);
+  assert.match(html, /Blocks online/);
   assert.match(html, /Unavailable data is shown as unavailable—not invented/);
 });
 
@@ -217,4 +221,8 @@ test('deployment is exact-route, narrow, nginx-safe, rollback-safe and avoids cu
   assert.match(deploy, /block-detail\.html/);
   assert.match(deploy, /address-detail\.html/);
   assert.match(deploy, /\/token\/\$CANONICAL_WKAM/);
+  assert.match(deploy, /https:\/\/explorer\.kriptoaman\.com\/rpc/);
+  assert.match(deploy, /eth_chainId/);
+  assert.match(deploy, /eth_blockNumber/);
+  assert.equal(deploy.includes("'self' https://rpc.kriptoaman.com"), false);
 });
