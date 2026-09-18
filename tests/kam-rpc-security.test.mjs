@@ -143,6 +143,13 @@ test('KAM RPC applies general and heavy-method edge rate limits', async () => {
   assert.equal((await response.json()).error?.code, -32005);
 });
 
+test('KAM RPC service binding transport does not forward AbortSignal across Workers', async () => {
+  const worker = await read('chain/kam-mainnet/public-rpc-gateway/worker.js');
+  const serviceBlock = worker.slice(worker.indexOf("if (env.KAM_EXPLORER_GATEWAY?.fetch)"), worker.indexOf("const controller = new AbortController()", worker.indexOf("if (env.KAM_EXPLORER_GATEWAY?.fetch)")));
+  assert.match(serviceBlock, /Promise\.race/);
+  assert.doesNotMatch(serviceBlock, /signal:/);
+});
+
 test('KAM RPC can use the Explorer Worker service binding without exposing privileged RPC', async () => {
   const explorerBinding = {
     fetch: async (request) => {
