@@ -1,0 +1,27 @@
+name: Validate Blockscout Bootstrap
+
+on:
+  push:
+    branches:
+      - ops/blockscout-bootstrap-20260918
+    paths:
+      - 'scripts/bootstrap-kam-blockscout-host.sh'
+      - '.github/workflows/validate-blockscout-bootstrap.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate bootstrap shell syntax
+        run: |
+          set -euo pipefail
+          bash -n scripts/bootstrap-kam-blockscout-host.sh
+          grep -Fq 'EXPECTED_CHAIN_HEX="0x560c"' scripts/bootstrap-kam-blockscout-host.sh
+          grep -Fq 'CHAIN_ID: "22028"' scripts/bootstrap-kam-blockscout-host.sh
+          grep -Fq 'DISABLE_WEBAPP: "true"' scripts/bootstrap-kam-blockscout-host.sh
+          ! grep -Eq 'rm -rf /|mkfs|wipefs|docker system prune -a' scripts/bootstrap-kam-blockscout-host.sh
