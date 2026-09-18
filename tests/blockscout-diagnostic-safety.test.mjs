@@ -48,3 +48,9 @@ test('Explorer branding helper hides unverified homepage stats and gas without t
   assert.doesNotMatch(branding, /docker compose restart (?:db|postgres|indexer|backend)/);
   assert.doesNotMatch(branding, /genesis|validator key|truncate|DROP TABLE/i);
 });
+
+test('historical transaction continuity is opt-in after recovery', () => {
+  assert.match(source, /process\.env\.KNOWN_TX_HASH \|\| null/);
+  assert.doesNotMatch(source, /9854d90159013d488190d0f1847596a5dfb7582812f880102f167a1b172b163a/);
+  assert.match(source, /No canonical production transaction hash configured/);
+});
