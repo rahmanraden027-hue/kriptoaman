@@ -247,12 +247,12 @@ assert_header '/api-docs' '^x-kam-explorer-api-version: *1'
 
 curl -fsS --retry 4 --retry-all-errors --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("items")'
 curl -fsS --retry 4 --retry-all-errors --max-time 15 https://explorer.kriptoaman.com/api/v2/stats | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "total_transactions" in d'
-ROUTE_SHAPE_TX="0x0000000000000000000000000000000000000000000000000000000000000000"
+KNOWN_TX="0x9854d90159013d488190d0f1847596a5dfb7582812f880102f167a1b172b163a"
 CANONICAL_WKAM="0x0d8848CE88BB09a81a4248Efdd574d50B98b544A"
-curl -L -fsS --retry 4 --retry-all-errors --max-time 20 "https://explorer.kriptoaman.com/tx/$ROUTE_SHAPE_TX" -o /dev/null
-assert_page "/tx/$ROUTE_SHAPE_TX" 'data-kam-transaction-detail-version="1.0.0"'
-assert_page '/block/0' 'data-kam-block-detail-version="1.0.0"'
-assert_page '/address/0x0000000000000000000000000000000000000000' 'data-kam-address-detail-version="1.0.0"'
+curl -L -fsS --retry 4 --retry-all-errors --max-time 20 "https://explorer.kriptoaman.com/tx/$KNOWN_TX" -o /dev/null
+assert_page "/tx/$KNOWN_TX" 'data-kam-transaction-detail-version="1.0.0"'
+assert_page '/block/524248' 'data-kam-block-detail-version="1.0.0"'
+assert_page '/address/0x223762E5544063dd740D6E0a6EfD25C3e2D081B3' 'data-kam-address-detail-version="1.0.0"'
 curl -L -fsS --retry 4 --retry-all-errors --max-time 20 "https://explorer.kriptoaman.com/token/$CANONICAL_WKAM" -o /dev/null
 trap - ERR
 echo "KAM Explorer and Developer Ecosystem public surfaces deployed successfully."
