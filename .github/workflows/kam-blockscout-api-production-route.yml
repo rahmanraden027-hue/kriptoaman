@@ -1,0 +1,208 @@
+name: KAM Blockscout API Production Route
+
+on:
+  pull_request:
+    paths:
+      - 'chain/kam-mainnet/blockscout-api-worker/**'
+      - '.github/workflows/kam-blockscout-api-production-route.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'chain/kam-mainnet/blockscout-api-worker/**'
+      - '.github/workflows/kam-blockscout-api-production-route.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kam-blockscout-api-production-route
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Validate Worker syntax
+        run: node --check chain/kam-mainnet/blockscout-api-worker/worker.js
+
+      - name: Verify new Blockscout origin
+        shell: bash
+        run: |
+          set -euo pipefail
+          ORIGIN='http://146.190.93.254'
+
+          test "$(curl -fsS --retry 4 --retry-delay 2 --retry-all-errors --max-time 15 "${ORIGIN}/healthz")" = "kam-blockscout-origin-ok"
+
+          blocks="$(curl -fsS --retry 4 --retry-delay 2 --retry-all-errors --max-time 20 "${ORIGIN}/api/v2/blocks")"
+          stats="$(curl -fsS --retry 4 --retry-delay 2 --retry-all-errors --max-time 20 "${ORIGIN}/api/v2/stats")"
+
+          jq -e '(.items | type == "array") and (.items | length > 0)' >/dev/null <<<"${blocks}"
+          jq -e '(.total_blocks != null) and (.total_addresses != null) and (.total_transactions != null)' >/dev/null <<<"${stats}"
+
+          indexed="$(jq -r '.items[0].height' <<<"${blocks}")"
+          [[ "${indexed}" =~ ^[0-9]+$ ]]
+          test "${indexed}" -gt 0
+
+          chain_id="$(curl -fsS --retry 4 --retry-delay 2 --retry-all-errors --max-time 20             -H 'content-type: application/json'             --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}'             https://explorer.kriptoaman.com/rpc | jq -r '.result // empty')"
+          rpc_hex="$(curl -fsS --retry 4 --retry-delay 2 --retry-all-errors --max-time 20             -H 'content-type: application/json'             --data '{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}'             https://explorer.kriptoaman.com/rpc | jq -r '.result // empty')"
+
+          test "${chain_id}" = "0x560c"
+          [[ "${rpc_hex}" =~ ^0x[0-9a-fA-F]+$ ]]
+          rpc_dec="$((16#${rpc_hex#0x}))"
+          lag="$((rpc_dec-indexed))"
+          echo "indexed_head=${indexed}"
+          echo "rpc_head=${rpc_dec}"
+          echo "indexer_lag=${lag}"
+          test "${lag}" -ge 0
+          test "${lag}" -le 500
+
+  deploy:
+    if: ${{ github.event_name == 'push' }}
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      ZONE_NAME: kriptoaman.com
+      ROUTE_PATTERN: explorer.kriptoaman.com/api/v2/*
+      WORKER_NAME: kam-mainnet-blockscout-api
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Validate Cloudflare credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${CF_ACCOUNT_ID:-}"
+          test -n "${CF_API_TOKEN:-}"
+          echo "::add-mask::${CF_API_TOKEN}"
+
+      - name: Snapshot API route state
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+
+          zones="$(curl --fail-with-body -sS --get             'https://api.cloudflare.com/client/v4/zones'             -H "Authorization: Bearer ${CF_API_TOKEN}"             -H 'Accept: application/json'             --data-urlencode "name=${ZONE_NAME}"             --data-urlencode "account.id=${CF_ACCOUNT_ID}")"
+          test "$(jq -r '.success' <<<"${zones}")" = "true"
+          test "$(jq '[.result[]] | length' <<<"${zones}")" -eq 1
+          zone_id="$(jq -r '.result[0].id' <<<"${zones}")"
+          echo "ZONE_ID=${zone_id}" >> "${GITHUB_ENV}"
+
+          routes="$(curl --fail-with-body -sS             "https://api.cloudflare.com/client/v4/zones/${zone_id}/workers/routes"             -H "Authorization: Bearer ${CF_API_TOKEN}"             -H 'Accept: application/json')"
+          jq . <<<"${routes}" > artifacts/routes-before.json
+          test "$(jq -r '.success' <<<"${routes}")" = "true"
+
+          count="$(jq --arg p "${ROUTE_PATTERN}" '[.result[] | select(.pattern == $p)] | length' <<<"${routes}")"
+          test "${count}" -le 1
+          if [[ "${count}" -eq 1 ]]; then
+            route_id="$(jq -r --arg p "${ROUTE_PATTERN}" '.result[] | select(.pattern == $p) | .id' <<<"${routes}")"
+            old_worker="$(jq -r --arg p "${ROUTE_PATTERN}" '.result[] | select(.pattern == $p) | (.script // "")' <<<"${routes}")"
+            if [[ "${old_worker}" != "${WORKER_NAME}" ]]; then
+              echo "Unexpected existing API route owner: ${old_worker}" >&2
+              exit 1
+            fi
+            echo "ROUTE_EXISTED=true" >> "${GITHUB_ENV}"
+            echo "ROUTE_ID=${route_id}" >> "${GITHUB_ENV}"
+          else
+            echo "ROUTE_EXISTED=false" >> "${GITHUB_ENV}"
+            echo "ROUTE_ID=" >> "${GITHUB_ENV}"
+          fi
+
+      - name: Deploy Blockscout API Worker
+        working-directory: chain/kam-mainnet/blockscout-api-worker
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx --yes wrangler@4.36.0 deploy
+
+      - name: Create API v2 route
+        id: route
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${ROUTE_EXISTED}" = "true" ]]; then
+            echo "Specific API route already exists."
+            echo "changed=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          payload="$(jq -nc --arg pattern "${ROUTE_PATTERN}" --arg script "${WORKER_NAME}" '{pattern:$pattern,script:$script}')"
+          response="$(curl --fail-with-body -sS -X POST             "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes"             -H "Authorization: Bearer ${CF_API_TOKEN}"             -H 'Content-Type: application/json'             --data "${payload}")"
+          jq . <<<"${response}" > artifacts/api-route-create.json
+          test "$(jq -r '.success' <<<"${response}")" = "true"
+          route_id="$(jq -r '.result.id' <<<"${response}")"
+          test -n "${route_id}"
+          echo "ROUTE_ID=${route_id}" >> "${GITHUB_ENV}"
+          echo "changed=true" >> "${GITHUB_OUTPUT}"
+
+      - name: Verify production API v2
+        id: verify
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          sleep 3
+          PUBLIC='https://explorer.kriptoaman.com'
+
+          headers="$(mktemp)"
+          blocks_file="$(mktemp)"
+          curl -fsS -D "${headers}" -o "${blocks_file}"             --retry 5 --retry-delay 2 --retry-all-errors --max-time 20             "${PUBLIC}/api/v2/blocks"
+          tr -d '\r' < "${headers}" | grep -qi '^x-kam-blockscout-edge: api-v2$'
+          tr -d '\r' < "${headers}" | grep -qi '^x-kam-blockscout-origin: blockscout-01$'
+          jq -e '(.items | type == "array") and (.items | length > 0)' >/dev/null "${blocks_file}"
+
+          stats="$(curl -fsS --retry 5 --retry-delay 2 --retry-all-errors --max-time 20 "${PUBLIC}/api/v2/stats")"
+          jq -e '(.total_blocks != null) and (.total_addresses != null) and (.total_transactions != null)' >/dev/null <<<"${stats}"
+
+          indexed="$(jq -r '.items[0].height' "${blocks_file}")"
+          rpc_hex="$(curl -fsS --retry 5 --retry-delay 2 --retry-all-errors --max-time 20             -H 'content-type: application/json'             --data '{"jsonrpc":"2.0","id":10,"method":"eth_blockNumber","params":[]}'             "${PUBLIC}/rpc" | jq -r '.result // empty')"
+          chain_id="$(curl -fsS --retry 5 --retry-delay 2 --retry-all-errors --max-time 20             -H 'content-type: application/json'             --data '{"jsonrpc":"2.0","id":11,"method":"eth_chainId","params":[]}'             "${PUBLIC}/rpc" | jq -r '.result // empty')"
+
+          test "${chain_id}" = "0x560c"
+          [[ "${rpc_hex}" =~ ^0x[0-9a-fA-F]+$ ]]
+          rpc_dec="$((16#${rpc_hex#0x}))"
+          lag="$((rpc_dec-indexed))"
+
+          echo "indexed_head=${indexed}" | tee artifacts/api-production-state.txt
+          echo "rpc_head=${rpc_dec}" | tee -a artifacts/api-production-state.txt
+          echo "indexer_lag=${lag}" | tee -a artifacts/api-production-state.txt
+          echo "total_addresses=$(jq -r '.total_addresses' <<<"${stats}")" | tee -a artifacts/api-production-state.txt
+          echo "total_transactions=$(jq -r '.total_transactions' <<<"${stats}")" | tee -a artifacts/api-production-state.txt
+          test "${lag}" -ge 0
+          test "${lag}" -le 500
+
+      - name: Roll back API route on failure
+        if: ${{ steps.verify.outcome == 'failure' && steps.route.outputs.changed == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          response="$(curl --fail-with-body -sS -X DELETE             "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes/${ROUTE_ID}"             -H "Authorization: Bearer ${CF_API_TOKEN}"             -H 'Accept: application/json')"
+          jq . <<<"${response}" > artifacts/api-route-rollback.json
+          test "$(jq -r '.success' <<<"${response}")" = "true"
+
+      - name: Capture final route state
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail-with-body -sS             "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes"             -H "Authorization: Bearer ${CF_API_TOKEN}"             -H 'Accept: application/json' | jq . > artifacts/routes-after.json
+
+      - name: Upload API route evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: kam-blockscout-api-route-${{ github.run_id }}
+          path: artifacts/*
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Enforce production verification
+        if: ${{ steps.verify.outcome == 'failure' }}
+        run: |
+          echo "Production Blockscout API verification failed; route rollback was executed when applicable." >&2
+          exit 1
