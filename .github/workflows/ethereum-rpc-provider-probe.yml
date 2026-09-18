@@ -22,15 +22,17 @@ jobs:
           payload='{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}'
           for url in             https://eth.drpc.org             https://1rpc.io/eth             https://cloudflare-eth.com             https://rpc.flashbots.net; do
             body="$(mktemp)"
-            code="$(curl -sS -o "$body" -w '%{http_code}' --max-time 12               -H 'content-type: application/json'               -H 'user-agent: KriptoAman-Network-Health/4.2'               --data "$payload" "$url" || true)"
+            headers="$(mktemp)"
+            code="$(curl -sS -D "$headers" -o "$body" -w '%{http_code}' --max-time 12               -H 'content-type: application/json'               -H 'origin: https://kriptoaman.com'               -H 'user-agent: KriptoAman-Network-Health/4.2'               --data "$payload" "$url" || true)"
             result="$(jq -r '.result // empty' "$body" 2>/dev/null || true)"
+            cors="$(tr -d '\r' < "$headers" | awk -F': ' 'tolower($1)=="access-control-allow-origin"{print $2; exit}')"
             error="$(jq -r '.error.message // empty' "$body" 2>/dev/null || true)"
             host="${url#*://}"
             host="${host%%/*}"
             if [[ "$code" = 200 && "$result" =~ ^0x[0-9a-fA-F]+$ ]]; then
-              echo "provider=$host status=PASS code=$code block=$result"
+              echo "provider=$host status=PASS code=$code block=$result cors=${cors:-none}"
             else
               echo "provider=$host status=FAIL code=$code error=${error:-invalid_response}"
             fi
-            rm -f "$body"
+            rm -f "$body" "$headers"
           done
