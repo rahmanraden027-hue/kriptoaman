@@ -1,0 +1,54 @@
+name: KAM Explorer Stale Queue Audit Cleanup
+
+on:
+  push:
+    branches:
+      - audit/explorer-workers-20260918
+    paths:
+      - '.github/workflows/kam-explorer-stale-run-cleanup-audit.yml'
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Cancel stale queued self-hosted Explorer diagnostics only
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          CURRENT_RUN: ${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cutoff="$(date -u -d '30 minutes ago' +%s)"
+          gh api "repos/$REPO/actions/runs?status=queued&per_page=100" > /tmp/runs.json
+          jq -r --argjson cutoff "$cutoff" --arg current "$CURRENT_RUN" '
+            .workflow_runs[]
+            | select((.id|tostring) != $current)
+            | select((.created_at | fromdateiso8601) < $cutoff)
+            | select(
+                .name == "KAM Explorer V2 Deploy" or
+                .name == "KAM Blockscout Safe Diagnostic" or
+                .name == "KAM Readonly Diagnostics" or
+                .name == "KAM Self-hosted Origin Diagnostics" or
+                .name == "KAM RPC Readonly Diagnose" or
+                .name == "KAM Explorer Runner Read-Only Probe" or
+                .name == "KAM Private Runner Read-Only Probe" or
+                .name == "KAM Explorer Stats Route Guard"
+              )
+            | [.id,.name,.created_at,.head_branch] | @tsv
+          ' /tmp/runs.json > /tmp/stale.tsv
+
+          if [ ! -s /tmp/stale.tsv ]; then
+            echo "No stale queued Explorer diagnostics found."
+            exit 0
+          fi
+
+          while IFS=$'\t' read -r id name created branch_name; do
+            echo "Cancelling stale queued run id=$id name=$name created=$created branch=$branch_name"
+            gh api --method POST "repos/$REPO/actions/runs/$id/cancel" >/dev/null || true
+          done < /tmp/stale.tsv
