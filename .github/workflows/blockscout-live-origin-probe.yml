@@ -19,7 +19,7 @@ jobs:
         shell: bash
         run: |
           set -u
-          host=146.190.93.254
+          host=blockscout-origin.kriptoaman.com
           for p in 22 80 443; do
             if timeout 5 bash -c "echo >/dev/tcp/$host/$p" 2>/dev/null; then
               echo "port_$p=open"
@@ -36,4 +36,5 @@ jobs:
           echo "=== stats ==="
           curl -sS -i --max-time 15 "http://$host/api/v2/stats" | head -c 2000 || true
 
-# retrigger: 2026-09-18T07:33Z
+
+# hostname-probe: 2026-09-18T07:36Z
