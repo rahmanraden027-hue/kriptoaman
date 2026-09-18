@@ -1,0 +1,35 @@
+name: KAM Explorer Queue Cleanup
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kam-explorer-queue-cleanup.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  cancel-stale-pr-runs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Cancel stale queued Explorer pull-request runs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ids="$(gh api "repos/$REPO/actions/runs?per_page=100" --jq '.workflow_runs[] | select(.name == "KAM Explorer V2 Deploy" and .event == "pull_request" and (.status == "queued" or .status == "pending" or .status == "in_progress")) | .id')"
+          if [ -z "$ids" ]; then
+            echo "No stale Explorer PR runs found."
+            exit 0
+          fi
+          while read -r id; do
+            [ -n "$id" ] || continue
+            echo "Cancelling stale Explorer PR run $id"
+            gh api --method POST "repos/$REPO/actions/runs/$id/cancel" >/dev/null || true
+          done <<< "$ids"
