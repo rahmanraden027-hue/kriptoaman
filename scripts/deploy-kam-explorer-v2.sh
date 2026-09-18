@@ -127,7 +127,7 @@ def json_route(path, filename, header, version='1'):
 def dynamic_route(pattern, filename, header, version='1'):
     return f'''    location ~ "{pattern}" {{\n        limit_except GET {{ deny all; }}\n        root /etc/nginx/templates;\n        try_files /kam-dashboard/{filename} =404;\n        default_type text/html;\n{headers}        add_header {header} "{version}" always;\n        add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data: https://kriptoaman.com; object-src 'none'; base-uri 'self'; form-action 'none'; frame-src 'none'; frame-ancestors 'self'; upgrade-insecure-requests" always;\n    }}\n'''
 block='    # KAM_EXPLORER_V2_BEGIN\n'
-block+=route('/', 'index.html', 'X-KAM-Explorer-Version', '2', "'self' https://rpc.kriptoaman.com")
+block+=route('/', 'index.html', 'X-KAM-Explorer-Version', '2', "'self'")
 block+=route('/stats', 'stats.html', 'X-KAM-Explorer-Stats-Version', '2')
 block+=route('/tokens', 'tokens.html', 'X-KAM-Explorer-Tokens-Version', '2')
 block+=route('/developer', 'developer.html', 'X-KAM-Explorer-Developer-Version')
@@ -247,6 +247,8 @@ assert_header '/api-docs' '^x-kam-explorer-api-version: *1'
 
 curl -fsS --retry 4 --retry-all-errors --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("items")'
 curl -fsS --retry 4 --retry-all-errors --max-time 15 https://explorer.kriptoaman.com/api/v2/stats | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "total_transactions" in d'
+curl -fsS --retry 4 --retry-all-errors --max-time 15 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' https://explorer.kriptoaman.com/rpc | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("result")=="0x560c"'
+curl -fsS --retry 4 --retry-all-errors --max-time 15 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}' https://explorer.kriptoaman.com/rpc | python3 -c 'import json,sys,re; d=json.load(sys.stdin); assert re.fullmatch(r"0x[0-9a-fA-F]+", d.get("result", ""))'
 KNOWN_TX="0x9854d90159013d488190d0f1847596a5dfb7582812f880102f167a1b172b163a"
 CANONICAL_WKAM="0x0d8848CE88BB09a81a4248Efdd574d50B98b544A"
 curl -L -fsS --retry 4 --retry-all-errors --max-time 20 "https://explorer.kriptoaman.com/tx/$KNOWN_TX" -o /dev/null
