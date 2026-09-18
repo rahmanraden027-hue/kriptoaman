@@ -1,8 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
 
-const script = await readFile('chain/kam-mainnet/scripts/diagnose-kam-recovery-host.sh', 'utf8');
+const path = 'chain/kam-mainnet/scripts/diagnose-kam-recovery-host.sh';
+const script = await readFile(path, 'utf8');
+
+test('KAM recovery diagnostic passes bash syntax validation', () => {
+  const result = spawnSync('bash', ['-n', path], { encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+});
 
 test('KAM recovery diagnostic is read-only, redacted, and shell-safe by contract', () => {
   assert.match(script, /EXPECTED_CHAIN_ID="0x560c"/);
