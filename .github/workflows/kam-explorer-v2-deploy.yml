@@ -6,6 +6,8 @@ on:
       - 'explorer-dashboard/**'
       - 'scripts/deploy-kam-explorer-v2.sh'
       - 'scripts/diagnose-blockscout.mjs'
+      - 'scripts/diagnose-kam-rpc-origins.mjs'
+      - 'scripts/verify-kam-explorer-five-indicators.mjs'
       - 'tests/kam-explorer-v2-dashboard.test.mjs'
       - '.github/workflows/kam-explorer-v2-deploy.yml'
   push:
@@ -13,6 +15,7 @@ on:
     paths:
       - 'explorer-dashboard/**'
       - 'scripts/deploy-kam-explorer-v2.sh'
+      - 'scripts/verify-kam-explorer-five-indicators.mjs'
       - 'tests/kam-explorer-v2-dashboard.test.mjs'
   workflow_dispatch:
 
@@ -40,8 +43,20 @@ jobs:
         run: node --test tests/kam-explorer-v2-dashboard.test.mjs
       - name: Validate deploy script syntax
         run: bash -n scripts/deploy-kam-explorer-v2.sh
+      - name: Diagnose KAM RPC origin paths
+        shell: bash
+        run: |
+          node scripts/diagnose-kam-rpc-origins.mjs
+          echo '=== direct origin with explorer-new Host ==='
+          curl -sS --max-time 10 --resolve explorer-new.kriptoaman.com:80:146.190.93.254 \
+            -H 'content-type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+            http://explorer-new.kriptoaman.com/rpc || true
+          echo
       - name: Verify public Explorer core before deployment
         run: node scripts/diagnose-blockscout.mjs
+      - name: Verify five live Explorer production indicators
+        run: node scripts/verify-kam-explorer-five-indicators.mjs
       - name: Verify existing public detail routes
         run: |
           set -euo pipefail
@@ -177,6 +192,8 @@ jobs:
           curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/stats | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "total_transactions" in d and "average_block_time" in d'
           curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/stats/charts/transactions | python3 -c 'import json,sys; assert isinstance(json.load(sys.stdin),(dict,list))'
           curl -fsS --max-time 15 'https://explorer.kriptoaman.com/api/v2/tokens?type=ERC-20' | python3 -c 'import json,sys; d=json.load(sys.stdin); assert isinstance(d.get("items"),list)'
+      - name: Verify five production-ready Explorer indicators
+        run: node scripts/verify-kam-explorer-five-indicators.mjs
       - name: Verify Blockscout detail routing remains intact
         run: |
           set -euo pipefail
