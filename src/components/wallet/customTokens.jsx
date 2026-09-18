@@ -3,7 +3,7 @@
 const STORAGE_KEY = 'coinvault_custom_tokens';
 
 const EVM_CHAIN_CONFIG = {
-  ETH:   { rpcUrl: 'https://eth.llamarpc.com',            explorerApi: 'https://api.etherscan.io/api',             explorerTx: 'https://etherscan.io/tx/',           nativeSymbol: 'ETH',  chainId: 1 },
+  ETH:   { rpcUrl: 'https://eth.drpc.org',            explorerApi: 'https://api.etherscan.io/api',             explorerTx: 'https://etherscan.io/tx/',           nativeSymbol: 'ETH',  chainId: 1 },
   BNB:   { rpcUrl: 'https://bsc-dataseed.binance.org',    explorerApi: 'https://api.bscscan.com/api',              explorerTx: 'https://bscscan.com/tx/',            nativeSymbol: 'BNB',  chainId: 56 },
   MATIC: { rpcUrl: 'https://polygon-rpc.com',             explorerApi: 'https://api.polygonscan.com/api',          explorerTx: 'https://polygonscan.com/tx/',         nativeSymbol: 'POL',  chainId: 137 },
   ARB:   { rpcUrl: 'https://arb1.arbitrum.io/rpc',        explorerApi: 'https://api.arbiscan.io/api',              explorerTx: 'https://arbiscan.io/tx/',             nativeSymbol: 'ETH',  chainId: 42161 },

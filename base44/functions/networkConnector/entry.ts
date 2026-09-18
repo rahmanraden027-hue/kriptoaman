@@ -17,7 +17,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 // ── Network Configurations ─────────────────────────────────────────────────
 const NETWORKS = {
   // ── EVM Networks ──────────────────────────────────────────────────────────
-  ethereum:  { name: 'Ethereum',      rpc: 'https://eth.llamarpc.com',              explorer: 'https://api.etherscan.io/api',                chain_id: 1    },
+  ethereum:  { name: 'Ethereum',      rpc: 'https://eth.drpc.org',              explorer: 'https://api.etherscan.io/api',                chain_id: 1    },
   bsc:       { name: 'BNB Chain',     rpc: 'https://bsc-dataseed.binance.org',       explorer: 'https://api.bscscan.com/api',                  chain_id: 56   },
   polygon:   { name: 'Polygon',       rpc: 'https://polygon-rpc.com',               explorer: 'https://api.polygonscan.com/api',              chain_id: 137  },
   arbitrum:  { name: 'Arbitrum One',  rpc: 'https://arb1.arbitrum.io/rpc',          explorer: 'https://api.arbiscan.io/api',                  chain_id: 42161},
