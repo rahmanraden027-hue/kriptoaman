@@ -284,13 +284,34 @@ PY
 fi
 
 mkdir -p "${COMPOSE_DIR}/dets" "${COMPOSE_DIR}/logs"
-chown -R 10001:10001 "${COMPOSE_DIR}/dets" "${COMPOSE_DIR}/logs"
 
 log "Re-validating Docker Compose after backend selection"
 docker compose -f geth.yml config >/dev/null
 
 log "Pulling Blockscout companion containers"
 docker compose -f geth.yml pull
+
+if docker image inspect "${BACKEND_LOCAL_IMAGE}" >/dev/null 2>&1; then
+  BACKEND_RUNTIME_IMAGE="${BACKEND_LOCAL_IMAGE}"
+else
+  BACKEND_RUNTIME_IMAGE="${BACKEND_PUBLIC_IMAGE}"
+fi
+
+log "Preparing writable Blockscout runtime directories"
+docker run --rm --user 0:0   -v "${COMPOSE_DIR}/dets:/app/dets"   -v "${COMPOSE_DIR}/logs:/app/logs"   --entrypoint sh "${BACKEND_RUNTIME_IMAGE}" -lc '
+    uid="$(id -u blockscout)"
+    gid="$(id -g blockscout)"
+    mkdir -p /app/dets/queue_storage /app/logs
+    chown -R "${uid}:${gid}" /app/dets /app/logs
+    chmod -R u+rwX,g+rX,o-rwx /app/dets /app/logs
+  '
+
+docker run --rm   -v "${COMPOSE_DIR}/dets:/app/dets"   -v "${COMPOSE_DIR}/logs:/app/logs"   --entrypoint sh "${BACKEND_RUNTIME_IMAGE}" -lc '
+    test -w /app/dets
+    test -w /app/dets/queue_storage
+    : > /app/dets/queue_storage/.kam-write-test
+    rm -f /app/dets/queue_storage/.kam-write-test
+  '
 
 log "Starting Blockscout and indexer"
 docker compose -f geth.yml up -d
