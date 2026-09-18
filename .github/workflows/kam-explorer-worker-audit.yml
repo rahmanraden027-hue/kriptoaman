@@ -40,58 +40,58 @@ jobs:
             settings="$(curl --fail-with-body -sS               "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts/${worker}/settings"               -H "Authorization: Bearer ${CF_API_TOKEN}"               -H 'Accept: application/json')"
 
             python3 - "${worker}" "${body}" "${headers}" "${settings}" >> worker-audit/audit.jsonl <<'PY'
-import hashlib, json, re, sys, urllib.parse
-worker, body_path, headers_path, settings_raw = sys.argv[1:]
-raw = open(body_path, 'rb').read()
-text = raw.decode('utf-8', 'ignore')
-headers = open(headers_path, encoding='utf-8', errors='ignore').read()
-hosts = set()
-for m in re.findall(r'https?://[^\s\"\'<>]+', text):
-    try:
-        h = urllib.parse.urlsplit(m).hostname
-        if h:
-            hosts.add(h.lower())
-    except Exception:
-        pass
-try:
-    settings = json.loads(settings_raw)
-except Exception:
-    settings = {}
-bindings = []
-for b in ((settings.get('result') or {}).get('bindings') or []):
-    item = {'name': b.get('name'), 'type': b.get('type')}
-    for k in ('service','namespace_id','dataset','bucket_name'):
-        if b.get(k) is not None:
-            item[k] = b.get(k)
-    bindings.append(item)
-out = {
-    'worker': worker,
-    'bytes': len(raw),
-    'sha256': hashlib.sha256(raw).hexdigest(),
-    'content_type': next((ln.split(':',1)[1].strip() for ln in headers.splitlines() if ln.lower().startswith('content-type:')), None),
-    'hosts': sorted(hosts),
-    'signals': {
-        'api_v2': '/api/v2' in text,
-        'explorer_new': 'explorer-new.kriptoaman.com' in text,
-        'rpc_public': 'rpc.kriptoaman.com' in text,
-        'assets_binding': 'ASSETS' in text,
-        'fetch_call': 'fetch(' in text,
-        'blockscout': 'blockscout' in text.lower(),
-        'localhost': 'localhost' in text,
-        '127_0_0_1': '127.0.0.1' in text,
-    },
-    'bindings': bindings,
-}
-print(json.dumps(out, sort_keys=True))
-PY
+          import hashlib, json, re, sys, urllib.parse
+          worker, body_path, headers_path, settings_raw = sys.argv[1:]
+          raw = open(body_path, 'rb').read()
+          text = raw.decode('utf-8', 'ignore')
+          headers = open(headers_path, encoding='utf-8', errors='ignore').read()
+          hosts = set()
+          for m in re.findall(r"https?://[^\\s\\\"'<>]+", text):
+              try:
+                  h = urllib.parse.urlsplit(m).hostname
+                  if h:
+                      hosts.add(h.lower())
+              except Exception:
+                  pass
+          try:
+              settings = json.loads(settings_raw)
+          except Exception:
+              settings = {}
+          bindings = []
+          for b in ((settings.get('result') or {}).get('bindings') or []):
+              item = {'name': b.get('name'), 'type': b.get('type')}
+              for k in ('service','namespace_id','dataset','bucket_name'):
+                  if b.get(k) is not None:
+                      item[k] = b.get(k)
+              bindings.append(item)
+          out = {
+              'worker': worker,
+              'bytes': len(raw),
+              'sha256': hashlib.sha256(raw).hexdigest(),
+              'content_type': next((ln.split(':',1)[1].strip() for ln in headers.splitlines() if ln.lower().startswith('content-type:')), None),
+              'hosts': sorted(hosts),
+              'signals': {
+                  'api_v2': '/api/v2' in text,
+                  'explorer_new': 'explorer-new.kriptoaman.com' in text,
+                  'rpc_public': 'rpc.kriptoaman.com' in text,
+                  'assets_binding': 'ASSETS' in text,
+                  'fetch_call': 'fetch(' in text,
+                  'blockscout': 'blockscout' in text.lower(),
+                  'localhost': 'localhost' in text,
+                  '127_0_0_1': '127.0.0.1' in text,
+              },
+              'bindings': bindings,
+          }
+          print(json.dumps(out, sort_keys=True))
+          PY
             rm -f "${body}" "${headers}"
           done
 
           python3 - <<'PY'
-import json
-rows=[json.loads(x) for x in open('worker-audit/audit.jsonl') if x.strip()]
-json.dump(rows, open('worker-audit/audit.json','w'), indent=2, sort_keys=True)
-PY
+          import json
+          rows=[json.loads(x) for x in open('worker-audit/audit.jsonl') if x.strip()]
+          json.dump(rows, open('worker-audit/audit.json','w'), indent=2, sort_keys=True)
+          PY
           cat worker-audit/audit.json
 
       - name: Upload sanitized audit
