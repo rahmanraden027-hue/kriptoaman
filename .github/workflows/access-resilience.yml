@@ -16,10 +16,6 @@ permissions:
   contents: read
   statuses: write
 
-concurrency:
-  group: production-live-smoke-${{ github.event.pull_request.number || github.sha }}
-  cancel-in-progress: false
-
 jobs:
   access-resilience:
     runs-on: ubuntu-latest
@@ -32,6 +28,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Wait for live smoke slot
+        if: github.event_name != 'schedule'
+        run: sleep 45
 
       - name: Verify primary and standby access
         run: node scripts/check-access-resilience.mjs

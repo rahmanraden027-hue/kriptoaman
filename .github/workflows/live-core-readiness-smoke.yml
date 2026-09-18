@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: production-live-smoke-${{ github.event.pull_request.number || github.sha }}
-  cancel-in-progress: false
+  group: live-core-readiness-smoke
+  cancel-in-progress: true
 
 jobs:
   verify-core-readiness:
@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Wait for production deployment
-        run: sleep 35
+        run: sleep 105
 
       - name: Audit five production checks
         shell: bash

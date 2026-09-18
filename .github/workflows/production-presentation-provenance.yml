@@ -11,18 +11,14 @@ permissions:
   contents: read
   statuses: write
 
-concurrency:
-  group: production-live-smoke-${{ github.event.pull_request.number || github.sha }}
-  cancel-in-progress: false
-
 jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Allow production deployment to settle
-        if: github.event_name == 'push'
-        run: sleep 90
+        if: github.event_name != 'schedule'
+        run: sleep 165
 
       - name: Verify current homepage presentation bundle
         shell: bash
