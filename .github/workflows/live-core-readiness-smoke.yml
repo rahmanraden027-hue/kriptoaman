@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: live-core-readiness-smoke
-  cancel-in-progress: true
+  group: production-live-smoke-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: false
 
 jobs:
   verify-core-readiness:

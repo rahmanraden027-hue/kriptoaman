@@ -12,6 +12,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: production-live-smoke-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: false
+
 jobs:
   kam-doc-live:
     runs-on: ubuntu-latest

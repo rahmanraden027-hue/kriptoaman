@@ -13,6 +13,10 @@ permissions:
   contents: read
   statuses: write
 
+concurrency:
+  group: production-live-smoke-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: false
+
 jobs:
   smoke:
     runs-on: ubuntu-latest
