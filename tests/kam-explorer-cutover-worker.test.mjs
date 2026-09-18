@@ -12,6 +12,9 @@ test('cutover worker rewrites browser RPC to same-origin without fabricating ind
   assert.match(worker, /Reconnecting/);
   assert.match(worker, /Partial/);
   assert.match(worker, /x-kam-explorer-browser-rpc/);
+  assert.match(worker, /QBFT committed · 4-validator evidence/);
+  assert.match(worker, /function qbftValidatorCount/);
+  assert.match(worker, /RPC finalized \/ QBFT commit/);
   assert.doesNotMatch(worker, /state\('apiState','Online','ok'\);health\('hApi','Online','ok'\)/);
 });
 
@@ -24,5 +27,7 @@ test('cutover workflow does not route broken API v2 through the legacy asset wor
   assert.equal(workflow.includes('curl -sSI --retry'), false);
   assert.match(workflow, /eth_chainId/);
   assert.match(workflow, /eth_blockNumber/);
+  assert.match(workflow, /verify-kam-explorer-five-indicators\.mjs/);
+  assert.match(workflow, /QBFT committed · 4-validator evidence/);
   assert.match(workflow, /Roll back production route on verification failure/);
 });

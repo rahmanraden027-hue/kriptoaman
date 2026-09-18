@@ -4,12 +4,14 @@ on:
   pull_request:
     paths:
       - 'chain/kam-mainnet/explorer-cutover-worker/**'
+      - 'scripts/verify-kam-explorer-five-indicators.mjs'
       - 'tests/kam-explorer-cutover-worker.test.mjs'
       - '.github/workflows/kam-explorer-origin-cutover.yml'
   push:
     branches: [main]
     paths:
       - 'chain/kam-mainnet/explorer-cutover-worker/**'
+      - 'scripts/verify-kam-explorer-five-indicators.mjs'
       - 'tests/kam-explorer-cutover-worker.test.mjs'
       - '.github/workflows/kam-explorer-origin-cutover.yml'
 
@@ -67,6 +69,9 @@ jobs:
           [[ "${block_hex}" =~ ^0x[0-9a-fA-F]+$ ]]
           block_dec="$((16#${block_hex#0x}))"
           test "${block_dec}" -ge 17296
+
+      - name: Verify five KAM production indicators before edge cutover
+        run: node scripts/verify-kam-explorer-five-indicators.mjs
 
   cutover:
     name: Cut over production Explorer
@@ -185,6 +190,7 @@ jobs:
           grep -Fq "RPC='/rpc'" <<<"${home}"
           grep -Fq 'Same-origin /rpc gateway' <<<"${home}"
           grep -Fq 'KAM RPC via /rpc' <<<"${home}"
+          grep -Fq 'QBFT committed · 4-validator evidence' <<<"${home}"
           if grep -Fq "RPC='https://rpc.kriptoaman.com'" <<<"${home}"; then
             echo "Homepage still uses cross-origin browser RPC" >&2
             exit 1
@@ -224,6 +230,7 @@ jobs:
           echo "blocks_api_contract=${blocks_ok}" | tee -a artifacts/api-state.txt
           echo "stats_api_contract=${stats_ok}" | tee -a artifacts/api-state.txt
           echo "API state is advisory; unavailable indexer data must remain unavailable/reconnecting in UI."
+          node scripts/verify-kam-explorer-five-indicators.mjs
 
       - name: Roll back production route on verification failure
         if: ${{ steps.verify.outcome == 'failure' }}
