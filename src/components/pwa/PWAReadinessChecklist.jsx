@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle2, AlertCircle, Info, ChevronDown, ExternalLink } from 'lucide-react';
+import { CheckCircle2, ChevronDown } from 'lucide-react';
 
 const CHECKLIST_ITEMS = {
   metadata: {

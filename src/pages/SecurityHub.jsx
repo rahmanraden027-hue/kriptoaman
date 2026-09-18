@@ -143,7 +143,7 @@ export default function SecurityHub() {
     }).catch(() => setLoadingKyc(false));
     loadSessions();
     // Session data is loaded once on entry; language changes affect presentation immediately.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, []);
 
   const revokeOne = async (sessionId) => {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Send, MessageCircle, Phone, MapPin, Clock, CheckCircle2, Loader2 } from 'lucide-react';
+import { Mail, Send, Clock, CheckCircle2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function Contact() {

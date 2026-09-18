@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   TrendingUp, TrendingDown, Search, Star, StarOff,
-  Activity, Zap, ArrowUpRight, ArrowDownRight, GitCompare, Globe, Gem
+  Activity, Zap, ArrowUpRight, ArrowDownRight, GitCompare
 } from 'lucide-react';
 import CoinCompare from '../components/wallet/CoinCompare';
 import ForexCommodityWidget from '../components/market/ForexCommodityWidget';

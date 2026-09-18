@@ -3,7 +3,7 @@
  * Unified API untuk mengakses balance, send, swap across all networks
  */
 
-import { NETWORKS, COINS, getCoinBySymbol, getNetworkBySymbol, getCoinsForNetwork } from './multiChainConfig';
+import { NETWORKS, getCoinBySymbol, getCoinsForNetwork } from './multiChainConfig';
 
 export class MultiChainService {
   constructor() {

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  ArrowLeftRight, RefreshCw, TrendingUp, ChevronDown,
-  Info, Zap, Shield, AlertTriangle, CheckCircle2, Search,
+  ArrowLeftRight, RefreshCw, TrendingUp, ChevronDown, Zap, Shield, AlertTriangle, CheckCircle2, Search,
   Star, StarOff, X, Flame, Clock, Fuel, Percent, BarChart2,
   ArrowDown, BookOpen, History, LineChart, Plus
 } from 'lucide-react';

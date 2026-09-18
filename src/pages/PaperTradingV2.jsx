@@ -5,7 +5,6 @@ import useLivePrices from '@/components/market/useLivePrices';
 import useCoinMarkets from '@/components/home/useCoinMarkets';
 import { useLanguage } from '@/lib/LanguageContext';
 import {
-  PAPER_STARTING_CASH,
   calculatePaperMetrics,
   calculatePaperPerformance,
   createPaperAccount,

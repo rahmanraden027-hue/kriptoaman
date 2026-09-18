@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { getAddressInfo, getBtcPrice } from './bitcoinApi';
 import { satoshiToBtc } from './walletUtils';
-import { Bell, X, ArrowDownLeft, ArrowUpRight, TrendingUp, TrendingDown, CheckCircle2, Award, Clock, Settings } from 'lucide-react';
+import { Bell, X, ArrowDownLeft, ArrowUpRight, TrendingUp, TrendingDown, CheckCircle2, Award, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 let globalNotifId = 0;

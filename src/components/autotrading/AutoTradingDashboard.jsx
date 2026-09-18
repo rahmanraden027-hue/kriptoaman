@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Play, TrendingUp, Activity, Zap, AlertCircle, Loader2, RefreshCw } from 'lucide-react';
+import { Plus, Play, Activity, Zap, Loader2, RefreshCw } from 'lucide-react';
 import TradingRuleForm from './TradingRuleForm';
 import TradingRuleCard from './TradingRuleCard';
 import AutoTradingPerformance from './AutoTradingPerformance';

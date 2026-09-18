@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { getBtcPrice } from './bitcoinApi';
-import { satoshiToBtc, btcToSatoshi } from './walletUtils';
+import { satoshiToBtc } from './walletUtils';
 import { X, TrendingUp, TrendingDown, Loader2, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 
 // Trading is simulated (P2P/exchange simulation) — real BTC swap requires CEX API integration

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
-import { TrendingUp, TrendingDown, BarChart2, PieChart as PieChartIcon, DollarSign, Zap, ArrowLeftRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, BarChart2, PieChart as PieChartIcon, DollarSign, ArrowLeftRight } from 'lucide-react';
 
 // ── Load data from localStorage ───────────────────────────────────────────────
 const TX_KEY = 'app_tx_history';

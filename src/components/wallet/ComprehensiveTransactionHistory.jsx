@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ChevronDown, Search, Filter, ArrowUpRight, ArrowDownLeft, ArrowRightLeft, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Search, Filter, ArrowUpRight, ArrowDownLeft, ArrowRightLeft, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 
 const COIN_INFO = {
   BTC: { color: '#F7931A', symbol: '₿' },

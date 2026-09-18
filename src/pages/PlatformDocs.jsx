@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import {
-  Database, Server, Zap, Target, Shield, Globe, TrendingUp,
-  Wallet, Users, Bell, BookOpen, Code, GitBranch, Layers,
-  CheckCircle2, Clock, Circle, ArrowRight, Star, Megaphone,
-  BarChart3, Lock, Smartphone, Cpu, ChevronDown, ChevronRight,
+  Database, Server, Shield, Globe, TrendingUp, BookOpen, Code, GitBranch, Layers,
+  CheckCircle2, Clock, Circle, ArrowRight, Megaphone,
+  BarChart3, Cpu, ChevronDown, ChevronRight,
   AlertTriangle, Radio, Link2, Package, ArrowUpRight
 } from 'lucide-react';
 

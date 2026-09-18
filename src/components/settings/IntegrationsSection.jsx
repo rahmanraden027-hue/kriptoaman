@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Lock, Copy, Eye, EyeOff, Plus, Trash2, Check, AlertCircle } from 'lucide-react';
+import { Lock, Copy, Eye, EyeOff, Trash2, Check, AlertCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 
 export default function IntegrationsSection({ user }) {
   const [apiKeys, setApiKeys] = useState([

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, AlertTriangle, CheckCircle2, Loader } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Loader } from 'lucide-react';
 
 export default function DEXOrderForm({ 
   fromToken, toToken, chain, onOrderCreated, onCancel 

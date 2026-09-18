@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Zap, Play, Pause, Trash2, TrendingUp, AlertCircle } from 'lucide-react';
+import { Zap, Play, Pause, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function StrategyList({ strategies, onStrategyUpdate, onStrategyDelete, onSelectStrategy }) {

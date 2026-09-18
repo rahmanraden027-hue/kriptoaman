@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, X, BarChart3, Zap, Lock } from 'lucide-react';
+import { Search, X, Zap, Lock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
 /**

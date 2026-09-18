@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid
 } from 'recharts';
-import { X, Plus, Search, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { X, Plus, Search, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 const BASE_PRICES = {
   BTC: 95200, ETH: 3420, BNB: 582, SOL: 172, AVAX: 38.5, MATIC: 0.46,

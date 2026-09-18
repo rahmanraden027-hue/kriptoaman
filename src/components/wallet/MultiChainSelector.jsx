@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { ChevronDown, Search } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { NETWORKS_LIST, COINS_LIST, getCoinsForNetwork } from './multiChainConfig';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export function NetworkSelector({ selected, onChange, label = 'Network' }) {

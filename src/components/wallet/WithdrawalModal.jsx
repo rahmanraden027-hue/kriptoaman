@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  X, ArrowUpFromLine, ChevronRight, Loader2, CheckCircle2,
-  AlertTriangle, ShieldCheck, Copy, Info, RefreshCw
+  X, ArrowUpFromLine, Loader2, CheckCircle2,
+  AlertTriangle, ShieldCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

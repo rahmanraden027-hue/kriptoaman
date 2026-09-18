@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import SupportChat from '../components/support/SupportChat';
-import { MessageCircle, Mail, HelpCircle, ChevronRight, ExternalLink, Phone, Clock } from 'lucide-react';
+import { MessageCircle, Mail, HelpCircle, ChevronRight, ExternalLink, Clock } from 'lucide-react';
 
 const FAQS = [
   { q: 'Bagaimana cara deposit kripto?', a: 'Buka halaman Wallet, klik "Semua Alamat Penerima", pilih koin yang ingin dideposit, salin alamat dan kirim dari wallet eksternal Anda.' },

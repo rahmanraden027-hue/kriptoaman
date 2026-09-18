@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircle2, AlertCircle, ExternalLink, Shield, Key, User, Copy, Terminal } from 'lucide-react';
+import { CheckCircle2, ExternalLink, Shield, Key, User, Copy, Terminal } from 'lucide-react';
 
 // ─── IDENTITAS PEMILIK APLIKASI ───────────────────────────────────────────────
 const OWNER_INFO = {

@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Moon, Sun, Bell, BellOff, Save, Loader2 } from 'lucide-react';
-import { Analytics } from '../analytics/mixpanel';
+import React, { useState } from 'react';
+import { Moon, Sun, Bell, Save, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 

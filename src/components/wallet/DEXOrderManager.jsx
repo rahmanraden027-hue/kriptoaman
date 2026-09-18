@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Button } from '@/components/ui/button';
 import { Trash2, CheckCircle2, Clock, AlertTriangle, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
 
 export default function DEXOrderManager({ fromToken, toToken, chain }) {

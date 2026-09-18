@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Smartphone, Building2, CreditCard } from 'lucide-react';
+import { X } from 'lucide-react';
 
 const PAYMENT_METHODS = [
   { name: 'QRIS', icon: '🔳', desc: 'Scan & bayar', color: 'from-red-500/20 to-orange-500/20', border: 'border-red-500/20' },

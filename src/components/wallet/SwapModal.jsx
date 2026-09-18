@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-  ArrowLeftRight, ArrowDown, ChevronDown, AlertTriangle, Info, Loader2, X,
-  CheckCircle2, ExternalLink, RefreshCw, TrendingUp, TrendingDown, Clock,
+  ArrowLeftRight, ArrowDown, ChevronDown, AlertTriangle, Loader2, X,
+  CheckCircle2, ExternalLink, RefreshCw, Clock,
   Zap, Shield, BarChart2
 } from 'lucide-react';
 import { getSwapQuote, getInboundAddress, buildSwapMemo, SWAP_COINS } from './swapApi';

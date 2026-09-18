@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Search, Plus, Trash2, Filter, Coins, Lock, PiggyBank,
-  ExternalLink, RefreshCw, X, ChevronDown, TrendingUp,
-  AlertTriangle, CheckCircle2, ArrowUpDown, TrendingDown
+  Search, Plus, Trash2, Coins, Lock, PiggyBank, RefreshCw, X, TrendingUp,
+  AlertTriangle, ArrowUpDown, TrendingDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

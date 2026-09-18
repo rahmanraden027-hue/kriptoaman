@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, TrendingDown, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 
 export default function TradesTable({ trades }) {
   if (!trades || trades.length === 0) {

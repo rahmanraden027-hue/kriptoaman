@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Send, MessageCircle, Loader2, ChevronDown, RotateCcw, Headphones } from 'lucide-react';
+import { X, Send, Loader2, RotateCcw, Headphones } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 

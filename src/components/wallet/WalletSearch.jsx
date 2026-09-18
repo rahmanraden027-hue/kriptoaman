@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, X, TrendingUp, Clock, Send, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import { Search, X, TrendingUp, Clock, Send, ArrowDownLeft } from 'lucide-react';
 import { COINS_LIST, NETWORKS_LIST } from './multiChainConfig';
 import { Input } from '@/components/ui/input';
 

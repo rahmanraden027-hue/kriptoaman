@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Key, Eye, EyeOff, CheckCircle2, AlertTriangle, ExternalLink, Copy, CheckCheck, RefreshCw } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { ExternalLink, Copy, CheckCheck, RefreshCw } from 'lucide-react';
 
 const API_REGISTRY = [
   {
