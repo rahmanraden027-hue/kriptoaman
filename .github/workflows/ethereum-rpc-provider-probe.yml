@@ -1,0 +1,39 @@
+name: Ethereum RPC Provider Probe
+
+on:
+  push:
+    branches:
+      - audit/ecosystem-data-sync-20260918
+    paths:
+      - '.github/workflows/ethereum-rpc-provider-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe public Ethereum RPC candidates
+        shell: bash
+        run: |
+          set -u
+          payload='{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}'
+          for url in             https://eth.drpc.org             https://1rpc.io/eth             https://cloudflare-eth.com             https://rpc.flashbots.net; do
+            body="$(mktemp)"
+            code="$(curl -sS -o "$body" -w '%{http_code}' --max-time 12               -H 'content-type: application/json'               -H 'user-agent: KriptoAman-Network-Health/4.2'               --data "$payload" "$url" || true)"
+            result="$(jq -r '.result // empty' "$body" 2>/dev/null || true)"
+            error="$(jq -r '.error.message // empty' "$body" 2>/dev/null || true)"
+            host="$(python3 - "$url" <<'PY'
+import sys,urllib.parse
+print(urllib.parse.urlsplit(sys.argv[1]).hostname)
+PY
+)"
+            if [[ "$code" = 200 && "$result" =~ ^0x[0-9a-fA-F]+$ ]]; then
+              echo "provider=$host status=PASS code=$code block=$result"
+            else
+              echo "provider=$host status=FAIL code=$code error=${error:-invalid_response}"
+            fi
+            rm -f "$body"
+          done
