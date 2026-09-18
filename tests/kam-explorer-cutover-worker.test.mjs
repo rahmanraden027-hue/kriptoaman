@@ -20,6 +20,8 @@ test('cutover workflow does not route broken API v2 through the legacy asset wor
   assert.doesNotMatch(workflow, /Route Blockscout API v2 to preserved Explorer gateway/);
   assert.match(workflow, /blockscout_api_state=/);
   assert.match(workflow, /x-kam-explorer-browser-rpc: same-origin/);
+  assert.match(workflow, /curl -sS -D - -o \/dev\/null/);
+  assert.doesNotMatch(workflow, /curl -sSI .*PUBLIC/);
   assert.match(workflow, /eth_chainId/);
   assert.match(workflow, /eth_blockNumber/);
   assert.match(workflow, /Roll back production route on verification failure/);
