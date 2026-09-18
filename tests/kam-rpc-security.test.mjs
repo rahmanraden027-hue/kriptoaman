@@ -152,7 +152,8 @@ test('KAM RPC service binding transport does not forward AbortSignal across Work
 
 test('KAM RPC can use the Explorer Worker service binding without exposing privileged RPC', async () => {
   const explorerBinding = {
-    fetch: async (request) => {
+    fetch: async (input, init) => {
+      const request = input instanceof Request ? input : new Request(input, init);
       const payload = JSON.parse(await request.text());
       assert.equal(new URL(request.url).pathname, '/rpc');
       assert.equal(payload.method, 'eth_chainId');
