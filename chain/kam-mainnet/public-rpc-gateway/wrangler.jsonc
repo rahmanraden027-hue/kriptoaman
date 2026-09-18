@@ -12,6 +12,12 @@
     "KAM_EXPECTED_CHAIN_ID": "0x560c",
     "KAM_RPC_ORIGIN": "https://explorer-new.kriptoaman.com/rpc"
   },
+  "services": [
+    {
+      "binding": "KAM_EXPLORER_GATEWAY",
+      "service": "kam-mainnet-explorer-cutover"
+    }
+  ],
   "ratelimits": [
     {
       "name": "RPC_RATE_LIMITER",
