@@ -4,11 +4,13 @@ on:
   pull_request:
     paths:
       - 'chain/kam-mainnet/explorer-cutover-worker/**'
+      - 'tests/kam-explorer-cutover-worker.test.mjs'
       - '.github/workflows/kam-explorer-origin-cutover.yml'
   push:
     branches: [main]
     paths:
       - 'chain/kam-mainnet/explorer-cutover-worker/**'
+      - 'tests/kam-explorer-cutover-worker.test.mjs'
       - '.github/workflows/kam-explorer-origin-cutover.yml'
 
 permissions:
@@ -32,10 +34,12 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Validate Worker syntax
-        run: node --check chain/kam-mainnet/explorer-cutover-worker/worker.js
+      - name: Validate Worker and cutover contract
+        run: |
+          node --check chain/kam-mainnet/explorer-cutover-worker/worker.js
+          node --test tests/kam-explorer-cutover-worker.test.mjs
 
-      - name: Verify explorer-new routes and KAM RPC identity
+      - name: Verify explorer-new core routes and RPC identity
         shell: bash
         run: |
           set -euo pipefail
@@ -47,6 +51,13 @@ jobs:
             test "${code}" = "200"
           done
 
+          HOME_HTML="$(curl -L -fsS --retry 4 --retry-delay 2 --retry-all-errors --max-time 25 "${ORIGIN}/")"
+          grep -Fq 'data-kam-explorer-version="2.0.0"' <<<"${HOME_HTML}"
+          if ! grep -Fq "RPC='https://rpc.kriptoaman.com'" <<<"${HOME_HTML}" && ! grep -Fq "RPC='/rpc'" <<<"${HOME_HTML}"; then
+            echo "Explorer homepage RPC anchor unavailable" >&2
+            exit 1
+          fi
+
           chain_id="$(curl -fsS --retry 4 --retry-delay 2 --retry-all-errors --max-time 20             -H 'content-type: application/json'             --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}'             "${ORIGIN}/rpc" | jq -r '.result // empty')"
           block_hex="$(curl -fsS --retry 4 --retry-delay 2 --retry-all-errors --max-time 20             -H 'content-type: application/json'             --data '{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}'             "${ORIGIN}/rpc" | jq -r '.result // empty')"
 
@@ -54,7 +65,6 @@ jobs:
           echo "block_head=${block_hex}"
           test "${chain_id}" = "0x560c"
           [[ "${block_hex}" =~ ^0x[0-9a-fA-F]+$ ]]
-
           block_dec="$((16#${block_hex#0x}))"
           test "${block_dec}" -ge 17296
 
@@ -69,7 +79,6 @@ jobs:
       CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       ZONE_NAME: kriptoaman.com
       ROUTE_PATTERN: explorer.kriptoaman.com/*
-      API_ROUTE_PATTERN: explorer.kriptoaman.com/api/v2/*
       NEW_WORKER: kam-mainnet-explorer-cutover
       EXPECTED_OLD_WORKER: kam-mainnet-explorer-gateway
     steps:
@@ -93,9 +102,7 @@ jobs:
           zones="$(curl --fail-with-body -sS --get             'https://api.cloudflare.com/client/v4/zones'             -H "Authorization: Bearer ${CF_API_TOKEN}"             -H 'Accept: application/json'             --data-urlencode "name=${ZONE_NAME}"             --data-urlencode "account.id=${CF_ACCOUNT_ID}")"
           jq . <<<"${zones}" > artifacts/zones.json
           test "$(jq -r '.success' <<<"${zones}")" = "true"
-
-          zone_count="$(jq '[.result[]] | length' <<<"${zones}")"
-          test "${zone_count}" -eq 1
+          test "$(jq '[.result[]] | length' <<<"${zones}")" -eq 1
           zone_id="$(jq -r '.result[0].id' <<<"${zones}")"
           echo "ZONE_ID=${zone_id}" >> "${GITHUB_ENV}"
 
@@ -105,31 +112,21 @@ jobs:
 
           route_count="$(jq --arg p "${ROUTE_PATTERN}" '[.result[] | select(.pattern == $p)] | length' <<<"${routes}")"
           test "${route_count}" -eq 1
-
           route_id="$(jq -r --arg p "${ROUTE_PATTERN}" '.result[] | select(.pattern == $p) | .id' <<<"${routes}")"
           old_worker="$(jq -r --arg p "${ROUTE_PATTERN}" '.result[] | select(.pattern == $p) | (.script // "")' <<<"${routes}")"
-
           echo "route_id=${route_id}"
           echo "current_worker=${old_worker}"
           echo "ROUTE_ID=${route_id}" >> "${GITHUB_ENV}"
           echo "OLD_WORKER=${old_worker}" >> "${GITHUB_ENV}"
 
-          api_route_count="$(jq --arg p "${API_ROUTE_PATTERN}" '[.result[] | select(.pattern == $p)] | length' <<<"${routes}")"
-          test "${api_route_count}" -le 1
-          if [[ "${api_route_count}" -eq 1 ]]; then
-            api_route_id="$(jq -r --arg p "${API_ROUTE_PATTERN}" '.result[] | select(.pattern == $p) | .id' <<<"${routes}")"
-            api_old_worker="$(jq -r --arg p "${API_ROUTE_PATTERN}" '.result[] | select(.pattern == $p) | (.script // "")' <<<"${routes}")"
-            echo "API_ROUTE_EXISTED=true" >> "${GITHUB_ENV}"
-            echo "API_ROUTE_ID=${api_route_id}" >> "${GITHUB_ENV}"
-            echo "API_OLD_WORKER=${api_old_worker}" >> "${GITHUB_ENV}"
-          else
-            echo "API_ROUTE_EXISTED=false" >> "${GITHUB_ENV}"
-            echo "API_ROUTE_ID=" >> "${GITHUB_ENV}"
-            echo "API_OLD_WORKER=" >> "${GITHUB_ENV}"
+          if [[ "${old_worker}" != "${EXPECTED_OLD_WORKER}" && "${old_worker}" != "${NEW_WORKER}" ]]; then
+            echo "Unexpected Worker currently owns production route: ${old_worker}" >&2
+            exit 1
           fi
 
-          if [[ "${old_worker}" != "${EXPECTED_OLD_WORKER}" && "${old_worker}" != "${NEW_WORKER}" ]]; then
-            echo "Unexpected Worker currently owns the production route: ${old_worker}" >&2
+          stale_api_route_count="$(jq '[.result[] | select(.pattern == "explorer.kriptoaman.com/api/v2/*")] | length' <<<"${routes}")"
+          if [[ "${stale_api_route_count}" -ne 0 ]]; then
+            echo "Unexpected API v2 route override exists; refusing cutover." >&2
             exit 1
           fi
 
@@ -138,7 +135,7 @@ jobs:
           test "$(jq -r '.success' <<<"${scripts}")" = "true"
           jq -e --arg id "${EXPECTED_OLD_WORKER}" '.result[] | select(.id == $id)' <<<"${scripts}" >/dev/null
 
-      - name: Deploy cutover proxy Worker without changing route
+      - name: Deploy RPC-first cutover Worker without changing route
         working-directory: chain/kam-mainnet/explorer-cutover-worker
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -150,7 +147,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           if [[ "${OLD_WORKER}" = "${NEW_WORKER}" ]]; then
             echo "Production route already points to ${NEW_WORKER}; no route mutation needed."
             echo "changed=false" >> "${GITHUB_OUTPUT}"
@@ -164,39 +160,7 @@ jobs:
           test "$(jq -r '.result.script' <<<"${response}")" = "${NEW_WORKER}"
           echo "changed=true" >> "${GITHUB_OUTPUT}"
 
-      - name: Route Blockscout API v2 to preserved Explorer gateway
-        id: api_route
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [[ "${API_ROUTE_EXISTED}" = "true" ]]; then
-            if [[ "${API_OLD_WORKER}" = "${EXPECTED_OLD_WORKER}" ]]; then
-              echo "API v2 route already points to ${EXPECTED_OLD_WORKER}; no mutation needed."
-              echo "API_ROUTE_ID_EFFECTIVE=${API_ROUTE_ID}" >> "${GITHUB_ENV}"
-              exit 0
-            fi
-            if [[ "${API_OLD_WORKER}" != "${NEW_WORKER}" ]]; then
-              echo "Unexpected Worker owns API v2 route: ${API_OLD_WORKER}" >&2
-              exit 1
-            fi
-            payload="$(jq -nc --arg pattern "${API_ROUTE_PATTERN}" --arg script "${EXPECTED_OLD_WORKER}" '{pattern:$pattern,script:$script}')"
-            response="$(curl --fail-with-body -sS -X PUT               "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes/${API_ROUTE_ID}"               -H "Authorization: Bearer ${CF_API_TOKEN}"               -H 'Content-Type: application/json'               --data "${payload}")"
-            jq . <<<"${response}" > artifacts/api-route-cutover.json
-            test "$(jq -r '.success' <<<"${response}")" = "true"
-            test "$(jq -r '.result.script' <<<"${response}")" = "${EXPECTED_OLD_WORKER}"
-            echo "API_ROUTE_ID_EFFECTIVE=${API_ROUTE_ID}" >> "${GITHUB_ENV}"
-          else
-            payload="$(jq -nc --arg pattern "${API_ROUTE_PATTERN}" --arg script "${EXPECTED_OLD_WORKER}" '{pattern:$pattern,script:$script}')"
-            response="$(curl --fail-with-body -sS -X POST               "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes"               -H "Authorization: Bearer ${CF_API_TOKEN}"               -H 'Content-Type: application/json'               --data "${payload}")"
-            jq . <<<"${response}" > artifacts/api-route-create.json
-            test "$(jq -r '.success' <<<"${response}")" = "true"
-            created_id="$(jq -r '.result.id' <<<"${response}")"
-            test -n "${created_id}"
-            echo "API_ROUTE_ID_EFFECTIVE=${created_id}" >> "${GITHUB_ENV}"
-          fi
-
-      - name: Verify production is served by explorer-new
+      - name: Verify RPC-first production Explorer
         id: verify
         continue-on-error: true
         shell: bash
@@ -215,6 +179,16 @@ jobs:
           headers="$(curl -sSI --retry 5 --retry-delay 2 --retry-all-errors --max-time 20 "${PUBLIC}/" | tr -d '\r')"
           grep -qi '^x-kam-explorer-cutover: explorer-new$' <<<"${headers}"
           grep -qi '^x-kam-explorer-origin: explorer-new\.kriptoaman\.com$' <<<"${headers}"
+          grep -qi '^x-kam-explorer-browser-rpc: same-origin$' <<<"${headers}"
+
+          home="$(curl -L -fsS --retry 5 --retry-delay 2 --retry-all-errors --max-time 25 "${PUBLIC}/")"
+          grep -Fq "RPC='/rpc'" <<<"${home}"
+          grep -Fq 'Same-origin /rpc gateway' <<<"${home}"
+          grep -Fq 'KAM RPC via /rpc' <<<"${home}"
+          if grep -Fq "RPC='https://rpc.kriptoaman.com'" <<<"${home}"; then
+            echo "Homepage still uses cross-origin browser RPC" >&2
+            exit 1
+          fi
 
           public_chain="$(curl -fsS --retry 5 --retry-delay 2 --retry-all-errors --max-time 20             -H 'content-type: application/json'             --data '{"jsonrpc":"2.0","id":3,"method":"eth_chainId","params":[]}'             "${PUBLIC}/rpc" | jq -r '.result // empty')"
           origin_head="$(curl -fsS --retry 5 --retry-delay 2 --retry-all-errors --max-time 20             -H 'content-type: application/json'             --data '{"jsonrpc":"2.0","id":4,"method":"eth_blockNumber","params":[]}'             "${ORIGIN}/rpc" | jq -r '.result // empty')"
@@ -223,42 +197,45 @@ jobs:
           echo "public_chain_id=${public_chain}"
           echo "origin_head=${origin_head}"
           echo "public_head=${public_head}"
-
           test "${public_chain}" = "0x560c"
           [[ "${origin_head}" =~ ^0x[0-9a-fA-F]+$ ]]
           [[ "${public_head}" =~ ^0x[0-9a-fA-F]+$ ]]
-
           origin_dec="$((16#${origin_head#0x}))"
           public_dec="$((16#${public_head#0x}))"
           test "${public_dec}" -ge "${origin_dec}"
 
-          blocks_json="$(curl -fsS --retry 5 --retry-delay 2 --retry-all-errors --max-time 20 "${PUBLIC}/api/v2/blocks")"
-          stats_json="$(curl -fsS --retry 5 --retry-delay 2 --retry-all-errors --max-time 20 "${PUBLIC}/api/v2/stats")"
-          test "$(jq -r '(.items | type == "array") and (.items | length > 0)' <<<"${blocks_json}")" = "true"
-          test "$(jq -r '(.total_transactions != null) or (.total_transactions_number != null) or (.transactions_count != null)' <<<"${stats_json}")" = "true"
+          api_state=degraded
+          blocks_ok=false
+          stats_ok=false
+          if blocks_json="$(curl -fsS --retry 2 --retry-delay 1 --retry-all-errors --max-time 12 "${PUBLIC}/api/v2/blocks" 2>/dev/null)"; then
+            if jq -e '(.items | type == "array") and (.items | length > 0)' >/dev/null 2>&1 <<<"${blocks_json}"; then
+              blocks_ok=true
+            fi
+          fi
+          if stats_json="$(curl -fsS --retry 2 --retry-delay 1 --retry-all-errors --max-time 12 "${PUBLIC}/api/v2/stats" 2>/dev/null)"; then
+            if jq -e '(.total_transactions != null) or (.total_transactions_number != null) or (.transactions_count != null)' >/dev/null 2>&1 <<<"${stats_json}"; then
+              stats_ok=true
+            fi
+          fi
+          if [[ "${blocks_ok}" = true && "${stats_ok}" = true ]]; then
+            api_state=healthy
+          fi
+          echo "blockscout_api_state=${api_state}" | tee artifacts/api-state.txt
+          echo "blocks_api_contract=${blocks_ok}" | tee -a artifacts/api-state.txt
+          echo "stats_api_contract=${stats_ok}" | tee -a artifacts/api-state.txt
+          echo "API state is advisory; unavailable indexer data must remain unavailable/reconnecting in UI."
 
       - name: Roll back production route on verification failure
         if: ${{ steps.verify.outcome == 'failure' }}
         shell: bash
         run: |
           set -euo pipefail
-          echo "Post-cutover verification failed. Restoring ${EXPECTED_OLD_WORKER}."
+          echo "RPC-first verification failed. Restoring ${EXPECTED_OLD_WORKER}."
           payload="$(jq -nc --arg pattern "${ROUTE_PATTERN}" --arg script "${EXPECTED_OLD_WORKER}" '{pattern:$pattern,script:$script}')"
           response="$(curl --fail-with-body -sS -X PUT             "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes/${ROUTE_ID}"             -H "Authorization: Bearer ${CF_API_TOKEN}"             -H 'Content-Type: application/json'             --data "${payload}")"
           jq . <<<"${response}" > artifacts/route-rollback.json
           test "$(jq -r '.success' <<<"${response}")" = "true"
           test "$(jq -r '.result.script' <<<"${response}")" = "${EXPECTED_OLD_WORKER}"
-
-          if [[ "${API_ROUTE_EXISTED}" = "true" ]]; then
-            api_payload="$(jq -nc --arg pattern "${API_ROUTE_PATTERN}" --arg script "${API_OLD_WORKER}" '{pattern:$pattern,script:$script}')"
-            api_response="$(curl --fail-with-body -sS -X PUT               "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes/${API_ROUTE_ID}"               -H "Authorization: Bearer ${CF_API_TOKEN}"               -H 'Content-Type: application/json'               --data "${api_payload}")"
-            jq . <<<"${api_response}" > artifacts/api-route-rollback.json
-            test "$(jq -r '.success' <<<"${api_response}")" = "true"
-          elif [[ -n "${API_ROUTE_ID_EFFECTIVE:-}" ]]; then
-            api_response="$(curl --fail-with-body -sS -X DELETE               "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes/${API_ROUTE_ID_EFFECTIVE}"               -H "Authorization: Bearer ${CF_API_TOKEN}"               -H 'Accept: application/json')"
-            jq . <<<"${api_response}" > artifacts/api-route-delete-rollback.json
-            test "$(jq -r '.success' <<<"${api_response}")" = "true"
-          fi
 
       - name: Capture final route state
         if: always()
@@ -272,13 +249,13 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: kam-explorer-origin-cutover-${{ github.run_id }}
+          name: kam-explorer-rpc-first-cutover-${{ github.run_id }}
           path: artifacts/*
           if-no-files-found: warn
           retention-days: 30
 
-      - name: Enforce successful production verification
+      - name: Enforce successful RPC-first verification
         if: ${{ steps.verify.outcome == 'failure' }}
         run: |
-          echo "Production verification failed and rollback was executed." >&2
+          echo "RPC-first production verification failed and rollback was executed." >&2
           exit 1
