@@ -137,3 +137,21 @@ test('public landing uses the stable platform health contract for asset and netw
   assert.match(body, /Aktif · Live/);
   assert.doesNotMatch(body, /value: '2\.000\+'/);
 });
+
+test('Ethereum health and wallet paths use verified resilient RPC fallbacks', async () => {
+  const [health, balances, customTokens, web3, connector] = await Promise.all([
+    read('functions/api/network-health.js'),
+    read('src/components/wallet/multiChainBalance.js'),
+    read('src/components/wallet/customTokens.jsx'),
+    read('src/components/web3/Web3Provider.jsx'),
+    read('base44/functions/networkConnector/entry.ts'),
+  ]);
+
+  assert.ok(health.includes("'https://eth.drpc.org'"));
+  assert.ok(health.includes("'https://rpc.flashbots.net'"));
+  assert.ok(health.indexOf("'https://eth.drpc.org'") < health.indexOf("'https://ethereum-rpc.publicnode.com'"));
+  assert.match(balances, /Ethereum[\s\S]*rpc: 'https:\/\/eth\.drpc\.org'/);
+  assert.match(customTokens, /ETH:[\s\S]*rpcUrl: 'https:\/\/eth\.drpc\.org'/);
+  assert.match(web3, /1:\s+\{ name: 'Ethereum'[\s\S]*rpc: 'https:\/\/eth\.drpc\.org'/);
+  assert.match(connector, /ethereum:[\s\S]*rpc: 'https:\/\/eth\.drpc\.org'/);
+});
