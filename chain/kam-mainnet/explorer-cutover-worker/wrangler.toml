@@ -1,0 +1,4 @@
+name = "kam-mainnet-explorer-cutover"
+main = "worker.js"
+compatibility_date = "2026-09-18"
+workers_dev = false
