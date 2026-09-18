@@ -1,0 +1,105 @@
+name: KriptoAman Ecosystem Data Sync Audit
+
+on:
+  push:
+    branches:
+      - audit/ecosystem-data-sync-20260918
+    paths:
+      - '.github/workflows/ecosystem-data-sync-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Audit production data plane
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          SITE='https://kriptoaman.com'
+          EXPLORER='https://explorer.kriptoaman.com'
+          RPC='${EXPLORER}/rpc'
+          KNOWN_TX='0x9854d90159013d488190d0f1847596a5dfb7582812f880102f167a1b172b163a'
+
+          echo '=== PUBLIC ROUTES ==='
+          for url in             "${SITE}/"             "${SITE}/login"             "${SITE}/register"             "${EXPLORER}/"             "${EXPLORER}/blocks"             "${EXPLORER}/txs"             "${EXPLORER}/status"             "${EXPLORER}/api/v2/blocks"             "${EXPLORER}/api/v2/stats"; do
+              code="$(curl -L -sS -o /dev/null -w '%{http_code}' --retry 3 --retry-delay 1 --retry-all-errors --max-time 20 "${url}")"
+              echo "${url} -> ${code}"
+              test "${code}" = 200
+          done
+
+          rpc() {
+            local method="$1" params="$2" id="$3"
+            curl -fsS --retry 3 --retry-delay 1 --retry-all-errors --max-time 20               -H 'content-type: application/json'               --data "{"jsonrpc":"2.0","id":${id},"method":"${method}","params":${params}}"               "${RPC}"
+          }
+
+          echo '=== CHAIN IDENTITY ==='
+          chain="$(rpc eth_chainId '[]' 1 | jq -r '.result // empty')"
+          test "${chain}" = '0x560c'
+          echo "chain_id=${chain}"
+
+          head1_hex="$(rpc eth_blockNumber '[]' 2 | jq -r '.result // empty')"
+          [[ "${head1_hex}" =~ ^0x[0-9a-fA-F]+$ ]]
+          head1="$((16#${head1_hex#0x}))"
+          sleep 12
+          head2_hex="$(rpc eth_blockNumber '[]' 3 | jq -r '.result // empty')"
+          [[ "${head2_hex}" =~ ^0x[0-9a-fA-F]+$ ]]
+          head2="$((16#${head2_hex#0x}))"
+          echo "rpc_head_1=${head1}"
+          echo "rpc_head_2=${head2}"
+          test "${head2}" -gt "${head1}"
+
+          blocks="$(curl -fsS --retry 3 --retry-delay 1 --retry-all-errors --max-time 20 "${EXPLORER}/api/v2/blocks")"
+          stats="$(curl -fsS --retry 3 --retry-delay 1 --retry-all-errors --max-time 20 "${EXPLORER}/api/v2/stats")"
+          indexed="$(jq -r '.items[0].height // .items[0].number // empty' <<<"${blocks}")"
+          [[ "${indexed}" =~ ^[0-9]+$ ]]
+          lag="$((head2-indexed))"
+          echo "indexed_head=${indexed}"
+          echo "indexer_lag=${lag}"
+          test "${lag}" -ge 0
+          test "${lag}" -le 3
+
+          explorer_hash="$(jq -r '.items[0].hash // empty' <<<"${blocks}")"
+          indexed_hex="$(printf '0x%x' "${indexed}")"
+          rpc_block="$(rpc eth_getBlockByNumber "[\"${indexed_hex}\",false]" 4)"
+          rpc_hash="$(jq -r '.result.hash // empty' <<<"${rpc_block}")"
+          echo "explorer_hash=${explorer_hash}"
+          echo "rpc_hash=${rpc_hash}"
+          test -n "${explorer_hash}"
+          test "${rpc_hash}" = "${explorer_hash}"
+
+          echo '=== STATS ==='
+          total_blocks="$(jq -r '.total_blocks // empty' <<<"${stats}")"
+          total_tx="$(jq -r '.total_transactions // empty' <<<"${stats}")"
+          total_addr="$(jq -r '.total_addresses // empty' <<<"${stats}")"
+          echo "total_blocks=${total_blocks}"
+          echo "total_transactions=${total_tx}"
+          echo "total_addresses=${total_addr}"
+          test -n "${total_blocks}"
+          test -n "${total_tx}"
+          test -n "${total_addr}"
+
+          echo '=== HISTORICAL CONTINUITY ==='
+          receipt="$(rpc eth_getTransactionReceipt "[\"${KNOWN_TX}\"]" 5)"
+          known_block="$(jq -r '.result.blockNumber // empty' <<<"${receipt}")"
+          if [[ -n "${known_block}" ]]; then
+            echo "known_transaction=present block=${known_block}"
+          else
+            echo "known_transaction=missing"
+          fi
+
+          for n in 0 1000 17296 20000; do
+            hex="$(printf '0x%x' "${n}")"
+            block="$(rpc eth_getBlockByNumber "[\"${hex}\",false]" "$((100+n))")"
+            hash="$(jq -r '.result.hash // empty' <<<"${block}")"
+            tx_count="$(jq -r 'if .result.transactions then (.result.transactions|length) else -1 end' <<<"${block}")"
+            echo "sample_block=${n} hash=${hash:-missing} tx_count=${tx_count}"
+            test -n "${hash}"
+          done
+
+          echo '=== RESULT ==='
+          echo 'live_data_plane=HEALTHY'
