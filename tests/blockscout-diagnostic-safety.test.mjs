@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const source = await readFile(new URL('../scripts/diagnose-blockscout.mjs', import.meta.url), 'utf8');
 const branding = await readFile(new URL('../scripts/apply-kam-explorer-branding.sh', import.meta.url), 'utf8');
+const deploy = await readFile(new URL('../scripts/deploy-kam-explorer-v2.sh', import.meta.url), 'utf8');
 
 test('diagnostic uses only read-only JSON-RPC methods', () => {
   for (const method of ['eth_chainId', 'eth_blockNumber', 'eth_getTransactionReceipt']) {
@@ -47,4 +48,12 @@ test('Explorer branding helper hides unverified homepage stats and gas without t
   assert.match(branding, /docker compose restart proxy/);
   assert.doesNotMatch(branding, /docker compose restart (?:db|postgres|indexer|backend)/);
   assert.doesNotMatch(branding, /genesis|validator key|truncate|DROP TABLE/i);
+});
+
+test('diagnostics and deploy verification do not assume stale pre-recovery chain history', () => {
+  assert.match(source, /process\.env\.KNOWN_TX_HASH \|\| null/);
+  assert.doesNotMatch(source, /9854d90159013d488190d0f1847596a5dfb7582812f880102f167a1b172b163a/);
+  assert.doesNotMatch(deploy, /524248/);
+  assert.doesNotMatch(deploy, /9854d90159013d488190d0f1847596a5dfb7582812f880102f167a1b172b163a/);
+  assert.match(deploy, /assert_page '\/block\/0'/);
 });
