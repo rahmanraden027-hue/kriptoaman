@@ -14,14 +14,6 @@ fail(){ echo "ERROR: $*" >&2; exit 1; }
 
 [ "$(id -u)" -eq 0 ] || fail "Run as root"
 
-log "Preflight: verifying KAM RPC identity"
-chain="$(curl -fsS --retry 4 --retry-delay 2 --max-time 20   -H 'content-type: application/json'   --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}'   "$KAM_RPC" | jq -r '.result // empty' 2>/dev/null || true)"
-[ "$chain" = "$EXPECTED_CHAIN_HEX" ] || fail "Unexpected chain ID from KAM RPC: ${chain:-empty}"
-
-head_hex="$(curl -fsS --retry 4 --retry-delay 2 --max-time 20   -H 'content-type: application/json'   --data '{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}'   "$KAM_RPC" | jq -r '.result // empty' 2>/dev/null || true)"
-[[ "$head_hex" =~ ^0x[0-9a-fA-F]+$ ]] || fail "Invalid block head from KAM RPC: ${head_hex:-empty}"
-log "RPC OK: chain=$chain head=$head_hex"
-
 log "Installing host packages"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
@@ -30,6 +22,14 @@ if ! docker compose version >/dev/null 2>&1; then
   apt-get install -y docker-compose-v2 2>/dev/null ||   apt-get install -y docker-compose-plugin 2>/dev/null ||   apt-get install -y docker-compose
 fi
 systemctl enable --now docker
+
+log "Preflight: verifying KAM RPC identity"
+chain="$(curl -fsS --retry 4 --retry-delay 2 --max-time 20   -H 'content-type: application/json'   --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}'   "$KAM_RPC" | jq -r '.result // empty' 2>/dev/null || true)"
+[ "$chain" = "$EXPECTED_CHAIN_HEX" ] || fail "Unexpected chain ID from KAM RPC: ${chain:-empty}"
+
+head_hex="$(curl -fsS --retry 4 --retry-delay 2 --max-time 20   -H 'content-type: application/json'   --data '{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}'   "$KAM_RPC" | jq -r '.result // empty' 2>/dev/null || true)"
+[[ "$head_hex" =~ ^0x[0-9a-fA-F]+$ ]] || fail "Invalid block head from KAM RPC: ${head_hex:-empty}"
+log "RPC OK: chain=$chain head=$head_hex"
 
 if docker compose version >/dev/null 2>&1; then
   COMPOSE=(docker compose)
@@ -40,7 +40,7 @@ else
 fi
 
 log "Preparing isolated Blockscout directory at $BASE"
-mkdir -p "$BASE/data/postgres" "$BASE/data/redis"
+mkdir -p "$BASE"
 
 if [ -e "$COMPOSE_FILE" ]; then
   log "Existing compose file detected; preserving current configuration"
@@ -77,7 +77,7 @@ services:
       timeout: 5s
       retries: 20
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
 
   redis:
     image: redis:7-alpine
@@ -85,7 +85,7 @@ services:
     restart: unless-stopped
     command: redis-server --appendonly yes
     volumes:
-      - ./data/redis:/data
+      - redisdata:/data
 
   backend:
     image: ${BLOCKSCOUT_IMAGE}
@@ -138,6 +138,8 @@ services:
       MICROSERVICE_SIG_PROVIDER_ENABLED: "false"
       NFT_MEDIA_HANDLER_ENABLED: "false"
       ACCOUNT_REDIS_URL: redis://redis:6379
+      RATE_LIMITER_REDIS_URL: redis://redis:6379/0
+      PORT: "4000"
     expose:
       - "4000"
 
@@ -151,6 +153,10 @@ services:
       - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
+volumes:
+  pgdata:
+  redisdata:
 
 YAML
 
