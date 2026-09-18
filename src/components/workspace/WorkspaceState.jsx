@@ -5,8 +5,8 @@ export default function WorkspaceState({
   mode = 'loading',
   title,
   body,
-  actionLabel,
-  onAction,
+  actionLabel = '',
+  onAction = null,
   compact = false,
 }) {
   const config = {

@@ -5,6 +5,7 @@ import GlobalLandingStyles from '@/components/landing/GlobalLandingStyles';
 import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
 import { useLanguage } from '@/lib/LanguageContext';
 
+/** @type {Array<[React.ComponentType<any>, string, string]>} */
 const features = [
   [Radar, 'Live market monitoring', 'Track prices and market movements from connected public data providers.'],
   [ShieldCheck, 'Transaction verification', 'Review blockchain transaction status through supported explorers.'],
@@ -61,7 +62,7 @@ export default function EnglishLanding() {
             <div className="ka-card ka-glow p-6 sm:p-8">
               <KriptoAmanLogo size={128} showText={false} animate />
               <div className="mt-6 grid grid-cols-2 gap-3">
-                {[['2,000+', 'market assets'], ['8', 'supported networks'], ['IDR / USD', 'display currencies'], ['24/7', 'public monitoring']].map(([value,label]) => (
+                {[['Provider-backed', 'market data'], ['Public', 'network endpoints'], ['IDR / USD', 'display currencies'], ['On demand', 'status checks']].map(([value,label]) => (
                   <div key={label} className="ka-card2 p-4"><p className="ka-blue text-xl font-extrabold">{value}</p><p className="ka-text2 mt-1 text-xs">{label}</p></div>
                 ))}
               </div>

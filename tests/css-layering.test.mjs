@@ -5,26 +5,27 @@ import { readFile, readdir } from 'node:fs/promises';
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('global style layers keep the reviewed release order', async () => {
-  const entry = await read('src/main.jsx');
+  const [entry, production] = await Promise.all([read('src/main.jsx'), read('src/styles/production.css')]);
+  assert.match(entry, /import '@\/styles\/production\.css'/);
   const imports = [
-    "import '@/index.css'",
-    "import '@/styles/workspace-polish.css'",
-    "import '@/styles/admin-suite.css'",
-    "import '@/styles/final-ui-2026.css'",
-    "import '@/styles/final-ui-v2.css'",
-    "import '@/styles/final-ui-v3.css'",
-    "import '@/styles/final-ui-v4.css'",
-    "import '@/styles/final-ui-v5.css'",
-    "import '@/styles/final-ui-v6.css'",
-    "import '@/styles/final-ui-v7.css'",
-    "import '@/styles/final-ui-v8.css'",
-    "import '@/styles/final-ui-v9.css'",
-    "import '@/styles/world-class-ui.css'",
+    "@import './workspace-polish.css'",
+    "@import './admin-suite.css'",
+    "@import './final-ui-2026.css'",
+    "@import './final-ui-v2.css'",
+    "@import './final-ui-v3.css'",
+    "@import './final-ui-v4.css'",
+    "@import './final-ui-v5.css'",
+    "@import './final-ui-v6.css'",
+    "@import './final-ui-v7.css'",
+    "@import './final-ui-v8.css'",
+    "@import './final-ui-v9.css'",
+    "@import './world-class-ui.css'",
+    "@import './mobile-overlap-final.css'",
   ];
 
   let previous = -1;
   for (const item of imports) {
-    const position = entry.indexOf(item);
+    const position = production.indexOf(item);
     assert.ok(position > previous, `${item} must remain in the reviewed cascade order`);
     previous = position;
   }

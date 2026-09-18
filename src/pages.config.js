@@ -10,7 +10,7 @@ const PAGE_NAMES = [
   'Founder', 'Home', 'IntelligenceHub', 'KAM', 'KAMCampaignNews', 'KAMDeveloper', 'KAMDEX', 'KAMGlobalRoadmap', 'KAMIncidentResponse', 'KAMLaunchReadiness', 'KAMNetwork', 'KAMNetworkDocs', 'KAMTokenomics', 'KAMTransactionLab', 'KYC', 'KYCVerificationPage', 'LandingPage', 'Market', 'MarketResearch',
   'P2PLending', 'PWAValidation', 'PaperTrading', 'PlatformDocs', 'PortfolioOverview', 'Premium',
   'PriceTracker', 'PrivacyPolicy', 'RPCPrivacyPolicy', 'Profile', 'Referral', 'RegulatoryDocs',
-  'SEOLanding', 'SecureVault', 'SecurityCenter', 'ServerControl', 'Settings', 'SystemStatus',
+  'SEOLanding', 'SecurityCenter', 'ServerControl', 'Settings', 'SystemStatus',
   'StoreDeploymentGuide', 'Support', 'TermsOfService', 'TradingAnalytics',
   'TxHistory', 'Wallet', 'Web3Wallet', 'ReadinessCheck', 'AccountDeletion',
 ];
@@ -34,7 +34,7 @@ function loadPage(name) {
   const moduleName = PAGE_OVERRIDES[name] || name;
   const loader = pageModules[`./pages/${moduleName}.jsx`];
   if (!loader) throw new Error(`Page module not found: ${moduleName}`);
-  return lazy(loader);
+  return lazy(/** @type {() => Promise<{default: React.ComponentType<any>}>} */ (loader));
 }
 
 export const PAGES = Object.fromEntries(PAGE_NAMES.map((name) => [name, loadPage(name)]));

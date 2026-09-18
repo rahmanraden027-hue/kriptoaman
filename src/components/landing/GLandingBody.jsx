@@ -280,7 +280,7 @@ export default function GLandingBody({ stats }) {
   );
 }
 
-function SectionHead({ eyebrow, title, center }) {
+function SectionHead({ eyebrow, title, center = false }) {
   return (
     <div className={center ? 'text-center' : ''}>
       <span className="text-[11px] font-bold tracking-widest uppercase ka-cyan">{eyebrow}</span>

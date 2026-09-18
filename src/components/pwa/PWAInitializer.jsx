@@ -47,10 +47,10 @@ export function usePWAInitializer() {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'activated' && !disposed) {
               setUpdateAvailable(true);
-              base44.analytics.track({
+              Promise.resolve(base44.analytics.track({
                 eventName: 'pwa_update_available',
                 properties: { timestamp: Date.now() },
-              }).catch(() => {});
+              })).catch(() => {});
             }
           });
         });
