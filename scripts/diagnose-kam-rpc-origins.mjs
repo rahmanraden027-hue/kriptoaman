@@ -3,6 +3,7 @@ const targets = [
   { name: 'explorer-public-rpc', url: 'https://explorer.kriptoaman.com/rpc' },
   { name: 'explorer-new-rpc', url: 'https://explorer-new.kriptoaman.com/rpc' },
   { name: 'explorer-origin-ip', url: 'http://146.190.93.254/rpc' },
+  { name: 'explorer-origin-ip-host', url: 'http://146.190.93.254/rpc', host: 'explorer-new.kriptoaman.com' },
 ];
 
 async function probe(target) {
@@ -10,7 +11,10 @@ async function probe(target) {
   try {
     const response = await fetch(target.url, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: {
+        'content-type': 'application/json',
+        ...(target.host ? { host: target.host } : {}),
+      },
       body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_chainId', params: [] }),
       redirect: 'manual',
       signal: AbortSignal.timeout(10000),
