@@ -3,7 +3,7 @@
 
 export const CHAINS = [
   { key: 'BTC', name: 'Bitcoin', symbol: 'BTC', color: '#f7931a', explorer: 'https://blockstream.info/address/', type: 'btc', priceKey: 'BTC' },
-  { key: 'ETH', name: 'Ethereum', symbol: 'ETH', color: '#627eea', explorer: 'https://etherscan.io/address/', type: 'evm', rpc: 'https://eth.llamarpc.com', decimals: 18, priceKey: 'ETH' },
+  { key: 'ETH', name: 'Ethereum', symbol: 'ETH', color: '#627eea', explorer: 'https://etherscan.io/address/', type: 'evm', rpc: 'https://eth.drpc.org', decimals: 18, priceKey: 'ETH' },
   { key: 'BNB', name: 'BNB Chain', symbol: 'BNB', color: '#f3ba2f', explorer: 'https://bscscan.com/address/', type: 'evm', rpc: 'https://bsc-dataseed.binance.org', decimals: 18, priceKey: 'BNB' },
   { key: 'SOL', name: 'Solana', symbol: 'SOL', color: '#14f195', explorer: 'https://explorer.solana.com/address/', type: 'solana', rpc: 'https://api.mainnet-beta.solana.com', decimals: 9, priceKey: 'SOL' },
   { key: 'BASE', name: 'Base', symbol: 'ETH', color: '#0052ff', explorer: 'https://basescan.org/address/', type: 'evm', rpc: 'https://mainnet.base.org', decimals: 18, priceKey: 'ETH', addressKey: 'ETH' },
