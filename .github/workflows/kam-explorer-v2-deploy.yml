@@ -44,7 +44,15 @@ jobs:
       - name: Validate deploy script syntax
         run: bash -n scripts/deploy-kam-explorer-v2.sh
       - name: Diagnose KAM RPC origin paths
-        run: node scripts/diagnose-kam-rpc-origins.mjs
+        shell: bash
+        run: |
+          node scripts/diagnose-kam-rpc-origins.mjs
+          echo '=== direct origin with explorer-new Host ==='
+          curl -sS --max-time 10 --resolve explorer-new.kriptoaman.com:80:146.190.93.254 \
+            -H 'content-type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+            http://explorer-new.kriptoaman.com/rpc || true
+          echo
       - name: Verify public Explorer core before deployment
         run: node scripts/diagnose-blockscout.mjs
       - name: Verify five live Explorer production indicators
