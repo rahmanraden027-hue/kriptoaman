@@ -1,0 +1,102 @@
+name: KAM Consensus Public Evidence Audit
+
+on:
+  push:
+    branches:
+      - audit/ecosystem-data-sync-20260918
+    paths:
+      - '.github/workflows/kam-consensus-public-evidence-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Verify QBFT public evidence without exposing admin RPC
+        shell: bash
+        run: |
+          set -euo pipefail
+          RPC='https://explorer.kriptoaman.com/rpc'
+
+          rpc() {
+            local method="$1" params="$2" id="$3"
+            payload="$(jq -nc --arg method "$method" --argjson params "$params" --argjson id "$id" '{jsonrpc:"2.0",id:$id,method:$method,params:$params}')"
+            curl -fsS --max-time 20 -H 'content-type: application/json' --data "$payload" "$RPC"
+          }
+
+          chain="$(rpc eth_chainId '[]' 1 | jq -r '.result // empty')"
+          test "$chain" = '0x560c'
+          echo "chain_id=$chain"
+
+          syncing="$(rpc eth_syncing '[]' 2 | jq -c '.result')"
+          echo "eth_syncing=$syncing"
+
+          h1_hex="$(rpc eth_blockNumber '[]' 3 | jq -r '.result // empty')"
+          sleep 6
+          h2_hex="$(rpc eth_blockNumber '[]' 4 | jq -r '.result // empty')"
+          h1="$((16#${h1_hex#0x}))"
+          h2="$((16#${h2_hex#0x}))"
+          echo "block_progress=$h1->$h2"
+          test "$h2" -gt "$h1"
+
+          latest="$(rpc eth_getBlockByNumber '["latest",false]' 5)"
+          extra="$(jq -r '.result.extraData // empty' <<<"$latest")"
+          test -n "$extra"
+
+          python3 - "$extra" <<'PY'
+          import hashlib,sys
+          raw=bytes.fromhex(sys.argv[1][2:] if sys.argv[1].startswith('0x') else sys.argv[1])
+
+          def dec(buf, off=0):
+              p=buf[off]
+              if p<=0x7f: return buf[off:off+1], off+1
+              if p<=0xb7:
+                  n=p-0x80; s=off+1; e=s+n; return buf[s:e],e
+              if p<=0xbf:
+                  l=p-0xb7; ls=off+1; le=ls+l; n=int.from_bytes(buf[ls:le],'big'); s=le; e=s+n; return buf[s:e],e
+              def dl(s,e):
+                  out=[]; cur=s
+                  while cur<e:
+                      v,cur2=dec(buf,cur); out.append(v); cur=cur2
+                  if cur!=e: raise ValueError('boundary')
+                  return out
+              if p<=0xf7:
+                  n=p-0xc0; s=off+1; e=s+n; return dl(s,e),e
+              l=p-0xf7; ls=off+1; le=ls+l; n=int.from_bytes(buf[ls:le],'big'); s=le; e=s+n; return dl(s,e),e
+
+          val,end=dec(raw,0)
+          if end!=len(raw): raise SystemExit('extraData trailing bytes')
+          candidates=[]
+          def walk(v):
+              if not isinstance(v,list): return
+              if len(v)==4 and all(isinstance(x,(bytes,bytearray)) and len(x)==20 for x in v):
+                  addrs=['0x'+bytes(x).hex() for x in v]
+                  if len(set(a.lower() for a in addrs))==4: candidates.append(addrs)
+              for x in v: walk(x)
+          walk(val)
+          if len(candidates)!=1:
+              raise SystemExit(f'validator_candidates={len(candidates)}')
+          vals=candidates[0]
+          fp=hashlib.sha256('\n'.join(sorted(a.lower() for a in vals)).encode()).hexdigest()
+          print(f'validator_count={len(vals)}')
+          print(f'validator_fingerprint_sha256={fp}')
+          if len(vals)!=4: raise SystemExit('validator_count_not_4')
+          PY
+
+          peer_json="$(rpc net_peerCount '[]' 6 || true)"
+          peer="$(jq -r '.result // empty' <<<"$peer_json" 2>/dev/null || true)"
+          peer_err="$(jq -r '.error.message // empty' <<<"$peer_json" 2>/dev/null || true)"
+          echo "public_net_peerCount=${peer:-blocked} error=${peer_err:-none}"
+
+          qbft_json="$(rpc qbft_getValidatorsByBlockNumber '["latest"]' 7 || true)"
+          qbft_result="$(jq -c '.result // empty' <<<"$qbft_json" 2>/dev/null || true)"
+          qbft_err="$(jq -r '.error.message // empty' <<<"$qbft_json" 2>/dev/null || true)"
+          if [[ -n "$qbft_result" && "$qbft_result" != '""' ]]; then
+            echo "qbft_public_exposure=UNEXPECTED"
+            exit 1
+          fi
+          echo "qbft_public_exposure=blocked error=${qbft_err:-none}"
+          echo "consensus_public_evidence=PASS"
