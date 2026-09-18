@@ -1,0 +1,52 @@
+name: KAM New Host Connectivity
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/kam-new-host-connectivity.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kam-new-host-connectivity
+  cancel-in-progress: false
+
+jobs:
+  verify-admin-path:
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 10
+    steps:
+      - name: Checkout reviewed source
+        uses: actions/checkout@v7
+
+      - name: Verify SSH administration path to new KAM hosts
+        shell: bash
+        run: |
+          set -euo pipefail
+          targets=(
+            "validator-02|134.209.157.125"
+            "validator-03|134.199.158.210"
+            "validator-04|165.227.169.128"
+            "rpc-sentry|206.189.36.15"
+          )
+          mkdir -p artifacts
+          : > artifacts/kam-new-host-connectivity.txt
+          for entry in "${targets[@]}"; do
+            name="${entry%%|*}"
+            host="${entry##*|}"
+            echo "checking=${name}" | tee -a artifacts/kam-new-host-connectivity.txt
+            ssh -o BatchMode=yes                 -o ConnectTimeout=8                 -o StrictHostKeyChecking=accept-new                 root@"${host}"                 'printf "ssh_ready=true\n"; uname -srm; timedatectl show -p NTPSynchronized --value 2>/dev/null || true'                 | sed -E 's/[0-9]{1,3}(\.[0-9]{1,3}){3}/[redacted-ip]/g'                 | tee -a artifacts/kam-new-host-connectivity.txt
+          done
+
+      - name: Upload redacted connectivity evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: kam-new-host-connectivity
+          path: artifacts/kam-new-host-connectivity.txt
+          if-no-files-found: error
+          retention-days: 7
