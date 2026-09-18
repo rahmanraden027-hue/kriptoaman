@@ -30,6 +30,12 @@ test('KAM Explorer V2 uses verified live data surfaces', () => {
   assert.match(html, /\/api\/v2\/transactions/);
   assert.match(html, /\/api\/v2\/stats/);
   assert.match(html, /Unavailable data is shown as unavailable—not invented/);
+  assert.match(html, /const EXPECTED_CHAIN=22028,RPC='\\/rpc',API='\\/api\\/v2'/);
+  assert.match(html, /Same-origin \\/rpc gateway/);
+  assert.match(html, /KAM RPC via \\/rpc/);
+  assert.match(html, /\['finalized',false\]/);
+  assert.match(html, /\['safe',false\]/);
+  assert.doesNotMatch(html, /RPC='https:\\/\\/rpc\\.kriptoaman\\.com'/);
 });
 
 test('KAM Statistics V2 uses verified public core data and no placeholder Stats dependency', () => {
