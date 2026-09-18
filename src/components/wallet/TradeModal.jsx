@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { getBtcPrice } from './bitcoinApi';
-import { satoshiToBtc, btcToSatoshi } from './walletUtils';
+import { getReadOnlyMarketPrices } from '@/lib/readOnlyMarketPrices';
+import { satoshiToBtc } from './walletUtils';
 import { X, TrendingUp, TrendingDown, Loader2, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 
 // Trading is simulated (P2P/exchange simulation) — real BTC swap requires CEX API integration
@@ -36,10 +36,12 @@ export default function TradeModal({ wallet, onClose, onTradeComplete, balanceSa
   useEffect(() => {
     const fetchPrice = async () => {
       try {
-        const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true');
-        const data = await res.json();
-        setPrice(data.bitcoin?.usd || null);
-        setPriceChange(data.bitcoin?.usd_24h_change || null);
+        const prices = await getReadOnlyMarketPrices();
+        const btc = prices?.BTC;
+        const nextPrice = Number(btc?.price);
+        const nextChange = Number(btc?.change24h);
+        setPrice(Number.isFinite(nextPrice) && nextPrice > 0 ? nextPrice : null);
+        setPriceChange(Number.isFinite(nextChange) ? nextChange : null);
       } catch {}
     };
     fetchPrice();

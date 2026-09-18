@@ -23,7 +23,7 @@ function Gauge({ value, label }) {
         <p className="text-2xl font-extrabold ka-num leading-none" style={{ color }}>{Math.round(v)}</p>
         <p className="text-[10px] font-semibold mt-0.5" style={{ color }}>{label || '—'}</p>
       </div>
-      <p className="mt-3 text-[11px] leading-relaxed text-slate-500">Sumber: CoinGecko Global dan Alternative.me · Diperbarui otomatis setiap 60 detik · Data informatif, bukan harga eksekusi.</p>
+      <p className="mt-3 text-[11px] leading-relaxed text-slate-500">Sumber: KriptoAman Market Database + Alternative.me · Diperbarui otomatis setiap 60 detik · Data informatif, bukan harga eksekusi.</p>
     </div>
   );
 }
@@ -32,26 +32,34 @@ export default function HomeMarketOverview() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const load = () => {
+  const load = async () => {
     setLoading(true);
-    Promise.all([
-      fetch('https://api.coingecko.com/api/v3/global').then(r => r.json()).catch(() => null),
-      fetch('https://api.alternative.me/fng/?limit=1').then(r => r.json()).catch(() => null),
-    ]).then(([g, fng]) => {
-      setData({
-        mc: g?.data?.total_market_cap?.usd ?? null,
-        mcChange: g?.data?.market_cap_change_percentage_24h_usd ?? null,
-        vol: g?.data?.total_volume?.usd ?? null,
-        btc: g?.data?.market_cap_percentage?.btc ?? null,
-        eth: g?.data?.market_cap_percentage?.eth ?? null,
-        active: g?.data?.active_cryptocurrencies ?? null,
-        markets: g?.data?.markets ?? null,
-        fear: fng?.data?.[0]?.value ?? null,
-        fearLabel: fng?.data?.[0]?.value_classification ?? null,
-        fearUpdated: fng?.data?.[0]?.timestamp ?? null,
+    try {
+      const response = await fetch('/api/market-overview', {
+        headers: { Accept: 'application/json' },
+        cache: 'no-store',
       });
+      if (!response.ok) throw new Error(`Market overview HTTP ${response.status}`);
+      const payload = await response.json();
+      setData({
+        mc: Number.isFinite(Number(payload?.marketCap)) ? Number(payload.marketCap) : null,
+        mcChange: Number.isFinite(Number(payload?.marketCapChange24h)) ? Number(payload.marketCapChange24h) : null,
+        vol: Number.isFinite(Number(payload?.volume24h)) ? Number(payload.volume24h) : null,
+        btc: Number.isFinite(Number(payload?.btcDominance)) ? Number(payload.btcDominance) : null,
+        eth: Number.isFinite(Number(payload?.ethDominance)) ? Number(payload.ethDominance) : null,
+        active: Number.isFinite(Number(payload?.trackedAssets)) ? Number(payload.trackedAssets) : null,
+        fear: Number.isFinite(Number(payload?.fearGreed?.value)) ? Number(payload.fearGreed.value) : null,
+        fearLabel: payload?.fearGreed?.classification || null,
+        fearUpdated: Number.isFinite(Number(payload?.fearGreed?.timestamp)) ? Number(payload.fearGreed.timestamp) : null,
+        snapshotUpdated: Number.isFinite(Number(payload?.capturedAt)) ? Number(payload.capturedAt) : null,
+        stale: payload?.stale === true,
+        recoverySnapshot: payload?.recoverySnapshot === true,
+      });
+    } catch {
+      // Preserve the most recent valid first-party snapshot already rendered.
+    } finally {
       setLoading(false);
-    });
+    }
   };
 
   useEffect(() => {
@@ -69,8 +77,9 @@ export default function HomeMarketOverview() {
   };
   const fmtNum = (v) => (v == null ? '--' : v.toLocaleString('en-US'));
 
-  const updatedText = data?.fearUpdated
-    ? new Date(data.fearUpdated * 1000).toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })
+  const updatedTimestamp = data?.fearUpdated ? data.fearUpdated * 1000 : data?.snapshotUpdated;
+  const updatedText = updatedTimestamp
+    ? new Date(updatedTimestamp).toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })
     : '--';
 
   const Stat = ({ label, value, sub, up }) => (
@@ -103,17 +112,17 @@ export default function HomeMarketOverview() {
         <>
           <div className="grid grid-cols-2 gap-2.5 mb-2.5">
             <Stat
-              label="Kapitalisasi Pasar"
+              label="Kapitalisasi Terpantau"
               value={fmtBig(data?.mc)}
-              sub={data?.mcChange != null ? `${data.mcChange >= 0 ? '+' : ''}${data.mcChange.toFixed(2)}% (24j)` : '--'}
+              sub={data?.mcChange != null ? `${data.mcChange >= 0 ? '+' : ''}${data.mcChange.toFixed(2)}% estimasi 24j` : '--'}
               up={data?.mcChange != null ? data.mcChange >= 0 : undefined}
             />
-            <Stat label="Volume 24 Jam" value={fmtBig(data?.vol)} sub="likuiditas global" />
+            <Stat label="Volume 24 Jam Terpantau" value={fmtBig(data?.vol)} sub="basis aset KriptoAman" />
           </div>
           <div className="grid grid-cols-3 gap-2.5 mb-3">
             <Stat label="Dominasi BTC" value={data?.btc != null ? `${data.btc.toFixed(1)}%` : '--'} />
             <Stat label="Dominasi ETH" value={data?.eth != null ? `${data.eth.toFixed(1)}%` : '--'} />
-            <Stat label="Kripto Aktif" value={fmtNum(data?.active)} sub={data?.markets != null ? `${fmtNum(data.markets)} pasar` : '--'} />
+            <Stat label="Aset Terpantau" value={fmtNum(data?.active)} sub="snapshot KriptoAman" />
           </div>
         </>
       )}
@@ -133,7 +142,7 @@ export default function HomeMarketOverview() {
           <Gauge value={data.fear} label={data.fearLabel} />
         )}
         <p className="text-center text-[10px] ka-muted mt-1 flex items-center justify-center gap-1">
-          <Layers className="w-3 h-3" /> Diperbarui: {updatedText}
+          <Layers className="w-3 h-3" /> Diperbarui: {updatedText}{data?.stale ? ' · snapshot tertunda' : ''}{data?.recoverySnapshot ? ' · jalur pemulihan' : ''}
         </p>
       </div>
     </div>
