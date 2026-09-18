@@ -2,7 +2,8 @@
 set -Eeuo pipefail
 umask 077
 
-BLOCKSCOUT_TAG="${BLOCKSCOUT_TAG:-v11.2.3}"
+BLOCKSCOUT_GIT_TAG="${BLOCKSCOUT_GIT_TAG:-v11.2.3}"
+BLOCKSCOUT_DOCKER_TAG="${BLOCKSCOUT_DOCKER_TAG:-11.2.3}"
 BLOCKSCOUT_DIR="${BLOCKSCOUT_DIR:-/opt/blockscout}"
 COMPOSE_DIR="${BLOCKSCOUT_DIR}/docker-compose"
 RPC_URL="${KAM_RPC_URL:-https://explorer.kriptoaman.com/rpc}"
@@ -56,13 +57,13 @@ if [[ -e "${BLOCKSCOUT_DIR}" && ! -d "${BLOCKSCOUT_DIR}/.git" ]]; then
 fi
 
 if [[ ! -d "${BLOCKSCOUT_DIR}/.git" ]]; then
-  log "Cloning Blockscout ${BLOCKSCOUT_TAG}"
-  git clone --depth 1 --branch "${BLOCKSCOUT_TAG}" https://github.com/blockscout/blockscout.git "${BLOCKSCOUT_DIR}"
+  log "Cloning Blockscout ${BLOCKSCOUT_GIT_TAG}"
+  git clone --depth 1 --branch "${BLOCKSCOUT_GIT_TAG}" https://github.com/blockscout/blockscout.git "${BLOCKSCOUT_DIR}"
 else
   log "Refreshing existing Blockscout checkout"
-  git -C "${BLOCKSCOUT_DIR}" fetch --tags --force origin "${BLOCKSCOUT_TAG}"
-  git -C "${BLOCKSCOUT_DIR}" checkout --detach "${BLOCKSCOUT_TAG}"
-  git -C "${BLOCKSCOUT_DIR}" reset --hard "${BLOCKSCOUT_TAG}"
+  git -C "${BLOCKSCOUT_DIR}" fetch --tags --force origin "${BLOCKSCOUT_GIT_TAG}"
+  git -C "${BLOCKSCOUT_DIR}" checkout --detach "${BLOCKSCOUT_GIT_TAG}"
+  git -C "${BLOCKSCOUT_DIR}" reset --hard "${BLOCKSCOUT_GIT_TAG}"
 fi
 
 SECRETS_FILE=/root/.kam-blockscout-secrets
@@ -86,7 +87,7 @@ from pathlib import Path
 import sys
 
 base=Path(sys.argv[1])
-db_pass, stats_pass, secret_key, rpc, public_ip = sys.argv[2:]
+db_pass, stats_pass, secret_key, rpc, public_ip, docker_tag = sys.argv[2:]
 
 env=base/'envs/common-blockscout.env'
 text=env.read_text()
@@ -235,7 +236,7 @@ server {
 }
 ''')
 
-(base/'.env').write_text('DOCKER_TAG=v11.2.3\n')
+(base/'.env').write_text(f'DOCKER_TAG={docker_tag}\n')
 PY
 
 touch "${BLOCKSCOUT_DIR}/.kam-production-marker"
@@ -244,7 +245,88 @@ log "Validating Docker Compose"
 cd "${COMPOSE_DIR}"
 docker compose -f geth.yml config >/dev/null
 
-log "Pulling Blockscout containers"
+BACKEND_PUBLIC_IMAGE="ghcr.io/blockscout/blockscout:${BLOCKSCOUT_DOCKER_TAG}"
+BACKEND_LOCAL_IMAGE="kam-blockscout-backend:${BLOCKSCOUT_DOCKER_TAG}"
+
+log "Checking Blockscout backend image availability"
+if docker manifest inspect "${BACKEND_PUBLIC_IMAGE}" >/dev/null 2>&1; then
+  log "Using published backend image ${BACKEND_PUBLIC_IMAGE}"
+else
+  log "Published backend image unavailable; building v${BLOCKSCOUT_DOCKER_TAG} backend from pinned source"
+  docker build     --file "${BLOCKSCOUT_DIR}/docker/Dockerfile"     --tag "${BACKEND_LOCAL_IMAGE}"     --build-arg "BLOCKSCOUT_VERSION=${BLOCKSCOUT_GIT_TAG}"     --build-arg "RELEASE_VERSION=${BLOCKSCOUT_DOCKER_TAG}"     "${BLOCKSCOUT_DIR}"
+
+  python3 - "${COMPOSE_DIR}/services/backend.yml" "${BACKEND_LOCAL_IMAGE}" <<'PY'
+from pathlib import Path
+import sys,re
+path=Path(sys.argv[1])
+image=sys.argv[2]
+text=path.read_text()
+text=re.sub(r'^\s*image:\s*ghcr\.io/blockscout/\$\{DOCKER_REPO:-blockscout\}:\$\{DOCKER_TAG:-latest\}\s*
+log "Starting Blockscout and indexer"
+docker compose -f geth.yml up -d
+
+log "Waiting for Blockscout API contract"
+deadline=$((SECONDS+900))
+api_ok=false
+while (( SECONDS < deadline )); do
+  if body="$(curl -fsS --max-time 10 http://127.0.0.1/api/v2/blocks 2>/dev/null)"; then
+    if jq -e '(.items|type=="array")' >/dev/null 2>&1 <<<"${body}"; then
+      api_ok=true
+      break
+    fi
+  fi
+  sleep 10
+done
+
+log "Container state"
+docker compose -f geth.yml ps
+
+if [[ "${api_ok}" != true ]]; then
+  log "API did not become ready within 15 minutes; printing backend tail"
+  docker compose -f geth.yml logs --tail=120 backend || true
+  exit 2
+fi
+
+stats="$(curl -fsS --max-time 10 http://127.0.0.1/api/v2/stats || true)"
+blocks="$(curl -fsS --max-time 10 http://127.0.0.1/api/v2/blocks)"
+latest="$(jq -r '.items[0].height // empty' <<<"${blocks}")"
+
+log "Blockscout API ready latest_indexed_block=${latest:-unknown}"
+if [[ -n "${stats}" ]]; then
+  jq -c '{total_transactions,total_addresses,average_block_time}' <<<"${stats}" || true
+fi
+
+cat >/root/KAM_BLOCKSCOUT_STATUS.txt <<EOF
+droplet_id=${DROPLET_ID}
+public_ip=${PUBLIC_IP}
+blockscout_git_tag=${BLOCKSCOUT_GIT_TAG}
+blockscout_docker_tag=${BLOCKSCOUT_DOCKER_TAG}
+chain_id=${CHAIN_ID_DEC}
+rpc_url=${RPC_URL}
+rpc_head=${head_hex}
+api_ready=${api_ok}
+latest_indexed_block=${latest:-unknown}
+configured_at=$(date -u +%FT%TZ)
+EOF
+chmod 600 /root/KAM_BLOCKSCOUT_STATUS.txt
+
+log "Bootstrap complete"
+log "Local health: http://127.0.0.1/healthz"
+log "API origin: http://${PUBLIC_IP}/api/v2/blocks"
+,
+            f'    image: {image}', text, flags=re.M)
+text=text.replace('    pull_policy: always', '    pull_policy: never')
+path.write_text(text)
+PY
+fi
+
+mkdir -p "${COMPOSE_DIR}/dets" "${COMPOSE_DIR}/logs"
+chown -R 10001:10001 "${COMPOSE_DIR}/dets" "${COMPOSE_DIR}/logs"
+
+log "Re-validating Docker Compose after backend selection"
+docker compose -f geth.yml config >/dev/null
+
+log "Pulling Blockscout companion containers"
 docker compose -f geth.yml pull
 
 log "Starting Blockscout and indexer"
@@ -284,7 +366,7 @@ fi
 cat >/root/KAM_BLOCKSCOUT_STATUS.txt <<EOF
 droplet_id=${DROPLET_ID}
 public_ip=${PUBLIC_IP}
-blockscout_tag=${BLOCKSCOUT_TAG}
+blockscout_tag=${BLOCKSCOUT_GIT_TAG}
 chain_id=${CHAIN_ID_DEC}
 rpc_url=${RPC_URL}
 rpc_head=${head_hex}
