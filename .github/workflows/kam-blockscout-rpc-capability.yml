@@ -1,0 +1,53 @@
+name: KAM Blockscout RPC Capability Probe
+
+on:
+  push:
+    branches:
+      - audit/new-explorer-ssh-20260918
+    paths:
+      - '.github/workflows/kam-blockscout-rpc-capability.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe required RPC methods
+        shell: bash
+        run: |
+          set -euo pipefail
+          rpc='https://explorer.kriptoaman.com/rpc'
+          call() {
+            local method="$1" params="$2"
+            curl -fsS --retry 3 --retry-delay 1 --max-time 20 \
+              -H 'content-type: application/json' \
+              --data "{"jsonrpc":"2.0","id":1,"method":"$method","params":$params}" \
+              "$rpc"
+          }
+
+          chain="$(call eth_chainId '[]')"
+          head="$(call eth_blockNumber '[]')"
+          block="$(call eth_getBlockByNumber '["latest",false]')"
+          number="$(jq -r '.result.number // empty' <<<"$block")"
+          hash="$(jq -r '.result.hash // empty' <<<"$block")"
+          tx_count="$(jq -r '.result.transactions | length' <<<"$block")"
+
+          echo "chain_id=$(jq -r '.result // empty' <<<"$chain")"
+          echo "head=$(jq -r '.result // empty' <<<"$head")"
+          echo "latest_block_number=$number"
+          echo "latest_block_hash_present=$([[ "$hash" =~ ^0x[0-9a-fA-F]{64}$ ]] && echo true || echo false)"
+          echo "latest_block_tx_count=$tx_count"
+
+          balance="$(call eth_getBalance '["0x0000000000000000000000000000000000000000","latest"]')"
+          echo "get_balance_result_present=$(jq -e '.result | strings | startswith("0x")' >/dev/null <<<"$balance" && echo true || echo false)"
+
+          logs="$(call eth_getLogs '[{"fromBlock":"latest","toBlock":"latest"}]')"
+          echo "get_logs_array=$(jq -e '.result | type=="array"' >/dev/null <<<"$logs" && echo true || echo false)"
+
+          test "$(jq -r '.result' <<<"$chain")" = '0x560c'
+          [[ "$number" =~ ^0x[0-9a-fA-F]+$ ]]
+          jq -e '.result | strings | startswith("0x")' >/dev/null <<<"$balance"
+          jq -e '.result | type=="array"' >/dev/null <<<"$logs"
