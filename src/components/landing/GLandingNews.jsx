@@ -22,7 +22,7 @@ export default function GLandingNews() {
         >
           <div className="grid gap-5 lg:grid-cols-[1.4fr_.6fr] lg:items-center">
             <div>
-              <div className="flex flex-wrap items-center gap-2 text-[11px] ka-text2">
+              <div className="flex flex-wrap items-center gap-2 text-xs ka-text2">
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-1 font-bold ka-cyan">
                   <Newspaper className="h-3.5 w-3.5" /> Berita Utama
                 </span>
@@ -43,13 +43,13 @@ export default function GLandingNews() {
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] ka-text2">KAM Campaign Pillars</p>
+              <p className="text-xs font-black uppercase tracking-[0.16em] ka-text2">KAM Campaign Pillars</p>
               <div className="mt-4 grid grid-cols-2 gap-3">
                 {['Technology First', 'Transparency', 'Governance', 'Verifiable Milestones'].map((item) => (
                   <div key={item} className="ka-card2 rounded-xl p-3 text-xs font-bold ka-text">{item}</div>
                 ))}
               </div>
-              <p className="mt-4 text-[11px] leading-5 ka-text2">
+              <p className="mt-4 text-xs leading-5 ka-text2">
                 Informasi kampanye tidak merupakan janji harga, keuntungan, listing, atau likuiditas.
               </p>
             </div>
