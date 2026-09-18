@@ -35,11 +35,12 @@ jobs:
           test "$(jq -r '.success' <<<"${sub}")" = "true"
           name="$(jq -r '.result.subdomain' <<<"${sub}")"
           test -n "${name}"
-          url="https://kam-blockscout-ip-probe.${name}.workers.dev/"
+          url="https://kam-blockscout-ip-probe.${name}.workers.dev/api/v2/blocks"
           echo "probe_url=${url}"
           for i in $(seq 1 8); do
             if out="$(curl -fsS --max-time 20 "${url}" 2>/dev/null)"; then
-              echo "${out}" | jq .
+              echo "${out}" | jq '{items_count:(.items|length),latest:(.items[0].height // .items[0].number)}'
+              test "$(jq -r '(.items | type == "array") and (.items | length > 0)' <<<"${out}")" = "true"
               exit 0
             fi
             sleep 2
