@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Wait for production deployment
-        run: sleep 35
+        run: sleep 255
 
       - name: Verify live landing bundle and KAM isolation
         shell: bash
