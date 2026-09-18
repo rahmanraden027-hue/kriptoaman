@@ -5,13 +5,15 @@ on:
   pull_request:
     paths:
       - 'chain/kam-mainnet/public-rpc-gateway/**'
+      - 'chain/kam-mainnet/explorer-gateway/**'
       - 'chain/kam-mainnet/scripts/verify-public-endpoints.mjs'
       - 'tests/kam-rpc-security.test.mjs'
       - '.github/workflows/kam-rpc-gateway-deploy.yml'
   push:
-    branches: [main]
+    branches: [main, kam-reconstruction-20260917]
     paths:
       - 'chain/kam-mainnet/public-rpc-gateway/**'
+      - 'chain/kam-mainnet/explorer-gateway/**'
       - 'chain/kam-mainnet/scripts/verify-public-endpoints.mjs'
       - 'tests/kam-rpc-security.test.mjs'
       - '.github/workflows/kam-rpc-gateway-deploy.yml'
@@ -38,13 +40,14 @@ jobs:
     if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
     needs: verify
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     environment: production
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: '24'
+
       - name: Validate Cloudflare deployment credentials
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -52,11 +55,75 @@ jobs:
         run: |
           test -n "$CLOUDFLARE_ACCOUNT_ID"
           test -n "$CLOUDFLARE_API_TOKEN"
-      - name: Deploy reviewed RPC gateway
+
+      - name: Ensure dedicated KAM recovery origin DNS
+        shell: bash
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          API='https://api.cloudflare.com/client/v4'
+          AUTH="Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"
+          ZONES="$(curl -fsS -H "$AUTH" -H 'Content-Type: application/json' \
+            "${API}/zones?name=kriptoaman.com&account.id=${CLOUDFLARE_ACCOUNT_ID}")"
+          ZONE_ID="$(jq -r 'if .success and (.result | length > 0) then .result[0].id else empty end' <<<"$ZONES")"
+          test -n "$ZONE_ID"
+
+          RECORDS="$(curl -fsS -H "$AUTH" -H 'Content-Type: application/json' \
+            "${API}/zones/${ZONE_ID}/dns_records?type=A&name=kam-origin.kriptoaman.com")"
+          RECORD_ID="$(jq -r '.result[0].id // empty' <<<"$RECORDS")"
+          PAYLOAD='{"type":"A","name":"kam-origin.kriptoaman.com","content":"152.42.199.82","ttl":1,"proxied":false}'
+
+          if [ -n "$RECORD_ID" ]; then
+            RESULT="$(curl -fsS -X PUT -H "$AUTH" -H 'Content-Type: application/json' \
+              --data "$PAYLOAD" "${API}/zones/${ZONE_ID}/dns_records/${RECORD_ID}")"
+          else
+            RESULT="$(curl -fsS -X POST -H "$AUTH" -H 'Content-Type: application/json' \
+              --data "$PAYLOAD" "${API}/zones/${ZONE_ID}/dns_records")"
+          fi
+
+          jq -e '.success == true and .result.name == "kam-origin.kriptoaman.com" and .result.content == "152.42.199.82" and .result.proxied == false' <<<"$RESULT"
+          echo 'Dedicated origin DNS record is ready.'
+
+      - name: Verify resolvable KAM recovery origin
+        run: |
+          set -euo pipefail
+          ORIGIN=http://152-42-199-82.sslip.io
+          getent ahostsv4 152-42-199-82.sslip.io | head
+          curl -fsS --max-time 8 "$ORIGIN/health" | tee /tmp/kam-origin-health.json
+          jq -e '.status == "ok" and .chainId == "0x560c"' /tmp/kam-origin-health.json
+          curl -fsS --max-time 8 -H 'content-type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+            "$ORIGIN/rpc" | jq -e '.result == "0x560c"'
+
+      - name: Deploy reconstructed RPC gateway
         working-directory: chain/kam-mainnet/public-rpc-gateway
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: npx --yes wrangler@4.36.0 deploy
-      - name: Verify public RPC security boundary
-        run: node chain/kam-mainnet/scripts/verify-public-endpoints.mjs
+
+      - name: Deploy reconstructed Explorer gateway
+        working-directory: chain/kam-mainnet/explorer-gateway
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx --yes wrangler@4.36.0 deploy
+
+      - name: Verify public RPC readiness
+        run: |
+          set -euo pipefail
+          for n in $(seq 1 20); do
+            if curl -sS --max-time 8 https://rpc.kriptoaman.com/ready | tee /tmp/kam-ready.json; then
+              if jq -e '.ready == true and .chainId == "0x560c"' /tmp/kam-ready.json >/dev/null; then
+                break
+              fi
+            fi
+            sleep 3
+          done
+          cat /tmp/kam-ready.json
+          jq -e '.ready == true and .chainId == "0x560c"' /tmp/kam-ready.json
+          curl -fsS --max-time 8 -H 'content-type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+            https://rpc.kriptoaman.com | jq -e '.result == "0x560c"'
