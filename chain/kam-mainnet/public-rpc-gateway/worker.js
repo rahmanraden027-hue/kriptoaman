@@ -59,21 +59,33 @@ async function fetchOrigin(env, body, timeoutMs = UPSTREAM_TIMEOUT_MS) {
     throw new Error('origin-not-configured');
   }
 
+  if (env.KAM_EXPLORER_GATEWAY?.fetch) {
+    let timeout;
+    const timeoutPromise = new Promise((_, reject) => {
+      timeout = setTimeout(() => {
+        const error = new Error('service-binding-timeout');
+        error.name = 'AbortError';
+        reject(error);
+      }, timeoutMs);
+    });
+    try {
+      const originPromise = env.KAM_EXPLORER_GATEWAY.fetch(
+        'https://explorer.kriptoaman.com/rpc',
+        {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body,
+        },
+      );
+      return await Promise.race([originPromise, timeoutPromise]);
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const request = new Request('https://explorer.kriptoaman.com/rpc', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body,
-      redirect: 'error',
-      signal: controller.signal,
-    });
-
-    if (env.KAM_EXPLORER_GATEWAY?.fetch) {
-      return await env.KAM_EXPLORER_GATEWAY.fetch(request);
-    }
-
     return await fetch(env.KAM_RPC_ORIGIN, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
