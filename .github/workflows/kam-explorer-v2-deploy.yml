@@ -147,7 +147,7 @@ jobs:
           import json,sys
           with open(sys.argv[1], encoding='utf-8') as fh: d=json.load(fh)
           assert d['chainId']==22028 and d['chainIdHex']=='0x560c'
-          assert d['nativeCurrency']['symbol']=='KAM'
+          assert d['nativeCurrency']['symbol']=='ZVQ'
           assert d['publicDeveloperAccess'] is True
           PY
           verify_body '/addresses' 'data-kam-addresses-version="1.0.0"'
