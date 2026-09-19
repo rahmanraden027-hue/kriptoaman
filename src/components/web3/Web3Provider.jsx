@@ -13,6 +13,7 @@ export const SUPPORTED_CHAINS = {
   42161: { name: 'Arbitrum',  symbol: 'ETH',  rpc: 'https://arb1.arbitrum.io/rpc',       explorer: 'https://arbiscan.io',             color: '#28A0F0' },
   8453:  { name: 'Base',      symbol: 'ETH',  rpc: 'https://mainnet.base.org',            explorer: 'https://basescan.org',            color: '#0052FF' },
   10:    { name: 'Optimism',  symbol: 'ETH',  rpc: 'https://mainnet.optimism.io',         explorer: 'https://optimistic.etherscan.io', color: '#FF0420' },
+  22028: { name: 'ZEVARYQ Mainnet', symbol: 'ZVQ', rpc: 'https://rpc.kriptoaman.com', explorer: 'https://explorer.kriptoaman.com', color: '#D8AA45', icon: 'https://kriptoaman.com/brand/zevaryq-mark.svg' },
 };
 
 // Lazy-load viem only when needed (reduces initial bundle ~600KB)
@@ -44,8 +45,16 @@ export function Web3Provider({ children }) {
 
   const getPublicClient = useCallback(async (cId) => {
     const viem = await getViem();
-    const chain = viem.chains[Object.keys(viem.chains).find(k => viem.chains[k].id === cId)] || viem.chains.mainnet;
-    return viem.createPublicClient({ chain, transport: viem.http() });
+    const builtIn = Object.values(viem.chains).find((item) => item.id === cId);
+    const configured = SUPPORTED_CHAINS[cId];
+    const chain = builtIn || (configured ? viem.defineChain({
+      id: cId,
+      name: configured.name,
+      nativeCurrency: { name: configured.symbol, symbol: configured.symbol, decimals: 18 },
+      rpcUrls: { default: { http: [configured.rpc] } },
+      blockExplorers: { default: { name: configured.name + ' Explorer', url: configured.explorer } },
+    }) : viem.chains.mainnet);
+    return viem.createPublicClient({ chain, transport: viem.http(configured?.rpc) });
   }, [getViem]);
 
   const refreshBalance = useCallback(async (addr, cId) => {
@@ -75,7 +84,14 @@ export function Web3Provider({ children }) {
       }
       const chainIdHex = await selectedProvider.request({ method: 'eth_chainId' });
       const cId = parseInt(chainIdHex, 16);
-      const chain = Object.values(viem.chains).find(c => c.id === cId) || viem.chains.mainnet;
+      const configured = SUPPORTED_CHAINS[cId];
+      const chain = Object.values(viem.chains).find(c => c.id === cId) || (configured ? viem.defineChain({
+        id: cId,
+        name: configured.name,
+        nativeCurrency: { name: configured.symbol, symbol: configured.symbol, decimals: 18 },
+        rpcUrls: { default: { http: [configured.rpc] } },
+        blockExplorers: { default: { name: configured.name + ' Explorer', url: configured.explorer } },
+      }) : viem.chains.mainnet);
 
       const wClient = viem.createWalletClient({ account: accounts[0], chain, transport: viem.custom(selectedProvider) });
 
@@ -178,6 +194,7 @@ export function Web3Provider({ children }) {
             nativeCurrency: { name: chain.symbol, symbol: chain.symbol, decimals: 18 },
             rpcUrls: [chain.rpc],
             blockExplorerUrls: [chain.explorer],
+            ...(chain.icon ? { iconUrls: [chain.icon] } : {}),
           }],
         });
       }
