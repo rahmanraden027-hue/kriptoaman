@@ -1,6 +1,13 @@
 name: KAM Explorer Origin Cutover
 
 on:
+  workflow_dispatch:
+    inputs:
+      confirm_cutover:
+        description: 'I confirm this run may change the production Explorer Cloudflare Worker route'
+        required: true
+        default: false
+        type: boolean
   pull_request:
     paths:
       - 'chain/kam-mainnet/explorer-cutover-worker/**'
@@ -42,6 +49,7 @@ jobs:
           node --test tests/kam-explorer-cutover-worker.test.mjs
 
       - name: Verify explorer-new core routes and RPC identity
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -71,11 +79,13 @@ jobs:
           test "${block_dec}" -ge 17296
 
       - name: Verify five KAM production indicators before edge cutover
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         run: node scripts/verify-kam-explorer-five-indicators.mjs
 
   cutover:
     name: Cut over production Explorer
-    if: ${{ github.event_name == 'push' }}
+    # Production route mutation is manual-only. Pushes and PRs validate but never cut over.
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm_cutover == true }}
     needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 12

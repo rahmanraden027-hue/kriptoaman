@@ -33,4 +33,9 @@ test('cutover workflow does not route broken API v2 through the legacy asset wor
   assert.match(workflow, /verify-kam-explorer-five-indicators\.mjs/);
   assert.match(workflow, /QBFT committed · 4-validator evidence/);
   assert.match(workflow, /Roll back production route on verification failure/);
+  assert.match(workflow, /workflow_dispatch:/);
+  assert.match(workflow, /confirm_cutover:/);
+  assert.match(workflow, /github\.event_name == 'workflow_dispatch'/);
+  assert.match(workflow, /Verify explorer-new core routes and RPC identity[\s\S]*if: \$\{\{ github\.event_name == 'workflow_dispatch' \}\}/);
+  assert.doesNotMatch(workflow, /if: \$\{\{ github\.event_name == 'push'/);
 });
