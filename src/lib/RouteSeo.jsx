@@ -5,14 +5,14 @@ const DEFAULT_IMAGE = `${SITE_URL}/brand/kriptoaman-mark-premium.webp`;
 
 const PUBLIC_META = {
   '/': {
-    title: 'KriptoAman — Crypto Intelligence & Digital Asset Monitoring',
+    title: 'KriptoAman — Crypto Intelligence. Global Market Edge.',
     description: 'KriptoAman menghadirkan intelijen pasar, pemantauan aset digital, edukasi, dan konteks risiko dalam pengalaman modern yang dirancang untuk pengguna Indonesia dan global.',
     robots: 'index, follow, max-image-preview:large',
     locale: 'id_ID',
     language: 'id',
   },
   '/en': {
-    title: 'KriptoAman — Crypto Intelligence & Digital Asset Monitoring',
+    title: 'KriptoAman — Crypto Intelligence. Global Market Edge.',
     description: 'KriptoAman brings together market intelligence, digital asset monitoring, education, and risk context in a modern experience designed for global users.',
     robots: 'index, follow, max-image-preview:large',
     locale: 'en_US',
