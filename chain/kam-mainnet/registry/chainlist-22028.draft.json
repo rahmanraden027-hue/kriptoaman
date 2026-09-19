@@ -1,26 +1,26 @@
 {
-  "name": "KriptoAman Mainnet",
-  "chain": "KAM",
-  "icon": "kam",
+  "name": "ZEVARYQ Mainnet",
+  "chain": "ZVQ",
+  "icon": "zevaryq",
   "rpc": [
     "https://rpc.kriptoaman.com"
   ],
   "faucets": [],
   "nativeCurrency": {
-    "name": "KriptoAman",
-    "symbol": "KAM",
+    "name": "ZEVARYQ",
+    "symbol": "ZVQ",
     "decimals": 18
   },
   "infoURL": "https://kriptoaman.com",
-  "shortName": "kam",
+  "shortName": "zevaryq",
   "chainId": 22028,
   "networkId": 22028,
   "explorers": [
     {
-      "name": "KriptoAman Explorer",
+      "name": "ZEVARYQ Explorer",
       "url": "https://explorer.kriptoaman.com",
       "standard": "EIP3091"
     }
   ],
-  "status": "incubating"
+  "status": "active"
 }
