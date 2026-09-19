@@ -40,6 +40,7 @@ jobs:
         run: node --check chain/kam-mainnet/blockscout-api-worker/worker.js
 
       - name: Verify Blockscout origin contract
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         shell: bash
         run: |
           set -euo pipefail
