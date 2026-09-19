@@ -138,7 +138,7 @@ export function PinSetup({ onDone, onCancel }) {
       <PinDots value={current} />
       {error && <p className="text-red-400 text-sm mb-3 animate-pulse">{error}</p>}
       {saving && <p className="text-blue-400 text-xs mb-3">Mengenkripsi PIN...</p>}
-      <NumPad onPress={handlePress} onDelete={handleDelete} biometricEnabled={false} />
+      <NumPad onPress={handlePress} onDelete={handleDelete} onBiometric={null} biometricEnabled={false} />
       {onCancel && (
         <button onClick={onCancel} className="mt-6 text-slate-500 text-sm hover:text-slate-300 transition-colors">
           Batal
@@ -233,7 +233,7 @@ export function PinUnlock({ onUnlocked, onForgot }) {
             timeout: 60000,
           }
         });
-        if (credential) {
+        if (credential instanceof PublicKeyCredential) {
           localStorage.setItem('cv_webauthn_cred_id', btoa(String.fromCharCode(...new Uint8Array(credential.rawId))));
           localStorage.setItem(BIOMETRIC_ENABLED_KEY, 'true');
           onUnlocked();

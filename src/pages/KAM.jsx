@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { ArrowRight, CheckCircle2, Globe2, Network, ShieldCheck, Sparkles } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
 
@@ -11,13 +11,6 @@ const ALLOCATION = [
   ['Strategic Partnerships', '5%', '50,000,000 KAM'],
 ];
 
-const FALLBACK_REFERENCE = {
-  value: 29.37,
-  currency: 'USD',
-  type: 'internal-scenario-estimate',
-  isLiveMarketPrice: false,
-};
-
 const COPY = {
   id: {
     badge: 'KAM Economic Framework v1',
@@ -28,13 +21,13 @@ const COPY = {
     chain: 'Chain ID 22028',
     chainMeta: 'Hex 0x560c · EVM-compatible · Target QBFT · Target 4 validator',
     caution: 'Status public/commercial mainnet tidak dinyatakan sebelum seluruh launch-readiness gate memiliki bukti produksi yang lengkap dan ditinjau.',
-    referenceLabel: 'Referensi Skenario Indikatif',
-    referenceMeta: 'Skenario perencanaan internal · Bukan harga pasar live',
-    referenceDisclosure: 'US$29.37 adalah referensi skenario internal untuk perencanaan dan bukan harga listing resmi, target harga, jaminan nilai, penawaran, atau harga pasar live. Nilai ini tidak digunakan untuk market cap, P/L, nilai portofolio, atau ticker live. Harga pasar hanya akan berasal dari perdagangan dan likuiditas nyata.',
-    marketStatus: 'Harga pasar: Belum diperdagangkan',
-    scenarioKicker: 'KAM SCENARIO DRIVERS',
+    referenceLabel: 'Status Data Pasar',
+    referenceMeta: 'Tidak ada sumber harga pasar terverifikasi',
+    referenceDisclosure: 'KriptoAman tidak menampilkan harga, volume, market cap, P/L, atau valuasi KAM sampai perdagangan dan likuiditas nyata tersedia dari sumber yang dapat diverifikasi.',
+    marketStatus: 'Harga pasar: Data belum tersedia',
+    scenarioKicker: 'KAM READINESS DRIVERS',
     scenarioTitle: 'Roadmap fundamental yang dapat memperkuat utilitas dan adopsi KAM',
-    scenarioIntro: 'Skenario US$29.37 dibaca sebagai referensi internal yang bergantung pada keberhasilan banyak milestone secara bersamaan. Fokus utama KriptoAman adalah membangun jaringan, utilitas, akses global, likuiditas sehat, dan kepercayaan berbasis bukti.',
+    scenarioIntro: 'Fokus KriptoAman adalah membangun jaringan, utilitas, akses global, likuiditas sehat, dan kepercayaan berbasis bukti. Milestone bukan prediksi harga.',
     scenarioColumns: ['Fase', 'Milestone', 'Bukti yang Dibutuhkan', 'Relevansi Ekonomi'],
     scenarioNote: 'Milestone berikut dapat memperkuat fundamental KAM, tetapi tidak secara otomatis menghasilkan harga tertentu. Harga pasar hanya terbentuk melalui perdagangan nyata, permintaan, penawaran, dan likuiditas.',
     scenarioDrivers: [
@@ -82,13 +75,13 @@ const COPY = {
     chain: 'Chain ID 22028',
     chainMeta: 'Hex 0x560c · EVM-compatible · QBFT target · 4-validator target',
     caution: 'Public or commercial mainnet status will not be claimed until all launch-readiness gates are backed by complete production evidence and review.',
-    referenceLabel: 'Indicative Scenario Reference',
-    referenceMeta: 'Internal planning scenario · Not a live market price',
-    referenceDisclosure: 'US$29.37 is an internal scenario reference for planning only. It is not an official listing price, price target, guaranteed value, offer, or live market price, and it is excluded from market cap, P/L, portfolio valuation, and live tickers. Any market price must come from actual trading and liquidity.',
-    marketStatus: 'Market price: Not yet trading',
-    scenarioKicker: 'KAM SCENARIO DRIVERS',
+    referenceLabel: 'Market Data Status',
+    referenceMeta: 'No verified market-price source',
+    referenceDisclosure: 'KriptoAman does not display KAM price, volume, market cap, P/L, or valuation until real trading and liquidity data are available from a verifiable source.',
+    marketStatus: 'Market price: No data available',
+    scenarioKicker: 'KAM READINESS DRIVERS',
     scenarioTitle: 'Fundamental roadmap that can strengthen KAM utility and adoption',
-    scenarioIntro: 'The US$29.37 scenario is an internal reference that depends on multiple milestones succeeding together. KriptoAman remains focused on network quality, real utility, global access, healthy liquidity, and evidence-based trust.',
+    scenarioIntro: 'KriptoAman remains focused on network quality, real utility, global access, healthy liquidity, and evidence-based trust. Milestones are not price predictions.',
     scenarioColumns: ['Phase', 'Milestone', 'Evidence Required', 'Economic Relevance'],
     scenarioNote: 'These milestones may strengthen KAM fundamentals, but they do not automatically produce any specific price. Market price is formed only by real trading, demand, supply, and liquidity.',
     scenarioDrivers: [
@@ -132,29 +125,8 @@ const COPY = {
 export default function KAM() {
   const { language } = useLanguage();
   const text = COPY[language] || COPY.id;
-  const [reference, setReference] = useState(FALLBACK_REFERENCE);
   const documentCta = language === 'en' ? 'Read KAM Roadmap PDF' : 'Baca PDF Roadmap KAM';
   const documentMeta = language === 'en' ? 'Public document · 4 pages · Mobile optimized' : 'Dokumen publik · 4 halaman · Dioptimalkan untuk mobile';
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch('/api/kam/network-status', { headers: { Accept: 'application/json' } })
-      .then(response => response.ok ? response.json() : null)
-      .then(payload => {
-        if (!cancelled && payload?.indicativeListingReference?.isLiveMarketPrice === false) {
-          setReference(payload.indicativeListingReference);
-        }
-      })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
-
-  const formattedReference = new Intl.NumberFormat(language === 'en' ? 'en-US' : 'id-ID', {
-    style: 'currency',
-    currency: reference.currency || 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(Number(reference.value ?? 29.37));
 
   return (
     <div className="ka-bg min-h-screen pb-24 text-white">
@@ -186,13 +158,12 @@ export default function KAM() {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">{text.referenceLabel}</p>
-                    <p className="mt-2 text-3xl font-black tracking-[-0.03em] text-white">{formattedReference}</p>
+                    <p className="mt-2 text-2xl font-black tracking-[-0.03em] text-white">{text.marketStatus}</p>
                     <p className="mt-1 text-[10px] font-bold text-slate-400">{text.referenceMeta}</p>
                   </div>
-                  <span className="rounded-full border border-slate-700 bg-slate-950/60 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-slate-300">Scenario</span>
+                  <span className="rounded-full border border-amber-500/25 bg-amber-500/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-amber-300">Unavailable</span>
                 </div>
                 <p className="mt-4 text-[10px] leading-5 text-slate-400">{text.referenceDisclosure}</p>
-                <p className="mt-3 text-[10px] font-bold text-amber-300">{text.marketStatus}</p>
               </div>
             </div>
           </div>

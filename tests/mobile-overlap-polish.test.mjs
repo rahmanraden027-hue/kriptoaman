@@ -20,8 +20,8 @@ test('mobile touch scrolling remains available without the bright page scrollbar
 });
 
 test('final mobile polish is loaded after the existing UI layers', async () => {
-  const entry = await read('src/main.jsx');
-  const worldClass = entry.indexOf("@/styles/world-class-ui.css");
-  const mobileFinal = entry.indexOf("@/styles/mobile-overlap-final.css");
+  const entry = await read('src/styles/production.css');
+  const worldClass = entry.indexOf("./world-class-ui.css");
+  const mobileFinal = entry.indexOf("./mobile-overlap-final.css");
   assert.ok(worldClass >= 0 && mobileFinal > worldClass);
 });

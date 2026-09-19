@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { ExternalLink, LockKeyhole, Network, PieChart, ShieldCheck, TrendingUp } from 'lucide-react';
+import { ExternalLink, LockKeyhole, Network, PieChart, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import KriptoAmanLogo from '../components/brand/KriptoAmanLogo';
 
@@ -85,9 +85,9 @@ export default function KAMTokenomics() {
             <p>Only unlocked, transferable KAM that is genuinely available to the public market should be classified as circulating.</p>
             <p>Before tracked market-data listing, circulating supply should be reconciled against identifiable on-chain balances and documented lock or vesting conditions.</p>
           </Card>
-          <Card icon={TrendingUp} title="US$29 reference scenario">
-            <p><strong>US$29/KAM is an indicative valuation scenario only.</strong> It is not current market price, not a guaranteed listing price, and not an investment promise.</p>
-            <p>At the 50,000,000 KAM circulating target, US$29 would mathematically imply a hypothetical circulating market capitalization of <strong>US$1.45B</strong>. At the 1,000,000,000 maximum-supply baseline, the hypothetical FDV would be <strong>US$29B</strong>.</p>
+          <Card icon={ShieldCheck} title="Market data availability">
+            <p><strong>No verified KAM market price is currently displayed.</strong></p>
+            <p>Price, volume, market capitalization, and valuation will remain unavailable until they can be obtained from actual trading and independently verifiable liquidity sources.</p>
           </Card>
           <Card icon={Network} title="Network identity">
             <p>KAM is the native asset of the KriptoAman network. Chain ID: <strong>22028 / 0x560c</strong>. Decimals: <strong>18</strong>.</p>

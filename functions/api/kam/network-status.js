@@ -10,15 +10,6 @@ const WALLET_PROBE_TIMEOUT_MS = 1800;
 const VERIFIED_PUBLIC_STATUS_CACHE = 'public, max-age=5, s-maxage=20, stale-while-revalidate=40';
 const DEGRADED_PUBLIC_STATUS_CACHE = 'public, max-age=10, s-maxage=60, stale-while-revalidate=120';
 
-const KAM_INDICATIVE_LISTING_REFERENCE = Object.freeze({
-  value: 29.37,
-  currency: 'USD',
-  type: 'internal-scenario-estimate',
-  label: 'Indicative Scenario Reference',
-  isLiveMarketPrice: false,
-  disclaimer: 'Internal scenario reference only. Not a live market price, official listing price, guaranteed value, offer, target return, or valuation. Any future market price must come from actual trading and liquidity.',
-});
-
 async function rpc(method, params = [], signal) {
   const response = await fetch(RPC_URL, {
     method: 'POST',
@@ -71,7 +62,6 @@ export async function onRequestGet({ request }) {
     marketPrice: null,
     marketPriceSource: null,
     marketPriceStatus: 'not-yet-trading',
-    indicativeListingReference: KAM_INDICATIVE_LISTING_REFERENCE,
     commercialLaunchEnabled: false,
   };
 
