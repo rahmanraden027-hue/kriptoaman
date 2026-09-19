@@ -23,6 +23,9 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 22
+      - name: Wait for live smoke slot
+        if: github.event_name != 'schedule'
+        run: sleep 75
       - name: Verify application, database, and critical providers
         run: node scripts/check-system-health.mjs
       - name: Verify 2,001+ assets and snapshot freshness

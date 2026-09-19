@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Wait for production deployment
-        run: sleep 35
+        run: sleep 195
 
       - name: Verify live market snapshot capacity
         shell: bash

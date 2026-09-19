@@ -18,6 +18,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: Wait for live smoke slot
+        if: github.event_name != 'schedule'
+        run: sleep 15
+
       - name: Check public auth pages
         shell: bash
         run: |
