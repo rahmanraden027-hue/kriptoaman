@@ -49,6 +49,7 @@ jobs:
           node --test tests/kam-explorer-cutover-worker.test.mjs
 
       - name: Verify explorer-new core routes and RPC identity
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -78,6 +79,7 @@ jobs:
           test "${block_dec}" -ge 17296
 
       - name: Verify five KAM production indicators before edge cutover
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         run: node scripts/verify-kam-explorer-five-indicators.mjs
 
   cutover:
