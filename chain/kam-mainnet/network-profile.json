@@ -1,9 +1,9 @@
 {
   "status": "mainnet-candidate-not-public",
-  "networkName": "KriptoAman Mainnet",
+  "networkName": "ZEVARYQ Mainnet",
   "nativeCurrency": {
-    "name": "KriptoAman",
-    "symbol": "KAM",
+    "name": "ZEVARYQ",
+    "symbol": "ZVQ",
     "decimals": 18
   },
   "candidateChainId": 22028,
@@ -16,5 +16,19 @@
   "explorerTarget": "https://explorer.kriptoaman.com",
   "reuseTestnetKeys": false,
   "publicRpcDirectValidatorExposure": false,
-  "commercialLaunchEnabled": false
+  "commercialLaunchEnabled": false,
+  "rebrand": {
+    "approved": true,
+    "legacyNetworkName": "KAM Network",
+    "legacyNativeSymbol": "KAM",
+    "networkName": "ZEVARYQ Network",
+    "nativeSymbol": "ZVQ",
+    "migrationType": "in-place-rebrand",
+    "chainIdUnchanged": true,
+    "genesisUnchanged": true,
+    "balancesUnchanged": true,
+    "addressesUnchanged": true,
+    "validatorKeysUnchanged": true,
+    "blockHistoryUnchanged": true
+  }
 }

@@ -1,0 +1,30 @@
+{
+  "decision": "approved",
+  "legacyIdentity": {
+    "network": "KAM Network",
+    "nativeAsset": "KAM"
+  },
+  "newIdentity": {
+    "network": "ZEVARYQ Network",
+    "mainnetName": "ZEVARYQ Mainnet",
+    "nativeAsset": "ZEVARYQ",
+    "symbol": "ZVQ",
+    "decimals": 18
+  },
+  "technicalContinuity": {
+    "chainId": 22028,
+    "chainIdHex": "0x560c",
+    "consensus": "QBFT",
+    "newGenesis": false,
+    "resetBlockchain": false,
+    "resetBalances": false,
+    "changeAddresses": false,
+    "changeValidatorKeys": false,
+    "deleteBlockHistory": false
+  },
+  "migration": {
+    "type": "in-place-rebrand",
+    "productionCutoverApproved": false,
+    "cloudflareCutoverApproved": false
+  }
+}
