@@ -68,6 +68,52 @@ jobs:
           code="$(curl -L -sS -o /dev/null -w '%{http_code}' --max-time 20 "https://explorer.kriptoaman.com/token/$SECONDARY_WKAM" || true)"
           echo "secondary_wkam_detail_http=$code"
 
+  readonly-rpc-diagnose:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 5
+    steps:
+      - name: Read-only KAM RPC and origin diagnosis
+        shell: bash
+        run: |
+          set +e
+          echo "checked_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "hostname=$(hostname)"
+          echo "kernel=$(uname -sr)"
+          echo "disk_root=$(df -P / | awk 'NR==2{print $5}')"
+          echo "service_docker=$(systemctl is-active docker 2>/dev/null || true)"
+          echo "service_nginx=$(systemctl is-active nginx 2>/dev/null || true)"
+          echo "service_cloudflared=$(systemctl is-active cloudflared 2>/dev/null || true)"
+          probe_rpc() {
+            port="$1"
+            chain="$(curl -sS --max-time 3 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' "http://127.0.0.1:${port}" 2>/dev/null | sed -n 's/.*"result":"\([^"]*\)".*/\1/p' | head -1)"
+            head="$(curl -sS --max-time 3 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}' "http://127.0.0.1:${port}" 2>/dev/null | sed -n 's/.*"result":"\([^"]*\)".*/\1/p' | head -1)"
+            peers="$(curl -sS --max-time 3 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":3,"method":"net_peerCount","params":[]}' "http://127.0.0.1:${port}" 2>/dev/null | sed -n 's/.*"result":"\([^"]*\)".*/\1/p' | head -1)"
+            if [ -n "$chain" ] || [ -n "$head" ] || [ -n "$peers" ]; then
+              echo "rpc_local port=${port} chain=${chain:-none} head=${head:-none} peers=${peers:-none}"
+            fi
+          }
+          for p in 8545 8645 8646 8647 8648; do probe_rpc "$p"; done
+          if command -v docker >/dev/null 2>&1; then
+            running="$(docker ps --format '{{.Names}}' 2>/dev/null | wc -l | tr -d ' ')"
+            echo "docker_running_containers=${running:-unknown}"
+            for name in $(docker ps --format '{{.Names}}' 2>/dev/null); do
+              case "$name" in
+                *besu*|*geth*|*nethermind*|*erigon*|*blockscout*|*proxy*|*nginx*) echo "docker_component_detected=yes"; break ;;
+              esac
+            done
+          fi
+          if getent ahostsv4 kam-origin.kriptoaman.com >/dev/null 2>&1; then echo "origin_dns_resolves=yes"; else echo "origin_dns_resolves=no"; fi
+          origin_http="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 4 -H 'Host: kam-origin.kriptoaman.com' http://127.0.0.1/ 2>/dev/null)"
+          rpc_http="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 4 -H 'Host: rpc.kriptoaman.com' http://127.0.0.1/ 2>/dev/null)"
+          echo "origin_local_http=${origin_http:-000}"
+          echo "rpc_host_local_http=${rpc_http:-000}"
+          if command -v openssl >/dev/null 2>&1; then
+            tls_subject="$(timeout 5 openssl s_client -connect 127.0.0.1:443 -servername kam-origin.kriptoaman.com </dev/null 2>/dev/null | openssl x509 -noout -subject 2>/dev/null)"
+            if [ -n "$tls_subject" ]; then echo "origin_local_tls=yes"; else echo "origin_local_tls=no"; fi
+          fi
+          echo "diagnostic_mode=read_only"
+
   host-permission-preflight:
     if: ${{ github.event_name != 'pull_request' }}
     needs: preflight
