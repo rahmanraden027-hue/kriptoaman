@@ -1,6 +1,13 @@
 name: KAM Blockscout API Cutover
 
 on:
+  workflow_dispatch:
+    inputs:
+      confirm_cutover:
+        description: 'I confirm this run may change the production Blockscout API Cloudflare route'
+        required: true
+        default: false
+        type: boolean
   pull_request:
     paths:
       - 'chain/kam-mainnet/blockscout-api-worker/**'
@@ -68,7 +75,8 @@ jobs:
           test "${gap}" -le 500
 
   cutover:
-    if: ${{ github.event_name == 'push' }}
+    # Production route mutation is manual-only. Pushes and PRs validate but never cut over.
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm_cutover == true }}
     needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 12
