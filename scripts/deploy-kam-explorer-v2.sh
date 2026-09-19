@@ -75,7 +75,7 @@ python3 - "$NETWORK_SOURCE" <<'PY'
 import json,sys
 with open(sys.argv[1], encoding='utf-8') as fh: d=json.load(fh)
 assert d['chainId']==22028 and d['chainIdHex']=='0x560c'
-assert d['nativeCurrency']['symbol']=='KAM' and d['nativeCurrency']['decimals']==18
+assert d['nativeCurrency']['symbol']=='ZVQ' and d['nativeCurrency']['decimals']==18
 assert d['rpcUrls']==['https://rpc.kriptoaman.com']
 assert d['blockExplorerUrls']==['https://explorer.kriptoaman.com']
 assert d['security']['privateKeysRequired'] is False
@@ -218,7 +218,7 @@ fetch_body 'https://explorer.kriptoaman.com/developer/network.json'
 python3 - "$VERIFY_BODY" <<'PY'
 import json,sys
 with open(sys.argv[1], encoding='utf-8') as fh: d=json.load(fh)
-assert d['chainId']==22028 and d['nativeCurrency']['symbol']=='KAM'
+assert d['chainId']==22028 and d['nativeCurrency']['symbol']=='ZVQ'
 assert d['publicDeveloperAccess'] is True
 PY
 assert_page '/addresses' 'data-kam-addresses-version="1.0.0"'
