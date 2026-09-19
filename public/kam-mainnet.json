@@ -1,11 +1,11 @@
 {
-  "name": "KriptoAman Mainnet",
-  "shortName": "KriptoAman",
+  "name": "ZEVARYQ Mainnet",
+  "shortName": "ZEVARYQ",
   "chainId": 22028,
   "chainIdHex": "0x560c",
   "nativeCurrency": {
-    "name": "KriptoAman",
-    "symbol": "KAM",
+    "name": "ZEVARYQ",
+    "symbol": "ZVQ",
     "decimals": 18
   },
   "rpcUrls": [
@@ -15,8 +15,7 @@
     "https://explorer.kriptoaman.com"
   ],
   "iconUrls": [
-    "https://kriptoaman.com/icons/kriptoaman-512.png",
-    "https://kriptoaman.com/brand/kriptoaman-mark.svg"
+    "https://kriptoaman.com/brand/zevaryq-mark.svg"
   ],
   "status": "mainnet-candidate-not-public",
   "transactionModel": "EVM-compatible",
@@ -25,6 +24,6 @@
   "dataPolicy": {
     "marketPrice": "unavailable-until-verified-market-source",
     "onChain": "live-only-after-rpc-chain-id-verification",
-    "kamPoints": "off-chain-ledger-not-token-balance"
+    "zvqNativeAsset": "in-place-rebrand-from-kam"
   }
 }

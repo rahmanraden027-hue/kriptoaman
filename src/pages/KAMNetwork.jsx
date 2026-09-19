@@ -4,10 +4,11 @@ import { CheckCircle2, Copy, ExternalLink, Loader2, Network, RefreshCw, ShieldCh
 const NETWORK = {
   chainId: '0x560c',
   chainIdDecimal: 22028,
-  chainName: 'KriptoAman Mainnet Candidate',
-  nativeCurrency: { name: 'KriptoAman', symbol: 'KAM', decimals: 18 },
+  chainName: 'ZEVARYQ Mainnet',
+  nativeCurrency: { name: 'ZEVARYQ', symbol: 'ZVQ', decimals: 18 },
   rpcUrls: ['https://rpc.kriptoaman.com'],
   blockExplorerUrls: ['https://explorer.kriptoaman.com'],
+  iconUrls: ['https://kriptoaman.com/brand/zevaryq-mark.svg'],
 };
 
 const PROGRESSION_RETRY_DELAYS_MS = [4000, 4000];
@@ -133,8 +134,9 @@ export default function KAMNetwork() {
         nativeCurrency: NETWORK.nativeCurrency,
         rpcUrls: NETWORK.rpcUrls,
         blockExplorerUrls: NETWORK.blockExplorerUrls,
+        iconUrls: NETWORK.iconUrls,
       }] });
-      setWalletMessage('Jaringan KriptoAman berhasil ditambahkan atau dikonfirmasi di wallet Anda.');
+      setWalletMessage('ZEVARYQ Mainnet berhasil ditambahkan atau dikonfirmasi di wallet Anda.');
     } catch (error) {
       setWalletMessage(error?.message || 'Permintaan penambahan jaringan dibatalkan.');
     }
@@ -176,10 +178,10 @@ export default function KAMNetwork() {
           <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
               <div className="flex items-center gap-3">
-                <img src="/icons/kriptoaman-192.png" alt="KriptoAman" className="h-12 w-12 rounded-2xl object-contain" />
+                <img src="/brand/zevaryq-mark.svg" alt="ZEVARYQ" className="h-12 w-12 rounded-2xl object-contain" />
                 <div>
-                  <p className="ka-command-kicker">KRIPTOAMAN NETWORK</p>
-                  <h1 className="mt-1 text-3xl font-black sm:text-4xl">KAM Network Status</h1>
+                  <p className="ka-command-kicker">ZEVARYQ NETWORK</p>
+                  <h1 className="mt-1 text-3xl font-black sm:text-4xl">ZEVARYQ Network Status</h1>
                 </div>
               </div>
               <p className="mt-4 text-sm leading-6 text-slate-400">Transparansi jaringan, metadata wallet, RPC publik, explorer, dan pemeriksaan blok dalam satu halaman resmi.</p>
@@ -207,7 +209,7 @@ export default function KAMNetwork() {
 
         <section className="grid gap-5 lg:grid-cols-[1.15fr_.85fr]">
           <div className="ka-command-panel p-5 sm:p-6">
-            <div className="flex items-center gap-3"><WalletCards className="h-5 w-5 text-sky-300" /><h2 className="text-lg font-black">Add KriptoAman to Wallet</h2></div>
+            <div className="flex items-center gap-3"><WalletCards className="h-5 w-5 text-sky-300" /><h2 className="text-lg font-black">Add ZEVARYQ to Wallet</h2></div>
             <p className="mt-2 text-xs leading-5 text-slate-500">Untuk MetaMask, Rabby, dan wallet EVM yang mendukung <code>wallet_addEthereumChain</code>.</p>
             <button onClick={addToWallet} className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-sky-600 px-5 text-sm font-black text-white hover:bg-sky-500">Add to Wallet</button>
             {walletMessage && <p className="mt-3 text-xs leading-5 text-slate-400">{walletMessage}</p>}
@@ -218,15 +220,15 @@ export default function KAMNetwork() {
               ['Network', NETWORK.chainName],
               ['RPC', NETWORK.rpcUrls[0]],
               ['Chain ID', NETWORK.chainIdDecimal],
-              ['Currency', 'KAM'],
+              ['Currency', 'ZVQ'],
             ].map(([label, value]) => <div key={label} className="flex items-center justify-between gap-4 border-b border-slate-800/80 px-5 py-4 last:border-b-0"><div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-wider text-slate-600">{label}</p><p className="mt-1 truncate text-sm font-semibold text-slate-200">{value}</p></div><button onClick={() => copy(value)} aria-label={`Copy ${label}`} className="rounded-xl border border-slate-800 p-2 text-slate-400 hover:text-white"><Copy className="h-4 w-4" /></button></div>)}
           </div>
         </section>
 
         <section className="ka-command-panel flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
-          <div><p className="text-sm font-black">KriptoAman Explorer</p><p className="mt-1 text-xs text-slate-500">Lihat blok, transaksi, alamat, dan aktivitas jaringan KAM.</p></div>
+          <div><p className="text-sm font-black">ZEVARYQ Explorer</p><p className="mt-1 text-xs text-slate-500">Lihat blok, transaksi, alamat, dan aktivitas ZEVARYQ Mainnet.</p></div>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <a href="/KAMTransactionLab" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 text-sm font-black text-white hover:bg-sky-500"><WalletCards className="h-4 w-4" /> Coba Transaksi KAM</a>
+            <a href="/KAMTransactionLab" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 text-sm font-black text-white hover:bg-sky-500"><WalletCards className="h-4 w-4" /> Coba Transaksi ZVQ</a>
             <a href={NETWORK.blockExplorerUrls[0]} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 text-sm font-black text-emerald-200"><ExternalLink className="h-4 w-4" /> Open Explorer</a>
           </div>
         </section>

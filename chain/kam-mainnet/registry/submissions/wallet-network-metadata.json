@@ -1,25 +1,29 @@
 {
-  "networkName": "KriptoAman Mainnet",
-  "candidateLabel": "KriptoAman Mainnet Candidate",
+  "networkName": "ZEVARYQ Mainnet",
+  "candidateLabel": "ZEVARYQ Mainnet",
   "chainId": 22028,
   "chainIdHex": "0x560c",
   "nativeCurrency": {
-    "name": "KriptoAman",
-    "symbol": "KAM",
+    "name": "ZEVARYQ",
+    "symbol": "ZVQ",
     "decimals": 18
   },
-  "rpcUrls": ["https://rpc.kriptoaman.com"],
-  "explorerUrls": ["https://explorer.kriptoaman.com"],
+  "rpcUrls": [
+    "https://rpc.kriptoaman.com"
+  ],
+  "explorerUrls": [
+    "https://explorer.kriptoaman.com"
+  ],
   "website": "https://kriptoaman.com",
   "logo": {
-    "png": "https://kriptoaman.com/icons/kriptoaman-512.png",
-    "svg": "https://kriptoaman.com/brand/kriptoaman-mark.svg",
-    "ipfs": "ipfs://bafkreicorcwbkyjyw3rdbvuxfpw7bvrf74nsp4vaakclaoh6a67enzd36a"
+    "svg": "https://kriptoaman.com/brand/zevaryq-mark.svg",
+    "registryIconKey": "pending-zevaryq-ipfs",
+    "registryIconStatus": "pending-ipfs-publication"
   },
   "projectPromotionStatus": "mainnet-candidate-not-public",
   "ethereumListsObservedStatus": "active",
   "ethereumListsPullRequest": 8639,
   "defiLlamaPullRequest": 3089,
   "defiLlamaMergedVerified": false,
-  "notes": "The upstream ethereum-lists directory state is distinct from KriptoAman's operational promotion gate. Keep candidate wording until Issue #115 passes all remaining infrastructure and continuity evidence requirements."
+  "notes": "In-place rebrand from KAM/KriptoAman Mainnet to ZEVARYQ/ZVQ. Chain ID 22028 (0x560c), genesis, balances, addresses and block history remain unchanged. MetaMask custom-network onboarding can use the HTTPS SVG immediately; ethereum-lists icon migration remains pending a publicly resolvable non-Pinata IPFS asset."
 }

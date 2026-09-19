@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">ZEVARYQ Network Mark</title>
+  <desc id="desc">Midnight navy and gold ZEVARYQ network symbol for ZVQ.</desc>
+  <defs>
+    <linearGradient id="gold" x1="96" y1="72" x2="416" y2="440" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F7D77A"/>
+      <stop offset="0.48" stop-color="#D8AA45"/>
+      <stop offset="1" stop-color="#9A6B19"/>
+    </linearGradient>
+    <radialGradient id="navy" cx="50%" cy="42%" r="68%">
+      <stop offset="0" stop-color="#132A4B"/>
+      <stop offset="1" stop-color="#050B16"/>
+    </radialGradient>
+  </defs>
+  <circle cx="256" cy="256" r="238" fill="url(#navy)" stroke="#1B355B" stroke-width="8"/>
+  <path d="M256 42 425 140v232L256 470 87 372V140Z" fill="none" stroke="url(#gold)" stroke-width="18"/>
+  <g fill="#D8AA45">
+    <circle cx="256" cy="42" r="12"/><circle cx="425" cy="140" r="12"/><circle cx="425" cy="372" r="12"/>
+    <circle cx="256" cy="470" r="12"/><circle cx="87" cy="372" r="12"/><circle cx="87" cy="140" r="12"/>
+  </g>
+  <path d="M153 153h220l-143 151h129v55H139l143-151H153Z" fill="url(#gold)"/>
+  <path d="M182 383h148" stroke="#4C78B8" stroke-width="14" stroke-linecap="round"/>
+</svg>
