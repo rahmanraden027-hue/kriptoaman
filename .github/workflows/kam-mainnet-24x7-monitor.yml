@@ -2,6 +2,14 @@ name: KAM Mainnet 24x7 Read-Only Monitor
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/kam-mainnet-24x7-monitor.yml'
+      - 'chain/kam-mainnet/scripts/verify-public-endpoints.mjs'
+  pull_request:
+    paths:
+      - '.github/workflows/kam-mainnet-24x7-monitor.yml'
+      - 'chain/kam-mainnet/scripts/verify-public-endpoints.mjs'
   schedule:
     - cron: '7 * * * *'
 
@@ -20,14 +28,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      - name: Prepare monitoring evidence directory
+        shell: bash
+        run: mkdir -p artifacts
+
       - name: Verify KriptoAman network-status contract
+        id: network_status
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
           curl --fail --silent --show-error --max-time 20 \
-            'https://kriptoaman.com/api/kam/network-status' -o /tmp/kam-status.json
+            'https://kriptoaman.com/api/kam/network-status' \
+            -o artifacts/kam-network-status.json
           node <<'NODE'
-          const p = require('/tmp/kam-status.json');
+          const p = require('./artifacts/kam-network-status.json');
           console.log('status=', p.status, 'live=', p.live, 'verified=', p.verified, 'chainId=', p.chainId, 'block=', p.blockNumber, 'checkedAt=', p.checkedAt);
           if (Number(p.chainId) !== 22028) process.exit(2);
           if (String(p.chainIdHex).toLowerCase() !== '0x560c') process.exit(3);
@@ -38,10 +53,11 @@ jobs:
           NODE
 
       - name: Run full public RPC and explorer security audit
+        id: public_audit
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p artifacts
           node chain/kam-mainnet/scripts/verify-public-endpoints.mjs \
             2>&1 | tee artifacts/kam-mainnet-24x7-audit.json
 
@@ -50,6 +66,22 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: kam-mainnet-24x7-audit
-          path: artifacts/kam-mainnet-24x7-audit.json
-          if-no-files-found: error
+          path: |
+            artifacts/kam-network-status.json
+            artifacts/kam-mainnet-24x7-audit.json
+          if-no-files-found: warn
           retention-days: 30
+
+      - name: Fail monitor when a verification failed
+        if: always()
+        shell: bash
+        env:
+          NETWORK_STATUS_OUTCOME: ${{ steps.network_status.outcome }}
+          PUBLIC_AUDIT_OUTCOME: ${{ steps.public_audit.outcome }}
+        run: |
+          set -euo pipefail
+          echo "network_status_outcome=$NETWORK_STATUS_OUTCOME"
+          echo "public_audit_outcome=$PUBLIC_AUDIT_OUTCOME"
+          if [[ "$NETWORK_STATUS_OUTCOME" != "success" || "$PUBLIC_AUDIT_OUTCOME" != "success" ]]; then
+            exit 1
+          fi

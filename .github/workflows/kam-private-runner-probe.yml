@@ -1,0 +1,41 @@
+name: KAM Private Runner Read-Only Probe
+
+on:
+  push:
+    paths:
+      - '.github/workflows/kam-private-runner-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kam-private-runner-read-only-probe
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 7
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Probe constrained local KAM evidence RPC
+        shell: bash
+        env:
+          KAM_PRIVATE_RPC_URL: http://127.0.0.1:8648
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          node chain/kam-mainnet/scripts/collect-private-evidence.mjs \
+            | tee artifacts/kam-private-runner-probe.json
+
+      - name: Upload redacted read-only evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: kam-private-runner-read-only-probe
+          path: artifacts/kam-private-runner-probe.json
+          if-no-files-found: warn
+          retention-days: 7
