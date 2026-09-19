@@ -1,23 +1,24 @@
-# KAM wallet registry package
+# ZEVARYQ wallet registry package
 
-This directory contains the public metadata draft for registering the native KAM coin and KriptoAman network with EVM wallet registries.
+This directory contains the canonical public metadata package for registering ZEVARYQ Mainnet and the native ZVQ coin with EVM wallet registries.
 
 ## Canonical identity
 
-- Network: KriptoAman Mainnet
+- Network: ZEVARYQ Mainnet
 - Chain ID: `22028` (`0x560c`)
-- Native currency: KAM
+- Native currency: ZVQ
 - Decimals: 18
 - RPC: `https://rpc.kriptoaman.com`
 - Explorer: `https://explorer.kriptoaman.com`
 - Information: `https://kriptoaman.com`
-- Native coin logo: `https://kriptoaman.com/icons/kriptoaman-512.png`
+- HTTPS network mark: `https://kriptoaman.com/brand/zevaryq-mark.svg`
 
 ## Submission mapping
 
 - Chain entry: `chainlist-22028.draft.json`
-- Icon entry: `kam-icon.draft.json`
+- Icon entry: `zevaryq-icon.draft.json`
+- Wallet metadata: `submissions/wallet-network-metadata.json`
 
-Before submitting to an external registry, confirm that the public RPC, explorer, information URL, and logo URL all return successfully. External registries may require the logo to be uploaded to IPFS and the icon URL replaced with the resulting immutable `ipfs://` URI.
+The Chain ID is an in-place continuation of the existing Chain ID 22028 network. The rebrand does not change genesis, balances, addresses, validator keys or block history.
 
-The logo is metadata only. These files do not modify genesis, supply, balances, validator keys, or consensus configuration.
+For ethereum-lists/chains, the icon must use a publicly resolvable IPFS URI. The HTTPS ZEVARYQ mark can be used immediately for EIP-3085 / MetaMask custom-network onboarding, but it must not be described as the final upstream registry icon until the IPFS asset is published and accepted.
