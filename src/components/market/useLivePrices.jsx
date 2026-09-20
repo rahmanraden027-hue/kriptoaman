@@ -50,7 +50,7 @@ ASSETS.forEach(a => { SYM_MAP[a.sym] = a.id; });
 const STREAMS = ASSETS.map(a => `${a.sym}@ticker`).join('/');
 const WS_URL = `wss://stream.binance.com:9443/stream?streams=${STREAMS}`;
 const HOT_MARKET_ENDPOINT = '/api/market-hot';
-const HOT_POLL_INTERVAL_MS = 15_000;
+const HOT_POLL_INTERVAL_MS = 60_000;
 const HOT_REQUEST_TIMEOUT_MS = 7_000;
 const LIVE_CACHE_KEY = 'ka_live_prices_v1';
 const RECONNECT_DELAY_MS = 5000;
@@ -203,6 +203,7 @@ export default function useLivePrices() {
   useEffect(() => {
     if (connected) return undefined;
     const poll = () => {
+      if (document.visibilityState !== 'visible') return;
       fetchHotSnapshot()
         .then((next) => {
           if (mountedRef.current && Object.keys(next).length > 0) {
