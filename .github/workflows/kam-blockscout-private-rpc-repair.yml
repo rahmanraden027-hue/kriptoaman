@@ -1,0 +1,160 @@
+name: KAM Blockscout Private RPC Repair
+
+on:
+  push:
+    branches:
+      - fix/blockscout-private-rpc-no-self-loop
+    paths:
+      - '.github/workflows/kam-blockscout-private-rpc-repair.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kam-blockscout-private-rpc-repair
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 15
+    env:
+      COMPOSE_DIR: /opt/blockscout/docker-compose
+      RPC_URL: http://10.104.0.2:8545
+      OLD_RPC_URL: https://explorer.kriptoaman.com/rpc
+      EXPECTED_CHAIN_ID: 0x560c
+    steps:
+      - name: Checkout reviewed source
+        uses: actions/checkout@v7
+
+      - name: Audit private RPC before changes
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p artifacts
+          rpc() {
+            curl -sS --connect-timeout 5 --max-time 10 -H 'Content-Type: application/json' --data "$1" "$RPC_URL"
+          }
+          CHAIN_JSON="$(rpc '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}')"
+          BLOCK_JSON="$(rpc '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":2}')"
+          CHAIN_ID="$(jq -er '.result' <<<"$CHAIN_JSON")"
+          BLOCK_BEFORE="$(jq -er '.result' <<<"$BLOCK_JSON")"
+          test "$CHAIN_ID" = "$EXPECTED_CHAIN_ID"
+          [[ "$BLOCK_BEFORE" =~ ^0x[0-9a-fA-F]+$ ]]
+          {
+            echo "chain_id=$CHAIN_ID"
+            echo "block_before=$BLOCK_BEFORE"
+            echo "private_rpc=$RPC_URL"
+          } | tee artifacts/preflight.txt
+
+      - name: Back up and replace active Blockscout RPC configuration
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test -d "$COMPOSE_DIR"
+          cd "$COMPOSE_DIR"
+          mapfile -d '' FILES < <(
+            grep -rIlZ --exclude-dir=.git --exclude='*.log' -- "$OLD_RPC_URL" envs services .env geth.yml 2>/dev/null || true
+          )
+          ((${#FILES[@]} > 0)) || {
+            echo "No active Blockscout configuration contains the old RPC URL" >&2
+            exit 1
+          }
+          BACKUP_ROOT="/root/kam-blockscout-config-backup-$(date -u +%Y%m%dT%H%M%SZ)"
+          install -d -m 700 "$BACKUP_ROOT"
+          printf '%s\n' "$BACKUP_ROOT" > "$GITHUB_WORKSPACE/artifacts/backup-location.txt"
+          printf '%s\n' "${FILES[@]}" | tee "$GITHUB_WORKSPACE/artifacts/changed-files.txt"
+          for file in "${FILES[@]}"; do
+            install -D -m 600 "$file" "$BACKUP_ROOT/$file"
+          done
+          python3 - "$OLD_RPC_URL" "$RPC_URL" "${FILES[@]}" <<'PY'
+          from pathlib import Path
+          import sys
+          old, new, *files = sys.argv[1:]
+          for name in files:
+              path = Path(name)
+              text = path.read_text()
+              count = text.count(old)
+              if count:
+                  path.write_text(text.replace(old, new))
+                  print(f"{name}: replacements={count}")
+          PY
+
+      - name: Validate Compose or roll back configuration
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          cd "$COMPOSE_DIR"
+          BACKUP_ROOT="$(cat "$GITHUB_WORKSPACE/artifacts/backup-location.txt")"
+          if ! docker compose -f geth.yml config >"$GITHUB_WORKSPACE/artifacts/compose-config.txt"; then
+            while IFS= read -r file; do
+              install -D -m 600 "$BACKUP_ROOT/$file" "$file"
+            done < "$GITHUB_WORKSPACE/artifacts/changed-files.txt"
+            echo "Compose validation failed; text configuration restored from $BACKUP_ROOT" >&2
+            exit 1
+          fi
+          echo "compose_validation=success" | tee "$GITHUB_WORKSPACE/artifacts/compose-validation.txt"
+
+      - name: Recreate only affected Blockscout services
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          cd "$COMPOSE_DIR"
+          mapfile -t SERVICES < <(docker compose -f geth.yml config --services | grep -E '^(backend|user-ops-indexer)$')
+          ((${#SERVICES[@]} > 0))
+          printf '%s\n' "${SERVICES[@]}" | tee "$GITHUB_WORKSPACE/artifacts/restarted-services.txt"
+          docker compose -f geth.yml up -d --no-deps --force-recreate "${SERVICES[@]}"
+
+      - name: Verify chain progress and Blockscout API
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          rpc() {
+            curl -sS --connect-timeout 5 --max-time 10 -H 'Content-Type: application/json' --data "$1" "$RPC_URL"
+          }
+          CHAIN_ID="$(rpc '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":3}' | jq -er '.result')"
+          BLOCK_START="$(rpc '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":4}' | jq -er '.result')"
+          test "$CHAIN_ID" = "$EXPECTED_CHAIN_ID"
+          sleep 20
+          BLOCK_END="$(rpc '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":5}' | jq -er '.result')"
+          [[ "$BLOCK_START" =~ ^0x[0-9a-fA-F]+$ ]]
+          [[ "$BLOCK_END" =~ ^0x[0-9a-fA-F]+$ ]]
+          (( 16#${BLOCK_END#0x} > 16#${BLOCK_START#0x} ))
+
+          deadline=$((SECONDS+180))
+          until curl -fsS --max-time 10 http://127.0.0.1/api/v2/blocks >"$GITHUB_WORKSPACE/artifacts/api-blocks.json"; do
+            (( SECONDS < deadline )) || exit 1
+            sleep 5
+          done
+          curl -fsS --max-time 10 http://127.0.0.1/api/v2/stats >"$GITHUB_WORKSPACE/artifacts/api-stats.json"
+
+          cd "$COMPOSE_DIR"
+          docker compose -f geth.yml ps --format json >"$GITHUB_WORKSPACE/artifacts/compose-ps.json"
+          if docker compose -f geth.yml ps --format json |
+             jq -s -e 'map(select((.State // "" | ascii_downcase) == "exited" or (.Health // "" | ascii_downcase) == "unhealthy")) | length > 0' >/dev/null; then
+            echo "Failed or unhealthy container detected" >&2
+            exit 1
+          fi
+          if grep -rIl --exclude-dir=.git --exclude='*.log' -- "$OLD_RPC_URL" envs services .env geth.yml 2>/dev/null | grep -q .; then
+            echo "Old public Explorer RPC remains in active Blockscout configuration" >&2
+            exit 1
+          fi
+          {
+            echo "chain_id=$CHAIN_ID"
+            echo "block_start=$BLOCK_START"
+            echo "block_end=$BLOCK_END"
+            echo "block_progress=success"
+            echo "local_blocks_api=success"
+            echo "local_stats_api=success"
+            echo "old_rpc_reference=absent"
+          } | tee "$GITHUB_WORKSPACE/artifacts/verification.txt"
+
+      - name: Upload sanitized production evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: kam-blockscout-private-rpc-repair-${{ github.run_id }}
+          path: artifacts/*
+          if-no-files-found: warn
+          retention-days: 30
