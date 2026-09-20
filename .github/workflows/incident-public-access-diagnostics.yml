@@ -44,55 +44,64 @@ jobs:
             echo | tee -a incident-evidence/public-probes.txt
           done
 
-      - name: Inventory Cloudflare zone, DNS, routes, rulesets and Pages
+      - name: Inventory Cloudflare control plane without mutation
         shell: bash
         run: |
-          set -euo pipefail
+          set -u
           auth=(-H "Authorization: Bearer ${CF_API_TOKEN}" -H 'Accept: application/json')
+          mkdir -p incident-evidence
 
-          zones="$(curl --fail-with-body -sS --get 'https://api.cloudflare.com/client/v4/zones' "${auth[@]}"             --data-urlencode "name=${ZONE_NAME}" --data-urlencode "account.id=${CF_ACCOUNT_ID}")"
-          test "$(jq -r '.success' <<<"$zones")" = true
-          test "$(jq '.result|length' <<<"$zones")" -eq 1
-          zone_id="$(jq -r '.result[0].id' <<<"$zones")"
-          jq '{success,result:[.result[]|{id,name,status,paused,type,development_mode,name_servers}]}' <<<"$zones" > incident-evidence/zone.json
+          capture() {
+            local name="$1"; shift
+            local body code
+            body="$(mktemp)"
+            code="$(curl -sS -o "$body" -w '%{http_code}' "$@" || true)"
+            printf '%s\n' "$code" > "incident-evidence/${name}.http-status"
+            cp "$body" "incident-evidence/${name}.json"
+            rm -f "$body"
+            echo "${name}_http=${code}"
+          }
 
-          dns="$(curl --fail-with-body -sS "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records?per_page=100" "${auth[@]}")"
-          jq '{success,result:[.result[]|select(.name=="kriptoaman.com" or .name=="www.kriptoaman.com" or .name=="explorer.kriptoaman.com" or .name=="explorer-new.kriptoaman.com" or .name=="rpc.kriptoaman.com")|{id,type,name,content,proxied,ttl}]}' <<<"$dns" > incident-evidence/dns.json
-
-          routes="$(curl --fail-with-body -sS "https://api.cloudflare.com/client/v4/zones/${zone_id}/workers/routes" "${auth[@]}")"
-          jq '{success,result:[.result[]|select((.pattern|contains("kriptoaman.com")))|{id,pattern,script}]}' <<<"$routes" > incident-evidence/worker-routes.json
-
-          rulesets="$(curl -sS "https://api.cloudflare.com/client/v4/zones/${zone_id}/rulesets" "${auth[@]}")"
-          echo "$rulesets" > incident-evidence/rulesets.json
-          if [[ "$(jq -r '.success // false' <<<"$rulesets")" = true ]]; then
-            while IFS=$'\t' read -r id phase; do
-              [[ -n "$id" ]] || continue
-              curl -sS "https://api.cloudflare.com/client/v4/zones/${zone_id}/rulesets/$id" "${auth[@]}"                 > "incident-evidence/ruleset-${phase}-${id}.json"
-            done < <(jq -r '.result[]|[.id,.phase]|@tsv' <<<"$rulesets")
+          zones="$(curl -sS --get 'https://api.cloudflare.com/client/v4/zones' "${auth[@]}"             --data-urlencode "name=${ZONE_NAME}" --data-urlencode "account.id=${CF_ACCOUNT_ID}")"
+          echo "$zones" > incident-evidence/zones-raw.json
+          zone_id="$(jq -r '.result[0].id // empty' <<<"$zones")"
+          if [[ -z "$zone_id" ]]; then
+            echo "zone resolution failed"
+            exit 0
           fi
+          echo "$zone_id" > incident-evidence/zone-id.txt
+          jq '{success,errors,result:[.result[]|{id,name,status,paused,type,development_mode,name_servers}]}' <<<"$zones"             > incident-evidence/zone.json
 
-          curl -sS "https://api.cloudflare.com/client/v4/zones/${zone_id}/rate_limits?per_page=100" "${auth[@]}"             > incident-evidence/legacy-rate-limits.json
+          capture worker-routes             "https://api.cloudflare.com/client/v4/zones/${zone_id}/workers/routes" "${auth[@]}"
+          capture worker-scripts             "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts" "${auth[@]}"
+          capture pages-project             "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${PAGES_PROJECT}" "${auth[@]}"
+          capture pages-production-deployments             --get "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${PAGES_PROJECT}/deployments"             "${auth[@]}" --data-urlencode 'env=production' --data-urlencode 'page=1' --data-urlencode 'per_page=10'
+          capture dns             "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records?per_page=100" "${auth[@]}"
+          capture rulesets             "https://api.cloudflare.com/client/v4/zones/${zone_id}/rulesets" "${auth[@]}"
+          capture legacy-rate-limits             "https://api.cloudflare.com/client/v4/zones/${zone_id}/rate_limits?per_page=100" "${auth[@]}"
 
-          curl -sS "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${PAGES_PROJECT}" "${auth[@]}"             > incident-evidence/pages-project.json
+          echo '--- endpoint permissions ---'
+          for f in incident-evidence/*.http-status; do
+            printf '%s=' "$(basename "$f" .http-status)"
+            cat "$f"
+          done
 
-          curl -sS --get "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${PAGES_PROJECT}/deployments" "${auth[@]}"             --data-urlencode 'env=production' --data-urlencode 'page=1' --data-urlencode 'per_page=10'             > incident-evidence/pages-production-deployments.json
-
-          echo '--- public probes ---'
-          cat incident-evidence/public-probes.txt
           echo '--- zone ---'
           jq . incident-evidence/zone.json || true
-          echo '--- dns ---'
-          jq . incident-evidence/dns.json || true
           echo '--- worker routes ---'
-          jq . incident-evidence/worker-routes.json || true
-          echo '--- rulesets ---'
-          jq '{success,errors,result:[.result[]? | {id,name,kind,phase,version,last_updated}]}' incident-evidence/rulesets.json || true
-          echo '--- legacy rate limits ---'
-          jq '{success,errors,result:[.result[]? | {id,disabled,description,threshold,period,action,match}]}' incident-evidence/legacy-rate-limits.json || true
+          jq '{success,errors,result:[.result[]? | {id,pattern,script}]}' incident-evidence/worker-routes.json || true
+          echo '--- worker scripts ---'
+          jq '{success,errors,result:[.result[]? | {id,created_on,modified_on}]}' incident-evidence/worker-scripts.json || true
           echo '--- pages project ---'
           jq '{success,errors,result:(.result|{name,subdomain,domains,production_branch,latest_deployment:(.latest_deployment|{id,url,environment,created_on,modified_on,deployment_trigger,stages})})}' incident-evidence/pages-project.json || true
           echo '--- production deployments ---'
           jq '{success,errors,result:[.result[]? | {id,url,environment,created_on,modified_on,deployment_trigger,stages}]}' incident-evidence/pages-production-deployments.json || true
+          echo '--- dns ---'
+          jq '{success,errors,result:[.result[]? | select(.name=="kriptoaman.com" or .name=="www.kriptoaman.com" or .name=="explorer.kriptoaman.com" or .name=="explorer-new.kriptoaman.com" or .name=="rpc.kriptoaman.com") | {id,type,name,content,proxied,ttl}]}' incident-evidence/dns.json || true
+          echo '--- rulesets ---'
+          jq '{success,errors,result:[.result[]? | {id,name,kind,phase,version,last_updated}]}' incident-evidence/rulesets.json || true
+          echo '--- legacy rate limits ---'
+          jq '{success,errors,result:[.result[]? | {id,disabled,description,threshold,period,action,match}]}' incident-evidence/legacy-rate-limits.json || true
 
       - name: Upload diagnostics
         if: always()
