@@ -24,15 +24,15 @@ const deploy = await readFile(new URL('../scripts/deploy-kam-explorer-v2.sh', im
 
 const finalSurfaces = [html, stats, tokens, developer, docs, examples, verify, addresses, validators, contracts, status, blocks, transactions, apiDocs, transactionDetail, blockDetail, addressDetail];
 
-test('KAM Explorer V2 uses verified live data surfaces', () => {
+test('ZEVARYQ Explorer V2 uses verified live data surfaces', () => {
   assert.match(html, /data-kam-explorer-version="2\.0\.0"/);
   assert.match(html, /\/api\/v2\/blocks/);
   assert.match(html, /\/api\/v2\/transactions/);
   assert.match(html, /\/api\/v2\/stats/);
-  assert.match(html, /Unavailable data is shown as unavailable—not invented/);
-  assert.equal(html.includes("const EXPECTED_CHAIN=22028,RPC='/rpc',API='/api/v2';"), true);
+  assert.match(html, /unavailable information is never invented/i);
+  assert.match(html, /const EXPECTED_CHAIN\s*=\s*22028,[\s\S]*?RPC\s*=\s*"\/rpc",[\s\S]*?API\s*=\s*"\/api\/v2"/);
   assert.equal(html.includes('Same-origin /rpc gateway'), true);
-  assert.equal(html.includes('KAM RPC via /rpc'), true);
+  assert.equal(html.includes('ZEVARYQ RPC via /rpc'), true);
   assert.match(html, /function qbftValidatorCount/);
   assert.match(html, /QBFT committed · 4-validator evidence/);
   assert.equal(html.includes("RPC='https://rpc.kriptoaman.com'"), false);
@@ -61,7 +61,7 @@ test('Developer Center exposes canonical network onboarding and public APIs with
   assert.match(developer, /data-kam-developer-version="1\.0\.0"/);
   assert.match(developer, /wallet_addEthereumChain/);
   assert.match(developer, /chainId:'0x560c'/);
-  assert.match(developer, /KriptoAman Mainnet/);
+  assert.match(developer, /ZEVARYQ Mainnet/);
   assert.match(developer, /\/api\/v2\/smart-contracts\/verification\/config/);
   assert.match(developer, /no private key is requested/i);
 });
@@ -85,12 +85,12 @@ test('Developer examples provide safe quickstarts and wallet onboarding', () => 
 
 test('Machine-readable developer network config is canonical and does not promote internal readiness state', () => {
   assert.equal(networkConfig.schemaVersion, '1.0.0');
-  assert.equal(networkConfig.networkName, 'KriptoAman Mainnet');
+  assert.equal(networkConfig.networkName, 'ZEVARYQ Mainnet');
   assert.equal(networkConfig.chainId, 22028);
   assert.equal(networkConfig.chainIdHex, '0x560c');
   assert.deepEqual(networkConfig.rpcUrls, ['https://rpc.kriptoaman.com']);
   assert.deepEqual(networkConfig.blockExplorerUrls, ['https://explorer.kriptoaman.com']);
-  assert.equal(networkConfig.nativeCurrency.symbol, 'KAM');
+  assert.equal(networkConfig.nativeCurrency.symbol, 'ZVQ');
   assert.equal(networkConfig.nativeCurrency.decimals, 18);
   assert.equal(networkConfig.publicDeveloperAccess, true);
   assert.equal(networkConfig.security.privateKeysRequired, false);
@@ -107,7 +107,7 @@ test('Contract verification guide probes only public verification capabilities',
 
 test('Addresses surface uses observed public evidence instead of a fabricated holder ranking', () => {
   assert.match(addresses, /data-kam-addresses-version="1\.0\.0"/);
-  assert.match(addresses, /\/api\/v2\/addresses\//);
+  assert.doesNotMatch(addresses, /\/api\/v2\/addresses\/\$\{/);
   assert.match(addresses, /\/api\/v2\/transactions/);
   assert.match(addresses, /Export CSV/);
   assert.match(addresses, /not a fabricated holder ranking/i);
@@ -135,13 +135,13 @@ test('Network status uses public endpoint evidence and treats browser RPC CORS s
   assert.match(status, /indexed block freshness/i);
 });
 
-test('Blocks, transactions and API use one KAM brand system and verified same-origin data', () => {
+test('Blocks, transactions and API use one ZEVARYQ brand system and verified same-origin data', () => {
   assert.match(blocks, /data-kam-blocks-version="1\.0\.0"/);
   assert.match(transactions, /data-kam-transactions-version="1\.0\.0"/);
   assert.match(apiDocs, /data-kam-api-version="1\.0\.0"/);
   for (const surface of [blocks, transactions, apiDocs]) {
-    assert.match(surface, /kriptoaman-mark\.svg/);
-    assert.match(surface, /KriptoAman Mainnet/);
+    assert.match(surface, /zevaryq-mark\.svg/);
+    assert.match(surface, /ZEVARYQ Mainnet/);
     assert.equal(surface.includes('http://localhost'), false);
     assert.equal(surface.includes('127.0.0.1'), false);
   }
@@ -155,8 +155,8 @@ test('transaction, block and address details use branded verified API surfaces',
   assert.match(blockDetail, /data-kam-block-detail-version="1\.0\.0"/);
   assert.match(addressDetail, /data-kam-address-detail-version="1\.0\.0"/);
   for (const surface of [transactionDetail, blockDetail, addressDetail]) {
-    assert.match(surface, /kriptoaman-mark\.svg/);
-    assert.match(surface, /KriptoAman Mainnet/);
+    assert.match(surface, /zevaryq-mark\.svg/);
+    assert.match(surface, /ZEVARYQ Mainnet/);
     assert.match(surface, /No values are estimated/);
   }
   assert.match(transactionDetail, /\/api\/v2\/transactions\/\$\{hash\}/);
