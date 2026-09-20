@@ -8,7 +8,7 @@ test('live API traffic nudges the persisted market self-heal path without recurs
   const middleware = await read('functions/api/_middleware.js');
   assert.match(middleware, /MARKET_HEALTH_PATH = '\/api\/market-snapshot\?health=1'/);
   assert.match(middleware, /'\/api\/platform-status'/);
-  assert.match(middleware, /'\/api\/market-snapshot-page'/);
+  assert.doesNotMatch(middleware, /MARKET_NUDGE_PATHS[\s\S]{0,200}'\/api\/market-snapshot-page'/);
   assert.match(middleware, /scheduleMarketNudge/);
   assert.match(middleware, /context\.waitUntil\(task\)/);
   assert.match(middleware, /MARKET_NUDGE_PATHS\.has\(new URL\(request\.url\)\.pathname\)/);
