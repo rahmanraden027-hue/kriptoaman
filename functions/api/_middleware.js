@@ -3,7 +3,6 @@ const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 const MARKET_HEALTH_PATH = '/api/market-snapshot?health=1';
 const MARKET_NUDGE_PATHS = new Set([
   '/api/platform-status',
-  '/api/market-snapshot-page',
 ]);
 
 const SECURITY_HEADERS = {
@@ -77,13 +76,13 @@ export async function onRequest(context) {
     return jsonError('Cross-origin request blocked', 403);
   }
 
-  // Traffic to the public aggregate or paged market continuously nudges the
-  // persisted market health endpoint. That endpoint remains the sole owner of
-  // refresh/freshness policy and only refreshes when its refreshDue gate is
-  // reached. This removes scheduled GitHub Actions as a single refresh
-  // dependency while preserving truthful stale/degraded behavior during a real
-  // upstream outage. The market health route itself is deliberately excluded,
-  // preventing self-recursion.
+  // Platform-status traffic can nudge the persisted market health endpoint.
+  // Paged market reads are deliberately excluded: one browser hydration may
+  // fan out across many pages, and nudging every page doubles Pages Functions
+  // invocations. The dedicated five-minute watchdog remains the primary refresh
+  // path, while this low-volume status nudge provides an independent recovery
+  // signal without amplifying ordinary market traffic. The market health route
+  // itself is deliberately excluded, preventing self-recursion.
   if (method === 'GET' && MARKET_NUDGE_PATHS.has(new URL(request.url).pathname)) {
     scheduleMarketNudge(context, new URL(request.url).origin);
   }
