@@ -1,11 +1,11 @@
 {
   "schemaVersion": "1.0.0",
-  "networkName": "KriptoAman Mainnet",
+  "networkName": "ZEVARYQ Mainnet",
   "chainId": 22028,
   "chainIdHex": "0x560c",
   "nativeCurrency": {
-    "name": "KAM",
-    "symbol": "KAM",
+    "name": "ZEVARYQ",
+    "symbol": "ZVQ",
     "decimals": 18
   },
   "rpcUrls": [

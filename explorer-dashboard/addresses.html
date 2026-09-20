@@ -9,9 +9,9 @@
     <meta name="theme-color" content="#020713" />
     <meta
       name="description"
-      content="KAM Addresses — recently observed KriptoAman Mainnet addresses from verified Explorer APIs."
+      content="ZEVARYQ Addresses — recently observed ZEVARYQ Mainnet addresses from verified Explorer APIs."
     />
-    <title>KAM Addresses · KriptoAman Mainnet</title>
+    <title>ZEVARYQ Addresses · ZEVARYQ Mainnet</title>
     <style>
       :root {
         --bg: #020713;
@@ -264,9 +264,9 @@
     <main class="shell" data-kam-addresses-version="1.0.0">
       <header class="top glass">
         <a class="brand" href="/"
-          ><div class="mark">K</div>
+          ><div class="mark">ZV</div>
           <div>
-            <strong>KAM Addresses</strong><span>KriptoAman Mainnet</span>
+            <strong>ZEVARYQ Addresses</strong><span>ZEVARYQ Mainnet</span>
           </div></a
         >
         <nav class="nav">
@@ -275,7 +275,7 @@
         </nav>
       </header>
       <section class="hero glass">
-        <div class="eyebrow">KAM NETWORK · OBSERVED ADDRESSES</div>
+        <div class="eyebrow">ZEVARYQ NETWORK · OBSERVED ADDRESSES</div>
         <h1>Explore addresses with live on-chain evidence.</h1>
         <p>
           This page presents addresses observed in the current public block and
@@ -333,7 +333,7 @@
                 <th>Address</th>
                 <th>Observed role</th>
                 <th>Type</th>
-                <th>KAM balance</th>
+                <th>ZVQ balance</th>
                 <th>Evidence</th>
               </tr>
             </thead>
@@ -351,7 +351,7 @@
         Missing fields remain unavailable.
       </div>
       <footer class="footer">
-        <span>KAM Addresses · Chain ID 22028</span
+        <span>ZEVARYQ Addresses · Chain ID 22028</span
         ><span>Public read-only Explorer surface</span>
       </footer>
     </main>
@@ -372,7 +372,7 @@
                 .padStart(18, "0")
                 .slice(0, 4)
                 .replace(/0+$/, "");
-            return `${fmt.format(w)}${f ? "." + f : ""} KAM`;
+            return `${fmt.format(w)}${f ? "." + f : ""} ZVQ`;
           } catch {
             return "—";
           }
@@ -468,7 +468,7 @@
           ].join("\n");
           const a = document.createElement("a");
           a.href = URL.createObjectURL(new Blob([data], { type: "text/csv" }));
-          a.download = "kam-observed-addresses.csv";
+          a.download = "zvq-observed-addresses.csv";
           a.click();
           URL.revokeObjectURL(a.href);
         });

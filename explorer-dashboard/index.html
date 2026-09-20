@@ -9,9 +9,9 @@
     <meta name="theme-color" content="#020713" />
     <meta
       name="description"
-      content="KAM Explorer — verified KriptoAman Mainnet activity from KAM RPC and Explorer APIs."
+      content="ZEVARYQ Explorer — verified ZEVARYQ Mainnet activity from ZEVARYQ RPC and Explorer APIs."
     />
-    <title>KAM Explorer · KriptoAman Mainnet</title>
+    <title>ZEVARYQ Explorer · ZEVARYQ Mainnet</title>
     <style>
       :root {
         --bg: #020713;
@@ -1074,6 +1074,18 @@
         color: #54dfff;
         margin-bottom: 8px;
       }
+      .orbCore img {
+        width: 92px;
+        height: 92px;
+        object-fit: contain;
+        margin-bottom: 8px;
+        filter: drop-shadow(0 0 22px rgba(255, 199, 74, 0.4));
+      }
+      .orbCore img + strong {
+        color: #ffd36a;
+        font-size: 18px;
+        letter-spacing: 0.1em;
+      }
       .orbCore span {
         font-size: 9px;
         line-height: 1.75;
@@ -1404,7 +1416,120 @@
         font-size: 16px;
       }
       .compactHealth {
-        display: none;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+        margin-top: 10px;
+      }
+      .healthMetric {
+        min-width: 0;
+        padding: 9px 10px;
+        border: 1px solid rgba(47, 156, 255, 0.2);
+        border-radius: 10px;
+        background: rgba(2, 14, 32, 0.64);
+      }
+      .healthMetric small {
+        display: block;
+        margin-bottom: 4px;
+        color: #6f91b1;
+        font-size: 7px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .healthMetric .state {
+        display: block;
+        overflow: hidden;
+        color: #c7d8e8;
+        font-size: 10px;
+        text-align: left;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .healthMetric .state.ok {
+        color: var(--green);
+      }
+      .healthMetric .state.warn {
+        color: var(--amber);
+      }
+      .healthMetric .state.bad {
+        color: var(--red);
+      }
+      .intelligenceGrid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 9px;
+        margin-bottom: 12px;
+      }
+      .intelligenceCard {
+        min-width: 0;
+        padding: 14px;
+        border-radius: 16px;
+      }
+      .intelligenceHead {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 11px;
+      }
+      .intelligenceIcon {
+        width: 32px;
+        height: 32px;
+        display: grid;
+        flex: 0 0 32px;
+        place-items: center;
+        border: 1px solid rgba(34, 190, 255, 0.3);
+        border-radius: 10px;
+        background: rgba(17, 104, 185, 0.18);
+        color: #48ddff;
+        box-shadow: 0 0 18px rgba(21, 170, 255, 0.13);
+      }
+      .intelligenceHead strong {
+        display: block;
+        font-size: 12px;
+      }
+      .intelligenceHead small {
+        display: block;
+        margin-top: 2px;
+        color: #708daa;
+        font-size: 8px;
+      }
+      .intelligenceRows {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px;
+      }
+      .intelligenceRows > div {
+        min-width: 0;
+        padding: 9px;
+        border: 1px solid rgba(50, 143, 230, 0.15);
+        border-radius: 10px;
+        background: rgba(2, 13, 30, 0.58);
+      }
+      .intelligenceRows small {
+        display: block;
+        color: #728da8;
+        font-size: 7px;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+      }
+      .intelValue {
+        display: block;
+        margin-top: 4px;
+        overflow: hidden;
+        color: #dceeff;
+        font-size: 10px;
+        font-weight: 850;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .intelValue.ok {
+        color: var(--green);
+      }
+      .intelValue.warn {
+        color: var(--amber);
+      }
+      .intelValue.bad {
+        color: var(--red);
       }
       .blocksPanel {
         margin-bottom: 12px;
@@ -1465,6 +1590,12 @@
         }
         .securityCard {
           grid-column: 1/-1;
+        }
+        .compactHealth {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .intelligenceGrid {
+          grid-template-columns: 1fr;
         }
       }
       @media (max-width: 720px) {
@@ -1573,19 +1704,20 @@
         <a class="brand" href="/"
           ><div class="brandMark">
             <img
-              src="https://kriptoaman.com/brand/kriptoaman-mark.svg"
-              alt="KriptoAman"
+              src="https://kriptoaman.com/brand/zevaryq-mark.svg"
+              alt="ZEVARYQ Network"
             />
           </div>
           <div class="brandText">
-            <strong>KAM Explorer</strong
-            ><span>KriptoAman Mainnet · Verified public data</span>
+            <strong>ZEVARYQ Explorer</strong
+            ><span>Zevaryq Network · On-chain intelligence</span>
           </div></a
         >
         <nav class="toplinks">
           <a class="miniLink active" href="/blocks">Blocks</a
           ><a class="miniLink" href="/txs">Transactions</a
-          ><a class="miniLink" href="https://kriptoaman.com">KriptoAman</a>
+          ><a class="miniLink" href="/validators">Validators</a
+          ><a class="miniLink" href="/stats">Analytics</a>
         </nav>
         <div class="statusPill" id="statusPill">
           <span class="dot"></span><span id="topStatus">Checking network</span>
@@ -1593,19 +1725,18 @@
       </header>
       <section class="hero glass">
         <div class="heroCopy">
-          <div class="eyebrow">KAM NETWORK · ON-CHAIN INTELLIGENCE</div>
+          <div class="eyebrow">ZEVARYQ NETWORK · ON-CHAIN INTELLIGENCE</div>
           <h1>
-            See what the <em>network is doing.</em><br />Verify it yourself.
+            Explore the <em>Zevaryq Network.</em>
           </h1>
           <p>
-            KAM Explorer uses the public Explorer API when available and
-            automatically falls back to the public KAM JSON-RPC for live block
-            and transaction data. Unavailable data is shown as unavailable—not
-            invented.
+            Verify every block, transaction, address, validator, and network
+            signal in real time. ZEVARYQ Explorer uses public RPC and indexed
+            chain data; unavailable information is never invented.
           </p>
           <div class="badges">
             <span class="badge">Chain ID <b>22028</b></span
-            ><span class="badge">Native Asset <b>KAM</b></span
+            ><span class="badge">Native Asset <b>ZVQ</b></span
             ><span class="badge">EVM <b>Compatible</b></span
             ><span class="badge">Data policy <b>Verified only</b></span>
           </div>
@@ -1620,14 +1751,17 @@
             </button>
           </form>
           <div class="searchHint" id="searchHint">
-            Search works directly against KAM RPC when the indexer is
+            Search works directly against ZEVARYQ RPC when the indexer is
             unavailable.
           </div>
         </div>
         <div class="heroOrb" aria-hidden="true">
           <div class="orbCore">
-            <strong>KAM</strong><span>SECURE</span><span>TRANSPARENT</span
-            ><span>TOGETHER</span>
+            <img
+              src="https://kriptoaman.com/brand/zevaryq-mark.svg"
+              alt=""
+            />
+            <strong>ZEVARYQ</strong><span>BLOCKCHAIN FOR A BRIGHTER TOMORROW</span>
           </div>
           <i class="orbit orbitA"></i><i class="orbit orbitB"></i
           ><i class="spark s1"></i><i class="spark s2"></i
@@ -1641,19 +1775,19 @@
             <span class="cubeIcon"></span>
             <div>
               <h2>Block Overview</h2>
-              <p>Real-time block information from KAM Mainnet</p>
+              <p>Real-time block information from ZVQ Mainnet</p>
             </div>
           </div>
           <div class="overviewLive">
             <span class="liveDot"></span>
             <div>
-              <strong>Live on KAM Mainnet</strong
+              <strong>Live on ZVQ Mainnet</strong
               ><small>Verified live data only</small>
             </div>
           </div>
           <div class="chainIdCard">
             <span>Chain ID</span><strong>22028</strong
-            ><small>KAM Mainnet</small>
+            ><small>ZVQ Mainnet</small>
           </div>
         </div>
         <div class="overviewCards">
@@ -1728,9 +1862,72 @@
           <small>Chain Security</small><strong>Verified Data Only</strong
           ><span>No simulated data · No invented blocks</span>
           <div class="healthRows compactHealth">
-            <span id="hChain">Checking</span><span id="hRpc">Checking</span
-            ><span id="hApi">Checking</span><span id="hContinuity">Waiting</span
-            ><span id="hBlocks">Checking</span><span id="hRefresh">—</span>
+            <div class="healthMetric">
+              <small>Chain identity</small><span id="hChain">Checking</span>
+            </div>
+            <div class="healthMetric">
+              <small>Public RPC</small><span id="hRpc">Checking</span>
+            </div>
+            <div class="healthMetric">
+              <small>Explorer API</small><span id="hApi">Checking</span>
+            </div>
+            <div class="healthMetric">
+              <small>Block continuity</small
+              ><span id="hContinuity">Waiting</span>
+            </div>
+            <div class="healthMetric">
+              <small>Block production</small><span id="hBlocks">Checking</span>
+            </div>
+            <div class="healthMetric">
+              <small>Last refresh</small><span id="hRefresh">—</span>
+            </div>
+          </div>
+        </article>
+      </section>
+      <section class="intelligenceGrid" aria-label="Verified network intelligence">
+        <article class="intelligenceCard glass">
+          <div class="intelligenceHead">
+            <span class="intelligenceIcon">◎</span>
+            <div>
+              <strong>Consensus &amp; Finality</strong>
+              <small>Verified chain evidence</small>
+            </div>
+          </div>
+          <div class="intelligenceRows">
+            <div><small>Finalized block</small><span class="intelValue" data-mirror="finalizedBlock">—</span></div>
+            <div><small>Finality source</small><span class="intelValue" data-mirror="finalizedAge">Checking</span></div>
+            <div><small>Block interval</small><span class="intelValue" data-mirror="blockTime">—</span></div>
+            <div><small>Continuity</small><span class="intelValue" data-mirror="hContinuity">Waiting</span></div>
+          </div>
+        </article>
+        <article class="intelligenceCard glass">
+          <div class="intelligenceHead">
+            <span class="intelligenceIcon">◉</span>
+            <div>
+              <strong>Infrastructure Status</strong>
+              <small>Public production surfaces</small>
+            </div>
+          </div>
+          <div class="intelligenceRows">
+            <div><small>RPC</small><span class="intelValue" data-mirror="hRpc">Checking</span></div>
+            <div><small>Indexer API</small><span class="intelValue" data-mirror="hApi">Checking</span></div>
+            <div><small>Active path</small><span class="intelValue" data-mirror="sourceState">Pending</span></div>
+            <div><small>Data freshness</small><span class="intelValue" data-mirror="mFresh">—</span></div>
+          </div>
+        </article>
+        <article class="intelligenceCard glass">
+          <div class="intelligenceHead">
+            <span class="intelligenceIcon">◇</span>
+            <div>
+              <strong>Security Intelligence</strong>
+              <small>No simulated status claims</small>
+            </div>
+          </div>
+          <div class="intelligenceRows">
+            <div><small>Chain identity</small><span class="intelValue" data-mirror="hChain">Checking</span></div>
+            <div><small>Block production</small><span class="intelValue" data-mirror="hBlocks">Checking</span></div>
+            <div><small>Network state</small><span class="intelValue" data-mirror="chainStatus">Checking</span></div>
+            <div><small>Last refresh</small><span class="intelValue" data-mirror="hRefresh">—</span></div>
           </div>
         </article>
       </section>
@@ -1738,12 +1935,12 @@
         <div class="panelHeader chainHead">
           <div>
             <h2>Latest Blocks (Chain View)</h2>
-            <span class="chainLegend">Real-time block flow on KAM Mainnet</span>
+            <span class="chainLegend" id="chainMeta">Real-time block flow on ZVQ Mainnet</span>
           </div>
           <a class="viewAll" href="/blocks">View All Blocks <b>→</b></a>
         </div>
         <div class="chainView" id="chainView">
-          <div class="chainEmpty">Connecting to KAM Network…</div>
+          <div class="chainEmpty">Connecting to ZEVARYQ Network…</div>
         </div>
         <section class="sourceStrip">
           <article class="sourceCard glass">
@@ -1757,7 +1954,7 @@
           </article>
           <article class="sourceCard glass">
             <div>
-              <div class="sourceName">KAM RPC</div>
+              <div class="sourceName">ZEVARYQ RPC</div>
               <div class="sourceValue">Same-origin /rpc gateway</div>
             </div>
             <span class="sourceState" id="rpcState">Checking</span>
@@ -1799,7 +1996,7 @@
             <tbody id="blocksBody">
               <tr>
                 <td colspan="5" class="placeholder">
-                  Connecting to KAM Network…
+                  Connecting to ZEVARYQ Network…
                 </td>
               </tr>
             </tbody>
@@ -1840,7 +2037,7 @@
         ><a href="/api-docs">API Docs</a><a href="/status">Network Status</a>
       </section>
       <footer class="footer">
-        <span>KAM Explorer V2 · Production UI</span
+        <span>ZEVARYQ Explorer V2 · Production UI</span
         ><span>Verified live data only · No fabricated statistics</span>
       </footer>
     </main>
@@ -1874,6 +2071,32 @@
             : String(v).length > n * 2 + 3
               ? String(v).slice(0, n) + "…" + String(v).slice(-n)
               : String(v);
+        function bindMirrors() {
+          document.querySelectorAll("[data-mirror]").forEach((target) => {
+            const source = $(target.dataset.mirror);
+            if (!source) return;
+            const sync = () => {
+              target.textContent = source.textContent;
+              target.className =
+                "intelValue" +
+                (source.classList.contains("ok")
+                  ? " ok"
+                  : source.classList.contains("warn")
+                    ? " warn"
+                    : source.classList.contains("bad")
+                      ? " bad"
+                      : "");
+            };
+            sync();
+            new MutationObserver(sync).observe(source, {
+              attributes: true,
+              childList: true,
+              characterData: true,
+              subtree: true,
+            });
+          });
+        }
+        bindMirrors();
         const hexNum = (v) => {
           if (v == null) return null;
           if (typeof v === "number") return v;
@@ -2001,7 +2224,7 @@
                 .padStart(18, "0")
                 .slice(0, 5)
                 .replace(/0+$/, "");
-            return whole.toString() + (frac ? "." + frac : "") + " KAM";
+            return whole.toString() + (frac ? "." + frac : "") + " ZVQ";
           } catch {
             return "—";
           }
@@ -2115,7 +2338,7 @@
               chain === EXPECTED_CHAIN ? "ok" : "bad",
             );
             $("mNetwork").textContent =
-              chain === EXPECTED_CHAIN ? "KAM Mainnet" : "Unverified";
+              chain === EXPECTED_CHAIN ? "ZVQ Mainnet" : "Unverified";
             $("mNetwork").className =
               "value " + (chain === EXPECTED_CHAIN ? "accent" : "");
             $("mNetworkSub").textContent =
@@ -2390,7 +2613,7 @@
               const gas = await rpc("eth_gasPrice").catch(() => null);
               $("mGas").textContent = gas ? weiHexToGwei(gas) : "Unavailable";
               blocks = await readBlocksRPC(8);
-              source = "KAM RPC";
+              source = "ZEVARYQ RPC";
               renderBlocks(blocks, source);
               renderTx(collectTx(blocks), source);
               let finalized = await rpc("eth_getBlockByNumber", [
@@ -2459,7 +2682,7 @@
             health("hBlocks", "Unavailable", "warn");
           }
           $("activeSource").textContent = rpcOK
-            ? "KAM RPC via /rpc"
+            ? "ZEVARYQ RPC via /rpc"
             : apiOK
               ? "Explorer API"
               : "No verified live source";
@@ -2471,7 +2694,7 @@
           setTop(
             rpcOK
               ? apiOK
-                ? "KAM Mainnet Live"
+                ? "ZVQ Mainnet Live"
                 : "RPC live · Indexer reconnecting"
               : apiOK
                 ? "Indexer Live"
@@ -2489,10 +2712,10 @@
           if (!q) return;
           const hint = $("searchHint");
           hint.className = "searchHint";
-          hint.textContent = "Checking KAM Network…";
+          hint.textContent = "Checking ZEVARYQ Network…";
           try {
             if (!rpcOK && !(await verifyRPC()))
-              throw Error("KAM RPC unavailable");
+              throw Error("ZEVARYQ RPC unavailable");
             if (/^0x[a-fA-F0-9]{64}$/.test(q)) {
               const tx = await rpc("eth_getTransactionByHash", [q]);
               if (tx) {
@@ -2516,14 +2739,14 @@
                       : "Pending / receipt unavailable",
                   ],
                 ]);
-                hint.textContent = "Transaction verified through KAM RPC.";
+                hint.textContent = "Transaction verified through ZEVARYQ RPC.";
                 hint.className = "searchHint ok";
                 return;
               }
               const b = await rpc("eth_getBlockByHash", [q, true]);
               if (b) {
                 showBlock(b);
-                hint.textContent = "Block verified through KAM RPC.";
+                hint.textContent = "Block verified through ZEVARYQ RPC.";
                 hint.className = "searchHint ok";
                 return;
               }
@@ -2546,7 +2769,7 @@
                     : "Externally owned / no bytecode",
                 ],
               ]);
-              hint.textContent = "Address state verified through KAM RPC.";
+              hint.textContent = "Address state verified through ZEVARYQ RPC.";
               hint.className = "searchHint ok";
               return;
             }
@@ -2560,12 +2783,12 @@
               ]);
               if (!b) throw Error("Block not found");
               showBlock(b);
-              hint.textContent = "Block verified through KAM RPC.";
+              hint.textContent = "Block verified through ZEVARYQ RPC.";
               hint.className = "searchHint ok";
               return;
             }
             throw Error(
-              "Use a KAM address, transaction hash, block hash, or block number.",
+              "Use a ZEVARYQ address, transaction hash, block hash, or block number.",
             );
           } catch (e) {
             hint.textContent = e.message || "Search unavailable";
