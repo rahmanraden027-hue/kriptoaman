@@ -3,6 +3,13 @@
 
 /functions/ @rahmanraden027-hue
 /server/ @rahmanraden027-hue
+/base44/functions/ @rahmanraden027-hue
+/base44/entities/ @rahmanraden027-hue
+/base44/workflows/ @rahmanraden027-hue
+/chain/ @rahmanraden027-hue
+/scripts/ @rahmanraden027-hue
+/explorer-dashboard/ @rahmanraden027-hue
+/explorer-seo/ @rahmanraden027-hue
 /migrations/ @rahmanraden027-hue
 /.github/workflows/ @rahmanraden027-hue
 /public/_headers @rahmanraden027-hue

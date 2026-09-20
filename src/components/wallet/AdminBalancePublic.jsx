@@ -46,7 +46,7 @@ export default function AdminBalancePublic() {
           <div className="w-5 h-5 rounded-lg bg-amber-600 flex items-center justify-center">
             <TrendingUp className="w-3 h-3 text-white" />
           </div>
-          <h3 className="text-white font-bold text-sm">Saldo Admin CoinVault</h3>
+          <h3 className="text-white font-bold text-sm">Saldo Admin KriptoAman</h3>
         </div>
         <span className="text-amber-400 text-[10px] bg-amber-500/20 px-2 py-1 rounded-full border border-amber-500/30">
           Publik

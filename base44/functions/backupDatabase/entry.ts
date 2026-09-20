@@ -34,7 +34,6 @@ Deno.serve(async (req) => {
       openPositions,
       tradingSignals,
       cexConnections,
-      secureVault,
     ] = await Promise.all([
       base44.asServiceRole.entities.User.list(),
       base44.asServiceRole.entities.UserBalance.list(),
@@ -46,7 +45,6 @@ Deno.serve(async (req) => {
       base44.asServiceRole.entities.OpenPosition.list(),
       base44.asServiceRole.entities.TradingSignal.list(),
       base44.asServiceRole.entities.CexConnection.list(),
-      base44.asServiceRole.entities.SecureVault.list(),
     ]);
 
     const backup = {
@@ -63,7 +61,6 @@ Deno.serve(async (req) => {
         openPositions: openPositions.length,
         tradingSignals: tradingSignals.length,
         cexConnections: cexConnections.length,
-        secureVault: secureVault.length,
       },
       data: {
         users: users.map(u => ({ id: u.id, email: u.email, full_name: u.full_name, role: u.role, kycStatus: u.kycStatus, created_date: u.created_date })),
@@ -76,7 +73,6 @@ Deno.serve(async (req) => {
         openPositions: openPositions.slice(0, 500), // limit besar
         tradingSignals: tradingSignals.slice(0, 500),
         cexConnections: cexConnections.map(c => ({ id: c.id, exchange: c.exchange, label: c.label, created_date: c.created_date })), // tanpa API key
-        secureVaultCount: secureVault.length, // hanya jumlah, tidak isi encrypted
       }
     };
 
@@ -96,7 +92,6 @@ Deno.serve(async (req) => {
           <li>💹 P2P Loans: <strong>${p2pLoans.length}</strong></li>
           <li>🤖 Trading Rules: <strong>${tradingRules.length}</strong></li>
           <li>📈 Open Positions: <strong>${openPositions.length}</strong></li>
-          <li>🔒 Secure Vault Items: <strong>${secureVault.length}</strong></li>
         </ul>
         <p>Backup otomatis berjalan sesuai jadwal. Data aman tersimpan.</p>
       `

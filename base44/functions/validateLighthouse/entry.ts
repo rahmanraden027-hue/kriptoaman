@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
         percentage: 88,
         status: 'ready',
         nextSteps: [
-          'Run: npx lighthouse https://coinvault.app --view',
+          'Run: npx lighthouse https://kriptoaman.com --view',
           'Fix any critical issues',
           'Submit to stores'
         ]

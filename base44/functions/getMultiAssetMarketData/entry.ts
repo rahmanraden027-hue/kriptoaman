@@ -59,96 +59,17 @@ async function getCryptoData(pair) {
   }
 }
 
-// Forex data from Twelve Data / Free Forex API (using LLM fallback)
+// Non-crypto providers fail closed until an approved live provider is configured.
 async function getForexData(pair) {
-  try {
-    // Use web context to fetch forex data
-    const response = await fetch(
-      `https://api.example.com/forex/${pair}`,
-      { headers: { 'Accept': 'application/json' } }
-    ).catch(() => null);
-
-    if (response?.ok) {
-      const data = await response.json();
-      return {
-        symbol: pair,
-        pair,
-        currentPrice: data.bid,
-        change24h: data.change_percent || 0,
-        volume24h: data.volume || 0,
-        rsi: calculateRSIFromPrices(data.prices || []),
-        atr: calculateATRFromPrices(data.prices || []),
-        high: data.high,
-        low: data.low,
-        timestamp: new Date().toISOString()
-      };
-    }
-
-    // Fallback: Generate realistic forex data for simulation
-    return generateForexMockData(pair);
-  } catch (error) {
-    return generateForexMockData(pair);
-  }
+  throw new Error(`Verified forex provider unavailable for ${pair}`);
 }
 
-// Indices data from Finnhub / TradingView fallback
 async function getIndicesData(pair) {
-  try {
-    const response = await fetch(
-      `https://api.example.com/indices/${pair}`,
-      { headers: { 'Accept': 'application/json' } }
-    ).catch(() => null);
-
-    if (response?.ok) {
-      const data = await response.json();
-      return {
-        symbol: pair,
-        pair,
-        currentPrice: data.close,
-        change24h: data.change_percent || 0,
-        volume24h: data.volume || 0,
-        rsi: calculateRSIFromPrices(data.prices || []),
-        atr: calculateATRFromPrices(data.prices || []),
-        high: data.high,
-        low: data.low,
-        timestamp: new Date().toISOString()
-      };
-    }
-
-    return generateIndicesMockData(pair);
-  } catch (error) {
-    return generateIndicesMockData(pair);
-  }
+  throw new Error(`Verified indices provider unavailable for ${pair}`);
 }
 
-// Commodities data from Finnhub / TradingView fallback
 async function getCommoditiesData(pair) {
-  try {
-    const response = await fetch(
-      `https://api.example.com/commodities/${pair}`,
-      { headers: { 'Accept': 'application/json' } }
-    ).catch(() => null);
-
-    if (response?.ok) {
-      const data = await response.json();
-      return {
-        symbol: pair,
-        pair,
-        currentPrice: data.close,
-        change24h: data.change_percent || 0,
-        volume24h: data.volume || 0,
-        rsi: calculateRSIFromPrices(data.prices || []),
-        atr: calculateATRFromPrices(data.prices || []),
-        high: data.high,
-        low: data.low,
-        timestamp: new Date().toISOString()
-      };
-    }
-
-    return generateCommoditiesMockData(pair);
-  } catch (error) {
-    return generateCommoditiesMockData(pair);
-  }
+  throw new Error(`Verified commodities provider unavailable for ${pair}`);
 }
 
 // Technical Indicators
@@ -164,10 +85,6 @@ function calculateRSI(prices, period = 14) {
   
   const rs = (gains / period) / (losses / period);
   return 100 - (100 / (1 + rs));
-}
-
-function calculateRSIFromPrices(prices) {
-  return calculateRSI(prices);
 }
 
 function calculateATR(klines, period = 14) {
@@ -197,62 +114,6 @@ function calculateATRFromPrices(prices) {
   return volatility;
 }
 
-// Mock data generators for fallback
-function generateForexMockData(pair) {
-  const basePrice = 1.1 + Math.random() * 0.5;
-  const change = (Math.random() - 0.5) * 2;
-  
-  return {
-    symbol: pair,
-    pair,
-    currentPrice: basePrice,
-    change24h: change,
-    volume24h: Math.random() * 1000000000,
-    rsi: 30 + Math.random() * 40,
-    atr: basePrice * 0.01,
-    high: basePrice * 1.02,
-    low: basePrice * 0.98,
-    timestamp: new Date().toISOString()
-  };
-}
-
-function generateIndicesMockData(pair) {
-  const basePrice = 4000 + Math.random() * 2000;
-  const change = (Math.random() - 0.5) * 3;
-  
-  return {
-    symbol: pair,
-    pair,
-    currentPrice: basePrice,
-    change24h: change,
-    volume24h: Math.random() * 10000000000,
-    rsi: 35 + Math.random() * 30,
-    atr: basePrice * 0.01,
-    high: basePrice * 1.015,
-    low: basePrice * 0.985,
-    timestamp: new Date().toISOString()
-  };
-}
-
-function generateCommoditiesMockData(pair) {
-  const priceMap = { GOLD: 2000, OIL: 80, SILVER: 25, COPPER: 4 };
-  const basePrice = priceMap[pair] || 100;
-  const change = (Math.random() - 0.5) * 2;
-  
-  return {
-    symbol: pair,
-    pair,
-    currentPrice: basePrice,
-    change24h: change,
-    volume24h: Math.random() * 5000000000,
-    rsi: 40 + Math.random() * 20,
-    atr: basePrice * 0.015,
-    high: basePrice * 1.01,
-    low: basePrice * 0.99,
-    timestamp: new Date().toISOString()
-  };
-}
-
 // Main API endpoint
 Deno.serve(async (req) => {
   try {
@@ -273,6 +134,6 @@ Deno.serve(async (req) => {
     return Response.json(marketData);
   } catch (error) {
     console.error('API error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ status: 'UNAVAILABLE', error: error.message }, { status: 503 });
   }
 });

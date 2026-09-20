@@ -1,5 +1,5 @@
 // PWA Service Worker for offline functionality and caching
-const CACHE_NAME = 'coinvault-v1';
+const CACHE_NAME = 'kriptoaman-v1';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -122,16 +122,16 @@ self.addEventListener('sync', event => {
 // Push notifications
 self.addEventListener('push', event => {
   const options = {
-    body: event.data?.text() || 'New notification from COINVAULT',
+    body: event.data?.text() || 'Notifikasi baru dari KriptoAman',
     icon: '/icon-192x192.png',
     badge: '/badge-72x72.png',
     vibrate: [200, 100, 200],
-    tag: 'coinvault-notification',
+    tag: 'kriptoaman-notification',
     requireInteraction: false
   };
 
   event.waitUntil(
-    self.registration.showNotification('COINVAULT', options)
+    self.registration.showNotification('KriptoAman', options)
   );
 });
 

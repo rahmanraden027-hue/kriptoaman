@@ -17,7 +17,8 @@ export default function Referral() {
     base44.auth.me().then(async (u) => {
       let nextUser = u;
       if (!u.referralCode) {
-        const code = `KA${(u.id?.replace(/[^a-zA-Z0-9]/g, '').slice(-6) || Math.random().toString(36).slice(-6)).toUpperCase().padEnd(6, '0')}`.slice(0, 8);
+        const fallbackId = crypto.randomUUID().replace(/-/g, '').slice(-6);
+        const code = `KA${(u.id?.replace(/[^a-zA-Z0-9]/g, '').slice(-6) || fallbackId).toUpperCase().padEnd(6, '0')}`.slice(0, 8);
         try {
           nextUser = await base44.auth.updateMe({ referralCode: code });
         } catch {

@@ -56,7 +56,7 @@ export default function OfflinePage() {
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">Anda Sedang Offline</h1>
               <p className="text-slate-400 text-lg">
-                Koneksi internet Anda terputus. COINVAULT sedang mencoba menyambungkan kembali...
+                Koneksi internet Anda terputus. KriptoAman sedang mencoba menyambungkan kembali...
               </p>
             </div>
 
@@ -95,7 +95,7 @@ export default function OfflinePage() {
 
             <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
               <p className="text-blue-300 text-xs">
-                💡 COINVAULT menggunakan teknologi PWA. Data Anda disimpan secara aman di perangkat Anda bahkan saat offline.
+                💡 KriptoAman menggunakan teknologi PWA. Data Anda disimpan secara aman di perangkat Anda bahkan saat offline.
               </p>
             </div>
 

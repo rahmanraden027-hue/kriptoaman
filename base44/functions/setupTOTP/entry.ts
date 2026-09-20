@@ -27,10 +27,13 @@ Deno.serve(async (req) => {
     // Generate QR code URL
     const qrCodeUrl = await QRCode.toDataURL(secret.otpauth_url);
 
-    // Generate 10 backup codes
-    const backupCodes = Array.from({ length: 10 }, () => {
-      return Math.random().toString(36).substr(2, 8).toUpperCase();
-    });
+    // Recovery codes are security secrets and must use a CSPRNG.
+    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const generateRecoveryCode = () => {
+      const bytes = crypto.getRandomValues(new Uint8Array(12));
+      return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join('');
+    };
+    const backupCodes = Array.from({ length: 10 }, generateRecoveryCode);
 
     console.log(`[TOTP] Generated secret for user: ${user.email}`);
 

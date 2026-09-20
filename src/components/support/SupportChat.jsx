@@ -64,7 +64,7 @@ export default function SupportChat({ user, onClose }) {
   const [conversationId] = useState(() => {
     const key = 'cv_support_conv_id';
     let id = localStorage.getItem(key);
-    if (!id) { id = `conv_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`; localStorage.setItem(key, id); }
+    if (!id) { id = `conv_${crypto.randomUUID()}`; localStorage.setItem(key, id); }
     return id;
   });
   const bottomRef = useRef(null);

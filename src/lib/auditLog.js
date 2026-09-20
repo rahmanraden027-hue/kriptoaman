@@ -17,7 +17,7 @@ function store(entry) {
 /** Record an audit event. Fire-and-forget; never throws. */
 export function logAudit(event, data = {}) {
   const entry = {
-    id: `a_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    id: `a_${crypto.randomUUID()}`,
     timestamp: new Date().toISOString(),
     event: String(event),
     data,
