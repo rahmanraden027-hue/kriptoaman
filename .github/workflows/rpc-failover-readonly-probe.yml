@@ -1,0 +1,54 @@
+name: RPC Failover Readonly Probe
+
+on:
+  push:
+    branches:
+      - ops/rpc-failover-probe-20260922
+    paths:
+      - '.github/workflows/rpc-failover-readonly-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - name: Probe same-VPC RPC candidates without mutation
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p artifacts
+          : > artifacts/rpc-failover.txt
+          rpc_probe() {
+            local label="$1" url="$2"
+            echo "=== $label ===" | tee -a artifacts/rpc-failover.txt
+            for method in eth_chainId eth_blockNumber; do
+              payload="{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"$method\",\"params\":[]}"
+              response="$(curl -sS --connect-timeout 3 --max-time 8 -H 'content-type: application/json' --data "$payload" "$url" 2>&1 || true)"
+              printf '%s=%s\n' "$method" "$response" | tee -a artifacts/rpc-failover.txt
+            done
+          }
+          rpc_probe sentry_private_8545 http://10.104.0.2:8545
+          rpc_probe recovery_private_8545 http://10.104.0.8:8545
+          rpc_probe recovery_evidence_8648 http://10.104.0.8:8648
+          rpc_probe explorer_same_origin_rpc http://127.0.0.1/rpc
+          echo "--- tcp summary ---" | tee -a artifacts/rpc-failover.txt
+          for target in 10.104.0.2:8545 10.104.0.8:8545 10.104.0.8:8648; do
+            host="${target%:*}"; port="${target##*:}"
+            if timeout 3 bash -c "</dev/tcp/$host/$port" 2>/dev/null; then
+              echo "$target=open" | tee -a artifacts/rpc-failover.txt
+            else
+              echo "$target=closed_or_unreachable" | tee -a artifacts/rpc-failover.txt
+            fi
+          done
+      - name: Upload probe
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: rpc-failover-readonly-probe
+          path: artifacts/rpc-failover.txt
+          if-no-files-found: error
+          retention-days: 7
