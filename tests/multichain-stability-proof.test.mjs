@@ -6,7 +6,7 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('scheduled stability proof is read-only and keeps the 12-network hard gate', async () => {
   const workflow = await read('.github/workflows/multichain-stability-proof.yml');
-  assert.ok(workflow.includes("cron: '11,41 * * * *'"));
+  assert.ok(workflow.includes("cron: '41 * * * *'"));
   assert.ok(workflow.includes('permissions:\n  contents: read'));
   assert.ok(workflow.includes('network-health?refresh=1&stability=${GITHUB_RUN_ID}-${attempt}'));
   assert.ok(workflow.includes('scripts/summarize-network-health.mjs'));
