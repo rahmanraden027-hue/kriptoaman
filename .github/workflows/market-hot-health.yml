@@ -3,7 +3,9 @@ name: Hot Market Health
 on:
   workflow_dispatch:
   schedule:
-    - cron: '2,7,12,17,22,27,32,37,42,47,52,57 * * * *'
+    # Two checks per hour are sufficient here; the five-minute snapshot warmer
+    # remains the freshness owner and this workflow only verifies delivery.
+    - cron: '2,32 * * * *'
 
 permissions:
   contents: read

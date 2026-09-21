@@ -11,7 +11,8 @@ on:
       - '.github/workflows/market-data-trust-gate.yml'
       - '.github/workflows/market-snapshot-warm.yml'
   schedule:
-    - cron: '7,22,37,52 * * * *'
+    # Deep market trust verification is hourly; the dedicated warmer owns freshness.
+    - cron: '12 * * * *'
 
 permissions:
   contents: read
