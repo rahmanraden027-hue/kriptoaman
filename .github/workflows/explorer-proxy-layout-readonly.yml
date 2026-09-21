@@ -1,0 +1,31 @@
+name: Explorer Proxy Layout Readonly
+
+on:
+  push:
+    branches:
+      - ops/explorer-proxy-layout-20260922
+    paths:
+      - '.github/workflows/explorer-proxy-layout-readonly.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - name: Inspect proxy source-of-truth without mutation
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          cd /opt/blockscout/docker-compose
+          echo '--- compose proxy mounts/command ---'
+          docker compose config | sed -n '/proxy:/,/^[^ ]/p' | head -n 220
+          echo '--- proxy directory files ---'
+          find proxy -maxdepth 3 -type f -printf '%p %s bytes\n' | sort | head -n 250
+          echo '--- dashboard references ---'
+          grep -RIn --exclude='*.bak' --exclude='*.webp' --exclude='*.png'             -E 'kam-dashboard|index\.html|zevaryq-production|zevaryq-preview' proxy docker-compose.yml 2>/dev/null | head -n 300 || true
+          echo '--- default template relevant lines ---'
+          grep -n -E 'server_name|listen|kam-dashboard|location|root|alias|try_files|index' proxy/default.conf.template | head -n 260 || true
