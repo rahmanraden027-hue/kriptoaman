@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - "explorer-dashboard/zevaryq-production.html"
+      - "explorer-dashboard/assets/**"
       - "scripts/deploy-zevaryq-explorer.sh"
       - "tests/zevaryq-explorer-production.test.mjs"
       - ".github/workflows/zevaryq-explorer-production.yml"
@@ -10,6 +11,7 @@ on:
     branches: [main]
     paths:
       - "explorer-dashboard/zevaryq-production.html"
+      - "explorer-dashboard/assets/**"
       - "scripts/deploy-zevaryq-explorer.sh"
       - "tests/zevaryq-explorer-production.test.mjs"
       - ".github/workflows/zevaryq-explorer-production.yml"
