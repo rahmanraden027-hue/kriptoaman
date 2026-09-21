@@ -1,5 +1,11 @@
 name: Zevaryq Explorer Production Deploy
 on:
+  pull_request:
+    paths:
+      - "explorer-dashboard/zevaryq-production.html"
+      - "scripts/deploy-zevaryq-explorer.sh"
+      - "tests/zevaryq-explorer-production.test.mjs"
+      - ".github/workflows/zevaryq-explorer-production.yml"
   workflow_dispatch:
     inputs:
       confirm_explorer_only:
@@ -8,7 +14,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: zevaryq-explorer-production
+  group: zevaryq-explorer-production-${{ github.ref }}
   cancel-in-progress: false
 jobs:
   validate:
@@ -17,7 +23,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Enforce protected-zone boundary
         run: |
-          test "${{ inputs.confirm_explorer_only }}" = "DEPLOY-ZEVARYQ-EXPLORER"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            test "${{ inputs.confirm_explorer_only }}" = "DEPLOY-ZEVARYQ-EXPLORER"
+          fi
           test -f explorer-dashboard/zevaryq-production.html
           test -f scripts/deploy-zevaryq-explorer.sh
           grep -q 'ZEVARYQ EXPLORER' explorer-dashboard/zevaryq-production.html
@@ -25,6 +33,7 @@ jobs:
           ! grep -Eqi 'kriptoaman\.com/\*|cloudflare pages|genesis|private.?key|postgres.*reset|redis.*reset' scripts/deploy-zevaryq-explorer.sh
           node --test tests/zevaryq-explorer-production.test.mjs
   deploy:
+    if: github.event_name == 'workflow_dispatch'
     needs: validate
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
     timeout-minutes: 20
