@@ -119,3 +119,11 @@ test('static security policy enables HSTS, CSP, anti-framing and noindex for adm
   assert.match(headers, /\/Admin\*/);
   assert.match(headers, /X-Robots-Tag: noindex, nofollow, noarchive/);
 });
+
+
+test('Cloudflare Pages invokes Functions only for API routes', async () => {
+  const routes = JSON.parse(await source('../public/_routes.json'));
+  assert.equal(routes.version, 1);
+  assert.deepEqual(routes.include, ['/api/*']);
+  assert.deepEqual(routes.exclude, []);
+});
