@@ -1,0 +1,39 @@
+name: Zevaryq Explorer Production Deploy
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_explorer_only:
+        description: "Type DEPLOY-ZEVARYQ-EXPLORER"
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: zevaryq-explorer-production
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enforce protected-zone boundary
+        run: |
+          test "${{ inputs.confirm_explorer_only }}" = "DEPLOY-ZEVARYQ-EXPLORER"
+          test -f explorer-dashboard/zevaryq-production.html
+          test -f scripts/deploy-zevaryq-explorer.sh
+          grep -q 'ZEVARYQ EXPLORER' explorer-dashboard/zevaryq-production.html
+          grep -q "EXPECTED_CHAIN='0x560c'" explorer-dashboard/zevaryq-production.html
+          ! grep -Eqi 'kriptoaman\.com/\*|cloudflare pages|genesis|private.?key|postgres.*reset|redis.*reset' scripts/deploy-zevaryq-explorer.sh
+          node --test tests/zevaryq-explorer-production.test.mjs
+  deploy:
+    needs: validate
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Confirm dedicated Explorer host
+        run: |
+          test "$(hostname)" != ""
+          test -d /opt/blockscout/docker-compose/proxy/kam-dashboard
+          test -f /opt/blockscout/docker-compose/proxy/default.conf.template
+      - name: Deploy Explorer homepage only
+        run: sudo bash scripts/deploy-zevaryq-explorer.sh explorer-dashboard/zevaryq-production.html
