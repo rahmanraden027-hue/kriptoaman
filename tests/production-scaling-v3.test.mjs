@@ -25,7 +25,7 @@ test('production SLO proof measures critical read paths on a recurring schedule'
     read('.github/workflows/production-slo-proof.yml'),
     read('scripts/probe-production-slo.mjs'),
   ]);
-  assert.match(workflow, /cron: '4,19,34,49 \* \* \* \*'/);
+  assert.match(workflow, /cron: '4 \\* \\* \\* \\*'/);
   assert.match(workflow, /retention-days: 14/);
   for (const endpoint of ['market-hot', 'market-page', 'platform-status', 'network-health', 'kam-network-status', 'scaling-readiness']) {
     assert.ok(probe.includes(`name: '${endpoint}'`));
