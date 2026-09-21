@@ -94,7 +94,6 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          sleep 3
           ua='KriptoAman-ZEVARYQ-Logo-Verification/1.0'
 
           curl -L -fsS --retry 8 --retry-delay 2 --retry-all-errors             --connect-timeout 10 --max-time 30             -A "$ua" -H 'Cache-Control: no-cache'             https://explorer.kriptoaman.com/ -o evidence/home.html
@@ -103,10 +102,20 @@ jobs:
           grep -Fq '/zevaryq-assets/zevaryq-emblem.webp?v=1.1.0' evidence/home.html
           grep -Fq 'alt="ZEVARYQ emblem"' evidence/home.html
 
-          curl -L -fsS --retry 8 --retry-delay 2 --retry-all-errors             --connect-timeout 10 --max-time 30             -A "$ua" -H 'Cache-Control: no-cache'             -D evidence/emblem.headers             'https://explorer.kriptoaman.com/zevaryq-assets/zevaryq-emblem.webp?v=1.1.0'             -o evidence/emblem.webp
-          grep -qi '^content-type:.*image/webp' evidence/emblem.headers
-          grep -qi '^x-zevaryq-asset-edge: direct-origin' evidence/emblem.headers
-          cmp -s evidence/emblem.webp explorer-dashboard/assets/zevaryq-emblem.webp
+          asset_ready=false
+          for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
+            : > evidence/emblem.headers
+            if curl -L -fsS --connect-timeout 10 --max-time 30               -A "$ua" -H 'Cache-Control: no-cache'               -D evidence/emblem.headers               "https://explorer.kriptoaman.com/zevaryq-assets/zevaryq-emblem.webp?v=1.1.0&verify=$GITHUB_RUN_ID-$attempt"               -o evidence/emblem.webp; then
+              if grep -qi '^content-type:.*image/webp' evidence/emblem.headers                 && grep -qi '^x-zevaryq-asset-edge: direct-origin' evidence/emblem.headers                 && cmp -s evidence/emblem.webp explorer-dashboard/assets/zevaryq-emblem.webp; then
+                asset_ready=true
+                echo "asset route propagated at attempt $attempt"
+                break
+              fi
+            fi
+            echo "waiting for asset route propagation: attempt $attempt"
+            sleep 5
+          done
+          test "$asset_ready" = "true"
 
           curl -L -fsS --retry 8 --retry-delay 2 --retry-all-errors             --connect-timeout 10 --max-time 30             -A "$ua" -H 'Cache-Control: no-cache'             -D evidence/favicon.headers             'https://explorer.kriptoaman.com/zevaryq-assets/zevaryq-favicon.png?v=1.1.0'             -o evidence/favicon.png
           grep -qi '^content-type:.*image/png' evidence/favicon.headers
