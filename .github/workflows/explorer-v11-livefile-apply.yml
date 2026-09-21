@@ -1,0 +1,58 @@
+name: Explorer V1.1 Livefile Apply
+
+on:
+  push:
+    branches:
+      - ops/explorer-livefile-v11-20260922
+    paths:
+      - '.github/workflows/explorer-v11-livefile-apply.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  apply:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - name: Apply v1.1 static files without restarting proxy
+        shell: bash
+        run: |
+          sudo env GITHUB_WORKSPACE="$GITHUB_WORKSPACE" bash -s <<'ROOT'
+          set -Eeuo pipefail
+          target=/opt/blockscout/docker-compose/proxy/kam-dashboard
+          src="$GITHUB_WORKSPACE/explorer-dashboard/zevaryq-production.html"
+          emblem="$GITHUB_WORKSPACE/explorer-dashboard/assets/zevaryq-emblem.webp"
+          favicon="$GITHUB_WORKSPACE/explorer-dashboard/assets/zevaryq-favicon.png"
+          stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+          grep -q 'data-zevaryq-explorer-version="1.1.0"' "$src"
+          test -w "$target"
+          cp -a "$target/index.html" "$target/index.html.pre-v11-$stamp.bak"
+          install -m 0644 "$src" "$target/index.html"
+          mkdir -p "$target/zevaryq-assets"
+          install -m 0644 "$emblem" "$target/zevaryq-assets/zevaryq-emblem.webp"
+          install -m 0644 "$favicon" "$target/zevaryq-assets/zevaryq-favicon.png"
+          grep -q 'data-zevaryq-explorer-version="1.1.0"' "$target/index.html"
+          stat -c 'index_mtime=%y index_size=%s' "$target/index.html"
+          ROOT
+      - name: Verify local and direct IP immediately and after stabilization
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          verify() {
+            local label="$1" url="$2"
+            local body code
+            body="$(mktemp)"
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$body" -w '%{http_code}' "$url")"
+            printf '%s_http=%s\n' "$label" "$code"
+            test "$code" = "200"
+            grep -q 'data-zevaryq-explorer-version="1.1.0"' "$body"
+            grep -q 'ZEVARYQ EXPLORER' "$body"
+            rm -f "$body"
+          }
+          verify local http://127.0.0.1/
+          verify direct http://146.190.93.254/
+          sleep 15
+          verify local_after_15s http://127.0.0.1/
+          verify direct_after_15s http://146.190.93.254/
