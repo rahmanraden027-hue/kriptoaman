@@ -1,0 +1,46 @@
+name: RPC SSH Readonly Probe
+
+on:
+  push:
+    branches:
+      - ops/rpc-ssh-probe-20260922
+    paths:
+      - '.github/workflows/rpc-ssh-readonly-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - name: Probe private management reachability
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p artifacts
+          : > artifacts/ssh-probe.txt
+          for entry in sentry:10.104.0.2 recovery:10.104.0.8; do
+            name="${entry%%:*}"; host="${entry##*:}"
+            if timeout 3 bash -c "</dev/tcp/$host/22" 2>/dev/null; then
+              echo "$name tcp22=open" | tee -a artifacts/ssh-probe.txt
+            else
+              echo "$name tcp22=closed_or_unreachable" | tee -a artifacts/ssh-probe.txt
+            fi
+            if ssh -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new root@"$host" 'printf "ssh_ready=true\n"; hostname; systemctl is-system-running 2>/dev/null || true' > "artifacts/${name}-ssh.txt" 2>&1; then
+              echo "$name ssh=ready" | tee -a artifacts/ssh-probe.txt
+            else
+              echo "$name ssh=unavailable" | tee -a artifacts/ssh-probe.txt
+            fi
+          done
+          cat artifacts/ssh-probe.txt
+      - name: Upload probe
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: rpc-ssh-readonly-probe
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 7
