@@ -17,7 +17,8 @@ on:
       - 'tests/market-consensus.test.mjs'
       - '.github/workflows/market-consensus-trust-gate.yml'
   schedule:
-    - cron: '7,22,37,52 * * * *'
+    # Cross-provider consensus is an audit signal, not the customer freshness loop.
+    - cron: '42 * * * *'
 
 permissions:
   contents: read
