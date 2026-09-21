@@ -1,0 +1,57 @@
+name: KAM Explorer Public Read-Only Snapshot
+
+on:
+  push:
+    branches:
+      - diag/explorer-indexer-readonly
+    paths:
+      - '.github/workflows/kam-explorer-public-readonly-snapshot.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Capture public Explorer and RPC evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          blocks="$(mktemp)"
+          stats="$(mktemp)"
+          txs="$(mktemp)"
+          trap 'rm -f "$blocks" "$stats" "$txs"' EXIT
+
+          curl -fsS --max-time 20 'https://explorer.kriptoaman.com/api/v2/blocks' -o "$blocks"
+          curl -fsS --max-time 20 'https://explorer.kriptoaman.com/api/v2/stats' -o "$stats"
+          curl -fsS --max-time 20 'https://explorer.kriptoaman.com/api/v2/transactions' -o "$txs"
+
+          python3 - "$blocks" "$stats" "$txs" <<'PY'
+          import json,sys
+          blocks=json.load(open(sys.argv[1]))
+          stats=json.load(open(sys.argv[2]))
+          txs=json.load(open(sys.argv[3]))
+          items=blocks.get("items") or []
+          latest=items[0] if items else {}
+          tx_items=txs.get("items") or []
+          latest_tx=tx_items[0] if tx_items else {}
+          safe={
+            "explorer_height": latest.get("height") or latest.get("number"),
+            "explorer_block_hash": latest.get("hash"),
+            "explorer_block_timestamp": latest.get("timestamp"),
+            "explorer_block_tx_count": latest.get("transaction_count") or latest.get("tx_count"),
+            "stats_total_transactions": stats.get("total_transactions"),
+            "stats_total_addresses": stats.get("total_addresses"),
+            "stats_average_block_time": stats.get("average_block_time"),
+            "latest_tx_hash": latest_tx.get("hash"),
+            "latest_tx_timestamp": latest_tx.get("timestamp"),
+          }
+          print(json.dumps(safe,indent=2,sort_keys=True))
+          PY
+
+          echo '--- rpc identity/head ---'
+          curl -fsS --max-time 20             -H 'content-type: application/json'             --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}'             'https://rpc.kriptoaman.com'             | python3 -c 'import json,sys; print("chain_id="+str(json.load(sys.stdin).get("result")))'
+          curl -fsS --max-time 20             -H 'content-type: application/json'             --data '{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}'             'https://rpc.kriptoaman.com'             | python3 -c 'import json,sys; h=json.load(sys.stdin).get("result"); print("rpc_head="+str(int(h,16))); print("rpc_head_hex="+str(h))'
