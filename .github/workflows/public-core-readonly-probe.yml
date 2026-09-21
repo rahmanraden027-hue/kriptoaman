@@ -1,0 +1,51 @@
+name: Public Core Readonly Probe
+
+on:
+  push:
+    branches:
+      - ops/public-core-probe-20260922
+    paths:
+      - '.github/workflows/public-core-readonly-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - name: Probe production surfaces
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p artifacts
+          : > artifacts/public-core.txt
+          probe_get() {
+            local label="$1" url="$2" body="artifacts/$1.body" headers="artifacts/$1.headers"
+            local code
+            code="$(curl -sS -L --connect-timeout 8 --max-time 25 -D "$headers" -o "$body" -w '%{http_code}' "$url" || true)"
+            echo "$label=$code" | tee -a artifacts/public-core.txt
+          }
+          probe_get site https://kriptoaman.com/
+          probe_get explorer https://explorer.kriptoaman.com/
+          probe_get explorer_blocks https://explorer.kriptoaman.com/api/v2/blocks
+          probe_get rpc_health https://rpc.kriptoaman.com/health
+          probe_get rpc_ready https://rpc.kriptoaman.com/ready
+          for method in eth_chainId eth_blockNumber; do
+            body="{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"$method\",\"params\":[]}"
+            out="$(curl -sS --connect-timeout 8 --max-time 25 -H 'content-type: application/json' --data "$body" https://rpc.kriptoaman.com/ 2>&1 || true)"
+            echo "rpc_$method=$out" | tee -a artifacts/public-core.txt
+          done
+          grep -Fq 'ZEVARYQ EXPLORER' artifacts/explorer.body && echo 'explorer_brand=ZEVARYQ' | tee -a artifacts/public-core.txt || true
+          grep -Fq 'Chain ID 22028' artifacts/explorer.body && echo 'explorer_chain_label=22028' | tee -a artifacts/public-core.txt || true
+          cat artifacts/public-core.txt
+      - name: Upload public probe
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: public-core-readonly-probe
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 7
