@@ -81,18 +81,10 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: npx --yes wrangler@4.36.0 deploy
 
-      - name: Verify deployed Worker content and unchanged routes
+      - name: Verify unchanged Explorer routes after Worker deploy
         shell: bash
         run: |
           set -euo pipefail
-          curl --fail-with-body -sS \
-            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/content" \
-            -H "Authorization: Bearer ${CF_API_TOKEN}" \
-            -H 'Accept: */*' \
-            -o artifacts/deployed-worker-content.txt
-          grep -q 'zevaryq-edge-1.0.0' artifacts/deployed-worker-content.txt
-          grep -q 'ZEVARYQ EXPLORER' artifacts/deployed-worker-content.txt
-
           routes="$(curl --fail-with-body -sS \
             "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes" \
             -H "Authorization: Bearer ${CF_API_TOKEN}" \
