@@ -9,7 +9,8 @@ on:
       - 'scripts/probe-production-slo.mjs'
       - '.github/workflows/production-slo-proof.yml'
   schedule:
-    - cron: '4,19,34,49 * * * *'
+    # Keep one hourly SLO proof and avoid duplicating higher-frequency health probes.
+    - cron: '4 * * * *'
   workflow_dispatch:
 
 permissions:
