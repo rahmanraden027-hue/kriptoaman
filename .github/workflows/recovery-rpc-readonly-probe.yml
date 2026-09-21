@@ -1,0 +1,37 @@
+name: Recovery RPC Readonly Probe
+
+on:
+  push:
+    branches:
+      - ops/recovery-rpc-probe-20260922
+    paths:
+      - '.github/workflows/recovery-rpc-readonly-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - name: Probe recovery-node RPC candidates without mutation
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          rpc_probe() {
+            local label="$1" url="$2"
+            local response code
+            response="$(mktemp)"
+            code="$(curl -sS --connect-timeout 4 --max-time 8               -H 'content-type: application/json'               --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}'               -o "$response" -w '%{http_code}' "$url" || true)"
+            printf '%s http=%s body=' "$label" "$code"
+            head -c 180 "$response" | tr '\n' ' '
+            echo
+            rm -f "$response"
+          }
+          rpc_probe recovery_private_8545 http://10.104.0.8:8545
+          rpc_probe recovery_private_8648 http://10.104.0.8:8648
+          rpc_probe recovery_private_9545 http://10.104.0.8:9545
+          rpc_probe recovery_public_8545 http://152.42.199.82:8545
+          rpc_probe recovery_public_8648 http://152.42.199.82:8648
