@@ -1,0 +1,98 @@
+name: KAM Explorer Indexer Recovery Gated
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type RESTART_BLOCKSCOUT_INDEXER_ONLY to continue'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kam-explorer-indexer-recovery-gated
+  cancel-in-progress: false
+
+jobs:
+  recover:
+    if: ${{ github.event.inputs.confirm == 'RESTART_BLOCKSCOUT_INDEXER_ONLY' }}
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 20
+    steps:
+      - name: Preflight fail-closed recovery boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE=/opt/blockscout/docker-compose
+          cd "$BASE"
+
+          chain_id="$(curl -fsS --max-time 15             -H 'content-type: application/json'             --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}'             https://explorer.kriptoaman.com/rpc             | python3 -c 'import json,sys; print(json.load(sys.stdin).get("result") or "")')"
+          test "$chain_id" = "0x560c"
+
+          rpc_hex="$(curl -fsS --max-time 15             -H 'content-type: application/json'             --data '{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}'             https://explorer.kriptoaman.com/rpc             | python3 -c 'import json,sys; print(json.load(sys.stdin).get("result") or "")')"
+          rpc_head="$((16#${rpc_hex#0x}))"
+
+          explorer_head="$(curl -fsS --max-time 15 http://127.0.0.1/api/v2/blocks             | python3 -c 'import json,sys; d=json.load(sys.stdin); x=(d.get("items") or [{}])[0]; print(x.get("height") or x.get("number") or 0)')"
+
+          DB_ID="$(docker compose ps -q db)"
+          BACKEND_ID="$(docker compose ps -q backend)"
+          test -n "$DB_ID"
+          test -n "$BACKEND_ID"
+          test "$(docker inspect "$DB_ID" --format '{{.State.Running}}')" = "true"
+          test "$(docker inspect "$BACKEND_ID" --format '{{.State.Running}}')" = "true"
+
+          gap="$((rpc_head-explorer_head))"
+          echo "chain_id=$chain_id"
+          echo "rpc_head=$rpc_head"
+          echo "explorer_head=$explorer_head"
+          echo "gap=$gap"
+          test "$gap" -gt 5
+
+          echo 'preflight=PASS'
+          echo 'database_restart=PROHIBITED'
+          echo 'volume_delete=PROHIBITED'
+          echo 'full_reindex=PROHIBITED'
+          echo 'firewall_change=PROHIBITED'
+          echo 'validator_change=PROHIBITED'
+
+      - name: Restart only Blockscout indexing application service
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /opt/blockscout/docker-compose
+          services="$(docker compose ps --services)"
+          if grep -qx 'indexer' <<<"$services"; then
+            echo 'restart_target=indexer'
+            docker compose restart indexer
+          else
+            echo 'restart_target=backend'
+            docker compose restart backend
+          fi
+
+      - name: Verify indexed height resumes advancing
+        shell: bash
+        run: |
+          set -euo pipefail
+          start="$(curl -fsS --max-time 15 http://127.0.0.1/api/v2/blocks             | python3 -c 'import json,sys; d=json.load(sys.stdin); x=(d.get("items") or [{}])[0]; print(x.get("height") or x.get("number") or 0)')"
+          echo "indexed_start=$start"
+
+          advanced=false
+          for attempt in $(seq 1 20); do
+            sleep 30
+            now="$(curl -fsS --max-time 15 http://127.0.0.1/api/v2/blocks               | python3 -c 'import json,sys; d=json.load(sys.stdin); x=(d.get("items") or [{}])[0]; print(x.get("height") or x.get("number") or 0)')"
+            echo "attempt=$attempt indexed_now=$now"
+            if [ "$now" -gt "$start" ]; then
+              advanced=true
+              break
+            fi
+          done
+          test "$advanced" = "true"
+
+      - name: Public post-check
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS --max-time 20 https://explorer.kriptoaman.com/api/v2/blocks             | python3 -c 'import json,sys; d=json.load(sys.stdin); x=(d.get("items") or [{}])[0]; print("public_explorer_height="+str(x.get("height") or x.get("number")))'
+          curl -fsS --max-time 20             -H 'content-type: application/json'             --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}'             https://rpc.kriptoaman.com             | python3 -c 'import json,sys; assert json.load(sys.stdin).get("result")=="0x560c"; print("public_chain_id=0x560c")'
