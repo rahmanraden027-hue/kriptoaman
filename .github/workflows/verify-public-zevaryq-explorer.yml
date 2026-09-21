@@ -1,0 +1,72 @@
+name: Verify Public ZEVARYQ Explorer UI
+
+on:
+  push:
+    branches:
+      - verify/explorer-public-zevaryq
+    paths:
+      - '.github/workflows/verify-public-zevaryq-explorer.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-public-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Verify public ZEVARYQ Explorer and premium logo
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p evidence
+          ua='KriptoAman-Public-Explorer-Verification/1.0'
+          fetch() {
+            local url="$1" out="$2"
+            local code
+            code="$(curl -L -sS --retry 8 --retry-delay 2 --retry-all-errors               --connect-timeout 10 --max-time 30               -A "$ua" -H 'Cache-Control: no-cache'               -D "${out}.headers" -o "$out" -w '%{http_code}' "$url")"
+            echo "$url -> HTTP $code"
+            test "$code" = "200"
+          }
+
+          fetch 'https://explorer.kriptoaman.com/' evidence/home.html
+          grep -Fq 'data-zevaryq-explorer-version="1.1.0"' evidence/home.html
+          grep -Fq 'ZEVARYQ EXPLORER' evidence/home.html
+          grep -Fq 'Zevaryq Network' evidence/home.html
+          grep -Fq 'Chain ID 22028' evidence/home.html
+          grep -Fq '/zevaryq-assets/zevaryq-emblem.webp?v=1.1.0' evidence/home.html
+          grep -Fq 'alt="ZEVARYQ emblem"' evidence/home.html
+
+          fetch 'https://explorer.kriptoaman.com/zevaryq-assets/zevaryq-emblem.webp?v=1.1.0' evidence/live-emblem.webp
+          grep -qi '^content-type:.*image/webp' evidence/live-emblem.webp.headers
+          cmp -s evidence/live-emblem.webp explorer-dashboard/assets/zevaryq-emblem.webp
+
+          fetch 'https://explorer.kriptoaman.com/zevaryq-assets/zevaryq-favicon.png?v=1.1.0' evidence/live-favicon.png
+          grep -qi '^content-type:.*image/png' evidence/live-favicon.png.headers
+
+          for path in blocks txs validators status; do
+            fetch "https://explorer.kriptoaman.com/$path" "evidence/$path.html"
+            grep -Fq 'ZEVARYQ' "evidence/$path.html" || true
+          done
+
+          sha256sum evidence/live-emblem.webp explorer-dashboard/assets/zevaryq-emblem.webp | tee evidence/logo-sha256.txt
+          {
+            echo 'public_ui=PASS'
+            echo 'brand=ZEVARYQ EXPLORER'
+            echo 'network=Zevaryq Network'
+            echo 'chain_id=22028'
+            echo 'ui_version=1.1.0'
+            echo 'premium_logo=PASS'
+            echo 'logo_bytes_match_repository=PASS'
+          } | tee evidence/summary.txt
+
+      - name: Upload verification evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: zevaryq-public-explorer-verification
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 30
