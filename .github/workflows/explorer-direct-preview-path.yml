@@ -1,0 +1,51 @@
+name: Explorer Direct Preview Path
+
+on:
+  push:
+    branches:
+      - ops/explorer-preview-path-20260922
+    paths:
+      - '.github/workflows/explorer-direct-preview-path.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  publish-preview:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: Publish latest Explorer UI at stable direct-origin preview path
+        shell: bash
+        run: |
+          sudo env GITHUB_WORKSPACE="$GITHUB_WORKSPACE" bash -s <<'ROOT'
+          set -Eeuo pipefail
+          BASE="/opt/blockscout/docker-compose"
+          PROXY_DIR="$BASE/proxy"
+          SOURCE="$GITHUB_WORKSPACE/explorer-dashboard/zevaryq-production.html"
+          EMBLEM="$GITHUB_WORKSPACE/explorer-dashboard/assets/zevaryq-emblem.webp"
+          FAVICON="$GITHUB_WORKSPACE/explorer-dashboard/assets/zevaryq-favicon.png"
+          grep -q 'data-zevaryq-explorer-version="1.1.0"' "$SOURCE"
+          cd "$BASE"
+          PROXY_ID="$(docker compose ps -q proxy)"
+          test -n "$PROXY_ID"
+          PROXY_IMAGE="$(docker inspect "$PROXY_ID" --format '{{.Config.Image}}')"
+          proxy_fs(){ docker run --rm --network none -i -v "$PROXY_DIR:/target" "$PROXY_IMAGE" sh -c "$1"; }
+          proxy_fs "mkdir -p /target/kam-dashboard/zevaryq-assets"
+          proxy_fs "cat > /target/kam-dashboard/zevaryq-preview.html && chmod 0644 /target/kam-dashboard/zevaryq-preview.html" < "$SOURCE"
+          proxy_fs "cat > /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp && chmod 0644 /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp" < "$EMBLEM"
+          proxy_fs "cat > /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png && chmod 0644 /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png" < "$FAVICON"
+          ROOT
+      - name: Verify preview via local and direct origin
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          for url in http://127.0.0.1/zevaryq-preview.html http://146.190.93.254/zevaryq-preview.html; do
+            body="$(mktemp)"
+            code="$(curl -sS --connect-timeout 5 --max-time 20 -o "$body" -w '%{http_code}' "$url")"
+            echo "$url -> $code"
+            test "$code" = "200"
+            grep -q 'data-zevaryq-explorer-version="1.1.0"' "$body"
+            grep -q 'ZEVARYQ EXPLORER' "$body"
+          done
