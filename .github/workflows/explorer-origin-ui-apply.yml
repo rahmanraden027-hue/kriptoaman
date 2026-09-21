@@ -1,0 +1,75 @@
+name: Explorer Origin UI Apply
+
+on:
+  push:
+    branches:
+      - ops/explorer-origin-apply-20260922
+    paths:
+      - '.github/workflows/explorer-origin-ui-apply.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  apply-origin-ui:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v7
+      - name: Apply reviewed ZEVARYQ Explorer UI to origin only
+        shell: bash
+        run: |
+          sudo env GITHUB_WORKSPACE="$GITHUB_WORKSPACE" bash -s <<'ROOT'
+          set -Eeuo pipefail
+          BASE="/opt/blockscout/docker-compose"
+          PROXY_DIR="$BASE/proxy"
+          SOURCE="$GITHUB_WORKSPACE/explorer-dashboard/zevaryq-production.html"
+          EMBLEM="$GITHUB_WORKSPACE/explorer-dashboard/assets/zevaryq-emblem.webp"
+          FAVICON="$GITHUB_WORKSPACE/explorer-dashboard/assets/zevaryq-favicon.png"
+          STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
+          BACKUP="index.html.origin-ui-$STAMP.bak"
+          test -r "$SOURCE"
+          test -r "$EMBLEM"
+          test -r "$FAVICON"
+          grep -q 'data-zevaryq-explorer-version="1.1.0"' "$SOURCE"
+          cd "$BASE"
+          PROXY_ID="$(docker compose ps -q proxy)"
+          test -n "$PROXY_ID"
+          PROXY_IMAGE="$(docker inspect "$PROXY_ID" --format '{{.Config.Image}}')"
+          proxy_fs(){ docker run --rm --network none -i -v "$PROXY_DIR:/target" "$PROXY_IMAGE" sh -c "$1"; }
+          proxy_fs "test -r /target/default.conf.template && test -w /target/kam-dashboard"
+          proxy_fs "cp -a /target/kam-dashboard/index.html /target/kam-dashboard/$BACKUP"
+          rollback() {
+            code=$?
+            proxy_fs "cp -a /target/kam-dashboard/$BACKUP /target/kam-dashboard/index.html" || true
+            docker compose up -d --force-recreate proxy >/dev/null 2>&1 || true
+            exit "$code"
+          }
+          trap rollback ERR
+          proxy_fs "mkdir -p /target/kam-dashboard/zevaryq-assets"
+          proxy_fs "cat > /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp && chmod 0644 /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp" < "$EMBLEM"
+          proxy_fs "cat > /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png && chmod 0644 /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png" < "$FAVICON"
+          proxy_fs "cat > /target/kam-dashboard/index.html && chmod 0644 /target/kam-dashboard/index.html" < "$SOURCE"
+          docker compose config -q
+          docker compose up -d --force-recreate proxy
+          body="$(mktemp)"
+          curl -fsS --retry 6 --retry-all-errors --max-time 20 http://127.0.0.1/ -o "$body"
+          grep -q 'data-zevaryq-explorer-version="1.1.0"' "$body"
+          grep -q 'ZEVARYQ EXPLORER' "$body"
+          curl -fsS --max-time 10 http://127.0.0.1/zevaryq-assets/zevaryq-emblem.webp -o /dev/null
+          curl -fsS --max-time 10 http://127.0.0.1/zevaryq-assets/zevaryq-favicon.png -o /dev/null
+          trap - ERR
+          echo "origin_ui=deployed"
+          echo "version=1.1.0"
+          echo "rollback=$PROXY_DIR/kam-dashboard/$BACKUP"
+          ROOT
+      - name: Verify direct origin IP
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          body="$(mktemp)"
+          code="$(curl -sS --connect-timeout 5 --max-time 20 -o "$body" -w '%{http_code}' http://146.190.93.254/)"
+          test "$code" = "200"
+          grep -q 'data-zevaryq-explorer-version="1.1.0"' "$body"
+          grep -q 'ZEVARYQ EXPLORER' "$body"
+          echo "direct_origin_http=$code"
