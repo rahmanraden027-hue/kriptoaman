@@ -9,7 +9,8 @@ on:
       - '.github/workflows/multichain-stability-proof.yml'
       - 'tests/multichain-stability-proof.test.mjs'
   schedule:
-    - cron: '11,41 * * * *'
+    # Hourly evidence is sufficient while network-health-warm covers the fast loop.
+    - cron: '41 * * * *'
   workflow_dispatch:
 
 permissions:
