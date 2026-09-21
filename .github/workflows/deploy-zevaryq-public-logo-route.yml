@@ -1,0 +1,160 @@
+name: Deploy ZEVARYQ Public Logo Route
+
+on:
+  push:
+    branches:
+      - fix/zevaryq-public-logo-route
+    paths:
+      - 'chain/kam-mainnet/zevaryq-assets-worker/**'
+      - '.github/workflows/deploy-zevaryq-public-logo-route.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-public-logo-route:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      ZONE_NAME: kriptoaman.com
+      ROUTE_PATTERN: explorer.kriptoaman.com/zevaryq-assets/*
+      NEW_WORKER: kam-zevaryq-assets
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Validate worker source and repository assets
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          node --check chain/kam-mainnet/zevaryq-assets-worker/worker.js
+          test -s explorer-dashboard/assets/zevaryq-emblem.webp
+          test -s explorer-dashboard/assets/zevaryq-favicon.png
+          test -n "${CF_ACCOUNT_ID:-}"
+          test -n "${CF_API_TOKEN:-}"
+          echo "::add-mask::${CF_API_TOKEN}"
+
+      - name: Snapshot route state
+        id: snapshot
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p evidence
+          auth=(-H "Authorization: Bearer ${CF_API_TOKEN}" -H 'Accept: application/json')
+          zones="$(curl --fail-with-body -sS --get 'https://api.cloudflare.com/client/v4/zones' "${auth[@]}"             --data-urlencode "name=${ZONE_NAME}" --data-urlencode "account.id=${CF_ACCOUNT_ID}")"
+          test "$(jq -r '.success' <<<"${zones}")" = "true"
+          zone_id="$(jq -r '.result[0].id // empty' <<<"${zones}")"
+          test -n "${zone_id}"
+          echo "ZONE_ID=${zone_id}" >> "${GITHUB_ENV}"
+
+          routes="$(curl --fail-with-body -sS "https://api.cloudflare.com/client/v4/zones/${zone_id}/workers/routes" "${auth[@]}")"
+          jq . <<<"${routes}" > evidence/routes-before.json
+          test "$(jq -r '.success' <<<"${routes}")" = "true"
+
+          route_id="$(jq -r --arg p "${ROUTE_PATTERN}" '.result[]? | select(.pattern == $p) | .id' <<<"${routes}" | head -n1)"
+          old_worker="$(jq -r --arg p "${ROUTE_PATTERN}" '.result[]? | select(.pattern == $p) | (.script // "")' <<<"${routes}" | head -n1)"
+          if [ -n "${route_id}" ]; then
+            echo "ROUTE_EXISTED=true" >> "${GITHUB_ENV}"
+            echo "ROUTE_ID=${route_id}" >> "${GITHUB_ENV}"
+            echo "OLD_WORKER=${old_worker}" >> "${GITHUB_ENV}"
+          else
+            echo "ROUTE_EXISTED=false" >> "${GITHUB_ENV}"
+            echo "OLD_WORKER=" >> "${GITHUB_ENV}"
+          fi
+
+      - name: Deploy direct-origin asset worker
+        working-directory: chain/kam-mainnet/zevaryq-assets-worker
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx --yes wrangler@4.36.0 deploy
+
+      - name: Create or update public logo route
+        id: route
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          auth=(-H "Authorization: Bearer ${CF_API_TOKEN}" -H 'Content-Type: application/json')
+          payload="$(jq -nc --arg pattern "${ROUTE_PATTERN}" --arg script "${NEW_WORKER}" '{pattern:$pattern,script:$script}')"
+
+          if [ "${ROUTE_EXISTED}" = "true" ]; then
+            response="$(curl --fail-with-body -sS -X PUT               "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes/${ROUTE_ID}"               "${auth[@]}" --data "${payload}")"
+          else
+            response="$(curl --fail-with-body -sS -X POST               "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes"               "${auth[@]}" --data "${payload}")"
+            echo "ROUTE_ID=$(jq -r '.result.id' <<<"${response}")" >> "${GITHUB_ENV}"
+          fi
+          jq . <<<"${response}" > evidence/route-change.json
+          test "$(jq -r '.success' <<<"${response}")" = "true"
+          test "$(jq -r '.result.script' <<<"${response}")" = "${NEW_WORKER}"
+
+      - name: Verify public Explorer logo and favicon
+        id: verify
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          sleep 3
+          ua='KriptoAman-ZEVARYQ-Logo-Verification/1.0'
+
+          curl -L -fsS --retry 8 --retry-delay 2 --retry-all-errors             --connect-timeout 10 --max-time 30             -A "$ua" -H 'Cache-Control: no-cache'             https://explorer.kriptoaman.com/ -o evidence/home.html
+
+          grep -Fq 'data-zevaryq-explorer-version="1.1.0"' evidence/home.html
+          grep -Fq '/zevaryq-assets/zevaryq-emblem.webp?v=1.1.0' evidence/home.html
+          grep -Fq 'alt="ZEVARYQ emblem"' evidence/home.html
+
+          curl -L -fsS --retry 8 --retry-delay 2 --retry-all-errors             --connect-timeout 10 --max-time 30             -A "$ua" -H 'Cache-Control: no-cache'             -D evidence/emblem.headers             'https://explorer.kriptoaman.com/zevaryq-assets/zevaryq-emblem.webp?v=1.1.0'             -o evidence/emblem.webp
+          grep -qi '^content-type:.*image/webp' evidence/emblem.headers
+          grep -qi '^x-zevaryq-asset-edge: direct-origin' evidence/emblem.headers
+          cmp -s evidence/emblem.webp explorer-dashboard/assets/zevaryq-emblem.webp
+
+          curl -L -fsS --retry 8 --retry-delay 2 --retry-all-errors             --connect-timeout 10 --max-time 30             -A "$ua" -H 'Cache-Control: no-cache'             -D evidence/favicon.headers             'https://explorer.kriptoaman.com/zevaryq-assets/zevaryq-favicon.png?v=1.1.0'             -o evidence/favicon.png
+          grep -qi '^content-type:.*image/png' evidence/favicon.headers
+          grep -qi '^x-zevaryq-asset-edge: direct-origin' evidence/favicon.headers
+          cmp -s evidence/favicon.png explorer-dashboard/assets/zevaryq-favicon.png
+
+          sha256sum evidence/emblem.webp explorer-dashboard/assets/zevaryq-emblem.webp | tee evidence/logo-sha256.txt
+          {
+            echo 'public_explorer=PASS'
+            echo 'ui_version=1.1.0'
+            echo 'brand=ZEVARYQ EXPLORER'
+            echo 'premium_logo=PASS'
+            echo 'logo_bytes_match_repository=PASS'
+            echo 'favicon=PASS'
+          } | tee evidence/summary.txt
+
+      - name: Roll back route if verification fails
+        if: ${{ steps.verify.outcome == 'failure' }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          auth=(-H "Authorization: Bearer ${CF_API_TOKEN}" -H 'Content-Type: application/json')
+          if [ "${ROUTE_EXISTED}" = "true" ]; then
+            payload="$(jq -nc --arg pattern "${ROUTE_PATTERN}" --arg script "${OLD_WORKER}" '{pattern:$pattern,script:$script}')"
+            curl --fail-with-body -sS -X PUT               "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes/${ROUTE_ID}"               "${auth[@]}" --data "${payload}" > evidence/rollback.json
+          else
+            curl --fail-with-body -sS -X DELETE               "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes/${ROUTE_ID}"               -H "Authorization: Bearer ${CF_API_TOKEN}" > evidence/rollback.json
+          fi
+
+      - name: Capture final route state
+        if: always()
+        shell: bash
+        run: |
+          set -u
+          if [ -z "${ZONE_ID:-}" ]; then exit 0; fi
+          curl -sS "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes"             -H "Authorization: Bearer ${CF_API_TOKEN}" -H 'Accept: application/json'             | jq . > evidence/routes-after.json || true
+
+      - name: Upload verification evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: zevaryq-public-logo-route-evidence
+          path: evidence/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Enforce verified public logo
+        if: ${{ steps.verify.outcome == 'failure' }}
+        run: |
+          echo 'Public ZEVARYQ logo verification failed; route rollback executed.' >&2
+          exit 1
