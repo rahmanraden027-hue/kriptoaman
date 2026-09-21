@@ -1,0 +1,111 @@
+name: KAM Explorer Indexer Remote Read-Only
+
+on:
+  push:
+    branches:
+      - diag/explorer-indexer-readonly
+    paths:
+      - '.github/workflows/kam-explorer-indexer-remote-readonly.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kam-explorer-indexer-remote-readonly
+  cancel-in-progress: true
+
+jobs:
+  remote-inventory:
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 10
+    steps:
+      - name: Read-only SSH inventory of Explorer host
+        shell: bash
+        run: |
+          set -euo pipefail
+          HOST=146.190.93.254
+          SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null)
+
+          ssh "${SSH_OPTS[@]}" root@"$HOST" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          BASE=/opt/blockscout/docker-compose
+          cd "$BASE"
+
+          echo 'mode=READ_ONLY_REMOTE'
+          echo '--- compose ps ---'
+          docker compose ps --format json | python3 -c '
+          import json,sys
+          rows=[]
+          for line in sys.stdin:
+              try:
+                  x=json.loads(line)
+              except Exception:
+                  continue
+              rows.append({
+                  "service":x.get("Service"),
+                  "state":x.get("State"),
+                  "health":x.get("Health"),
+                  "exit_code":x.get("ExitCode"),
+                  "image":x.get("Image"),
+              })
+          print(json.dumps(rows,indent=2,sort_keys=True))
+          '
+
+          BACKEND_ID="$(docker compose ps -q backend)"
+          DB_ID="$(docker compose ps -q db)"
+          test -n "$BACKEND_ID"
+          test -n "$DB_ID"
+
+          echo '--- backend runtime state ---'
+          docker inspect "$BACKEND_ID" --format             'status={{.State.Status}} restart_count={{.RestartCount}} oom_killed={{.State.OOMKilled}} started_at={{.State.StartedAt}} finished_at={{.State.FinishedAt}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}'
+
+          echo '--- db runtime state ---'
+          docker inspect "$DB_ID" --format             'status={{.State.Status}} restart_count={{.RestartCount}} oom_killed={{.State.OOMKilled}} started_at={{.State.StartedAt}} finished_at={{.State.FinishedAt}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}'
+
+          echo '--- safe Blockscout indexer settings ---'
+          docker inspect "$BACKEND_ID" --format '{{range .Config.Env}}{{println .}}{{end}}'             | grep -E '^(CHAIN_ID|FIRST_BLOCK|LAST_BLOCK|BLOCK_RANGES|DISABLE_REALTIME_INDEXER|INDEXER_MEMORY_LIMIT|INDEXER_CATCHUP_BLOCKS_BATCH_SIZE|INDEXER_CATCHUP_BLOCKS_CONCURRENCY|INDEXER_CATCHUP_BLOCK_INTERVAL|INDEXER_RECEIPTS_BATCH_SIZE|INDEXER_RECEIPTS_CONCURRENCY|INDEXER_COIN_BALANCES_BATCH_SIZE|INDEXER_COIN_BALANCES_CONCURRENCY|INDEXER_TOKEN_CONCURRENCY|INDEXER_DISABLE_INTERNAL_TRANSACTIONS_FETCHER|INDEXER_DISABLE_PENDING_TRANSACTIONS_FETCHER|INDEXER_DISABLE_REPLACED_TRANSACTION_FETCHER)='             | sort || true
+
+          echo '--- docker resource snapshot ---'
+          docker stats --no-stream --format '{{json .}}' "$BACKEND_ID" "$DB_ID"             | python3 -c '
+          import json,sys
+          for line in sys.stdin:
+              x=json.loads(line)
+              print(json.dumps({
+                  "name":x.get("Name"),
+                  "cpu":x.get("CPUPerc"),
+                  "mem_usage":x.get("MemUsage"),
+                  "mem_percent":x.get("MemPerc"),
+                  "block_io":x.get("BlockIO"),
+                  "pids":x.get("PIDs"),
+              },sort_keys=True))
+          '
+
+          echo '--- local explorer height ---'
+          curl -fsS --max-time 15 http://127.0.0.1/api/v2/blocks             | python3 -c 'import json,sys; d=json.load(sys.stdin); items=d.get("items",[]); print("explorer_height="+str((items[0].get("height") if items else None)))'
+
+          echo '--- public rpc head ---'
+          curl -fsS --max-time 15             -H 'content-type: application/json'             --data '{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}'             https://explorer.kriptoaman.com/rpc             | python3 -c 'import json,sys; d=json.load(sys.stdin); h=d.get("result"); print("rpc_head_hex="+str(h)); print("rpc_head="+str(int(h,16) if isinstance(h,str) and h.startswith("0x") else None))'
+
+          echo '--- recent backend signal counts only ---'
+          TMP="$(mktemp)"
+          trap 'rm -f "$TMP"' EXIT
+          docker compose logs --since 60m backend >"$TMP" 2>&1 || true
+          python3 - "$TMP" <<'PY'
+          import re,sys
+          text=open(sys.argv[1],encoding='utf-8',errors='replace').read().lower()
+          pats={
+            "error":r"\berror\b",
+            "timeout":r"timeout|timed out",
+            "connection_refused":r"connection refused|econnrefused",
+            "rpc":r"json.?rpc|rpc",
+            "database":r"postgres|database",
+            "crash_or_exit":r"crash|exited|terminated|killed|oom",
+            "indexer":r"indexer",
+          }
+          for k,p in pats.items():
+              print(f"{k}_signals={len(re.findall(p,text))}")
+          PY
+
+          echo 'remote_inventory_complete=true'
+          REMOTE
