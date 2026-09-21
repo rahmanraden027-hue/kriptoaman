@@ -3,6 +3,10 @@ set -Eeuo pipefail
 BASE="/opt/blockscout/docker-compose"
 PROXY_DIR="$BASE/proxy"
 SOURCE="${1:-explorer-dashboard/zevaryq-production.html}"
+case "$SOURCE" in
+  /*) ;;
+  *) SOURCE="$PWD/$SOURCE" ;;
+esac
 ASSET_DIR="$(dirname "$SOURCE")/assets"
 EMBLEM="$ASSET_DIR/zevaryq-emblem.webp"
 FAVICON="$ASSET_DIR/zevaryq-favicon.png"
