@@ -29,7 +29,9 @@ jobs:
             echo "$label=$code" | tee -a artifacts/public-core.txt
           }
           probe_get site https://kriptoaman.com/
+          probe_get site_pages_dev https://kriptoaman.pages.dev/
           probe_get explorer https://explorer.kriptoaman.com/
+          probe_get explorer_origin https://explorer-new.kriptoaman.com/
           probe_get explorer_blocks https://explorer.kriptoaman.com/api/v2/blocks
           probe_get rpc_health https://rpc.kriptoaman.com/health
           probe_get rpc_ready https://rpc.kriptoaman.com/ready
@@ -37,6 +39,10 @@ jobs:
             body="{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"$method\",\"params\":[]}"
             out="$(curl -sS --connect-timeout 8 --max-time 25 -H 'content-type: application/json' --data "$body" https://rpc.kriptoaman.com/ 2>&1 || true)"
             echo "rpc_$method=$out" | tee -a artifacts/public-core.txt
+            explorer_rpc="$(curl -sS --connect-timeout 8 --max-time 25 -H 'content-type: application/json' --data "$body" https://explorer.kriptoaman.com/rpc 2>&1 || true)"
+            echo "explorer_rpc_$method=$explorer_rpc" | tee -a artifacts/public-core.txt
+            origin_rpc="$(curl -sS --connect-timeout 8 --max-time 25 -H 'content-type: application/json' --data "$body" https://explorer-new.kriptoaman.com/rpc 2>&1 || true)"
+            echo "explorer_origin_rpc_$method=$origin_rpc" | tee -a artifacts/public-core.txt
           done
           grep -Fq 'ZEVARYQ EXPLORER' artifacts/explorer.body && echo 'explorer_brand=ZEVARYQ' | tee -a artifacts/public-core.txt || true
           grep -Fq 'Chain ID 22028' artifacts/explorer.body && echo 'explorer_chain_label=22028' | tee -a artifacts/public-core.txt || true
