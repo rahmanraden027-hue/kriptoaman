@@ -31,7 +31,7 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          sudo bash -s <<'ROOT'
+          sudo env GITHUB_WORKSPACE="$GITHUB_WORKSPACE" bash -s <<'ROOT'
           set -Eeuo pipefail
           name=kriptoaman-direct-preview
           root=/opt/kriptoaman-direct-preview
