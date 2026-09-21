@@ -1,0 +1,172 @@
+name: Zevaryq Explorer Edge Recovery
+
+on:
+  push:
+    branches:
+      - feature/zevaryq-explorer-production
+    paths:
+      - 'chain/kam-mainnet/zevaryq-edge-worker/**'
+      - '.github/workflows/zevaryq-explorer-edge-recovery.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zevaryq-explorer-edge-recovery
+  cancel-in-progress: false
+
+jobs:
+  deploy-edge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      ZONE_NAME: kriptoaman.com
+      ROUTE_PATTERN: explorer.kriptoaman.com/*
+      API_ROUTE_PATTERN: explorer.kriptoaman.com/api/v2/*
+      WORKER_NAME: kam-mainnet-explorer-cutover
+      API_WORKER_NAME: kam-mainnet-blockscout-api
+    steps:
+      - name: Checkout recovery source
+        uses: actions/checkout@v4
+
+      - name: Validate narrow Explorer-only payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${CF_ACCOUNT_ID:-}"
+          test -n "${CF_API_TOKEN:-}"
+          echo "::add-mask::${CF_API_TOKEN}"
+          node --check chain/kam-mainnet/zevaryq-edge-worker/worker.js
+          grep -q 'data-zevaryq-explorer-version="1.0.0"' chain/kam-mainnet/zevaryq-edge-worker/worker.js
+          grep -q "EXPECTED_CHAIN='0x560c'" chain/kam-mainnet/zevaryq-edge-worker/worker.js
+          grep -q 'zevaryq-edge-1.0.0' chain/kam-mainnet/zevaryq-edge-worker/worker.js
+          grep -q 'name = "kam-mainnet-explorer-cutover"' chain/kam-mainnet/zevaryq-edge-worker/wrangler.toml
+
+      - name: Snapshot and verify current Explorer routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          zones="$(curl --fail-with-body -sS --get \
+            'https://api.cloudflare.com/client/v4/zones' \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -H 'Accept: application/json' \
+            --data-urlencode "name=${ZONE_NAME}" \
+            --data-urlencode "account.id=${CF_ACCOUNT_ID}")"
+          test "$(jq -r '.success' <<<"${zones}")" = "true"
+          zone_id="$(jq -r '.result[0].id // empty' <<<"${zones}")"
+          test -n "${zone_id}"
+          echo "ZONE_ID=${zone_id}" >> "${GITHUB_ENV}"
+
+          routes="$(curl --fail-with-body -sS \
+            "https://api.cloudflare.com/client/v4/zones/${zone_id}/workers/routes" \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -H 'Accept: application/json')"
+          jq . <<<"${routes}" > artifacts/routes-before.json
+          test "$(jq -r '.success' <<<"${routes}")" = "true"
+
+          general="$(jq -r --arg p "${ROUTE_PATTERN}" '.result[] | select(.pattern == $p) | (.script // "")' <<<"${routes}")"
+          api="$(jq -r --arg p "${API_ROUTE_PATTERN}" '.result[] | select(.pattern == $p) | (.script // "")' <<<"${routes}")"
+          echo "general_route_worker=${general}"
+          echo "api_route_worker=${api}"
+          test "${general}" = "${WORKER_NAME}"
+          test "${api}" = "${API_WORKER_NAME}"
+
+      - name: Deploy ZEVARYQ homepage to existing Explorer Worker
+        working-directory: chain/kam-mainnet/zevaryq-edge-worker
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx --yes wrangler@4.36.0 deploy
+
+      - name: Verify deployed Worker content and unchanged routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail-with-body -sS \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/content" \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -H 'Accept: */*' \
+            -o artifacts/deployed-worker-content.txt
+          grep -q 'zevaryq-edge-1.0.0' artifacts/deployed-worker-content.txt
+          grep -q 'ZEVARYQ EXPLORER' artifacts/deployed-worker-content.txt
+
+          routes="$(curl --fail-with-body -sS \
+            "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes" \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -H 'Accept: application/json')"
+          jq . <<<"${routes}" > artifacts/routes-after.json
+          general="$(jq -r --arg p "${ROUTE_PATTERN}" '.result[] | select(.pattern == $p) | (.script // "")' <<<"${routes}")"
+          api="$(jq -r --arg p "${API_ROUTE_PATTERN}" '.result[] | select(.pattern == $p) | (.script // "")' <<<"${routes}")"
+          test "${general}" = "${WORKER_NAME}"
+          test "${api}" = "${API_WORKER_NAME}"
+
+      - name: Probe public ZEVARYQ Explorer
+        id: public
+        shell: bash
+        run: |
+          set -euo pipefail
+          : > artifacts/public-probe.txt
+          ok=false
+          for attempt in 1 2 3 4 5; do
+            headers="$(mktemp)"
+            body="$(mktemp)"
+            code="$(curl -L -sS -D "${headers}" -o "${body}" -w '%{http_code}' \
+              --connect-timeout 10 --max-time 25 \
+              -A 'Mozilla/5.0 (compatible; ZevaryqProductionVerifier/1.0)' \
+              https://explorer.kriptoaman.com/ || true)"
+            echo "attempt=${attempt} http=${code}" | tee -a artifacts/public-probe.txt
+            if [ "${code}" = "200" ] && grep -q 'data-zevaryq-explorer-version="1.0.0"' "${body}" && grep -qi '^x-zevaryq-explorer-edge: zevaryq-edge-1.0.0' "${headers}"; then
+              echo "public_homepage=verified" | tee -a artifacts/public-probe.txt
+              ok=true
+              rm -f "${headers}" "${body}"
+              break
+            fi
+            if [ "${code}" = "429" ]; then
+              echo "public_probe=rate_limited_by_edge" | tee -a artifacts/public-probe.txt
+              rm -f "${headers}" "${body}"
+              break
+            fi
+            rm -f "${headers}" "${body}"
+            sleep 4
+          done
+          if [ "${ok}" = true ]; then
+            echo "verified=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "verified=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Probe RPC and indexed API without fabricating readiness
+        shell: bash
+        run: |
+          set -euo pipefail
+          rpc_code="$(curl -sS -o artifacts/rpc-body.json -w '%{http_code}' \
+            --connect-timeout 10 --max-time 20 \
+            -H 'content-type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+            https://explorer.kriptoaman.com/rpc || true)"
+          echo "rpc_http=${rpc_code}" | tee artifacts/data-probe.txt
+          if [ "${rpc_code}" = "200" ]; then
+            chain="$(jq -r '.result // empty' artifacts/rpc-body.json 2>/dev/null || true)"
+            echo "rpc_chain_id=${chain}" | tee -a artifacts/data-probe.txt
+            test "${chain}" = "0x560c"
+          fi
+
+          api_code="$(curl -sS -o artifacts/blocks-body.json -w '%{http_code}' \
+            --connect-timeout 10 --max-time 20 \
+            https://explorer.kriptoaman.com/api/v2/blocks || true)"
+          echo "api_blocks_http=${api_code}" | tee -a artifacts/data-probe.txt
+          if [ "${api_code}" = "200" ]; then
+            jq -e '(.items | type == "array")' artifacts/blocks-body.json >/dev/null
+          fi
+
+      - name: Upload recovery evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zevaryq-edge-recovery-${{ github.run_id }}
+          path: artifacts/*
+          if-no-files-found: warn
+          retention-days: 30
