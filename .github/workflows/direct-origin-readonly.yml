@@ -1,0 +1,67 @@
+name: Direct Origin Readonly Verification
+
+on:
+  push:
+    branches:
+      - ops/direct-origin-readonly-20260922
+    paths:
+      - '.github/workflows/direct-origin-readonly.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-origin:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - name: Verify Explorer origin and private RPC without Cloudflare
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p artifacts
+          probe_http() {
+            local name="$1"; shift
+            local out="artifacts/${name}.body"
+            local hdr="artifacts/${name}.headers"
+            local code
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -D "$hdr" -o "$out" -w '%{http_code}' "$@" || true)"
+            printf '%s=%s\n' "$name" "$code" | tee -a artifacts/summary.txt
+          }
+          probe_http local_proxy http://127.0.0.1/
+          probe_http public_explorer_ip http://146.190.93.254/
+          probe_http public_explorer_ip_host -H 'Host: explorer.kriptoaman.com' http://146.190.93.254/
+          probe_http public_rpc_8545 http://206.189.36.15:8545/
+          probe_http public_rpc_80 http://206.189.36.15/
+          probe_http public_rpc_443 -k https://206.189.36.15/
+          chain="$(curl -sS --connect-timeout 5 --max-time 15 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' http://10.104.0.2:8545)"
+          block="$(curl -sS --connect-timeout 5 --max-time 15 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}' http://10.104.0.2:8545)"
+          python3 - "$chain" "$block" <<'PY' | tee artifacts/private-rpc.txt
+          import json,sys
+          c=json.loads(sys.argv[1]).get("result")
+          b=json.loads(sys.argv[2]).get("result")
+          print("chain_id="+str(c))
+          print("block_number="+str(b))
+          assert str(c).lower()=="0x560c"
+          assert isinstance(b,str) and b.startswith("0x")
+          PY
+          curl -sS --connect-timeout 5 --max-time 15 http://127.0.0.1/api/v2/blocks > artifacts/local-api-blocks.json || true
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          p=Path("artifacts/local-api-blocks.json")
+          try:
+              d=json.loads(p.read_text())
+              print("local_api_items="+str(len(d.get("items",[]))))
+          except Exception as e:
+              print("local_api_parse_error="+str(e))
+          PY
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: direct-origin-readonly-evidence
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 7
