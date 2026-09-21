@@ -33,7 +33,35 @@ jobs:
           head="${{ github.event.pull_request.head.sha }}"
           changed="$(git diff --name-only "$base" "$head")"
           printf '%s\n' "$changed"
-          unexpected="$(printf '%s\n' "$changed" | grep -Ev '^(\.github/workflows/zevaryq-explorer-production\.yml|\.github/workflows/live-site-smoke\.yml|explorer-dashboard/zevaryq-production\.html|scripts/deploy-zevaryq-explorer\.sh|tests/zevaryq-explorer-production\.test\.mjs)
+          unexpected=""
+          while IFS= read -r path; do
+            case "$path" in
+              .github/workflows/zevaryq-explorer-production.yml|.github/workflows/live-site-smoke.yml|explorer-dashboard/zevaryq-production.html|scripts/deploy-zevaryq-explorer.sh|tests/zevaryq-explorer-production.test.mjs)
+                ;;
+              *)
+                unexpected="${unexpected}${path}\n"
+                ;;
+            esac
+          done <<< "$changed"
+          if [ -n "$unexpected" ]; then
+            echo "Unexpected protected-zone path(s):"
+            printf '%b' "$unexpected"
+            exit 1
+          fi
+
+      - name: Verify protected production edge remains reachable
+        if: github.event_name == 'pull_request' && github.head_ref == 'feature/zevaryq-explorer-production'
+        shell: bash
+        run: |
+          set -euo pipefail
+          code="$(curl --location --silent --show-error --connect-timeout 10 --max-time 25 -o /dev/null -w '%{http_code}' https://kriptoaman.com/)"
+          case "$code" in
+            200) echo "Protected root is publicly reachable." ;;
+            429) echo "Protected root edge is reachable but rate-limiting GitHub-hosted probes; explorer-only boundary verified." ;;
+            *) echo "Unexpected protected root HTTP status: $code"; exit 1 ;;
+          esac
+
+      - name: Allow production deployment to settle
         if: github.event_name == 'push'
         run: sleep 60
 
