@@ -1,0 +1,79 @@
+name: Verify Public Inline ZEVARYQ Logo
+
+on:
+  push:
+    branches:
+      - verify/explorer-public-inline-logo
+    paths:
+      - '.github/workflows/verify-public-inline-zevaryq-logo.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-public-inline-logo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Verify public Explorer UI and embedded premium logo
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p evidence
+          code="$(curl -L -sS --retry 8 --retry-delay 2 --retry-all-errors             --connect-timeout 10 --max-time 30             -A 'KriptoAman-ZEVARYQ-UI-Verify/1.0'             -H 'Cache-Control: no-cache'             -D evidence/home.headers             -o evidence/home.html -w '%{http_code}'             "https://explorer.kriptoaman.com/?verify=$GITHUB_RUN_ID")"
+          echo "public_home_http=$code"
+          test "$code" = "200"
+          grep -Fq 'data-zevaryq-explorer-version="1.1.0"' evidence/home.html
+          grep -Fq 'ZEVARYQ EXPLORER' evidence/home.html
+          grep -Fq 'Zevaryq Network' evidence/home.html
+          grep -Fq 'ZVQ Mainnet' evidence/home.html
+          grep -Fq 'Chain ID <b>22028' evidence/home.html
+          test "$(grep -o 'data-zevaryq-emblem="premium-v1"' evidence/home.html | wc -l)" -eq 3
+          grep -Fq 'data-zevaryq-favicon="premium-v1"' evidence/home.html
+
+          node - <<'NODE'
+          const fs = require('fs');
+          const crypto = require('crypto');
+          const html = fs.readFileSync('evidence/home.html','utf8');
+          const logoMatch = html.match(/src="data:image\/webp;base64,([^"]+)"\s+data-zevaryq-emblem="premium-v1"/);
+          if (!logoMatch) throw new Error('inline premium emblem missing');
+          const liveLogo = Buffer.from(logoMatch[1], 'base64');
+          const repoLogo = fs.readFileSync('explorer-dashboard/assets/zevaryq-emblem.webp');
+          if (!liveLogo.equals(repoLogo)) throw new Error('public inline emblem bytes do not match repository emblem');
+
+          const favMatch = html.match(/href="data:image\/png;base64,([^"]+)"\s+data-zevaryq-favicon="premium-v1"/);
+          if (!favMatch) throw new Error('inline premium favicon missing');
+          const liveFav = Buffer.from(favMatch[1], 'base64');
+          const repoFav = fs.readFileSync('explorer-dashboard/assets/zevaryq-favicon.png');
+          if (!liveFav.equals(repoFav)) throw new Error('public inline favicon bytes do not match repository favicon');
+
+          const sha = b => crypto.createHash('sha256').update(b).digest('hex');
+          fs.writeFileSync('evidence/logo-sha256.txt',
+            'public_inline_logo=' + sha(liveLogo) + '\n' +
+            'repository_logo=' + sha(repoLogo) + '\n' +
+            'public_inline_favicon=' + sha(liveFav) + '\n' +
+            'repository_favicon=' + sha(repoFav) + '\n');
+          NODE
+
+          {
+            echo 'public_explorer_ui=PASS'
+            echo 'ui_version=1.1.0'
+            echo 'brand=ZEVARYQ EXPLORER'
+            echo 'network=Zevaryq Network'
+            echo 'token=ZVQ'
+            echo 'chain_id=22028'
+            echo 'premium_logo_embedded=PASS'
+            echo 'logo_bytes_match_repository=PASS'
+            echo 'favicon_bytes_match_repository=PASS'
+          } | tee evidence/summary.txt
+
+      - name: Upload verification evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: public-zevaryq-inline-logo-verification
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 30
