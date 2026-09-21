@@ -41,11 +41,20 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          for url in http://127.0.0.1/zevaryq-preview.html http://146.190.93.254/zevaryq-preview.html; do
+          verify() {
+            local url="$1"
+            local host="${2:-}"
+            local body
             body="$(mktemp)"
-            code="$(curl -sS --connect-timeout 5 --max-time 20 -o "$body" -w '%{http_code}' "$url")"
-            echo "$url -> $code"
+            if [ -n "$host" ]; then
+              code="$(curl -sS --connect-timeout 5 --max-time 20 -H "Host: $host" -o "$body" -w '%{http_code}' "$url")"
+            else
+              code="$(curl -sS --connect-timeout 5 --max-time 20 -o "$body" -w '%{http_code}' "$url")"
+            fi
+            echo "$url host=${host:-default} -> $code"
             test "$code" = "200"
             grep -q 'data-zevaryq-explorer-version="1.1.0"' "$body"
             grep -q 'ZEVARYQ EXPLORER' "$body"
-          done
+          }
+          verify http://127.0.0.1/zevaryq-preview.html explorer.kriptoaman.com
+          verify http://146.190.93.254/zevaryq-preview.html explorer.kriptoaman.com
