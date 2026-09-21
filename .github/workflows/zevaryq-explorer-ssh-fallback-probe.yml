@@ -1,0 +1,35 @@
+name: Zevaryq Explorer SSH Fallback Probe
+
+on:
+  push:
+    branches:
+      - feature/zevaryq-explorer-production
+    paths:
+      - '.github/workflows/zevaryq-explorer-ssh-fallback-probe.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zevaryq-explorer-ssh-fallback-probe
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 5
+    steps:
+      - name: Checkout protected main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Verify SSH path to Explorer host
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes \
+              -o ConnectTimeout=8 \
+              -o StrictHostKeyChecking=accept-new \
+              root@146.190.93.254 \
+              'test -d /opt/blockscout/docker-compose/proxy/kam-dashboard; test -f /opt/blockscout/docker-compose/proxy/default.conf.template; printf "explorer_ssh_ready=true\\n"'
