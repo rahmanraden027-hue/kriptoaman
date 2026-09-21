@@ -1,0 +1,29 @@
+name: Zevaryq Explorer Generic Runner Probe
+
+on:
+  push:
+    branches:
+      - feature/zevaryq-explorer-production
+    paths:
+      - '.github/workflows/zevaryq-explorer-generic-runner-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 5
+    steps:
+      - name: Identify runner and probe Explorer SSH
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "runner_name=$RUNNER_NAME"
+          echo "runner_os=$RUNNER_OS"
+          hostname
+          ssh -o BatchMode=yes \
+              -o ConnectTimeout=8 \
+              -o StrictHostKeyChecking=accept-new \
+              root@146.190.93.254 \
+              'printf "explorer_ssh_ready=true\\n"; test -d /opt/blockscout/docker-compose/proxy/kam-dashboard'
