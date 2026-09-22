@@ -82,6 +82,44 @@ const stats = results.stats;
 const transactionChart = results.transactionChart;
 const marketChart = results.marketChart;
 
+
+// Server-side health does not prove mobile-browser usability: exercise the
+// public CORS contract from the actual KriptoAman site origin (read-only).
+const browserOrigin = 'https://kriptoaman.com';
+const [browserRpcPreflight, browserExplorerCors] = await Promise.all([
+  probe('browserRpcPreflight', () => fetchJson(rpcUrl, {
+    method: 'OPTIONS',
+    headers: {
+      origin: browserOrigin,
+      'access-control-request-method': 'POST',
+      'access-control-request-headers': 'content-type',
+    },
+  })),
+  probe('browserExplorerCors', () => fetchJson(`${explorerUrl}/api/v2/blocks`, {
+    headers: { origin: browserOrigin, accept: 'application/json' },
+  })),
+]);
+
+function allowsBrowserOrigin(response) {
+  const allowOrigin = response.headers.get('access-control-allow-origin');
+  return allowOrigin === '*' || allowOrigin === browserOrigin;
+}
+report.checks.browserRpcPreflight = browserRpcPreflight.reachable ? {
+  ok: browserRpcPreflight.result.response.ok &&
+    allowsBrowserOrigin(browserRpcPreflight.result.response) &&
+    /POST/i.test(browserRpcPreflight.result.response.headers.get('access-control-allow-methods') || '') &&
+    /content-type/i.test(browserRpcPreflight.result.response.headers.get('access-control-allow-headers') || ''),
+  httpStatus: browserRpcPreflight.result.response.status,
+  allowOrigin: browserRpcPreflight.result.response.headers.get('access-control-allow-origin'),
+  allowMethods: browserRpcPreflight.result.response.headers.get('access-control-allow-methods'),
+  allowHeaders: browserRpcPreflight.result.response.headers.get('access-control-allow-headers'),
+} : unreachableCheck(browserRpcPreflight);
+report.checks.browserExplorerCors = browserExplorerCors.reachable ? {
+  ok: browserExplorerCors.result.response.ok && allowsBrowserOrigin(browserExplorerCors.result.response),
+  httpStatus: browserExplorerCors.result.response.status,
+  allowOrigin: browserExplorerCors.result.response.headers.get('access-control-allow-origin'),
+} : unreachableCheck(browserExplorerCors);
+
 report.checks.rpcChainId = chain.reachable
   ? {
       ok: chain.result.response.ok && chain.result.payload?.result?.toLowerCase() === expectedChainId,
@@ -253,6 +291,8 @@ if (rpcTransportDown && explorerTransportDown) {
     report.classification = 'rpc_explorer_block_identity_mismatch';
   } else if (!report.checks.explorerTransactionsChartApi.ok || !report.checks.explorerMarketChartApi.ok) {
     report.classification = 'blockscout_stats_chart_api_unhealthy';
+  } else if (!report.checks.browserRpcPreflight.ok || !report.checks.browserExplorerCors.ok) {
+    report.classification = 'browser_cross_origin_blocked';
   } else {
     report.classification = 'healthy';
   }
