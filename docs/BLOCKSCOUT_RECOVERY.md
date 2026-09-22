@@ -1,5 +1,8 @@
 # KriptoAman Blockscout Recovery Runbook
 
+> **2026-09-22 ZEVARYQ P0 incident:** The branded Explorer homepage is reachable but currently reports unavailable indexed blocks. This runbook remains read-only until public RPC chain/head, direct Explorer API, and indexer/backend evidence identify the failed layer. Run the scheduled `Blockscout Health Proof` job to capture `rpc_unhealthy_or_wrong_chain`, `blockscout_backend_or_api_unhealthy`, or `blockscout_indexer_not_populating_blocks` classification before choosing any recovery step. A powered-on Droplet alone is not evidence of healthy RPC/indexer services.
+
+
 Use this when `https://explorer.kriptoaman.com` loads but the homepage shows an error banner, placeholder counters, unavailable gas data, latest blocks/transactions are missing, or indexed data appears stale.
 
 ## Safety boundary
