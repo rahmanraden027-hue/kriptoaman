@@ -1,3 +1,4 @@
+import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -51,3 +52,30 @@ test('deployment is narrow and rollback safe', () => {
   assert.equal(deploy.includes('kriptoaman.com/*'), false);
   assert.doesNotMatch(deploy, /genesis|validator private|postgres.*reset|redis.*reset/i);
 });
+
+
+test('connected ledger, immune monitor and token discovery are evidence-gated', () => {
+ for (const id of ['connected-ledger','immune-network','token-discovery','ledger','immune','tokens']) {
+  assert.match(html, new RegExp('id="'+id+'"'));
+ }
+ assert.match(html, /b\.parent_hash\.toLowerCase\(\)===next\.hash\.toLowerCase\(\)/);
+ assert.match(html, /Number\(b\.height\)===Number\(next\.height\)\+1/);
+ assert.match(html, /observed!==EXPECTED_CHAIN/);
+ assert.match(html, /Math\.abs\(delta\)<=6/);
+ assert.match(html, /secs<=90/);
+ assert.match(html, /transactions\?type=token_creation/);
+ assert.match(html, /API\+'\/tokens\/'\+encodeURIComponent/);
+ assert.match(html, /ERC-\?20/);
+ assert.match(html, /No synthetic blockchain connections|no synthetic blockchain connections/);
+ assert.match(html, /No token price, liquidity, audit approval or trading availability is implied/);
+});
+test('browser dashboard script parses and probes fail closed', () => {
+ const { Script } = requireScriptHelpers();
+ const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+ assert.ok(script);
+ assert.doesNotThrow(() => new Script(script));
+ assert.match(script,/state\.blocks=indexed\.slice\(\)/);
+ assert.match(script,/state\.rpc=!!rpcResult\?\.ok/);
+ assert.match(script,/state\.tokens=\[\];state\.tokenError=true/);
+});
+function requireScriptHelpers(){return {Script: vm.Script};}
