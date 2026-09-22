@@ -5,7 +5,7 @@ import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
 
 const COLS = [
   { title: 'Produk', links: [['Dashboard', '/login'], ['Pemantauan Aset', '/login'], ['Verifikasi Transaksi', '/login'], ['Pemeriksaan Risiko', '/login']] },
-  { title: 'Enterprise', links: [['Enterprise Solutions', '/enterprise'], ['KAM Network Docs', '/KAMNetworkDocs'], ['Status Sistem', '/SystemStatus'], ['Research & Publications', '/research']] },
+  { title: 'Enterprise', links: [['Enterprise Solutions', '/enterprise'], ['ZEVARYQ Network Docs', '/KAMNetworkDocs'], ['Status Sistem', '/SystemStatus'], ['Research & Publications', '/research']] },
   { title: 'Perusahaan', links: [['Company Facts', '/company'], ['Founder & CEO', '/founder'], ['Legal & Corporate', '/LegalCorporateInformation'], ['Tentang Kami', '/AboutUs'], ['Kontak', '/Contact']] },
   { title: 'Bantuan & Legal', links: [['FAQ', '#faq'], ['Dukungan', '/Contact'], ['Kebijakan Privasi', '/PrivacyPolicy'], ['Syarat Penggunaan', '/TermsOfService'], ['Disclaimer', '/Disclaimer']] },
 ];
