@@ -5,10 +5,12 @@ const DURABLE_STATUS_TTL_MS = 45_000;
 const MIN_PUBLIC_MARKET_ASSETS = 4500;
 const MARKET_SNAPSHOT_FRESH_MS = 15 * 60 * 1000;
 const MARKET_SNAPSHOT_HEALTH_MAX_AGE_MS = MARKET_SNAPSHOT_FRESH_MS * 4;
-const COMPONENT_STATUS_TIMEOUT_MS = 700;
+// Bounded cold-POP subrequests: D1/network snapshots commonly outlast 700ms.
+const COMPONENT_STATUS_TIMEOUT_MS = 1800;
 const MARKET_STALE_REFRESH_TIMEOUT_MS = 20_000;
 const DURABLE_STATUS_READ_BUDGET_MS = 150;
-const MARKET_METADATA_READ_BUDGET_MS = 150;
+const MARKET_METADATA_READ_BUDGET_MS = 650;
+const MARKET_HTTP_FALLBACK_TIMEOUT_MS = 1500;
 const MARKET_STALE_FAST_PATH_MS = 450;
 
 const DURABLE_STATUS_SCHEMA = `
@@ -163,7 +165,7 @@ async function readMarketMetadata(env, origin, waitUntil) {
     }
   }
 
-  const fallback = await readJson(`${origin}/api/market-snapshot?health=1`);
+  const fallback = await readJson(`${origin}/api/market-snapshot?health=1`, MARKET_HTTP_FALLBACK_TIMEOUT_MS);
   return { ...fallback, readMode: 'http-fallback' };
 }
 
@@ -352,6 +354,7 @@ async function buildStatus(request, env) {
         marketStaleSelfHealTimeoutMs: MARKET_STALE_REFRESH_TIMEOUT_MS,
         marketStaleFastPathMs: MARKET_STALE_FAST_PATH_MS,
         marketMetadataReadBudgetMs: MARKET_METADATA_READ_BUDGET_MS,
+        marketHttpFallbackTimeoutMs: MARKET_HTTP_FALLBACK_TIMEOUT_MS,
         durableStatusReadBudgetMs: DURABLE_STATUS_READ_BUDGET_MS,
         directMarketMetadataRead: true,
         networkHealthyRequiresMinimumTarget: true,
