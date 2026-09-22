@@ -8,7 +8,7 @@ const ENDPOINTS = [
   { name: 'market-page', path: '/api/market-snapshot-page?page=0&limit=100', targetP95Ms: 1000, hardP95Ms: 2500, json: true },
   { name: 'platform-status', path: '/api/platform-status', targetP95Ms: 1000, hardP95Ms: 2500, json: true },
   { name: 'network-health', path: '/api/network-health', targetP95Ms: 750, hardP95Ms: 2500, json: true },
-  { name: 'kam-network-status', path: '/api/kam/network-status', targetP95Ms: 1000, hardP95Ms: 3000, json: true },
+  { name: 'zevaryq-network-status', path: '/api/zevaryq/network-status', targetP95Ms: 1000, hardP95Ms: 3000, json: true },
   { name: 'scaling-readiness', path: '/api/scaling-readiness', targetP95Ms: 1000, hardP95Ms: 2500, json: true },
 ];
 
