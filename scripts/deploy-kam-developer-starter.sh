@@ -13,7 +13,7 @@ VERIFY_BODY="$(mktemp)"
 VERIFY_HEADERS="$(mktemp)"
 HAD_STARTER=0
 
-fail(){ echo "KAM Developer Starter deploy: $*" >&2; exit 1; }
+fail(){ echo "ZEVARYQ Developer Starter deploy: $*" >&2; exit 1; }
 cleanup(){ rm -f "$PATCHED_TEMPLATE" "$VERIFY_BODY" "$VERIFY_HEADERS"; }
 trap cleanup EXIT
 
@@ -51,7 +51,7 @@ end='    # KAM_DEVELOPER_STARTER_END\n'
 if begin in text:
     before,rest=text.split(begin,1)
     if end not in rest:
-        raise SystemExit('incomplete KAM Developer Starter marker')
+        raise SystemExit('incomplete legacy developer starter marker')
     _,after=rest.split(end,1)
     text=before+after
 needle='    location / {\n'
@@ -80,7 +80,7 @@ proxy_fs "cat > /target/default.conf.template" < "$PATCHED_TEMPLATE"
 
 rollback(){
   code=$?
-  echo "KAM Developer Starter deployment failed; restoring proxy template." >&2
+  echo "ZEVARYQ Developer Starter deployment failed; restoring proxy template." >&2
   proxy_fs "cp -a /target/$BACKUP_NAME /target/default.conf.template" || true
   if [[ "$HAD_STARTER" == "1" ]]; then
     proxy_fs "cp -a /target/kam-dashboard/$STARTER_BACKUP_NAME /target/kam-dashboard/developer-starter.html" || true
@@ -112,5 +112,5 @@ trap - ERR
 if [[ "$HAD_STARTER" == "1" ]]; then
   proxy_fs "rm -f /target/kam-dashboard/$STARTER_BACKUP_NAME"
 fi
-echo "KAM Developer Starter deployed successfully."
+echo "ZEVARYQ Developer Starter deployed successfully."
 echo "backup=$PROXY_DIR/$BACKUP_NAME"
