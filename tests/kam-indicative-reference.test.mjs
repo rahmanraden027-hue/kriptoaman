@@ -16,7 +16,7 @@ test('ZEVARYQ server keeps indicative scenario reference separate from market pr
   assert.match(api, /guaranteed value/);
 });
 
-test('KAM UI labels US$29.37 as a scenario estimate and excludes it from live valuation', async () => {
+test('ZEVARYQ UI labels US$29.37 as a scenario estimate and excludes it from live valuation', async () => {
   const page = await read('src/pages/KAM.jsx');
   assert.match(page, /Indicative Scenario Reference/);
   assert.match(page, /Referensi Skenario Indikatif/);
@@ -26,9 +26,9 @@ test('KAM UI labels US$29.37 as a scenario estimate and excludes it from live va
   assert.match(page, /market cap, P\/L, nilai portofolio, atau ticker live/);
 });
 
-test('KAM scenario drivers roadmap uses evidence-based milestones without price promises', async () => {
+test('ZEVARYQ scenario drivers roadmap uses evidence-based milestones without price promises', async () => {
   const page = await read('src/pages/KAM.jsx');
-  assert.match(page, /KAM SCENARIO DRIVERS/);
+  assert.match(page, /ZEVARYQ SCENARIO DRIVERS/);
   assert.match(page, /Public mainnet with distributed validators/);
   assert.match(page, /Transparent liquidity infrastructure/);
   assert.match(page, /Market-based price discovery/);
