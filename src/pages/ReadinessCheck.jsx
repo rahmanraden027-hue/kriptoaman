@@ -7,7 +7,7 @@ const CHECKS = [
   { id: 'networks', label: 'Jaringan Publik', icon: Network },
   { id: 'auth', label: 'Autentikasi', icon: ShieldCheck },
   { id: 'kyc', label: 'KYC Readiness', icon: Server },
-  { id: 'kam', label: 'KAM RPC', icon: Radio },
+  { id: 'zevaryq', label: 'ZEVARYQ RPC', icon: Radio },
 ];
 
 const STATUS_COPY = {
@@ -32,7 +32,7 @@ function buildEvidence(results) {
   const market = results.market?.payload;
   const networks = results.networks?.payload;
   const kyc = results.kyc?.payload;
-  const kam = results.kam?.payload;
+  const zevaryq = results.zevaryq?.payload;
   const auth = results.auth;
 
   return {
@@ -60,11 +60,11 @@ function buildEvidence(results) {
       detail: kyc?.ready === true ? 'Database, session, API, workflow, dan webhook Didit terkonfigurasi' : 'Konfigurasi KYC belum seluruhnya lolos readiness check',
       checkedAt: Date.now(),
     },
-    kam: {
-      state: results.kam?.ok && kam?.verified === true && kam?.chainId === 22028 ? 'verified' : 'limited',
-      value: kam?.verified === true ? `Block ${Number(kam.blockNumber || 0).toLocaleString('id-ID')}` : '—',
-      detail: kam?.verified === true ? `Chain ID ${kam.chainId} · status ${kam.status}` : 'RPC KAM belum terverifikasi pada pemeriksaan ini',
-      checkedAt: kam?.checkedAt || null,
+    zevaryq: {
+      state: results.zevaryq?.ok && zevaryq?.verified === true && zevaryq?.chainId === 22028 ? 'verified' : 'limited',
+      value: zevaryq?.verified === true ? `Block ${Number(zevaryq.blockNumber || 0).toLocaleString('id-ID')}` : '—',
+      detail: zevaryq?.verified === true ? `Chain ID ${zevaryq.chainId} · status ${zevaryq.status}` : 'RPC ZEVARYQ belum terverifikasi pada pemeriksaan ini',
+      checkedAt: zevaryq?.checkedAt || null,
     },
   };
 }
@@ -86,15 +86,15 @@ export default function ReadinessCheck() {
       }
       setAuthorized(true);
 
-      const [market, networks, kyc, kam, auth] = await Promise.all([
+      const [market, networks, kyc, zevaryq, auth] = await Promise.all([
         readJson('/api/market-snapshot?health=1'),
         readJson('/api/network-health'),
         readJson('/api/kyc/readiness'),
-        readJson('/api/kam/network-status'),
+        readJson('/api/zevaryq/network-status'),
         readJson('/api/auth/me', { credentials: 'include' }),
       ]);
 
-      setEvidence(buildEvidence({ market, networks, kyc, kam, auth }));
+      setEvidence(buildEvidence({ market, networks, kyc, zevaryq, auth }));
     } catch (err) {
       setError(err?.message || 'Audit live belum dapat diselesaikan.');
     } finally {
@@ -133,7 +133,7 @@ export default function ReadinessCheck() {
             <div className="rounded-2xl border border-slate-700/70 bg-slate-950/50 p-4"><div className="text-3xl font-black">{loading ? '…' : `${summary.score}%`}</div><div className="mt-1 text-xs text-slate-400">Evidence verified</div></div>
             <div className="rounded-2xl border border-slate-700/70 bg-slate-950/50 p-4"><div className="text-3xl font-black text-emerald-400">{summary.verified}</div><div className="mt-1 text-xs text-slate-400">Terverifikasi</div></div>
             <div className="rounded-2xl border border-slate-700/70 bg-slate-950/50 p-4"><div className="text-3xl font-black">{summary.total}</div><div className="mt-1 text-xs text-slate-400">Pemeriksaan inti</div></div>
-            <div className="rounded-2xl border border-slate-700/70 bg-slate-950/50 p-4"><div className="text-lg font-black text-amber-300">mainnet-candidate</div><div className="mt-1 text-xs text-slate-400">KAM publication state</div></div>
+            <div className="rounded-2xl border border-slate-700/70 bg-slate-950/50 p-4"><div className="text-lg font-black text-amber-300">mainnet-candidate</div><div className="mt-1 text-xs text-slate-400">ZEVARYQ publication state</div></div>
           </div>
         </div>
 
@@ -160,7 +160,7 @@ export default function ReadinessCheck() {
         <div className="rounded-3xl border border-slate-700/70 bg-slate-900/55 p-5">
           <div className="flex items-start gap-3">
             {summary.verified === summary.total ? <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" /> : <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-300" />}
-            <div><h2 className="font-bold">Klasifikasi Evidence</h2><p className="mt-1 text-sm leading-6 text-slate-400">Hijau berarti endpoint atau konfigurasi yang relevan merespons sesuai kriteria audit. “Belum Diverifikasi” berarti bukti belum tersedia pada pemeriksaan ini; itu tidak otomatis berarti fitur gagal. KAM tetap berstatus kandidat mainnet dan bukan peluncuran komersial sampai gate produksi diselesaikan.</p></div>
+            <div><h2 className="font-bold">Klasifikasi Evidence</h2><p className="mt-1 text-sm leading-6 text-slate-400">Hijau berarti endpoint atau konfigurasi yang relevan merespons sesuai kriteria audit. “Belum Diverifikasi” berarti bukti belum tersedia pada pemeriksaan ini; itu tidak otomatis berarti fitur gagal. ZEVARYQ tetap berstatus kandidat mainnet dan bukan peluncuran komersial sampai gate produksi diselesaikan.</p></div>
           </div>
         </div>
       </div>
