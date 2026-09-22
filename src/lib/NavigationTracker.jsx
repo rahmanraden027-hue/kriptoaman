@@ -26,7 +26,7 @@ const PUBLIC_ROUTE_SEO = {
     },
     '/enterprise': {
         title: 'KriptoAman Enterprise — Data, Blockchain Infrastructure & Web3 Integration',
-        description: 'KriptoAman Enterprise provides data intelligence, dedicated KAM RPC, managed node infrastructure, security monitoring, Web3 integration, and technical research for organizations.',
+        description: 'KriptoAman Enterprise provides data intelligence, dedicated ZEVARYQ RPC, managed node infrastructure, security monitoring, Web3 integration, and technical research for organizations.',
     },
     '/AboutUs': {
         title: 'Tentang KriptoAman | PT Kripto Aman Indonesia',
@@ -41,36 +41,36 @@ const PUBLIC_ROUTE_SEO = {
         description: 'Lihat status layanan publik KriptoAman dan informasi operasional yang tersedia untuk membantu pengguna memantau ketersediaan platform.',
     },
     '/KAM': {
-        title: 'KAM | KriptoAman',
-        description: 'Informasi resmi KAM di KriptoAman, termasuk dokumentasi publik, perkembangan jaringan, roadmap, dan sumber verifikasi yang tersedia.',
+        title: 'ZEVARYQ | KriptoAman',
+        description: 'Informasi resmi ZEVARYQ/ZVQ di KriptoAman, termasuk dokumentasi publik, perkembangan jaringan, roadmap, dan sumber verifikasi yang tersedia.',
     },
     '/KAMGlobalRoadmap': {
-        title: 'KAM Global Campaign Roadmap 2026–2027 | KriptoAman',
-        description: 'Roadmap kampanye resmi terbaru KAM: Technology First, Transparency, Governance, utility, global access, dan Verifiable Milestones.',
+        title: 'ZEVARYQ Global Campaign Roadmap 2026–2027 | KriptoAman',
+        description: 'Roadmap kampanye resmi terbaru ZEVARYQ: Technology First, Transparency, Governance, utility, global access, dan Verifiable Milestones.',
     },
     '/KAMTokenomics': {
-        title: 'KAM Tokenomics | KriptoAman',
-        description: 'Dokumentasi publik tokenomics KAM, struktur suplai, utilitas yang direncanakan, dan informasi ekosistem yang tersedia untuk verifikasi.',
+        title: 'ZEVARYQ Tokenomics | KriptoAman',
+        description: 'Dokumentasi publik tokenomics ZVQ, struktur suplai, utilitas yang direncanakan, dan informasi ekosistem yang tersedia untuk verifikasi.',
     },
     '/KAMNetwork': {
-        title: 'KAM Network | KriptoAman',
-        description: 'Informasi publik mengenai KAM Network, status jaringan yang tersedia, parameter teknis, dan sumber verifikasi KriptoAman.',
+        title: 'ZEVARYQ Mainnet | KriptoAman',
+        description: 'Informasi publik mengenai ZEVARYQ Mainnet, status jaringan yang tersedia, parameter teknis, dan sumber verifikasi KriptoAman.',
     },
     '/KAMTransactionLab': {
-        title: 'KAM Transaction Lab | KriptoAman',
-        description: 'Halaman resmi untuk menghubungkan wallet, memvalidasi Chain ID 22028, dan mencoba transaksi KAM bernilai kecil dengan konfirmasi langsung di wallet pengguna.',
+        title: 'ZEVARYQ Transaction Lab | KriptoAman',
+        description: 'Halaman resmi untuk menghubungkan wallet, memvalidasi Chain ID 22028, dan mencoba transaksi ZVQ bernilai kecil dengan konfirmasi langsung di wallet pengguna.',
     },
     '/KAMNetworkDocs': {
-        title: 'KAM Network Documentation | KriptoAman',
-        description: 'Dokumentasi teknis publik KAM Network untuk parameter jaringan, integrasi teknis, dan sumber verifikasi yang tersedia.',
+        title: 'ZEVARYQ Network Documentation | KriptoAman',
+        description: 'Dokumentasi teknis publik ZEVARYQ Mainnet untuk parameter jaringan, integrasi teknis, dan sumber verifikasi yang tersedia.',
     },
     '/KAMLaunchReadiness': {
-        title: 'KAM Launch Readiness | KriptoAman',
-        description: 'Halaman kesiapan publik KAM yang merangkum indikator teknis dan bukti verifikasi tanpa menyatakan peluncuran final sebelum seluruh syarat terpenuhi.',
+        title: 'ZEVARYQ Launch Readiness | KriptoAman',
+        description: 'Halaman kesiapan publik ZEVARYQ yang merangkum indikator teknis dan bukti verifikasi tanpa menyatakan peluncuran final sebelum seluruh syarat terpenuhi.',
     },
     '/KAMDeveloper': {
-        title: 'KAM Developer Resources | KriptoAman',
-        description: 'Sumber daya developer KAM untuk dokumentasi jaringan, integrasi teknis, dan referensi publik yang tersedia.',
+        title: 'ZEVARYQ Developer Resources | KriptoAman',
+        description: 'Sumber daya developer ZEVARYQ untuk dokumentasi jaringan, integrasi teknis, dan referensi publik yang tersedia.',
     },
     '/RPCPrivacyPolicy': {
         title: 'RPC Privacy Policy | KriptoAman',
