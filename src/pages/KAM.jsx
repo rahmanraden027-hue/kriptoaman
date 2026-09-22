@@ -3,12 +3,12 @@ import { ArrowRight, CheckCircle2, Globe2, Network, ShieldCheck, Sparkles } from
 import { useLanguage } from '@/lib/LanguageContext';
 
 const ALLOCATION = [
-  ['Ecosystem & Development', '35%', '350,000,000 KAM'],
-  ['Treasury & Strategic Reserve', '20%', '200,000,000 KAM'],
-  ['Liquidity & Market Infrastructure', '15%', '150,000,000 KAM'],
-  ['Team & Contributors', '15%', '150,000,000 KAM'],
-  ['Community & Adoption', '10%', '100,000,000 KAM'],
-  ['Strategic Partnerships', '5%', '50,000,000 KAM'],
+  ['Ecosystem & Development', '35%', '350,000,000 ZVQ'],
+  ['Treasury & Strategic Reserve', '20%', '200,000,000 ZVQ'],
+  ['Liquidity & Market Infrastructure', '15%', '150,000,000 ZVQ'],
+  ['Team & Contributors', '15%', '150,000,000 ZVQ'],
+  ['Community & Adoption', '10%', '100,000,000 ZVQ'],
+  ['Strategic Partnerships', '5%', '50,000,000 ZVQ'],
 ];
 
 const FALLBACK_REFERENCE = {
@@ -20,9 +20,9 @@ const FALLBACK_REFERENCE = {
 
 const COPY = {
   id: {
-    badge: 'KAM Economic Framework v1',
-    title: 'KAM — Aset Native KriptoAman Network',
-    intro: 'KAM dirancang sebagai aset native untuk mendukung infrastruktur dan ekosistem KriptoAman. Halaman ini menyajikan parameter ekonomi v1, arah utility, vesting, dan roadmap dengan pendekatan transparansi.',
+    badge: 'ZEVARYQ Economic Framework v1',
+    title: 'ZEVARYQ (ZVQ) — Aset Native ZEVARYQ Mainnet',
+    intro: 'ZEVARYQ (ZVQ) adalah identitas native asset untuk ZEVARYQ Mainnet dalam ekosistem KriptoAman. Halaman ini menyajikan parameter ekonomi v1, arah utility, vesting, dan roadmap dengan pendekatan transparansi.',
     status: 'Status jaringan: Mainnet Candidate',
     candidate: 'Candidate Network',
     chain: 'Chain ID 22028',
@@ -32,18 +32,18 @@ const COPY = {
     referenceMeta: 'Skenario perencanaan internal · Bukan harga pasar live',
     referenceDisclosure: 'US$29.37 adalah referensi skenario internal untuk perencanaan dan bukan harga listing resmi, target harga, jaminan nilai, penawaran, atau harga pasar live. Nilai ini tidak digunakan untuk market cap, P/L, nilai portofolio, atau ticker live. Harga pasar hanya akan berasal dari perdagangan dan likuiditas nyata.',
     marketStatus: 'Harga pasar: Belum diperdagangkan',
-    scenarioKicker: 'KAM SCENARIO DRIVERS',
-    scenarioTitle: 'Roadmap fundamental yang dapat memperkuat utilitas dan adopsi KAM',
+    scenarioKicker: 'ZEVARYQ SCENARIO DRIVERS',
+    scenarioTitle: 'Roadmap fundamental yang dapat memperkuat utilitas dan adopsi ZVQ',
     scenarioIntro: 'Skenario US$29.37 dibaca sebagai referensi internal yang bergantung pada keberhasilan banyak milestone secara bersamaan. Fokus utama KriptoAman adalah membangun jaringan, utilitas, akses global, likuiditas sehat, dan kepercayaan berbasis bukti.',
     scenarioColumns: ['Fase', 'Milestone', 'Bukti yang Dibutuhkan', 'Relevansi Ekonomi'],
-    scenarioNote: 'Milestone berikut dapat memperkuat fundamental KAM, tetapi tidak secara otomatis menghasilkan harga tertentu. Harga pasar hanya terbentuk melalui perdagangan nyata, permintaan, penawaran, dan likuiditas.',
+    scenarioNote: 'Milestone berikut dapat memperkuat fundamental ZVQ, tetapi tidak secara otomatis menghasilkan harga tertentu. Harga pasar hanya terbentuk melalui perdagangan nyata, permintaan, penawaran, dan likuiditas.',
     scenarioDrivers: [
       ['Foundation', 'Public mainnet dengan validator terdistribusi', '4 host produksi terpisah, RPC/explorer terlindungi, stabilitas 24 jam+', 'Meningkatkan ketahanan jaringan dan kredibilitas infrastruktur.'],
-      ['Utility', 'KAM digunakan untuk biaya dan layanan jaringan', 'Transaksi nyata, integrasi aplikasi, dokumentasi developer', 'Mendorong kebutuhan utilitas yang berasal dari penggunaan jaringan.'],
+      ['Utility', 'ZVQ digunakan untuk biaya dan layanan jaringan', 'Transaksi nyata, integrasi aplikasi, dokumentasi developer', 'Mendorong kebutuhan utilitas yang berasal dari penggunaan jaringan.'],
       ['Access', 'Integrasi wallet dan metadata jaringan global', 'Wallet support, ChainList/registry metadata, kanal verifikasi resmi', 'Mempermudah akses pengguna dan developer lintas negara.'],
       ['Liquidity', 'Infrastruktur likuiditas yang transparan', 'Pasar nyata, kedalaman order/liquidity, volume organik, sumber harga independen', 'Memungkinkan price discovery yang sehat; tidak menetapkan harga tertentu.'],
       ['Adoption', 'Pertumbuhan pengguna dan developer', 'Aktivitas on-chain, aplikasi aktif, komunitas dan developer metrics', 'Memperluas penggunaan dan relevansi ekosistem.'],
-      ['Global', 'Kemitraan dan distribusi internasional', 'Integrasi terverifikasi, store releases, kemitraan teknologi', 'Memperluas jangkauan KAM sebagai aset native ekosistem.'],
+      ['Global', 'Kemitraan dan distribusi internasional', 'Integrasi terverifikasi, store releases, kemitraan teknologi', 'Memperluas jangkauan ZVQ sebagai aset native ekosistem.'],
       ['Governance', 'Kontrol treasury dan governance bertahap', 'Kebijakan transparan, vesting, audit trail, change control', 'Memperkuat disiplin ekonomi dan kepercayaan jangka panjang.'],
       ['Market', 'Price discovery berbasis pasar nyata', 'Trading dan likuiditas aktual dari venue yang terverifikasi', 'Hanya pada tahap ini harga pasar aktual dapat ditampilkan sebagai market price.'],
     ],
@@ -51,7 +51,7 @@ const COPY = {
     total: 'Total 100%',
     safeguards: 'Vesting & Economic Safeguards',
     utility: 'Arah Utility',
-    roadmapLabel: 'KAM Global Campaign Roadmap 2026–2027',
+    roadmapLabel: 'ZEVARYQ Global Campaign Roadmap 2026–2027',
     roadmapTitle: 'Dari Fondasi Terverifikasi menuju Ekosistem Global',
     transparency: 'Transparency First',
     transparencyBody: 'Tokenomics v1 adalah baseline ekonomi proyek. Perubahan material terhadap supply, allocation, vesting, treasury, burn policy, utility, atau referensi indikatif harus memiliki versioned change record dan persetujuan eksplisit sebelum dinyatakan final.',
@@ -59,7 +59,7 @@ const COPY = {
     roadmap: [
       ['Sep 2026', 'Fondasi Jaringan Terverifikasi', 'Produksi blok, validator, RPC, explorer, indexer, backup, dan observability dipantau melalui bukti publik.'],
       ['Sep–Okt 2026', 'Transparansi & Kepercayaan', 'Tokenomics v1, kontrol treasury, vesting, audit trail, status sistem, dan komunikasi berbasis bukti.'],
-      ['Okt–Des 2026', 'Utilitas & Ekosistem Developer', 'Dokumentasi developer, integrasi aplikasi, metadata jaringan, wallet guidance, dan layanan berbasis KAM.'],
+      ['Okt–Des 2026', 'Utilitas & Ekosistem Developer', 'Dokumentasi developer, integrasi aplikasi, metadata jaringan, wallet guidance, dan layanan berbasis ZVQ.'],
       ['Berjalan 2026', 'Kampanye Global & Komunitas', 'Technology First, Transparency, Governance, Verifiable Milestones, edukasi, AMA, dan konten bilingual.'],
       ['Berbasis kesiapan', 'Akses Global & Kesiapan Pasar', 'Integrasi pihak ketiga, data aggregator, likuiditas transparan, dan price discovery hanya melalui sumber terverifikasi.'],
       ['2027', 'Ekspansi Ekosistem', 'SDK, aplikasi, ketahanan infrastruktur, governance bertahap, dan kolaborasi teknologi internasional.'],
@@ -74,9 +74,9 @@ const COPY = {
     utilities: ['Network transaction fees.','Application & developer ecosystem participation.','Infrastructure services.','Ecosystem incentives.','Future governance functions where technically and legally appropriate.'],
   },
   en: {
-    badge: 'KAM Economic Framework v1',
-    title: 'KAM — Native Asset of the KriptoAman Network',
-    intro: 'KAM is designed as the native asset supporting KriptoAman infrastructure and ecosystem development. This page presents the v1 economic framework, utility direction, vesting, and roadmap with a transparency-first approach.',
+    badge: 'ZEVARYQ Economic Framework v1',
+    title: 'ZEVARYQ (ZVQ) — Native Asset of ZEVARYQ Mainnet',
+    intro: 'ZEVARYQ (ZVQ) is the native-asset identity of ZEVARYQ Mainnet within the KriptoAman ecosystem. This page presents the v1 economic framework, utility direction, vesting, and roadmap with a transparency-first approach.',
     status: 'Network status: Mainnet Candidate',
     candidate: 'Candidate Network',
     chain: 'Chain ID 22028',
@@ -86,18 +86,18 @@ const COPY = {
     referenceMeta: 'Internal planning scenario · Not a live market price',
     referenceDisclosure: 'US$29.37 is an internal scenario reference for planning only. It is not an official listing price, price target, guaranteed value, offer, or live market price, and it is excluded from market cap, P/L, portfolio valuation, and live tickers. Any market price must come from actual trading and liquidity.',
     marketStatus: 'Market price: Not yet trading',
-    scenarioKicker: 'KAM SCENARIO DRIVERS',
-    scenarioTitle: 'Fundamental roadmap that can strengthen KAM utility and adoption',
+    scenarioKicker: 'ZEVARYQ SCENARIO DRIVERS',
+    scenarioTitle: 'Fundamental roadmap that can strengthen ZVQ utility and adoption',
     scenarioIntro: 'The US$29.37 scenario is an internal reference that depends on multiple milestones succeeding together. KriptoAman remains focused on network quality, real utility, global access, healthy liquidity, and evidence-based trust.',
     scenarioColumns: ['Phase', 'Milestone', 'Evidence Required', 'Economic Relevance'],
-    scenarioNote: 'These milestones may strengthen KAM fundamentals, but they do not automatically produce any specific price. Market price is formed only by real trading, demand, supply, and liquidity.',
+    scenarioNote: 'These milestones may strengthen ZVQ fundamentals, but they do not automatically produce any specific price. Market price is formed only by real trading, demand, supply, and liquidity.',
     scenarioDrivers: [
       ['Foundation', 'Public mainnet with distributed validators', '4 separate production hosts, protected RPC/explorer, 24h+ stability', 'Improves network resilience and infrastructure credibility.'],
-      ['Utility', 'KAM used for network fees and services', 'Real transactions, app integrations, developer documentation', 'Creates utility demand tied to actual network usage.'],
+      ['Utility', 'ZVQ used for network fees and services', 'Real transactions, app integrations, developer documentation', 'Creates utility demand tied to actual network usage.'],
       ['Access', 'Global wallet and network metadata integrations', 'Wallet support, ChainList/registry metadata, official verification channels', 'Reduces friction for users and developers internationally.'],
       ['Liquidity', 'Transparent liquidity infrastructure', 'Real markets, liquidity depth, organic volume, independent price sources', 'Enables healthy price discovery; it does not set a specific price.'],
       ['Adoption', 'User and developer growth', 'On-chain activity, active applications, community and developer metrics', 'Expands real ecosystem usage and relevance.'],
-      ['Global', 'International partnerships and distribution', 'Verified integrations, store releases, technology partnerships', 'Broadens KAM reach as the ecosystem native asset.'],
+      ['Global', 'International partnerships and distribution', 'Verified integrations, store releases, technology partnerships', 'Broadens ZVQ reach as the ecosystem native asset.'],
       ['Governance', 'Progressive treasury and governance controls', 'Transparent policy, vesting, audit trail, change control', 'Strengthens long-term economic discipline and trust.'],
       ['Market', 'Market-based price discovery', 'Actual trading and liquidity from verified venues', 'Only at this stage can an actual market price be displayed as market price.'],
     ],
@@ -105,7 +105,7 @@ const COPY = {
     total: 'Total 100%',
     safeguards: 'Vesting & Economic Safeguards',
     utility: 'Utility Direction',
-    roadmapLabel: 'KAM Global Campaign Roadmap 2026–2027',
+    roadmapLabel: 'ZEVARYQ Global Campaign Roadmap 2026–2027',
     roadmapTitle: 'From Verified Foundations to a Global Ecosystem',
     transparency: 'Transparency First',
     transparencyBody: 'Tokenomics v1 is the project economic baseline. Material changes to supply, allocation, vesting, treasury, burn policy, utility, or indicative references require a versioned change record and explicit approval before being presented as final.',
@@ -113,7 +113,7 @@ const COPY = {
     roadmap: [
       ['Sep 2026', 'Verified Network Foundation', 'Block production, validators, RPC, explorer, indexer, backup, and observability are monitored through public evidence.'],
       ['Sep–Oct 2026', 'Transparency & Trust', 'Tokenomics v1, treasury controls, vesting, audit trails, system status, and evidence-based communications.'],
-      ['Oct–Dec 2026', 'Utility & Developer Ecosystem', 'Developer documentation, application integrations, network metadata, wallet guidance, and KAM-powered services.'],
+      ['Oct–Dec 2026', 'Utility & Developer Ecosystem', 'Developer documentation, application integrations, network metadata, wallet guidance, and ZVQ-powered services.'],
       ['Active in 2026', 'Global Campaign & Community', 'Technology First, Transparency, Governance, Verifiable Milestones, education, AMAs, and bilingual content.'],
       ['Readiness-based', 'Global Access & Market Readiness', 'Third-party integrations, market data, transparent liquidity, and price discovery only through verified sources.'],
       ['2027', 'Ecosystem Expansion', 'SDKs, applications, resilient infrastructure, progressive governance, and international technology collaboration.'],
@@ -133,12 +133,12 @@ export default function KAM() {
   const { language } = useLanguage();
   const text = COPY[language] || COPY.id;
   const [reference, setReference] = useState(FALLBACK_REFERENCE);
-  const documentCta = language === 'en' ? 'Read KAM Roadmap PDF' : 'Baca PDF Roadmap KAM';
+  const documentCta = language === 'en' ? 'Read legacy KAM-era Roadmap PDF' : 'Baca PDF roadmap era KAM (arsip)';
   const documentMeta = language === 'en' ? 'Public document · 4 pages · Mobile optimized' : 'Dokumen publik · 4 halaman · Dioptimalkan untuk mobile';
 
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/kam/network-status', { headers: { Accept: 'application/json' } })
+    fetch('/api/zevaryq/network-status', { headers: { Accept: 'application/json' } })
       .then(response => response.ok ? response.json() : null)
       .then(payload => {
         if (!cancelled && payload?.indicativeListingReference?.isLiveMarketPrice === false) {
@@ -168,7 +168,7 @@ export default function KAM() {
               <h1 className="max-w-4xl text-4xl font-black tracking-[-0.04em] sm:text-5xl">{text.title}</h1>
               <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">{text.intro}</p>
               <div className="mt-6 flex flex-wrap gap-2 text-[10px] font-bold sm:text-xs">
-                <span className="rounded-xl border border-slate-700 bg-slate-950/45 px-3 py-2">Supply: 1,000,000,000 KAM</span>
+                <span className="rounded-xl border border-slate-700 bg-slate-950/45 px-3 py-2">Supply reference: 1,000,000,000 ZVQ</span>
                 <span className="rounded-xl border border-slate-700 bg-slate-950/45 px-3 py-2">Decimals: 18</span>
                 <span className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-amber-300">{text.status}</span>
               </div>
