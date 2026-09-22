@@ -130,7 +130,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for path in / /api/platform-status /api/network-health /api/kam/network-status; do
+          for path in / /api/platform-status /api/network-health /api/zevaryq/network-status; do
             echo "== $path =="
             for i in 1 2 3; do
               curl -L -sS -o /dev/null --max-time 10 \
