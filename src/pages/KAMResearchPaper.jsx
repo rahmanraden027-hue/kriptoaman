@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-const TITLE = 'KAM Mainnet Architecture, Security & Public Readiness | KriptoAman Research';
-const DESCRIPTION = 'Technical paper from KriptoAman Research documenting KAM Mainnet architecture, network identity, security controls, RPC and explorer integrity, reliability, and evidence-oriented public-readiness methodology.';
+const TITLE = 'Legacy KAM Mainnet Architecture — Pre-ZEVARYQ Record | KriptoAman Research';
+const DESCRIPTION = 'Historical pre-rebrand technical paper documenting the Chain ID 22028 network when it was identified as KAM Mainnet. The same chain is now branded ZEVARYQ Mainnet / ZVQ.';
 const CANONICAL = 'https://kriptoaman.com/research/kam-mainnet-architecture';
 
 function upsertMeta(selector, attrs) {
@@ -80,6 +80,7 @@ export default function KAMResearchPaper(){
   <Link to="/research" className="text-sm font-bold text-sky-400">← KriptoAman Research</Link>
   <p className="mt-10 text-xs font-bold uppercase tracking-[.2em] text-sky-400">Technical Paper · Version 1.0 · 2026</p>
   <h1 className="mt-4 text-4xl font-black leading-tight sm:text-5xl">KAM Mainnet: Architecture, Security and Public Readiness Framework</h1>
+          <p className="mt-4 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm leading-6 text-amber-100">Historical record: this publication predates the in-place rebrand of Chain ID 22028 to ZEVARYQ Mainnet / ZVQ. Genesis, balances, addresses and block history are continuous.</p>
   <p className="mt-5 text-slate-400">Publisher: PT Kripto Aman Indonesia · KriptoAman Research</p>
   <div className="mt-8 rounded-2xl border border-amber-400/20 bg-amber-400/5 p-5 text-sm leading-6 text-amber-100">Status note: this technical publication is documentation, not a declaration that every final public-mainnet, exchange, wallet, registry, validator or ecosystem-listing requirement has been completed.</div>
   <div className="mt-12 space-y-12">{sections.map(([h,p])=><section key={h}><h2 className="text-2xl font-black">{h}</h2><p className="mt-4 leading-8 text-slate-300">{p}</p></section>)}</div>
