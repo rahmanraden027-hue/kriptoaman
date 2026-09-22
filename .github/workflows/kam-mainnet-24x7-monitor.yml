@@ -1,4 +1,4 @@
-name: KAM Mainnet 24x7 Read-Only Monitor
+name: ZEVARYQ Mainnet 24x7 Read-Only Monitor
 
 on:
   workflow_dispatch:
@@ -25,9 +25,9 @@ jobs:
         run: |
           set -euo pipefail
           curl --fail --silent --show-error --max-time 20 \
-            'https://kriptoaman.com/api/kam/network-status' -o /tmp/kam-status.json
+            'https://kriptoaman.com/api/zevaryq/network-status' -o /tmp/zevaryq-status.json
           node <<'NODE'
-          const p = require('/tmp/kam-status.json');
+          const p = require('/tmp/zevaryq-status.json');
           console.log('status=', p.status, 'live=', p.live, 'verified=', p.verified, 'chainId=', p.chainId, 'block=', p.blockNumber, 'checkedAt=', p.checkedAt);
           if (Number(p.chainId) !== 22028) process.exit(2);
           if (String(p.chainIdHex).toLowerCase() !== '0x560c') process.exit(3);

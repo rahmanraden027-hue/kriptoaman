@@ -27,7 +27,7 @@ BACKUP_NAME="default.conf.template.kam-v2.$STAMP.bak"
 PATCHED_TEMPLATE="$(mktemp)"
 VERIFY_BODY="$(mktemp)"
 VERIFY_HEADERS="$(mktemp)"
-fail(){ echo "KAM Explorer V2 deploy: $*" >&2; exit 1; }
+fail(){ echo "ZEVARYQ Explorer V2 deploy: $*" >&2; exit 1; }
 cleanup(){ rm -f "$PATCHED_TEMPLATE" "$VERIFY_BODY" "$VERIFY_HEADERS"; }
 trap cleanup EXIT
 
@@ -75,7 +75,7 @@ python3 - "$NETWORK_SOURCE" <<'PY'
 import json,sys
 with open(sys.argv[1], encoding='utf-8') as fh: d=json.load(fh)
 assert d['chainId']==22028 and d['chainIdHex']=='0x560c'
-assert d['nativeCurrency']['symbol']=='KAM' and d['nativeCurrency']['decimals']==18
+assert d['nativeCurrency']['symbol']=='ZVQ' and d['nativeCurrency']['decimals']==18
 assert d['rpcUrls']==['https://rpc.kriptoaman.com']
 assert d['blockExplorerUrls']==['https://explorer.kriptoaman.com']
 assert d['security']['privateKeysRequired'] is False
@@ -180,7 +180,7 @@ proxy_fs "cat > /target/default.conf.template" < "$PATCHED_TEMPLATE"
 
 rollback(){
   code=$?
-  echo "KAM Explorer V2 deployment failed; restoring proxy template." >&2
+  echo "ZEVARYQ Explorer V2 deployment failed; restoring proxy template." >&2
   proxy_fs "cp -a /target/$BACKUP_NAME /target/default.conf.template" || true
   docker compose up -d --force-recreate proxy >/dev/null 2>&1 || true
   exit "$code"
@@ -218,7 +218,7 @@ fetch_body 'https://explorer.kriptoaman.com/developer/network.json'
 python3 - "$VERIFY_BODY" <<'PY'
 import json,sys
 with open(sys.argv[1], encoding='utf-8') as fh: d=json.load(fh)
-assert d['chainId']==22028 and d['nativeCurrency']['symbol']=='KAM'
+assert d['chainId']==22028 and d['nativeCurrency']['symbol']=='ZVQ'
 assert d['publicDeveloperAccess'] is True
 PY
 assert_page '/addresses' 'data-kam-addresses-version="1.0.0"'

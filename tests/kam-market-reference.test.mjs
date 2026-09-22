@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('Market preserves the dedicated KAM audit-status surface inside the multi-asset composition', async () => {
+test('Market preserves the dedicated ZEVARYQ audit-status surface inside the multi-asset composition', async () => {
   const config = await read('src/pages.config.js');
   const globalPage = await read('src/pages/MarketGlobal.jsx');
   const page = await read('src/pages/MarketWithKAM.jsx');
@@ -26,7 +26,7 @@ test('Market preserves the dedicated KAM audit-status surface inside the multi-a
   assert.doesNotMatch(page, /US\$29\.37/);
 });
 
-test('KAM audit status is explicitly separate from live market pricing', async () => {
+test('ZEVARYQ audit status is explicitly separate from live market pricing', async () => {
   const page = await read('src/pages/MarketWithKAM.jsx');
   assert.match(page, /production hold/);
   assert.match(page, /Belum ada laporan audit eksternal yang diterima/);
@@ -35,7 +35,7 @@ test('KAM audit status is explicitly separate from live market pricing', async (
   assert.doesNotMatch(page, /animate-ping/);
 });
 
-test('KAM audit status remains outside live market accounting while market intelligence may use verified live data', async () => {
+test('ZEVARYQ audit status remains outside live market accounting while market intelligence may use verified live data', async () => {
   const page = await read('src/pages/MarketWithKAM.jsx');
   assert.match(page, /useLivePrices/);
   assert.match(page, /change24h:\s*Number\(data\?\.change24h\)/);

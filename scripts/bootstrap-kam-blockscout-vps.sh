@@ -28,19 +28,19 @@ if ! apt-get install -y docker-compose-v2; then
   apt-get install -y docker-compose-plugin
 fi
 
-log "Verifying KAM RPC before host changes"
+log "Verifying ZEVARYQ RPC before host changes"
 chain_id="$(curl -fsS --retry 5 --retry-delay 2 --max-time 20 \
   -H 'content-type: application/json' \
   --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
-  "${RPC_URL}" | jq -r '.result // empty')" || die "KAM RPC unavailable"
+  "${RPC_URL}" | jq -r '.result // empty')" || die "ZEVARYQ RPC unavailable"
 [[ "${chain_id}" == "${CHAIN_ID_HEX}" ]] || die "Unexpected chain id: ${chain_id:-empty}"
 
 head_hex="$(curl -fsS --retry 5 --retry-delay 2 --max-time 20 \
   -H 'content-type: application/json' \
   --data '{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}' \
-  "${RPC_URL}" | jq -r '.result // empty')" || die "Unable to read KAM block head"
-[[ "${head_hex}" =~ ^0x[0-9a-fA-F]+$ ]] || die "Invalid KAM block head: ${head_hex:-empty}"
-log "KAM RPC verified chain_id=${chain_id} block_head=${head_hex}"
+  "${RPC_URL}" | jq -r '.result // empty')" || die "Unable to read ZEVARYQ block head"
+[[ "${head_hex}" =~ ^0x[0-9a-fA-F]+$ ]] || die "Invalid ZEVARYQ block head: ${head_hex:-empty}"
+log "ZEVARYQ RPC verified chain_id=${chain_id} block_head=${head_hex}"
 
 systemctl enable --now docker
 docker compose version >/dev/null
@@ -81,7 +81,7 @@ fi
 # shellcheck disable=SC1090
 source "${SECRETS_FILE}"
 
-log "Writing KAM production Blockscout configuration"
+log "Writing ZEVARYQ production Blockscout configuration"
 python3 - "${COMPOSE_DIR}" "${DB_PASS}" "${STATS_PASS}" "${SECRET_KEY_BASE}" "${RPC_URL}" "${PUBLIC_IP}" "${BLOCKSCOUT_DOCKER_TAG}" <<'PY'
 from pathlib import Path
 import sys
@@ -99,8 +99,8 @@ values={
     'ETHEREUM_JSONRPC_DISABLE_ARCHIVE_BALANCES':'true',
     'DATABASE_URL':f'postgresql://blockscout:{db_pass}@db:5432/blockscout',
     'SECRET_KEY_BASE':secret_key,
-    'COIN_NAME':'KAM',
-    'COIN':'KAM',
+    'COIN_NAME':'ZEVARYQ',
+    'COIN':'ZVQ',
     'DISABLE_MARKET':'true',
     'POOL_SIZE':'30',
     'POOL_SIZE_API':'10',
@@ -141,11 +141,11 @@ ft=front.read_text()
 fvals={
     'NEXT_PUBLIC_API_HOST':public_ip,
     'NEXT_PUBLIC_API_PROTOCOL':'http',
-    'NEXT_PUBLIC_NETWORK_NAME':'KAM Mainnet',
-    'NEXT_PUBLIC_NETWORK_SHORT_NAME':'KAM',
+    'NEXT_PUBLIC_NETWORK_NAME':'ZEVARYQ Mainnet',
+    'NEXT_PUBLIC_NETWORK_SHORT_NAME':'ZVQ',
     'NEXT_PUBLIC_NETWORK_ID':'22028',
-    'NEXT_PUBLIC_NETWORK_CURRENCY_NAME':'KAM',
-    'NEXT_PUBLIC_NETWORK_CURRENCY_SYMBOL':'KAM',
+    'NEXT_PUBLIC_NETWORK_CURRENCY_NAME':'ZEVARYQ',
+    'NEXT_PUBLIC_NETWORK_CURRENCY_SYMBOL':'ZVQ',
     'NEXT_PUBLIC_NETWORK_CURRENCY_DECIMALS':'18',
     'NEXT_PUBLIC_APP_HOST':public_ip,
     'NEXT_PUBLIC_APP_PROTOCOL':'http',

@@ -75,8 +75,8 @@ export function deterministicIntelligence(snapshot = [], language = 'id', networ
   const sentiment = metrics.momentumBand;
   const networkText = networkContext?.verified
     ? language === 'en'
-      ? ` Network health is ${networkContext.online}/${networkContext.total} live and KAM is ${networkContext.kamOperational ? 'operational' : 'not confirmed operational'}.`
-      : ` Kesehatan jaringan ${networkContext.online}/${networkContext.total} live dan KAM ${networkContext.kamOperational ? 'operasional' : 'belum terkonfirmasi operasional'}.`
+      ? ` Network health is ${networkContext.online}/${networkContext.total} live and ZEVARYQ is ${networkContext.zevaryqOperational ? 'operational' : 'not confirmed operational'}.`
+      : ` Kesehatan jaringan ${networkContext.online}/${networkContext.total} live dan ZEVARYQ ${networkContext.zevaryqOperational ? 'operasional' : 'belum terkonfirmasi operasional'}.`
     : '';
   const anomalyText = metrics.anomalySymbols.length
     ? language === 'en'

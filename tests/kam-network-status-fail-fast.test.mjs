@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-const source = await readFile(new URL('../functions/api/kam/network-status.js', import.meta.url), 'utf8');
+const source = await readFile(new URL('../functions/api/zevaryq/network-status.js', import.meta.url), 'utf8');
 
-test('KAM public status uses a bounded fail-fast network probe', () => {
+test('ZEVARYQ public status uses a bounded fail-fast network probe', () => {
   assert.match(source, /const NETWORK_PROBE_TIMEOUT_MS = 1100;/);
   assert.match(source, /const WALLET_PROBE_TIMEOUT_MS = 1800;/);
   assert.match(source, /async function rpcWithTimeout/);
@@ -12,7 +12,7 @@ test('KAM public status uses a bounded fail-fast network probe', () => {
   assert.match(source, /Promise\.all\(\[\s*rpcWithTimeout\('eth_chainId'\),\s*rpcWithTimeout\('eth_blockNumber'\)/);
 });
 
-test('KAM readiness remains fail closed and requires real chain identity plus a block', () => {
+test('ZEVARYQ readiness remains fail closed and requires real chain identity plus a block', () => {
   assert.match(source, /chainIdHex\.toLowerCase\(\) === EXPECTED_CHAIN_ID_HEX/);
   assert.match(source, /if \(!verified\) throw new Error\('RPC chain ID mismatch'\)/);
   assert.match(source, /const blockNumber = Number\(BigInt\(blockHex\)\)/);

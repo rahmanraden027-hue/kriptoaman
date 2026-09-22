@@ -65,7 +65,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for path in /api/market-hot /api/network-health /api/kam/network-status; do
+          for path in /api/market-hot /api/network-health /api/zevaryq/network-status; do
             code=$(curl -sS -o /tmp/body -w '%{http_code}' --max-time 15 "https://kriptoaman.com${path}")
             if [ "$code" -lt 200 ] || [ "$code" -ge 400 ]; then
               echo "Live read-only check failed: ${path} HTTP ${code}" >&2

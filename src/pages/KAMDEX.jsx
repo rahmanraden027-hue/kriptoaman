@@ -52,13 +52,13 @@ export default function KAMDEX() {
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <StatusChip>KAM Mainnet · Chain ID 22028</StatusChip>
+                <StatusChip>ZEVARYQ Mainnet · Chain ID 22028</StatusChip>
                 <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">Factory + Router Source Verified</span>
                 <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-xs font-bold text-amber-200">Liquidity Not Yet Enabled</span>
               </div>
               <h1 className="mt-5 text-3xl font-black tracking-tight sm:text-4xl">KriptoAman DEX</h1>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400 sm:text-base">
-                KAMFactory, KAMRouter, dan WKAM telah dicocokkan secara reproducible dengan runtime bytecode di KAM Mainnet. Pool dan likuiditas tetap dinonaktifkan sampai independent contract review, provenance counter-asset, dan otorisasi treasury selesai.
+                KAMFactory, KAMRouter, dan WKAM telah dicocokkan secara reproducible dengan runtime bytecode pada chain yang kini bernama ZEVARYQ Mainnet. Pool dan likuiditas tetap dinonaktifkan sampai independent contract review, provenance counter-asset, dan otorisasi treasury selesai.
               </p>
             </div>
             <div className="flex gap-3">
@@ -76,7 +76,7 @@ export default function KAMDEX() {
           <section className="rounded-[26px] border border-slate-800 bg-slate-950/80 p-5">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-300">Network Overview</p>
             <div className="mt-4 grid grid-cols-2 gap-3">
-              <Metric label="Native Asset" value="KAM" note="18 decimals" />
+              <Metric label="Native Asset" value="ZVQ" note="18 decimals" />
               <Metric label="Wrapped Asset" value="WKAM" note="1:1 native wrapper" />
               <Metric label="Swap Fee" value="0.30%" note="AMM contract model" />
               <Metric label="AMM" value="x · y = k" note="constant product" />
@@ -92,7 +92,7 @@ export default function KAMDEX() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-300">Swap</p>
-                <h2 className="mt-1 text-xl font-black">KAM Native Swap</h2>
+                <h2 className="mt-1 text-xl font-black">ZVQ Native Swap</h2>
               </div>
               <ArrowDownUp className="h-5 w-5 text-sky-300" />
             </div>
@@ -101,7 +101,7 @@ export default function KAMDEX() {
               <div className="flex items-center justify-between text-xs text-slate-500"><span>From</span><span>Balance: —</span></div>
               <div className="mt-3 flex items-center justify-between gap-4">
                 <span className="text-3xl font-black text-slate-300">0.00</span>
-                <span className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-black">KAM</span>
+                <span className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-black">ZVQ</span>
               </div>
             </div>
 
@@ -164,7 +164,7 @@ export default function KAMDEX() {
             <div className="flex items-center gap-3"><LockKeyhole className="h-5 w-5 text-emerald-300" /><h2 className="text-lg font-black">Production Gates</h2></div>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               {[
-                ['Contract deployment', 'Completed on KAM Mainnet'],
+                ['Contract deployment', 'Completed on the pre-rebrand Chain ID 22028 network'],
                 ['Source verification', 'Completed · reproducible runtime match'],
                 ['Independent review', 'Required before production pool'],
                 ['Quote asset provenance', 'Required before pool'],
@@ -184,7 +184,7 @@ export default function KAMDEX() {
           <div className="flex gap-3">
             <Info className="mt-0.5 h-5 w-5 shrink-0 text-blue-300" />
             <p className="text-sm leading-6 text-slate-400">
-              Factory, Router, dan WKAM telah melalui reproducible source/runtime verification. Halaman ini tetap tidak menampilkan harga KAM, TVL, volume, APY, listing, atau likuiditas yang belum terverifikasi. Wallet connection, pool creation dan swap tetap dinonaktifkan sampai independent contract review, counter-asset provenance, liquidity approval, dan smoke test selesai.
+              Factory, Router, dan WKAM telah melalui reproducible source/runtime verification. Halaman ini tetap tidak menampilkan harga ZVQ, TVL, volume, APY, listing, atau likuiditas yang belum terverifikasi. Wallet connection, pool creation dan swap tetap dinonaktifkan sampai independent contract review, counter-asset provenance, liquidity approval, dan smoke test selesai.
             </p>
           </div>
         </section>

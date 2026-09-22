@@ -10,7 +10,7 @@ test('admin readiness uses live evidence and avoids unsupported certification cl
     '/api/market-snapshot?health=1',
     '/api/network-health',
     '/api/kyc/readiness',
-    '/api/kam/network-status',
+    '/api/zevaryq/network-status',
     '/api/auth/me',
   ]) assert.equal(page.includes(endpoint), true, `missing endpoint: ${endpoint}`);
 

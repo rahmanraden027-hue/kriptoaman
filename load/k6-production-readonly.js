@@ -56,7 +56,7 @@ const endpoints = [
   { name: 'market-page', path: '/api/market-snapshot-page?page=0&limit=100', json: true, weight: 24 },
   { name: 'platform-status', path: '/api/platform-status', json: true, weight: 10 },
   { name: 'network-health', path: '/api/network-health', json: true, weight: 7 },
-  { name: 'kam-network-status', path: '/api/kam/network-status', json: true, weight: 7 },
+  { name: 'zevaryq-network-status', path: '/api/zevaryq/network-status', json: true, weight: 7 },
 ];
 
 const weightedEndpoints = endpoints.flatMap((endpoint) => Array.from({ length: endpoint.weight }, () => endpoint));

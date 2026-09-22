@@ -1,12 +1,12 @@
-# KAM dApp Starter
+# ZEVARYQ dApp Starter
 
 A minimal dependency-free starter for building against the public KriptoAman developer endpoints.
 
 ## Network
 
-- Network: KriptoAman Mainnet
+- Network: ZEVARYQ Mainnet
 - Chain ID: `22028` (`0x560c`)
-- Native currency: `KAM` (18 decimals)
+- Native currency: `ZVQ` (18 decimals)
 - RPC: `https://rpc.kriptoaman.com`
 - Explorer: `https://explorer.kriptoaman.com`
 - Developer docs: `https://explorer.kriptoaman.com/developer/docs`
@@ -26,14 +26,14 @@ Then open `http://localhost:8080`.
 
 `kam-network.js` exports:
 
-- `KAM_NETWORK` — canonical public connection parameters.
+- `ZEVARYQ_NETWORK` — canonical public connection parameters (`KAM_NETWORK` remains a deprecated compatibility alias).
 - `jsonRpc(method, params)` — small JSON-RPC helper.
 - `latestBlocks()` — reads the fixed public recent-blocks endpoint.
 - `latestTransactions()` — reads the fixed public recent-transactions endpoint.
 - `networkStats()` — reads the fixed public statistics endpoint.
 - `verifyNetwork()` — checks `eth_chainId` and latest block number.
 - `addToWallet()` — requests the network through `wallet_addEthereumChain`.
-- `switchToKAM()` — switches to KAM, adding it if the wallet returns error `4902`.
+- `switchToZEVARYQ()` — switches to ZEVARYQ Mainnet, adding it if the wallet returns error `4902` (`switchToKAM()` remains a deprecated compatibility alias).
 - `requestAccounts()` — asks the injected wallet for account access.
 - `explorerTxUrl(hash)` and `explorerAddressUrl(address)` — validated Explorer links.
 

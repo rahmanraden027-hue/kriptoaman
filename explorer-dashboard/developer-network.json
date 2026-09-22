@@ -1,11 +1,11 @@
 {
-  "schemaVersion": "1.0.0",
-  "networkName": "KriptoAman Mainnet",
+  "schemaVersion": "1.1.0",
+  "networkName": "ZEVARYQ Mainnet",
   "chainId": 22028,
   "chainIdHex": "0x560c",
   "nativeCurrency": {
-    "name": "KAM",
-    "symbol": "KAM",
+    "name": "ZEVARYQ",
+    "symbol": "ZVQ",
     "decimals": 18
   },
   "rpcUrls": [
@@ -23,5 +23,12 @@
     "privateKeysRequired": false,
     "validatorAdminEndpointsPublished": false,
     "privilegedNamespacesDocumentedForPublicUse": false
+  },
+  "identityMigration": {
+    "type": "in-place-rebrand",
+    "legacyNetwork": "KriptoAman Mainnet / KAM",
+    "blockHistoryPreserved": true,
+    "addressesPreserved": true,
+    "balancesPreserved": true
   }
 }

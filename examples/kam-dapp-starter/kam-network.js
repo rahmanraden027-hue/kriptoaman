@@ -1,20 +1,20 @@
-export const KAM_NETWORK = Object.freeze({
-  name: 'KriptoAman Mainnet',
+export const ZEVARYQ_NETWORK = Object.freeze({
+  name: 'ZEVARYQ Mainnet',
   chainId: 22028,
   chainIdHex: '0x560c',
   rpcUrl: 'https://rpc.kriptoaman.com',
   explorerUrl: 'https://explorer.kriptoaman.com',
-  nativeCurrency: Object.freeze({ name: 'KAM', symbol: 'KAM', decimals: 18 }),
+  nativeCurrency: Object.freeze({ name: 'ZEVARYQ', symbol: 'ZVQ', decimals: 18 }),
 });
 
 const EXPLORER_ENDPOINTS = Object.freeze({
-  blocks: `${KAM_NETWORK.explorerUrl}/api/v2/blocks`,
-  transactions: `${KAM_NETWORK.explorerUrl}/api/v2/transactions`,
-  stats: `${KAM_NETWORK.explorerUrl}/api/v2/stats`,
+  blocks: `${ZEVARYQ_NETWORK.explorerUrl}/api/v2/blocks`,
+  transactions: `${ZEVARYQ_NETWORK.explorerUrl}/api/v2/transactions`,
+  stats: `${ZEVARYQ_NETWORK.explorerUrl}/api/v2/stats`,
 });
 
 export async function jsonRpc(method, params = []) {
-  const response = await fetch(KAM_NETWORK.rpcUrl, {
+  const response = await fetch(ZEVARYQ_NETWORK.rpcUrl, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ jsonrpc: '2.0', id: Date.now(), method, params }),
@@ -51,7 +51,7 @@ export async function verifyNetwork() {
     jsonRpc('eth_chainId'),
     jsonRpc('eth_blockNumber'),
   ]);
-  if (String(chainIdHex).toLowerCase() !== KAM_NETWORK.chainIdHex) {
+  if (String(chainIdHex).toLowerCase() !== ZEVARYQ_NETWORK.chainIdHex) {
     throw new Error(`Unexpected Chain ID: ${chainIdHex}`);
   }
   return {
@@ -65,21 +65,21 @@ export async function addToWallet(provider = globalThis.ethereum) {
   return provider.request({
     method: 'wallet_addEthereumChain',
     params: [{
-      chainId: KAM_NETWORK.chainIdHex,
-      chainName: KAM_NETWORK.name,
-      nativeCurrency: KAM_NETWORK.nativeCurrency,
-      rpcUrls: [KAM_NETWORK.rpcUrl],
-      blockExplorerUrls: [KAM_NETWORK.explorerUrl],
+      chainId: ZEVARYQ_NETWORK.chainIdHex,
+      chainName: ZEVARYQ_NETWORK.name,
+      nativeCurrency: ZEVARYQ_NETWORK.nativeCurrency,
+      rpcUrls: [ZEVARYQ_NETWORK.rpcUrl],
+      blockExplorerUrls: [ZEVARYQ_NETWORK.explorerUrl],
     }],
   });
 }
 
-export async function switchToKAM(provider = globalThis.ethereum) {
+export async function switchToZEVARYQ(provider = globalThis.ethereum) {
   if (!provider?.request) throw new Error('No injected EVM wallet detected');
   try {
     return await provider.request({
       method: 'wallet_switchEthereumChain',
-      params: [{ chainId: KAM_NETWORK.chainIdHex }],
+      params: [{ chainId: ZEVARYQ_NETWORK.chainIdHex }],
     });
   } catch (error) {
     if (error?.code === 4902) return addToWallet(provider);
@@ -94,10 +94,13 @@ export async function requestAccounts(provider = globalThis.ethereum) {
 
 export function explorerTxUrl(hash) {
   if (!/^0x[0-9a-fA-F]{64}$/.test(hash || '')) throw new Error('Invalid transaction hash');
-  return `${KAM_NETWORK.explorerUrl}/tx/${hash}`;
+  return `${ZEVARYQ_NETWORK.explorerUrl}/tx/${hash}`;
 }
 
 export function explorerAddressUrl(address) {
   if (!/^0x[0-9a-fA-F]{40}$/.test(address || '')) throw new Error('Invalid address');
-  return `${KAM_NETWORK.explorerUrl}/address/${address}`;
+  return `${ZEVARYQ_NETWORK.explorerUrl}/address/${address}`;
 }
+// Deprecated compatibility aliases for integrations using the pre-rebrand starter API.
+export const KAM_NETWORK = ZEVARYQ_NETWORK;
+export const switchToKAM = switchToZEVARYQ;

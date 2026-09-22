@@ -25,7 +25,7 @@ const SOLUTIONS = [
   },
   {
     icon: Server,
-    title: 'Dedicated KAM RPC',
+    title: 'Dedicated ZEVARYQ RPC',
     description: 'Endpoint RPC khusus untuk kebutuhan pengembangan, observability, dan aplikasi yang memerlukan kapasitas terpisah dari public RPC.',
     points: ['Kapasitas disesuaikan', 'Monitoring endpoint', 'Dukungan integrasi teknis'],
   },

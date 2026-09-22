@@ -27,7 +27,5 @@
     "zvqNativeAsset": "in-place-rebrand-from-kam"
   },
   "schemaVersion": "1.1.0",
-  "canonicalPath": "/zevaryq-mainnet.json",
-  "legacyAlias": true,
-  "legacyPath": "/kam-mainnet.json"
+  "canonicalPath": "/zevaryq-mainnet.json"
 }

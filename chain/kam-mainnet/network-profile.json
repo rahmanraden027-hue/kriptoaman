@@ -8,7 +8,6 @@
   },
   "candidateChainId": 22028,
   "candidateChainIdHex": "0x560c",
-  "genesisSupplyKAM": "1000000000",
   "consensus": "QBFT",
   "validatorCount": 4,
   "blockPeriodSeconds": 3,
@@ -29,6 +28,10 @@
     "balancesUnchanged": true,
     "addressesUnchanged": true,
     "validatorKeysUnchanged": true,
-    "blockHistoryUnchanged": true
-  }
+    "blockHistoryUnchanged": true,
+    "productionIdentityCutoverApproved": true,
+    "identityCutoverDate": "2026-09-22",
+    "legacyNamesRetainedOnlyForCompatibilityAndHistory": true
+  },
+  "genesisSupplyNative": "1000000000"
 }
