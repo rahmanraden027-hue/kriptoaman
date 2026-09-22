@@ -66,7 +66,7 @@ export default function GLandingHero({ stats }) {
               Buka Intelligence Hub <ArrowRight className="w-4 h-4" />
             </Link>
             <a href="https://explorer.kriptoaman.com" target="_blank" rel="noreferrer" className="ka-btn-outline inline-flex items-center justify-center gap-2 px-6 text-sm sm:text-base">
-              KAM Explorer <ExternalLink className="w-4 h-4" />
+              ZEVARYQ Explorer <ExternalLink className="w-4 h-4" />
             </a>
           </div>
           <div className="ka-hero-indicators mt-8 flex flex-wrap gap-x-6 gap-y-3 justify-center lg:justify-start">
@@ -106,7 +106,7 @@ export default function GLandingHero({ stats }) {
           <div className="ka-console-metrics">
             <div><Database /><span><b>{assetCount}</b>Cakupan aset</span></div>
             <div><Activity /><span><b>{networkCount}</b>Jaringan aktif</span></div>
-            <a href="https://explorer.kriptoaman.com" target="_blank" rel="noreferrer"><Shield /><span><b>22028</b>KAM Mainnet</span></a>
+            <a href="https://explorer.kriptoaman.com" target="_blank" rel="noreferrer"><Shield /><span><b>22028</b>ZEVARYQ Mainnet</span></a>
           </div>
         </div>
       </div>
