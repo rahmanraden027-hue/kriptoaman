@@ -1,19 +1,21 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  ZEVARYQ_NETWORK,
   KAM_NETWORK,
   explorerAddressUrl,
   explorerTxUrl,
 } from '../examples/kam-dapp-starter/kam-network.js';
 
-test('KAM dApp starter uses canonical public network parameters', () => {
-  assert.equal(KAM_NETWORK.name, 'KriptoAman Mainnet');
-  assert.equal(KAM_NETWORK.chainId, 22028);
-  assert.equal(KAM_NETWORK.chainIdHex, '0x560c');
-  assert.equal(KAM_NETWORK.nativeCurrency.symbol, 'KAM');
-  assert.equal(KAM_NETWORK.nativeCurrency.decimals, 18);
-  assert.equal(new URL(KAM_NETWORK.rpcUrl).hostname, 'rpc.kriptoaman.com');
-  assert.equal(new URL(KAM_NETWORK.explorerUrl).hostname, 'explorer.kriptoaman.com');
+test('ZEVARYQ dApp starter uses canonical public network parameters', () => {
+  assert.equal(ZEVARYQ_NETWORK.name, 'ZEVARYQ Mainnet');
+  assert.equal(ZEVARYQ_NETWORK.chainId, 22028);
+  assert.equal(ZEVARYQ_NETWORK.chainIdHex, '0x560c');
+  assert.equal(ZEVARYQ_NETWORK.nativeCurrency.symbol, 'ZVQ');
+  assert.equal(ZEVARYQ_NETWORK.nativeCurrency.decimals, 18);
+  assert.equal(new URL(ZEVARYQ_NETWORK.rpcUrl).hostname, 'rpc.kriptoaman.com');
+  assert.equal(new URL(ZEVARYQ_NETWORK.explorerUrl).hostname, 'explorer.kriptoaman.com');
+  assert.equal(KAM_NETWORK, ZEVARYQ_NETWORK);
 });
 
 test('KAM dApp starter validates Explorer transaction and address identifiers', () => {
