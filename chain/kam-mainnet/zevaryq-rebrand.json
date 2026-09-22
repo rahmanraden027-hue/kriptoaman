@@ -24,7 +24,19 @@
   },
   "migration": {
     "type": "in-place-rebrand",
-    "productionCutoverApproved": false,
-    "cloudflareCutoverApproved": false
+    "productionCutoverApproved": true,
+    "cloudflareCutoverApproved": false,
+    "identityCutoverDate": "2026-09-22",
+    "compatibilityAliasesRetained": true,
+    "destructiveChainMigration": false
+  },
+  "canonicalPublicIdentity": {
+    "network": "ZEVARYQ Mainnet",
+    "nativeAsset": "ZEVARYQ",
+    "symbol": "ZVQ",
+    "chainId": 22028,
+    "chainIdHex": "0x560c",
+    "rpc": "https://rpc.kriptoaman.com",
+    "explorer": "https://explorer.kriptoaman.com"
   }
 }
