@@ -170,7 +170,7 @@ async function readMarketMetadata(env, origin, waitUntil) {
 function isVerifiedOperationalBody(body, now = Date.now()) {
   const market = body?.components?.market;
   const networks = body?.components?.networks;
-  const kam = body?.components?.kam;
+  const zevaryq = body?.components?.zevaryq;
   const marketCapturedAt = Number(market?.capturedAt);
   const marketAgeMs = Number.isFinite(marketCapturedAt) ? Math.max(0, now - marketCapturedAt) : Infinity;
   const networkOnline = Number(networks?.online);
@@ -185,8 +185,8 @@ function isVerifiedOperationalBody(body, now = Date.now()) {
       && Number.isFinite(networkOnline)
       && Number.isFinite(networkMinimumTarget)
       && networkOnline >= networkMinimumTarget
-      && kam?.healthy === true
-      && Number(kam?.chainId) === 22028,
+      && zevaryq?.healthy === true
+      && Number(zevaryq?.chainId) === 22028,
   );
 }
 
@@ -261,10 +261,10 @@ async function buildStatus(request, env) {
   const origin = new URL(request.url).origin;
   const generatedAt = new Date().toISOString();
   const waitUntil = waitUntilByRequest.get(request);
-  const [market, networks, kam] = await Promise.all([
+  const [market, networks, zevaryq] = await Promise.all([
     readMarketMetadata(env, origin, waitUntil),
     readJson(`${origin}/api/network-health`),
-    readJson(`${origin}/api/kam/network-status`),
+    readJson(`${origin}/api/zevaryq/network-status`),
   ]);
 
   const marketAssetCount = market.ok ? Number(market.payload?.assetCount) : NaN;
@@ -285,7 +285,7 @@ async function buildStatus(request, env) {
       && Number.isFinite(networkMinimumTarget)
       && networkOnline >= networkMinimumTarget,
   );
-  const kamHealthy = Boolean(kam.ok && kam.payload?.verified === true && Number(kam.payload?.chainId) === 22028);
+  const zevaryqHealthy = Boolean(zevaryq.ok && zevaryq.payload?.verified === true && Number(zevaryq.payload?.chainId) === 22028);
 
   const components = {
     market: {
@@ -314,13 +314,13 @@ async function buildStatus(request, env) {
       checkedAt: networks.ok ? networks.payload?.checked_at ?? null : null,
       readError: networks.ok ? null : networks.error ?? 'unavailable',
     },
-    kam: {
-      status: kamHealthy ? 'operational' : kam.ok ? 'degraded' : 'unavailable',
-      healthy: kamHealthy,
-      chainId: kamHealthy ? 22028 : null,
-      blockNumber: kamHealthy && Number.isFinite(Number(kam.payload?.blockNumber)) ? Number(kam.payload.blockNumber) : null,
-      checkedAt: kam.ok ? kam.payload?.checkedAt ?? null : null,
-      readError: kam.ok ? null : kam.error ?? 'unavailable',
+    zevaryq: {
+      status: zevaryqHealthy ? 'operational' : zevaryq.ok ? 'degraded' : 'unavailable',
+      healthy: zevaryqHealthy,
+      chainId: zevaryqHealthy ? 22028 : null,
+      blockNumber: zevaryqHealthy && Number.isFinite(Number(zevaryq.payload?.blockNumber)) ? Number(zevaryq.payload.blockNumber) : null,
+      checkedAt: zevaryq.ok ? zevaryq.payload?.checkedAt ?? null : null,
+      readError: zevaryq.ok ? null : zevaryq.error ?? 'unavailable',
     },
   };
 
@@ -330,7 +330,7 @@ async function buildStatus(request, env) {
   return {
     status: overall === 'unavailable' ? 503 : 200,
     body: withDelivery({
-      schemaVersion: '1.0',
+      schemaVersion: '1.1',
       service: 'KriptoAman',
       overall,
       generatedAt,
