@@ -84,7 +84,7 @@ export default function KAMCampaignNews() {
             </div>
             <h1 className="mt-5 text-3xl font-black leading-tight sm:text-5xl">{ARTICLE_TITLE}</h1>
             <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
-              Kampanye KAM 2026 berfokus pada edukasi teknologi, transparansi tokenomics, kesiapan jaringan, dan milestone yang dapat diverifikasi—bukan pada janji harga atau keuntungan.
+              Kampanye KAM 2026 berfokus pada edukasi teknologi, transparansi tokenomics, kesiapan jaringan, dan milestone yang dapat diverifikasi—bukan pada janji harga atau keuntungan. Artikel ini adalah arsip era KAM sebelum Chain ID 22028 direbrand secara in-place menjadi ZEVARYQ Mainnet / ZVQ.
             </p>
             <div className="mt-6 flex flex-wrap gap-3 text-xs text-slate-400">
               <span className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2"><CalendarDays className="h-4 w-4" /> 27 Agustus 2026</span>
