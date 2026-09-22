@@ -12,6 +12,10 @@ test('platform status reads compact market metadata directly through D1 Sessions
   assert.doesNotMatch(source, /SELECT source, asset_count, captured_at, payload FROM market_snapshots/);
   assert.match(source, /readMode: 'd1-direct'/);
   assert.match(source, /readMode: 'http-fallback'/);
+  assert.match(source, /const MARKET_METADATA_READ_BUDGET_MS = 650/);
+  assert.match(source, /const MARKET_HTTP_FALLBACK_TIMEOUT_MS = 1500/);
+  assert.match(source, /readJson\(`\$\{origin\}\/api\/market-snapshot\?health=1`, MARKET_HTTP_FALLBACK_TIMEOUT_MS\)/);
+  assert.match(source, /marketHttpFallbackTimeoutMs: MARKET_HTTP_FALLBACK_TIMEOUT_MS/);
 });
 
 test('platform status preserves market operational freshness and asset gates', async () => {
@@ -45,7 +49,7 @@ test('platform status self-heals stale market metadata only through a bounded ve
 
 test('platform status bounds component reads below the public aggregate SLO instead of waiting on slow cold subrequests', async () => {
   const source = await read('functions/api/platform-status.js');
-  assert.match(source, /const COMPONENT_STATUS_TIMEOUT_MS = 700/);
+  assert.match(source, /const COMPONENT_STATUS_TIMEOUT_MS = 1800/);
   assert.match(source, /readJson\(`\$\{origin\}\/api\/network-health`\)/);
   assert.match(source, /readJson\(`\$\{origin\}\/api\/kam\/network-status`\)/);
   assert.match(source, /componentStatusTimeoutMs: COMPONENT_STATUS_TIMEOUT_MS/);

@@ -102,7 +102,7 @@ test('live capacity gate retries fresh probes but never lowers the 12-network st
 
 test('platform status enforces the 12-network minimum under a bounded aggregate latency budget', async () => {
   const platform = await read('functions/api/platform-status.js');
-  assert.match(platform, /const COMPONENT_STATUS_TIMEOUT_MS = 700/);
+  assert.match(platform, /const COMPONENT_STATUS_TIMEOUT_MS = 1800/);
   assert.match(platform, /readJson\(`\$\{origin\}\/api\/network-health`\)/);
   assert.match(platform, /networkOnline >= networkMinimumTarget/);
   assert.match(platform, /networkHealthyRequiresMinimumTarget: true/);
