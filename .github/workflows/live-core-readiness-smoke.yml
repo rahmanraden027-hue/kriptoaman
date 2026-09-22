@@ -66,9 +66,9 @@ jobs:
           const kycChecks = kyc.payload?.checks || {};
           checks.push(['kyc', kycVerified, `status=${kyc.status} ready=${kyc.payload?.ready ?? false} database=${Boolean(kycChecks.database)} session=${Boolean(kycChecks.session)} api=${Boolean(kycChecks.api)} workflow=${Boolean(kycChecks.workflow)} webhook=${Boolean(kycChecks.webhook)}`]);
 
-          const kam = await get('/api/kam/network-status');
-          const kamVerified = kam.ok && kam.payload?.verified === true && Number(kam.payload?.chainId) === 22028;
-          checks.push(['kam', kamVerified, `status=${kam.status} verified=${kam.payload?.verified ?? false} chainId=${kam.payload?.chainId ?? 'unknown'} block=${kam.payload?.blockNumber ?? 'unknown'} publication=${kam.payload?.status ?? 'unknown'}`]);
+          const zevaryq = await get('/api/zevaryq/network-status');
+          const zevaryqVerified = zevaryq.ok && zevaryq.payload?.verified === true && Number(zevaryq.payload?.chainId) === 22028;
+          checks.push(['zevaryq', zevaryqVerified, `status=${zevaryq.status} verified=${zevaryq.payload?.verified ?? false} chainId=${zevaryq.payload?.chainId ?? 'unknown'} block=${zevaryq.payload?.blockNumber ?? 'unknown'} publication=${zevaryq.payload?.status ?? 'unknown'}`]);
 
           let verified = 0;
           for (const [name, ok, detail] of checks) {
@@ -77,5 +77,5 @@ jobs:
           }
           console.log(`SUMMARY: verified=${verified}/5 score=${Math.round((verified / 5) * 100)}%`);
 
-          if (!marketVerified || !networksVerified || !authVerified || !kamVerified) process.exit(2);
+          if (!marketVerified || !networksVerified || !authVerified || !zevaryqVerified) process.exit(2);
           NODE
