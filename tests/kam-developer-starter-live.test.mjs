@@ -10,12 +10,12 @@ const deploy = await readFile(new URL('../scripts/deploy-kam-developer-starter.s
 
 test('live KAM starter is canonical and browser-safe', () => {
   assert.match(starter, /data-kam-developer-starter-version="1\.0\.0"/);
-  assert.match(starter, /KriptoAman Mainnet/);
+  assert.match(starter, /ZEVARYQ Mainnet/);
   assert.match(starter, /Chain ID 22028/);
   assert.match(starter, /0x560c/);
   assert.equal(networkConfig.chainId, 22028);
   assert.equal(networkConfig.chainIdHex, '0x560c');
-  assert.equal(networkConfig.nativeCurrency.symbol, 'KAM');
+  assert.equal(networkConfig.nativeCurrency.symbol, 'ZVQ');
   assert.match(starter, /readJson\('\/developer\/network\.json'\)/);
   assert.match(starter, /readJson\('\/api\/v2\/blocks'\)/);
   assert.match(starter, /readJson\('\/api\/v2\/stats'\)/);
@@ -39,7 +39,7 @@ test('Developer Center and Docs make the live starter directly discoverable', ()
   assert.match(developer, /href="\/developer\/starter"/);
   assert.match(developer, /Run Live dApp Starter/);
   assert.match(docs, /href="\/developer\/starter"/);
-  assert.match(docs, /KAM Live dApp Starter/);
+  assert.match(docs, /ZEVARYQ Live dApp Starter/);
   assert.match(docs, /GitHub starter folder/);
 });
 

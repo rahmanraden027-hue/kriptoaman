@@ -61,7 +61,7 @@ export default function Research() {
           '@type': 'ListItem',
           position: 1,
           url: 'https://kriptoaman.com/research/kam-mainnet-architecture',
-          name: 'KAM Mainnet: Architecture, Security and Public Readiness Framework'
+          name: 'ZEVARYQ Mainnet: Architecture, Security and Public Readiness Framework'
         }]
       }
     });
@@ -101,8 +101,8 @@ export default function Research() {
         <section id="publications" className="py-12 border-b border-white/10">
           <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Featured Research · 2026</p>
           <article className="mt-6 rounded-3xl border border-sky-400/20 bg-[#080d14] p-6 sm:p-8">
-            <div className="flex items-center gap-2 text-sky-300"><Network className="w-5 h-5" /><span className="text-xs font-semibold uppercase tracking-[0.18em]">KAM Network</span></div>
-            <h2 className="mt-5 text-2xl sm:text-3xl font-semibold tracking-tight">KAM Mainnet: Architecture, Security and Public Readiness Framework</h2>
+            <div className="flex items-center gap-2 text-sky-300"><Network className="w-5 h-5" /><span className="text-xs font-semibold uppercase tracking-[0.18em]">ZEVARYQ Network</span></div>
+            <h2 className="mt-5 text-2xl sm:text-3xl font-semibold tracking-tight">ZEVARYQ Mainnet: Architecture, Security and Public Readiness Framework</h2>
             <p className="mt-4 max-w-3xl leading-7 text-slate-400">A technical overview of KAM network identity, public infrastructure, security controls, observability, and the evidence framework used to evaluate readiness. Publication does not itself constitute a public-mainnet launch declaration.</p>
             <Link to="/research/kam-mainnet-architecture" className="mt-7 inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-3 text-sm font-semibold hover:bg-white/5">Read Paper <ArrowUpRight className="w-4 h-4" /></Link>
           </article>

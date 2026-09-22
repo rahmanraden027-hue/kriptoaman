@@ -20,7 +20,7 @@ function Card({ icon: Icon, title, children }) {
 export default function KAMTokenomics() {
   useEffect(() => {
     const previousTitle = document.title;
-    document.title = 'KAM Tokenomics & Roadmap | KriptoAman';
+    document.title = 'Legacy KAM Tokenomics | KriptoAman';
 
     let description = document.querySelector('meta[name="description"]');
     const previousDescription = description?.getAttribute('content') || '';
@@ -29,7 +29,7 @@ export default function KAMTokenomics() {
       description.setAttribute('name', 'description');
       document.head.appendChild(description);
     }
-    description.setAttribute('content', 'Canonical KAM tokenomics, supply model, allocation, vesting, KriptoAman Mainnet identity, and strategic KAM roadmap.');
+    description.setAttribute('content', 'Archived KAM economic baseline retained for historical transparency following the in-place ZEVARYQ Network identity migration.');
 
     let canonical = document.querySelector('link[rel="canonical"]');
     const previousCanonical = canonical?.getAttribute('href') || '';
@@ -50,6 +50,9 @@ export default function KAMTokenomics() {
   return (
     <main className="min-h-screen overflow-x-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 pb-40 pt-6 text-white sm:pb-28">
       <div className="mx-auto max-w-5xl space-y-5">
+        <aside className="rounded-2xl border border-amber-400/20 bg-amber-400/10 p-5 text-sm leading-6 text-amber-100">
+          <strong>Legacy economic record:</strong> angka dan alokasi KAM di halaman ini dipertahankan sebagai arsip dan belum otomatis menjadi tokenomics ZVQ. Identitas jaringan aktif adalah <strong>ZEVARYQ Network / ZVQ</strong> pada Chain ID <strong>22028</strong>. Publikasi tokenomics ZVQ memerlukan rekonsiliasi supply, treasury, kontrak, dan bukti on-chain tersendiri.
+        </aside>
         <header className="overflow-hidden rounded-[28px] border border-sky-400/20 bg-sky-500/5 p-5 sm:p-8">
           <div className="flex min-w-0 flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-4">
             <KriptoAmanLogo size={44} textSize="text-base sm:text-lg" className="max-w-full shrink-0" />

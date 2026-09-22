@@ -17,7 +17,7 @@ test('SystemStatus combines first-party and platform health without fabricated v
   const page = await read('src/pages/SystemStatus.jsx');
   assert.match(page, /\/api\/health/);
   assert.match(page, /\/api\/platform-status/);
-  assert.match(page, /KAM Mainnet RPC/);
+  assert.match(page, /ZEVARYQ Mainnet RPC/);
   assert.match(page, /Verified Public Networks/);
   assert.match(page, /componentState/);
   assert.doesNotMatch(page, /Math\.random/);

@@ -12,14 +12,14 @@ export default function RPCPrivacyPolicy() {
     <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 pb-24 pt-6 text-white">
       <div className="mx-auto max-w-3xl space-y-4">
         <div className="flex items-center gap-3">
-          <Link to="/KAMNetwork" className="rounded-lg bg-slate-800 p-2 hover:bg-slate-700" aria-label="Back to KAM Network"><ArrowLeft className="h-4 w-4 text-slate-300" /></Link>
+          <Link to="/KAMNetwork" className="rounded-lg bg-slate-800 p-2 hover:bg-slate-700" aria-label="Back to ZEVARYQ Network"><ArrowLeft className="h-4 w-4 text-slate-300" /></Link>
           <KriptoAmanLogo size={36} showText textSize="text-base" />
         </div>
 
         <header className="pb-3">
-          <div className="flex items-center gap-3"><div className="rounded-xl border border-sky-500/30 bg-sky-500/20 p-2"><Lock className="h-5 w-5 text-sky-300" /></div><h1 className="text-2xl font-bold">KAM Public RPC Privacy Policy</h1></div>
+          <div className="flex items-center gap-3"><div className="rounded-xl border border-sky-500/30 bg-sky-500/20 p-2"><Lock className="h-5 w-5 text-sky-300" /></div><h1 className="text-2xl font-bold">ZEVARYQ Public RPC Privacy Policy</h1></div>
           <p className="mt-2 text-sm text-slate-400">PT Kripto Aman Indonesia · Effective: 26 August 2026</p>
-          <p className="mt-3 text-sm leading-6 text-slate-300">This policy describes privacy and operational practices for the public JSON-RPC endpoint at <strong>https://rpc.kriptoaman.com</strong>. The endpoint is provided for read-oriented access to the KAM network candidate and does not require users to submit seed phrases or private keys.</p>
+          <p className="mt-3 text-sm leading-6 text-slate-300">This policy describes privacy and operational practices for the public JSON-RPC endpoint at <strong>https://rpc.kriptoaman.com</strong>. The endpoint is provided for read-oriented access to the ZEVARYQ network and does not require users to submit seed phrases or private keys.</p>
         </header>
 
         <Section title="1. Data processed by the RPC gateway">
@@ -54,7 +54,7 @@ export default function RPCPrivacyPolicy() {
 
         <Section title="7. Contact and related policies">
           <p>Privacy questions may be sent to <strong>privacy@kriptoaman.com</strong>.</p>
-          <div className="flex flex-wrap gap-3 pt-1"><Link to="/PrivacyPolicy" className="inline-flex items-center gap-1 text-sky-300">General Privacy Policy <ExternalLink className="h-3 w-3" /></Link><Link to="/KAMNetworkDocs" className="inline-flex items-center gap-1 text-sky-300">KAM Network Documentation <ExternalLink className="h-3 w-3" /></Link></div>
+          <div className="flex flex-wrap gap-3 pt-1"><Link to="/PrivacyPolicy" className="inline-flex items-center gap-1 text-sky-300">General Privacy Policy <ExternalLink className="h-3 w-3" /></Link><Link to="/KAMNetworkDocs" className="inline-flex items-center gap-1 text-sky-300">ZEVARYQ Network Documentation <ExternalLink className="h-3 w-3" /></Link></div>
         </Section>
 
         <p className="pt-4 text-center text-xs text-slate-500">© 2026 PT Kripto Aman Indonesia.</p>

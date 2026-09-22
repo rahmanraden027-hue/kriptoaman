@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom';
 import KriptoAmanLogo from '../components/brand/KriptoAmanLogo';
 
 const rows = [
-  ['Network name', 'KriptoAman Mainnet Candidate'],
-  ['Native asset', 'KAM'],
+  ['Network name', 'ZEVARYQ Mainnet Candidate'],
+  ['Native asset', 'ZVQ'],
   ['Decimals', '18'],
   ['Chain ID', '22028'],
   ['Hex Chain ID', '0x560c'],
@@ -25,8 +25,8 @@ export default function KAMNetworkDocs() {
     <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 pb-24 pt-6 text-white">
       <div className="mx-auto max-w-4xl space-y-5">
         <header className="rounded-[28px] border border-sky-400/20 bg-sky-500/5 p-6 sm:p-8">
-          <div className="flex items-center gap-3"><KriptoAmanLogo size={44} /><div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-300">Official Network Documentation</p><h1 className="mt-1 text-3xl font-black">KAM Network</h1></div></div>
-          <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-300">Canonical public documentation for KAM network identity, wallet metadata, public endpoints, security posture, tokenomics references, and third-party registry references. The network remains labeled <strong>mainnet-candidate-not-public</strong> until the production promotion gate is fully satisfied.</p>
+          <div className="flex items-center gap-3"><KriptoAmanLogo size={44} /><div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-300">Official Network Documentation</p><h1 className="mt-1 text-3xl font-black">ZEVARYQ Network</h1></div></div>
+          <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-300">Canonical public documentation for ZEVARYQ network identity, wallet metadata, public endpoints, security posture, tokenomics references, and third-party registry references. The network remains labeled <strong>mainnet-candidate-not-public</strong> until the production promotion gate is fully satisfied.</p>
         </header>
 
         <section className="overflow-hidden rounded-2xl border border-slate-700/50 bg-slate-900/50">
@@ -43,8 +43,8 @@ export default function KAMNetworkDocs() {
             <Link to="/KAMNetwork" className="inline-flex items-center gap-1 font-semibold text-sky-300">Live Network Status <ExternalLink className="h-3 w-3" /></Link>
           </Card>
           <Card icon={WalletCards} title="Wallet metadata">
-            <p>Wallets that support EVM custom networks may use Chain ID 22028, KAM as the native currency, the official RPC endpoint, and the official explorer. Manual custom-network support does not itself mean a wallet has officially listed KAM.</p>
-            <Link to="/KAMTokenomics" className="inline-flex items-center gap-1 font-semibold text-sky-300">KAM Tokenomics v1 <ExternalLink className="h-3 w-3" /></Link>
+            <p>Wallets that support EVM custom networks may use Chain ID 22028, ZVQ as the native currency, the official RPC endpoint, and the official explorer. Manual custom-network support does not itself mean a wallet has officially listed ZVQ.</p>
+            <Link to="/KAMTokenomics" className="inline-flex items-center gap-1 font-semibold text-sky-300">ZVQ Tokenomics v1 <ExternalLink className="h-3 w-3" /></Link>
           </Card>
           <Card icon={Network} title="Registry references">
             <p>Third-party registry submissions are reviewed independently by their maintainers. KriptoAman does not treat an open pull request or a manually added custom network as an accepted public listing.</p>
@@ -56,7 +56,7 @@ export default function KAMNetworkDocs() {
           <strong>Status notice:</strong> this documentation publishes verifiable network metadata and endpoints, but does not by itself declare final public-mainnet activation, exchange listing, market value, regulatory approval, custody, staking, or token-sale availability. Tokenomics figures remain subject to final on-chain reconciliation before they are represented externally as verified supply data.
         </section>
 
-        <div className="flex flex-wrap gap-3 text-xs"><Link to="/KAMTokenomics" className="text-sky-300">KAM Tokenomics</Link><Link to="/PrivacyPolicy" className="text-sky-300">General Privacy Policy</Link><Link to="/RPCPrivacyPolicy" className="text-sky-300">RPC Privacy Policy</Link><a href="https://explorer.kriptoaman.com" target="_blank" rel="noreferrer" className="text-sky-300">Explorer</a></div>
+        <div className="flex flex-wrap gap-3 text-xs"><Link to="/KAMTokenomics" className="text-sky-300">ZVQ Tokenomics</Link><Link to="/PrivacyPolicy" className="text-sky-300">General Privacy Policy</Link><Link to="/RPCPrivacyPolicy" className="text-sky-300">RPC Privacy Policy</Link><a href="https://explorer.kriptoaman.com" target="_blank" rel="noreferrer" className="text-sky-300">Explorer</a></div>
       </div>
     </main>
   );

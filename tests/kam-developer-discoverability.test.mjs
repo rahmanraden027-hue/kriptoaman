@@ -5,7 +5,7 @@ import test from 'node:test';
 const source = await readFile(new URL('../src/pages/KAMDeveloper.jsx', import.meta.url), 'utf8');
 
 test('KAM developer console preserves internal readiness language', () => {
-  assert.equal(source.includes("name: 'KriptoAman Mainnet Candidate'"), true);
+  assert.equal(source.includes("name: 'ZEVARYQ Mainnet Candidate'"), true);
   assert.equal(source.includes('mainnet-candidate-not-public'), true);
   assert.equal(source.includes('Session uptime and request analytics shown here are browser-session telemetry, not formal 24-hour production-readiness evidence.'), true);
 });
