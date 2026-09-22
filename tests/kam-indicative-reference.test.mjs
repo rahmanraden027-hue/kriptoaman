@@ -4,8 +4,8 @@ import test from 'node:test';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('KAM server keeps indicative scenario reference separate from market price', async () => {
-  const api = await read('functions/api/kam/network-status.js');
+test('ZEVARYQ server keeps indicative scenario reference separate from market price', async () => {
+  const api = await read('functions/api/zevaryq/network-status.js');
   assert.match(api, /marketPrice: null/);
   assert.match(api, /marketPriceStatus: 'not-yet-trading'/);
   assert.match(api, /value: 29\.37/);
