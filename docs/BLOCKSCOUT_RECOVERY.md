@@ -5,6 +5,8 @@
 
 Use this when `https://explorer.kriptoaman.com` loads but the homepage shows an error banner, placeholder counters, unavailable gas data, latest blocks/transactions are missing, or indexed data appears stale.
 
+> **2026-09-23 follow-up (WIB):** The 2026-09-22 14:40 UTC GitHub-hosted probe reported a healthy RPC / Blockscout API at height 144262, but a later Android wallet screenshot displayed RPC Error and Explorer API Error. The two observations are at different times and from different network paths. Re-run this read-only diagnostic from GitHub and compare browser reachability before modifying services or DNS; a green CI sample does not guarantee Android-browser access.
+
 ## Safety boundary
 
 This runbook is diagnostic-first and read-only until an operator intentionally performs a service restart. Do not change validator keys/set, genesis, Chain ID, treasury, balances, token supply, wallet state, DNS, or secrets. Do not delete PostgreSQL volumes, truncate Blockscout tables, or force a full reindex without verified backup evidence.
