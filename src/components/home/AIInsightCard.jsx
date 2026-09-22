@@ -16,7 +16,7 @@ function snapshotFingerprint(snapshot, language, networkContext) {
   return JSON.stringify({
     language,
     network: networkContext?.verified
-      ? [networkContext.online, networkContext.total, networkContext.kamOperational]
+      ? [networkContext.online, networkContext.total, networkContext.zevaryqOperational]
       : null,
     values: snapshot.map((item) => [
       item.symbol,
@@ -66,12 +66,12 @@ export default function AIInsightCard({ prices = {}, language = 'id' }) {
 
     async function loadNetworkContext() {
       try {
-        const [networkResponse, kamResponse] = await Promise.all([
+        const [networkResponse, zevaryqResponse] = await Promise.all([
           fetch('/api/network-health', { signal: controller.signal, headers: { Accept: 'application/json' } }),
-          fetch('/api/kam/network-status', { signal: controller.signal, headers: { Accept: 'application/json' } }),
+          fetch('/api/zevaryq/network-status', { signal: controller.signal, headers: { Accept: 'application/json' } }),
         ]);
-        if (!networkResponse.ok || !kamResponse.ok) return;
-        const [network, kam] = await Promise.all([networkResponse.json(), kamResponse.json()]);
+        if (!networkResponse.ok || !zevaryqResponse.ok) return;
+        const [network, zevaryq] = await Promise.all([networkResponse.json(), zevaryqResponse.json()]);
         if (!active) return;
         const online = Number(network?.summary?.online || 0);
         const total = Number(network?.summary?.total || 0);
@@ -79,7 +79,7 @@ export default function AIInsightCard({ prices = {}, language = 'id' }) {
           verified: total > 0 && online >= Number(network?.summary?.minimum_active_target || 12),
           online,
           total,
-          kamOperational: kam?.live === true && kam?.verified === true && Number(kam?.chainId) === 22028,
+          zevaryqOperational: zevaryq?.live === true && zevaryq?.verified === true && Number(zevaryq?.chainId) === 22028,
           checkedAt: Date.now(),
         });
       } catch {
@@ -124,7 +124,7 @@ export default function AIInsightCard({ prices = {}, language = 'id' }) {
         ? {
             online: networkContext.online,
             total: networkContext.total,
-            kamOperational: networkContext.kamOperational,
+            zevaryqOperational: networkContext.zevaryqOperational,
           }
         : null;
       const res = await base44.integrations.Core.InvokeLLM({
