@@ -1,0 +1,31 @@
+{
+  "name": "ZEVARYQ Mainnet",
+  "shortName": "ZEVARYQ",
+  "chainId": 22028,
+  "chainIdHex": "0x560c",
+  "nativeCurrency": {
+    "name": "ZEVARYQ",
+    "symbol": "ZVQ",
+    "decimals": 18
+  },
+  "rpcUrls": [
+    "https://rpc.kriptoaman.com"
+  ],
+  "blockExplorerUrls": [
+    "https://explorer.kriptoaman.com"
+  ],
+  "iconUrls": [
+    "https://kriptoaman.com/brand/zevaryq-mark.svg"
+  ],
+  "status": "mainnet-candidate-not-public",
+  "transactionModel": "EVM-compatible",
+  "gasPolicy": "Current network configuration accepts zero-effective-gas transactions; production gas economics remain subject to final network policy.",
+  "commercialLaunchEnabled": false,
+  "dataPolicy": {
+    "marketPrice": "unavailable-until-verified-market-source",
+    "onChain": "live-only-after-rpc-chain-id-verification",
+    "zvqNativeAsset": "in-place-rebrand-from-kam"
+  },
+  "schemaVersion": "1.1.0",
+  "canonicalPath": "/zevaryq-mainnet.json"
+}
