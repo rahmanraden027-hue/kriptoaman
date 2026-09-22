@@ -36,12 +36,12 @@ export default function KriptoAmanGlobalLanding() {
         networkCheckedAt: null,
       };
       let platformPayload = null;
-      let kamPayload = null;
+      let zevaryqPayload = null;
 
-      const [statusResult, networkResult, kamResult] = await Promise.allSettled([
+      const [statusResult, networkResult, zevaryqResult] = await Promise.allSettled([
         fetch('/api/platform-status', { cache: 'no-store', headers: { Accept: 'application/json' } }),
         fetch('/api/network-health', { cache: 'no-store', headers: { Accept: 'application/json' } }),
-        fetch('/api/kam/network-status', { cache: 'no-store', headers: { Accept: 'application/json' } }),
+        fetch('/api/zevaryq/network-status', { cache: 'no-store', headers: { Accept: 'application/json' } }),
       ]);
 
       if (statusResult.status === 'fulfilled') {
@@ -51,14 +51,14 @@ export default function KriptoAmanGlobalLanding() {
             next.overall = platformPayload.overall || 'unavailable';
             const market = platformPayload.components.market || {};
             const networks = platformPayload.components.networks || {};
-            const kam = platformPayload.components.kam || {};
+            const zevaryq = platformPayload.components.zevaryq || {};
 
             next.marketAvailable = market.status === 'operational';
             next.assetCount = Number.isFinite(Number(market.assetCount)) && Number(market.assetCount) > 0 ? Number(market.assetCount) : null;
             next.lastUpdated = market.capturedAt || null;
             next.marketSource = market.source || null;
             next.networkActiveCount = Number.isFinite(Number(networks.online)) ? Number(networks.online) : undefined;
-            next.networkCheckedAt = networks.checkedAt || kam.checkedAt || null;
+            next.networkCheckedAt = networks.checkedAt || zevaryq.checkedAt || null;
           }
         } catch {
           // Public landing remains usable and never invents unavailable metrics.
@@ -81,45 +81,45 @@ export default function KriptoAmanGlobalLanding() {
         }
       }
 
-      if (kamResult.status === 'fulfilled') {
+      if (zevaryqResult.status === 'fulfilled') {
         try {
-          kamPayload = await kamResult.value.json();
+          zevaryqPayload = await zevaryqResult.value.json();
         } catch {
-          kamPayload = null;
+          zevaryqPayload = null;
         }
       }
 
-      const kamFromPlatform = platformPayload?.components?.kam;
-      const kam = kamFromPlatform || {};
-      const kamVerified = Boolean(
-        (kam?.status === 'operational' && Number(kam.chainId) === 22028) ||
-        (kamPayload?.verified === true && Number(kamPayload.chainId) === 22028),
+      const zevaryqFromPlatform = platformPayload?.components?.zevaryq;
+      const zevaryq = zevaryqFromPlatform || {};
+      const zevaryqVerified = Boolean(
+        (zevaryq?.status === 'operational' && Number(zevaryq.chainId) === 22028) ||
+        (zevaryqPayload?.verified === true && Number(zevaryqPayload.chainId) === 22028),
       );
-      const kamBlockNumber = kam.blockNumber ?? kamPayload?.blockNumber ?? null;
-      const kamCheckedAt = kam.checkedAt || kamPayload?.checkedAt || null;
+      const zevaryqBlockNumber = zevaryq.blockNumber ?? zevaryqPayload?.blockNumber ?? null;
+      const zevaryqCheckedAt = zevaryq.checkedAt || zevaryqPayload?.checkedAt || null;
 
-      if (kamVerified) {
-        const hadKam = next.networks.some((network) => network?.name === 'KAM Network');
-        const kamNetworkEntry = kam?.status === 'operational'
+      if (zevaryqVerified) {
+        const hadZevaryq = next.networks.some((network) => network?.name === 'ZEVARYQ Mainnet');
+        const zevaryqNetworkEntry = zevaryq?.status === 'operational'
           ? {
-              name: 'KAM Network',
-              symbol: 'KAM',
+              name: 'ZEVARYQ Mainnet',
+              symbol: 'ZVQ',
               status: 'online',
               verification: 'platform-status',
               chainId: 22028,
-              blockNumber: kamBlockNumber,
+              blockNumber: zevaryqBlockNumber,
             }
           : {
-              name: 'KAM Network',
-              symbol: 'KAM',
+              name: 'ZEVARYQ Mainnet',
+              symbol: 'ZVQ',
               status: 'online',
-              verification: 'kam-network-status',
+              verification: 'zevaryq-network-status',
               chainId: 22028,
-              blockNumber: kamBlockNumber,
+              blockNumber: zevaryqBlockNumber,
             };
-        next.networks = [...next.networks.filter((network) => network?.name !== 'KAM Network'), kamNetworkEntry];
-        next.networkCheckedAt = next.networkCheckedAt || kamCheckedAt;
-        if (!hadKam) {
+        next.networks = [...next.networks.filter((network) => network?.name !== 'ZEVARYQ Mainnet'), zevaryqNetworkEntry];
+        next.networkCheckedAt = next.networkCheckedAt || zevaryqCheckedAt;
+        if (!hadZevaryq) {
           next.networkActiveCount = (Number(next.networkActiveCount) || 0) + 1;
         }
         if (next.overall === 'unavailable') next.overall = 'degraded';
