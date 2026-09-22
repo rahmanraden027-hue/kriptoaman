@@ -7,8 +7,8 @@ import { useLanguage } from '@/lib/LanguageContext';
 
 const COPY = {
   id: {
-    eyebrow: 'KAM NETWORK REFERENCE',
-    title: 'KAM · Referensi Ekosistem',
+    eyebrow: 'ZEVARYQ NETWORK REFERENCE',
+    title: 'ZEVARYQ · Referensi Ekosistem',
     status: 'BELUM DIPERDAGANGKAN',
     auditStatus: 'AUDIT BERLANGSUNG',
     reference: 'Review independen · production hold',
@@ -16,7 +16,7 @@ const COPY = {
     auditEta: 'Estimasi internal: 1–3 minggu setelah kickoff auditor · dapat berubah sesuai temuan',
     network: 'KriptoAman Network · Chain ID 22028',
     networkState: 'Mainnet candidate · belum dipromosikan sebagai jaringan publik',
-    roadmap: 'Roadmap KAM',
+    roadmap: 'Roadmap ZEVARYQ',
     intelligence: 'Intelligence Hub',
     paper: 'Paper Trading',
     intelligenceKicker: 'MARKET INTELLIGENCE',
@@ -33,8 +33,8 @@ const COPY = {
     disclaimer: 'Ringkasan ini dihitung dari aset yang memiliki data harga dan perubahan 24 jam. Bukan sinyal beli/jual atau rekomendasi investasi.',
   },
   en: {
-    eyebrow: 'KAM NETWORK REFERENCE',
-    title: 'KAM · Ecosystem Reference',
+    eyebrow: 'ZEVARYQ NETWORK REFERENCE',
+    title: 'ZEVARYQ · Ecosystem Reference',
     status: 'NOT YET TRADING',
     auditStatus: 'AUDIT IN PROGRESS',
     reference: 'Independent review · production hold',
@@ -42,7 +42,7 @@ const COPY = {
     auditEta: 'Internal estimate: 1–3 weeks after auditor kickoff · subject to findings',
     network: 'KriptoAman Network · Chain ID 22028',
     networkState: 'Mainnet candidate · not promoted as a public network',
-    roadmap: 'KAM Roadmap',
+    roadmap: 'ZEVARYQ Roadmap',
     intelligence: 'Intelligence Hub',
     paper: 'Paper Trading',
     intelligenceKicker: 'MARKET INTELLIGENCE',
