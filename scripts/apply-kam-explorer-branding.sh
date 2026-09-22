@@ -42,11 +42,11 @@ sed -i \
 cat >> "$ENV_FILE" <<'EOF'
 
 # ===== KRIPTOAMAN EXPLORER FINAL BRAND =====
-NEXT_PUBLIC_NETWORK_NAME=KriptoAman Mainnet
+NEXT_PUBLIC_NETWORK_NAME=ZEVARYQ Mainnet
 NEXT_PUBLIC_NETWORK_SHORT_NAME=KriptoAman
 NEXT_PUBLIC_NETWORK_ID=22028
 NEXT_PUBLIC_NETWORK_CURRENCY_NAME=KriptoAman
-NEXT_PUBLIC_NETWORK_CURRENCY_SYMBOL=KAM
+NEXT_PUBLIC_NETWORK_CURRENCY_SYMBOL=ZVQ
 NEXT_PUBLIC_NETWORK_CURRENCY_DECIMALS=18
 NEXT_PUBLIC_IS_TESTNET=false
 NEXT_PUBLIC_NETWORK_LOGO=https://kriptoaman.com/brand/kriptoaman-explorer.svg
@@ -65,11 +65,11 @@ NEXT_PUBLIC_HOMEPAGE_STATS=[]
 NEXT_PUBLIC_GAS_TRACKER_ENABLED=false
 NEXT_PUBLIC_SEO_ENHANCED_DATA_ENABLED=true
 NEXT_PUBLIC_OG_ENHANCED_DATA_ENABLED=false
-NEXT_PUBLIC_OG_DESCRIPTION=KriptoAman Explorer adalah penjelajah resmi KriptoAman Mainnet untuk blok, transaksi, alamat, dan aktivitas jaringan KAM.
+NEXT_PUBLIC_OG_DESCRIPTION=ZEVARYQ Explorer adalah penjelajah resmi ZEVARYQ Mainnet untuk blok, transaksi, alamat, dan aktivitas jaringan ZVQ.
 
 # Official public address identity shown by Blockscout on address/transaction views.
-# The profile API only returns a username for the verified KAM treasury address.
-NEXT_PUBLIC_ADDRESS_USERNAME_TAG={"api_url_template":"https://kriptoaman.com/api/kam/address-profile/{address}","tag_icon":"https://kriptoaman.com/brand/kriptoaman-mark.svg","tag_bg_color":"rgba(14,165,233,0.15)","tag_text_color":"rgb(56,189,248)"}
+# The profile API only returns a username for the verified ZEVARYQ treasury address.
+NEXT_PUBLIC_ADDRESS_USERNAME_TAG={"api_url_template":"https://kriptoaman.com/api/zevaryq/address-profile/{address}","tag_icon":"https://kriptoaman.com/brand/kriptoaman-mark.svg","tag_bg_color":"rgba(14,165,233,0.15)","tag_text_color":"rgb(56,189,248)"}
 EOF
 
 # Validate public brand assets and the official treasury profile endpoint before restart.
@@ -85,9 +85,9 @@ for url in \
   done
 
 TREASURY_ADDRESS="0xab481451eaf642384d2d9888b355f10d327c5de9"
-PROFILE_URL="https://kriptoaman.com/api/kam/address-profile/$TREASURY_ADDRESS"
+PROFILE_URL="https://kriptoaman.com/api/zevaryq/address-profile/$TREASURY_ADDRESS"
 PROFILE_JSON="$(curl -L -sS "$PROFILE_URL")"
-if [[ "$PROFILE_JSON" != *'KAM Treasury'* || "$PROFILE_JSON" != *'PT Kripto Aman Indonesia'* ]]; then
+if [[ "$PROFILE_JSON" != *'ZEVARYQ Treasury'* || "$PROFILE_JSON" != *'PT Kripto Aman Indonesia'* ]]; then
   echo "Treasury profile endpoint is not ready: $PROFILE_URL" >&2
   echo "$PROFILE_JSON" >&2
   exit 1
@@ -104,7 +104,7 @@ docker compose ps frontend proxy backend db
 echo "=== EFFECTIVE BRAND ENV ==="
 docker compose exec -T frontend sh -c 'env | grep -E "NEXT_PUBLIC_NETWORK_(NAME|SHORT_NAME|ID|CURRENCY|LOGO|ICON)|NEXT_PUBLIC_NAVIGATION_LAYOUT|NEXT_PUBLIC_HOMEPAGE_(CHARTS|STATS)|NEXT_PUBLIC_GAS_TRACKER_ENABLED|NEXT_PUBLIC_PROMOTE_BLOCKSCOUT_IN_TITLE|NEXT_PUBLIC_OG_DESCRIPTION|NEXT_PUBLIC_ADDRESS_USERNAME_TAG|FAVICON_MASTER_URL" | sort' || true
 
-echo "=== KAM TREASURY PROFILE ==="
+echo "=== ZEVARYQ TREASURY PROFILE ==="
 echo "$PROFILE_JSON"
 
 echo "=== LOCAL EXPLORER ==="
