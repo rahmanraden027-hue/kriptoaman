@@ -97,7 +97,7 @@ test('AI model outage has deterministic risk and anomaly intelligence', () => {
     verified: true,
     online: 21,
     total: 21,
-    kamOperational: true,
+    zevaryqOperational: true,
   });
   assert.equal(['contained', 'moderate', 'elevated'].includes(metrics.riskBand), true);
   assert.equal(metrics.correlationStatus, 'history-required');
