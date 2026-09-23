@@ -1,0 +1,73 @@
+name: ZVQ Origin TLS and Token API Evidence
+on:
+  pull_request:
+    paths:
+      - .github/workflows/zvq-origin-token-evidence.yml
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/zvq-origin-token-evidence.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  token-api-readonly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Compare documented Blockscout v2 token and contract-creation routes
+        shell: bash
+        run: |
+          set -uo pipefail
+          base='https://explorer.kriptoaman.com/api/v2'
+          tmp="$(mktemp)"
+          status="$(curl -LsS --connect-timeout 6 --max-time 15 -o "$tmp" -w '%{http_code}' "$base/blocks" || true)"
+          head="$(jq -er '.items[0].height // empty' "$tmp" 2>/dev/null || true)"
+          echo "latest_block_endpoint_http=$status indexed_height=$head"
+          [[ "$head" =~ ^[0-9]+$ ]] || exit 1
+          probe() {
+            local label="$1" path="$2" body http shape error
+            body="$(mktemp)"
+            http="$(curl -LsS --connect-timeout 6 --max-time 15 -o "$body" -w '%{http_code}' "$base/$path" || true)"
+            shape="$(jq -cr '{has_items:(.items|type=="array"), items_count:(.items|if type=="array" then length else null end), first_item_keys:(.items[0]|if type=="object" then keys else [] end), pagination:(.next_page_params|type)}' "$body" 2>/dev/null || echo '{"malformed":true}')"
+            echo "token_probe_$label http=$http shape=$shape"
+            if [[ "$http" != 200 ]]; then
+              error="$(jq -r '.message // .error // empty | tostring' "$body" 2>/dev/null | head -c 120 || true)"
+              echo "token_probe_error $label=$error"
+            fi
+            rm -f "$body"
+          }
+          probe unsupported_token_creation 'transactions?type=token_creation'
+          probe supported_contract_creation 'transactions?type=contract_creation'
+          probe latest_block_contract_creation "blocks/$head/transactions?type=contract_creation"
+          probe indexed_erc20_tokens 'tokens?type=ERC-20'
+          probe indexed_tokens 'tokens'
+          rm -f "$tmp"
+  origin-tls-readonly:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 4
+    steps:
+      - name: Diagnose origin TLS listener and certificate without changing production
+        shell: bash
+        run: |
+          set -uo pipefail
+          echo "origin_tls_observation=read_only"
+          echo "local_tcp_listening_80=$(ss -H -ltn '( sport = :80 )' 2>/dev/null | wc -l)"
+          echo "local_tcp_listening_443=$(ss -H -ltn '( sport = :443 )' 2>/dev/null | wc -l)"
+          echo "local_tcp_listening_8443=$(ss -H -ltn '( sport = :8443 )' 2>/dev/null | wc -l)"
+          for entry in /etc/letsencrypt/live/explorer.kriptoaman.com/fullchain.pem /etc/ssl/certs/explorer.kriptoaman.com.pem; do
+            if [[ -r "$entry" ]]; then echo "origin_cert_candidate=readable"
+            elif [[ -e "$entry" ]]; then echo "origin_cert_candidate=exists_but_not_readable"
+            else echo "origin_cert_candidate=absent"; fi
+          done
+          probe() {
+            local label="$1";shift
+            local status
+            status="$(curl --noproxy '*' -kLsS --connect-timeout 3 --max-time 8 -o /dev/null -w '%{http_code}' "$@" 2>/dev/null || true)"
+            echo "origin_probe $label=$status"
+          }
+          probe local_http http://127.0.0.1/
+          probe loopback_tls --resolve explorer.kriptoaman.com:443:127.0.0.1 https://explorer.kriptoaman.com/
+          probe direct_public_tls --resolve explorer.kriptoaman.com:443:146.190.93.254 https://explorer.kriptoaman.com/
+          trusted="$(curl --noproxy '*' -LsS --connect-timeout 3 --max-time 8 --resolve explorer.kriptoaman.com:443:146.190.93.254 -o /dev/null -w '%{http_code}' https://explorer.kriptoaman.com/ 2>/dev/null || true)"
+          echo "origin_direct_trusted_tls_http=$trusted"
