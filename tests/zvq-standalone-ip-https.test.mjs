@@ -47,3 +47,10 @@ test('production rollout requires independent externally verified certificate an
  assert.match(stage,/trap rollback ERR/);
  assert.doesNotMatch(workflow,/CLOUDFLARE_API_TOKEN|eth_sendRawTransaction|DELETE FROM|power_cycle/i);
 });
+
+test('independent HTTPS and failover probes reject contradictory curl options and never alter live DNS',()=> {
+ assert.doesNotMatch(workflow,/--fail-with-body\s+-fsS/);
+ assert.match(workflow,/--fail-with-body -sS --connect-timeout 6/);
+ assert.match(workflow,/--resolve "\$host:443:127\.0\.0\.1"/);
+ assert.match(workflow,/manual_ip_fallback=verified; production_dns_unchanged=yes/);
+});
