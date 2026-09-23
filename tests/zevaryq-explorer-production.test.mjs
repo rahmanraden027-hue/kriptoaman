@@ -15,7 +15,9 @@ test('Zevaryq production identity and chain are explicit', () => {
 });
 
 test('premium Zevaryq emblem is wired to header, hero, satellite view and favicon', () => {
-  assert.equal((html.match(/\/zevaryq-assets\/zevaryq-emblem\.webp/g) || []).length, 3);
+  assert.equal((html.match(/src="\/zevaryq-assets\/zevaryq-emblem\.webp/g) || []).length, 3);
+  assert.doesNotMatch(html, /data:image\/(webp|png);base64/);
+  assert.ok(Buffer.byteLength(html) < 100_000, 'Explorer HTML must not embed its 3 emblem images or favicon');
   assert.match(html, /rel="icon"[^>]+zevaryq-favicon\.png/);
   assert.match(html, /class="brand-gold">ZEVARYQ/);
   assert.doesNotMatch(html, /<span class="logo">ZV<\/span>/);
@@ -33,6 +35,11 @@ test('required production panels and search routes exist', () => {
     assert.equal(html.includes(route), true, 'missing route: ' + route);
   }
   assert.equal(html.includes('setInterval(probe,12000)'), true);
+  assert.match(html, /Live Blockchain Mesh/);
+  assert.match(html, /id="refreshData"/);
+  assert.match(html, /parent_hash\.toLowerCase\(\)===parent\.hash\.toLowerCase\(\)/);
+  assert.match(html, /https:\/\/rpc\.kriptoaman\.com/);
+  assert.match(html, /if\(state\.probing\)return/);
 });
 
 test('unverified values fail closed', () => {
