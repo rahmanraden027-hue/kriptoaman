@@ -37,7 +37,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Reversibly enable ACME route on existing Explorer proxy
-        run: sudo -n bash scripts/enable-zvq-origin-acme-webroot.sh
+        run: sudo -n env GITHUB_RUN_ID="$GITHUB_RUN_ID" bash scripts/enable-zvq-origin-acme-webroot.sh
   external:
     if: github.event_name == 'push'
     needs: origin

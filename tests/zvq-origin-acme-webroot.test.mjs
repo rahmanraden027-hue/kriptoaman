@@ -24,4 +24,5 @@ test('change preserves known-good Explorer, backs up NGINX and restores on faile
  assert.match(flow,/if: github.event_name == 'push'/);
  assert.match(flow,/public_ip_acme_path=verified-exact-bytes/);
  assert.match(flow,/origin_temporary_acme_proof_removed=yes/);
+ assert.match(flow,/sudo -n env GITHUB_RUN_ID="\$GITHUB_RUN_ID" bash scripts\/enable-zvq-origin-acme-webroot\.sh/);
 });
