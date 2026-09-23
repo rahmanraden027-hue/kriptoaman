@@ -1,6 +1,11 @@
-name: KAM Mainnet 24x7 Read-Only Monitor
+name: ZEVARYQ RPC and Explorer 24x7 Verified Monitor
 
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/kam-mainnet-24x7-monitor.yml'
+      - 'scripts/assess-zevaryq-public-proof.mjs'
+      - 'tests/zevaryq-public-proof.test.mjs'
   workflow_dispatch:
   schedule:
     - cron: '7 * * * *'
@@ -20,6 +25,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      - name: Verify public-monitor policy unit tests
+        run: node --test tests/zevaryq-public-proof.test.mjs
+
       - name: Verify KriptoAman network-status contract
         shell: bash
         run: |
@@ -37,13 +45,18 @@ jobs:
           if (!Number.isInteger(Number(p.blockNumber)) || Number(p.blockNumber) < 0) process.exit(7);
           NODE
 
-      - name: Run full public RPC and explorer security audit
+      - name: Run independent public RPC and Explorer proof
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p artifacts
+          # Preserve the original strict gateway report as immutable evidence.
+          # In DNS-only mode, GET /health and /ready may correctly be 404 even
+          # while POST / and Blockscout are fully operational.
           node chain/kam-mainnet/scripts/verify-public-endpoints.mjs \
-            2>&1 | tee artifacts/kam-mainnet-24x7-audit.json
+            > artifacts/kam-mainnet-24x7-audit.json || audit_status=$?
+          node scripts/assess-zevaryq-public-proof.mjs \
+            artifacts/kam-mainnet-24x7-audit.json | tee artifacts/zevaryq-public-proof.json
 
       - name: Upload KAM monitoring evidence
         if: always()
