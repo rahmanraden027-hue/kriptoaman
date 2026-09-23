@@ -48,9 +48,9 @@ jobs:
       CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       ZONE_NAME: kriptoaman.com
       ROUTE_PATTERN: explorer.kriptoaman.com/*
-      EXPECTED_OLD_WORKER: kam-mainnet-explorer-cutover
+      EXPECTED_OLD_WORKER: zevaryq-explorer-public-bridge
       EXPECTED_API_WORKER: kam-mainnet-blockscout-api
-      NEW_WORKER: zevaryq-explorer-public-bridge
+      NEW_WORKER: zevaryq-explorer-public-bridge-v112
     steps:
       - uses: actions/checkout@v4
       - name: Validate credentials and capture existing Worker routes
@@ -97,7 +97,7 @@ jobs:
           cp explorer-dashboard/zevaryq-production.html "$d/homepage.html"
           cp explorer-dashboard/assets/zevaryq-emblem.webp "$d/zevaryq-emblem.webp"
           cp explorer-dashboard/assets/zevaryq-favicon.png "$d/zevaryq-favicon.png"
-          grep -Fq 'data-zevaryq-explorer-version="1.1.1"' "$d/homepage.html"
+          grep -Fq 'data-zevaryq-explorer-version="1.1.2"' "$d/homepage.html"
           grep -Fq 'class="logo logo-zvq"' "$d/homepage.html"
           grep -Fq 'class="earth-brandmark"' "$d/homepage.html"
           test -s "$d/zevaryq-emblem.webp"
@@ -146,7 +146,7 @@ jobs:
             echo "public_${label}: http=${code} version=${version:-none} worker_header=${release:-none}"
             grep -iE '^(cache-control|age|cf-cache-status|x-kam-explorer-cutover|x-zevaryq-explorer-release):' "$headers" || true
             if [[ "$code" == '200' ]] \
-              && grep -Fq 'data-zevaryq-explorer-version="1.1.1"' "$body" \
+              && grep -Fq 'data-zevaryq-explorer-version="1.1.2"' "$body" \
               && grep -Fq 'class="logo logo-zvq"' "$body" \
               && grep -Fq 'class="earth-brandmark"' "$body" \
               && ! grep -Fq 'class="earth-logo"' "$body" \
@@ -160,10 +160,10 @@ jobs:
           for attempt in $(seq 1 12); do
             echo "route_propagation_attempt=$attempt"
             if verify_home default 'https://explorer.kriptoaman.com/' \
-              && verify_home bypass "https://explorer.kriptoaman.com/?zvq_release=1.1.1-${GITHUB_RUN_ID}"; then
+              && verify_home bypass "https://explorer.kriptoaman.com/?zvq_release=1.1.2-${GITHUB_RUN_ID}"; then
               sleep 4
               if verify_home default 'https://explorer.kriptoaman.com/' \
-                && verify_home bypass "https://explorer.kriptoaman.com/?zvq_release=1.1.1-${GITHUB_RUN_ID}-confirm"; then
+                && verify_home bypass "https://explorer.kriptoaman.com/?zvq_release=1.1.2-${GITHUB_RUN_ID}-confirm"; then
                 public_verified=true
                 break
               fi
@@ -171,7 +171,7 @@ jobs:
             if [[ "$attempt" -lt 12 ]]; then sleep 8; fi
           done
           if [[ "$public_verified" != true ]]; then
-            echo "::error::Public Explorer did not serve verified ZVQ v1.1.1 after bounded propagation window."
+            echo "::error::Public Explorer did not serve verified ZVQ v1.1.2 after bounded propagation window."
             exit 1
           fi
           routes="$(curl -fsS --connect-timeout 7 --max-time 20 \
@@ -190,7 +190,7 @@ jobs:
           blocks="$(curl -fsS --connect-timeout 8 --max-time 20 'https://explorer.kriptoaman.com/api/v2/blocks')"
           jq -e '(.items | type == "array") and (.items | length > 0)' <<<"$blocks" > /dev/null
           test "$(curl -LsS --connect-timeout 8 --max-time 20 -o /dev/null -w '%{http_code}' 'https://explorer.kriptoaman.com/blocks')" = '200'
-          echo "public_release=verified-v1.1.1; rpc=0x560c; api_v2=healthy; legacy_route=preserved"
+          echo "public_release=verified-v1.1.2; rpc=0x560c; api_v2=healthy; legacy_route=preserved"
 
       - name: Restore prior route on verification failure
         if: steps.switch.outputs.changed == 'true' && steps.verify.outcome == 'failure'
