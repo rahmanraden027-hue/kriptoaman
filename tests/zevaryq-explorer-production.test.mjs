@@ -73,3 +73,15 @@ test('legacy KAM deployment cannot overwrite protected ZEVARYQ homepage', async 
   assert.equal(priorityWorkflow.split("if: ${{ github.event_name == 'workflow_dispatch' }}").length - 1, 3);
   assert.doesNotMatch(priorityWorkflow, /^  workflow_run:/m);
 });
+
+
+test('indexed Blockscout data remains visible if browser JSON-RPC preflight fails', () => {
+  assert.match(html, /hasIndexedHeight/);
+  assert.match(html, /latestBlockSource=state\.rpc/);
+  assert.match(html, /state\.api\?'INDEXED':'STALE'/);
+  assert.match(html, /Blockscout indexed blocks available/);
+  assert.match(html, /Cached indexed history/);
+  assert.match(html, /calculatedSource=state\.api/);
+  assert.match(html, /Browser RPC verification unavailable/);
+});
+
