@@ -46,3 +46,11 @@ test('local short-lived domain renewal is gated on independent public proof',()=
   assert.match(renew,/certbot\/certbot:v5\.7\.0 renew/);
   assert.match(renew,/nginx -s reload/);
 });
+
+test('NGINX domain rollout waits for a newly loaded SNI worker before declaring a TLS failure',()=>{
+  assert.match(listener,/nginx -T/);
+  assert.match(listener,/Bound container did not receive new SNI configuration/);
+  assert.match(listener,/for attempt in \$\(seq 1 12\)/);
+  assert.match(listener,/domain_sni_new_worker_verified_attempt=/);
+  assert.match(listener,/test "\$verified" = true/);
+});
