@@ -70,3 +70,48 @@ test('deployment cannot run automatically when new code reaches main', () => {
   assert.doesNotMatch(script, /\\\$request_body/);
   assert.match(script, /checkend/);
 });
+
+test('manual RPC rollout independently proves public ACME reachability and browser-trusted HTTPS', () => {
+  const workflow = readFileSync(new URL('../.github/workflows/kam-new-host-connectivity.yml', import.meta.url), 'utf8');
+  assert.match(workflow, /github\.ref == 'refs\/heads\/main'/);
+  assert.match(workflow, /inputs\.confirm_rpc_tls == true/);
+  assert.doesNotMatch(workflow, /^  push:/m);
+  assert.match(workflow, /independent-acme-proof:/);
+  assert.match(workflow, /needs: independent-acme-proof/);
+  assert.match(workflow, /needs: stage-rpc/);
+  assert.match(workflow, /curl --noproxy '\*' -fsS/);
+  assert.match(workflow, /eth_sendRawTransaction/);
+  assert.match(workflow, /admin_peers/);
+  assert.match(workflow, /blocks=advancing/);
+  assert.match(workflow, /needs\.finalize\.result/);
+});
+
+test('short-lived direct RPC IP certificate has guarded twice-daily renewal', () => {
+  const renew = readFileSync(new URL('../scripts/renew-zvq-rpc-origin-cert.sh', import.meta.url), 'utf8');
+  const finalize = readFileSync(new URL('../scripts/complete-zvq-rpc-origin-https.sh', import.meta.url), 'utf8');
+  const stage = readFileSync(new URL('../scripts/finalize-zvq-rpc-origin-https.sh', import.meta.url), 'utf8');
+  assert.match(renew, /port_80_busy/);
+  assert.match(renew, /renew --non-interactive --cert-name zvq-rpc-origin/);
+  assert.match(renew, /checkend 172800/);
+  assert.match(renew, /nginx -s reload/);
+  assert.match(finalize, /OnCalendar=\*-\*-\* 02,14:00:00 UTC/);
+  assert.match(finalize, /systemctl enable --now zvq-rpc-origin-renew.timer/);
+  assert.match(finalize, /systemctl start zvq-rpc-origin-renew.service/);
+  assert.match(stage, /ZVQ_RPC_ACME_PROOF:-/);
+  assert.match(stage, /pending-\$RUN_ID/);
+  assert.match(stage, /rpc_origin_tls=staged_pending_external_proof/);
+  assert.doesNotMatch(stage, /limit_except POST/);
+});
+
+test('preflight and rollback only touch per-run temporary resources and new RPC sidecars', () => {
+  const preflight = readFileSync(new URL('../scripts/stage-zvq-rpc-acme-proof.sh', import.meta.url), 'utf8');
+  const rollback = readFileSync(new URL('../scripts/rollback-zvq-rpc-origin-https.sh', import.meta.url), 'utf8');
+  assert.match(preflight, /zvq-rpc-acme-proof-\$RUN_ID/);
+  assert.match(preflight, /port_80_occupied/);
+  assert.match(preflight, /port_443_occupied/);
+  assert.match(preflight, /refusing_to_kill_unrelated_process/);
+  assert.match(rollback, /pending-\$RUN_ID/);
+  assert.match(rollback, /zvq-rpc-origin-tls zvq-rpc-allowlist-gateway/);
+  assert.match(rollback, /ufw_rule_added=yes/);
+  assert.doesNotMatch(rollback, /genesis\.json|rm -rf .*postgres|reset-chain/i);
+});
