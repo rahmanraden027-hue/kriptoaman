@@ -23,7 +23,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          getent ahostsv4 explorer.kriptoaman.com | awk '{print "public_dns=" $1}' | sort -u || true
+          dns="$(getent ahostsv4 explorer.kriptoaman.com | awk '{print $1}' | sort -u)"
+          printf '%s\n' "$dns" | sed 's/^/public_dns=/'
+          if [[ "$dns" != '146.190.93.254' ]]; then
+            echo '::error::Explorer DNS no longer points exclusively to the approved direct origin'; exit 1
+          fi
           probe() {
             label="$1"; url="$2"; shift 2
             headers="$(mktemp)"; body="$(mktemp)"
@@ -99,8 +103,10 @@ jobs:
             grep -Fq 'class="satellite-row"' "$body"
             grep -Fq 'id="token-discovery"' "$body"
             grep -Fq "EXPECTED_CHAIN='0x560c'" "$body"
-            grep -iq "^x-zevaryq-explorer-design: $visual" "$headers"
-            grep -iq '^x-zevaryq-explorer-release: 1\.1\.2' "$headers"
+            grep -Fq 'data-zevaryq-explorer-version="1.1.2"' "$body"
+            # DNS-only deliberately bypasses Cloudflare Worker-injected release headers.
+            # The direct NGINX origin must return the exact approved HTML identity instead.
+            grep -iq '^server: nginx' "$headers"
             echo "verified_public_$label: http=200 design=$visual immune_token=present rpc_guard=0x560c"
             rm -f "$headers" "$body"
           done
@@ -110,10 +116,17 @@ jobs:
             test "$status" = 200
             echo "verified_asset_$asset=http_$status"
           done
+          # The Explorer direct origin intentionally forbids its /rpc path.
+          blocked="$(curl -sS --retry 2 --connect-timeout 8 --max-time 20 \
+            -o /dev/null -w '%{http_code}' -H 'content-type: application/json' \
+            --data '{"jsonrpc":"2.0","id":0,"method":"eth_chainId","params":[]}' \
+            'https://explorer.kriptoaman.com/rpc')"
+          test "$blocked" = 403
+          # Verify Chain ID independently on the established public RPC hostname.
           chain="$(curl -fsS --retry 2 --connect-timeout 8 --max-time 20 \
             -H 'content-type: application/json' \
             --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
-            'https://explorer.kriptoaman.com/rpc')"
+            'https://rpc.kriptoaman.com/')"
           test "$(jq -er '.result' <<<"$chain")" = '0x560c'
           blocks="$(curl -fsS --retry 2 --connect-timeout 8 --max-time 20 \
             'https://explorer.kriptoaman.com/api/v2/blocks')"
