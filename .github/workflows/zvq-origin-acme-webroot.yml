@@ -1,0 +1,84 @@
+name: ZVQ Origin ACME Webroot Guarded Rollout
+on:
+  pull_request:
+    paths:
+      - 'scripts/enable-zvq-origin-acme-webroot.sh'
+      - 'tests/zvq-origin-acme-webroot.test.mjs'
+      - '.github/workflows/zvq-origin-acme-webroot.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/enable-zvq-origin-acme-webroot.sh'
+      - 'tests/zvq-origin-acme-webroot.test.mjs'
+      - '.github/workflows/zvq-origin-acme-webroot.yml'
+permissions:
+  contents: read
+concurrency:
+  group: zvq-origin-acme-webroot
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Guard scope and test non-destructive ACME origin change
+        run: |
+          bash -n scripts/enable-zvq-origin-acme-webroot.sh
+          node --test tests/zvq-origin-acme-webroot.test.mjs
+  origin:
+    if: github.event_name == 'push'
+    needs: validate
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reversibly enable ACME route on existing Explorer proxy
+        run: sudo -n bash scripts/enable-zvq-origin-acme-webroot.sh
+  external:
+    if: github.event_name == 'push'
+    needs: origin
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check exact challenge bytes from outside origin and preserve public RPC/indexer
+        shell: bash
+        run: |
+          set -euo pipefail
+          ip='146.190.93.254'
+          domain='explorer.kriptoaman.com'
+          path="/.well-known/acme-challenge/zvq-acme-proof-$GITHUB_RUN_ID"
+          expected="zvq-acme-origin-proof-$GITHUB_RUN_ID"
+          body="$(curl --noproxy '*' -fsS --retry 2 --connect-timeout 6 --max-time 15 \
+            --resolve "$domain:80:$ip" "http://$domain$path")"
+          test "$body" = "$expected"
+          echo 'public_ip_acme_path=verified-exact-bytes'
+          proxy_body="$(curl -LsS --connect-timeout 6 --max-time 18 "https://$domain$path" || true)"
+          if [[ "$proxy_body" == "$expected" ]]; then
+            echo 'cloudflare_domain_acme_path=verified-exact-bytes'
+          else
+            echo 'cloudflare_domain_acme_path=requires-worker-challenge-route'
+          fi
+          chain="$(curl -fsS --connect-timeout 8 --max-time 20 \
+            -H 'content-type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+            "https://$domain/rpc" | jq -r '.result')"
+          test "$chain" = '0x560c'
+          blocks="$(curl -fsS --connect-timeout 8 --max-time 20 "https://$domain/api/v2/blocks")"
+          jq -e '(.items | type == "array") and (.items | length > 0)' <<<"$blocks" >/dev/null
+          echo 'public_chain=0x560c; indexed_blocks=available; origin_acme_webroot=verified'
+  clean:
+    if: always() && github.event_name == 'push'
+    needs: [origin, external]
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 3
+    steps:
+      - name: Remove only the short-lived public ACME test token
+        run: |
+          set -euo pipefail
+          file="/opt/blockscout/docker-compose/proxy/kam-dashboard/.well-known/acme-challenge/zvq-acme-proof-$GITHUB_RUN_ID"
+          if [[ -f "$file" ]]; then sudo -n rm -- "$file"; fi
+          echo 'origin_temporary_acme_proof_removed=yes'
