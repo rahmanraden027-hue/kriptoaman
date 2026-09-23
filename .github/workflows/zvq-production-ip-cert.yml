@@ -1,0 +1,43 @@
+name: ZVQ Production IP Certificate Issuance
+on:
+  pull_request:
+    paths:
+      - 'scripts/issue-zvq-production-ip-cert.sh'
+      - '.github/workflows/zvq-production-ip-cert.yml'
+      - 'tests/zvq-production-ip-cert.test.mjs'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/issue-zvq-production-ip-cert.sh'
+      - '.github/workflows/zvq-production-ip-cert.yml'
+      - 'tests/zvq-production-ip-cert.test.mjs'
+permissions:
+  contents: read
+concurrency:
+  group: zvq-production-ip-cert
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Guard certificate-only scope and published issuance contract
+        run: |
+          bash -n scripts/issue-zvq-production-ip-cert.sh
+          node --test tests/zvq-production-ip-cert.test.mjs
+  issue:
+    if: github.event_name == 'push'
+    needs: validate
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Obtain trusted IP certificate with HTTP-01 while preserving current Explorer
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n env ZVQ_TLS_RUN_ID="$GITHUB_RUN_ID" bash scripts/issue-zvq-production-ip-cert.sh
