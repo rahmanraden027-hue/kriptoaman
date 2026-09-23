@@ -25,9 +25,9 @@ test('all reference dashboard sections retain accessible live data mounting poin
     assert.match(main, new RegExp('class="[^"]*' + cls + '[^"]*"'));
   }
   assert.equal((main.match(/class="earth-brandmark"/g) || []).length, 2);
-  assert.equal((main.match(/<section\\b/g) || []).length, (main.match(/<\\/section>/g) || []).length,
+  assert.equal((main.match(/<section\b/g) || []).length, (main.match(/<\/section>/g) || []).length,
     'semantic sections must be balanced');
-  assert.equal((main.match(/<div\\b/g) || []).length, (main.match(/<\\/div>/g) || []).length,
+  assert.equal((main.match(/<div\b/g) || []).length, (main.match(/<\/div>/g) || []).length,
     'dashboard containers must be balanced');
 });
 
@@ -38,7 +38,7 @@ test('satellite and world map graphics cannot be mistaken for live physical tele
   assert.match(html, /unavailable values are never simulated/);
   assert.match(html, /const EXPECTED_CHAIN='0x560c'/);
   assert.match(html, /setInterval\(probe,12000\)/);
-  assert.doesNotMatch(html, /(?:21\\s*\\/\\s*21|128\\+ nodes|1,236 pending|3\\.4 TPS|100% Secure)/i);
+  assert.doesNotMatch(html, /(?:21\s*\/\s*21|128\+ nodes|1,236 pending|3\.4 TPS|100% Secure)/i);
 });
 
 test('reference dashboard remains usable on mobile, keyboard and reduced motion', () => {
