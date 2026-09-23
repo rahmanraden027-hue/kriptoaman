@@ -10,9 +10,9 @@ FILE="$ROOT/.well-known/acme-challenge/$TOKEN"
 CONTENT="zvq-acme-origin-proof-$GITHUB_RUN_ID"
 CHANGED=false
 
-fail(){ echo "ZVQ ACME origin: $*" >&2; exit 1; }
+fail(){ echo "ZVQ ACME origin: $*" >&2; if [[ "$CHANGED" == true ]]; then rollback 1; fi; exit 1; }
 rollback(){
-  code=$?
+  code="${1:-$?}"
   trap - ERR
   if [[ "$CHANGED" == true && -s "$BACKUP" ]]; then
     cp -a "$BACKUP" "$TEMPLATE" || true
