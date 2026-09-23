@@ -12,6 +12,9 @@ function verifiedHomepage() {
   return homepage.includes('data-zevaryq-explorer-version="' + RELEASE + '"')
     && homepage.includes('class="logo logo-zvq"')
     && homepage.includes('class="earth-brandmark"')
+    && homepage.includes('data-zevaryq-features="immune-token-v1"')
+    && homepage.includes('id="immune-monitor"')
+    && homepage.includes('id="token-discovery"')
     && homepage.includes("EXPECTED_CHAIN='" + EXPECTED_ID + "'");
 }
 
@@ -20,6 +23,7 @@ function commonHeaders() {
     'x-content-type-options': 'nosniff',
     'referrer-policy': 'strict-origin-when-cross-origin',
     'x-zevaryq-explorer-release': RELEASE,
+    'x-zevaryq-explorer-features': 'immune-token-v1',
   };
 }
 
