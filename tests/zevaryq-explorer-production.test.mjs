@@ -38,7 +38,7 @@ test('required production panels and search routes exist', () => {
   assert.match(html, /Live Blockchain Mesh/);
   assert.match(html, /id="refreshData"/);
   assert.match(html, /parent_hash\.toLowerCase\(\)===parent\.hash\.toLowerCase\(\)/);
-  assert.match(html, /https:\/\/rpc\.kriptoaman\.com/);
+  assert.ok(html.includes("for(const url of [RPC,'https://rpc.kriptoaman.com'])"));
   assert.match(html, /if\(state\.probing\)return/);
 });
 
