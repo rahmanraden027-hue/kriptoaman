@@ -29,8 +29,9 @@ test('background refresh can finish and persist after response budget expires', 
 });
 
 test('fresh-only cache policy remains strict and reduces immediate cold-read races', () => {
-  assert.match(source, /edgeCacheEligible: !forceRefresh && deliveryMode === 'fresh-probe'/);
-  assert.match(source, /!forceRefresh && edgeCache && status === 200 && deliveryMode === 'fresh-probe'/);
+  assert.match(source, /edgeCacheEligible: deliveryMode === 'fresh-probe' && snapshot\.summary\.online >= MIN_ACTIVE_TARGET/);
+  assert.match(source, /edgeCache && status === 200 && deliveryMode === 'fresh-probe' && snapshot\.summary\.online >= MIN_ACTIVE_TARGET/);
+  assert.match(source, /if \(!forceRefresh && edgeCache\)/);
   assert.match(source, /edgeCache\.put\(cacheKey, response\.clone\(\)\)/);
   assert.match(source, /await withDeadline\(cacheWrite, EDGE_CACHE_WRITE_BUDGET_MS, false\)/);
   assert.doesNotMatch(source, /deliveryMode === 'd1-recent-verified'[\s\S]{0,220}edgeCache\.put/);
@@ -43,4 +44,13 @@ test('explicit refresh and minimum verified-network standard are not weakened', 
   assert.match(source, /liveOnlineRequiresSuccessfulCurrentProbe: true/);
   assert.match(source, /lastKnownGoodNeverCountsAsOnline: true/);
   assert.doesNotMatch(source, /Math\.random/);
+});
+
+test('scheduled forced refresh seeds canonical edge cache only from complete fresh live evidence', () => {
+  assert.match(source, /const forceRefresh = requestUrl\.searchParams\.get\('refresh'\) === '1'/);
+  assert.match(source, /if \(forceRefresh\) \{[\s\S]*const snapshot = await startRefresh\(\)/);
+  assert.match(source, /if \(!forceRefresh && edgeCache\)/);
+  assert.match(source, /edgeCache && status === 200 && deliveryMode === 'fresh-probe' && snapshot\.summary\.online >= MIN_ACTIVE_TARGET/);
+  assert.doesNotMatch(source, /if \(!forceRefresh && edgeCache && status === 200/);
+  assert.doesNotMatch(source, /edgeCacheEligible: !forceRefresh/);
 });
