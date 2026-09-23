@@ -163,7 +163,7 @@ test('evidence panels preserve current Explorer production security and identity
  assert.ok(Buffer.byteLength(html)<100_000);
 });
 test('new Explorer inline JavaScript parses, filters indexed token addresses and preserves finality helpers', () => {
- const script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+ const script=html.match(/<script>([\s\S]*?)<\/script>/i)?.[1];
  assert.ok(script);
  assert.doesNotThrow(()=>new Script(script));
  const from=script.indexOf('function indexedTokenAddress('),to=script.indexOf('function renderTokens(',from);
