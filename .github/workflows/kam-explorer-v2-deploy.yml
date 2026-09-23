@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'explorer-dashboard/**'
+      - '!explorer-dashboard/zevaryq-production.html'
+      - '!explorer-dashboard/assets/**'
       - 'scripts/deploy-kam-explorer-v2.sh'
       - 'scripts/diagnose-blockscout.mjs'
       - 'scripts/verify-kam-explorer-five-indicators.mjs'
@@ -13,9 +15,12 @@ on:
     branches: [main]
     paths:
       - 'explorer-dashboard/**'
+      - '!explorer-dashboard/zevaryq-production.html'
+      - '!explorer-dashboard/assets/**'
       - 'scripts/deploy-kam-explorer-v2.sh'
       - 'scripts/verify-kam-explorer-five-indicators.mjs'
       - 'tests/kam-explorer-v2-dashboard.test.mjs'
+      - '.github/workflows/kam-explorer-v2-deploy.yml'
   workflow_dispatch:
 
 permissions:
@@ -69,7 +74,7 @@ jobs:
           echo "secondary_wkam_detail_http=$code"
 
   host-permission-preflight:
-    if: ${{ github.event_name != 'pull_request' }}
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     needs: preflight
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
     timeout-minutes: 5
@@ -93,7 +98,7 @@ jobs:
           echo 'host_permission_preflight=verified'
 
   deploy-public-surfaces:
-    if: ${{ github.event_name != 'pull_request' }}
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     needs: [preflight, host-permission-preflight]
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
     timeout-minutes: 12
@@ -107,7 +112,7 @@ jobs:
           bash scripts/deploy-kam-explorer-v2.sh
 
   public-post-verify:
-    if: ${{ github.event_name != 'pull_request' }}
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     needs: deploy-public-surfaces
     runs-on: ubuntu-latest
     timeout-minutes: 8
