@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { runInNewContext } from 'node:vm';
+import { runInNewContext, Script } from 'node:vm';
 
 const html = await readFile(new URL('../explorer-dashboard/zevaryq-production.html', import.meta.url), 'utf8');
 const deploy = await readFile(new URL('../scripts/deploy-zevaryq-explorer.sh', import.meta.url), 'utf8');
@@ -141,4 +141,39 @@ test('finality requires a supported finalized tag and a matching canonical block
   assert.doesNotMatch(html, /eth_getBlockByNumber',\['safe',false\]/, 'safe tag is not a finalized tag');
   assert.match(html, /state\.validators=\[\];state\.validatorSource=null;state\.finalized=null/);
   assert.match(html, /consensusProbeAt>=60000/);
+});
+
+
+test('evidence panels preserve current Explorer production security and identity contracts', () => {
+ assert.match(html, /data-zevaryq-features="immune-token-v1"/);
+ for (const id of ['immune-monitor','immune','immune-checked','token-discovery','tokens','token-note']) {
+  assert.match(html,new RegExp('id="'+id+'"'));
+ }
+ assert.match(html,/Read-only observations from current RPC/);
+ assert.match(html,/observational dashboard cannot block attacks or guarantee network security/);
+ assert.match(html,/state\.api\?state\.blocks\[0\]:null/);
+ assert.match(html,/state\.rpc&&state\.api&&Number\.isSafeInteger\(state\.head\)/);
+ assert.match(html,/delta>=0&&delta<=6/);
+ assert.match(html,/secs<=90/);
+ assert.match(html,/transactions\?type=token_creation/);
+ assert.match(html,/API\+'\/tokens\/'\+encodeURIComponent/);
+ assert.match(html,/\^ERC-\?20\$/);
+ assert.match(html,/Token-creation evidence unavailable/);
+ assert.doesNotMatch(html,/data:image\/(?:webp|png);base64/);
+ assert.ok(Buffer.byteLength(html)<100_000);
+});
+test('new Explorer inline JavaScript parses, filters indexed token addresses and preserves finality helpers', () => {
+ const script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+ assert.ok(script);
+ assert.doesNotThrow(()=>new Script(script));
+ const from=script.indexOf('function indexedTokenAddress('),to=script.indexOf('function renderTokens(',from);
+ assert.ok(from>=0&&to>from);
+ const tokenAddress=runInNewContext(script.slice(from,to)+';indexedTokenAddress');
+ const address='0x'+'a'.repeat(40);
+ assert.equal(tokenAddress({created_contract:{hash:address}}),address);
+ assert.equal(tokenAddress({created_contract:{hash:'0xabc'}}),null);
+ assert.match(script,/function qbftValidatorsFromExtraData/);
+ assert.match(script,/function verifiedFinalizedBlock/);
+ assert.match(script,/renderImmune\(\)/);
+ assert.match(script,/setInterval\(probeTokens,60000\)/);
 });
