@@ -24,6 +24,8 @@ test('complete ZVQ identity is visible in header, hero and satellite view', () =
   assert.match(html, /class="brand-gold">ZEVARYQ/);
   assert.doesNotMatch(html, /<span class="logo">ZV<\/span>/);
   assert.match(html, /\.earth:after\{content:none\}/);
+  assert.doesNotMatch(html, /content:"ZV"/);
+  assert.match(html, /not live satellite telemetry/);
 });
 
 test('required production panels and search routes exist', () => {
@@ -56,6 +58,8 @@ test('unverified values fail closed', () => {
 test('deployment is narrow and rollback safe', () => {
   assert.equal(deploy.includes('kam-dashboard/index.html'), true);
   assert.match(deploy, /rollback/);
+  assert.match(deploy, /grep -q 'class="logo logo-zvq"' "\$body"/);
+  assert.match(deploy, /grep -q 'class="earth-brandmark"' "\$body"/);
   assert.equal(deploy.includes('0x560c'), true);
   assert.equal(deploy.includes('kriptoaman.com/*'), false);
   assert.doesNotMatch(deploy, /genesis|validator private|postgres.*reset|redis.*reset/i);
@@ -84,6 +88,7 @@ test('indexed Blockscout data remains visible if browser JSON-RPC preflight fail
   assert.match(html, /Blockscout indexed blocks available/);
   assert.match(html, /Cached indexed history/);
   assert.match(html, /calculatedSource=state\.api/);
+  assert.match(html, /\['Data Freshness',freshness\(\),state\.api\?'INDEXED':state\.blocks\.length\?'STALE'/);
   assert.match(html, /Browser RPC verification unavailable/);
 });
 
