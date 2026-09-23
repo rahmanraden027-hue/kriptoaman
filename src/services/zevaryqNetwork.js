@@ -113,7 +113,15 @@ export async function fetchZvqBalance(address) {
     }
     return String(status.wallet.balanceKAM);
   } catch {
+    // Never present a balance from a browser fallback without checking chain identity.
+    const chain = await rpc('eth_chainId');
+    if (String(chain.result).toLowerCase() !== ZEVARYQ.chainIdHex) {
+      throw new Error('Balance unavailable: RPC chain ID mismatch');
+    }
     const { result } = await rpc('eth_getBalance', [address, 'latest']);
+    if (typeof result !== 'string' || !/^0x[0-9a-fA-F]+$/.test(result)) {
+      throw new Error('Balance unavailable: malformed RPC balance');
+    }
     const wei = BigInt(result);
     const whole = wei / 10n ** 18n;
     const fraction = (wei % 10n ** 18n).toString().padStart(18, '0').replace(/0+$/, '');
