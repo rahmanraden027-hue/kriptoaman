@@ -1,0 +1,96 @@
+name: ZVQ Standalone Origin IP HTTPS
+on:
+  pull_request:
+    paths:
+      - 'scripts/enable-zvq-origin-ip-tls.sh'
+      - 'scripts/renew-zvq-ip-cert.sh'
+      - 'scripts/finalize-zvq-origin-ip-tls.sh'
+      - '.github/workflows/zvq-standalone-ip-https.yml'
+      - 'tests/zvq-standalone-ip-https.test.mjs'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/enable-zvq-origin-ip-tls.sh'
+      - 'scripts/renew-zvq-ip-cert.sh'
+      - 'scripts/finalize-zvq-origin-ip-tls.sh'
+      - '.github/workflows/zvq-standalone-ip-https.yml'
+      - 'tests/zvq-standalone-ip-https.test.mjs'
+permissions:
+  contents: read
+concurrency:
+  group: zvq-standalone-ip-https
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check standalone TLS scope and recovery rollback safety
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/enable-zvq-origin-ip-tls.sh
+          bash -n scripts/renew-zvq-ip-cert.sh
+          bash -n scripts/finalize-zvq-origin-ip-tls.sh
+          node --test tests/zvq-standalone-ip-https.test.mjs
+  stage:
+    if: github.event_name == 'push'
+    needs: validate
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stage separate, denial-by-default standalone IP HTTPS without modifying port 80
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n env ZVQ_TLS_RUN_ID="$GITHUB_RUN_ID" bash scripts/enable-zvq-origin-ip-tls.sh
+  external:
+    if: github.event_name == 'push'
+    needs: stage
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Independently verify browser-trusted IP TLS, indexed blocks, denied RPC and public Explorer
+        shell: bash
+        run: |
+          set -euo pipefail
+          ip=146.190.93.254
+          origin="https://$ip"
+          body="$(mktemp)"
+          status="$(curl --noproxy '*' --fail-with-body -LsS --retry 3 --retry-delay 2 --retry-all-errors --connect-timeout 6 --max-time 20 -o "$body" -w '%{http_code}' "$origin/")"
+          test "$status" = 200
+          grep -Fq 'data-zvq-reference-visual="blue-gold-orbital-20260924"' "$body"
+          grep -Fq 'data-zvq-token-discovery="indexed-v2"' "$body"
+          echo 'standalone_trusted_ip_https=verified; status=200; approved_visual=yes'
+          blocks="$(curl --noproxy '*' --fail-with-body -fsS --connect-timeout 6 --max-time 15 "$origin/api/v2/blocks")"
+          jq -e '(.items|type=="array") and (.items|length>0)' <<<"$blocks" >/dev/null
+          tip="$(jq -er '.items[0].height' <<<"$blocks")"
+          echo "standalone_indexed_block_tip=$tip"
+          test "$(curl --noproxy '*' -sS --max-time 8 -o /dev/null -w '%{http_code}' -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"qbft_getValidatorsByBlockNumber","params":["latest"]}' "$origin/rpc")" = 403
+          test "$(curl --noproxy '*' -sS --max-time 8 -o /dev/null -w '%{http_code}' "$origin/api/admin")" = 403
+          echo 'standalone_rpc=blocked; privileged_admin=blocked'
+          public="$(curl -LsS --fail-with-body --connect-timeout 6 --max-time 18 -o /dev/null -w '%{http_code}' 'https://explorer.kriptoaman.com/')"
+          test "$public" = 200
+          chain="$(curl -fsS --connect-timeout 6 --max-time 18 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' 'https://explorer.kriptoaman.com/rpc')"
+          test "$(jq -er '.result' <<<"$chain")" = 0x560c
+          echo 'cloudflare_public_home=preserved; public_chain_id=0x560c'
+          rm -f "$body"
+  finalize:
+    if: always() && github.event_name == 'push'
+    needs: [stage, external]
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 12
+    env:
+      EXTERNAL_RESULT: ${{ needs.external.result }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retain independently proven TLS and arm twice-daily renewal or roll back only isolated listener
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n env ZVQ_TLS_RUN_ID="$GITHUB_RUN_ID" ZVQ_EXTERNAL_PROOF="$EXTERNAL_RESULT" bash scripts/finalize-zvq-origin-ip-tls.sh
