@@ -73,7 +73,7 @@ rollback() {
 }
 trap rollback ERR
 docker run -d --name "$NAME" --network host --restart unless-stopped \
- --read-only --cap-drop ALL --cap-add NET_BIND_SERVICE \
+ --read-only --cap-drop ALL --cap-add NET_BIND_SERVICE --cap-add SETUID --cap-add SETGID \
  --security-opt no-new-privileges \
  --tmpfs /var/cache/nginx --tmpfs /var/run --tmpfs /tmp \
  --mount "type=bind,src=$CONFIG,dst=/etc/nginx/conf.d/default.conf,readonly" \
