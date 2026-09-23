@@ -191,12 +191,12 @@ jobs:
           echo 'simulated_primary_failure=runner_only; direct_domain_failover=verified; dns_unchanged=yes'
           rm -f "$body"
   finalize:
-    if: always() && github.event_name == 'push' && needs.domain-cert.result == 'success'
+    if: always() && github.event_name == 'push' && needs['domain-cert'].result == 'success'
     needs: [domain-cert,external-tls]
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
     timeout-minutes: 12
     env:
-      EXTERNAL_RESULT: ${{ needs.external-tls.result }}
+      EXTERNAL_RESULT: ${{ needs['external-tls'].result }}
     steps:
       - uses: actions/checkout@v4
       - name: Arm local domain renewal on success or undo only new SNI listener on failed external proof
