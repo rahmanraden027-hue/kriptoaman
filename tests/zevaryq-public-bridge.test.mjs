@@ -79,7 +79,7 @@ test('reference orbital public bridge is independently pinned, not a stale v1.1.
   assert.match(source, /const VISUAL = 'blue-gold-orbital-20260924'/);
   assert.match(source, /homepage\.includes\('data-zvq-reference-visual="' \+ VISUAL \+ '"'\)/);
   assert.match(source, /'x-zevaryq-explorer-design': VISUAL/);
-  assert.match(config, /zevaryq-explorer-public-bridge-orbital-20260924/);
+  assert.match(config, /zevaryq-explorer-public-bridge-orbital-indexed-20260924/);
   assert.match(workflow, /EXPECTED_OLD_WORKER: zevaryq-explorer-public-bridge-orbital-20260924/);
   assert.match(workflow, /NEW_WORKER: zevaryq-explorer-public-bridge-orbital-indexed-20260924/);
   assert.match(workflow, /x-zevaryq-explorer-design: blue-gold-orbital-20260924/);
