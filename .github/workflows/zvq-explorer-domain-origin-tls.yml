@@ -107,10 +107,10 @@ jobs:
           echo 'acme_route_preflight=verified_existing_workers_preserved'
       - name: Deploy unbound, isolated ACME-only Worker
         working-directory: chain/kam-mainnet/zvq-acme-bridge
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ env.CF_ACCOUNT }}
-        run: npx --yes wrangler@4.36.0 deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+          CLOUDFLARE_API_TOKEN="$CF_TOKEN" CLOUDFLARE_ACCOUNT_ID="$CF_ACCOUNT" npx --yes wrangler@4.36.0 deploy
       - name: Install only more-specific ACME path
         id: install
         shell: bash
