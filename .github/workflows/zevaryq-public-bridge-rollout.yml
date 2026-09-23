@@ -1,0 +1,167 @@
+name: ZEVARYQ Public Bridge Guarded Rollout
+
+on:
+  pull_request:
+    paths:
+      - 'chain/kam-mainnet/zevaryq-public-bridge/**'
+      - 'tests/zevaryq-public-bridge.test.mjs'
+      - '.github/workflows/zevaryq-public-bridge-rollout.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'chain/kam-mainnet/zevaryq-public-bridge/**'
+      - 'tests/zevaryq-public-bridge.test.mjs'
+      - '.github/workflows/zevaryq-public-bridge-rollout.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zevaryq-public-bridge-guarded-rollout
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check isolated Worker syntax and release evidence
+        run: |
+          set -euo pipefail
+          node --check chain/kam-mainnet/zevaryq-public-bridge/worker.mjs
+          node --test tests/zevaryq-public-bridge.test.mjs
+          node --test tests/zevaryq-explorer-production.test.mjs
+          test -s explorer-dashboard/assets/zevaryq-emblem.webp
+          test -s explorer-dashboard/assets/zevaryq-favicon.png
+
+  deploy-guarded:
+    if: github.event_name == 'push'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      ZONE_NAME: kriptoaman.com
+      ROUTE_PATTERN: explorer.kriptoaman.com/*
+      EXPECTED_OLD_WORKER: kam-mainnet-explorer-cutover
+      EXPECTED_API_WORKER: kam-mainnet-blockscout-api
+      NEW_WORKER: zevaryq-explorer-public-bridge
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate credentials and capture existing Worker routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${CF_ACCOUNT_ID:-}"
+          test -n "${CF_API_TOKEN:-}"
+          echo "::add-mask::${CF_API_TOKEN}"
+          zones="$(curl -fsS --get 'https://api.cloudflare.com/client/v4/zones' -H "Authorization: Bearer ${CF_API_TOKEN}" --data-urlencode "name=${ZONE_NAME}" --data-urlencode "account.id=${CF_ACCOUNT_ID}")"
+          zone_id="$(jq -er '.result | if length == 1 then .[0].id else empty end' <<<"${zones}")"
+          echo "::add-mask::${zone_id}"
+          routes="$(curl -fsS "https://api.cloudflare.com/client/v4/zones/${zone_id}/workers/routes" -H "Authorization: Bearer ${CF_API_TOKEN}")"
+          route_count="$(jq --arg p "${ROUTE_PATTERN}" '[.result[] | select(.pattern == $p)] | length' <<<"${routes}")"
+          test "${route_count}" -eq 1
+          route_id="$(jq -er --arg p "${ROUTE_PATTERN}" '.result[] | select(.pattern == $p) | .id' <<<"${routes}")"
+          old_script="$(jq -er --arg p "${ROUTE_PATTERN}" '.result[] | select(.pattern == $p) | .script' <<<"${routes}")"
+          echo "current_default_route_worker=${old_script}"
+          test "${old_script}" = "${EXPECTED_OLD_WORKER}"
+          api_script="$(jq -er '.result[] | select(.pattern == "explorer.kriptoaman.com/api/v2/*") | .script' <<<"${routes}")"
+          echo "api_v2_route_worker=${api_script}"
+          test "${api_script}" = "${EXPECTED_API_WORKER}"
+          echo "ZONE_ID=${zone_id}" >> "$GITHUB_ENV"
+          echo "ROUTE_ID=${route_id}" >> "$GITHUB_ENV"
+          echo "OLD_WORKER=${old_script}" >> "$GITHUB_ENV"
+
+      - name: Preflight RPC chain identity and Blockscout blocks on preserved routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          rpc="$(curl -fsS --connect-timeout 7 --max-time 20 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' 'https://explorer.kriptoaman.com/rpc')"
+          chain="$(jq -er '.result' <<<"$rpc")"
+          echo "public_chain_id=${chain}"
+          test "$chain" = '0x560c'
+          blocks="$(curl -fsS --connect-timeout 7 --max-time 20 'https://explorer.kriptoaman.com/api/v2/blocks')"
+          jq -e '.items | type == "array" and length > 0' <<<"$blocks" > /dev/null
+          echo "blockscout_indexed_blocks=available"
+
+      - name: Stage the exact reviewed homepage and binary assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          d=chain/kam-mainnet/zevaryq-public-bridge
+          cp explorer-dashboard/zevaryq-production.html "$d/homepage.html"
+          cp explorer-dashboard/assets/zevaryq-emblem.webp "$d/zevaryq-emblem.webp"
+          cp explorer-dashboard/assets/zevaryq-favicon.png "$d/zevaryq-favicon.png"
+          grep -Fq 'data-zevaryq-explorer-version="1.1.1"' "$d/homepage.html"
+          grep -Fq 'class="logo logo-zvq"' "$d/homepage.html"
+          grep -Fq 'class="earth-brandmark"' "$d/homepage.html"
+          test -s "$d/zevaryq-emblem.webp"
+          test -s "$d/zevaryq-favicon.png"
+
+      - name: Deploy unbound bridge Worker, leaving live route unchanged
+        working-directory: chain/kam-mainnet/zevaryq-public-bridge
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx --yes wrangler@4.36.0 deploy
+
+      - name: Switch only the existing default Explorer Worker route
+        id: switch
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Re-read live route to prevent replacing a concurrent operator change.
+          current="$(curl -fsS "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes" -H "Authorization: Bearer ${CF_API_TOKEN}")"
+          actual="$(jq -er --arg id "${ROUTE_ID}" '.result[] | select(.id == $id) | .script' <<<"${current}")"
+          test "${actual}" = "${EXPECTED_OLD_WORKER}"
+          payload="$(jq -nc --arg p "${ROUTE_PATTERN}" --arg script "${NEW_WORKER}" '{pattern:$p,script:$script}')"
+          result="$(curl -fsS -X PUT "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes/${ROUTE_ID}" -H "Authorization: Bearer ${CF_API_TOKEN}" -H 'content-type: application/json' --data "${payload}")"
+          test "$(jq -r '.success' <<<"${result}")" = true
+          test "$(jq -r '.result.script' <<<"${result}")" = "${NEW_WORKER}"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "public_default_route=bridge_switched"
+
+      - name: Verify real public default URL, RPC and indexed blocks
+        id: verify
+        if: steps.switch.outputs.changed == 'true'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          sleep 4
+          for url in 'https://explorer.kriptoaman.com/' "https://explorer.kriptoaman.com/?zvq_release=${GITHUB_RUN_ID}"; do
+            body="$(mktemp)"
+            code="$(curl -LsS --retry 3 --retry-delay 2 --retry-all-errors --connect-timeout 8 --max-time 25 -o "$body" -w '%{http_code}' "$url")"
+            test "$code" = '200'
+            grep -Fq 'data-zevaryq-explorer-version="1.1.1"' "$body"
+            grep -Fq 'class="logo logo-zvq"' "$body"
+            grep -Fq 'class="earth-brandmark"' "$body"
+            if grep -Fq 'class="earth-logo"' "$body"; then echo "Legacy ZV image still present" >&2; exit 1; fi
+            rm -f "$body"
+          done
+          rpc="$(curl -fsS --connect-timeout 8 --max-time 20 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":2,"method":"eth_chainId","params":[]}' 'https://explorer.kriptoaman.com/rpc')"
+          test "$(jq -r '.result' <<<"$rpc")" = '0x560c'
+          blocks="$(curl -fsS --connect-timeout 8 --max-time 20 'https://explorer.kriptoaman.com/api/v2/blocks')"
+          jq -e '.items | type == "array" and length > 0' <<<"$blocks" > /dev/null
+          test "$(curl -LsS --connect-timeout 8 --max-time 20 -o /dev/null -w '%{http_code}' 'https://explorer.kriptoaman.com/blocks')" = '200'
+          echo "public_release=verified-v1.1.1; rpc=0x560c; api_v2=healthy; legacy_route=preserved"
+
+      - name: Restore prior route on verification failure
+        if: steps.switch.outputs.changed == 'true' && steps.verify.outcome == 'failure'
+        shell: bash
+        run: |
+          set -euo pipefail
+          payload="$(jq -nc --arg p "${ROUTE_PATTERN}" --arg script "${OLD_WORKER}" '{pattern:$p,script:$script}')"
+          result="$(curl -fsS -X PUT "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes/${ROUTE_ID}" -H "Authorization: Bearer ${CF_API_TOKEN}" -H 'content-type: application/json' --data "${payload}")"
+          test "$(jq -r '.success' <<<"${result}")" = true
+          test "$(jq -r '.result.script' <<<"${result}")" = "${OLD_WORKER}"
+          echo "::error::Public bridge verification failed; previous Worker route restored."
+
+      - name: Enforce verified production result
+        if: steps.verify.outcome == 'failure'
+        run: exit 1
