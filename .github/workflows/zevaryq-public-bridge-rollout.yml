@@ -86,7 +86,7 @@ jobs:
           echo "public_chain_id=${chain}"
           test "$chain" = '0x560c'
           blocks="$(curl -fsS --connect-timeout 7 --max-time 20 'https://explorer.kriptoaman.com/api/v2/blocks')"
-          jq -e '.items | type == "array" and length > 0' <<<"$blocks" > /dev/null
+          jq -e '(.items | type == "array") and (.items | length > 0)' <<<"$blocks" > /dev/null
           echo "blockscout_indexed_blocks=available"
 
       - name: Stage the exact reviewed homepage and binary assets
@@ -147,7 +147,7 @@ jobs:
           rpc="$(curl -fsS --connect-timeout 8 --max-time 20 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":2,"method":"eth_chainId","params":[]}' 'https://explorer.kriptoaman.com/rpc')"
           test "$(jq -r '.result' <<<"$rpc")" = '0x560c'
           blocks="$(curl -fsS --connect-timeout 8 --max-time 20 'https://explorer.kriptoaman.com/api/v2/blocks')"
-          jq -e '.items | type == "array" and length > 0' <<<"$blocks" > /dev/null
+          jq -e '(.items | type == "array") and (.items | length > 0)' <<<"$blocks" > /dev/null
           test "$(curl -LsS --connect-timeout 8 --max-time 20 -o /dev/null -w '%{http_code}' 'https://explorer.kriptoaman.com/blocks')" = '200'
           echo "public_release=verified-v1.1.1; rpc=0x560c; api_v2=healthy; legacy_route=preserved"
 
