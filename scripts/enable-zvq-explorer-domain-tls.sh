@@ -60,12 +60,25 @@ CHANGED=true
 # Preserve the bind-mounted inode, unlike atomic rename.
 cat "$NEXT" > "$CONFIG"
 docker exec "$NAME" nginx -t
+actual_config="$(docker exec "$NAME" nginx -T 2>&1)"
+grep -Fq 'server_name explorer.kriptoaman.com;' <<<"$actual_config" || { echo 'Bound container did not receive new SNI configuration' >&2; false; }
 docker exec "$NAME" nginx -s reload
+# NGINX performs a graceful reload. Its previous worker can still accept an
+# immediate TLS handshake with the old IP SAN; wait for new SNI workers.
 body="$(mktemp)"
-code="$(curl --noproxy '*' --fail-with-body -LsS --connect-timeout 5 --max-time 15 \
- --resolve "$DOMAIN:443:$IP" -o "$body" -w '%{http_code}' "https://$DOMAIN/")"
-test "$code" = 200
-grep -Fq 'data-zvq-token-discovery="indexed-v2"' "$body"
+verified=false
+for attempt in $(seq 1 12); do
+  if code="$(curl --noproxy '*' --fail-with-body -LsS --connect-timeout 5 --max-time 15 \
+     --resolve "$DOMAIN:443:$IP" -o "$body" -w '%{http_code}' "https://$DOMAIN/" 2>/dev/null)" \
+     && [[ "$code" = 200 ]] \
+     && grep -Fq 'data-zvq-token-discovery="indexed-v2"' "$body"; then
+    verified=true
+    echo "domain_sni_new_worker_verified_attempt=$attempt"
+    break
+  fi
+  sleep 1
+done
+test "$verified" = true
 test "$(curl --noproxy '*' --fail-with-body -LsS --connect-timeout 5 --max-time 15 -o /dev/null -w '%{http_code}' "https://$IP/")" = 200
 test "$(curl --noproxy '*' -sS --connect-timeout 5 --max-time 10 --resolve "$DOMAIN:443:$IP" -o /dev/null -w '%{http_code}' "https://$DOMAIN/rpc")" = 403
 rm -f "$body" "$NEXT"
