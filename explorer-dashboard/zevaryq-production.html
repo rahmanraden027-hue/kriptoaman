@@ -280,7 +280,7 @@ function renderImmune(){
  $('#immune-checked').textContent=state.lastProbeAt?'Checked '+new Date(state.lastProbeAt).toLocaleTimeString():'Not yet probed';
 }
 function indexedTokenAddress(tx){
- const address=tx?.created_contract?.hash||tx?.created_contract_address?.hash||tx?.created_contract_address_hash||tx?.token?.address_hash;
+ const address=tx?.created_contract?.hash||tx?.created_contract_address?.hash||tx?.created_contract_address_hash;
  return typeof address==='string'&&/^0x[a-f0-9]{40}$/i.test(address)?address:null;
 }
 function renderTokens(message){
