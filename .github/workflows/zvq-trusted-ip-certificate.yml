@@ -1,0 +1,41 @@
+name: ZVQ Trusted IP Certificate Issuance
+on:
+  pull_request:
+    paths:
+      - 'scripts/issue-zvq-production-ip-cert.sh'
+      - '.github/workflows/zvq-trusted-ip-certificate.yml'
+      - 'tests/zvq-trusted-ip-certificate.test.mjs'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/issue-zvq-production-ip-cert.sh'
+      - '.github/workflows/zvq-trusted-ip-certificate.yml'
+      - 'tests/zvq-trusted-ip-certificate.test.mjs'
+permissions:
+  contents: read
+concurrency:
+  group: zvq-trusted-ip-certificate
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Prove production IP certificate issuance is isolated
+        run: |
+          set -euo pipefail
+          bash -n scripts/issue-zvq-production-ip-cert.sh
+          node --test tests/zvq-trusted-ip-certificate.test.mjs
+  issue:
+    if: github.event_name == 'push'
+    needs: validate
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Issue trusted IP SAN without changing existing production routes
+        run: sudo -n bash scripts/issue-zvq-production-ip-cert.sh
