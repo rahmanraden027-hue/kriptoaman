@@ -313,7 +313,7 @@ async function probeTokens(){
   state.tokens=[];state.tokenError=String(error?.message||error);
   renderTokens('Token-creation evidence unavailable. No token listings are inferred.');
   $('#token-note').textContent='Token discovery unavailable: public token-creation API or contract metadata could not be verified. Try the token directory.';
- }finally{state.tokenProbeInFlight=false}
+ }finally{state.tokenProbeInFlight=false;}
 }
 
 async function probe(){
