@@ -44,9 +44,10 @@ test('RPC and Blockscout routes are not remapped to public hostname', () => {
 });
 
 test('deployment is preflight-gated and restores the prior Worker route on post-switch failure', () => {
- assert.match(workflow, /EXPECTED_OLD_WORKER: zevaryq-explorer-public-bridge/);
+ assert.match(workflow, /EXPECTED_OLD_WORKER: zevaryq-explorer-public-bridge-v112/);
  assert.match(workflow, /Restore prior route on verification failure/);
- assert.match(config, /name = "zevaryq-explorer-public-bridge-v112"/);
+ assert.match(config, /name = "zevaryq-explorer-public-bridge-v113"/);
+ assert.match(workflow, /NEW_WORKER: zevaryq-explorer-public-bridge-v113/);
  assert.match(workflow, /steps\.verify\.outcome == 'failure'/);
  assert.match(workflow, /if: github\.event_name == 'push'/);
  assert.doesNotMatch(workflow, /genesis|wipe database|validator private key/i);
@@ -72,4 +73,14 @@ test('guarded public route rollout requires new evidence panels on both normal a
  assert.match(workflow, /public_release=verified-v1\.1\.2-immune-token-v1/);
  assert.match(workflow, /Restore prior route on verification failure/);
  assert.match(workflow, /EXPECTED_API_WORKER/);
+});
+
+test('versioned cutover never overwrites currently live v112 script and rolls back only its own route changes', () => {
+ assert.match(workflow, /EXPECTED_OLD_WORKER: zevaryq-explorer-public-bridge-v112/);
+ assert.match(workflow, /NEW_WORKER: zevaryq-explorer-public-bridge-v113/);
+ assert.match(workflow, /actual[^\n]*EXPECTED_OLD_WORKER/);
+ assert.match(workflow, /active[^\n]*NEW_WORKER/);
+ assert.match(workflow, /OLD_WORKER/);
+ assert.match(workflow, /EXPECTED_API_WORKER/);
+ assert.match(workflow, /public_release=verified-v1\.1\.2-immune-token-v1/);
 });
