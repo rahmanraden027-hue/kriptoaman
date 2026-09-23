@@ -27,19 +27,46 @@ jobs:
             headers="$(mktemp)"; body="$(mktemp)"
             status="$(curl -LsS --connect-timeout 6 --max-time 25 -D "$headers" -o "$body" -w '%{http_code}' "$@" "$url" || true)"
             release="$(grep -o 'data-zevaryq-explorer-version="[^"]*"' "$body" | head -1 || true)"
-            logo=0; globe=0; legacy=0
+            logo=0; globe=0; legacy=0; feature=0
             grep -Fq 'class="logo logo-zvq"' "$body" && logo=1 || true
             grep -Fq 'class="earth-brandmark"' "$body" && globe=1 || true
             grep -Fq 'class="earth-logo"' "$body" && legacy=1 || true
-            echo "$label http=$status release=$release header_zvq=$logo globe_zvq=$globe legacy_img=$legacy"
+            if grep -Fq 'data-zevaryq-features="immune-token-v1"' "$body" \
+              && grep -Fq 'id="immune-monitor"' "$body" \
+              && grep -Fq 'id="token-discovery"' "$body"; then feature=1; fi
+            echo "$label http=$status release=$release header_zvq=$logo globe_zvq=$globe legacy_img=$legacy immune_token_v1=$feature"
             grep -iE '^(cache-control|age|cf-cache-status|server|location|etag|via):' "$headers" || true
             if [[ "$label" == default && "$status" == 200 && ( "$logo" != 1 || "$globe" != 1 ) ]]; then
               echo "PUBLIC_DEFAULT_STALE=1" >> "$GITHUB_ENV"
             fi
+            if [[ "$status" == 200 && "$feature" != 1 ]]; then
+              echo "PUBLIC_FEATURE_MISSING=1" >> "$GITHUB_ENV"
+            fi
             rm -f "$headers" "$body"
           }
           probe default 'https://explorer.kriptoaman.com/'
-          probe bypass "https://explorer.kriptoaman.com/?zvq_release=1.1.1-$GITHUB_RUN_ID" -H 'Cache-Control: no-cache' -H 'Pragma: no-cache'
+          probe bypass "https://explorer.kriptoaman.com/?zvq_feature=immune-token-v1-$GITHUB_RUN_ID" -H 'Cache-Control: no-cache' -H 'Pragma: no-cache'
+      - name: Diagnose read-only Blockscout data availability
+        shell: bash
+        run: |
+          set -euo pipefail
+          for route in 'blocks' 'transactions?type=token_creation'; do
+            body="$(mktemp)"
+            status="$(curl -LsS --connect-timeout 6 --max-time 20 -o "$body" -w '%{http_code}' "https://explorer.kriptoaman.com/api/v2/$route" || true)"
+            if [[ "$status" == 200 ]]; then
+              if node - "$body" <<'NODE'
+          const fs=require('fs');
+          const payload=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+          if(!Array.isArray(payload?.items))process.exit(2);
+          console.log('indexed_items='+payload.items.length);
+          NODE
+              then echo "blockscout_route=$route http=200 json_items=verified"
+              else echo "::warning::Blockscout route $route returned an unexpected payload"; fi
+            else
+              echo "::warning::Blockscout route $route returned HTTP $status; Explorer must display unavailable, not synthetic data"
+            fi
+            rm -f "$body"
+          done
       - name: Gate stale HTTP 200 public presentation
         shell: bash
         run: |
@@ -47,8 +74,13 @@ jobs:
             echo "::error::Public Explorer still returns old ZV interface"
             exit 1
           fi
+          if [[ "$PUBLIC_FEATURE_MISSING" == 1 ]]; then
+            echo "::error::One or more publicly accessible HTTP 200 Explorer paths lack the merged immune/token feature marker"
+            exit 1
+          fi
     env:
       PUBLIC_DEFAULT_STALE: '0'
+      PUBLIC_FEATURE_MISSING: '0'
   origin:
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
     timeout-minutes: 5
@@ -63,10 +95,16 @@ jobs:
             headers="$(mktemp)"; body="$(mktemp)"
             status="$(curl -LsS --connect-timeout 5 --max-time 22 -D "$headers" -o "$body" -w '%{http_code}' "$@" "$url" || true)"
             release="$(grep -o 'data-zevaryq-explorer-version="[^"]*"' "$body" | head -1 || true)"
-            logo=0; legacy=0
+            logo=0; legacy=0; feature=0
             grep -Fq 'class="logo logo-zvq"' "$body" && logo=1 || true
             grep -Fq 'class="earth-logo"' "$body" && legacy=1 || true
-            echo "$label http=$status release=$release header_zvq=$logo legacy_img=$legacy"
+            if grep -Fq 'data-zevaryq-features="immune-token-v1"' "$body" \
+              && grep -Fq 'id="immune-monitor"' "$body" \
+              && grep -Fq 'id="token-discovery"' "$body"; then feature=1; fi
+            echo "$label http=$status release=$release header_zvq=$logo legacy_img=$legacy immune_token_v1=$feature"
+            if [[ "$label" == local-http && ( "$status" != 200 || "$feature" != 1 ) ]]; then
+              echo '::error::Dedicated Explorer origin is missing the merged evidence panels'; exit 1
+            fi
             grep -iE '^(cache-control|age|cf-cache-status|server|location|etag|via):' "$headers" || true
             rm -f "$headers" "$body"
           }
