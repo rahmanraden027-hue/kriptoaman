@@ -163,7 +163,7 @@ function qbftValidatorsFromExtraData(hex){
   };
   walk(decoded);
   return candidates.length===1?candidates[0]:null;
- }catch{return null}
+ }catch{return null;}
 }
 function verifiedFinalizedBlock(tagged,canonical,head){
  if(!tagged||!canonical||!Number.isSafeInteger(head))return null;
@@ -251,7 +251,7 @@ async function probe(){
   if(!Number.isSafeInteger(state.head))throw Error('Invalid verified block height');
   if(Date.now()-state.consensusProbeAt>=60000||!state.consensusProbeAt)await refreshConsensus(head.result);
   state.rpcError=null;
- }catch(e){state.rpc=false;state.rpcLatency=null;state.head=null;state.gas=null;state.rpcError=String(e?.message||e);state.validators=[];state.validatorSource=null;state.finalized=null;state.finalitySource=null;state.consensusProbeAt=0}
+ }catch(e){state.rpc=false;state.rpcLatency=null;state.head=null;state.gas=null;state.rpcError=String(e?.message||e);state.validators=[];state.validatorSource=null;state.finalized=null;state.finalitySource=null;state.consensusProbeAt=0;}
  try{
   const data=await getJSON(API+'/blocks',{},12000);
   if(!Array.isArray(data.items))throw Error('Unexpected Blockscout API response');
