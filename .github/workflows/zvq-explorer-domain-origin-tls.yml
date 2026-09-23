@@ -1,0 +1,239 @@
+name: ZVQ Explorer Domain Origin TLS
+on:
+  pull_request:
+    paths:
+      - 'chain/kam-mainnet/zvq-acme-bridge/**'
+      - 'scripts/*zvq-explorer-domain*'
+      - 'tests/zvq-explorer-domain-tls.test.mjs'
+      - '.github/workflows/zvq-explorer-domain-origin-tls.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'chain/kam-mainnet/zvq-acme-bridge/**'
+      - 'scripts/*zvq-explorer-domain*'
+      - 'tests/zvq-explorer-domain-tls.test.mjs'
+      - '.github/workflows/zvq-explorer-domain-origin-tls.yml'
+permissions:
+  contents: read
+concurrency:
+  group: zvq-domain-origin-tls
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check isolated-only scope and scripts before production
+        run: |
+          set -euo pipefail
+          node --check chain/kam-mainnet/zvq-acme-bridge/worker.mjs
+          bash -n scripts/issue-zvq-explorer-domain-cert.sh
+          bash -n scripts/enable-zvq-explorer-domain-tls.sh
+          bash -n scripts/renew-zvq-explorer-domain-cert.sh
+          bash -n scripts/finalize-zvq-explorer-domain-tls.sh
+          node --test tests/zvq-explorer-domain-tls.test.mjs
+  stage:
+    if: github.event_name == 'push'
+    needs: validate
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 4
+    steps:
+      - name: Stage temporary ACME token only
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=/opt/blockscout/docker-compose/proxy/kam-dashboard
+          token="zvq-domain-issuance-$GITHUB_RUN_ID"
+          expected="zvq-origin-acme-$GITHUB_RUN_ID"
+          test -r "$root/index.html"
+          sudo -n install -d -m 0755 "$root/.well-known/acme-challenge"
+          printf '%s' "$expected" | sudo -n tee "$root/.well-known/acme-challenge/$token" >/dev/null
+          sudo -n chmod 0644 "$root/.well-known/acme-challenge/$token"
+          test "$(curl --noproxy '*' --fail-with-body -sS --max-time 9 "http://127.0.0.1/.well-known/acme-challenge/$token")" = "$expected"
+          echo 'temporary_acme_token=staged; nginx_unchanged=yes'
+  external-origin:
+    if: github.event_name == 'push'
+    needs: stage
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Prove direct-origin and temporary external DNS alias before any Cloudflare mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          token="zvq-domain-issuance-$GITHUB_RUN_ID"
+          expected="zvq-origin-acme-$GITHUB_RUN_ID"
+          path="/.well-known/acme-challenge/$token"
+          direct="$(curl --noproxy '*' --fail-with-body -sS --connect-timeout 5 --max-time 12 --resolve 'explorer.kriptoaman.com:80:146.190.93.254' "http://explorer.kriptoaman.com$path")"
+          test "$direct" = "$expected"
+          aliased="$(curl --noproxy '*' --fail-with-body -sS --connect-timeout 5 --max-time 12 "http://146-190-93-254.sslip.io$path")"
+          test "$aliased" = "$expected"
+          echo 'independent_acme_upstream=verified_exact_bytes; production_routes_unchanged=yes'
+  route:
+    if: github.event_name == 'push'
+    needs: external-origin
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 12
+    outputs:
+      route_id: ${{ steps.install.outputs.route_id }}
+      zone_id: ${{ steps.install.outputs.zone_id }}
+    env:
+      CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      ROUTE: explorer.kriptoaman.com/.well-known/acme-challenge/*
+      SCRIPT: zvq-explorer-isolated-acme-bridge
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify expected live route topology and narrow scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$CF_TOKEN"
+          echo "::add-mask::$CF_TOKEN"
+          zones="$(curl --fail-with-body -sS -G 'https://api.cloudflare.com/client/v4/zones' -H "Authorization: Bearer $CF_TOKEN" --data-urlencode 'name=kriptoaman.com')"
+          zone="$(jq -er '.result | if length == 1 then .[0].id else empty end' <<<"$zones")"
+          account="$(jq -er '.result[0].account.id' <<<"$zones")"
+          echo "CF_ZONE=$zone" >> "$GITHUB_ENV"
+          echo "CF_ACCOUNT=$account" >> "$GITHUB_ENV"
+          routes="$(curl --fail-with-body -sS "https://api.cloudflare.com/client/v4/zones/$zone/workers/routes" -H "Authorization: Bearer $CF_TOKEN")"
+          test "$(jq -r '.result[] | select(.pattern=="explorer.kriptoaman.com/*") | .script' <<<"$routes")" = zevaryq-explorer-public-bridge-orbital-indexed-20260924
+          test "$(jq -r '.result[] | select(.pattern=="explorer.kriptoaman.com/api/v2/*") | .script' <<<"$routes")" = kam-mainnet-blockscout-api
+          test "$(jq --arg path "$ROUTE" '[.result[]|select(.pattern==$path)]|length' <<<"$routes")" -eq 0
+          echo 'acme_route_preflight=verified_existing_workers_preserved'
+      - name: Deploy unbound, isolated ACME-only Worker
+        working-directory: chain/kam-mainnet/zvq-acme-bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          CLOUDFLARE_API_TOKEN="$CF_TOKEN" CLOUDFLARE_ACCOUNT_ID="$CF_ACCOUNT" npx --yes wrangler@4.36.0 deploy
+      - name: Install only more-specific ACME path
+        id: install
+        shell: bash
+        run: |
+          set -euo pipefail
+          current="$(curl --fail-with-body -sS "https://api.cloudflare.com/client/v4/zones/$CF_ZONE/workers/routes" -H "Authorization: Bearer $CF_TOKEN")"
+          test "$(jq --arg path "$ROUTE" '[.result[]|select(.pattern==$path)]|length' <<<"$current")" -eq 0
+          payload="$(jq -nc --arg path "$ROUTE" --arg script "$SCRIPT" '{pattern:$path,script:$script}')"
+          result="$(curl --fail-with-body -sS -X POST "https://api.cloudflare.com/client/v4/zones/$CF_ZONE/workers/routes" -H "Authorization: Bearer $CF_TOKEN" -H 'content-type: application/json' --data "$payload")"
+          test "$(jq -r '.success' <<<"$result")" = true
+          id="$(jq -er '.result.id' <<<"$result")"
+          test "$(jq -r '.result.script' <<<"$result")" = "$SCRIPT"
+          echo "route_id=$id" >> "$GITHUB_OUTPUT"
+          echo "zone_id=$CF_ZONE" >> "$GITHUB_OUTPUT"
+          echo 'specific_acme_worker_route=created; homepage_api_workers=untouched'
+  route-proof:
+    if: github.event_name == 'push'
+    needs: route
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Verify the exact challenge through public domain before certificate issuance
+        shell: bash
+        run: |
+          set -euo pipefail
+          path="/.well-known/acme-challenge/zvq-domain-issuance-$GITHUB_RUN_ID"
+          expected="zvq-origin-acme-$GITHUB_RUN_ID"
+          for attempt in $(seq 1 12); do
+            actual="$(curl --fail-with-body -sS -L --connect-timeout 6 --max-time 12 -H 'Cache-Control: no-store' "http://explorer.kriptoaman.com$path" 2>/dev/null || true)"
+            if [[ "$actual" == "$expected" ]]; then echo 'public_http01=verified_exact_bytes'; exit 0; fi
+            sleep 4
+          done
+          echo 'public_http01=unavailable; aborting_without_certificate_change' >&2
+          exit 1
+  domain-cert:
+    if: github.event_name == 'push'
+    needs: route-proof
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - name: Obtain trusted domain certificate via isolated HTTP-01 and add separate SNI listener
+        run: |
+          set -euo pipefail
+          sudo -n bash scripts/issue-zvq-explorer-domain-cert.sh
+          sudo -n env ZVQ_DOMAIN_RUN_ID="$GITHUB_RUN_ID" bash scripts/enable-zvq-explorer-domain-tls.sh
+  external-tls:
+    if: github.event_name == 'push'
+    needs: domain-cert
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Verify browser-trusted direct-domain TLS, indexed blocks, IP fallback and simulated failover
+        shell: bash
+        run: |
+          set -euo pipefail
+          host=explorer.kriptoaman.com
+          ip=146.190.93.254
+          domain="https://$host"
+          body="$(mktemp)"
+          code="$(curl --noproxy '*' --fail-with-body -LsS --connect-timeout 6 --max-time 15 --resolve "$host:443:$ip" -o "$body" -w '%{http_code}' "$domain/")"
+          test "$code" = 200
+          grep -Fq 'data-zvq-token-discovery="indexed-v2"' "$body"
+          echo 'trusted_origin_domain_tls=verified; expected_hostname=yes'
+          blocks="$(curl --noproxy '*' --fail-with-body -sS --resolve "$host:443:$ip" "$domain/api/v2/blocks")"
+          jq -e '(.items|type=="array") and (.items|length>0)' <<<"$blocks" >/dev/null
+          echo 'direct_origin_indexed_blocks=healthy'
+          test "$(curl --noproxy '*' -sS --max-time 8 --resolve "$host:443:$ip" -o /dev/null -w '%{http_code}' "$domain/rpc")" = 403
+          test "$(curl --noproxy '*' --fail-with-body -LsS -o /dev/null -w '%{http_code}' "https://$ip/")" = 200
+          echo 'direct_origin_privileged_rpc=blocked; original_ip_fallback=preserved'
+          test "$(curl --fail-with-body -LsS -o /dev/null -w '%{http_code}' "$domain/")" = 200
+          chain="$(curl --fail-with-body -sS -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' 'https://rpc.kriptoaman.com/')"
+          test "$(jq -r '.result' <<<"$chain")" = 0x560c
+          if curl --noproxy '*' -fsS --connect-timeout 2 --max-time 3 --resolve "$host:443:127.0.0.1" "$domain/" -o /dev/null 2>/dev/null; then
+            echo 'simulated_primary_failure=not_reproduced' >&2; exit 1
+          fi
+          test "$(curl --noproxy '*' --fail-with-body -LsS --resolve "$host:443:$ip" -o /dev/null -w '%{http_code}' "$domain/")" = 200
+          echo 'simulated_primary_failure=runner_only; direct_domain_failover=verified; dns_unchanged=yes'
+          rm -f "$body"
+  finalize:
+    if: always() && github.event_name == 'push' && needs['domain-cert'].result == 'success'
+    needs: [domain-cert,external-tls]
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 12
+    env:
+      EXTERNAL_RESULT: ${{ needs['external-tls'].result }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Arm local domain renewal on success or undo only new SNI listener on failed external proof
+        run: |
+          set -euo pipefail
+          sudo -n env ZVQ_DOMAIN_RUN_ID="$GITHUB_RUN_ID" ZVQ_EXTERNAL_PROOF="$EXTERNAL_RESULT" bash scripts/finalize-zvq-explorer-domain-tls.sh
+  clean-proof:
+    if: always() && github.event_name == 'push'
+    needs: [stage,external-origin,route,route-proof,domain-cert,external-tls,finalize]
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 3
+    steps:
+      - name: Remove only temporary proof file
+        run: |
+          target="/opt/blockscout/docker-compose/proxy/kam-dashboard/.well-known/acme-challenge/zvq-domain-issuance-$GITHUB_RUN_ID"
+          if [[ -f "$target" ]]; then sudo -n rm -- "$target"; fi
+          echo 'temporary_acme_proof=removed'
+  clean-route-on-failure:
+    if: always() && github.event_name == 'push' && needs.route.result == 'success' && needs.finalize.result != 'success'
+    needs: [route,finalize]
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 4
+    env:
+      CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      ROUTE_ID: ${{ needs.route.outputs.route_id }}
+      ZONE_ID: ${{ needs.route.outputs.zone_id }}
+    steps:
+      - name: Remove only this run's more-specific ACME route after failure
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$ROUTE_ID" && test -n "$ZONE_ID"
+          current="$(curl --fail-with-body -sS "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/workers/routes" -H "Authorization: Bearer $CF_TOKEN")"
+          existing="$(jq -r --arg id "$ROUTE_ID" '.result[]|select(.id==$id)|.script' <<<"$current")"
+          if [[ "$existing" == zvq-explorer-isolated-acme-bridge ]]; then
+            response="$(curl --fail-with-body -sS -X DELETE "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/workers/routes/$ROUTE_ID" -H "Authorization: Bearer $CF_TOKEN")"
+            test "$(jq -r '.success' <<<"$response")" = true
+            echo 'temporary_acme_route=rolled_back'
+          else echo 'temporary_acme_route=changed_or_absent; refusing_delete'; fi
