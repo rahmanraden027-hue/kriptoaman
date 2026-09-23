@@ -172,6 +172,7 @@ test('new Explorer inline JavaScript parses, filters indexed token addresses and
  const address='0x'+'a'.repeat(40);
  assert.equal(tokenAddress({created_contract:{hash:address}}),address);
  assert.equal(tokenAddress({created_contract:{hash:'0xabc'}}),null);
+ assert.equal(tokenAddress({token:{address_hash:address}}),null,'transfer metadata is not proof of token creation');
  assert.match(script,/function qbftValidatorsFromExtraData/);
  assert.match(script,/function verifiedFinalizedBlock/);
  assert.match(script,/renderImmune\(\)/);
