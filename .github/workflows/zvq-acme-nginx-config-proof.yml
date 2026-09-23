@@ -54,3 +54,28 @@ jobs:
           count="$(python3 -c 'import json,sys; b=json.load(sys.stdin); print(len(b.get("items",[])) if isinstance(b.get("items"),list) else "not-array")' <"$blocks" 2>/dev/null || true)"
           echo "origin_probe_blockscout nginx_same_origin http=$status indexed_items=$count"
           rm -f "$blocks"
+  rpc-origin-public:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Compare public RPC DNS, direct RPC sentry origin TLS and private routing clues
+        shell: bash
+        run: |
+          set -uo pipefail
+          getent ahostsv4 rpc.kriptoaman.com | awk '{print "rpc_public_dns=" $1}' | sort -u || true
+          probe() {
+            local label="$1" url="$2"; shift 2
+            local body code chain
+            body="$(mktemp)"
+            code="$(curl --noproxy '*' -sS --connect-timeout 5 --max-time 12 \
+              -H 'content-type: application/json' \
+              --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+              -o "$body" -w '%{http_code}' "$@" "$url" 2>/dev/null || true)"
+            chain="$(node -e 'try {let p=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"));console.log(p.result||"unavailable")}catch{}' "$body")"
+            echo "rpc_origin_probe $label http=$code chain_id=$chain"
+            rm -f "$body"
+          }
+          probe public_rpc 'https://rpc.kriptoaman.com'
+          probe direct_tls_with_hostname 'https://rpc.kriptoaman.com' --resolve 'rpc.kriptoaman.com:443:206.189.36.15'
+          probe direct_ip_tls 'https://206.189.36.15' -k
+          probe direct_ip_http 'http://206.189.36.15' -k
