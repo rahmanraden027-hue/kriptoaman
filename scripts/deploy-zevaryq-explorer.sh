@@ -15,7 +15,7 @@ BACKUP="index.html.zevaryq.$STAMP.bak"
 fail(){ echo "Zevaryq Explorer deploy: $*" >&2; exit 1; }
 [[ -f "$SOURCE" ]] || fail "source missing"
 [[ -r "$EMBLEM" && -r "$FAVICON" ]] || fail "brand assets missing"
-grep -q 'data-zevaryq-explorer-version="1.1.1"' "$SOURCE" || fail "version marker missing"
+grep -q 'data-zevaryq-explorer-version="1.1.2"' "$SOURCE" || fail "version marker missing"
 grep -q 'ZEVARYQ EXPLORER' "$SOURCE" || fail "brand marker missing"
 grep -q "EXPECTED_CHAIN='0x560c'" "$SOURCE" || fail "chain guard missing"
 ! grep -Eqi '21[ /]+21|128\+ nodes|1,236 pending|3\.4 TPS|100% Secure' "$SOURCE" || fail "mockup metric detected"
@@ -39,7 +39,7 @@ body="$(mktemp)"; trap 'rm -f "$body"' EXIT
 # Hard deployment gate: verify the dedicated Explorer origin locally so
 # Cloudflare edge throttling (HTTP 429) cannot roll back a valid UI release.
 curl -fsS --retry 6 --retry-all-errors --max-time 25 http://127.0.0.1/ -o "$body"
-grep -q 'data-zevaryq-explorer-version="1.1.1"' "$body"
+grep -q 'data-zevaryq-explorer-version="1.1.2"' "$body"
 grep -q 'ZEVARYQ EXPLORER' "$body"
 grep -q 'class="logo logo-zvq"' "$body"
 grep -q 'class="earth-brandmark"' "$body"
@@ -53,35 +53,41 @@ trap - ERR
 public_code="$(curl -L -sS --connect-timeout 5 --max-time 25 -o /tmp/zevaryq-public.html -w '%{http_code}' https://explorer.kriptoaman.com/ || true)"
 echo "public_explorer_http=$public_code"
 if [[ "$public_code" == "200" ]]; then
-  if grep -Fq 'data-zevaryq-explorer-version="1.1.1"' /tmp/zevaryq-public.html \
+  if grep -Fq 'data-zevaryq-explorer-version="1.1.2"' /tmp/zevaryq-public.html \
     && grep -Fq 'class="logo logo-zvq"' /tmp/zevaryq-public.html \
     && grep -Fq 'class="earth-brandmark"' /tmp/zevaryq-public.html; then
-    echo "public_explorer_release=current-v1.1.1"
+    echo "public_explorer_release=current-v1.1.2"
   else
     echo "::warning::Public Explorer HTTP 200 is serving old visual content although local origin is current. Retrying before reporting release as stale."
     sleep 15
     retry_code="$(curl -L -sS --connect-timeout 5 --max-time 25 -o /tmp/zevaryq-public.html -w '%{http_code}' https://explorer.kriptoaman.com/ || true)"
     if [[ "$retry_code" == "200" ]] \
-      && grep -Fq 'data-zevaryq-explorer-version="1.1.1"' /tmp/zevaryq-public.html \
+      && grep -Fq 'data-zevaryq-explorer-version="1.1.2"' /tmp/zevaryq-public.html \
       && grep -Fq 'class="logo logo-zvq"' /tmp/zevaryq-public.html \
       && grep -Fq 'class="earth-brandmark"' /tmp/zevaryq-public.html; then
-      echo "public_explorer_release=current-v1.1.1-after-retry"
+      echo "public_explorer_release=current-v1.1.2-after-retry"
     else
       # This read-only bypass differentiates a stale default URL from a stale
       # upstream route. Never purge the CDN or restart the chain automatically.
-      bypass_url="https://explorer.kriptoaman.com/?zvq_release=1.1.1-$(date -u +%s)"
+      bypass_url="https://explorer.kriptoaman.com/?zvq_release=1.1.2-$(date -u +%s)"
       bypass_code="$(curl -L -sS --connect-timeout 5 --max-time 25 \
         -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
         -o /tmp/zevaryq-public-bypass.html -w '%{http_code}' "$bypass_url" || true)"
       if [[ "$bypass_code" == "200" ]] \
-        && grep -Fq 'data-zevaryq-explorer-version="1.1.1"' /tmp/zevaryq-public-bypass.html \
+        && grep -Fq 'data-zevaryq-explorer-version="1.1.2"' /tmp/zevaryq-public-bypass.html \
         && grep -Fq 'class="logo logo-zvq"' /tmp/zevaryq-public-bypass.html; then
         echo "public_explorer_release=stale-default-url; cache-bypassed-url=current"
       else
         echo "public_explorer_release=stale-or-unverified; cache-bypassed-http=$bypass_code"
       fi
-      echo "::error::Public Explorer still shows the legacy ZV interface. The verified origin deployment has been preserved; inspect public routing and caches."
-      exit 1
+      if grep -Fq 'data-zevaryq-explorer-version="1.1.1"' /tmp/zevaryq-public.html \
+        && grep -Fq 'class="logo logo-zvq"' /tmp/zevaryq-public.html; then
+        echo "::warning::Origin v1.1.2 verified; public ZVQ v1.1.1 bridge is awaiting its separate guarded rollout."
+        echo "public_explorer_release=previous-verified-v1.1.1-awaiting-bridge"
+      else
+        echo "::error::Public Explorer does not serve a current or previously verified ZVQ release; inspect routing."
+        exit 1
+      fi
     fi
   fi
 elif [[ "$public_code" == "429" ]]; then

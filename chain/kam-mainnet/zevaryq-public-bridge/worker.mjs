@@ -4,7 +4,7 @@ import favicon from './zevaryq-favicon.png';
 
 const PUBLIC_HOST = 'explorer.kriptoaman.com';
 const LEGACY_UPSTREAM = 'explorer-new.kriptoaman.com';
-const RELEASE = '1.1.1';
+const RELEASE = '1.1.2';
 const EXPECTED_ID = '0x560c';
 const HTML_CSP = "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://rpc.kriptoaman.com; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; upgrade-insecure-requests";
 
