@@ -43,6 +43,34 @@ jobs:
           probe indexed_erc20_tokens 'tokens?type=ERC-20'
           probe indexed_tokens 'tokens'
           rm -f "$tmp"
+  cloudflare-dns-scope-readonly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      CF_DNS_TOKEN: ${{ secrets.CLOUDFLARE_DNS_API_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - name: Verify DNS read permission before attempting ACME DNS-01 issuance
+        shell: bash
+        run: |
+          set -uo pipefail
+          if [[ -z "$CF_DNS_TOKEN" ]]; then echo "cf_dns_token=unavailable"; exit 0; fi
+          echo "cf_dns_token=present_redacted"
+          zonefile="$(mktemp)"; dnsfile="$(mktemp)"
+          zones_http="$(curl -sS --connect-timeout 6 --max-time 15 -o "$zonefile" -w '%{http_code}' \
+            'https://api.cloudflare.com/client/v4/zones?name=kriptoaman.com' \
+            -H "Authorization: Bearer $CF_DNS_TOKEN" || true)"
+          zone_id="$(jq -r '.result[0].id // empty' "$zonefile" 2>/dev/null || true)"
+          if [[ "$zones_http" != 200 || -z "$zone_id" ]]; then
+            echo "cf_zone_read=unavailable_http_$zones_http"; rm -f "$zonefile" "$dnsfile"; exit 0
+          fi
+          echo "cf_zone_read=available"
+          dns_http="$(curl -sS --connect-timeout 6 --max-time 15 -o "$dnsfile" -w '%{http_code}' \
+            "https://api.cloudflare.com/client/v4/zones/$zone_id/dns_records?type=TXT&name=_acme-challenge.explorer.kriptoaman.com" \
+            -H "Authorization: Bearer $CF_DNS_TOKEN" || true)"
+          if [[ "$dns_http" == 200 ]] && jq -e '.success == true' "$dnsfile" >/dev/null 2>&1; then
+            echo "cf_dns_read=available; dns_write=not_proven"
+          else echo "cf_dns_read=unavailable_http_$dns_http; dns_write=not_proven"; fi
+          rm -f "$zonefile" "$dnsfile"
   origin-tls-readonly:
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
     timeout-minutes: 4
