@@ -134,6 +134,18 @@ blocks="$(curl --noproxy '*' --resolve "$IP:443:127.0.0.1" \
   python3 -c 'import json,sys; j=json.load(sys.stdin); print(len(j["items"]) if isinstance(j.get("items"),list) else 0)')" ||
   fail 'Independent IP TLS indexed blocks unavailable'
 test "$blocks" -gt 0 || fail 'Independent IP TLS indexer returned empty blocks'
+admin_body="$(mktemp)"
+admin_http="$(curl --noproxy '*' --resolve "$IP:443:127.0.0.1" \
+  -sS --connect-timeout 6 --max-time 20 -H 'content-type: application/json' \
+  --data '{"jsonrpc":"2.0","id":2,"method":"qbft_getValidatorsByBlockNumber","params":["latest"]}' \
+  -o "$admin_body" -w '%{http_code}' "https://$IP/rpc" || true)"
+if [[ "$admin_http" == 403 ]] || python3 -c 'import json,sys; p=json.load(sys.stdin); assert "result" not in p and p.get("error",{}).get("code") in (-32601,-32604)' <"$admin_body" >/dev/null 2>&1; then
+  echo 'independent_public_privileged_rpc=blocked'
+else
+  rm -f "$admin_body"
+  fail 'Privileged consensus method is not confirmed blocked on direct IP TLS'
+fi
+rm -f "$admin_body"
 # Only after local browser-trusted TLS, RPC and Blockscout prove healthy
 # do we permit external access to TCP443. No changes to UFW rules for port80.
 if command -v ufw >/dev/null 2>&1 && ufw status | grep -qi '^Status: active'; then
@@ -142,6 +154,30 @@ if command -v ufw >/dev/null 2>&1 && ufw status | grep -qi '^Status: active'; th
     echo 'origin_ufw_443=newly_allowed'
   else echo 'origin_ufw_443=already_allowed'; fi
 fi
-echo "zvq_direct_https=verified_local ip_san=verified chain=$rpc indexed_blocks=$blocks tcp443=enabled"
+install -m 0750 scripts/zvq-origin-https-renew.sh "$BASE/renew.sh"
+cat > /etc/systemd/system/zvq-origin-https-renew.service <<'UNIT'
+[Unit]
+Description=Renew ZEVARYQ browser-trusted direct-IP certificate
+Wants=network-online.target
+After=network-online.target docker.service
+[Service]
+Type=oneshot
+ExecStart=/opt/zvq-origin-https/renew.sh
+UNIT
+cat > /etc/systemd/system/zvq-origin-https-renew.timer <<'TIMER'
+[Unit]
+Description=Renew ZEVARYQ direct IP TLS twice daily
+[Timer]
+OnCalendar=*-*-* 04:15:00 UTC
+OnCalendar=*-*-* 16:15:00 UTC
+RandomizedDelaySec=15min
+Persistent=true
+[Install]
+WantedBy=timers.target
+TIMER
+systemctl daemon-reload
+systemctl enable --now zvq-origin-https-renew.timer
+systemctl is-active --quiet zvq-origin-https-renew.timer || fail 'Automatic TLS renewal timer is inactive'
+echo "zvq_direct_https=verified_local ip_san=verified chain=$rpc indexed_blocks=$blocks tcp443=enabled auto_renewal=active"
 trap - ERR
 STARTED=false
