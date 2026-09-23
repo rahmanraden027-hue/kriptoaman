@@ -15,7 +15,7 @@ test('Zevaryq production identity and chain are explicit', () => {
 });
 
 test('premium Zevaryq emblem is wired to header, hero, satellite view and favicon', () => {
-  assert.equal((html.match(/src="\/zevaryq-assets\/zevaryq-emblem\.webp/g) || []).length, 3);
+  assert.equal((html.match(/\ssrc="\/zevaryq-assets\/zevaryq-emblem\.webp/g) || []).length, 3);
   assert.doesNotMatch(html, /data:image\/(webp|png);base64/);
   assert.ok(Buffer.byteLength(html) < 100_000, 'Explorer HTML must not embed its 3 emblem images or favicon');
   assert.match(html, /rel="icon"[^>]+zevaryq-favicon\.png/);
