@@ -150,7 +150,7 @@ jobs:
               && grep -Fq 'class="logo logo-zvq"' "$body" \
               && grep -Fq 'class="earth-brandmark"' "$body" \
               && ! grep -Fq 'class="earth-logo"' "$body" \
-              && grep -iq '^x-zevaryq-explorer-release: 1\.1\.1' "$headers"; then
+              && grep -iq '^x-zevaryq-explorer-release: 1\.1\.2' "$headers"; then
               status=0
             fi
             rm -f "$headers" "$body"
