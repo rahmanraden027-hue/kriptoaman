@@ -25,6 +25,13 @@ for p in 8545 8546 8547 9545; do
   fi
 done
 test -n "$UPSTREAM"
+# Do not interrupt any existing HTTP service to obtain the six-day IP certificate.
+if [[ ! -r "$CERT" || ! -r "$KEY" ]] || ! openssl x509 -in "$CERT" -noout -checkend 172800 >/dev/null 2>&1; then
+  if ss -H -ltn '( sport = :80 )' | grep -q .; then
+    echo 'safe_abort=port_80_in_use; no HTTP service or RPC process was changed' >&2
+    exit 1
+  fi
+fi
 install -d -m 0700 "$BASE" /etc/letsencrypt /var/lib/letsencrypt /var/log/letsencrypt
 if [[ ! -r "$CERT" || ! -r "$KEY" ]] || ! openssl x509 -in "$CERT" -noout -checkend 172800 >/dev/null 2>&1; then
   # Port 80 is used only for the ACME challenge; this does not touch the RPC process.
@@ -32,6 +39,9 @@ if [[ ! -r "$CERT" || ! -r "$KEY" ]] || ! openssl x509 -in "$CERT" -noout -check
 fi
 openssl x509 -in "$CERT" -noout -ext subjectAltName | grep -Fq "IP Address:$IP"
 openssl x509 -in "$CERT" -noout -checkend 172800 >/dev/null
+# The gateway rejects every RPC method not explicitly enumerated in the allowlist.
+# Do not attempt to inspect raw request bodies in NGINX rewrite phase.
+install -m 0644 /tmp/zvq-rpc-allowlist-gateway.mjs "$BASE/gateway.mjs"
 CONF="$BASE/default.conf"
 cat >"$CONF" <<NGINX
 server {
@@ -44,8 +54,7 @@ server {
  client_max_body_size 32k;
  location = / {
    limit_except POST { deny all; }
-   if (\$request_body ~* \"method\"[[:space:]]*:[[:space:]]*\"(admin_|debug_|personal_|miner_|txpool_|qbft_|clique_|istanbul_|engine_)) { return 403; }
-   proxy_pass http://127.0.0.1:$UPSTREAM;
+   proxy_pass http://127.0.0.1:18445;
    proxy_set_header Host 127.0.0.1;
    proxy_connect_timeout 3s;
    proxy_read_timeout 12s;
@@ -54,9 +63,25 @@ server {
 }
 NGINX
 docker run --rm --network none --mount "type=bind,src=$CONF,dst=/etc/nginx/conf.d/default.conf,readonly" --mount "type=bind,src=/etc/letsencrypt,dst=/etc/letsencrypt,readonly" nginx:stable-alpine nginx -t
+# Bind the policy gateway to loopback before opening HTTPS to the Internet.
+if ss -H -ltn '( sport = :18445 )' | grep -q .; then
+  echo 'safe_abort=gateway_port_already_owned' >&2; exit 1
+fi
+GATE_NAME=zvq-rpc-allowlist-gateway
+docker run -d --name "$GATE_NAME" --network host --restart unless-stopped --read-only --user 10001:10001 --cap-drop ALL --security-opt no-new-privileges --memory 128m --pids-limit 64 --tmpfs /tmp --mount "type=bind,src=$BASE/gateway.mjs,dst=/gateway.mjs,readonly" -e "ZVQ_UPSTREAM_PORT=$UPSTREAM" -e ZVQ_GATEWAY_PORT=18445 node:24-alpine node /gateway.mjs >/dev/null
+rollback_stage() { docker rm -f "$NAME" "$GATE_NAME" >/dev/null 2>&1 || true; }
+trap 'rollback_stage' ERR
+for attempt in 1 2 3 4 5; do
+  if curl --noproxy '*' --silent --show-error --max-time 3 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' http://127.0.0.1:18445/ | jq -e '.result == "0x560c"' >/dev/null 2>&1; then break; fi
+  sleep 1
+done
+curl --noproxy '*' --fail-with-body -sS --max-time 5 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' http://127.0.0.1:18445/ | jq -e '.result == "0x560c"' >/dev/null
 docker run -d --name "$NAME" --network host --restart unless-stopped --read-only --cap-drop ALL --cap-add CHOWN --cap-add NET_BIND_SERVICE --cap-add SETUID --cap-add SETGID --security-opt no-new-privileges --tmpfs /var/cache/nginx --tmpfs /var/run --tmpfs /tmp --mount "type=bind,src=$CONF,dst=/etc/nginx/conf.d/default.conf,readonly" --mount "type=bind,src=/etc/letsencrypt,dst=/etc/letsencrypt,readonly" nginx:stable-alpine >/dev/null
 docker exec "$NAME" nginx -t
 if command -v ufw >/dev/null && ufw status | grep -q '^Status: active'; then ufw allow 443/tcp comment 'ZVQ audited RPC origin HTTPS' >/dev/null; fi
 chain="$(curl --noproxy '*' --fail-with-body -sS --max-time 10 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' "https://$IP/" | jq -er '.result')"
 test "$chain" = 0x560c
+blocked="$(curl --noproxy '*' -sS --max-time 5 -o /dev/null -w '%{http_code}' -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":2,"method":"admin_peers","params":[]}' "https://$IP/")"
+test "$blocked" = 403
+trap - ERR
 echo "rpc_origin_tls=local_verified; chain_id=$chain; upstream_loopback_port=$UPSTREAM; chain_state_unchanged=yes"
