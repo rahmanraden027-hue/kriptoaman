@@ -1,0 +1,43 @@
+name: ZVQ Staging IP Certificate Proof
+on:
+  pull_request:
+    paths:
+      - 'scripts/verify-zvq-staging-ip-cert.sh'
+      - '.github/workflows/zvq-staging-ip-cert-proof.yml'
+      - 'tests/zvq-staging-ip-cert.test.mjs'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/verify-zvq-staging-ip-cert.sh'
+      - '.github/workflows/zvq-staging-ip-cert-proof.yml'
+      - 'tests/zvq-staging-ip-cert.test.mjs'
+permissions:
+  contents: read
+concurrency:
+  group: zvq-staging-ip-certificate
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate isolated staging-only certificate
+        run: |
+          bash -n scripts/verify-zvq-staging-ip-cert.sh
+          node --test tests/zvq-staging-ip-cert.test.mjs
+  issue-untrusted-staging:
+    if: github.event_name == 'push'
+    needs: validate
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prove IP HTTP-01 and untrusted staging certificate without impacting production
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n env ZVQ_ACME_RUN_ID="$GITHUB_RUN_ID" bash scripts/verify-zvq-staging-ip-cert.sh
