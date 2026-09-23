@@ -30,3 +30,11 @@ test('main protected-path changes require exact authoritative merged PR associat
   assert.doesNotMatch(workflow, /COMMIT_MSG=|grep -Eq '\\\(#/, 'commit text alone is not trustworthy attribution');
   assert.match(workflow, /CHANGED=\$\(git diff --name-only/);
 });
+
+
+test('authoritative PR lookup uses non-conflicting curl failure options', () => {
+  // --fail-with-body and -f are mutually exclusive: their combination makes
+  // every PR lookup fail before contacting GitHub, even for reviewed merges.
+  assert.match(workflow, /curl --fail-with-body -sS --connect-timeout 8 --max-time 20/);
+  assert.doesNotMatch(workflow, /curl --fail-with-body -f(?:sS)?/);
+});
