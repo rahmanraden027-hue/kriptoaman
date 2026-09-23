@@ -67,7 +67,7 @@ jobs:
           grep -Fq 'data-zvq-reference-visual="blue-gold-orbital-20260924"' "$body"
           grep -Fq 'data-zvq-token-discovery="indexed-v2"' "$body"
           echo 'standalone_trusted_ip_https=verified; status=200; approved_visual=yes'
-          blocks="$(curl --noproxy '*' --fail-with-body -fsS --connect-timeout 6 --max-time 15 "$origin/api/v2/blocks")"
+          blocks="$(curl --noproxy '*' --fail-with-body -sS --connect-timeout 6 --max-time 15 "$origin/api/v2/blocks")"
           jq -e '(.items|type=="array") and (.items|length>0)' <<<"$blocks" >/dev/null
           tip="$(jq -er '.items[0].height' <<<"$blocks")"
           echo "standalone_indexed_block_tip=$tip"
