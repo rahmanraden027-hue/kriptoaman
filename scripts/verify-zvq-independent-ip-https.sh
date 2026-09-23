@@ -27,7 +27,7 @@ admin="$(curl --noproxy '*' -sS --connect-timeout 7 --max-time 20 \
   -H 'content-type: application/json' \
   --data '{"jsonrpc":"2.0","id":2,"method":"qbft_getValidatorsByBlockNumber","params":["latest"]}' \
   -o "$body" -w '%{http_code}' "$base/rpc" || true)"
-if [[ "$admin" != 403 ]] && ! jq -e '.result == null and ([ -32601, -32604 ] | index(.error.code)) != null' "$body" >/dev/null 2>&1; then
+if [[ "$admin" != 403 ]] && ! jq -e '(.result == null) and (.error.code == -32601 or .error.code == -32604)' "$body" >/dev/null 2>&1; then
   echo 'Privileged consensus RPC method is not verifiably blocked' >&2
   exit 1
 fi
