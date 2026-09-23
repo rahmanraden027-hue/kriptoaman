@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-zevaryq-explorer-version="1.1.1">
+<html lang="en" data-zevaryq-explorer-version="1.1.2">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -93,12 +93,12 @@
 <section class="section glass"><div class="sectionhead"><div><h2>Validator Intelligence</h2><p>Observed proposer evidence; identities are never fabricated</p></div><a class="tag" href="/validators">View validators</a></div><div id="validators" class="empty">Validator evidence unavailable</div></section>
 <section class="section glass"><div class="sectionhead"><div><h2>Realtime Block Stream</h2><p>Refreshes every 12 seconds from Blockscout</p></div><a class="tag" href="/blocks">View all</a></div><div class="stream" id="stream"><span class="empty">Connecting to Blockscout. No values are estimated.</span></div></section>
 <section class="section glass"><div class="sectionhead"><div><h2>Latest Blocks</h2><p>Indexed, clickable Blockscout data</p></div><span class="tag" id="freshness">Data pending</span></div><div class="tablewrap"><table class="table"><thead><tr><th>#</th><th>AGE</th><th>TRANSACTIONS</th><th>GAS USED</th><th>VALIDATOR</th><th>HASH</th></tr></thead><tbody id="blocks"><tr><td colspan="6" class="empty">Block data temporarily unavailable. No values are estimated.</td></tr></tbody></table></div></section>
-</main><footer class="footer"><span>ZEVARYQ EXPLORER · Zevaryq Network · ZVQ Mainnet</span><span>Chain ID 22028 · UI release 1.1.1 · Data states: LIVE / INDEXED / CALCULATED / PREVIEW / UNAVAILABLE</span></footer>
+</main><footer class="footer"><span>ZEVARYQ EXPLORER · Zevaryq Network · ZVQ Mainnet</span><span>Chain ID 22028 · UI release 1.1.2 · Data states: LIVE / INDEXED / CALCULATED / PREVIEW / UNAVAILABLE</span></footer>
 </div>
 <script>
 const EXPECTED_CHAIN='0x560c',RPC='/rpc',API='/api/v2';
 const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const state={rpc:false,api:false,blocks:[],rpcLatency:null,head:null,gas:null,rpcError:null,apiError:null,lastGoodBlocksAt:0,probing:false};
+const state={rpc:false,api:false,blocks:[],rpcLatency:null,head:null,gas:null,rpcError:null,apiError:null,lastGoodBlocksAt:0,probing:false,validators:[],validatorSource:null,validatorHeader:null,finalized:null,finalitySource:null,consensusProbeAt:0};
 const unavailable='Unavailable';
 function short(v,n=8){if(!v)return '—';return v.length>n*2?v.slice(0,n)+'…'+v.slice(-n):v}
 function age(ts){if(!ts)return '—';const s=Math.max(0,Math.floor((Date.now()-new Date(ts).getTime())/1000));return s<60?s+'s ago':s<3600?Math.floor(s/60)+'m ago':Math.floor(s/3600)+'h ago'}
@@ -127,6 +127,74 @@ function formatGasPrice(hex){
   return whole.toString()+(fraction?'.'+fraction:'')+' Gwei';
  }catch{return unavailable}
 }
+// Read-only QBFT membership evidence from the ordinary public block header.
+// The public gateway deliberately blocks privileged qbft_* RPC methods.
+function qbftValidatorsFromExtraData(hex){
+ if(typeof hex!=='string'||!/^0x(?:[a-f0-9]{2}){1,16384}$/i.test(hex))return null;
+ try{
+  const bytes=new Uint8Array((hex.length-2)/2);
+  for(let i=0;i<bytes.length;i++)bytes[i]=parseInt(hex.slice(2+i*2,4+i*2),16);
+  let nodes=0;
+  const lengthAt=(start,count)=>{if(count<1||count>4||start+count>bytes.length)throw Error('Invalid RLP length');let n=0;for(let i=0;i<count;i++)n=n*256+bytes[start+i];return n};
+  function decode(pos,depth){
+   if(pos>=bytes.length||depth>8||++nodes>512)throw Error('Invalid RLP boundary');
+   const prefix=bytes[pos];
+   if(prefix<=0x7f)return[bytes.slice(pos,pos+1),pos+1];
+   let start,length,isList=false;
+   if(prefix<=0xb7){start=pos+1;length=prefix-0x80}
+   else if(prefix<=0xbf){const count=prefix-0xb7;start=pos+1+count;length=lengthAt(pos+1,count)}
+   else if(prefix<=0xf7){start=pos+1;length=prefix-0xc0;isList=true}
+   else{const count=prefix-0xf7;start=pos+1+count;length=lengthAt(pos+1,count);isList=true}
+   const end=start+length;if(end>bytes.length)throw Error('Invalid RLP payload');
+   if(!isList)return[bytes.slice(start,end),end];
+   const list=[];let cursor=start;while(cursor<end){const [value,next]=decode(cursor,depth+1);if(next<=cursor||next>end)throw Error('Invalid RLP list');list.push(value);cursor=next}
+   return[list,end];
+  }
+  const [decoded,end]=decode(0,0);
+  if(!Array.isArray(decoded)||end!==bytes.length)return null;
+  const candidates=[];
+  const walk=value=>{
+   if(!Array.isArray(value))return;
+   if(value.length===4&&value.every(item=>item instanceof Uint8Array&&item.length===20)){
+    const addresses=value.map(item=>'0x'+Array.from(item,b=>b.toString(16).padStart(2,'0')).join(''));
+    if(new Set(addresses).size===4)candidates.push(addresses);
+   }
+   for(const child of value)walk(child);
+  };
+  walk(decoded);
+  return candidates.length===1?candidates[0]:null;
+ }catch{return null}
+}
+function verifiedFinalizedBlock(tagged,canonical,head){
+ if(!tagged||!canonical||!Number.isSafeInteger(head))return null;
+ const validHash=value=>typeof value==='string'&&/^0x[a-f0-9]{64}$/i.test(value);
+ const validHeight=value=>typeof value==='string'&&/^0x[0-9a-f]+$/i.test(value);
+ if(!validHash(tagged.hash)||!validHash(canonical.hash)||!validHeight(tagged.number)||!validHeight(canonical.number))return null;
+ const number=parseInt(tagged.number,16);
+ if(!Number.isSafeInteger(number)||number<0||number>head||tagged.number.toLowerCase()!==canonical.number.toLowerCase()||tagged.hash.toLowerCase()!==canonical.hash.toLowerCase())return null;
+ const timestamp=validHeight(tagged.timestamp)?parseInt(tagged.timestamp,16):null;
+ return{number,hash:tagged.hash,timestamp:Number.isSafeInteger(timestamp)?timestamp:null};
+}
+async function refreshConsensus(headHex){
+ // Never infer finality from validator count or from an unverified block.
+ state.validators=[];state.validatorSource=null;state.validatorHeader=null;state.finalized=null;state.finalitySource=null;
+ try{
+  const latest=(await rpc('eth_getBlockByNumber',[headHex,false])).result;
+  if(latest&&latest.number?.toLowerCase()===headHex.toLowerCase()&&/^0x[a-f0-9]{64}$/i.test(latest.hash||'')){
+   const addresses=qbftValidatorsFromExtraData(latest.extraData);
+   if(addresses){state.validators=addresses;state.validatorSource='QBFT RPC HEADER';state.validatorHeader=parseInt(headHex,16)}
+  }
+ }catch{/* The public RPC may not expose usable QBFT header metadata. */}
+ try{
+  const tagged=(await rpc('eth_getBlockByNumber',['finalized',false])).result;
+  if(tagged&&/^0x[0-9a-f]+$/i.test(tagged.number||'')){
+   const canonical=(await rpc('eth_getBlockByNumber',[tagged.number,false])).result;
+   const verified=verifiedFinalizedBlock(tagged,canonical,state.head);
+   if(verified){state.finalized=verified;state.finalitySource='RPC FINALIZED TAG · CANONICAL HASH'}
+  }
+ }catch{/* Do not substitute a safe tag or a guessed QBFT finality height. */}
+ state.consensusProbeAt=Date.now();
+}
 function health(label,status){return '<div class="healthrow"><span>'+label+'</span><span class="state '+status.toLowerCase()+'">'+status+'</span></div>'}
 function renderStatic(){
  const latestIndexedHeight=Number(state.blocks[0]?.height);
@@ -134,9 +202,9 @@ function renderStatic(){
  const latestBlockValue=state.rpc&&Number.isSafeInteger(state.head)?state.head:hasIndexedHeight?latestIndexedHeight:unavailable;
  const latestBlockSource=state.rpc&&Number.isSafeInteger(state.head)?'LIVE':hasIndexedHeight?(state.api?'INDEXED':'STALE'):'UNAVAILABLE';
  const calculatedSource=state.api&&state.blocks.length>=2?'CALCULATED':state.blocks.length>=2?'STALE':'UNAVAILABLE';
- const cards=[['Latest Block',latestBlockValue,latestBlockSource],['Finalized Block',unavailable,'UNAVAILABLE'],['Block Time',calcBlockTime(),calculatedSource],['Transactions / Second',calcTps(),calculatedSource],['Gas Price',formatGasPrice(state.gas),state.gas?'LIVE':'UNAVAILABLE'],['Active Validators',unavailable,'UNAVAILABLE'],['RPC Latency',state.rpcLatency!=null?state.rpcLatency+' ms':unavailable,state.rpcLatency!=null?'LIVE':'UNAVAILABLE'],['Data Freshness',freshness(),state.api?'INDEXED':state.blocks.length?'STALE':'UNAVAILABLE']];
+ const cards=[['Latest Block',latestBlockValue,latestBlockSource],['Finalized Block',state.finalized?state.finalized.number:unavailable,state.finalized?'RPC FINALIZED':'UNAVAILABLE'],['Block Time',calcBlockTime(),calculatedSource],['Transactions / Second',calcTps(),calculatedSource],['Gas Price',formatGasPrice(state.gas),state.gas?'LIVE':'UNAVAILABLE'],['Active Validators',state.validators.length||unavailable,state.validators.length?'QBFT RPC HEADER':'UNAVAILABLE'],['RPC Latency',state.rpcLatency!=null?state.rpcLatency+' ms':unavailable,state.rpcLatency!=null?'LIVE':'UNAVAILABLE'],['Data Freshness',freshness(),state.api?'INDEXED':state.blocks.length?'STALE':'UNAVAILABLE']];
  $('#metrics').innerHTML=cards.map(x=>'<div class="card glass"><span class="label">'+x[0]+'</span><div class="value">'+esc(x[1])+'</div><span class="source">'+x[2]+'</span></div>').join('');
- $('#consensus').innerHTML=mini('Finalized block / epoch',unavailable)+mini('Finality time',unavailable)+mini('Quorum',unavailable)+mini('Fork / reorg','No verified observation','UNAVAILABLE');
+ $('#consensus').innerHTML=mini('Finalized block / epoch',state.finalized?state.finalized.number:unavailable,state.finalitySource||'UNAVAILABLE')+mini('Finality time',state.finalized?.timestamp?age(new Date(state.finalized.timestamp*1000).toISOString()):unavailable,state.finalized?'RPC FINALIZED':'UNAVAILABLE')+mini('Validator set',state.validators.length||unavailable,state.validatorSource||'UNAVAILABLE')+mini('Quorum',unavailable,'UNAVAILABLE');
  $('#performance').innerHTML=mini('TPS',calcTps(),state.blocks.length?'CALCULATED':'UNAVAILABLE')+mini('Block utilization',unavailable)+mini('Propagation time',unavailable)+mini('RPC success rate',state.rpc?'Current probe passed':unavailable,state.rpc?'LIVE':'UNAVAILABLE');
  $('#satstats').innerHTML=mini('Orbit links','—')+mini('Ground nodes','—')+mini('Regions','—')+mini('Latency',state.rpcLatency!=null?state.rpcLatency+' ms':'—',state.rpcLatency!=null?'LIVE':'UNAVAILABLE');
  $('#infra').innerHTML=health('RPC',state.rpc?'Online':'Unknown')+health('Indexer',state.api?'Online':'Unknown')+health('API',state.api?'Online':'Unknown')+health('WebSocket','Unknown')+health('Archive Node','Unknown');
@@ -168,7 +236,7 @@ function renderBlocks(){
   return '<a class="chainnode" href="/block/'+encodeURIComponent(b.height)+'" aria-label="Block '+esc(b.height)+'"><span class="chainlabel">INDEXED BLOCK</span><b>#'+esc(b.height)+'</b><code>'+esc(short(b.hash||'Hash unavailable',9))+'</code><small>'+age(b.timestamp)+' · '+esc(b.tx_count??b.transactions_count??0)+' tx</small></a>'+(parent?'<span class="chainwire '+(linked?'verified':'pending')+'" title="'+(linked?'Parent hash verified':'Parent link not established')+'"></span>':'');
  }).join('');
  const proposers=[...new Set(state.blocks.map(b=>b.miner?.hash||b.miner).filter(Boolean))];
- $('#validators').innerHTML=proposers.length?proposers.slice(0,4).map(v=>'<a class="tag" style="display:inline-block;margin:4px" href="/address/'+encodeURIComponent(v)+'">'+short(v)+' · recent proposer activity</a>').join(''):'Validator evidence unavailable';
+ $('#validators').innerHTML=state.validators.length?'<p class="tag">QBFT header membership at block #'+esc(state.validatorHeader)+' · operational participation not established</p>'+state.validators.map(v=>'<a class="tag" style="display:inline-block;margin:4px" href="/address/'+encodeURIComponent(v)+'">'+short(v)+' · header validator</a>').join(''):proposers.length?proposers.slice(0,4).map(v=>'<a class="tag" style="display:inline-block;margin:4px" href="/address/'+encodeURIComponent(v)+'">'+short(v)+' · recent proposer only</a>').join(''):'Validator evidence unavailable';
 }
 async function probe(){
  if(state.probing)return;
@@ -180,15 +248,17 @@ async function probe(){
   if(!state.rpc)throw Error('Unexpected chain ID; refusing to display unverified head');
   const [head,gas]=await Promise.all([rpc('eth_blockNumber'),rpc('eth_gasPrice')]);
   state.head=head.result?parseInt(head.result,16):null;state.gas=gas.result??null;
+  if(!Number.isSafeInteger(state.head))throw Error('Invalid verified block height');
+  if(Date.now()-state.consensusProbeAt>=60000||!state.consensusProbeAt)await refreshConsensus(head.result);
   state.rpcError=null;
- }catch(e){state.rpc=false;state.rpcLatency=null;state.head=null;state.gas=null;state.rpcError=String(e?.message||e)}
+ }catch(e){state.rpc=false;state.rpcLatency=null;state.head=null;state.gas=null;state.rpcError=String(e?.message||e);state.validators=[];state.validatorSource=null;state.finalized=null;state.finalitySource=null;state.consensusProbeAt=0}
  try{
   const data=await getJSON(API+'/blocks',{},12000);
   if(!Array.isArray(data.items))throw Error('Unexpected Blockscout API response');
   state.blocks=data.items;state.api=state.blocks.length>0;state.apiError=state.api?null:'Indexer returned no blocks';
   if(state.api){state.lastGoodBlocksAt=Date.now();renderBlocks()}
  }catch(e){state.api=false;state.apiError=String(e?.message||e);if(state.blocks.length){$('#freshness').textContent='STALE · last indexed '+(state.lastGoodBlocksAt?new Date(state.lastGoodBlocksAt).toLocaleTimeString():'previous check');$('#meshStatus').textContent='Cached indexed history · live API unavailable';}}
- renderStatic();state.probing=false;$('#refreshData').disabled=false;
+ renderStatic();if(state.blocks.length)renderBlocks();state.probing=false;$('#refreshData').disabled=false;
 }
 $('#search').addEventListener('submit',e=>{e.preventDefault();const q=$('#q').value.trim(),m=$('#searchmsg');m.className='searchmsg';if(/^\d+$/.test(q))location.href='/block/'+q;else if(/^0x[a-fA-F0-9]{64}$/.test(q))location.href='/tx/'+q;else if(/^0x[a-fA-F0-9]{40}$/.test(q))location.href='/address/'+q;else{m.textContent='Enter a block number, 66-character transaction hash, or 42-character EVM address.';m.classList.add('error')}});
 $('#menu').onclick=()=>$('#nav').classList.toggle('open');$('#refreshData').onclick=probe;renderStatic();probe();setInterval(probe,12000);
