@@ -17,6 +17,7 @@ fail(){ echo "Zevaryq Explorer deploy: $*" >&2; exit 1; }
 [[ -r "$EMBLEM" && -r "$FAVICON" ]] || fail "brand assets missing"
 grep -q 'data-zevaryq-explorer-version="1.1.2"' "$SOURCE" || fail "version marker missing"
 grep -q 'ZEVARYQ EXPLORER' "$SOURCE" || fail "brand marker missing"
+grep -q 'data-zvq-token-discovery="indexed-v2"' "$SOURCE" || fail "token discovery provenance missing"
 grep -q "EXPECTED_CHAIN='0x560c'" "$SOURCE" || fail "chain guard missing"
 ! grep -Eqi '21[ /]+21|128\+ nodes|1,236 pending|3\.4 TPS|100% Secure' "$SOURCE" || fail "mockup metric detected"
 cd "$BASE"
@@ -43,6 +44,7 @@ grep -q 'data-zevaryq-explorer-version="1.1.2"' "$body"
 grep -q 'ZEVARYQ EXPLORER' "$body"
 grep -q 'class="logo logo-zvq"' "$body"
 grep -q 'class="earth-brandmark"' "$body"
+grep -q 'data-zvq-token-discovery="indexed-v2"' "$body"
 curl -fsS --retry 4 --retry-all-errors --max-time 20 http://127.0.0.1/zevaryq-assets/zevaryq-emblem.webp -o /dev/null
 curl -fsS --retry 4 --retry-all-errors --max-time 20 http://127.0.0.1/zevaryq-assets/zevaryq-favicon.png -o /dev/null
 
