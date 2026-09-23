@@ -1,0 +1,63 @@
+name: ZVQ ACME Direct-Origin Reachability
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/zvq-acme-public-reachability.yml'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/zvq-acme-public-reachability.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-http:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Observe Explorer direct-IP port 80, protected production domain, and existing 443
+        shell: bash
+        run: |
+          set -uo pipefail
+          echo 'acme_preflight_mode=read_only'
+          ip='146.190.93.254'
+          host='explorer.kriptoaman.com'
+          for entry in direct-ip-http domain-host-direct-http direct-ip-https domain-host-direct-https; do
+            case "$entry" in
+              direct-ip-http) url="http://$ip/" ;;
+              domain-host-direct-http) url="http://$host/" ;;
+              direct-ip-https) url="https://$ip/" ;;
+              domain-host-direct-https) url="https://$host/" ;;
+            esac
+            args=()
+            case "$entry" in
+              domain-host-direct-http) args=(--resolve "$host:80:$ip");;
+              domain-host-direct-https) args=(--resolve "$host:443:$ip");;
+            esac
+            status="$(curl --noproxy '*' -kLsS --connect-timeout 4 --max-time 9 -o /dev/null -w '%{http_code}' "${args[@]}" "$url" 2>/dev/null || true)"
+            echo "external_$entry=$status"
+          done
+          tls="$(curl --noproxy '*' -LsS --connect-timeout 4 --max-time 9 \
+            --resolve "$host:443:$ip" -o /dev/null -w '%{http_code}' "https://$host/" 2>/dev/null || true)"
+          echo "external_browser_trusted_tls=$tls"
+          echo 'read_only_observation_complete=true'
+  local-acme-root:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 4
+    steps:
+      - name: Inspect static challenge location and existing origin ACL without mutation
+        shell: bash
+        run: |
+          set -uo pipefail
+          root='/opt/blockscout/docker-compose/proxy/kam-dashboard'
+          echo "origin_dashboard_exists=$([[ -r "$root/index.html" ]] && echo yes || echo no)"
+          echo "origin_webroot_candidate=$([[ -d "$root" ]] && echo present || echo absent)"
+          status="$(curl --noproxy '*' -LsS --connect-timeout 3 --max-time 7 \
+            -o /dev/null -w '%{http_code}' 'http://127.0.0.1/.well-known/acme-challenge/zvq-preflight-missing' 2>/dev/null || true)"
+          echo "origin_missing_acme_challenge_status=$status"
+          ufw="$(sudo -n ufw status 2>/dev/null | grep -E '^80/tcp|^443/tcp|^80 |^443 ' | head -10 || true)"
+          if [[ -n "$ufw" ]]; then echo "origin_ufw_port_policy=$ufw"
+          else echo 'origin_ufw_port_policy=not_enumerated'; fi
+          if command -v python3 >/dev/null 2>&1; then echo 'origin_python3=available'; fi
+          if command -v systemctl >/dev/null 2>&1; then echo 'origin_systemd=available'; fi
+          if command -v docker >/dev/null 2>&1; then echo 'origin_docker=available'; fi
