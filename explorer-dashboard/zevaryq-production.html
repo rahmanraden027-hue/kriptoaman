@@ -50,11 +50,16 @@
 @media(max-width:380px){.grid,.statsrow{grid-template-columns:1fr 1fr}.card .value{font-size:22px}.brand b{font-size:11px}.hero{padding:18px 12px}}
 
 .indexed{color:#ffd27b}
+/* Explicit ZVQ identity replaces the older ZV raster mark on the header, planet and satellite illustration. */
+.logo-zvq{display:grid;place-items:center;flex:0 0 52px;width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 28% 18%,#176ac0,#071a38 67%,#020711);border:1px solid rgba(75,199,255,.45);color:#f4c967;font-size:17px;font-weight:950;letter-spacing:-.09em;text-shadow:0 0 10px rgba(242,188,80,.42);box-shadow:0 0 22px rgba(33,150,255,.25)}
+.earth-brandmark{position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(58px,8vw,88px);font-weight:950;letter-spacing:-.09em;color:#efc466;text-shadow:0 3px 1px #573b0f,0 0 24px rgba(237,186,68,.55),0 0 44px rgba(48,175,255,.35);z-index:2;pointer-events:none}
+.satview .earth-brandmark{font-size:clamp(60px,9vw,100px)}
+@media(max-width:767px){.logo-zvq{width:44px;height:44px;flex-basis:44px;font-size:15px}.earth-brandmark{font-size:64px}.satview .earth-brandmark{font-size:76px}}
 </style>
 </head>
 <body><div class="shell">
 <header class="glass">
-<a class="brand" href="/"><img class="logo" src="/zevaryq-assets/zevaryq-emblem.webp?v=1.1.0" loading="eager" decoding="async" data-zevaryq-emblem="premium-v1" data-origin-src="/zevaryq-assets/zevaryq-emblem.webp?v=1.1.0" width="52" height="52" alt="ZEVARYQ emblem"><span><b><span class="brand-gold">ZEVARYQ</span> <span class="brand-explorer">EXPLORER</span></b><small>Zevaryq Network</small></span></a>
+<a class="brand" href="/"><span class="logo logo-zvq" role="img" aria-label="ZEVARYQ ZVQ mark">ZVQ</span><span><b><span class="brand-gold">ZEVARYQ</span> <span class="brand-explorer">EXPLORER</span></b><small>Zevaryq Network</small></span></a>
 <nav class="nav" id="nav"><a href="/blocks">Blocks</a><a href="/txs">Transactions</a><a href="/validators">Validators</a><a href="/analytics">Analytics</a><a href="/network">More</a></nav>
 <span class="mainnet" title="ZVQ chain; public launch readiness is assessed separately"><i></i>ZVQ NETWORK</span><button class="menu" id="menu" aria-label="Toggle navigation">☰</button>
 </header>
@@ -63,7 +68,7 @@
 <div><div class="eyebrow">ZEVARYQ NETWORK · ON-CHAIN INTELLIGENCE</div><h1>Explore the<span>Zevaryq Network.</span></h1><p>Verify every block, transaction, validator, and network signal directly from on-chain data.</p>
 <div class="badges"><span class="badge">Chain ID <b>22028</b></span><span class="badge"><b>ZVQ Mainnet</b></span><span class="badge">EVM Compatible</span><span class="badge">Verified On-Chain Data</span></div>
 <form class="search" id="search"><input id="q" autocomplete="off" placeholder="Search address / transaction hash / block number..." aria-label="Universal explorer search"><button>Explore →</button></form><div class="searchmsg" id="searchmsg"></div></div>
-<div class="space" aria-label="Illustrative Earth and satellite network"><div class="earth"><img class="earth-logo" src="/zevaryq-assets/zevaryq-emblem.webp?v=1.1.0" loading="eager" decoding="async" data-zevaryq-emblem="premium-v1" data-origin-src="/zevaryq-assets/zevaryq-emblem.webp?v=1.1.0" width="160" height="160" alt=""></div><div class="orbit"></div><div class="orbit o2"></div><span class="sat s1"></span><span class="sat s2"></span><span class="sat s3"></span><i class="netdot d1"></i><i class="netdot d2"></i><i class="netdot d3"></i></div>
+<div class="space" aria-label="Illustrative Earth and satellite network"><div class="earth"><span class="earth-brandmark" role="img" aria-label="ZEVARYQ ZVQ">ZVQ</span></div><div class="orbit"></div><div class="orbit o2"></div><span class="sat s1"></span><span class="sat s2"></span><span class="sat s3"></span><i class="netdot d1"></i><i class="netdot d2"></i><i class="netdot d3"></i></div>
 </section>
 <section class="strip"><div class="glass"><b>ZVQ Mainnet</b><small id="liveText">Connecting to verified RPC & Indexer…</small></div><div class="glass"><span class="label">Chain ID</span><span class="value">22028</span></div><div class="glass"><span class="label">Data trust</span><span class="value" id="trust" role="status" aria-live="polite">CONNECTING</span></div></section>
 <div class="probeBar glass" role="status" aria-live="polite"><div><span class="liveDot" aria-hidden="true"></span><b id="probeTitle">Establishing verified network connection</b><small id="probeDetails">Only verified blockchain data is displayed. No fabricated status or transactions.</small></div><button type="button" id="refreshData" aria-label="Refresh verified blockchain data">↻ Refresh now</button></div>
@@ -74,7 +79,7 @@
 </section>
 <section class="section glass liveMeshSection"><div class="sectionhead"><div><h2>Live Blockchain Mesh</h2><p>Linked blocks are connected only when their on-chain parent hashes match.</p></div><span class="tag" id="meshStatus">Waiting for indexed blocks</span></div><div class="chainmesh" id="mesh" aria-live="polite"><span class="empty">Connecting to Blockscout indexer…</span></div><div class="meshLegend"><span><i class="legendNode verified"></i>Verified parent link</span><span><i class="legendNode pending"></i>Parent link unavailable</span><span>Source: Blockscout indexed headers</span></div></section>
 <section class="section glass"><div class="sectionhead"><div><h2>Global Node Topology</h2><p>Illustrative visualization; geography appears only with verified evidence</p></div></div><div class="viz"><div class="world"></div><div class="viznote">Topology data unavailable</div></div></section>
-<section class="section glass"><div class="sectionhead"><div><h2>Satellite Network View</h2><p>Global Connectivity · Real-World Infrastructure</p></div><span class="tag">Illustrative visualization</span></div><div class="viz satview"><div class="earth"><img class="earth-logo" src="/zevaryq-assets/zevaryq-emblem.webp?v=1.1.0" loading="eager" decoding="async" data-zevaryq-emblem="premium-v1" data-origin-src="/zevaryq-assets/zevaryq-emblem.webp?v=1.1.0" width="168" height="168" alt=""></div><div class="orbit"></div><div class="orbit o2"></div><span class="sat s1"></span><span class="sat s2"></span><span class="sat s3"></span><div class="viznote">No claim of owned physical satellites or ground infrastructure.</div></div><div class="statsrow" id="satstats"></div></section>
+<section class="section glass"><div class="sectionhead"><div><h2>Satellite Network View</h2><p>Global Connectivity · Real-World Infrastructure</p></div><span class="tag">Illustrative visualization</span></div><div class="viz satview"><div class="earth"><span class="earth-brandmark" role="img" aria-label="ZEVARYQ ZVQ">ZVQ</span></div><div class="orbit"></div><div class="orbit o2"></div><span class="sat s1"></span><span class="sat s2"></span><span class="sat s3"></span><div class="viznote">No claim of owned physical satellites or ground infrastructure.</div></div><div class="statsrow" id="satstats"></div></section>
 <section class="twocol">
 <div class="section glass"><div class="sectionhead"><div><h2>Infrastructure Status</h2><p>States originate from current public probes</p></div></div><div class="health" id="infra"></div></div>
 <div class="section glass"><div class="sectionhead"><div><h2>Security Intelligence</h2><p>Evidence-based observations</p></div></div><div class="health" id="security"></div></div>
@@ -110,6 +115,16 @@ async function rpc(method,params=[]){
  throw firstError||Error('Both protected RPC paths unavailable');
 }
 function mini(label,value,source='UNAVAILABLE'){return '<div class="mini"><span class="label">'+label+'</span><b>'+esc(value)+'</b><span class="source">'+source+'</span></div>'}
+function formatGasPrice(hex){
+ if(typeof hex!=='string'||!/^0x[0-9a-f]+$/i.test(hex))return unavailable;
+ try{
+  const wei=BigInt(hex);
+  if(wei<1_000_000n)return wei.toString()+' wei';
+  const whole=wei/1_000_000_000n;
+  const fraction=(wei%1_000_000_000n).toString().padStart(9,'0').replace(/0+$/,'');
+  return whole.toString()+(fraction?'.'+fraction:'')+' Gwei';
+ }catch{return unavailable}
+}
 function health(label,status){return '<div class="healthrow"><span>'+label+'</span><span class="state '+status.toLowerCase()+'">'+status+'</span></div>'}
 function renderStatic(){
  const latestIndexedHeight=Number(state.blocks[0]?.height);
@@ -117,14 +132,14 @@ function renderStatic(){
  const latestBlockValue=state.rpc&&Number.isSafeInteger(state.head)?state.head:hasIndexedHeight?latestIndexedHeight:unavailable;
  const latestBlockSource=state.rpc&&Number.isSafeInteger(state.head)?'LIVE':hasIndexedHeight?(state.api?'INDEXED':'STALE'):'UNAVAILABLE';
  const calculatedSource=state.api&&state.blocks.length>=2?'CALCULATED':state.blocks.length>=2?'STALE':'UNAVAILABLE';
- const cards=[['Latest Block',latestBlockValue,latestBlockSource],['Finalized Block',unavailable,'UNAVAILABLE'],['Block Time',calcBlockTime(),calculatedSource],['Transactions / Second',calcTps(),calculatedSource],['Gas Price',state.gas?Number(BigInt(state.gas))/1e9+' Gwei':unavailable,state.gas?'LIVE':'UNAVAILABLE'],['Active Validators',unavailable,'UNAVAILABLE'],['RPC Latency',state.rpcLatency!=null?state.rpcLatency+' ms':unavailable,state.rpcLatency!=null?'LIVE':'UNAVAILABLE'],['Data Freshness',freshness(),state.blocks.length?'INDEXED':'UNAVAILABLE']];
+ const cards=[['Latest Block',latestBlockValue,latestBlockSource],['Finalized Block',unavailable,'UNAVAILABLE'],['Block Time',calcBlockTime(),calculatedSource],['Transactions / Second',calcTps(),calculatedSource],['Gas Price',formatGasPrice(state.gas),state.gas?'LIVE':'UNAVAILABLE'],['Active Validators',unavailable,'UNAVAILABLE'],['RPC Latency',state.rpcLatency!=null?state.rpcLatency+' ms':unavailable,state.rpcLatency!=null?'LIVE':'UNAVAILABLE'],['Data Freshness',freshness(),state.blocks.length?'INDEXED':'UNAVAILABLE']];
  $('#metrics').innerHTML=cards.map(x=>'<div class="card glass"><span class="label">'+x[0]+'</span><div class="value">'+esc(x[1])+'</div><span class="source">'+x[2]+'</span></div>').join('');
  $('#consensus').innerHTML=mini('Finalized block / epoch',unavailable)+mini('Finality time',unavailable)+mini('Quorum',unavailable)+mini('Fork / reorg','No verified observation','UNAVAILABLE');
  $('#performance').innerHTML=mini('TPS',calcTps(),state.blocks.length?'CALCULATED':'UNAVAILABLE')+mini('Block utilization',unavailable)+mini('Propagation time',unavailable)+mini('RPC success rate',state.rpc?'Current probe passed':unavailable,state.rpc?'LIVE':'UNAVAILABLE');
  $('#satstats').innerHTML=mini('Orbit links','—')+mini('Ground nodes','—')+mini('Regions','—')+mini('Latency',state.rpcLatency!=null?state.rpcLatency+' ms':'—',state.rpcLatency!=null?'LIVE':'UNAVAILABLE');
  $('#infra').innerHTML=health('RPC',state.rpc?'Online':'Unknown')+health('Indexer',state.api?'Online':'Unknown')+health('API',state.api?'Online':'Unknown')+health('WebSocket','Unknown')+health('Archive Node','Unknown');
  $('#security').innerHTML=health('Chain Integrity',state.rpc&&state.api?'Online':'Unknown')+health('Validator Participation','Unknown')+health('Anomaly Status','Unknown')+health('Fork / Reorg Monitor','Unknown');
- $('#fees').innerHTML=mini('Pending transactions','Mempool telemetry unavailable')+mini('Median gas price',state.gas?Number(BigInt(state.gas))/1e9+' Gwei':unavailable,state.gas?'LIVE':'UNAVAILABLE')+mini('95th percentile gas',unavailable)+mini('Fee pressure',unavailable);
+ $('#fees').innerHTML=mini('Pending transactions','Mempool telemetry unavailable')+mini('Median gas price',formatGasPrice(state.gas),state.gas?'LIVE':'UNAVAILABLE')+mini('95th percentile gas',unavailable)+mini('Fee pressure',unavailable);
  $('#liveText').innerHTML=state.rpc&&state.api?'<span class="live">● Live RPC and indexed chain data</span> · ZVQ Network':state.api?'<span class="indexed">● Blockscout indexed blocks available</span> · Browser RPC verification unavailable':state.rpc?'<span class="indexed">● Live ZVQ RPC available</span> · Indexer temporarily unavailable':state.blocks.length?'<span class="indexed">● Cached indexed blocks</span> · Fresh data unavailable':'Network data unavailable · retrying independently verified sources';
  $('#trust').textContent=state.rpc&&state.api?'LIVE':state.api?'INDEXED':state.rpc?'RPC LIVE':state.blocks.length?'STALE':'UNAVAILABLE';
  const p=$('.probeBar'),ready=state.rpc&&state.api,partial=state.rpc||state.api;
@@ -144,10 +159,10 @@ function renderBlocks(){
  if(pts)$('#area').setAttribute('d','M'+pts+' L800 220 L0 220Z');
  $('#activityNote').textContent='Indexed transaction activity · '+state.blocks.slice(0,12).reduce((a,b)=>a+Number(b.tx_count??b.transactions_count??0),0)+' transactions in sample';
  const latest=state.blocks.slice(0,6);
- const knownLinks=latest.slice(0,-1).filter((b,i)=>typeof b.parent_hash==='string'&&typeof latest[i+1]?.hash==='string'&&b.parent_hash.toLowerCase()===latest[i+1].hash.toLowerCase()).length;
+ const knownLinks=latest.slice(0,-1).filter((b,i)=>typeof b.parent_hash==='string'&&typeof latest[i+1]?.hash==='string'&&b.parent_hash.toLowerCase()===latest[i+1].hash.toLowerCase()&&Number(b.height)===Number(latest[i+1].height)+1).length;
  $('#meshStatus').textContent=knownLinks+' verified parent links · '+latest.length+' indexed blocks';
  $('#mesh').innerHTML=latest.map((b,i)=>{
-  const parent=latest[i+1],linked=parent&&typeof b.parent_hash==='string'&&typeof parent.hash==='string'&&b.parent_hash.toLowerCase()===parent.hash.toLowerCase();
+  const parent=latest[i+1],linked=parent&&typeof b.parent_hash==='string'&&typeof parent.hash==='string'&&b.parent_hash.toLowerCase()===parent.hash.toLowerCase()&&Number(b.height)===Number(parent.height)+1;
   return '<a class="chainnode" href="/block/'+encodeURIComponent(b.height)+'" aria-label="Block '+esc(b.height)+'"><span class="chainlabel">INDEXED BLOCK</span><b>#'+esc(b.height)+'</b><code>'+esc(short(b.hash||'Hash unavailable',9))+'</code><small>'+age(b.timestamp)+' · '+esc(b.tx_count??b.transactions_count??0)+' tx</small></a>'+(parent?'<span class="chainwire '+(linked?'verified':'pending')+'" title="'+(linked?'Parent hash verified':'Parent link not established')+'"></span>':'');
  }).join('');
  const proposers=[...new Set(state.blocks.map(b=>b.miner?.hash||b.miner).filter(Boolean))];
