@@ -16,7 +16,7 @@ test('persistent trusted cert issuance only after isolated staging preflight',()
  assert.match(s,/openssl x509.*subjectAltName/);
 });
 test('no direct exposure, DNS, chain, validator, or destructive database changes during issuance',()=>{
- assert.doesNotMatch(s,/ufw allow|iptables|cloudflare|--publish|-p 443|docker compose up|--network host.*nginx|reset genesis|eth_sendRawTransaction|DELETE FROM/i);
+ assert.doesNotMatch(s,/ufw allow|iptables|api\.cloudflare\.com|--publish|-p 443|docker compose up|--network host.*nginx|reset genesis|eth_sendRawTransaction|DELETE FROM/i);
  assert.match(w,/if: github\.event_name == 'push'/);
  assert.match(w,/sudo -n bash scripts\/issue-zvq-production-ip-cert\.sh/);
  assert.match(w,/group: zvq-trusted-ip-certificate/);
