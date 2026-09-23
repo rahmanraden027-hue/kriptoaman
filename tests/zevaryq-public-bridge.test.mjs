@@ -11,8 +11,15 @@ test('bundled homepage uses canonical production ZVQ evidence, not a fabricated 
  assert.match(html, /data-zevaryq-explorer-version="1\.1\.2"/);
  assert.match(html, /class="logo logo-zvq"/);
  assert.match(html, /class="earth-brandmark"/);
+ assert.match(html, /data-zevaryq-features="immune-token-v1"/);
+ assert.match(html, /id="immune-monitor"/);
+ assert.match(html, /id="token-discovery"/);
  assert.match(source, /homepage\.includes\("EXPECTED_CHAIN='" \+ EXPECTED_ID \+ "'"/);
  assert.match(source, /const EXPECTED_ID = '0x560c'/);
+ assert.match(source, /homepage\.includes\('data-zevaryq-features="immune-token-v1"'\)/);
+ assert.match(source, /homepage\.includes\('id="immune-monitor"'\)/);
+ assert.match(source, /homepage\.includes\('id="token-discovery"'\)/);
+ assert.match(source, /'x-zevaryq-explorer-features': 'immune-token-v1'/);
  assert.match(source, /cache-control': 'no-store, max-age=0'/);
  assert.doesNotMatch(source, /content:"ZV"|1\.0\.0/);
 });
@@ -55,4 +62,14 @@ test('public bridge rollout waits for propagation, authenticates release and pro
  assert.match(workflow, /Refusing to overwrite concurrent operator route change/);
  assert.match(workflow, /EXPECTED_API_WORKER/);
  assert.match(workflow, /Restore prior route on verification failure/);
+});
+
+test('guarded public route rollout requires new evidence panels on both normal and bypass URLs', () => {
+ assert.match(workflow, /grep -Fq 'data-zevaryq-features="immune-token-v1"' "\$d\/homepage\.html"/);
+ assert.match(workflow, /grep -Fq 'id="immune-monitor"' "\$body"/);
+ assert.match(workflow, /grep -Fq 'id="token-discovery"' "\$body"/);
+ assert.match(workflow, /x-zevaryq-explorer-features: immune-token-v1/);
+ assert.match(workflow, /public_release=verified-v1\.1\.2-immune-token-v1/);
+ assert.match(workflow, /Restore prior route on verification failure/);
+ assert.match(workflow, /EXPECTED_API_WORKER/);
 });

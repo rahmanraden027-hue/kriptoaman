@@ -100,6 +100,9 @@ jobs:
           grep -Fq 'data-zevaryq-explorer-version="1.1.2"' "$d/homepage.html"
           grep -Fq 'class="logo logo-zvq"' "$d/homepage.html"
           grep -Fq 'class="earth-brandmark"' "$d/homepage.html"
+          grep -Fq 'data-zevaryq-features="immune-token-v1"' "$d/homepage.html"
+          grep -Fq 'id="immune-monitor"' "$d/homepage.html"
+          grep -Fq 'id="token-discovery"' "$d/homepage.html"
           test -s "$d/zevaryq-emblem.webp"
           test -s "$d/zevaryq-favicon.png"
 
@@ -149,8 +152,12 @@ jobs:
               && grep -Fq 'data-zevaryq-explorer-version="1.1.2"' "$body" \
               && grep -Fq 'class="logo logo-zvq"' "$body" \
               && grep -Fq 'class="earth-brandmark"' "$body" \
+              && grep -Fq 'data-zevaryq-features="immune-token-v1"' "$body" \
+              && grep -Fq 'id="immune-monitor"' "$body" \
+              && grep -Fq 'id="token-discovery"' "$body" \
               && ! grep -Fq 'class="earth-logo"' "$body" \
-              && grep -iq '^x-zevaryq-explorer-release: 1\.1\.2' "$headers"; then
+              && grep -iq '^x-zevaryq-explorer-release: 1\.1\.2' "$headers" \
+              && grep -iq '^x-zevaryq-explorer-features: immune-token-v1' "$headers"; then
               status=0
             fi
             rm -f "$headers" "$body"
@@ -190,7 +197,7 @@ jobs:
           blocks="$(curl -fsS --connect-timeout 8 --max-time 20 'https://explorer.kriptoaman.com/api/v2/blocks')"
           jq -e '(.items | type == "array") and (.items | length > 0)' <<<"$blocks" > /dev/null
           test "$(curl -LsS --connect-timeout 8 --max-time 20 -o /dev/null -w '%{http_code}' 'https://explorer.kriptoaman.com/blocks')" = '200'
-          echo "public_release=verified-v1.1.2; rpc=0x560c; api_v2=healthy; legacy_route=preserved"
+          echo "public_release=verified-v1.1.2-immune-token-v1; rpc=0x560c; api_v2=healthy; legacy_route=preserved"
 
       - name: Restore prior route on verification failure
         if: steps.switch.outputs.changed == 'true' && steps.verify.outcome == 'failure'
