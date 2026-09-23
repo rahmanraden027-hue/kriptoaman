@@ -49,6 +49,7 @@
 @media(max-width:767px){.probeBar{align-items:stretch;flex-direction:column;padding:13px}.probeBar small{padding-left:0}#refreshData{width:100%;min-height:42px}.chainnode{flex-basis:142px;padding:12px}.chainwire{flex-basis:28px}.hero h1{font-size:clamp(36px,10vw,56px)}.sectionhead{align-items:flex-start;flex-wrap:wrap}}
 @media(max-width:380px){.grid,.statsrow{grid-template-columns:1fr 1fr}.card .value{font-size:22px}.brand b{font-size:11px}.hero{padding:18px 12px}}
 
+.indexed{color:#ffd27b}
 </style>
 </head>
 <body><div class="shell">
@@ -111,7 +112,12 @@ async function rpc(method,params=[]){
 function mini(label,value,source='UNAVAILABLE'){return '<div class="mini"><span class="label">'+label+'</span><b>'+esc(value)+'</b><span class="source">'+source+'</span></div>'}
 function health(label,status){return '<div class="healthrow"><span>'+label+'</span><span class="state '+status.toLowerCase()+'">'+status+'</span></div>'}
 function renderStatic(){
- const cards=[['Latest Block',state.head??unavailable,state.head?'LIVE':'UNAVAILABLE'],['Finalized Block',unavailable,'UNAVAILABLE'],['Block Time',calcBlockTime(),'CALCULATED'],['Transactions / Second',calcTps(),'CALCULATED'],['Gas Price',state.gas?Number(BigInt(state.gas))/1e9+' Gwei':unavailable,state.gas?'LIVE':'UNAVAILABLE'],['Active Validators',unavailable,'UNAVAILABLE'],['RPC Latency',state.rpcLatency!=null?state.rpcLatency+' ms':unavailable,state.rpcLatency!=null?'LIVE':'UNAVAILABLE'],['Data Freshness',freshness(),state.blocks.length?'INDEXED':'UNAVAILABLE']];
+ const latestIndexedHeight=Number(state.blocks[0]?.height);
+ const hasIndexedHeight=state.blocks.length>0&&Number.isSafeInteger(latestIndexedHeight)&&latestIndexedHeight>=0;
+ const latestBlockValue=state.rpc&&Number.isSafeInteger(state.head)?state.head:hasIndexedHeight?latestIndexedHeight:unavailable;
+ const latestBlockSource=state.rpc&&Number.isSafeInteger(state.head)?'LIVE':hasIndexedHeight?(state.api?'INDEXED':'STALE'):'UNAVAILABLE';
+ const calculatedSource=state.api&&state.blocks.length>=2?'CALCULATED':state.blocks.length>=2?'STALE':'UNAVAILABLE';
+ const cards=[['Latest Block',latestBlockValue,latestBlockSource],['Finalized Block',unavailable,'UNAVAILABLE'],['Block Time',calcBlockTime(),calculatedSource],['Transactions / Second',calcTps(),calculatedSource],['Gas Price',state.gas?Number(BigInt(state.gas))/1e9+' Gwei':unavailable,state.gas?'LIVE':'UNAVAILABLE'],['Active Validators',unavailable,'UNAVAILABLE'],['RPC Latency',state.rpcLatency!=null?state.rpcLatency+' ms':unavailable,state.rpcLatency!=null?'LIVE':'UNAVAILABLE'],['Data Freshness',freshness(),state.blocks.length?'INDEXED':'UNAVAILABLE']];
  $('#metrics').innerHTML=cards.map(x=>'<div class="card glass"><span class="label">'+x[0]+'</span><div class="value">'+esc(x[1])+'</div><span class="source">'+x[2]+'</span></div>').join('');
  $('#consensus').innerHTML=mini('Finalized block / epoch',unavailable)+mini('Finality time',unavailable)+mini('Quorum',unavailable)+mini('Fork / reorg','No verified observation','UNAVAILABLE');
  $('#performance').innerHTML=mini('TPS',calcTps(),state.blocks.length?'CALCULATED':'UNAVAILABLE')+mini('Block utilization',unavailable)+mini('Propagation time',unavailable)+mini('RPC success rate',state.rpc?'Current probe passed':unavailable,state.rpc?'LIVE':'UNAVAILABLE');
@@ -119,8 +125,8 @@ function renderStatic(){
  $('#infra').innerHTML=health('RPC',state.rpc?'Online':'Unknown')+health('Indexer',state.api?'Online':'Unknown')+health('API',state.api?'Online':'Unknown')+health('WebSocket','Unknown')+health('Archive Node','Unknown');
  $('#security').innerHTML=health('Chain Integrity',state.rpc&&state.api?'Online':'Unknown')+health('Validator Participation','Unknown')+health('Anomaly Status','Unknown')+health('Fork / Reorg Monitor','Unknown');
  $('#fees').innerHTML=mini('Pending transactions','Mempool telemetry unavailable')+mini('Median gas price',state.gas?Number(BigInt(state.gas))/1e9+' Gwei':unavailable,state.gas?'LIVE':'UNAVAILABLE')+mini('95th percentile gas',unavailable)+mini('Fee pressure',unavailable);
- $('#liveText').innerHTML=state.rpc&&state.api?'<span class="live">● Live on ZVQ Mainnet</span> · Live data via RPC & Indexer':'Status unavailable · live data via RPC & Indexer';
- $('#trust').textContent=state.rpc&&state.api?'LIVE':state.api?'INDEXED':state.blocks.length?'STALE':'UNAVAILABLE';
+ $('#liveText').innerHTML=state.rpc&&state.api?'<span class="live">● Live RPC and indexed chain data</span> · ZVQ Network':state.api?'<span class="indexed">● Blockscout indexed blocks available</span> · Browser RPC verification unavailable':state.rpc?'<span class="indexed">● Live ZVQ RPC available</span> · Indexer temporarily unavailable':state.blocks.length?'<span class="indexed">● Cached indexed blocks</span> · Fresh data unavailable':'Network data unavailable · retrying independently verified sources';
+ $('#trust').textContent=state.rpc&&state.api?'LIVE':state.api?'INDEXED':state.rpc?'RPC LIVE':state.blocks.length?'STALE':'UNAVAILABLE';
  const p=$('.probeBar'),ready=state.rpc&&state.api,partial=state.rpc||state.api;
  p.className='probeBar glass '+(ready?'ok':partial?'warn':'bad');
  $('#probeTitle').textContent=ready?'RPC and indexer independently verified':partial?'Partial connectivity · verified data only':'RPC and indexer currently unavailable';
@@ -164,7 +170,7 @@ async function probe(){
   if(!Array.isArray(data.items))throw Error('Unexpected Blockscout API response');
   state.blocks=data.items;state.api=state.blocks.length>0;state.apiError=state.api?null:'Indexer returned no blocks';
   if(state.api){state.lastGoodBlocksAt=Date.now();renderBlocks()}
- }catch(e){state.api=false;state.apiError=String(e?.message||e)}
+ }catch(e){state.api=false;state.apiError=String(e?.message||e);if(state.blocks.length){$('#freshness').textContent='STALE · last indexed '+(state.lastGoodBlocksAt?new Date(state.lastGoodBlocksAt).toLocaleTimeString():'previous check');$('#meshStatus').textContent='Cached indexed history · live API unavailable';}}
  renderStatic();state.probing=false;$('#refreshData').disabled=false;
 }
 $('#search').addEventListener('submit',e=>{e.preventDefault();const q=$('#q').value.trim(),m=$('#searchmsg');m.className='searchmsg';if(/^\d+$/.test(q))location.href='/block/'+q;else if(/^0x[a-fA-F0-9]{64}$/.test(q))location.href='/tx/'+q;else if(/^0x[a-fA-F0-9]{40}$/.test(q))location.href='/address/'+q;else{m.textContent='Enter a block number, 66-character transaction hash, or 42-character EVM address.';m.classList.add('error')}});
