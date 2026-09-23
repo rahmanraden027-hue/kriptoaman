@@ -1,0 +1,67 @@
+name: ZVQ Isolated ACME Upstream Proof
+on:
+  pull_request:
+    paths: ['.github/workflows/zvq-acme-upstream-proof.yml']
+  push:
+    branches: [main]
+    paths: ['.github/workflows/zvq-acme-upstream-proof.yml']
+permissions:
+  contents: read
+concurrency:
+  group: zvq-acme-upstream-proof
+  cancel-in-progress: false
+jobs:
+  stage:
+    if: github.event_name == 'push'
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 3
+    steps:
+      - name: Stage only temporary webroot proof on existing Explorer
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=/opt/blockscout/docker-compose/proxy/kam-dashboard
+          test -r "$root/index.html"
+          token="zvq-domain-acme-$GITHUB_RUN_ID"
+          expected="zvq-domain-acme-proof-$GITHUB_RUN_ID"
+          sudo -n install -d -m 0755 "$root/.well-known/acme-challenge"
+          printf '%s' "$expected" | sudo -n tee "$root/.well-known/acme-challenge/$token" >/dev/null
+          sudo -n chmod 0644 "$root/.well-known/acme-challenge/$token"
+          test "$(curl --noproxy '*' --fail-with-body -sS --max-time 8 "http://127.0.0.1/.well-known/acme-challenge/$token")" = "$expected"
+          echo 'origin_webroot=verified; nginx_unchanged=yes'
+  external:
+    if: github.event_name == 'push'
+    needs: stage
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Independently identify usable upstream for exact ACME route
+        shell: bash
+        run: |
+          set -uo pipefail
+          token="zvq-domain-acme-$GITHUB_RUN_ID"
+          expected="zvq-domain-acme-proof-$GITHUB_RUN_ID"
+          path="/.well-known/acme-challenge/$token"
+          for spec in "direct-explorer http://explorer.kriptoaman.com$path" "direct-new http://explorer-new.kriptoaman.com$path"; do
+            read -r label url <<<"$spec"
+            actual="$(curl --noproxy '*' --fail-with-body -sS --connect-timeout 5 --max-time 12 --resolve "explorer.kriptoaman.com:80:146.190.93.254" --resolve "explorer-new.kriptoaman.com:80:146.190.93.254" "$url" 2>/dev/null || true)"
+            if [[ "$actual" == "$expected" ]]; then echo "upstream_$label=verified_exact_bytes"; else echo "upstream_$label=unavailable"; fi
+          done
+          for spec in "legacy-http http://explorer-new.kriptoaman.com$path" "legacy-https https://explorer-new.kriptoaman.com$path" "public-http http://explorer.kriptoaman.com$path"; do
+            read -r label url <<<"$spec"
+            actual="$(curl --fail-with-body -sS -L --connect-timeout 5 --max-time 12 "$url" 2>/dev/null || true)"
+            if [[ "$actual" == "$expected" ]]; then echo "upstream_$label=verified_exact_bytes"; else echo "upstream_$label=unavailable"; fi
+          done
+          direct="$(curl --noproxy '*' --fail-with-body -sS --connect-timeout 5 --max-time 12 --resolve 'explorer.kriptoaman.com:80:146.190.93.254' "http://explorer.kriptoaman.com$path")"
+          test "$direct" = "$expected"
+          echo 'isolated_origin_challenge=externally_proven'
+  cleanup:
+    if: always() && github.event_name == 'push'
+    needs: [stage,external]
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 3
+    steps:
+      - name: Remove only this run's temporary ACME token
+        run: |
+          file="/opt/blockscout/docker-compose/proxy/kam-dashboard/.well-known/acme-challenge/zvq-domain-acme-$GITHUB_RUN_ID"
+          if [[ -f "$file" ]]; then sudo -n rm -- "$file"; fi
