@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-zevaryq-explorer-version="1.1.2" data-zevaryq-features="immune-token-v1" data-zvq-reference-visual="blue-gold-orbital-20260924">
+<html lang="en" data-zevaryq-explorer-version="1.1.2" data-zevaryq-features="immune-token-v1" data-zvq-reference-visual="blue-gold-orbital-20260924" data-zvq-token-discovery="indexed-v2">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -153,7 +153,7 @@ header.glass{background:rgba(3,13,30,.96);border-radius:14px;padding:8px 13px;bo
 <div class="section glass"><div class="sectionhead"><div><h2>Network Activity Flow</h2><p>Total indexed transaction activity; no fabricated categories</p></div></div><div class="viz" style="min-height:230px"><svg viewBox="0 0 800 220" width="100%" height="220" preserveAspectRatio="none"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#25cfff" stop-opacity=".45"/><stop offset="1" stop-color="#1678ff" stop-opacity="0"/></linearGradient></defs><path id="area" fill="url(#g)" stroke="#2ad9ff" stroke-width="3" d="M0 190 L800 190 L800 220 L0 220Z"/></svg><div class="viznote" id="activityNote">Transaction data pending</div></div></div>
 <div class="section glass"><div class="sectionhead"><div><h2>Mempool & Fee Intelligence</h2><p>Safe public telemetry only</p></div></div><div class="statsrow" id="fees"></div></div>
 </section>
-<section class="section glass" id="token-discovery"><div class="sectionhead"><div><h2>Token Discovery · Indexed ERC-20 Creations</h2><p>Recent indexed token-creation transactions cross-checked against contract metadata</p></div><a class="tag" href="/tokens">Token directory</a></div><div class="tokenList" id="tokens" aria-live="polite"><div class="empty">Checking token-creation index…</div></div><p class="evidenceNote" id="token-note">Indexed contract metadata does not imply an exchange listing, liquidity, smart-contract audit or trading availability.</p></section>
+<section class="section glass" id="token-discovery"><div class="sectionhead"><div><h2>Token Discovery · Indexed ERC-20</h2><p>Verified contract creations in sampled indexed blocks; indexed directory if available</p></div><a class="tag" href="/tokens">Token directory</a></div><div class="tokenList" id="tokens" aria-live="polite"><div class="empty">Checking verified contract creations and indexed ERC-20 directory…</div></div><p class="evidenceNote" id="token-note">Indexed token data does not establish recent creation, exchange listing, liquidity, audit or trading availability.</p></section>
 <section class="twocol">
 <section class="section glass"><div class="sectionhead"><div><h2>Validator Intelligence</h2><p>Observed proposer evidence; identities are never fabricated</p></div><a class="tag" href="/validators">View validators</a></div><div id="validators" class="empty">Validator evidence unavailable</div></section>
 <section class="section glass"><div class="sectionhead"><div><h2>Realtime Block Stream</h2><p>Refreshes every 12 seconds from Blockscout</p></div><a class="tag" href="/blocks">View all</a></div><div class="stream" id="stream"><span class="empty">Connecting to Blockscout. No values are estimated.</span></div></section>
@@ -332,35 +332,79 @@ function indexedTokenAddress(tx){
  return typeof address==='string'&&/^0x[a-f0-9]{40}$/i.test(address)?address:null;
 }
 function renderTokens(message){
- if(!state.tokens.length){$('#tokens').innerHTML='<div class="empty">'+esc(message||'No independently cross-checked ERC-20 creations in this indexed sample.')+'</div>';return}
+ if(!state.tokens.length){$('#tokens').innerHTML='<div class="empty">'+esc(message||'No independently verified ERC-20 tokens in this indexed sample.')+'</div>';return}
  $('#tokens').innerHTML=state.tokens.map(item=>{
   const name=item.metadata.name||'Unnamed ERC-20',symbol=item.metadata.symbol||'—';
-  return '<a class="tokenRow" href="/token/'+encodeURIComponent(item.address)+'"><span style="min-width:0"><strong>'+esc(name)+' · '+esc(symbol)+'</strong><small>'+esc(short(item.address,12))+'</small><small>Indexed creation block '+esc(item.block??'unavailable')+'</small></span><span class="tag">ERC-20 indexed</span></a>';
+  const source=item.origin==='creation'?'VERIFIED CREATION':'INDEXED DIRECTORY';
+  const block=item.block!=null?'<small>Indexed creation block '+esc(item.block)+'</small>':'<small>Creation block not independently established</small>';
+  return '<a class="tokenRow" href="/token/'+encodeURIComponent(item.address)+'"><span style="min-width:0"><strong>'+esc(name)+' · '+esc(symbol)+'</strong><small>'+esc(short(item.address,12))+'</small>'+block+'</span><span class="tag">'+source+'</span></a>';
  }).join('');
 }
 async function probeTokens(){
  if(state.tokenProbeInFlight)return;
  state.tokenProbeInFlight=true;
  try{
-  const listing=await getJSON(API+'/transactions?type=token_creation',{},10000);
-  if(!Array.isArray(listing?.items))throw Error('Token-creation index unavailable');
+  // The global /transactions?type=token_creation API is not supported by
+  // this Blockscout instance (422). Contract-creation is supported per block.
+  const heights=[...new Set(state.blocks.slice(0,4).map(b=>Number(b.height)).filter(n=>Number.isSafeInteger(n)&&n>=0))];
+  const perBlock=await Promise.allSettled(heights.map(async height=>{
+   const listing=await getJSON(API+'/blocks/'+encodeURIComponent(height)+'/transactions?type=contract_creation',{},8000);
+   if(!Array.isArray(listing?.items))throw Error('Per-block creation index unavailable');
+   return listing.items.map(tx=>({tx,address:indexedTokenAddress(tx),block:height})).filter(item=>item.address);
+  }));
+  const sampled=perBlock.filter(x=>x.status==='fulfilled').length;
   const seen=new Set();
-  const candidates=listing.items.map(tx=>({tx,address:indexedTokenAddress(tx)})).filter(item=>{
-   if(!item.address||seen.has(item.address.toLowerCase()))return false;
-   seen.add(item.address.toLowerCase());return true;
+  const candidates=perBlock.filter(x=>x.status==='fulfilled').flatMap(x=>x.value).filter(item=>{
+   const key=item.address.toLowerCase();
+   if(seen.has(key))return false;
+   seen.add(key);return true;
   }).slice(0,6);
-  const results=await Promise.allSettled(candidates.map(async item=>{
+  const validated=await Promise.allSettled(candidates.map(async item=>{
    const metadata=await getJSON(API+'/tokens/'+encodeURIComponent(item.address),{},7000);
    if(!/^ERC-?20$/i.test(metadata?.type||''))return null;
-   return {address:item.address,metadata,block:item.tx.block_number??null};
+   const canonical=metadata.address?.hash||metadata.address||metadata.address_hash;
+   if(canonical&&String(canonical).toLowerCase()!==item.address.toLowerCase())return null;
+   return {address:item.address,metadata,block:item.block,origin:'creation'};
   }));
-  state.tokens=results.filter(x=>x.status==='fulfilled'&&x.value).map(x=>x.value);
-  state.tokenError=null;renderTokens();
-  $('#token-note').textContent='Current Blockscout creation index plus ERC-20 metadata. Contract appearance does not imply listing, liquidity, audit approval or trading availability.';
+  state.tokens=validated.filter(x=>x.status==='fulfilled'&&x.value).map(x=>x.value);
+  if(state.tokens.length){
+   state.tokenError=null;
+   renderTokens();
+   $('#token-note').textContent='Verified ERC-20 creation metadata from '+sampled+' sampled indexed block(s). This is not a complete launch history or proof of exchange listing, liquidity, audit or trading.';
+   return;
+  }
+  // The indexed directory is an explicitly different evidence class: it
+  // cannot establish token creation time, listing, or trading availability.
+  const directory=await getJSON(API+'/tokens?type=ERC-20',{},10000);
+  if(!Array.isArray(directory?.items))throw Error('Indexed ERC-20 directory unavailable');
+  const addresses=new Set();
+  const entries=directory.items.map(item=>{
+   const address=item.address?.hash||item.address||item.address_hash;
+   return {address,kind:item.type};
+  }).filter(item=>{
+   if(typeof item.address!=='string'||!/^0x[a-f0-9]{40}$/i.test(item.address))return false;
+   if(item.kind&&!/^ERC-?20$/i.test(item.kind))return false;
+   const key=item.address.toLowerCase();
+   if(addresses.has(key))return false;
+   addresses.add(key);return true;
+  }).slice(0,6);
+  const detailed=await Promise.allSettled(entries.map(async item=>{
+   const metadata=await getJSON(API+'/tokens/'+encodeURIComponent(item.address),{},7000);
+   if(!/^ERC-?20$/i.test(metadata?.type||''))return null;
+   const canonical=metadata.address?.hash||metadata.address||metadata.address_hash;
+   if(canonical&&String(canonical).toLowerCase()!==item.address.toLowerCase())return null;
+   return {address:item.address,metadata,block:null,origin:'directory'};
+  }));
+  state.tokens=detailed.filter(x=>x.status==='fulfilled'&&x.value).map(x=>x.value);
+  state.tokenError=null;
+  renderTokens(state.tokens.length?null:'No independently verified ERC-20 tokens in the current indexed directory.');
+  $('#token-note').textContent=state.tokens.length
+   ?'Source: current Blockscout ERC-20 directory, cross-checked by contract metadata. Creation time, listing, liquidity, audit and trading are not verified.'
+   :'Blockscout returned no independently verified indexed ERC-20 tokens; '+sampled+' of '+heights.length+' recent creation-block probes succeeded. No synthetic tokens are shown.';
  }catch(error){
   state.tokens=[];state.tokenError=String(error?.message||error);
-  renderTokens('Token-creation evidence unavailable. No token listings are inferred.');
-  $('#token-note').textContent='Token discovery unavailable: public token-creation API or contract metadata could not be verified. Try the token directory.';
+  renderTokens('Token discovery evidence unavailable. No token listings are inferred.');
+  $('#token-note').textContent='Token discovery unavailable: current per-block creation API or indexed ERC-20 directory could not be verified. Use the token directory or retry.';
  }finally{state.tokenProbeInFlight=false;}
 }
 
@@ -388,5 +432,5 @@ async function probe(){
  renderStatic();if(state.blocks.length)renderBlocks();renderImmune();state.probing=false;$('#refreshData').disabled=false;
 }
 $('#search').addEventListener('submit',e=>{e.preventDefault();const q=$('#q').value.trim(),m=$('#searchmsg');m.className='searchmsg';if(/^\d+$/.test(q))location.href='/block/'+q;else if(/^0x[a-fA-F0-9]{64}$/.test(q))location.href='/tx/'+q;else if(/^0x[a-fA-F0-9]{40}$/.test(q))location.href='/address/'+q;else{m.textContent='Enter a block number, 66-character transaction hash, or 42-character EVM address.';m.classList.add('error')}});
-$('#menu').onclick=()=>$('#nav').classList.toggle('open');$('#refreshData').onclick=probe;renderStatic();renderImmune();probe();probeTokens();setInterval(probe,12000);setInterval(probeTokens,60000);
+$('#menu').onclick=()=>$('#nav').classList.toggle('open');$('#refreshData').onclick=probe;renderStatic();renderImmune();probe().then(probeTokens,probeTokens);setInterval(probe,12000);setInterval(probeTokens,60000);
 </script></body></html>
