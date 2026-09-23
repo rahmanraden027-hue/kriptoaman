@@ -49,6 +49,6 @@ test('production rollout requires independent externally verified certificate an
 });
 
 test('external proof must not combine incompatible curl failure flags',()=>{
- assert.doesNotMatch(workflow,/--fail-with-body\\s+-f[sSL]/);
+ assert.doesNotMatch(workflow,/--fail-with-body\s+-f[sSL]/);
  assert.match(workflow,/--fail-with-body -sS --connect-timeout/);
 });
