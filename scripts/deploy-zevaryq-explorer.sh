@@ -41,7 +41,8 @@ body="$(mktemp)"; trap 'rm -f "$body"' EXIT
 curl -fsS --retry 6 --retry-all-errors --max-time 25 http://127.0.0.1/ -o "$body"
 grep -q 'data-zevaryq-explorer-version="1.1.0"' "$body"
 grep -q 'ZEVARYQ EXPLORER' "$body"
-grep -q '/zevaryq-assets/zevaryq-emblem.webp?v=1.1.0' "$body"
+grep -q 'class="logo logo-zvq"' "$body"
+grep -q 'class="earth-brandmark"' "$body"
 curl -fsS --retry 4 --retry-all-errors --max-time 20 http://127.0.0.1/zevaryq-assets/zevaryq-emblem.webp -o /dev/null
 curl -fsS --retry 4 --retry-all-errors --max-time 20 http://127.0.0.1/zevaryq-assets/zevaryq-favicon.png -o /dev/null
 
@@ -51,7 +52,7 @@ public_code="$(curl -L -sS --connect-timeout 5 --max-time 25 -o /tmp/zevaryq-pub
 echo "public_explorer_http=$public_code"
 if [[ "$public_code" == "200" ]]; then
   grep -q 'ZEVARYQ EXPLORER' /tmp/zevaryq-public.html || true
-  grep -q '/zevaryq-assets/zevaryq-emblem.webp' /tmp/zevaryq-public.html || true
+  grep -q 'class="logo logo-zvq"' /tmp/zevaryq-public.html || true
 elif [[ "$public_code" != "429" ]]; then
   echo "Public Explorer edge not yet healthy; origin deployment remains intact for independent verification." >&2
 fi

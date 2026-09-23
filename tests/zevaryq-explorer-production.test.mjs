@@ -14,14 +14,18 @@ test('Zevaryq production identity and chain are explicit', () => {
   assert.equal(html.includes("EXPECTED_CHAIN='0x560c'"), true);
 });
 
-test('premium Zevaryq emblem is wired to header, hero, satellite view and favicon', () => {
-  assert.equal((html.match(/\ssrc="\/zevaryq-assets\/zevaryq-emblem\.webp/g) || []).length, 3);
+test('complete ZVQ identity is visible in header, hero and satellite view', () => {
+  assert.equal((html.match(/class="earth-brandmark"/g) || []).length, 2);
+  assert.match(html, /class="logo logo-zvq"[^>]+>ZVQ<\/span>/);
+  assert.doesNotMatch(html, /<img class="earth-logo"/);
   assert.doesNotMatch(html, /data:image\/(webp|png);base64/);
   assert.ok(Buffer.byteLength(html) < 100_000, 'Explorer HTML must not embed its 3 emblem images or favicon');
   assert.match(html, /rel="icon"[^>]+zevaryq-favicon\.png/);
   assert.match(html, /class="brand-gold">ZEVARYQ/);
   assert.doesNotMatch(html, /<span class="logo">ZV<\/span>/);
   assert.match(html, /\.earth:after\{content:none\}/);
+  assert.doesNotMatch(html, /content:"ZV"/);
+  assert.match(html, /not live satellite telemetry/);
 });
 
 test('required production panels and search routes exist', () => {
@@ -54,6 +58,8 @@ test('unverified values fail closed', () => {
 test('deployment is narrow and rollback safe', () => {
   assert.equal(deploy.includes('kam-dashboard/index.html'), true);
   assert.match(deploy, /rollback/);
+  assert.match(deploy, /grep -q 'class="logo logo-zvq"' "\$body"/);
+  assert.match(deploy, /grep -q 'class="earth-brandmark"' "\$body"/);
   assert.equal(deploy.includes('0x560c'), true);
   assert.equal(deploy.includes('kriptoaman.com/*'), false);
   assert.doesNotMatch(deploy, /genesis|validator private|postgres.*reset|redis.*reset/i);
@@ -82,6 +88,16 @@ test('indexed Blockscout data remains visible if browser JSON-RPC preflight fail
   assert.match(html, /Blockscout indexed blocks available/);
   assert.match(html, /Cached indexed history/);
   assert.match(html, /calculatedSource=state\.api/);
+  assert.match(html, /\['Data Freshness',freshness\(\),state\.api\?'INDEXED':state\.blocks\.length\?'STALE'/);
   assert.match(html, /Browser RPC verification unavailable/);
 });
 
+
+test('gas price is exact and human-readable, and mesh links verify adjacent height', () => {
+  assert.match(html, /function formatGasPrice\(hex\)/);
+  assert.match(html, /wei<1_000_000n/);
+  assert.equal((html.match(/formatGasPrice\(state\.gas\)/g) || []).length, 2);
+  assert.doesNotMatch(html, /Number\(BigInt\(state\.gas\)\)\/1e9/);
+  assert.match(html, /Number\(b\.height\)===Number\(parent\.height\)\+1/);
+  assert.match(html, /Number\(b\.height\)===Number\(latest\[i\+1\]\.height\)\+1/);
+});
