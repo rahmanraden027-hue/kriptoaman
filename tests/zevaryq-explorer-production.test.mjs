@@ -6,8 +6,10 @@ const html = await readFile(new URL('../explorer-dashboard/zevaryq-production.ht
 const deploy = await readFile(new URL('../scripts/deploy-zevaryq-explorer.sh', import.meta.url), 'utf8');
 
 test('Zevaryq production identity and chain are explicit', () => {
-  assert.match(html, /data-zevaryq-explorer-version="1\.1\.0"/);
+  assert.match(html, /data-zevaryq-explorer-version="1\.1\.1"/);
   assert.match(html, /ZEVARYQ EXPLORER/);
+  assert.match(html, /http-equiv="Cache-Control" content="no-store, max-age=0, must-revalidate"/);
+  assert.match(html, /UI release 1\.1\.1/);
   assert.match(html, /Zevaryq Network/);
   assert.match(html, /ZVQ Mainnet/);
   assert.match(html, /Chain ID <b>22028/);
@@ -58,6 +60,9 @@ test('unverified values fail closed', () => {
 test('deployment is narrow and rollback safe', () => {
   assert.equal(deploy.includes('kam-dashboard/index.html'), true);
   assert.match(deploy, /rollback/);
+  assert.match(deploy, /public_explorer_release=current-v1\.1\.1/);
+  assert.match(deploy, /public_explorer_release=stale-default-url/);
+  assert.ok(deploy.indexOf('trap - ERR') < deploy.indexOf('public_code='), 'origin rollback must be disabled before public-cache diagnosis');
   assert.match(deploy, /grep -q 'class="logo logo-zvq"' "\$body"/);
   assert.match(deploy, /grep -q 'class="earth-brandmark"' "\$body"/);
   assert.equal(deploy.includes('0x560c'), true);
