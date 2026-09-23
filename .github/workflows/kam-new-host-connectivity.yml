@@ -1,98 +1,137 @@
-name: KAM New Host Connectivity
-
+name: ZVQ Guarded RPC Origin TLS
 on:
   pull_request:
     paths:
       - '.github/workflows/kam-new-host-connectivity.yml'
       - 'scripts/finalize-zvq-rpc-origin-https.sh'
+      - 'scripts/stage-zvq-rpc-acme-proof.sh'
+      - 'scripts/renew-zvq-rpc-origin-cert.sh'
+      - 'scripts/rollback-zvq-rpc-origin-https.sh'
+      - 'scripts/complete-zvq-rpc-origin-https.sh'
       - 'scripts/zvq-rpc-allowlist-gateway.mjs'
       - 'tests/zvq-rpc-allowlist-gateway.test.mjs'
   workflow_dispatch:
     inputs:
       confirm_rpc_tls:
-        description: 'I explicitly authorize installing TLS on the existing RPC sentry, after all safety checks pass'
+        description: 'Authorize guarded TLS on EXISTING RPC sentry after independent ACME proof'
         required: true
         default: false
         type: boolean
-
 permissions:
   contents: read
-
 concurrency:
-  group: kam-new-host-connectivity
+  group: zvq-guarded-rpc-origin-tls
   cancel-in-progress: false
-
 jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
-      - name: Validate deployment script syntax
-        run: bash -n scripts/finalize-zvq-rpc-origin-https.sh
-      - name: Verify RPC method allowlist and deployment guard
-        run: node --test tests/zvq-rpc-allowlist-gateway.test.mjs
-
-  verify-admin-path:
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm_rpc_tls == true }}
+      - name: Validate staged deployment, renewal and rollback scripts
+        run: |
+          set -euo pipefail
+          for s in scripts/finalize-zvq-rpc-origin-https.sh scripts/stage-zvq-rpc-acme-proof.sh scripts/renew-zvq-rpc-origin-cert.sh scripts/rollback-zvq-rpc-origin-https.sh scripts/complete-zvq-rpc-origin-https.sh; do bash -n "$s"; done
+          node --test tests/zvq-rpc-allowlist-gateway.test.mjs
+      - name: Read-only public RPC identity preflight
+        run: |
+          set -euo pipefail
+          chain="$(curl -fsS --connect-timeout 6 --max-time 15 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' 'https://rpc.kriptoaman.com/' | jq -er '.result')"
+          test "$chain" = 0x560c
+  stage-acme:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.confirm_rpc_tls == true }}
     needs: validate
     runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
-    timeout-minutes: 10
+    timeout-minutes: 8
     steps:
-      - name: Checkout reviewed source
-        uses: actions/checkout@v7
-
-      - name: Verify SSH administration path to new KAM hosts
-        shell: bash
+      - uses: actions/checkout@v7
+      - name: Validate established SSH access to existing hosts
         run: |
           set -euo pipefail
-          targets=(
-            "validator-02|134.209.157.125"
-            "validator-03|134.199.158.210"
-            "validator-04|165.227.169.128"
-            "rpc-sentry|206.189.36.15"
-          )
-          mkdir -p artifacts
-          : > artifacts/kam-new-host-connectivity.txt
-          for entry in "${targets[@]}"; do
-            name="${entry%%|*}"
-            host="${entry##*|}"
-            echo "checking=${name}" | tee -a artifacts/kam-new-host-connectivity.txt
-            ssh -o BatchMode=yes                 -o ConnectTimeout=8                 -o StrictHostKeyChecking=accept-new                 root@"${host}"                 'printf "ssh_ready=true\n"; uname -srm; timedatectl show -p NTPSynchronized --value 2>/dev/null || true'                 | sed -E 's/[0-9]{1,3}(\.[0-9]{1,3}){3}/[redacted-ip]/g'                 | tee -a artifacts/kam-new-host-connectivity.txt
+          for entry in validator-02:134.209.157.125 validator-03:134.199.158.210 validator-04:165.227.169.128 rpc-sentry:206.189.36.15; do
+            name="$(cut -d: -f1 <<<"$entry")"; addr="$(cut -d: -f2 <<<"$entry")"
+            ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new "root@$addr" 'uname -srm' >/dev/null
+            echo "existing_host=$name; ssh_ready=true"
           done
-
-      - name: Finalize isolated HTTPS on existing RPC sentry
-        shell: bash
+      - name: Serve one temporary HTTP-01 proof on free port 80
         run: |
           set -euo pipefail
-          scp -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new \
-            scripts/finalize-zvq-rpc-origin-https.sh scripts/zvq-rpc-allowlist-gateway.mjs root@206.189.36.15:/tmp/
-          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15 \
-            'env ZVQ_RPC_TLS_RUN_ID='"$GITHUB_RUN_ID"' bash /tmp/finalize-zvq-rpc-origin-https.sh'
-
-      - name: Verify trusted direct RPC HTTPS externally
-        shell: bash
+          scp -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new scripts/stage-zvq-rpc-acme-proof.sh root@206.189.36.15:/tmp/
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15 "bash /tmp/stage-zvq-rpc-acme-proof.sh start $GITHUB_RUN_ID"
+  independent-acme-proof:
+    needs: stage-acme
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Independently prove exact ACME challenge bytes from Internet
         run: |
           set -euo pipefail
-          origin='https://206.189.36.15'
-          chain="$(curl --noproxy '*' --fail-with-body -sS --connect-timeout 6 --max-time 15 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' "$origin/" | jq -er '.result')"
-          head1="$(curl --noproxy '*' --fail-with-body -sS --connect-timeout 6 --max-time 15 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}' "$origin/" | jq -er '.result')"
-          sleep 4
-          head2="$(curl --noproxy '*' --fail-with-body -sS --connect-timeout 6 --max-time 15 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":3,"method":"eth_blockNumber","params":[]}' "$origin/" | jq -er '.result')"
+          actual="$(curl --noproxy '*' -fsS --connect-timeout 5 --max-time 15 "http://206.189.36.15/.well-known/acme-challenge/zvq-rpc-$GITHUB_RUN_ID")"
+          test "$actual" = "zvq-rpc-acme-proof-$GITHUB_RUN_ID"
+          echo 'rpc_http01=verified_independent_internet_runner'
+  stage-rpc:
+    needs: independent-acme-proof
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - name: Stop only temporary ACME proof; preserve other HTTP listeners
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15 "bash /tmp/stage-zvq-rpc-acme-proof.sh stop $GITHUB_RUN_ID"
+      - name: Stage protected read-only IP HTTPS without touching public DNS
+        run: |
+          set -euo pipefail
+          scp -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new scripts/finalize-zvq-rpc-origin-https.sh scripts/zvq-rpc-allowlist-gateway.mjs scripts/renew-zvq-rpc-origin-cert.sh scripts/rollback-zvq-rpc-origin-https.sh scripts/complete-zvq-rpc-origin-https.sh root@206.189.36.15:/tmp/
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15 "env ZVQ_RPC_TLS_RUN_ID=$GITHUB_RUN_ID ZVQ_RPC_ACME_PROOF=verified_external bash /tmp/finalize-zvq-rpc-origin-https.sh"
+  external:
+    needs: stage-rpc
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify trusted direct-IP HTTPS, advancing blocks and blocked privileged methods
+        run: |
+          set -euo pipefail
+          origin='https://206.189.36.15/'
+          rpc() { curl --noproxy '*' -fsS --connect-timeout 6 --max-time 18 -H 'content-type: application/json' --data "$1" "$origin"; }
+          chain="$(rpc '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' | jq -er '.result')"
           test "$chain" = 0x560c
+          head1="$(rpc '{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}' | jq -er '.result')"
+          sleep 12
+          head2="$(rpc '{"jsonrpc":"2.0","id":3,"method":"eth_blockNumber","params":[]}' | jq -er '.result')"
           [[ "$head1" =~ ^0x[0-9a-fA-F]+$ && "$head2" =~ ^0x[0-9a-fA-F]+$ ]]
-          test $((16#${head2#0x})) -ge $((16#${head1#0x}))
-          denied="$(curl --noproxy '*' -sS --connect-timeout 6 --max-time 10 -o /dev/null -w '%{http_code}' -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":4,"method":"admin_peers","params":[]}' "$origin/")"
-          test "$denied" = 403
-          write_denied="$(curl --noproxy '*' -sS --connect-timeout 6 --max-time 10 -o /dev/null -w '%{http_code}' -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":5,"method":"eth_sendRawTransaction","params":["0x01"]}' "$origin/")"
-          test "$write_denied" = 403
-          echo "rpc_origin_tls=trusted; chain_id=$chain; block_progress=verified; admin_rpc=blocked"
-
-      - name: Upload redacted connectivity evidence
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: kam-new-host-connectivity
-          path: artifacts/kam-new-host-connectivity.txt
-          if-no-files-found: error
-          retention-days: 7
+          (( head2 > head1 ))
+          for payload in '{"jsonrpc":"2.0","id":4,"method":"admin_peers","params":[]}' '{"jsonrpc":"2.0","id":5,"method":"debug_traceTransaction","params":["0x01"]}' '{"jsonrpc":"2.0","id":6,"method":"eth_sendRawTransaction","params":["0x01"]}'; do
+            status="$(curl --noproxy '*' -sS --connect-timeout 6 --max-time 12 -H 'content-type: application/json' --data "$payload" -o /dev/null -w '%{http_code}' "$origin")"
+            test "$status" = 403
+          done
+          test "$(curl --noproxy '*' -sS -X OPTIONS -H 'Origin: https://explorer.kriptoaman.com' -o /dev/null -w '%{http_code}' "$origin")" = 204
+          test "$(curl --noproxy '*' -sS -X OPTIONS -H 'Origin: https://untrusted.invalid' -o /dev/null -w '%{http_code}' "$origin")" = 403
+          test "$(curl -fsS -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":7,"method":"eth_chainId","params":[]}' 'https://rpc.kriptoaman.com/' | jq -er '.result')" = 0x560c
+          test "$(curl --noproxy '*' -fsS -o /dev/null -w '%{http_code}' 'https://explorer.kriptoaman.com/')" = 200
+          echo "direct_tls=browser_trusted; chain=$chain; blocks=advancing; privileged_and_write_methods=denied; existing_routes=unchanged"
+  finalize:
+    needs: external
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 15
+    steps:
+      - name: Activate root-owned 12-hour renewal only after independent proof
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15 "bash /tmp/complete-zvq-rpc-origin-https.sh $GITHUB_RUN_ID success"
+  cleanup:
+    if: ${{ always() && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.confirm_rpc_tls == true }}
+    needs: [stage-acme, independent-acme-proof, stage-rpc, external, finalize]
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 5
+    steps:
+      - name: Remove temporary proof, rollback only this run if independent proof failed
+        env:
+          STAGE_RESULT: ${{ needs.stage-rpc.result }}
+          FINAL_RESULT: ${{ needs.finalize.result }}
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15 "test ! -f /tmp/stage-zvq-rpc-acme-proof.sh || bash /tmp/stage-zvq-rpc-acme-proof.sh stop $GITHUB_RUN_ID" || echo '::warning::ACME proof cleanup needs manual host inspection'
+          if [[ "$STAGE_RESULT" == success && "$FINAL_RESULT" != success ]]; then
+            ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15 "bash /tmp/rollback-zvq-rpc-origin-https.sh $GITHUB_RUN_ID"
+          fi
