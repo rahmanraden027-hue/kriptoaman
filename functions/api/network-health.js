@@ -483,7 +483,7 @@ export async function onRequestGet({ request, waitUntil, env } = {}) {
       mode: deliveryMode,
       snapshotAgeMs: ageMs,
       freshProbe: deliveryMode === 'fresh-probe',
-      edgeCacheEligible: !forceRefresh && deliveryMode === 'fresh-probe',
+      edgeCacheEligible: deliveryMode === 'fresh-probe' && snapshot.summary.online >= MIN_ACTIVE_TARGET,
     },
   };
   const status = snapshot.summary.online > 0 ? 200 : 503;
@@ -492,7 +492,9 @@ export async function onRequestGet({ request, waitUntil, env } = {}) {
     'X-KriptoAman-Network-Delivery': deliveryMode,
   });
 
-  if (!forceRefresh && edgeCache && status === 200 && deliveryMode === 'fresh-probe') {
+  // An explicit refresh still bypasses cache reads, but can prime the canonical GET key
+  // with freshly verified coverage; never cache a below-minimum network snapshot.
+  if (edgeCache && status === 200 && deliveryMode === 'fresh-probe' && snapshot.summary.online >= MIN_ACTIVE_TARGET) {
     const cacheWrite = edgeCache.put(cacheKey, response.clone())
       .then(() => true)
       .catch(() => false);

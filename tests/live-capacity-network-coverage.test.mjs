@@ -64,8 +64,9 @@ test('network health has bounded cross-POP verified evidence without weakening f
 test('only current fresh probes may seed the network edge cache', async () => {
   const health = await read('functions/api/network-health.js');
   assert.match(health, /deliveryMode === 'fresh-probe'/);
-  assert.match(health, /edgeCacheEligible: !forceRefresh && deliveryMode === 'fresh-probe'/);
-  assert.match(health, /!forceRefresh && edgeCache && status === 200 && deliveryMode === 'fresh-probe'/);
+  assert.match(health, /edgeCacheEligible: deliveryMode === 'fresh-probe' && snapshot\.summary\.online >= MIN_ACTIVE_TARGET/);
+  assert.match(health, /edgeCache && status === 200 && deliveryMode === 'fresh-probe' && snapshot\.summary\.online >= MIN_ACTIVE_TARGET/);
+  assert.match(health, /if \(!forceRefresh && edgeCache\)/);
   assert.doesNotMatch(health, /deliveryMode === 'd1-recent-verified'[\s\S]{0,180}edgeCache\.put/);
 });
 
