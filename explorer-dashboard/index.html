@@ -1,145 +1,2843 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<meta name="theme-color" content="#020713"/>
-<meta name="description" content="KAM Explorer — verified KriptoAman Mainnet activity from KAM RPC and Explorer APIs."/>
-<title>KAM Explorer · KriptoAman Mainnet</title>
-<style>
-:root{--bg:#020713;--bg2:#06101f;--panel:rgba(8,22,44,.88);--panel2:rgba(4,12,27,.95);--line:rgba(77,169,255,.2);--goldLine:rgba(255,199,74,.23);--text:#f2f7ff;--muted:#8fa8c2;--cyan:#32dcff;--blue:#397cff;--gold:#ffc74a;--green:#35e6a2;--red:#ff7889;--amber:#ffc85b;--shadow:0 24px 90px rgba(0,29,78,.34)}
-*{box-sizing:border-box}html{background:var(--bg);scroll-behavior:smooth}body{margin:0;min-height:100vh;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 85% -5%,rgba(0,113,255,.28),transparent 33%),radial-gradient(circle at 8% 7%,rgba(255,194,55,.09),transparent 20%),linear-gradient(180deg,#020713,#03101f 52%,#01050d);overflow-x:hidden}body:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(75,151,255,.034) 1px,transparent 1px),linear-gradient(90deg,rgba(75,151,255,.034) 1px,transparent 1px);background-size:44px 44px;mask-image:linear-gradient(to bottom,black,transparent 88%)}a{color:inherit;text-decoration:none}.shell{position:relative;width:min(1480px,calc(100% - 28px));margin:auto;padding:16px 0 38px}.glass{background:linear-gradient(145deg,rgba(10,26,53,.88),rgba(4,11,25,.94));border:1px solid var(--line);box-shadow:var(--shadow);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
-.topbar{position:sticky;top:8px;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 13px;border-radius:22px;margin-bottom:13px}.brand{display:flex;align-items:center;gap:11px;min-width:0}.brandMark{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;overflow:hidden;background:linear-gradient(135deg,#0b59d7,#1bcfff 55%,#d59e25);border:1px solid rgba(255,255,255,.15);box-shadow:0 0 32px rgba(36,162,255,.23)}.brandMark img{width:38px;height:38px;object-fit:contain}.brandText strong{display:block;font-size:17px}.brandText span{display:block;color:#75b8ff;font-size:11px;margin-top:2px}.toplinks{display:flex;gap:7px;align-items:center}.miniLink{padding:9px 11px;border-radius:12px;border:1px solid rgba(116,176,255,.12);color:#bfd3e7;font-size:12px}.miniLink:hover{border-color:rgba(50,220,255,.45);color:#fff}.statusPill{display:flex;align-items:center;gap:8px;border:1px solid rgba(255,200,91,.28);background:rgba(255,200,91,.07);padding:9px 12px;border-radius:999px;color:#ffe5a6;font-size:11px;font-weight:850}.statusPill.ok{border-color:rgba(53,230,162,.26);background:rgba(53,230,162,.07);color:#baffdf}.statusPill.bad{border-color:rgba(255,120,137,.26);background:rgba(255,120,137,.07);color:#ffc1c9}.dot{width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 14px currentColor}.statusPill.ok .dot{background:var(--green)}.statusPill.bad .dot{background:var(--red)}
-.hero{position:relative;overflow:hidden;border-radius:30px;padding:27px;margin-bottom:13px}.hero:after{content:"";position:absolute;width:620px;height:620px;border:1px solid rgba(44,161,255,.15);border-radius:50%;right:-250px;top:-365px;box-shadow:0 0 140px rgba(33,116,255,.14),inset 0 0 120px rgba(45,136,255,.05)}.eyebrow{color:#7ae1ff;font-size:10px;letter-spacing:.24em;font-weight:900}.hero h1{font-size:clamp(31px,5vw,59px);line-height:.98;margin:10px 0 13px;letter-spacing:-.045em;max-width:940px}.hero h1 em{font-style:normal;background:linear-gradient(90deg,#f8fbff 3%,#5de5ff 53%,#f3bd45 100%);-webkit-background-clip:text;background-clip:text;color:transparent}.hero p{max-width:850px;color:#9eb4ca;font-size:14px;line-height:1.7;margin:0}.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:17px}.badge{display:inline-flex;align-items:center;gap:7px;padding:8px 10px;border-radius:999px;background:rgba(10,31,62,.68);border:1px solid rgba(77,169,255,.18);font-size:10px;color:#c8dcef}.badge b{color:#fff}.search{position:relative;z-index:3;display:flex;gap:8px;margin-top:21px;max-width:990px}.search input{flex:1;min-width:0;height:54px;border-radius:17px;border:1px solid rgba(54,170,255,.34);background:rgba(1,7,18,.78);color:#fff;padding:0 17px;outline:none;font-size:14px}.search input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(50,220,255,.08)}.search button{height:54px;padding:0 22px;border-radius:17px;border:0;background:linear-gradient(135deg,#1677ff,#295cdb 57%,#be8d27);color:#fff;font-weight:900;cursor:pointer}.searchHint{min-height:18px;margin-top:8px;color:#7f9ab6;font-size:11px}.searchHint.error{color:#ff9caa}.searchHint.ok{color:#8ff5cb}
-.sourceStrip{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:13px}.sourceCard{border-radius:18px;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}.sourceCard>div{min-width:0}.sourceName{font-size:10px;color:#829db8;text-transform:uppercase;letter-spacing:.09em}.sourceValue{font-size:13px;font-weight:850;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sourceState{font-size:10px;border-radius:999px;padding:6px 8px;border:1px solid rgba(255,255,255,.1);color:#9fb5ca}.sourceState.ok{color:#8ff5cb;border-color:rgba(53,230,162,.22);background:rgba(53,230,162,.06)}.sourceState.bad{color:#ffabb6;border-color:rgba(255,120,137,.22);background:rgba(255,120,137,.06)}.sourceState.warn{color:#ffe4a2;border-color:rgba(255,200,91,.22);background:rgba(255,200,91,.06)}
-.blockHero{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(310px,.7fr);gap:12px;margin-bottom:12px}.blockHead{position:relative;overflow:hidden;border-radius:25px;padding:20px}.blockHead:before{content:"";position:absolute;right:-55px;top:-90px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(50,220,255,.16),transparent 68%)}.blockHeadTop{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;position:relative}.blockKicker{font-size:10px;color:#80a4c8;text-transform:uppercase;letter-spacing:.12em}.blockNumber{font-size:clamp(30px,4vw,48px);font-weight:950;letter-spacing:-.045em;margin-top:7px}.blockHash{font:11px ui-monospace,SFMono-Regular,Menlo,monospace;color:#6bdcff;margin-top:6px;word-break:break-all}.sourceBadge{position:relative;border:1px solid var(--goldLine);background:rgba(255,199,74,.07);color:#ffe09a;border-radius:999px;padding:8px 10px;font-size:10px;font-weight:850;white-space:nowrap}.blockMini{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:18px}.blockMini>div{padding:11px;border:1px solid rgba(78,168,255,.12);background:rgba(2,9,21,.4);border-radius:14px;min-width:0}.blockMini span{display:block;font-size:9px;color:#718da9;text-transform:uppercase;letter-spacing:.08em}.blockMini strong{display:block;font-size:13px;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.security{border-radius:25px;padding:17px}.panelHeader{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.panelHeader h2{font-size:15px;margin:0}.meta{font-size:10px;color:#718ba6}.healthRows{display:grid;gap:0}.healthRow{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid rgba(99,153,215,.09);font-size:11px}.healthRow:last-child{border-bottom:0}.healthRow span:first-child{color:#89a3bc}.state{font-weight:850;color:#c7d8e8;text-align:right}.state.ok{color:var(--green)}.state.warn{color:var(--amber)}.state.bad{color:var(--red)}
-.overviewGrid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(330px,.85fr);gap:12px;margin-bottom:12px}.panel{border-radius:23px;padding:16px;min-width:0}.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.metric{min-height:112px;border-radius:18px;padding:14px;border:1px solid rgba(78,168,255,.12);background:rgba(3,12,28,.45);position:relative;overflow:hidden}.metric:after{content:"";position:absolute;right:-25px;bottom:-45px;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,rgba(39,169,255,.13),transparent 70%)}.metric .label{color:#88a3bf;font-size:9px;text-transform:uppercase;letter-spacing:.1em}.metric .value{font-size:23px;font-weight:950;margin-top:9px;letter-spacing:-.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.metric .sub{font-size:10px;color:#718aa4;margin-top:6px;line-height:1.4}.accent{color:var(--green)}.cyan{color:var(--cyan)}.gold{color:var(--gold)}
-.chainPanel{border-radius:23px;padding:16px;overflow:hidden}.chainLegend{font-size:10px;color:#758fa9}.chainView{display:flex;align-items:center;gap:0;overflow:auto;padding:17px 2px 5px;scrollbar-width:thin}.chainNodeWrap{display:flex;align-items:center;flex:0 0 auto}.chainNode{width:128px;min-height:105px;border-radius:17px;padding:12px;border:1px solid rgba(68,181,255,.23);background:linear-gradient(145deg,rgba(9,30,58,.92),rgba(4,13,29,.92));cursor:pointer;transition:.18s;color:inherit;text-align:left}.chainNode:hover{transform:translateY(-2px);border-color:rgba(50,220,255,.5)}.chainNode.latest{border-color:rgba(255,199,74,.42);box-shadow:0 0 30px rgba(255,199,74,.07)}.chainNode .n{font-size:15px;font-weight:950}.chainNode .t{font-size:9px;color:#7892ad;margin-top:6px}.chainNode .h{font:9px ui-monospace,SFMono-Regular,Menlo,monospace;color:#56d9ff;margin-top:7px}.chainLink{width:34px;height:1px;background:linear-gradient(90deg,rgba(50,220,255,.2),rgba(255,199,74,.32));position:relative}.chainLink:after{content:"";position:absolute;right:0;top:-2px;width:5px;height:5px;border-radius:50%;background:#59dfff}.chainEmpty{color:#718aa4;font-size:11px;padding:24px 5px}
-.dataGrid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,.7fr);gap:12px;margin-bottom:12px}.tableWrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:650px}.table th{text-align:left;color:#6f8aa6;font-size:9px;text-transform:uppercase;letter-spacing:.08em;padding:9px 8px;border-bottom:1px solid rgba(83,144,209,.12)}.table td{font-size:11px;color:#c7d7e7;padding:10px 8px;border-bottom:1px solid rgba(83,144,209,.08);white-space:nowrap}.table tr:last-child td{border-bottom:0}.hash{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#50d4ff;cursor:pointer}.hash:hover{text-decoration:underline}.pill{display:inline-flex;border-radius:999px;padding:5px 7px;font-size:9px;font-weight:850;background:rgba(72,132,255,.09);color:#8fc4ff;border:1px solid rgba(72,132,255,.14)}.pill.ok{background:rgba(53,230,162,.08);color:#7df6ca;border-color:rgba(53,230,162,.15)}.placeholder{padding:20px 8px;color:#69829b;font-size:11px}.notice{border-radius:20px;padding:15px;color:#91a9c0;font-size:11px;line-height:1.65}.notice b{color:#e9f5ff}.notice strong{color:var(--gold)}
-.detail{display:none;border-radius:23px;padding:16px;margin-bottom:12px}.detail.show{display:block}.detailGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.detailItem{border-radius:14px;border:1px solid rgba(77,155,235,.13);background:rgba(1,8,20,.42);padding:11px;min-width:0}.detailItem .k{font-size:9px;color:#7690aa;text-transform:uppercase;letter-spacing:.08em}.detailItem .v{font-size:11px;color:#d7e5f4;margin-top:5px;word-break:break-all;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.closeBtn{border:1px solid rgba(117,175,235,.18);background:rgba(5,17,35,.7);color:#b9cee2;border-radius:10px;padding:7px 9px;cursor:pointer}.quick{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.quick a{padding:13px 10px;border-radius:15px;text-align:center;border:1px solid rgba(78,157,240,.14);background:rgba(5,15,33,.72);font-size:10px;color:#9eb6ce}.quick a:hover{border-color:rgba(50,220,255,.4);color:#fff}.footer{display:flex;justify-content:space-between;gap:12px;align-items:center;color:#617b97;font-size:10px;padding:19px 5px 0}
-@media(max-width:1100px){.blockHero,.overviewGrid,.dataGrid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(3,1fr)}.sourceStrip{grid-template-columns:1fr}.quick{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:720px){.shell{width:min(100% - 16px,1480px);padding-top:8px}.topbar{top:5px;border-radius:18px;padding:9px}.toplinks{display:none}.brandMark{width:43px;height:43px}.brandMark img{width:34px;height:34px}.brandText strong{font-size:15px}.hero{padding:21px 16px;border-radius:23px}.hero p{font-size:12px}.search{display:grid;grid-template-columns:1fr}.search button{width:100%}.blockHead,.security,.panel,.chainPanel{border-radius:19px;padding:13px}.blockHeadTop{display:block}.sourceBadge{display:inline-block;margin-top:11px}.blockMini{grid-template-columns:repeat(2,1fr)}.metrics{grid-template-columns:repeat(2,1fr);gap:8px}.metric{min-height:105px;padding:12px}.metric .value{font-size:20px}.detailGrid{grid-template-columns:1fr}.quick{grid-template-columns:repeat(2,1fr)}.footer{display:block;line-height:1.8}.statusPill{padding:7px 9px}.sourceCard{padding:11px 12px}.chainNode{width:116px;min-height:100px}.chainLink{width:22px}}
-/* ===== KAM EXPLORER REFERENCE UI · 2026-09-18 ===== */
-:root{--refLine:rgba(28,144,255,.34);--refPanel:rgba(3,17,38,.94)}
-.shell{width:min(1420px,calc(100% - 24px));padding-top:12px}
-.glass{background:linear-gradient(145deg,rgba(6,25,52,.96),rgba(2,11,27,.96));border-color:var(--refLine);box-shadow:0 18px 60px rgba(0,41,104,.28),inset 0 1px 0 rgba(255,255,255,.025)}
-.topbar{border-radius:18px;padding:9px 12px;background:linear-gradient(180deg,rgba(4,22,48,.98),rgba(2,12,29,.98));box-shadow:0 0 35px rgba(0,108,255,.12)}
-.brandMark{width:46px;height:46px;border-radius:13px}.brandText strong{font-size:18px}.brandText span{font-size:10px;color:#86bff4}
-.toplinks{gap:5px}.miniLink{min-width:88px;text-align:center;border-color:rgba(83,153,239,.18);background:rgba(2,13,31,.56);font-weight:750}.miniLink.active{border-color:#168cff;background:linear-gradient(180deg,rgba(11,67,136,.55),rgba(4,24,53,.68));box-shadow:0 0 22px rgba(28,142,255,.17)}
-.statusPill{border-color:rgba(53,230,162,.42);background:rgba(13,108,79,.14);color:#79ffd0;padding:9px 14px}
-.hero{min-height:324px;padding:28px 31px;border-radius:24px;display:grid;grid-template-columns:minmax(0,1fr) 330px;align-items:center;gap:18px}.hero:after{display:none}.heroCopy{position:relative;z-index:2}.hero h1{font-size:clamp(34px,4.25vw,61px);max-width:820px;line-height:.97;margin:9px 0 10px}.hero h1 em{background:linear-gradient(90deg,#50ddff 0%,#59d7ff 40%,#ffc448 100%);-webkit-background-clip:text;background-clip:text;color:transparent}.hero p{max-width:880px;line-height:1.45;color:#a2bad2;font-size:13px}.heroOrb{position:relative;width:290px;height:290px;justify-self:end;border-radius:50%;background:radial-gradient(circle at 43% 40%,rgba(29,123,255,.22),rgba(2,16,36,.86) 56%,rgba(0,7,18,.98) 72%);border:1px solid rgba(42,144,255,.31);box-shadow:inset 0 0 60px rgba(25,115,255,.21),0 0 55px rgba(10,93,207,.2);overflow:hidden}.heroOrb:before{content:"";position:absolute;inset:15px;border-radius:50%;background-image:radial-gradient(circle,#1da8ff 1px,transparent 1.35px);background-size:10px 10px;mask-image:radial-gradient(circle at center,black 20%,rgba(0,0,0,.82) 62%,transparent 75%);opacity:.68}.orbCore{position:absolute;z-index:3;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;letter-spacing:.22em;text-align:center}.orbCore strong{font-size:28px;letter-spacing:.08em;color:#54dfff;margin-bottom:8px}.orbCore span{font-size:9px;line-height:1.75;color:#b9d8f5}.orbit{position:absolute;border:1px solid rgba(255,193,55,.76);border-radius:50%;left:3%;right:3%;top:45%;height:32%;transform:rotate(-16deg);box-shadow:0 0 14px rgba(255,194,58,.16)}.orbitB{transform:rotate(18deg);opacity:.5}.spark{position:absolute;width:6px;height:6px;border-radius:50%;background:#ffd25e;box-shadow:0 0 12px #ffc22e}.s1{left:18%;top:43%}.s2{right:10%;top:61%}.s3{left:58%;bottom:13%}
-.search{max-width:none;margin-top:17px;grid-column:1/-1}.search input{height:52px;border-radius:15px;border-color:rgba(40,157,255,.42);box-shadow:inset 0 0 20px rgba(0,94,216,.08)}.search button{height:52px;min-width:142px;border-radius:15px;background:linear-gradient(110deg,#087aff 0%,#1791ff 50%,#ffc23c 100%);font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px}.searchGlyph{font-size:22px;line-height:1}
-.blockOverview{border-radius:22px;padding:15px 16px;margin-bottom:12px}.overviewHeader{display:grid;grid-template-columns:minmax(0,1fr) auto 132px;align-items:center;gap:15px;margin-bottom:13px}.overviewTitle{display:flex;align-items:center;gap:12px}.overviewTitle h2{font-size:18px;margin:0}.overviewTitle p{font-size:10px;color:#89a7c4;margin:3px 0 0}.cubeIcon,.cubeSmall{display:inline-block;width:33px;height:33px;border:2px solid #1dbeff;transform:rotate(30deg) skew(-4deg);box-shadow:0 0 18px rgba(27,184,255,.35);border-radius:4px}.overviewLive{display:flex;gap:8px;align-items:center;color:#4ff0b1}.overviewLive small{display:block;color:#8aa8c4;font-size:9px;margin-top:2px}.liveDot{width:10px;height:10px;border-radius:50%;background:#3ceba9;box-shadow:0 0 12px rgba(60,235,169,.9)}.chainIdCard{border-left:1px solid rgba(70,158,244,.2);padding-left:16px}.chainIdCard span,.chainIdCard small{display:block;color:#86a3bf;font-size:9px}.chainIdCard strong{display:block;color:#49dfff;font-size:24px;line-height:1;margin:3px 0}.overviewCards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.overviewCard{min-height:92px;border:1px solid rgba(58,146,238,.23);border-radius:14px;background:linear-gradient(145deg,rgba(6,28,57,.92),rgba(4,15,31,.96));display:flex;align-items:center;gap:12px;padding:13px;box-shadow:inset -30px -20px 40px rgba(255,187,52,.035)}.overviewCard small{display:block;color:#94b0cb;font-size:10px}.overviewCard strong{display:block;font-size:22px;margin:3px 0;letter-spacing:-.02em}.overviewCard span:last-child{display:block;color:#879fb8;font-size:9px}.cardIcon{width:42px;height:42px;flex:0 0 42px;border-radius:12px;display:grid;place-items:center;background:rgba(9,95,188,.24);border:1px solid rgba(43,164,255,.25);color:#46d9ff;font-size:22px;box-shadow:0 0 20px rgba(18,138,255,.12)}.finalizedIcon{color:#45f0b2;background:rgba(17,154,110,.18)}.barsIcon{color:#43e7aa}.blockEvidence{height:0;overflow:hidden;opacity:0;pointer-events:none}
-.chainPanel{border-radius:22px;padding:14px 16px;margin-bottom:12px}.chainHead h2{font-size:18px;margin:0}.chainHead .chainLegend{display:block;margin-top:3px}.viewAll{border:1px solid rgba(29,162,255,.54);border-radius:999px;padding:9px 14px;font-size:10px;font-weight:850;background:rgba(8,64,128,.24);color:#d7ecff}.chainView{padding:14px 0 12px}.chainNode{width:155px;min-height:86px;padding:12px 10px 10px 61px;position:relative;border-color:rgba(20,157,255,.5);border-radius:12px}.chainNode:before{content:"";position:absolute;left:15px;top:22px;width:32px;height:32px;border:2px solid #20cfff;transform:rotate(30deg) skew(-4deg);border-radius:3px;box-shadow:0 0 16px rgba(32,207,255,.5)}.chainNode.latest{border-color:rgba(255,200,64,.68);box-shadow:0 0 26px rgba(255,190,53,.1)}.chainNode.latest:before{border-color:#ffd05a;box-shadow:0 0 18px rgba(255,208,90,.65)}.chainNode .n{font-size:15px}.chainNode .t{font-size:9px}.chainNode .h{font-size:8px}.chainLink{width:32px;background:linear-gradient(90deg,#13bfff,#30cfff);box-shadow:0 0 8px rgba(28,189,255,.4)}
-.sourceStrip{margin:5px 0 0;grid-template-columns:repeat(3,1fr)}.sourceCard{padding:10px 12px;border-radius:12px;background:rgba(3,18,39,.7);box-shadow:none}.sourceName{font-size:8px}.sourceValue{font-size:11px}
-.snapshotGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:9px}.snapshotCard,.indexCard{border-radius:14px;padding:13px 14px;min-height:86px}.snapshotCard small,.indexCard small{display:block;font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:#829db7}.snapshotCard strong,.indexCard strong{display:block;font-size:20px;margin:5px 0 3px}.snapshotCard span,.indexCard span{font-size:9px;color:#7891aa}.indexGrid{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:9px;margin-bottom:12px}.securityCard strong{color:#58efb5;font-size:16px}.compactHealth{display:none}
-.blocksPanel{margin-bottom:12px;border-radius:18px;padding:14px}.blocksPanel .panelHeader h2{font-size:18px}.table th{font-size:8px}.table td{font-size:10px;padding:9px 8px}.homeTransactions{display:none}
-.quick{grid-template-columns:repeat(3,1fr);gap:7px}.quick a{border-radius:12px;padding:11px;font-size:10px;background:linear-gradient(180deg,rgba(4,25,53,.88),rgba(3,15,34,.92));border-color:rgba(39,132,229,.26)}
-@media(max-width:980px){.hero{grid-template-columns:1fr 240px}.heroOrb{width:220px;height:220px}.overviewHeader{grid-template-columns:1fr auto}.chainIdCard{grid-column:1/-1;border-left:0;border-top:1px solid rgba(70,158,244,.16);padding:8px 0 0}.overviewCards,.snapshotGrid{grid-template-columns:repeat(2,1fr)}.indexGrid{grid-template-columns:1fr 1fr}.securityCard{grid-column:1/-1}}
-@media(max-width:720px){.shell{width:calc(100% - 12px)}.topbar{border-radius:14px}.hero{display:block;min-height:0;padding:20px 16px}.heroOrb{display:none}.hero h1{font-size:37px}.hero p{font-size:11px}.badges{gap:6px}.badge{padding:7px 8px;font-size:9px}.search{display:grid;grid-template-columns:1fr}.search button{width:100%}.blockOverview{padding:12px}.overviewHeader{display:block}.overviewLive{margin:9px 0}.chainIdCard{margin-top:9px}.overviewCards{grid-template-columns:1fr 1fr;gap:7px}.overviewCard{min-height:84px;padding:10px;gap:8px}.cardIcon{width:34px;height:34px;flex-basis:34px}.overviewCard strong{font-size:18px}.snapshotGrid{grid-template-columns:1fr 1fr;gap:7px}.snapshotCard{min-height:80px;padding:11px}.snapshotCard strong{font-size:17px}.indexGrid{grid-template-columns:1fr 1fr}.securityCard{grid-column:1/-1}.sourceStrip{grid-template-columns:1fr}.chainNode{width:137px;padding-left:56px}.quick{grid-template-columns:1fr 1fr}.blocksPanel{padding:10px}.footer{font-size:9px}}
-</style>
-</head>
-<body>
-<main class="shell" data-kam-explorer-version="2.0.0">
-<header class="topbar glass">
-<a class="brand" href="/"><div class="brandMark"><img src="https://kriptoaman.com/brand/kriptoaman-mark.svg" alt="KriptoAman"/></div><div class="brandText"><strong>KAM Explorer</strong><span>KriptoAman Mainnet · Verified public data</span></div></a>
-<nav class="toplinks"><a class="miniLink active" href="/blocks">Blocks</a><a class="miniLink" href="/txs">Transactions</a><a class="miniLink" href="https://kriptoaman.com">KriptoAman</a></nav>
-<div class="statusPill" id="statusPill"><span class="dot"></span><span id="topStatus">Checking network</span></div>
-</header>
-<section class="hero glass">
-<div class="heroCopy">
-<div class="eyebrow">KAM NETWORK · ON-CHAIN INTELLIGENCE</div>
-<h1>See what the <em>network is doing.</em><br/>Verify it yourself.</h1>
-<p>KAM Explorer uses the public Explorer API when available and automatically falls back to the public KAM JSON-RPC for live block and transaction data. Unavailable data is shown as unavailable—not invented.</p>
-<div class="badges"><span class="badge">Chain ID <b>22028</b></span><span class="badge">Native Asset <b>KAM</b></span><span class="badge">EVM <b>Compatible</b></span><span class="badge">Data policy <b>Verified only</b></span></div>
-<form class="search" id="searchForm"><input id="searchInput" autocomplete="off" spellcheck="false" placeholder="Search address / transaction hash / block number…"/><button type="submit"><span class="searchGlyph">⌕</span><span>Explore</span></button></form>
-<div class="searchHint" id="searchHint">Search works directly against KAM RPC when the indexer is unavailable.</div>
-</div>
-<div class="heroOrb" aria-hidden="true"><div class="orbCore"><strong>KAM</strong><span>SECURE</span><span>TRANSPARENT</span><span>TOGETHER</span></div><i class="orbit orbitA"></i><i class="orbit orbitB"></i><i class="spark s1"></i><i class="spark s2"></i><i class="spark s3"></i></div>
-</section>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#020713" />
+    <meta
+      name="description"
+      content="ZEVARYQ Explorer — verified ZEVARYQ Mainnet activity from ZEVARYQ RPC and Explorer APIs."
+    />
+    <title>ZEVARYQ Explorer · ZEVARYQ Mainnet</title>
+    <style>
+      :root {
+        --bg: #020713;
+        --bg2: #06101f;
+        --panel: rgba(8, 22, 44, 0.88);
+        --panel2: rgba(4, 12, 27, 0.95);
+        --line: rgba(77, 169, 255, 0.2);
+        --goldLine: rgba(255, 199, 74, 0.23);
+        --text: #f2f7ff;
+        --muted: #8fa8c2;
+        --cyan: #32dcff;
+        --blue: #397cff;
+        --gold: #ffc74a;
+        --green: #35e6a2;
+        --red: #ff7889;
+        --amber: #ffc85b;
+        --shadow: 0 24px 90px rgba(0, 29, 78, 0.34);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        background: var(--bg);
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--text);
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        background:
+          radial-gradient(
+            circle at 85% -5%,
+            rgba(0, 113, 255, 0.28),
+            transparent 33%
+          ),
+          radial-gradient(
+            circle at 8% 7%,
+            rgba(255, 194, 55, 0.09),
+            transparent 20%
+          ),
+          linear-gradient(180deg, #020713, #03101f 52%, #01050d);
+        overflow-x: hidden;
+      }
+      body:before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(75, 151, 255, 0.034) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(75, 151, 255, 0.034) 1px, transparent 1px);
+        background-size: 44px 44px;
+        mask-image: linear-gradient(to bottom, black, transparent 88%);
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .shell {
+        position: relative;
+        width: min(1480px, calc(100% - 28px));
+        margin: auto;
+        padding: 16px 0 38px;
+      }
+      .glass {
+        background: linear-gradient(
+          145deg,
+          rgba(10, 26, 53, 0.88),
+          rgba(4, 11, 25, 0.94)
+        );
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+      }
+      .topbar {
+        position: sticky;
+        top: 8px;
+        z-index: 30;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 10px 13px;
+        border-radius: 22px;
+        margin-bottom: 13px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        min-width: 0;
+      }
+      .brandMark {
+        width: 48px;
+        height: 48px;
+        border-radius: 15px;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background: linear-gradient(135deg, #0b59d7, #1bcfff 55%, #d59e25);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 0 32px rgba(36, 162, 255, 0.23);
+      }
+      .brandMark img {
+        width: 38px;
+        height: 38px;
+        object-fit: contain;
+      }
+      .brandText strong {
+        display: block;
+        font-size: 17px;
+      }
+      .brandText span {
+        display: block;
+        color: #75b8ff;
+        font-size: 11px;
+        margin-top: 2px;
+      }
+      .toplinks {
+        display: flex;
+        gap: 7px;
+        align-items: center;
+      }
+      .miniLink {
+        padding: 9px 11px;
+        border-radius: 12px;
+        border: 1px solid rgba(116, 176, 255, 0.12);
+        color: #bfd3e7;
+        font-size: 12px;
+      }
+      .miniLink:hover {
+        border-color: rgba(50, 220, 255, 0.45);
+        color: #fff;
+      }
+      .statusPill {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid rgba(255, 200, 91, 0.28);
+        background: rgba(255, 200, 91, 0.07);
+        padding: 9px 12px;
+        border-radius: 999px;
+        color: #ffe5a6;
+        font-size: 11px;
+        font-weight: 850;
+      }
+      .statusPill.ok {
+        border-color: rgba(53, 230, 162, 0.26);
+        background: rgba(53, 230, 162, 0.07);
+        color: #baffdf;
+      }
+      .statusPill.bad {
+        border-color: rgba(255, 120, 137, 0.26);
+        background: rgba(255, 120, 137, 0.07);
+        color: #ffc1c9;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--amber);
+        box-shadow: 0 0 14px currentColor;
+      }
+      .statusPill.ok .dot {
+        background: var(--green);
+      }
+      .statusPill.bad .dot {
+        background: var(--red);
+      }
+      .hero {
+        position: relative;
+        overflow: hidden;
+        border-radius: 30px;
+        padding: 27px;
+        margin-bottom: 13px;
+      }
+      .hero:after {
+        content: "";
+        position: absolute;
+        width: 620px;
+        height: 620px;
+        border: 1px solid rgba(44, 161, 255, 0.15);
+        border-radius: 50%;
+        right: -250px;
+        top: -365px;
+        box-shadow:
+          0 0 140px rgba(33, 116, 255, 0.14),
+          inset 0 0 120px rgba(45, 136, 255, 0.05);
+      }
+      .eyebrow {
+        color: #7ae1ff;
+        font-size: 10px;
+        letter-spacing: 0.24em;
+        font-weight: 900;
+      }
+      .hero h1 {
+        font-size: clamp(31px, 5vw, 59px);
+        line-height: 0.98;
+        margin: 10px 0 13px;
+        letter-spacing: -0.045em;
+        max-width: 940px;
+      }
+      .hero h1 em {
+        font-style: normal;
+        background: linear-gradient(
+          90deg,
+          #f8fbff 3%,
+          #5de5ff 53%,
+          #f3bd45 100%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .hero p {
+        max-width: 850px;
+        color: #9eb4ca;
+        font-size: 14px;
+        line-height: 1.7;
+        margin: 0;
+      }
+      .badges {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 17px;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        background: rgba(10, 31, 62, 0.68);
+        border: 1px solid rgba(77, 169, 255, 0.18);
+        font-size: 10px;
+        color: #c8dcef;
+      }
+      .badge b {
+        color: #fff;
+      }
+      .search {
+        position: relative;
+        z-index: 3;
+        display: flex;
+        gap: 8px;
+        margin-top: 21px;
+        max-width: 990px;
+      }
+      .search input {
+        flex: 1;
+        min-width: 0;
+        height: 54px;
+        border-radius: 17px;
+        border: 1px solid rgba(54, 170, 255, 0.34);
+        background: rgba(1, 7, 18, 0.78);
+        color: #fff;
+        padding: 0 17px;
+        outline: none;
+        font-size: 14px;
+      }
+      .search input:focus {
+        border-color: var(--cyan);
+        box-shadow: 0 0 0 3px rgba(50, 220, 255, 0.08);
+      }
+      .search button {
+        height: 54px;
+        padding: 0 22px;
+        border-radius: 17px;
+        border: 0;
+        background: linear-gradient(135deg, #1677ff, #295cdb 57%, #be8d27);
+        color: #fff;
+        font-weight: 900;
+        cursor: pointer;
+      }
+      .searchHint {
+        min-height: 18px;
+        margin-top: 8px;
+        color: #7f9ab6;
+        font-size: 11px;
+      }
+      .searchHint.error {
+        color: #ff9caa;
+      }
+      .searchHint.ok {
+        color: #8ff5cb;
+      }
+      .sourceStrip {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 9px;
+        margin-bottom: 13px;
+      }
+      .sourceCard {
+        border-radius: 18px;
+        padding: 13px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .sourceCard > div {
+        min-width: 0;
+      }
+      .sourceName {
+        font-size: 10px;
+        color: #829db8;
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+      }
+      .sourceValue {
+        font-size: 13px;
+        font-weight: 850;
+        margin-top: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .sourceState {
+        font-size: 10px;
+        border-radius: 999px;
+        padding: 6px 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #9fb5ca;
+      }
+      .sourceState.ok {
+        color: #8ff5cb;
+        border-color: rgba(53, 230, 162, 0.22);
+        background: rgba(53, 230, 162, 0.06);
+      }
+      .sourceState.bad {
+        color: #ffabb6;
+        border-color: rgba(255, 120, 137, 0.22);
+        background: rgba(255, 120, 137, 0.06);
+      }
+      .sourceState.warn {
+        color: #ffe4a2;
+        border-color: rgba(255, 200, 91, 0.22);
+        background: rgba(255, 200, 91, 0.06);
+      }
+      .blockHero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.55fr) minmax(310px, 0.7fr);
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .blockHead {
+        position: relative;
+        overflow: hidden;
+        border-radius: 25px;
+        padding: 20px;
+      }
+      .blockHead:before {
+        content: "";
+        position: absolute;
+        right: -55px;
+        top: -90px;
+        width: 260px;
+        height: 260px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(50, 220, 255, 0.16),
+          transparent 68%
+        );
+      }
+      .blockHeadTop {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 14px;
+        position: relative;
+      }
+      .blockKicker {
+        font-size: 10px;
+        color: #80a4c8;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+      .blockNumber {
+        font-size: clamp(30px, 4vw, 48px);
+        font-weight: 950;
+        letter-spacing: -0.045em;
+        margin-top: 7px;
+      }
+      .blockHash {
+        font:
+          11px ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          monospace;
+        color: #6bdcff;
+        margin-top: 6px;
+        word-break: break-all;
+      }
+      .sourceBadge {
+        position: relative;
+        border: 1px solid var(--goldLine);
+        background: rgba(255, 199, 74, 0.07);
+        color: #ffe09a;
+        border-radius: 999px;
+        padding: 8px 10px;
+        font-size: 10px;
+        font-weight: 850;
+        white-space: nowrap;
+      }
+      .blockMini {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 18px;
+      }
+      .blockMini > div {
+        padding: 11px;
+        border: 1px solid rgba(78, 168, 255, 0.12);
+        background: rgba(2, 9, 21, 0.4);
+        border-radius: 14px;
+        min-width: 0;
+      }
+      .blockMini span {
+        display: block;
+        font-size: 9px;
+        color: #718da9;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .blockMini strong {
+        display: block;
+        font-size: 13px;
+        margin-top: 5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .security {
+        border-radius: 25px;
+        padding: 17px;
+      }
+      .panelHeader {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+      .panelHeader h2 {
+        font-size: 15px;
+        margin: 0;
+      }
+      .meta {
+        font-size: 10px;
+        color: #718ba6;
+      }
+      .healthRows {
+        display: grid;
+        gap: 0;
+      }
+      .healthRow {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 11px 0;
+        border-bottom: 1px solid rgba(99, 153, 215, 0.09);
+        font-size: 11px;
+      }
+      .healthRow:last-child {
+        border-bottom: 0;
+      }
+      .healthRow span:first-child {
+        color: #89a3bc;
+      }
+      .state {
+        font-weight: 850;
+        color: #c7d8e8;
+        text-align: right;
+      }
+      .state.ok {
+        color: var(--green);
+      }
+      .state.warn {
+        color: var(--amber);
+      }
+      .state.bad {
+        color: var(--red);
+      }
+      .overviewGrid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(330px, 0.85fr);
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .panel {
+        border-radius: 23px;
+        padding: 16px;
+        min-width: 0;
+      }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 9px;
+      }
+      .metric {
+        min-height: 112px;
+        border-radius: 18px;
+        padding: 14px;
+        border: 1px solid rgba(78, 168, 255, 0.12);
+        background: rgba(3, 12, 28, 0.45);
+        position: relative;
+        overflow: hidden;
+      }
+      .metric:after {
+        content: "";
+        position: absolute;
+        right: -25px;
+        bottom: -45px;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(39, 169, 255, 0.13),
+          transparent 70%
+        );
+      }
+      .metric .label {
+        color: #88a3bf;
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+      }
+      .metric .value {
+        font-size: 23px;
+        font-weight: 950;
+        margin-top: 9px;
+        letter-spacing: -0.04em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .metric .sub {
+        font-size: 10px;
+        color: #718aa4;
+        margin-top: 6px;
+        line-height: 1.4;
+      }
+      .accent {
+        color: var(--green);
+      }
+      .cyan {
+        color: var(--cyan);
+      }
+      .gold {
+        color: var(--gold);
+      }
+      .chainPanel {
+        border-radius: 23px;
+        padding: 16px;
+        overflow: hidden;
+      }
+      .chainLegend {
+        font-size: 10px;
+        color: #758fa9;
+      }
+      .chainView {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        overflow: auto;
+        padding: 17px 2px 5px;
+        scrollbar-width: thin;
+      }
+      .chainNodeWrap {
+        display: flex;
+        align-items: center;
+        flex: 0 0 auto;
+      }
+      .chainNode {
+        width: 128px;
+        min-height: 105px;
+        border-radius: 17px;
+        padding: 12px;
+        border: 1px solid rgba(68, 181, 255, 0.23);
+        background: linear-gradient(
+          145deg,
+          rgba(9, 30, 58, 0.92),
+          rgba(4, 13, 29, 0.92)
+        );
+        cursor: pointer;
+        transition: 0.18s;
+        color: inherit;
+        text-align: left;
+      }
+      .chainNode:hover {
+        transform: translateY(-2px);
+        border-color: rgba(50, 220, 255, 0.5);
+      }
+      .chainNode.latest {
+        border-color: rgba(255, 199, 74, 0.42);
+        box-shadow: 0 0 30px rgba(255, 199, 74, 0.07);
+      }
+      .chainNode .n {
+        font-size: 15px;
+        font-weight: 950;
+      }
+      .chainNode .t {
+        font-size: 9px;
+        color: #7892ad;
+        margin-top: 6px;
+      }
+      .chainNode .h {
+        font:
+          9px ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          monospace;
+        color: #56d9ff;
+        margin-top: 7px;
+      }
+      .chainLink {
+        width: 34px;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          rgba(50, 220, 255, 0.2),
+          rgba(255, 199, 74, 0.32)
+        );
+        position: relative;
+      }
+      .chainLink:after {
+        content: "";
+        position: absolute;
+        right: 0;
+        top: -2px;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #59dfff;
+      }
+      .chainEmpty {
+        color: #718aa4;
+        font-size: 11px;
+        padding: 24px 5px;
+      }
+      .dataGrid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.7fr);
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .tableWrap {
+        overflow: auto;
+      }
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 650px;
+      }
+      .table th {
+        text-align: left;
+        color: #6f8aa6;
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 9px 8px;
+        border-bottom: 1px solid rgba(83, 144, 209, 0.12);
+      }
+      .table td {
+        font-size: 11px;
+        color: #c7d7e7;
+        padding: 10px 8px;
+        border-bottom: 1px solid rgba(83, 144, 209, 0.08);
+        white-space: nowrap;
+      }
+      .table tr:last-child td {
+        border-bottom: 0;
+      }
+      .hash {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        color: #50d4ff;
+        cursor: pointer;
+      }
+      .hash:hover {
+        text-decoration: underline;
+      }
+      .pill {
+        display: inline-flex;
+        border-radius: 999px;
+        padding: 5px 7px;
+        font-size: 9px;
+        font-weight: 850;
+        background: rgba(72, 132, 255, 0.09);
+        color: #8fc4ff;
+        border: 1px solid rgba(72, 132, 255, 0.14);
+      }
+      .pill.ok {
+        background: rgba(53, 230, 162, 0.08);
+        color: #7df6ca;
+        border-color: rgba(53, 230, 162, 0.15);
+      }
+      .placeholder {
+        padding: 20px 8px;
+        color: #69829b;
+        font-size: 11px;
+      }
+      .notice {
+        border-radius: 20px;
+        padding: 15px;
+        color: #91a9c0;
+        font-size: 11px;
+        line-height: 1.65;
+      }
+      .notice b {
+        color: #e9f5ff;
+      }
+      .notice strong {
+        color: var(--gold);
+      }
+      .detail {
+        display: none;
+        border-radius: 23px;
+        padding: 16px;
+        margin-bottom: 12px;
+      }
+      .detail.show {
+        display: block;
+      }
+      .detailGrid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .detailItem {
+        border-radius: 14px;
+        border: 1px solid rgba(77, 155, 235, 0.13);
+        background: rgba(1, 8, 20, 0.42);
+        padding: 11px;
+        min-width: 0;
+      }
+      .detailItem .k {
+        font-size: 9px;
+        color: #7690aa;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .detailItem .v {
+        font-size: 11px;
+        color: #d7e5f4;
+        margin-top: 5px;
+        word-break: break-all;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      .closeBtn {
+        border: 1px solid rgba(117, 175, 235, 0.18);
+        background: rgba(5, 17, 35, 0.7);
+        color: #b9cee2;
+        border-radius: 10px;
+        padding: 7px 9px;
+        cursor: pointer;
+      }
+      .quick {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+      }
+      .quick a {
+        padding: 13px 10px;
+        border-radius: 15px;
+        text-align: center;
+        border: 1px solid rgba(78, 157, 240, 0.14);
+        background: rgba(5, 15, 33, 0.72);
+        font-size: 10px;
+        color: #9eb6ce;
+      }
+      .quick a:hover {
+        border-color: rgba(50, 220, 255, 0.4);
+        color: #fff;
+      }
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        color: #617b97;
+        font-size: 10px;
+        padding: 19px 5px 0;
+      }
+      @media (max-width: 1100px) {
+        .blockHero,
+        .overviewGrid,
+        .dataGrid {
+          grid-template-columns: 1fr;
+        }
+        .metrics {
+          grid-template-columns: repeat(3, 1fr);
+        }
+        .sourceStrip {
+          grid-template-columns: 1fr;
+        }
+        .quick {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      @media (max-width: 720px) {
+        .shell {
+          width: min(100% - 16px, 1480px);
+          padding-top: 8px;
+        }
+        .topbar {
+          top: 5px;
+          border-radius: 18px;
+          padding: 9px;
+        }
+        .toplinks {
+          display: none;
+        }
+        .brandMark {
+          width: 43px;
+          height: 43px;
+        }
+        .brandMark img {
+          width: 34px;
+          height: 34px;
+        }
+        .brandText strong {
+          font-size: 15px;
+        }
+        .hero {
+          padding: 21px 16px;
+          border-radius: 23px;
+        }
+        .hero p {
+          font-size: 12px;
+        }
+        .search {
+          display: grid;
+          grid-template-columns: 1fr;
+        }
+        .search button {
+          width: 100%;
+        }
+        .blockHead,
+        .security,
+        .panel,
+        .chainPanel {
+          border-radius: 19px;
+          padding: 13px;
+        }
+        .blockHeadTop {
+          display: block;
+        }
+        .sourceBadge {
+          display: inline-block;
+          margin-top: 11px;
+        }
+        .blockMini {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .metrics {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+        }
+        .metric {
+          min-height: 105px;
+          padding: 12px;
+        }
+        .metric .value {
+          font-size: 20px;
+        }
+        .detailGrid {
+          grid-template-columns: 1fr;
+        }
+        .quick {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .footer {
+          display: block;
+          line-height: 1.8;
+        }
+        .statusPill {
+          padding: 7px 9px;
+        }
+        .sourceCard {
+          padding: 11px 12px;
+        }
+        .chainNode {
+          width: 116px;
+          min-height: 100px;
+        }
+        .chainLink {
+          width: 22px;
+        }
+      }
+      /* ===== KAM EXPLORER REFERENCE UI · 2026-09-18 ===== */
+      :root {
+        --refLine: rgba(28, 144, 255, 0.34);
+        --refPanel: rgba(3, 17, 38, 0.94);
+      }
+      .shell {
+        width: min(1420px, calc(100% - 24px));
+        padding-top: 12px;
+      }
+      .glass {
+        background: linear-gradient(
+          145deg,
+          rgba(6, 25, 52, 0.96),
+          rgba(2, 11, 27, 0.96)
+        );
+        border-color: var(--refLine);
+        box-shadow:
+          0 18px 60px rgba(0, 41, 104, 0.28),
+          inset 0 1px 0 rgba(255, 255, 255, 0.025);
+      }
+      .topbar {
+        border-radius: 18px;
+        padding: 9px 12px;
+        background: linear-gradient(
+          180deg,
+          rgba(4, 22, 48, 0.98),
+          rgba(2, 12, 29, 0.98)
+        );
+        box-shadow: 0 0 35px rgba(0, 108, 255, 0.12);
+      }
+      .brandMark {
+        width: 46px;
+        height: 46px;
+        border-radius: 13px;
+      }
+      .brandText strong {
+        font-size: 18px;
+      }
+      .brandText span {
+        font-size: 10px;
+        color: #86bff4;
+      }
+      .toplinks {
+        gap: 5px;
+      }
+      .miniLink {
+        min-width: 88px;
+        text-align: center;
+        border-color: rgba(83, 153, 239, 0.18);
+        background: rgba(2, 13, 31, 0.56);
+        font-weight: 750;
+      }
+      .miniLink.active {
+        border-color: #168cff;
+        background: linear-gradient(
+          180deg,
+          rgba(11, 67, 136, 0.55),
+          rgba(4, 24, 53, 0.68)
+        );
+        box-shadow: 0 0 22px rgba(28, 142, 255, 0.17);
+      }
+      .statusPill {
+        border-color: rgba(53, 230, 162, 0.42);
+        background: rgba(13, 108, 79, 0.14);
+        color: #79ffd0;
+        padding: 9px 14px;
+      }
+      .hero {
+        min-height: 324px;
+        padding: 28px 31px;
+        border-radius: 24px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 330px;
+        align-items: center;
+        gap: 18px;
+      }
+      .hero:after {
+        display: none;
+      }
+      .heroCopy {
+        position: relative;
+        z-index: 2;
+      }
+      .hero h1 {
+        font-size: clamp(34px, 4.25vw, 61px);
+        max-width: 820px;
+        line-height: 0.97;
+        margin: 9px 0 10px;
+      }
+      .hero h1 em {
+        background: linear-gradient(
+          90deg,
+          #50ddff 0%,
+          #59d7ff 40%,
+          #ffc448 100%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .hero p {
+        max-width: 880px;
+        line-height: 1.45;
+        color: #a2bad2;
+        font-size: 13px;
+      }
+      .heroOrb {
+        position: relative;
+        width: 290px;
+        height: 290px;
+        justify-self: end;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle at 43% 40%,
+          rgba(29, 123, 255, 0.22),
+          rgba(2, 16, 36, 0.86) 56%,
+          rgba(0, 7, 18, 0.98) 72%
+        );
+        border: 1px solid rgba(42, 144, 255, 0.31);
+        box-shadow:
+          inset 0 0 60px rgba(25, 115, 255, 0.21),
+          0 0 55px rgba(10, 93, 207, 0.2);
+        overflow: hidden;
+      }
+      .heroOrb:before {
+        content: "";
+        position: absolute;
+        inset: 15px;
+        border-radius: 50%;
+        background-image: radial-gradient(
+          circle,
+          #1da8ff 1px,
+          transparent 1.35px
+        );
+        background-size: 10px 10px;
+        mask-image: radial-gradient(
+          circle at center,
+          black 20%,
+          rgba(0, 0, 0, 0.82) 62%,
+          transparent 75%
+        );
+        opacity: 0.68;
+      }
+      .orbCore {
+        position: absolute;
+        z-index: 3;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        letter-spacing: 0.22em;
+        text-align: center;
+      }
+      .orbCore strong {
+        font-size: 28px;
+        letter-spacing: 0.08em;
+        color: #54dfff;
+        margin-bottom: 8px;
+      }
+      .orbCore img {
+        width: 92px;
+        height: 92px;
+        object-fit: contain;
+        margin-bottom: 8px;
+        filter: drop-shadow(0 0 22px rgba(255, 199, 74, 0.4));
+      }
+      .orbCore img + strong {
+        color: #ffd36a;
+        font-size: 18px;
+        letter-spacing: 0.1em;
+      }
+      .orbCore span {
+        font-size: 9px;
+        line-height: 1.75;
+        color: #b9d8f5;
+      }
+      .orbit {
+        position: absolute;
+        border: 1px solid rgba(255, 193, 55, 0.76);
+        border-radius: 50%;
+        left: 3%;
+        right: 3%;
+        top: 45%;
+        height: 32%;
+        transform: rotate(-16deg);
+        box-shadow: 0 0 14px rgba(255, 194, 58, 0.16);
+      }
+      .orbitB {
+        transform: rotate(18deg);
+        opacity: 0.5;
+      }
+      .spark {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #ffd25e;
+        box-shadow: 0 0 12px #ffc22e;
+      }
+      .s1 {
+        left: 18%;
+        top: 43%;
+      }
+      .s2 {
+        right: 10%;
+        top: 61%;
+      }
+      .s3 {
+        left: 58%;
+        bottom: 13%;
+      }
+      .search {
+        max-width: none;
+        margin-top: 17px;
+        grid-column: 1/-1;
+      }
+      .search input {
+        height: 52px;
+        border-radius: 15px;
+        border-color: rgba(40, 157, 255, 0.42);
+        box-shadow: inset 0 0 20px rgba(0, 94, 216, 0.08);
+      }
+      .search button {
+        height: 52px;
+        min-width: 142px;
+        border-radius: 15px;
+        background: linear-gradient(
+          110deg,
+          #087aff 0%,
+          #1791ff 50%,
+          #ffc23c 100%
+        );
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .searchGlyph {
+        font-size: 22px;
+        line-height: 1;
+      }
+      .blockOverview {
+        border-radius: 22px;
+        padding: 15px 16px;
+        margin-bottom: 12px;
+      }
+      .overviewHeader {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto 132px;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 13px;
+      }
+      .overviewTitle {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .overviewTitle h2 {
+        font-size: 18px;
+        margin: 0;
+      }
+      .overviewTitle p {
+        font-size: 10px;
+        color: #89a7c4;
+        margin: 3px 0 0;
+      }
+      .cubeIcon,
+      .cubeSmall {
+        display: inline-block;
+        width: 33px;
+        height: 33px;
+        border: 2px solid #1dbeff;
+        transform: rotate(30deg) skew(-4deg);
+        box-shadow: 0 0 18px rgba(27, 184, 255, 0.35);
+        border-radius: 4px;
+      }
+      .overviewLive {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        color: #4ff0b1;
+      }
+      .overviewLive small {
+        display: block;
+        color: #8aa8c4;
+        font-size: 9px;
+        margin-top: 2px;
+      }
+      .liveDot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #3ceba9;
+        box-shadow: 0 0 12px rgba(60, 235, 169, 0.9);
+      }
+      .chainIdCard {
+        border-left: 1px solid rgba(70, 158, 244, 0.2);
+        padding-left: 16px;
+      }
+      .chainIdCard span,
+      .chainIdCard small {
+        display: block;
+        color: #86a3bf;
+        font-size: 9px;
+      }
+      .chainIdCard strong {
+        display: block;
+        color: #49dfff;
+        font-size: 24px;
+        line-height: 1;
+        margin: 3px 0;
+      }
+      .overviewCards {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+      .overviewCard {
+        min-height: 92px;
+        border: 1px solid rgba(58, 146, 238, 0.23);
+        border-radius: 14px;
+        background: linear-gradient(
+          145deg,
+          rgba(6, 28, 57, 0.92),
+          rgba(4, 15, 31, 0.96)
+        );
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 13px;
+        box-shadow: inset -30px -20px 40px rgba(255, 187, 52, 0.035);
+      }
+      .overviewCard small {
+        display: block;
+        color: #94b0cb;
+        font-size: 10px;
+      }
+      .overviewCard strong {
+        display: block;
+        font-size: 22px;
+        margin: 3px 0;
+        letter-spacing: -0.02em;
+      }
+      .overviewCard span:last-child {
+        display: block;
+        color: #879fb8;
+        font-size: 9px;
+      }
+      .cardIcon {
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        background: rgba(9, 95, 188, 0.24);
+        border: 1px solid rgba(43, 164, 255, 0.25);
+        color: #46d9ff;
+        font-size: 22px;
+        box-shadow: 0 0 20px rgba(18, 138, 255, 0.12);
+      }
+      .finalizedIcon {
+        color: #45f0b2;
+        background: rgba(17, 154, 110, 0.18);
+      }
+      .barsIcon {
+        color: #43e7aa;
+      }
+      .blockEvidence {
+        height: 0;
+        overflow: hidden;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .chainPanel {
+        border-radius: 22px;
+        padding: 14px 16px;
+        margin-bottom: 12px;
+      }
+      .chainHead h2 {
+        font-size: 18px;
+        margin: 0;
+      }
+      .chainHead .chainLegend {
+        display: block;
+        margin-top: 3px;
+      }
+      .viewAll {
+        border: 1px solid rgba(29, 162, 255, 0.54);
+        border-radius: 999px;
+        padding: 9px 14px;
+        font-size: 10px;
+        font-weight: 850;
+        background: rgba(8, 64, 128, 0.24);
+        color: #d7ecff;
+      }
+      .chainView {
+        padding: 14px 0 12px;
+      }
+      .chainNode {
+        width: 155px;
+        min-height: 86px;
+        padding: 12px 10px 10px 61px;
+        position: relative;
+        border-color: rgba(20, 157, 255, 0.5);
+        border-radius: 12px;
+      }
+      .chainNode:before {
+        content: "";
+        position: absolute;
+        left: 15px;
+        top: 22px;
+        width: 32px;
+        height: 32px;
+        border: 2px solid #20cfff;
+        transform: rotate(30deg) skew(-4deg);
+        border-radius: 3px;
+        box-shadow: 0 0 16px rgba(32, 207, 255, 0.5);
+      }
+      .chainNode.latest {
+        border-color: rgba(255, 200, 64, 0.68);
+        box-shadow: 0 0 26px rgba(255, 190, 53, 0.1);
+      }
+      .chainNode.latest:before {
+        border-color: #ffd05a;
+        box-shadow: 0 0 18px rgba(255, 208, 90, 0.65);
+      }
+      .chainNode .n {
+        font-size: 15px;
+      }
+      .chainNode .t {
+        font-size: 9px;
+      }
+      .chainNode .h {
+        font-size: 8px;
+      }
+      .chainLink {
+        width: 32px;
+        background: linear-gradient(90deg, #13bfff, #30cfff);
+        box-shadow: 0 0 8px rgba(28, 189, 255, 0.4);
+      }
+      .sourceStrip {
+        margin: 5px 0 0;
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .sourceCard {
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: rgba(3, 18, 39, 0.7);
+        box-shadow: none;
+      }
+      .sourceName {
+        font-size: 8px;
+      }
+      .sourceValue {
+        font-size: 11px;
+      }
+      .snapshotGrid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 9px;
+        margin-bottom: 9px;
+      }
+      .snapshotCard,
+      .indexCard {
+        border-radius: 14px;
+        padding: 13px 14px;
+        min-height: 86px;
+      }
+      .snapshotCard small,
+      .indexCard small {
+        display: block;
+        font-size: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #829db7;
+      }
+      .snapshotCard strong,
+      .indexCard strong {
+        display: block;
+        font-size: 20px;
+        margin: 5px 0 3px;
+      }
+      .snapshotCard span,
+      .indexCard span {
+        font-size: 9px;
+        color: #7891aa;
+      }
+      .indexGrid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1.25fr;
+        gap: 9px;
+        margin-bottom: 12px;
+      }
+      .securityCard strong {
+        color: #58efb5;
+        font-size: 16px;
+      }
+      .compactHealth {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+        margin-top: 10px;
+      }
+      .healthMetric {
+        min-width: 0;
+        padding: 9px 10px;
+        border: 1px solid rgba(47, 156, 255, 0.2);
+        border-radius: 10px;
+        background: rgba(2, 14, 32, 0.64);
+      }
+      .healthMetric small {
+        display: block;
+        margin-bottom: 4px;
+        color: #6f91b1;
+        font-size: 7px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .healthMetric .state {
+        display: block;
+        overflow: hidden;
+        color: #c7d8e8;
+        font-size: 10px;
+        text-align: left;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .healthMetric .state.ok {
+        color: var(--green);
+      }
+      .healthMetric .state.warn {
+        color: var(--amber);
+      }
+      .healthMetric .state.bad {
+        color: var(--red);
+      }
+      .intelligenceGrid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 9px;
+        margin-bottom: 12px;
+      }
+      .intelligenceCard {
+        min-width: 0;
+        padding: 14px;
+        border-radius: 16px;
+      }
+      .intelligenceHead {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 11px;
+      }
+      .intelligenceIcon {
+        width: 32px;
+        height: 32px;
+        display: grid;
+        flex: 0 0 32px;
+        place-items: center;
+        border: 1px solid rgba(34, 190, 255, 0.3);
+        border-radius: 10px;
+        background: rgba(17, 104, 185, 0.18);
+        color: #48ddff;
+        box-shadow: 0 0 18px rgba(21, 170, 255, 0.13);
+      }
+      .intelligenceHead strong {
+        display: block;
+        font-size: 12px;
+      }
+      .intelligenceHead small {
+        display: block;
+        margin-top: 2px;
+        color: #708daa;
+        font-size: 8px;
+      }
+      .intelligenceRows {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px;
+      }
+      .intelligenceRows > div {
+        min-width: 0;
+        padding: 9px;
+        border: 1px solid rgba(50, 143, 230, 0.15);
+        border-radius: 10px;
+        background: rgba(2, 13, 30, 0.58);
+      }
+      .intelligenceRows small {
+        display: block;
+        color: #728da8;
+        font-size: 7px;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+      }
+      .intelValue {
+        display: block;
+        margin-top: 4px;
+        overflow: hidden;
+        color: #dceeff;
+        font-size: 10px;
+        font-weight: 850;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .intelValue.ok {
+        color: var(--green);
+      }
+      .intelValue.warn {
+        color: var(--amber);
+      }
+      .intelValue.bad {
+        color: var(--red);
+      }
+      .blocksPanel {
+        margin-bottom: 12px;
+        border-radius: 18px;
+        padding: 14px;
+      }
+      .blocksPanel .panelHeader h2 {
+        font-size: 18px;
+      }
+      .table th {
+        font-size: 8px;
+      }
+      .table td {
+        font-size: 10px;
+        padding: 9px 8px;
+      }
+      .homeTransactions {
+        display: none;
+      }
+      .quick {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 7px;
+      }
+      .quick a {
+        border-radius: 12px;
+        padding: 11px;
+        font-size: 10px;
+        background: linear-gradient(
+          180deg,
+          rgba(4, 25, 53, 0.88),
+          rgba(3, 15, 34, 0.92)
+        );
+        border-color: rgba(39, 132, 229, 0.26);
+      }
+      @media (max-width: 980px) {
+        .hero {
+          grid-template-columns: 1fr 240px;
+        }
+        .heroOrb {
+          width: 220px;
+          height: 220px;
+        }
+        .overviewHeader {
+          grid-template-columns: 1fr auto;
+        }
+        .chainIdCard {
+          grid-column: 1/-1;
+          border-left: 0;
+          border-top: 1px solid rgba(70, 158, 244, 0.16);
+          padding: 8px 0 0;
+        }
+        .overviewCards,
+        .snapshotGrid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .indexGrid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .securityCard {
+          grid-column: 1/-1;
+        }
+        .compactHealth {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .intelligenceGrid {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 720px) {
+        .shell {
+          width: calc(100% - 12px);
+        }
+        .topbar {
+          border-radius: 14px;
+        }
+        .hero {
+          display: block;
+          min-height: 0;
+          padding: 20px 16px;
+        }
+        .heroOrb {
+          display: none;
+        }
+        .hero h1 {
+          font-size: 37px;
+        }
+        .hero p {
+          font-size: 11px;
+        }
+        .badges {
+          gap: 6px;
+        }
+        .badge {
+          padding: 7px 8px;
+          font-size: 9px;
+        }
+        .search {
+          display: grid;
+          grid-template-columns: 1fr;
+        }
+        .search button {
+          width: 100%;
+        }
+        .blockOverview {
+          padding: 12px;
+        }
+        .overviewHeader {
+          display: block;
+        }
+        .overviewLive {
+          margin: 9px 0;
+        }
+        .chainIdCard {
+          margin-top: 9px;
+        }
+        .overviewCards {
+          grid-template-columns: 1fr 1fr;
+          gap: 7px;
+        }
+        .overviewCard {
+          min-height: 84px;
+          padding: 10px;
+          gap: 8px;
+        }
+        .cardIcon {
+          width: 34px;
+          height: 34px;
+          flex-basis: 34px;
+        }
+        .overviewCard strong {
+          font-size: 18px;
+        }
+        .snapshotGrid {
+          grid-template-columns: 1fr 1fr;
+          gap: 7px;
+        }
+        .snapshotCard {
+          min-height: 80px;
+          padding: 11px;
+        }
+        .snapshotCard strong {
+          font-size: 17px;
+        }
+        .indexGrid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .securityCard {
+          grid-column: 1/-1;
+        }
+        .sourceStrip {
+          grid-template-columns: 1fr;
+        }
+        .chainNode {
+          width: 137px;
+          padding-left: 56px;
+        }
+        .quick {
+          grid-template-columns: 1fr 1fr;
+        }
+        .blocksPanel {
+          padding: 10px;
+        }
+        .footer {
+          font-size: 9px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell" data-kam-explorer-version="2.0.0">
+      <header class="topbar glass">
+        <a class="brand" href="/"
+          ><div class="brandMark">
+            <img
+              src="https://kriptoaman.com/brand/zevaryq-mark.svg"
+              alt="ZEVARYQ Network"
+            />
+          </div>
+          <div class="brandText">
+            <strong>ZEVARYQ Explorer</strong
+            ><span>Zevaryq Network · On-chain intelligence</span>
+          </div></a
+        >
+        <nav class="toplinks">
+          <a class="miniLink active" href="/blocks">Blocks</a
+          ><a class="miniLink" href="/txs">Transactions</a
+          ><a class="miniLink" href="/validators">Validators</a
+          ><a class="miniLink" href="/stats">Analytics</a>
+        </nav>
+        <div class="statusPill" id="statusPill">
+          <span class="dot"></span><span id="topStatus">Checking network</span>
+        </div>
+      </header>
+      <section class="hero glass">
+        <div class="heroCopy">
+          <div class="eyebrow">ZEVARYQ NETWORK · ON-CHAIN INTELLIGENCE</div>
+          <h1>
+            Explore the <em>Zevaryq Network.</em>
+          </h1>
+          <p>
+            Verify every block, transaction, address, validator, and network
+            signal in real time. ZEVARYQ Explorer uses public RPC and indexed
+            chain data; unavailable information is never invented.
+          </p>
+          <div class="badges">
+            <span class="badge">Chain ID <b>22028</b></span
+            ><span class="badge">Native Asset <b>ZVQ</b></span
+            ><span class="badge">EVM <b>Compatible</b></span
+            ><span class="badge">Data policy <b>Verified only</b></span>
+          </div>
+          <form class="search" id="searchForm">
+            <input
+              id="searchInput"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="Search address / transaction hash / block number…"
+            /><button type="submit">
+              <span class="searchGlyph">⌕</span><span>Explore</span>
+            </button>
+          </form>
+          <div class="searchHint" id="searchHint">
+            Search works directly against ZEVARYQ RPC when the indexer is
+            unavailable.
+          </div>
+        </div>
+        <div class="heroOrb" aria-hidden="true">
+          <div class="orbCore">
+            <img
+              src="https://kriptoaman.com/brand/zevaryq-mark.svg"
+              alt=""
+            />
+            <strong>ZEVARYQ</strong><span>BLOCKCHAIN FOR A BRIGHTER TOMORROW</span>
+          </div>
+          <i class="orbit orbitA"></i><i class="orbit orbitB"></i
+          ><i class="spark s1"></i><i class="spark s2"></i
+          ><i class="spark s3"></i>
+        </div>
+      </section>
 
-<section class="blockOverview glass" id="overview">
-<div class="overviewHeader">
-<div class="overviewTitle"><span class="cubeIcon"></span><div><h2>Block Overview</h2><p>Real-time block information from KAM Mainnet</p></div></div>
-<div class="overviewLive"><span class="liveDot"></span><div><strong>Live on KAM Mainnet</strong><small>Verified live data only</small></div></div>
-<div class="chainIdCard"><span>Chain ID</span><strong>22028</strong><small>KAM Mainnet</small></div>
-</div>
-<div class="overviewCards">
-<article class="overviewCard"><span class="cardIcon cubeSmall"></span><div><small>Latest Block</small><strong id="heroBlock">—</strong><span id="heroAge">Waiting for live block</span></div></article>
-<article class="overviewCard"><span class="cardIcon finalizedIcon">✓</span><div><small>Finalized Block</small><strong id="finalizedBlock">—</strong><span id="finalizedAge">RPC finalized / QBFT commit</span></div></article>
-<article class="overviewCard"><span class="cardIcon clockIcon">◷</span><div><small>Block Time</small><strong id="blockTime">—</strong><span id="blockTimeSub">Verified sample average</span></div></article>
-<article class="overviewCard"><span class="cardIcon barsIcon">▥</span><div><small>Chain Status</small><strong class="accent" id="chainStatus">Checking</strong><span id="chainStatusSub">Verifying block production</span></div></article>
-</div>
-<div class="blockEvidence"><span id="heroHash">Waiting for live block data…</span><span id="heroSource">Verifying source</span><span id="heroTx">—</span><span id="heroGas">—</span><span id="heroMiner">—</span></div>
-</section>
-<section class="snapshotGrid">
-<article class="snapshotCard glass"><small>Network</small><strong class="accent" id="mNetwork">Checking</strong><span id="mNetworkSub">Chain identity verification</span></article>
-<article class="snapshotCard glass"><small>Latest Block</small><strong class="cyan" id="mBlock">—</strong><span id="mBlockSub">Live head</span></article>
-<article class="snapshotCard glass"><small>Gas Price (Gwei)</small><strong id="mGas">—</strong><span>Current RPC gas price</span></article>
-<article class="snapshotCard glass"><small>Data Freshness</small><strong class="gold" id="mFresh">—</strong><span id="mFreshSub">Waiting for verified block</span></article>
-</section>
-<section class="indexGrid">
-<article class="indexCard glass"><small>Indexed Transactions</small><strong id="mTotalTx">—</strong><span>Explorer API only</span></article>
-<article class="indexCard glass"><small>Indexed Addresses</small><strong id="mAddresses">—</strong><span>Explorer API only</span></article>
-<article class="indexCard securityCard glass"><small>Chain Security</small><strong>Verified Data Only</strong><span>No simulated data · No invented blocks</span><div class="healthRows compactHealth"><span id="hChain">Checking</span><span id="hRpc">Checking</span><span id="hApi">Checking</span><span id="hContinuity">Waiting</span><span id="hBlocks">Checking</span><span id="hRefresh">—</span></div></article>
-</section>
-<section class="chainPanel glass" id="chain"><div class="panelHeader chainHead"><div><h2>Latest Blocks (Chain View)</h2><span class="chainLegend">Real-time block flow on KAM Mainnet</span></div><a class="viewAll" href="/blocks">View All Blocks <b>→</b></a></div><div class="chainView" id="chainView"><div class="chainEmpty">Connecting to KAM Network…</div></div><section class="sourceStrip">
-<article class="sourceCard glass"><div><div class="sourceName">Explorer API</div><div class="sourceValue" id="apiEndpoint">Same-origin /api/v2</div></div><span class="sourceState" id="apiState">Checking</span></article>
-<article class="sourceCard glass"><div><div class="sourceName">KAM RPC</div><div class="sourceValue">Same-origin /rpc gateway</div></div><span class="sourceState" id="rpcState">Checking</span></article>
-<article class="sourceCard glass"><div><div class="sourceName">Active data path</div><div class="sourceValue" id="activeSource">Verifying sources…</div></div><span class="sourceState" id="sourceState">Pending</span></article>
-</section></section>
-<section class="detail glass" id="detailPanel"><div class="panelHeader"><h2 id="detailTitle">Result</h2><button class="closeBtn" id="detailClose">Close</button></div><div class="detailGrid" id="detailGrid"></div></section>
-<section class="panel glass blocksPanel" id="blocks"><div class="panelHeader"><h2>Latest Blocks</h2><span class="meta" id="blocksMeta">Loading verified data…</span></div><div class="tableWrap"><table class="table"><thead><tr><th>Block</th><th>Age</th><th>Transactions</th><th>Gas Used</th><th>Hash</th></tr></thead><tbody id="blocksBody"><tr><td colspan="5" class="placeholder">Connecting to KAM Network…</td></tr></tbody></table></div></section>
-<section class="panel glass homeTransactions" id="transactions"><div class="panelHeader"><h2>Latest Transactions</h2><span class="meta" id="txMeta">Loading verified data…</span></div><div class="tableWrap"><table class="table"><thead><tr><th>Transaction</th><th>Block</th><th>From</th><th>To</th><th>Value</th><th>Status</th></tr></thead><tbody id="txBody"><tr><td colspan="6" class="placeholder">Waiting for recent blocks…</td></tr></tbody></table></div></section>
-<section class="quick"><a href="https://kriptoaman.com">KriptoAman</a><a href="https://rpc.kriptoaman.com">Public RPC</a><a href="/blocks">Latest Blocks</a><a href="/txs">Transactions</a><a href="/api-docs">API Docs</a><a href="/status">Network Status</a></section>
-<footer class="footer"><span>KAM Explorer V2 · Production UI</span><span>Verified live data only · No fabricated statistics</span></footer>
-</main>
-<script>
-(()=>{
-const EXPECTED_CHAIN=22028,RPC='/rpc',API='/api/v2';
-const API_CONTRACT=['/api/v2/blocks','/api/v2/transactions','/api/v2/stats'];void API_CONTRACT;
-const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const short=(v,n=9)=>!v?'—':String(v).length>n*2+3?String(v).slice(0,n)+'…'+String(v).slice(-n):String(v);
-const hexNum=v=>{if(v==null)return null;if(typeof v==='number')return v;if(typeof v==='string'&&/^0x/i.test(v))return Number.parseInt(v,16);const n=Number(v);return Number.isFinite(n)?n:null};
-const hexBytes=v=>{if(typeof v!=='string'||!/^0x[0-9a-f]*$/i.test(v)||v.length%2!==0)return null;const h=v.slice(2),out=new Uint8Array(h.length/2);for(let i=0;i<out.length;i++)out[i]=Number.parseInt(h.slice(i*2,i*2+2),16);return out};
-function rlpDecode(buf,offset=0){if(!buf||offset>=buf.length)throw Error('RLP EOF');const p=buf[offset];if(p<=0x7f)return[buf.slice(offset,offset+1),offset+1];const lenNum=(start,count)=>{let n=0;for(let i=0;i<count;i++)n=n*256+buf[start+i];return n};if(p<=0xb7){const l=p-0x80,s=offset+1,e=s+l;if(e>buf.length)throw Error('RLP string');return[buf.slice(s,e),e]}if(p<=0xbf){const ll=p-0xb7,ls=offset+1,le=ls+ll;if(le>buf.length)throw Error('RLP strlen');const l=lenNum(ls,ll),e=le+l;if(e>buf.length)throw Error('RLP long string');return[buf.slice(le,e),e]}const list=(s,e)=>{const out=[];let cur=s;while(cur<e){const[v,n]=rlpDecode(buf,cur);if(n<=cur)throw Error('RLP stalled');out.push(v);cur=n}if(cur!==e)throw Error('RLP boundary');return out};if(p<=0xf7){const l=p-0xc0,s=offset+1,e=s+l;if(e>buf.length)throw Error('RLP list');return[list(s,e),e]}const ll=p-0xf7,ls=offset+1,le=ls+ll;if(le>buf.length)throw Error('RLP listlen');const l=lenNum(ls,ll),e=le+l;if(e>buf.length)throw Error('RLP long list');return[list(le,e),e]}
-function qbftValidatorCount(extra){try{const buf=hexBytes(extra);if(!buf)return null;const[decoded,end]=rlpDecode(buf);if(!Array.isArray(decoded)||end!==buf.length)return null;const candidates=[];const walk=v=>{if(!Array.isArray(v))return;if(v.length===4&&v.every(x=>x instanceof Uint8Array&&x.length===20)){const keys=v.map(x=>Array.from(x,b=>b.toString(16).padStart(2,'0')).join(''));if(new Set(keys).size===4)candidates.push(keys)}for(const child of v)walk(child)};walk(decoded);return candidates.length===1?4:null}catch{return null}}
-const fmt=n=>Number.isFinite(Number(n))?new Intl.NumberFormat('en-US').format(Number(n)):'—';
-const ago=ts=>{if(!ts)return'—';const s=Math.max(0,Math.floor(Date.now()/1000-Number(ts)));if(s<60)return s+'s ago';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago'};
-const weiToKam=v=>{try{const x=typeof v==='string'&&/^0x/i.test(v)?BigInt(v):BigInt(String(v||'0'));const whole=x/1000000000000000000n,frac=(x%1000000000000000000n).toString().padStart(18,'0').slice(0,5).replace(/0+$/,'');return whole.toString()+(frac?'.'+frac:'')+' KAM'}catch{return'—'}};
-const weiHexToGwei=v=>{try{return(Number(BigInt(v))/1e9).toLocaleString(undefined,{maximumFractionDigits:3})+' Gwei'}catch{return'—'}};
-let rpcOK=false,apiOK=false,lastHead=null,lastHeadSeenAt=0,cacheBlocks=[];
-async function rpc(method,params=[]){const ctrl=new AbortController(),t=setTimeout(()=>ctrl.abort(),8000);try{const r=await fetch(RPC,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:Date.now(),method,params}),signal:ctrl.signal,cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const j=await r.json();if(j.error)throw Error(j.error.message||'RPC error');return j.result}finally{clearTimeout(t)}}
-async function api(path){const ctrl=new AbortController(),t=setTimeout(()=>ctrl.abort(),6500);try{const r=await fetch(API+path,{headers:{accept:'application/json'},signal:ctrl.signal,cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const ct=r.headers.get('content-type')||'';if(!ct.includes('json'))throw Error('non-JSON response');return await r.json()}finally{clearTimeout(t)}}
-function state(id,text,kind=''){const e=$(id);e.textContent=text;e.className='sourceState'+(kind?' '+kind:'')}
-function health(id,text,kind=''){const e=$(id);e.textContent=text;e.className='state'+(kind?' '+kind:'')}
-function setTop(text,kind=''){const e=$('statusPill');$('topStatus').textContent=text;e.className='statusPill'+(kind?' '+kind:'')}
-function renderDetail(title,items){$('detailTitle').textContent=title;$('detailGrid').innerHTML=items.map(([k,v])=>`<div class="detailItem"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`).join('');$('detailPanel').classList.add('show');$('detailPanel').scrollIntoView({behavior:'smooth',block:'start'})}
-async function verifyRPC(){try{const chainHex=await rpc('eth_chainId'),chain=hexNum(chainHex);rpcOK=chain===EXPECTED_CHAIN;state('rpcState',rpcOK?'Online':'Wrong chain',rpcOK?'ok':'bad');health('hRpc',rpcOK?'Online':'Unavailable',rpcOK?'ok':'bad');health('hChain',chain===EXPECTED_CHAIN?'22028 verified':String(chain??'Mismatch'),chain===EXPECTED_CHAIN?'ok':'bad');$('mNetwork').textContent=chain===EXPECTED_CHAIN?'KAM Mainnet':'Unverified';$('mNetwork').className='value '+(chain===EXPECTED_CHAIN?'accent':'');$('mNetworkSub').textContent=chain===EXPECTED_CHAIN?'Chain ID 22028 verified by RPC':'RPC chain identity not verified';return rpcOK}catch(e){rpcOK=false;state('rpcState','Unavailable','bad');health('hRpc','Unavailable','bad');health('hChain','Not verified','bad');$('mNetwork').textContent='Unverified';$('mNetwork').className='value';$('mNetworkSub').textContent='Public RPC did not respond';return false}}
-async function verifyAPI(){try{const s=await api('/stats');apiOK=!!s;state('apiState','Online','ok');health('hApi','Online','ok');const tx=s.total_transactions??s.total_transactions_number??s.transactions_count,ad=s.total_addresses??s.addresses_count;$('mTotalTx').textContent=tx!=null?fmt(tx):'Unavailable';$('mAddresses').textContent=ad!=null?fmt(ad):'Unavailable';return s}catch(e){apiOK=false;state('apiState','Reconnecting','warn');health('hApi','Reconnecting','warn');$('mTotalTx').textContent='Unavailable';$('mAddresses').textContent='Unavailable';return null}}
-async function readBlocksRPC(count=8){const head=hexNum(await rpc('eth_blockNumber'));if(!Number.isFinite(head))throw Error('invalid block number');const nums=Array.from({length:Math.min(count,head+1)},(_,i)=>head-i);const blocks=await Promise.all(nums.map(n=>rpc('eth_getBlockByNumber',['0x'+n.toString(16),true]).catch(()=>null)));return blocks.filter(Boolean)}
-function normalizeApiBlock(x){const n=hexNum(x.height??x.number??x.block_number),ts=x.timestamp?Math.floor(new Date(x.timestamp).getTime()/1000):hexNum(x.timestamp),gasUsed=hexNum(x.gas_used??x.gasUsed),gasLimit=hexNum(x.gas_limit??x.gasLimit),txCount=Number(x.tx_count??x.transactions_count??x.transaction_count??0);return{number:Number.isFinite(n)?'0x'+n.toString(16):null,timestamp:Number.isFinite(ts)?'0x'+ts.toString(16):null,transactions:[],_txCount:Number.isFinite(txCount)?txCount:0,gasUsed:Number.isFinite(gasUsed)?'0x'+gasUsed.toString(16):null,gasLimit:Number.isFinite(gasLimit)?'0x'+gasLimit.toString(16):null,hash:x.hash,parentHash:x.parent_hash??x.parentHash,miner:x.miner?.hash??x.miner_hash??x.miner}}
-function txCount(b){return Array.isArray(b.transactions)&&b.transactions.length?b.transactions.length:Number(b._txCount||0)}
-function verifyContinuity(blocks){if(blocks.length<2){health('hContinuity','Unavailable','warn');return}let checked=0;for(let i=0;i<blocks.length-1;i++){const a=blocks[i],b=blocks[i+1];if(a.parentHash&&b.hash){checked++;if(String(a.parentHash).toLowerCase()!==String(b.hash).toLowerCase()){health('hContinuity','Sample mismatch','bad');return}}}health('hContinuity',checked?'Verified sample':'Unavailable',checked?'ok':'warn')}
-function renderBlockTime(blocks){const times=blocks.map(b=>hexNum(b.timestamp)).filter(Number.isFinite);const diffs=[];for(let i=0;i<times.length-1;i++){const d=times[i]-times[i+1];if(d>0&&d<120)diffs.push(d)}if(!diffs.length){$('blockTime').textContent='Unavailable';$('blockTimeSub').textContent='Insufficient verified sample';return}const avg=diffs.reduce((a,b)=>a+b,0)/diffs.length;$('blockTime').textContent='~ '+avg.toFixed(1)+'s';$('blockTimeSub').textContent=diffs.length+' verified intervals'}
-function renderFinalized(b,label='Verified finality'){if(!b){$('finalizedBlock').textContent='Unavailable';$('finalizedAge').textContent='Finality evidence unavailable';return}const n=hexNum(b.number),ts=hexNum(b.timestamp);$('finalizedBlock').textContent=Number.isFinite(n)?fmt(n):'Unavailable';$('finalizedAge').textContent=label+(ts?' · '+ago(ts):'')}
-function renderLatestBlock(b,source){const n=hexNum(b.number),ts=hexNum(b.timestamp),used=hexNum(b.gasUsed),limit=hexNum(b.gasLimit),util=Number.isFinite(used)&&Number.isFinite(limit)&&limit>0?(used/limit*100).toFixed(1)+'%':'Unavailable';$('heroBlock').textContent=Number.isFinite(n)?'#'+fmt(n):'Unavailable';$('heroHash').textContent=b.hash||'Hash unavailable';$('heroSource').textContent=source||'Verified source';$('heroAge').textContent=ts?ago(ts):'Unavailable';$('heroTx').textContent=fmt(txCount(b));$('heroGas').textContent=util;$('heroMiner').textContent=short(b.miner||'Unavailable',7)}
-function renderChain(blocks,source){const view=$('chainView');if(!blocks.length){view.innerHTML='<div class="chainEmpty">No verified blocks available.</div>';$('chainMeta').textContent='Unavailable';return}view.innerHTML=blocks.map((b,i)=>{const n=hexNum(b.number),ts=hexNum(b.timestamp);return `${i?'<div class="chainLink" aria-hidden="true"></div>':''}<div class="chainNodeWrap"><button class="chainNode ${i===0?'latest':''}" data-block="${esc(n)}" type="button"><div class="n">#${esc(fmt(n))}</div><div class="t">${esc(ago(ts))} · ${esc(fmt(txCount(b)))} tx</div><div class="h">${esc(short(b.hash,6))}</div></button></div>`}).join('');$('chainMeta').textContent=`${blocks.length} verified blocks · ${source}`}
-function renderBlocks(blocks,source){cacheBlocks=blocks;const body=$('blocksBody');if(!blocks.length){body.innerHTML='<tr><td colspan="5" class="placeholder">No verified blocks available.</td></tr>';renderChain([],source);return}body.innerHTML=blocks.map(b=>{const n=hexNum(b.number),gas=hexNum(b.gasUsed);return `<tr><td><span class="hash" data-block="${esc(n)}">#${esc(fmt(n))}</span></td><td>${esc(ago(hexNum(b.timestamp)))}</td><td>${esc(fmt(txCount(b)))}</td><td>${esc(fmt(gas))}</td><td><span class="hash">${esc(short(b.hash,8))}</span></td></tr>`}).join('');$('blocksMeta').textContent=`${blocks.length} verified blocks · ${source}`;const top=blocks[0],head=hexNum(top.number);$('mBlock').textContent=fmt(head);$('mBlockSub').textContent='Source: '+source;const ts=hexNum(top.timestamp);$('mFresh').textContent=ts?ago(ts):'Unavailable';$('mFreshSub').textContent=ts?'Latest verified block timestamp':'Timestamp unavailable';renderLatestBlock(top,source);renderChain(blocks,source);verifyContinuity(blocks);renderBlockTime(blocks);if(lastHead==null){health('hBlocks','Head verified','ok');$('chainStatus').textContent='Connected';$('chainStatusSub').textContent='Live head verified';lastHead=head;lastHeadSeenAt=Date.now()}else if(head>lastHead){health('hBlocks','Advancing','ok');$('chainStatus').textContent='Active';$('chainStatusSub').textContent='Producing blocks';lastHead=head;lastHeadSeenAt=Date.now()}else if(Date.now()-lastHeadSeenAt>90000){health('hBlocks','No new head','warn');$('chainStatus').textContent='Stalled';$('chainStatusSub').textContent='No new head in verification window'}else{health('hBlocks','Head verified','ok');$('chainStatus').textContent='Connected';$('chainStatusSub').textContent='Waiting for next block'}}
-function collectTx(blocks){const out=[];for(const b of blocks){for(const t of(Array.isArray(b.transactions)?b.transactions:[])){if(t&&typeof t==='object')out.push(t);if(out.length>=12)return out}}return out}
-function renderTx(txs,source){const body=$('txBody');if(!txs.length){body.innerHTML='<tr><td colspan="6" class="placeholder">No recent verified transactions were returned in the sampled blocks.</td></tr>';$('txMeta').textContent='No recent transactions · '+source;return}body.innerHTML=txs.map(t=>`<tr><td><span class="hash" data-tx="${esc(t.hash)}">${esc(short(t.hash,8))}</span></td><td>#${esc(fmt(hexNum(t.blockNumber)))}</td><td><span class="hash" data-address="${esc(t.from)}">${esc(short(t.from,7))}</span></td><td>${t.to?`<span class="hash" data-address="${esc(t.to)}">${esc(short(t.to,7))}</span>`:'Contract create'}</td><td>${esc(weiToKam(t.value))}</td><td><span class="pill ok">Included</span></td></tr>`).join('');$('txMeta').textContent=`${txs.length} recent transactions · ${source}`}
-async function refreshLive(){let blocks=[],source='';try{if(!rpcOK)await verifyRPC();if(rpcOK){const gas=await rpc('eth_gasPrice').catch(()=>null);$('mGas').textContent=gas?weiHexToGwei(gas):'Unavailable';blocks=await readBlocksRPC(8);source='KAM RPC';renderBlocks(blocks,source);renderTx(collectTx(blocks),source);let finalized=await rpc('eth_getBlockByNumber',['finalized',false]).catch(()=>null),finalityLabel='RPC finalized';if(!finalized){finalized=await rpc('eth_getBlockByNumber',['safe',false]).catch(()=>null);finalityLabel='RPC safe'}if(!finalized&&blocks[0]&&qbftValidatorCount(blocks[0].extraData)===4){finalized=blocks[0];finalityLabel='QBFT committed · 4-validator evidence'}renderFinalized(finalized,finalityLabel)}}catch(e){rpcOK=false;state('rpcState','Unavailable','bad');health('hRpc','Unavailable','bad');$('mGas').textContent='Unavailable'}
-if(!blocks.length&&apiOK){try{const j=await api('/blocks'),items=j.items||j.blocks||[];blocks=items.slice(0,8).map(normalizeApiBlock).filter(b=>Number.isFinite(hexNum(b.number)));source='Explorer API';renderBlocks(blocks,source);renderTx([],source+' · transaction sample unavailable');renderFinalized(null)}catch{}}
-if(!blocks.length){$('heroBlock').textContent='Unavailable';$('heroHash').textContent='No verified block source available';$('heroSource').textContent=apiOK?'Indexer available':'Reconnecting';$('heroAge').textContent='Unavailable';$('heroTx').textContent='Unavailable';$('heroGas').textContent='Unavailable';$('heroMiner').textContent='Unavailable';$('mBlock').textContent='Unavailable';$('mFresh').textContent='Unavailable';$('blockTime').textContent='Unavailable';$('blockTimeSub').textContent='No verified block sample';$('chainStatus').textContent='Unavailable';$('chainStatusSub').textContent='Reconnecting to verified source';renderFinalized(null);$('blocksBody').innerHTML='<tr><td colspan="5" class="placeholder">Verified block data unavailable. Reconnecting…</td></tr>';renderChain([],source);health('hContinuity','Unavailable','warn');health('hBlocks','Unavailable','warn')}
-$('activeSource').textContent=rpcOK?'KAM RPC via /rpc':(apiOK?'Explorer API':'No verified live source');state('sourceState',rpcOK||apiOK?'Active':'Reconnecting',rpcOK||apiOK?'ok':'warn');setTop(rpcOK?(apiOK?'KAM Mainnet Live':'RPC live · Indexer reconnecting'):(apiOK?'Indexer Live':'Data path unavailable'),rpcOK||apiOK?'ok':'bad');health('hRefresh',new Date().toLocaleTimeString(),rpcOK||apiOK?'ok':'warn')}
-async function search(q){q=q.trim();if(!q)return;const hint=$('searchHint');hint.className='searchHint';hint.textContent='Checking KAM Network…';try{if(!rpcOK&&!(await verifyRPC()))throw Error('KAM RPC unavailable');if(/^0x[a-fA-F0-9]{64}$/.test(q)){const tx=await rpc('eth_getTransactionByHash',[q]);if(tx){const receipt=await rpc('eth_getTransactionReceipt',[q]).catch(()=>null);renderDetail('Transaction '+short(q,10),[['Hash',tx.hash],['Block',hexNum(tx.blockNumber)],['From',tx.from],['To',tx.to||'Contract creation'],['Value',weiToKam(tx.value)],['Nonce',hexNum(tx.nonce)],['Gas',hexNum(tx.gas)],['Status',receipt?((hexNum(receipt.status)===1)?'Success':'Failed'):'Pending / receipt unavailable']]);hint.textContent='Transaction verified through KAM RPC.';hint.className='searchHint ok';return}const b=await rpc('eth_getBlockByHash',[q,true]);if(b){showBlock(b);hint.textContent='Block verified through KAM RPC.';hint.className='searchHint ok';return}throw Error('Hash not found')}
-if(/^0x[a-fA-F0-9]{40}$/.test(q)){const[bal,nonce,code]=await Promise.all([rpc('eth_getBalance',[q,'latest']),rpc('eth_getTransactionCount',[q,'latest']),rpc('eth_getCode',[q,'latest'])]);renderDetail('Address '+short(q,10),[['Address',q],['Balance',weiToKam(bal)],['Nonce',hexNum(nonce)],['Type',code&&code!=='0x'?'Smart contract':'Externally owned / no bytecode']]);hint.textContent='Address state verified through KAM RPC.';hint.className='searchHint ok';return}
-let n;if(/^\d+$/.test(q))n=Number(q);else if(/^0x[a-fA-F0-9]+$/.test(q))n=hexNum(q);if(Number.isFinite(n)&&n>=0){const b=await rpc('eth_getBlockByNumber',['0x'+n.toString(16),true]);if(!b)throw Error('Block not found');showBlock(b);hint.textContent='Block verified through KAM RPC.';hint.className='searchHint ok';return}throw Error('Use a KAM address, transaction hash, block hash, or block number.')}catch(e){hint.textContent=e.message||'Search unavailable';hint.className='searchHint error'}}
-function showBlock(b){renderDetail('Block #'+fmt(hexNum(b.number)),[['Block',hexNum(b.number)],['Hash',b.hash],['Parent',b.parentHash],['Timestamp',hexNum(b.timestamp)?new Date(hexNum(b.timestamp)*1000).toISOString():'Unavailable'],['Transactions',txCount(b)],['Gas used',hexNum(b.gasUsed)],['Gas limit',hexNum(b.gasLimit)],['Miner / beneficiary',b.miner||'—']])}
-$('searchForm').addEventListener('submit',e=>{e.preventDefault();search($('searchInput').value)});$('detailClose').addEventListener('click',()=>$('detailPanel').classList.remove('show'));document.addEventListener('click',e=>{const el=e.target.closest('[data-tx],[data-address],[data-block]');if(!el)return;if(el.dataset.tx)search(el.dataset.tx);else if(el.dataset.address)search(el.dataset.address);else if(el.dataset.block)search(el.dataset.block)});
-async function boot(){await Promise.allSettled([verifyRPC(),verifyAPI()]);await refreshLive();setInterval(async()=>{await verifyRPC();await verifyAPI();await refreshLive()},30000)}boot();
-})();
-</script>
-</body>
+      <section class="blockOverview glass" id="overview">
+        <div class="overviewHeader">
+          <div class="overviewTitle">
+            <span class="cubeIcon"></span>
+            <div>
+              <h2>Block Overview</h2>
+              <p>Real-time block information from ZVQ Mainnet</p>
+            </div>
+          </div>
+          <div class="overviewLive">
+            <span class="liveDot"></span>
+            <div>
+              <strong>Live on ZVQ Mainnet</strong
+              ><small>Verified live data only</small>
+            </div>
+          </div>
+          <div class="chainIdCard">
+            <span>Chain ID</span><strong>22028</strong
+            ><small>ZVQ Mainnet</small>
+          </div>
+        </div>
+        <div class="overviewCards">
+          <article class="overviewCard">
+            <span class="cardIcon cubeSmall"></span>
+            <div>
+              <small>Latest Block</small><strong id="heroBlock">—</strong
+              ><span id="heroAge">Waiting for live block</span>
+            </div>
+          </article>
+          <article class="overviewCard">
+            <span class="cardIcon finalizedIcon">✓</span>
+            <div>
+              <small>Finalized Block</small
+              ><strong id="finalizedBlock">—</strong
+              ><span id="finalizedAge">RPC finalized / QBFT commit</span>
+            </div>
+          </article>
+          <article class="overviewCard">
+            <span class="cardIcon clockIcon">◷</span>
+            <div>
+              <small>Block Time</small><strong id="blockTime">—</strong
+              ><span id="blockTimeSub">Verified sample average</span>
+            </div>
+          </article>
+          <article class="overviewCard">
+            <span class="cardIcon barsIcon">▥</span>
+            <div>
+              <small>Chain Status</small
+              ><strong class="accent" id="chainStatus">Checking</strong
+              ><span id="chainStatusSub">Verifying block production</span>
+            </div>
+          </article>
+        </div>
+        <div class="blockEvidence">
+          <span id="heroHash">Waiting for live block data…</span
+          ><span id="heroSource">Verifying source</span
+          ><span id="heroTx">—</span><span id="heroGas">—</span
+          ><span id="heroMiner">—</span>
+        </div>
+      </section>
+      <section class="snapshotGrid">
+        <article class="snapshotCard glass">
+          <small>Network</small
+          ><strong class="accent" id="mNetwork">Checking</strong
+          ><span id="mNetworkSub">Chain identity verification</span>
+        </article>
+        <article class="snapshotCard glass">
+          <small>Latest Block</small><strong class="cyan" id="mBlock">—</strong
+          ><span id="mBlockSub">Live head</span>
+        </article>
+        <article class="snapshotCard glass">
+          <small>Gas Price (Gwei)</small><strong id="mGas">—</strong
+          ><span>Current RPC gas price</span>
+        </article>
+        <article class="snapshotCard glass">
+          <small>Data Freshness</small
+          ><strong class="gold" id="mFresh">—</strong
+          ><span id="mFreshSub">Waiting for verified block</span>
+        </article>
+      </section>
+      <section class="indexGrid">
+        <article class="indexCard glass">
+          <small>Indexed Transactions</small><strong id="mTotalTx">—</strong
+          ><span>Explorer API only</span>
+        </article>
+        <article class="indexCard glass">
+          <small>Indexed Addresses</small><strong id="mAddresses">—</strong
+          ><span>Explorer API only</span>
+        </article>
+        <article class="indexCard securityCard glass">
+          <small>Chain Security</small><strong>Verified Data Only</strong
+          ><span>No simulated data · No invented blocks</span>
+          <div class="healthRows compactHealth">
+            <div class="healthMetric">
+              <small>Chain identity</small><span id="hChain">Checking</span>
+            </div>
+            <div class="healthMetric">
+              <small>Public RPC</small><span id="hRpc">Checking</span>
+            </div>
+            <div class="healthMetric">
+              <small>Explorer API</small><span id="hApi">Checking</span>
+            </div>
+            <div class="healthMetric">
+              <small>Block continuity</small
+              ><span id="hContinuity">Waiting</span>
+            </div>
+            <div class="healthMetric">
+              <small>Block production</small><span id="hBlocks">Checking</span>
+            </div>
+            <div class="healthMetric">
+              <small>Last refresh</small><span id="hRefresh">—</span>
+            </div>
+          </div>
+        </article>
+      </section>
+      <section class="intelligenceGrid" aria-label="Verified network intelligence">
+        <article class="intelligenceCard glass">
+          <div class="intelligenceHead">
+            <span class="intelligenceIcon">◎</span>
+            <div>
+              <strong>Consensus &amp; Finality</strong>
+              <small>Verified chain evidence</small>
+            </div>
+          </div>
+          <div class="intelligenceRows">
+            <div><small>Finalized block</small><span class="intelValue" data-mirror="finalizedBlock">—</span></div>
+            <div><small>Finality source</small><span class="intelValue" data-mirror="finalizedAge">Checking</span></div>
+            <div><small>Block interval</small><span class="intelValue" data-mirror="blockTime">—</span></div>
+            <div><small>Continuity</small><span class="intelValue" data-mirror="hContinuity">Waiting</span></div>
+          </div>
+        </article>
+        <article class="intelligenceCard glass">
+          <div class="intelligenceHead">
+            <span class="intelligenceIcon">◉</span>
+            <div>
+              <strong>Infrastructure Status</strong>
+              <small>Public production surfaces</small>
+            </div>
+          </div>
+          <div class="intelligenceRows">
+            <div><small>RPC</small><span class="intelValue" data-mirror="hRpc">Checking</span></div>
+            <div><small>Indexer API</small><span class="intelValue" data-mirror="hApi">Checking</span></div>
+            <div><small>Active path</small><span class="intelValue" data-mirror="sourceState">Pending</span></div>
+            <div><small>Data freshness</small><span class="intelValue" data-mirror="mFresh">—</span></div>
+          </div>
+        </article>
+        <article class="intelligenceCard glass">
+          <div class="intelligenceHead">
+            <span class="intelligenceIcon">◇</span>
+            <div>
+              <strong>Security Intelligence</strong>
+              <small>No simulated status claims</small>
+            </div>
+          </div>
+          <div class="intelligenceRows">
+            <div><small>Chain identity</small><span class="intelValue" data-mirror="hChain">Checking</span></div>
+            <div><small>Block production</small><span class="intelValue" data-mirror="hBlocks">Checking</span></div>
+            <div><small>Network state</small><span class="intelValue" data-mirror="chainStatus">Checking</span></div>
+            <div><small>Last refresh</small><span class="intelValue" data-mirror="hRefresh">—</span></div>
+          </div>
+        </article>
+      </section>
+      <section class="chainPanel glass" id="chain">
+        <div class="panelHeader chainHead">
+          <div>
+            <h2>Latest Blocks (Chain View)</h2>
+            <span class="chainLegend" id="chainMeta">Real-time block flow on ZVQ Mainnet</span>
+          </div>
+          <a class="viewAll" href="/blocks">View All Blocks <b>→</b></a>
+        </div>
+        <div class="chainView" id="chainView">
+          <div class="chainEmpty">Connecting to ZEVARYQ Network…</div>
+        </div>
+        <section class="sourceStrip">
+          <article class="sourceCard glass">
+            <div>
+              <div class="sourceName">Explorer API</div>
+              <div class="sourceValue" id="apiEndpoint">
+                Same-origin /api/v2
+              </div>
+            </div>
+            <span class="sourceState" id="apiState">Checking</span>
+          </article>
+          <article class="sourceCard glass">
+            <div>
+              <div class="sourceName">ZEVARYQ RPC</div>
+              <div class="sourceValue">Same-origin /rpc gateway</div>
+            </div>
+            <span class="sourceState" id="rpcState">Checking</span>
+          </article>
+          <article class="sourceCard glass">
+            <div>
+              <div class="sourceName">Active data path</div>
+              <div class="sourceValue" id="activeSource">
+                Verifying sources…
+              </div>
+            </div>
+            <span class="sourceState" id="sourceState">Pending</span>
+          </article>
+        </section>
+      </section>
+      <section class="detail glass" id="detailPanel">
+        <div class="panelHeader">
+          <h2 id="detailTitle">Result</h2>
+          <button class="closeBtn" id="detailClose">Close</button>
+        </div>
+        <div class="detailGrid" id="detailGrid"></div>
+      </section>
+      <section class="panel glass blocksPanel" id="blocks">
+        <div class="panelHeader">
+          <h2>Latest Blocks</h2>
+          <span class="meta" id="blocksMeta">Loading verified data…</span>
+        </div>
+        <div class="tableWrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Block</th>
+                <th>Age</th>
+                <th>Transactions</th>
+                <th>Gas Used</th>
+                <th>Hash</th>
+              </tr>
+            </thead>
+            <tbody id="blocksBody">
+              <tr>
+                <td colspan="5" class="placeholder">
+                  Connecting to ZEVARYQ Network…
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="panel glass homeTransactions" id="transactions">
+        <div class="panelHeader">
+          <h2>Latest Transactions</h2>
+          <span class="meta" id="txMeta">Loading verified data…</span>
+        </div>
+        <div class="tableWrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Transaction</th>
+                <th>Block</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Value</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="txBody">
+              <tr>
+                <td colspan="6" class="placeholder">
+                  Waiting for recent blocks…
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="quick">
+        <a href="https://kriptoaman.com">KriptoAman</a
+        ><a href="https://rpc.kriptoaman.com">Public RPC</a
+        ><a href="/blocks">Latest Blocks</a><a href="/txs">Transactions</a
+        ><a href="/api-docs">API Docs</a><a href="/status">Network Status</a>
+      </section>
+      <footer class="footer">
+        <span>ZEVARYQ Explorer V2 · Production UI</span
+        ><span>Verified live data only · No fabricated statistics</span>
+      </footer>
+    </main>
+    <script>
+      (() => {
+        const EXPECTED_CHAIN = 22028,
+          RPC = "/rpc",
+          API = "/api/v2";
+        const API_CONTRACT = [
+          "/api/v2/blocks",
+          "/api/v2/transactions",
+          "/api/v2/stats",
+        ];
+        void API_CONTRACT;
+        const $ = (id) => document.getElementById(id),
+          esc = (v) =>
+            String(v ?? "").replace(
+              /[&<>"']/g,
+              (c) =>
+                ({
+                  "&": "&amp;",
+                  "<": "&lt;",
+                  ">": "&gt;",
+                  '"': "&quot;",
+                  "'": "&#39;",
+                })[c],
+            );
+        const short = (v, n = 9) =>
+          !v
+            ? "—"
+            : String(v).length > n * 2 + 3
+              ? String(v).slice(0, n) + "…" + String(v).slice(-n)
+              : String(v);
+        function bindMirrors() {
+          document.querySelectorAll("[data-mirror]").forEach((target) => {
+            const source = $(target.dataset.mirror);
+            if (!source) return;
+            const sync = () => {
+              target.textContent = source.textContent;
+              target.className =
+                "intelValue" +
+                (source.classList.contains("ok")
+                  ? " ok"
+                  : source.classList.contains("warn")
+                    ? " warn"
+                    : source.classList.contains("bad")
+                      ? " bad"
+                      : "");
+            };
+            sync();
+            new MutationObserver(sync).observe(source, {
+              attributes: true,
+              childList: true,
+              characterData: true,
+              subtree: true,
+            });
+          });
+        }
+        bindMirrors();
+        const hexNum = (v) => {
+          if (v == null) return null;
+          if (typeof v === "number") return v;
+          if (typeof v === "string" && /^0x/i.test(v))
+            return Number.parseInt(v, 16);
+          const n = Number(v);
+          return Number.isFinite(n) ? n : null;
+        };
+        const hexBytes = (v) => {
+          if (
+            typeof v !== "string" ||
+            !/^0x[0-9a-f]*$/i.test(v) ||
+            v.length % 2 !== 0
+          )
+            return null;
+          const h = v.slice(2),
+            out = new Uint8Array(h.length / 2);
+          for (let i = 0; i < out.length; i++)
+            out[i] = Number.parseInt(h.slice(i * 2, i * 2 + 2), 16);
+          return out;
+        };
+        function rlpDecode(buf, offset = 0) {
+          if (!buf || offset >= buf.length) throw Error("RLP EOF");
+          const p = buf[offset];
+          if (p <= 0x7f) return [buf.slice(offset, offset + 1), offset + 1];
+          const lenNum = (start, count) => {
+            let n = 0;
+            for (let i = 0; i < count; i++) n = n * 256 + buf[start + i];
+            return n;
+          };
+          if (p <= 0xb7) {
+            const l = p - 0x80,
+              s = offset + 1,
+              e = s + l;
+            if (e > buf.length) throw Error("RLP string");
+            return [buf.slice(s, e), e];
+          }
+          if (p <= 0xbf) {
+            const ll = p - 0xb7,
+              ls = offset + 1,
+              le = ls + ll;
+            if (le > buf.length) throw Error("RLP strlen");
+            const l = lenNum(ls, ll),
+              e = le + l;
+            if (e > buf.length) throw Error("RLP long string");
+            return [buf.slice(le, e), e];
+          }
+          const list = (s, e) => {
+            const out = [];
+            let cur = s;
+            while (cur < e) {
+              const [v, n] = rlpDecode(buf, cur);
+              if (n <= cur) throw Error("RLP stalled");
+              out.push(v);
+              cur = n;
+            }
+            if (cur !== e) throw Error("RLP boundary");
+            return out;
+          };
+          if (p <= 0xf7) {
+            const l = p - 0xc0,
+              s = offset + 1,
+              e = s + l;
+            if (e > buf.length) throw Error("RLP list");
+            return [list(s, e), e];
+          }
+          const ll = p - 0xf7,
+            ls = offset + 1,
+            le = ls + ll;
+          if (le > buf.length) throw Error("RLP listlen");
+          const l = lenNum(ls, ll),
+            e = le + l;
+          if (e > buf.length) throw Error("RLP long list");
+          return [list(le, e), e];
+        }
+        function qbftValidatorCount(extra) {
+          try {
+            const buf = hexBytes(extra);
+            if (!buf) return null;
+            const [decoded, end] = rlpDecode(buf);
+            if (!Array.isArray(decoded) || end !== buf.length) return null;
+            const candidates = [];
+            const walk = (v) => {
+              if (!Array.isArray(v)) return;
+              if (
+                v.length === 4 &&
+                v.every((x) => x instanceof Uint8Array && x.length === 20)
+              ) {
+                const keys = v.map((x) =>
+                  Array.from(x, (b) => b.toString(16).padStart(2, "0")).join(
+                    "",
+                  ),
+                );
+                if (new Set(keys).size === 4) candidates.push(keys);
+              }
+              for (const child of v) walk(child);
+            };
+            walk(decoded);
+            return candidates.length === 1 ? 4 : null;
+          } catch {
+            return null;
+          }
+        }
+        const fmt = (n) =>
+          Number.isFinite(Number(n))
+            ? new Intl.NumberFormat("en-US").format(Number(n))
+            : "—";
+        const ago = (ts) => {
+          if (!ts) return "—";
+          const s = Math.max(0, Math.floor(Date.now() / 1000 - Number(ts)));
+          if (s < 60) return s + "s ago";
+          if (s < 3600) return Math.floor(s / 60) + "m ago";
+          if (s < 86400) return Math.floor(s / 3600) + "h ago";
+          return Math.floor(s / 86400) + "d ago";
+        };
+        const weiToKam = (v) => {
+          try {
+            const x =
+              typeof v === "string" && /^0x/i.test(v)
+                ? BigInt(v)
+                : BigInt(String(v || "0"));
+            const whole = x / 1000000000000000000n,
+              frac = (x % 1000000000000000000n)
+                .toString()
+                .padStart(18, "0")
+                .slice(0, 5)
+                .replace(/0+$/, "");
+            return whole.toString() + (frac ? "." + frac : "") + " ZVQ";
+          } catch {
+            return "—";
+          }
+        };
+        const weiHexToGwei = (v) => {
+          try {
+            return (
+              (Number(BigInt(v)) / 1e9).toLocaleString(undefined, {
+                maximumFractionDigits: 3,
+              }) + " Gwei"
+            );
+          } catch {
+            return "—";
+          }
+        };
+        let rpcOK = false,
+          apiOK = false,
+          lastHead = null,
+          lastHeadSeenAt = 0,
+          cacheBlocks = [];
+        async function rpc(method, params = []) {
+          const ctrl = new AbortController(),
+            t = setTimeout(() => ctrl.abort(), 8000);
+          try {
+            const r = await fetch(RPC, {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                jsonrpc: "2.0",
+                id: Date.now(),
+                method,
+                params,
+              }),
+              signal: ctrl.signal,
+              cache: "no-store",
+            });
+            if (!r.ok) throw Error("HTTP " + r.status);
+            const j = await r.json();
+            if (j.error) throw Error(j.error.message || "RPC error");
+            return j.result;
+          } finally {
+            clearTimeout(t);
+          }
+        }
+        async function api(path) {
+          const ctrl = new AbortController(),
+            t = setTimeout(() => ctrl.abort(), 6500);
+          try {
+            const r = await fetch(API + path, {
+              headers: { accept: "application/json" },
+              signal: ctrl.signal,
+              cache: "no-store",
+            });
+            if (!r.ok) throw Error("HTTP " + r.status);
+            const ct = r.headers.get("content-type") || "";
+            if (!ct.includes("json")) throw Error("non-JSON response");
+            return await r.json();
+          } finally {
+            clearTimeout(t);
+          }
+        }
+        function state(id, text, kind = "") {
+          const e = $(id);
+          e.textContent = text;
+          e.className = "sourceState" + (kind ? " " + kind : "");
+        }
+        function health(id, text, kind = "") {
+          const e = $(id);
+          e.textContent = text;
+          e.className = "state" + (kind ? " " + kind : "");
+        }
+        function setTop(text, kind = "") {
+          const e = $("statusPill");
+          $("topStatus").textContent = text;
+          e.className = "statusPill" + (kind ? " " + kind : "");
+        }
+        function renderDetail(title, items) {
+          $("detailTitle").textContent = title;
+          $("detailGrid").innerHTML = items
+            .map(
+              ([k, v]) =>
+                `<div class="detailItem"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`,
+            )
+            .join("");
+          $("detailPanel").classList.add("show");
+          $("detailPanel").scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }
+        async function verifyRPC() {
+          try {
+            const chainHex = await rpc("eth_chainId"),
+              chain = hexNum(chainHex);
+            rpcOK = chain === EXPECTED_CHAIN;
+            state(
+              "rpcState",
+              rpcOK ? "Online" : "Wrong chain",
+              rpcOK ? "ok" : "bad",
+            );
+            health(
+              "hRpc",
+              rpcOK ? "Online" : "Unavailable",
+              rpcOK ? "ok" : "bad",
+            );
+            health(
+              "hChain",
+              chain === EXPECTED_CHAIN
+                ? "22028 verified"
+                : String(chain ?? "Mismatch"),
+              chain === EXPECTED_CHAIN ? "ok" : "bad",
+            );
+            $("mNetwork").textContent =
+              chain === EXPECTED_CHAIN ? "ZVQ Mainnet" : "Unverified";
+            $("mNetwork").className =
+              "value " + (chain === EXPECTED_CHAIN ? "accent" : "");
+            $("mNetworkSub").textContent =
+              chain === EXPECTED_CHAIN
+                ? "Chain ID 22028 verified by RPC"
+                : "RPC chain identity not verified";
+            return rpcOK;
+          } catch (e) {
+            rpcOK = false;
+            state("rpcState", "Unavailable", "bad");
+            health("hRpc", "Unavailable", "bad");
+            health("hChain", "Not verified", "bad");
+            $("mNetwork").textContent = "Unverified";
+            $("mNetwork").className = "value";
+            $("mNetworkSub").textContent = "Public RPC did not respond";
+            return false;
+          }
+        }
+        async function verifyAPI() {
+          try {
+            const s = await api("/stats");
+            apiOK = !!s;
+            state("apiState", "Online", "ok");
+            health("hApi", "Online", "ok");
+            const tx =
+                s.total_transactions ??
+                s.total_transactions_number ??
+                s.transactions_count,
+              ad = s.total_addresses ?? s.addresses_count;
+            $("mTotalTx").textContent = tx != null ? fmt(tx) : "Unavailable";
+            $("mAddresses").textContent = ad != null ? fmt(ad) : "Unavailable";
+            return s;
+          } catch (e) {
+            apiOK = false;
+            state("apiState", "Reconnecting", "warn");
+            health("hApi", "Reconnecting", "warn");
+            $("mTotalTx").textContent = "Unavailable";
+            $("mAddresses").textContent = "Unavailable";
+            return null;
+          }
+        }
+        async function readBlocksRPC(count = 8) {
+          const head = hexNum(await rpc("eth_blockNumber"));
+          if (!Number.isFinite(head)) throw Error("invalid block number");
+          const nums = Array.from(
+            { length: Math.min(count, head + 1) },
+            (_, i) => head - i,
+          );
+          const blocks = await Promise.all(
+            nums.map((n) =>
+              rpc("eth_getBlockByNumber", ["0x" + n.toString(16), true]).catch(
+                () => null,
+              ),
+            ),
+          );
+          return blocks.filter(Boolean);
+        }
+        function normalizeApiBlock(x) {
+          const n = hexNum(x.height ?? x.number ?? x.block_number),
+            ts = x.timestamp
+              ? Math.floor(new Date(x.timestamp).getTime() / 1000)
+              : hexNum(x.timestamp),
+            gasUsed = hexNum(x.gas_used ?? x.gasUsed),
+            gasLimit = hexNum(x.gas_limit ?? x.gasLimit),
+            txCount = Number(
+              x.tx_count ?? x.transactions_count ?? x.transaction_count ?? 0,
+            );
+          return {
+            number: Number.isFinite(n) ? "0x" + n.toString(16) : null,
+            timestamp: Number.isFinite(ts) ? "0x" + ts.toString(16) : null,
+            transactions: [],
+            _txCount: Number.isFinite(txCount) ? txCount : 0,
+            gasUsed: Number.isFinite(gasUsed)
+              ? "0x" + gasUsed.toString(16)
+              : null,
+            gasLimit: Number.isFinite(gasLimit)
+              ? "0x" + gasLimit.toString(16)
+              : null,
+            hash: x.hash,
+            parentHash: x.parent_hash ?? x.parentHash,
+            miner: x.miner?.hash ?? x.miner_hash ?? x.miner,
+          };
+        }
+        function txCount(b) {
+          return Array.isArray(b.transactions) && b.transactions.length
+            ? b.transactions.length
+            : Number(b._txCount || 0);
+        }
+        function verifyContinuity(blocks) {
+          if (blocks.length < 2) {
+            health("hContinuity", "Unavailable", "warn");
+            return;
+          }
+          let checked = 0;
+          for (let i = 0; i < blocks.length - 1; i++) {
+            const a = blocks[i],
+              b = blocks[i + 1];
+            if (a.parentHash && b.hash) {
+              checked++;
+              if (
+                String(a.parentHash).toLowerCase() !==
+                String(b.hash).toLowerCase()
+              ) {
+                health("hContinuity", "Sample mismatch", "bad");
+                return;
+              }
+            }
+          }
+          health(
+            "hContinuity",
+            checked ? "Verified sample" : "Unavailable",
+            checked ? "ok" : "warn",
+          );
+        }
+        function renderBlockTime(blocks) {
+          const times = blocks
+            .map((b) => hexNum(b.timestamp))
+            .filter(Number.isFinite);
+          const diffs = [];
+          for (let i = 0; i < times.length - 1; i++) {
+            const d = times[i] - times[i + 1];
+            if (d > 0 && d < 120) diffs.push(d);
+          }
+          if (!diffs.length) {
+            $("blockTime").textContent = "Unavailable";
+            $("blockTimeSub").textContent = "Insufficient verified sample";
+            return;
+          }
+          const avg = diffs.reduce((a, b) => a + b, 0) / diffs.length;
+          $("blockTime").textContent = "~ " + avg.toFixed(1) + "s";
+          $("blockTimeSub").textContent = diffs.length + " verified intervals";
+        }
+        function renderFinalized(b, label = "Verified finality") {
+          if (!b) {
+            $("finalizedBlock").textContent = "Unavailable";
+            $("finalizedAge").textContent = "Finality evidence unavailable";
+            return;
+          }
+          const n = hexNum(b.number),
+            ts = hexNum(b.timestamp);
+          $("finalizedBlock").textContent = Number.isFinite(n)
+            ? fmt(n)
+            : "Unavailable";
+          $("finalizedAge").textContent = label + (ts ? " · " + ago(ts) : "");
+        }
+        function renderLatestBlock(b, source) {
+          const n = hexNum(b.number),
+            ts = hexNum(b.timestamp),
+            used = hexNum(b.gasUsed),
+            limit = hexNum(b.gasLimit),
+            util =
+              Number.isFinite(used) && Number.isFinite(limit) && limit > 0
+                ? ((used / limit) * 100).toFixed(1) + "%"
+                : "Unavailable";
+          $("heroBlock").textContent = Number.isFinite(n)
+            ? "#" + fmt(n)
+            : "Unavailable";
+          $("heroHash").textContent = b.hash || "Hash unavailable";
+          $("heroSource").textContent = source || "Verified source";
+          $("heroAge").textContent = ts ? ago(ts) : "Unavailable";
+          $("heroTx").textContent = fmt(txCount(b));
+          $("heroGas").textContent = util;
+          $("heroMiner").textContent = short(b.miner || "Unavailable", 7);
+        }
+        function renderChain(blocks, source) {
+          const view = $("chainView");
+          if (!blocks.length) {
+            view.innerHTML =
+              '<div class="chainEmpty">No verified blocks available.</div>';
+            $("chainMeta").textContent = "Unavailable";
+            return;
+          }
+          view.innerHTML = blocks
+            .map((b, i) => {
+              const n = hexNum(b.number),
+                ts = hexNum(b.timestamp);
+              return `${i ? '<div class="chainLink" aria-hidden="true"></div>' : ""}<div class="chainNodeWrap"><button class="chainNode ${i === 0 ? "latest" : ""}" data-block="${esc(n)}" type="button"><div class="n">#${esc(fmt(n))}</div><div class="t">${esc(ago(ts))} · ${esc(fmt(txCount(b)))} tx</div><div class="h">${esc(short(b.hash, 6))}</div></button></div>`;
+            })
+            .join("");
+          $("chainMeta").textContent =
+            `${blocks.length} verified blocks · ${source}`;
+        }
+        function renderBlocks(blocks, source) {
+          cacheBlocks = blocks;
+          const body = $("blocksBody");
+          if (!blocks.length) {
+            body.innerHTML =
+              '<tr><td colspan="5" class="placeholder">No verified blocks available.</td></tr>';
+            renderChain([], source);
+            return;
+          }
+          body.innerHTML = blocks
+            .map((b) => {
+              const n = hexNum(b.number),
+                gas = hexNum(b.gasUsed);
+              return `<tr><td><span class="hash" data-block="${esc(n)}">#${esc(fmt(n))}</span></td><td>${esc(ago(hexNum(b.timestamp)))}</td><td>${esc(fmt(txCount(b)))}</td><td>${esc(fmt(gas))}</td><td><span class="hash">${esc(short(b.hash, 8))}</span></td></tr>`;
+            })
+            .join("");
+          $("blocksMeta").textContent =
+            `${blocks.length} verified blocks · ${source}`;
+          const top = blocks[0],
+            head = hexNum(top.number);
+          $("mBlock").textContent = fmt(head);
+          $("mBlockSub").textContent = "Source: " + source;
+          const ts = hexNum(top.timestamp);
+          $("mFresh").textContent = ts ? ago(ts) : "Unavailable";
+          $("mFreshSub").textContent = ts
+            ? "Latest verified block timestamp"
+            : "Timestamp unavailable";
+          renderLatestBlock(top, source);
+          renderChain(blocks, source);
+          verifyContinuity(blocks);
+          renderBlockTime(blocks);
+          if (lastHead == null) {
+            health("hBlocks", "Head verified", "ok");
+            $("chainStatus").textContent = "Connected";
+            $("chainStatusSub").textContent = "Live head verified";
+            lastHead = head;
+            lastHeadSeenAt = Date.now();
+          } else if (head > lastHead) {
+            health("hBlocks", "Advancing", "ok");
+            $("chainStatus").textContent = "Active";
+            $("chainStatusSub").textContent = "Producing blocks";
+            lastHead = head;
+            lastHeadSeenAt = Date.now();
+          } else if (Date.now() - lastHeadSeenAt > 90000) {
+            health("hBlocks", "No new head", "warn");
+            $("chainStatus").textContent = "Stalled";
+            $("chainStatusSub").textContent =
+              "No new head in verification window";
+          } else {
+            health("hBlocks", "Head verified", "ok");
+            $("chainStatus").textContent = "Connected";
+            $("chainStatusSub").textContent = "Waiting for next block";
+          }
+        }
+        function collectTx(blocks) {
+          const out = [];
+          for (const b of blocks) {
+            for (const t of Array.isArray(b.transactions)
+              ? b.transactions
+              : []) {
+              if (t && typeof t === "object") out.push(t);
+              if (out.length >= 12) return out;
+            }
+          }
+          return out;
+        }
+        function renderTx(txs, source) {
+          const body = $("txBody");
+          if (!txs.length) {
+            body.innerHTML =
+              '<tr><td colspan="6" class="placeholder">No recent verified transactions were returned in the sampled blocks.</td></tr>';
+            $("txMeta").textContent = "No recent transactions · " + source;
+            return;
+          }
+          body.innerHTML = txs
+            .map(
+              (t) =>
+                `<tr><td><span class="hash" data-tx="${esc(t.hash)}">${esc(short(t.hash, 8))}</span></td><td>#${esc(fmt(hexNum(t.blockNumber)))}</td><td><span class="hash" data-address="${esc(t.from)}">${esc(short(t.from, 7))}</span></td><td>${t.to ? `<span class="hash" data-address="${esc(t.to)}">${esc(short(t.to, 7))}</span>` : "Contract create"}</td><td>${esc(weiToKam(t.value))}</td><td><span class="pill ok">Included</span></td></tr>`,
+            )
+            .join("");
+          $("txMeta").textContent =
+            `${txs.length} recent transactions · ${source}`;
+        }
+        async function refreshLive() {
+          let blocks = [],
+            source = "";
+          try {
+            if (!rpcOK) await verifyRPC();
+            if (rpcOK) {
+              const gas = await rpc("eth_gasPrice").catch(() => null);
+              $("mGas").textContent = gas ? weiHexToGwei(gas) : "Unavailable";
+              blocks = await readBlocksRPC(8);
+              source = "ZEVARYQ RPC";
+              renderBlocks(blocks, source);
+              renderTx(collectTx(blocks), source);
+              let finalized = await rpc("eth_getBlockByNumber", [
+                  "finalized",
+                  false,
+                ]).catch(() => null),
+                finalityLabel = "RPC finalized";
+              if (!finalized) {
+                finalized = await rpc("eth_getBlockByNumber", [
+                  "safe",
+                  false,
+                ]).catch(() => null);
+                finalityLabel = "RPC safe";
+              }
+              if (
+                !finalized &&
+                blocks[0] &&
+                qbftValidatorCount(blocks[0].extraData) === 4
+              ) {
+                finalized = blocks[0];
+                finalityLabel = "QBFT committed · 4-validator evidence";
+              }
+              renderFinalized(finalized, finalityLabel);
+            }
+          } catch (e) {
+            rpcOK = false;
+            state("rpcState", "Unavailable", "bad");
+            health("hRpc", "Unavailable", "bad");
+            $("mGas").textContent = "Unavailable";
+          }
+          if (!blocks.length && apiOK) {
+            try {
+              const j = await api("/blocks"),
+                items = j.items || j.blocks || [];
+              blocks = items
+                .slice(0, 8)
+                .map(normalizeApiBlock)
+                .filter((b) => Number.isFinite(hexNum(b.number)));
+              source = "Explorer API";
+              renderBlocks(blocks, source);
+              renderTx([], source + " · transaction sample unavailable");
+              renderFinalized(null);
+            } catch {}
+          }
+          if (!blocks.length) {
+            $("heroBlock").textContent = "Unavailable";
+            $("heroHash").textContent = "No verified block source available";
+            $("heroSource").textContent = apiOK
+              ? "Indexer available"
+              : "Reconnecting";
+            $("heroAge").textContent = "Unavailable";
+            $("heroTx").textContent = "Unavailable";
+            $("heroGas").textContent = "Unavailable";
+            $("heroMiner").textContent = "Unavailable";
+            $("mBlock").textContent = "Unavailable";
+            $("mFresh").textContent = "Unavailable";
+            $("blockTime").textContent = "Unavailable";
+            $("blockTimeSub").textContent = "No verified block sample";
+            $("chainStatus").textContent = "Unavailable";
+            $("chainStatusSub").textContent = "Reconnecting to verified source";
+            renderFinalized(null);
+            $("blocksBody").innerHTML =
+              '<tr><td colspan="5" class="placeholder">Verified block data unavailable. Reconnecting…</td></tr>';
+            renderChain([], source);
+            health("hContinuity", "Unavailable", "warn");
+            health("hBlocks", "Unavailable", "warn");
+          }
+          $("activeSource").textContent = rpcOK
+            ? "ZEVARYQ RPC via /rpc"
+            : apiOK
+              ? "Explorer API"
+              : "No verified live source";
+          state(
+            "sourceState",
+            rpcOK || apiOK ? "Active" : "Reconnecting",
+            rpcOK || apiOK ? "ok" : "warn",
+          );
+          setTop(
+            rpcOK
+              ? apiOK
+                ? "ZVQ Mainnet Live"
+                : "RPC live · Indexer reconnecting"
+              : apiOK
+                ? "Indexer Live"
+                : "Data path unavailable",
+            rpcOK || apiOK ? "ok" : "bad",
+          );
+          health(
+            "hRefresh",
+            new Date().toLocaleTimeString(),
+            rpcOK || apiOK ? "ok" : "warn",
+          );
+        }
+        async function search(q) {
+          q = q.trim();
+          if (!q) return;
+          const hint = $("searchHint");
+          hint.className = "searchHint";
+          hint.textContent = "Checking ZEVARYQ Network…";
+          try {
+            if (!rpcOK && !(await verifyRPC()))
+              throw Error("ZEVARYQ RPC unavailable");
+            if (/^0x[a-fA-F0-9]{64}$/.test(q)) {
+              const tx = await rpc("eth_getTransactionByHash", [q]);
+              if (tx) {
+                const receipt = await rpc("eth_getTransactionReceipt", [
+                  q,
+                ]).catch(() => null);
+                renderDetail("Transaction " + short(q, 10), [
+                  ["Hash", tx.hash],
+                  ["Block", hexNum(tx.blockNumber)],
+                  ["From", tx.from],
+                  ["To", tx.to || "Contract creation"],
+                  ["Value", weiToKam(tx.value)],
+                  ["Nonce", hexNum(tx.nonce)],
+                  ["Gas", hexNum(tx.gas)],
+                  [
+                    "Status",
+                    receipt
+                      ? hexNum(receipt.status) === 1
+                        ? "Success"
+                        : "Failed"
+                      : "Pending / receipt unavailable",
+                  ],
+                ]);
+                hint.textContent = "Transaction verified through ZEVARYQ RPC.";
+                hint.className = "searchHint ok";
+                return;
+              }
+              const b = await rpc("eth_getBlockByHash", [q, true]);
+              if (b) {
+                showBlock(b);
+                hint.textContent = "Block verified through ZEVARYQ RPC.";
+                hint.className = "searchHint ok";
+                return;
+              }
+              throw Error("Hash not found");
+            }
+            if (/^0x[a-fA-F0-9]{40}$/.test(q)) {
+              const [bal, nonce, code] = await Promise.all([
+                rpc("eth_getBalance", [q, "latest"]),
+                rpc("eth_getTransactionCount", [q, "latest"]),
+                rpc("eth_getCode", [q, "latest"]),
+              ]);
+              renderDetail("Address " + short(q, 10), [
+                ["Address", q],
+                ["Balance", weiToKam(bal)],
+                ["Nonce", hexNum(nonce)],
+                [
+                  "Type",
+                  code && code !== "0x"
+                    ? "Smart contract"
+                    : "Externally owned / no bytecode",
+                ],
+              ]);
+              hint.textContent = "Address state verified through ZEVARYQ RPC.";
+              hint.className = "searchHint ok";
+              return;
+            }
+            let n;
+            if (/^\d+$/.test(q)) n = Number(q);
+            else if (/^0x[a-fA-F0-9]+$/.test(q)) n = hexNum(q);
+            if (Number.isFinite(n) && n >= 0) {
+              const b = await rpc("eth_getBlockByNumber", [
+                "0x" + n.toString(16),
+                true,
+              ]);
+              if (!b) throw Error("Block not found");
+              showBlock(b);
+              hint.textContent = "Block verified through ZEVARYQ RPC.";
+              hint.className = "searchHint ok";
+              return;
+            }
+            throw Error(
+              "Use a ZEVARYQ address, transaction hash, block hash, or block number.",
+            );
+          } catch (e) {
+            hint.textContent = e.message || "Search unavailable";
+            hint.className = "searchHint error";
+          }
+        }
+        function showBlock(b) {
+          renderDetail("Block #" + fmt(hexNum(b.number)), [
+            ["Block", hexNum(b.number)],
+            ["Hash", b.hash],
+            ["Parent", b.parentHash],
+            [
+              "Timestamp",
+              hexNum(b.timestamp)
+                ? new Date(hexNum(b.timestamp) * 1000).toISOString()
+                : "Unavailable",
+            ],
+            ["Transactions", txCount(b)],
+            ["Gas used", hexNum(b.gasUsed)],
+            ["Gas limit", hexNum(b.gasLimit)],
+            ["Miner / beneficiary", b.miner || "—"],
+          ]);
+        }
+        $("searchForm").addEventListener("submit", (e) => {
+          e.preventDefault();
+          search($("searchInput").value);
+        });
+        $("detailClose").addEventListener("click", () =>
+          $("detailPanel").classList.remove("show"),
+        );
+        document.addEventListener("click", (e) => {
+          const el = e.target.closest("[data-tx],[data-address],[data-block]");
+          if (!el) return;
+          if (el.dataset.tx) search(el.dataset.tx);
+          else if (el.dataset.address) search(el.dataset.address);
+          else if (el.dataset.block) search(el.dataset.block);
+        });
+        async function boot() {
+          await Promise.allSettled([verifyRPC(), verifyAPI()]);
+          await refreshLive();
+          setInterval(async () => {
+            if (document.visibilityState !== "visible") return;
+            await verifyRPC();
+            await verifyAPI();
+            await refreshLive();
+          }, 120000);
+        }
+        boot();
+      })();
+    </script>
+  </body>
 </html>
