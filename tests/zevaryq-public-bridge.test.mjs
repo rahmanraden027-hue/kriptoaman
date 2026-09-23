@@ -46,7 +46,7 @@ test('RPC and Blockscout routes are not remapped to public hostname', () => {
 test('deployment is preflight-gated and restores the prior Worker route on post-switch failure', () => {
  assert.match(workflow, /EXPECTED_OLD_WORKER: zevaryq-explorer-public-bridge/);
  assert.match(workflow, /Restore prior route on verification failure/);
- assert.match(config, /name = "zevaryq-explorer-public-bridge-orbital-20260924"/);
+ assert.match(config, /name = "zevaryq-explorer-public-bridge-orbital-indexed-20260924"/);
  assert.match(workflow, /steps\.verify\.outcome == 'failure'/);
  assert.match(workflow, /if: github\.event_name == 'push'/);
  assert.doesNotMatch(workflow, /genesis|wipe database|validator private key/i);
@@ -80,10 +80,21 @@ test('reference orbital public bridge is independently pinned, not a stale v1.1.
   assert.match(source, /homepage\.includes\('data-zvq-reference-visual="' \+ VISUAL \+ '"'\)/);
   assert.match(source, /'x-zevaryq-explorer-design': VISUAL/);
   assert.match(config, /zevaryq-explorer-public-bridge-orbital-20260924/);
-  assert.match(workflow, /EXPECTED_OLD_WORKER: zevaryq-explorer-public-bridge-v112/);
-  assert.match(workflow, /NEW_WORKER: zevaryq-explorer-public-bridge-orbital-20260924/);
+  assert.match(workflow, /EXPECTED_OLD_WORKER: zevaryq-explorer-public-bridge-orbital-20260924/);
+  assert.match(workflow, /NEW_WORKER: zevaryq-explorer-public-bridge-orbital-indexed-20260924/);
   assert.match(workflow, /x-zevaryq-explorer-design: blue-gold-orbital-20260924/);
   assert.match(workflow, /data-zvq-reference-visual="blue-gold-orbital-20260924"/);
   assert.match(workflow, /Restore prior route on verification failure/);
   assert.match(workflow, /Refusing to overwrite concurrent operator route change/);
+});
+
+test('indexed-v2 Worker cannot serve stale homepage, and guarded cutover preserves currently active orbital Worker for rollback', () => {
+  assert.match(html, /data-zvq-token-discovery="indexed-v2"/);
+  assert.match(source, /const TOKEN_DISCOVERY = 'indexed-v2'/);
+  assert.match(source, /homepage\.includes\('data-zvq-token-discovery="' \+ TOKEN_DISCOVERY \+ '"'\)/);
+  assert.match(source, /'x-zevaryq-explorer-token-discovery': TOKEN_DISCOVERY/);
+  assert.match(workflow, /grep -Fq 'data-zvq-token-discovery="indexed-v2"' "\$d\/homepage\.html"/);
+  assert.match(workflow, /grep -iq '\^x-zevaryq-explorer-token-discovery: indexed-v2'/);
+  assert.match(workflow, /Refusing to overwrite concurrent operator route change/);
+  assert.match(workflow, /Restore prior route on verification failure/);
 });
