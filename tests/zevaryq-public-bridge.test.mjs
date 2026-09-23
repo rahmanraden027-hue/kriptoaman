@@ -8,7 +8,7 @@ const html = await readFile(new URL('../explorer-dashboard/zevaryq-production.ht
 const workflow = await readFile(new URL('../.github/workflows/zevaryq-public-bridge-rollout.yml', import.meta.url), 'utf8');
 
 test('bundled homepage uses canonical production ZVQ evidence, not a fabricated mockup', () => {
- assert.match(html, /data-zevaryq-explorer-version="1\.1\.1"/);
+ assert.match(html, /data-zevaryq-explorer-version="1\.1\.2"/);
  assert.match(html, /class="logo logo-zvq"/);
  assert.match(html, /class="earth-brandmark"/);
  assert.match(source, /homepage\.includes\("EXPECTED_CHAIN='" \+ EXPECTED_ID \+ "'"/);
@@ -37,8 +37,9 @@ test('RPC and Blockscout routes are not remapped to public hostname', () => {
 });
 
 test('deployment is preflight-gated and restores the prior Worker route on post-switch failure', () => {
- assert.match(workflow, /EXPECTED_OLD_WORKER: kam-mainnet-explorer-cutover/);
+ assert.match(workflow, /EXPECTED_OLD_WORKER: zevaryq-explorer-public-bridge/);
  assert.match(workflow, /Restore prior route on verification failure/);
+ assert.match(config, /name = "zevaryq-explorer-public-bridge-v112"/);
  assert.match(workflow, /steps\.verify\.outcome == 'failure'/);
  assert.match(workflow, /if: github\.event_name == 'push'/);
  assert.doesNotMatch(workflow, /genesis|wipe database|validator private key/i);
