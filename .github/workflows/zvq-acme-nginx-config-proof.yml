@@ -35,3 +35,22 @@ jobs:
           challenge="$base/proxy/kam-dashboard/.well-known/acme-challenge"
           echo "acme_directory_exists=$([[ -d "$challenge" ]] && echo yes || echo no)"
           echo "acme_directory_writable_by_runner=$([[ -w "$challenge" ]] && echo yes || echo no)"
+          probe_rpc() {
+            local label="$1" url="$2" status body chain
+            body="$(mktemp)"
+            status="$(curl --noproxy '*' -sS --connect-timeout 3 --max-time 6 \
+              -H 'content-type: application/json' \
+              --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+              -o "$body" -w '%{http_code}' "$url" 2>/dev/null || true)"
+            chain="$(python3 -c 'import json,sys; print(json.load(sys.stdin).get("result","unavailable"))' <"$body" 2>/dev/null || true)"
+            echo "origin_probe_rpc $label http=$status chain_id=$chain"
+            rm -f "$body"
+          }
+          probe_rpc nginx_same_origin http://127.0.0.1/rpc
+          probe_rpc private_sentry_8545 http://10.104.0.2:8545/
+          probe_rpc private_sentry_8546 http://10.104.0.2:8546/
+          blocks="$(mktemp)"
+          status="$(curl --noproxy '*' -sS --connect-timeout 3 --max-time 6 -o "$blocks" -w '%{http_code}' http://127.0.0.1/api/v2/blocks 2>/dev/null || true)"
+          count="$(python3 -c 'import json,sys; b=json.load(sys.stdin); print(len(b.get("items",[])) if isinstance(b.get("items"),list) else "not-array")' <"$blocks" 2>/dev/null || true)"
+          echo "origin_probe_blockscout nginx_same_origin http=$status indexed_items=$count"
+          rm -f "$blocks"
