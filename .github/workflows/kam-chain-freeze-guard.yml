@@ -90,7 +90,7 @@ jobs:
           echo 'Checking authoritative GitHub PR association for protected-path changes.'
           verified=false
           for attempt in 1 2 3 4 5 6 7 8; do
-            if pulls="$(curl --fail-with-body -fsS --connect-timeout 8 --max-time 20 \
+            if pulls="$(curl --fail-with-body -sS --connect-timeout 8 --max-time 20 \
               -H "Authorization: Bearer ${GH_TOKEN}" \
               -H 'Accept: application/vnd.github+json' \
               -H 'X-GitHub-Api-Version: 2022-11-28' \
