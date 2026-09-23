@@ -103,3 +103,43 @@ test('Failed wallet balance probe cannot display stale previous wallet assets', 
   assert.match(wallet, /setBalance\('0'\);setBalancePhase\('loading'\)/);
   assert.match(wallet, /balancePhase === 'error'\) \? '—' :/);
 });
+
+
+test('Direct RPC balance fallback rejects unexpected chain before requesting balance', async () => {
+  const address = '0x1234567890123456789012345678901234567890';
+  let balanceRequested = false;
+  const api = loadService(async (url, options = {}) => {
+    if (url.startsWith('/api/kam/network-status')) throw new Error('Status unavailable');
+    if (url === 'https://rpc.kriptoaman.com') {
+      const method = JSON.parse(options.body).method;
+      if (method === 'eth_chainId') return json({ jsonrpc: '2.0', result: '0x1' });
+      balanceRequested = true;
+      return json({ jsonrpc: '2.0', result: '0x0' });
+    }
+    throw new Error('Unexpected URL');
+  });
+  await assert.rejects(() => api.fetchZvqBalance(address), /chain ID mismatch/);
+  assert.equal(balanceRequested, false);
+});
+
+test('Verified fallback RPC uses 18-decimal native balance and rejects malformed values', async () => {
+  const address = '0x1234567890123456789012345678901234567890';
+  const good = loadService(async (url, options = {}) => {
+    if (url.startsWith('/api/kam/network-status')) throw new Error('Status unavailable');
+    if (url === 'https://rpc.kriptoaman.com') {
+      const method = JSON.parse(options.body).method;
+      return json({ jsonrpc: '2.0', result: method === 'eth_chainId' ? '0x560c' : '0xde0b6b3a7640000' });
+    }
+    throw new Error('Unexpected URL');
+  });
+  assert.equal(await good.fetchZvqBalance(address), '1');
+  const malformed = loadService(async (url, options = {}) => {
+    if (url.startsWith('/api/kam/network-status')) throw new Error('Status unavailable');
+    if (url === 'https://rpc.kriptoaman.com') {
+      const method = JSON.parse(options.body).method;
+      return json({ jsonrpc: '2.0', result: method === 'eth_chainId' ? '0x560c' : 'not-hex' });
+    }
+    throw new Error('Unexpected URL');
+  });
+  await assert.rejects(() => malformed.fetchZvqBalance(address), /malformed RPC balance/);
+});
