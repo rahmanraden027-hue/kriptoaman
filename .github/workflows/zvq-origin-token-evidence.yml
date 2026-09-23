@@ -71,3 +71,31 @@ jobs:
           probe direct_public_tls --resolve explorer.kriptoaman.com:443:146.190.93.254 https://explorer.kriptoaman.com/
           trusted="$(curl --noproxy '*' -LsS --connect-timeout 3 --max-time 8 --resolve explorer.kriptoaman.com:443:146.190.93.254 -o /dev/null -w '%{http_code}' https://explorer.kriptoaman.com/ 2>/dev/null || true)"
           echo "origin_direct_trusted_tls_http=$trusted"
+          for command in nginx caddy certbot acme.sh docker openssl ss curl; do
+            if command -v "$command" >/dev/null 2>&1; then echo "origin_tool_$command=available"
+            else echo "origin_tool_$command=unavailable"; fi
+          done
+          if sudo -n true 2>/dev/null; then echo "origin_sudo_noninteractive=available"
+          else echo "origin_sudo_noninteractive=unavailable"; fi
+          for package in python3-certbot-dns-cloudflare certbot nginx caddy; do
+            if dpkg-query -W "$package" 2>/dev/null | grep -q "$package"; then
+              echo "origin_package_$package=installed"
+            else echo "origin_package_$package=absent"; fi
+          done
+          if command -v docker >/dev/null 2>&1; then
+            port80="$(docker ps --format '{{.Ports}}' 2>/dev/null | grep -Ec '0\.0\.0\.0:80->|:::80->' || true)"
+            port443="$(docker ps --format '{{.Ports}}' 2>/dev/null | grep -Ec '0\.0\.0\.0:443->|:::443->' || true)"
+            echo "origin_docker_published_80=$port80"
+            echo "origin_docker_published_443=$port443"
+          fi
+          if [[ -r /opt/blockscout/docker-compose/proxy/default.conf.template ]]; then
+            config=/opt/blockscout/docker-compose/proxy/default.conf.template
+            for pattern in 'listen 80' 'listen 443' 'proxy_pass' 'ssl_certificate'; do
+              key="$(echo "$pattern" | tr ' ' '_')"
+              if grep -Fq "$pattern" "$config"; then echo "origin_nginx_conf_has_$key=yes"
+              else echo "origin_nginx_conf_has_$key=no"; fi
+            done
+          fi
+          if command -v ufw >/dev/null 2>&1; then
+            echo "origin_ufw_state=$(sudo -n ufw status 2>/dev/null | head -1 | tr -cd '[:alnum:] :_' | cut -c 1-50)"
+          fi
