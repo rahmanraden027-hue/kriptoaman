@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - .github/workflows/zevaryq-explorer-public-route-proof.yml
+      - explorer-dashboard/zevaryq-production.html
+      - tests/zevaryq-explorer-public-route-proof.test.mjs
   schedule:
     - cron: '41 * * * *'
 permissions:
@@ -78,6 +80,46 @@ jobs:
             echo "::error::One or more publicly accessible HTTP 200 Explorer paths lack the merged immune/token feature marker"
             exit 1
           fi
+      - name: Verify approved blue-gold orbital visual plus public RPC and indexed Blockscout
+        shell: bash
+        run: |
+          set -euo pipefail
+          visual='blue-gold-orbital-20260924'
+          for label in default bypass; do
+            if [[ "$label" == default ]]; then url='https://explorer.kriptoaman.com/'
+            else url="https://explorer.kriptoaman.com/?zvq_visual_proof=$visual-$GITHUB_RUN_ID"; fi
+            headers="$(mktemp)"; body="$(mktemp)"
+            http="$(curl -LsS --retry 3 --retry-delay 2 --retry-all-errors --connect-timeout 8 --max-time 30 \
+              -H 'Cache-Control: no-cache' -D "$headers" -o "$body" -w '%{http_code}' "$url")"
+            marker="data-zvq-reference-visual=\"$visual\""
+            test "$http" = 200
+            grep -Fq "$marker" "$body"
+            grep -Fq 'data-zevaryq-features="immune-token-v1"' "$body"
+            grep -Fq 'class="triad"' "$body"
+            grep -Fq 'class="satellite-row"' "$body"
+            grep -Fq 'id="token-discovery"' "$body"
+            grep -Fq "EXPECTED_CHAIN='0x560c'" "$body"
+            grep -iq "^x-zevaryq-explorer-design: $visual" "$headers"
+            grep -iq '^x-zevaryq-explorer-release: 1\.1\.2' "$headers"
+            echo "verified_public_$label: http=200 design=$visual immune_token=present rpc_guard=0x560c"
+            rm -f "$headers" "$body"
+          done
+          for asset in zevaryq-emblem.webp zevaryq-favicon.png; do
+            status="$(curl -LsS --retry 2 --connect-timeout 8 --max-time 20 -o /dev/null \
+              -w '%{http_code}' "https://explorer.kriptoaman.com/zevaryq-assets/$asset")"
+            test "$status" = 200
+            echo "verified_asset_$asset=http_$status"
+          done
+          chain="$(curl -fsS --retry 2 --connect-timeout 8 --max-time 20 \
+            -H 'content-type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+            'https://explorer.kriptoaman.com/rpc')"
+          test "$(jq -er '.result' <<<"$chain")" = '0x560c'
+          blocks="$(curl -fsS --retry 2 --connect-timeout 8 --max-time 20 \
+            'https://explorer.kriptoaman.com/api/v2/blocks')"
+          jq -e '(.items | type == "array") and (.items | length > 0)' <<<"$blocks" >/dev/null
+          tip="$(jq -r '.items[0].height // "unavailable"' <<<"$blocks")"
+          echo "verified_rpc_chain=0x560c; blockscout_indexed_tip=$tip; public_visual=$visual"
     env:
       PUBLIC_DEFAULT_STALE: '0'
       PUBLIC_FEATURE_MISSING: '0'
@@ -95,14 +137,15 @@ jobs:
             headers="$(mktemp)"; body="$(mktemp)"
             status="$(curl -LsS --connect-timeout 5 --max-time 22 -D "$headers" -o "$body" -w '%{http_code}' "$@" "$url" || true)"
             release="$(grep -o 'data-zevaryq-explorer-version="[^"]*"' "$body" | head -1 || true)"
-            logo=0; legacy=0; feature=0
+            logo=0; legacy=0; feature=0; design=0
             grep -Fq 'class="logo logo-zvq"' "$body" && logo=1 || true
             grep -Fq 'class="earth-logo"' "$body" && legacy=1 || true
+            grep -Fq 'data-zvq-reference-visual="blue-gold-orbital-20260924"' "$body" && design=1 || true
             if grep -Fq 'data-zevaryq-features="immune-token-v1"' "$body" \
               && grep -Fq 'id="immune-monitor"' "$body" \
               && grep -Fq 'id="token-discovery"' "$body"; then feature=1; fi
-            echo "$label http=$status release=$release header_zvq=$logo legacy_img=$legacy immune_token_v1=$feature"
-            if [[ "$label" == local-http && ( "$status" != 200 || "$feature" != 1 ) ]]; then
+            echo "$label http=$status release=$release header_zvq=$logo legacy_img=$legacy immune_token_v1=$feature visual_approved=$design"
+            if [[ "$label" == local-http && ( "$status" != 200 || "$feature" != 1 || "$design" != 1 ) ]]; then
               echo '::error::Dedicated Explorer origin is missing the merged evidence panels'; exit 1
             fi
             grep -iE '^(cache-control|age|cf-cache-status|server|location|etag|via):' "$headers" || true
