@@ -1,0 +1,135 @@
+name: ZVQ Direct Origin ACME Webroot
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/zvq-direct-origin-acme-webroot.yml'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/zvq-direct-origin-acme-webroot.yml'
+permissions:
+  contents: read
+concurrency:
+  group: zvq-direct-origin-acme-webroot
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout reviewed workflow
+        uses: actions/checkout@v4
+      - name: Reject unsafe mutations in webroot-only workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=.github/workflows/zvq-direct-origin-acme-webroot.yml
+          grep -Fq 'location ^~ /.well-known/acme-challenge/' "$file"
+          test -f scripts/deploy-zevaryq-explorer.sh
+          ! grep -Eqi 'eth_sendRawTransaction|docker compose down|reset.*genesis|wipe.*postgres|delete.*droplet' "$file"
+  stage:
+    needs: validate
+    if: github.event_name == 'push'
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 8
+    steps:
+      - name: Stage ACME path after NGINX preflight, with rollback
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          base=/opt/blockscout/docker-compose
+          conf="$base/proxy/default.conf.template"
+          webroot="$base/proxy/kam-dashboard"
+          backup="$conf.zvq-acme-$GITHUB_RUN_ID.bak"
+          test -r "$conf"
+          test -r "$webroot/index.html"
+          grep -Fq 'data-zvq-token-discovery="indexed-v2"' "$webroot/index.html"
+          before="$(sha256sum "$webroot/index.html" | cut -d ' ' -f 1)"
+          sudo -n cp -a "$conf" "$backup"
+          rollback() {
+            code=$?
+            echo "::error::ACME webroot stage failed; restoring original proxy (exit=$code)"
+            sudo -n cp -a "$backup" "$conf" || true
+            (cd "$base" && docker compose up -d --force-recreate proxy) || true
+            exit "$code"
+          }
+          trap rollback ERR
+          if ! grep -Fq 'location ^~ /.well-known/acme-challenge/' "$conf"; then
+            sudo -n python3 - "$conf" <<'PY'
+          import pathlib,sys
+          p=pathlib.Path(sys.argv[1])
+          s=p.read_text()
+          marker='  server_name _;'
+          if s.count(marker)!=1: raise SystemExit('Cannot identify exact proxy server_name')
+          acme='''
+            # Independent ACME HTTP-01; all existing proxy routes remain unchanged.
+            location ^~ /.well-known/acme-challenge/ {
+              root /etc/nginx/templates/kam-dashboard;
+              default_type text/plain;
+              add_header Cache-Control "no-store" always;
+              try_files $uri =404;
+            }
+          '''
+          p.write_text(s.replace(marker,marker+'\n'+acme,1))
+          PY
+          fi
+          grep -Fq 'location ^~ /.well-known/acme-challenge/' "$conf"
+          cd "$base"
+          docker compose config -q
+          docker compose run --rm --no-deps proxy nginx -t
+          challenge="$webroot/.well-known/acme-challenge"
+          sudo -n install -d -m 0755 "$challenge"
+          proof="$challenge/zvq-proof-$GITHUB_RUN_ID"
+          printf 'zvq-acme-proof-%s' "$GITHUB_RUN_ID" | sudo -n tee "$proof" >/dev/null
+          sudo -n chmod 0644 "$proof"
+          docker compose up -d --force-recreate proxy
+          body="$(curl --noproxy '*' -fsS --retry 5 --retry-all-errors --retry-delay 1 --max-time 12 "http://127.0.0.1/.well-known/acme-challenge/zvq-proof-$GITHUB_RUN_ID")"
+          test "$body" = "zvq-acme-proof-$GITHUB_RUN_ID"
+          test "$before" = "$(sha256sum "$webroot/index.html" | cut -d ' ' -f 1)"
+          curl --noproxy '*' -fsS --max-time 10 http://127.0.0.1/blocks -o /dev/null
+          echo 'acme_route_local=verified_exact_bytes'
+          trap - ERR
+  external:
+    needs: stage
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Verify exact ACME token externally against origin IP
+        shell: bash
+        run: |
+          set -euo pipefail
+          host=explorer.kriptoaman.com
+          ip=146.190.93.254
+          url="http://$host/.well-known/acme-challenge/zvq-proof-$GITHUB_RUN_ID"
+          expected="zvq-acme-proof-$GITHUB_RUN_ID"
+          actual="$(curl --noproxy '*' -fsS --retry 3 --retry-delay 1 --connect-timeout 6 --max-time 14 --resolve "$host:80:$ip" "$url")"
+          test "$actual" = "$expected"
+          echo 'external_direct_ip_acme=verified_exact_bytes'
+  finalize:
+    needs: [stage,external]
+    if: always() && github.event_name == 'push'
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 6
+    steps:
+      - name: Retain externally proven ACME path or restore existing proxy template
+        shell: bash
+        env:
+          EXTERNAL_RESULT: ${{ needs.external.result }}
+        run: |
+          set -euo pipefail
+          base=/opt/blockscout/docker-compose
+          conf="$base/proxy/default.conf.template"
+          backup="$conf.zvq-acme-$GITHUB_RUN_ID.bak"
+          target="$base/proxy/kam-dashboard/.well-known/acme-challenge/zvq-proof-$GITHUB_RUN_ID"
+          if [[ "$EXTERNAL_RESULT" != success && -f "$backup" ]]; then
+            sudo -n cp -a "$backup" "$conf"
+            (cd "$base" && docker compose up -d --force-recreate proxy)
+            echo "acme_route_rollback=restored_original; external_result=$EXTERNAL_RESULT"
+          else
+            echo "acme_route_production=externally_verified; external_result=$EXTERNAL_RESULT"
+          fi
+          if [[ -f "$target" ]]; then sudo -n rm -- "$target"; fi
+          test "$(curl --noproxy '*' -fsS --max-time 10 -o /dev/null -w '%{http_code}' http://127.0.0.1/)" = 200
+          echo 'acme_test_artifact_removed=yes'
+          [[ "$EXTERNAL_RESULT" == success ]]
