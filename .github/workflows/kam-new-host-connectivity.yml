@@ -1,13 +1,19 @@
 name: KAM New Host Connectivity
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
     paths:
       - '.github/workflows/kam-new-host-connectivity.yml'
       - 'scripts/finalize-zvq-rpc-origin-https.sh'
+      - 'scripts/zvq-rpc-allowlist-gateway.mjs'
+      - 'tests/zvq-rpc-allowlist-gateway.test.mjs'
   workflow_dispatch:
+    inputs:
+      confirm_rpc_tls:
+        description: 'I explicitly authorize installing TLS on the existing RPC sentry, after all safety checks pass'
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -17,7 +23,19 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate deployment script syntax
+        run: bash -n scripts/finalize-zvq-rpc-origin-https.sh
+      - name: Verify RPC method allowlist and deployment guard
+        run: node --test tests/zvq-rpc-allowlist-gateway.test.mjs
+
   verify-admin-path:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm_rpc_tls == true }}
+    needs: validate
     runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
     timeout-minutes: 10
     steps:
