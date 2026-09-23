@@ -8,8 +8,13 @@ BASE=/var/lib/zvq-rpc-origin-tls
 PENDING="$BASE/pending-$RUN_ID"
 [[ -f "$PENDING" ]] || { echo 'rpc_rollback=no_pending_stage'; exit 0; }
 grep -Fxq "run_id=$RUN_ID" "$PENDING"
+# This pending marker proves the timer, if installed, belongs to this staging run.
+# Stop it before removing only the two newly staged sidecars.
 if systemctl is-active --quiet zvq-rpc-origin-renew.timer; then
-  echo 'rpc_rollback=blocked_renewal_already_active' >&2
+  systemctl disable --now zvq-rpc-origin-renew.timer
+fi
+if systemctl is-active --quiet zvq-rpc-origin-renew.service; then
+  echo 'rpc_rollback=renewal_service_active; refusing_unsafe_removal' >&2
   exit 1
 fi
 docker rm -f zvq-rpc-origin-tls zvq-rpc-allowlist-gateway >/dev/null 2>&1 || true
