@@ -66,7 +66,7 @@ jobs:
         run: |
           set -euo pipefail
           scp -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new \
-            scripts/finalize-zvq-rpc-origin-https.sh root@206.189.36.15:/tmp/finalize-zvq-rpc-origin-https.sh
+            scripts/finalize-zvq-rpc-origin-https.sh scripts/zvq-rpc-allowlist-gateway.mjs root@206.189.36.15:/tmp/
           ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15 \
             'env ZVQ_RPC_TLS_RUN_ID='"$GITHUB_RUN_ID"' bash /tmp/finalize-zvq-rpc-origin-https.sh'
 
@@ -84,6 +84,8 @@ jobs:
           test $((16#${head2#0x})) -ge $((16#${head1#0x}))
           denied="$(curl --noproxy '*' -sS --connect-timeout 6 --max-time 10 -o /dev/null -w '%{http_code}' -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":4,"method":"admin_peers","params":[]}' "$origin/")"
           test "$denied" = 403
+          write_denied="$(curl --noproxy '*' -sS --connect-timeout 6 --max-time 10 -o /dev/null -w '%{http_code}' -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":5,"method":"eth_sendRawTransaction","params":["0x01"]}' "$origin/")"
+          test "$write_denied" = 403
           echo "rpc_origin_tls=trusted; chain_id=$chain; block_progress=verified; admin_rpc=blocked"
 
       - name: Upload redacted connectivity evidence
