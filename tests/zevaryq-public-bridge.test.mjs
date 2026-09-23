@@ -43,3 +43,15 @@ test('deployment is preflight-gated and restores the prior Worker route on post-
  assert.match(workflow, /if: github\.event_name == 'push'/);
  assert.doesNotMatch(workflow, /genesis|wipe database|validator private key/i);
 });
+
+test('public bridge rollout waits for propagation, authenticates release and protects rollback ownership', () => {
+ assert.match(workflow, /route_propagation_attempt=/);
+ assert.match(workflow, /for attempt in \$\(seq 1 12\)/);
+ assert.match(workflow, /x-zevaryq-explorer-release/);
+ assert.match(workflow, /public_verified=false/);
+ assert.match(workflow, /public_verified=true/);
+ assert.match(workflow, /public_asset_/);
+ assert.match(workflow, /Refusing to overwrite concurrent operator route change/);
+ assert.match(workflow, /EXPECTED_API_WORKER/);
+ assert.match(workflow, /Restore prior route on verification failure/);
+});
