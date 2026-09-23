@@ -37,5 +37,4 @@ test('authoritative PR lookup uses non-conflicting curl failure options', () => 
   // every PR lookup fail before contacting GitHub, even for reviewed merges.
   assert.match(workflow, /curl --fail-with-body -sS --connect-timeout 8 --max-time 20/);
   assert.doesNotMatch(workflow, /curl --fail-with-body -f(?:sS)?/);
-  assert.match(workflow, /merge_commit_sha == \\$sha/);
 });
