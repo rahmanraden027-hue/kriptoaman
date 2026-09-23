@@ -47,3 +47,8 @@ test('production rollout requires independent externally verified certificate an
  assert.match(stage,/trap rollback ERR/);
  assert.doesNotMatch(workflow,/CLOUDFLARE_API_TOKEN|eth_sendRawTransaction|DELETE FROM|power_cycle/i);
 });
+
+test('external proof must not combine incompatible curl failure flags',()=>{
+ assert.doesNotMatch(workflow,/--fail-with-body\\s+-f[sSL]/);
+ assert.match(workflow,/--fail-with-body -sS --connect-timeout/);
+});
