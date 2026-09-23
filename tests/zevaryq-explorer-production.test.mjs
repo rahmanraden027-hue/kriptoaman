@@ -155,10 +155,13 @@ test('evidence panels preserve current Explorer production security and identity
  assert.match(html,/state\.rpc&&state\.api&&Number\.isSafeInteger\(state\.head\)/);
  assert.match(html,/delta>=0&&delta<=6/);
  assert.match(html,/secs<=90/);
- assert.match(html,/transactions\?type=token_creation/);
+ assert.doesNotMatch(html,/transactions\?type=token_creation',\{\},10000/);
+ assert.match(html,/\/transactions\?type=contract_creation/);
+ assert.match(html,/API\+'\/tokens\?type=ERC-20'/);
+ assert.match(html,/data-zvq-token-discovery="indexed-v2"/);
  assert.match(html,/API\+'\/tokens\/'\+encodeURIComponent/);
  assert.match(html,/\^ERC-\?20\$/);
- assert.match(html,/Token-creation evidence unavailable/);
+ assert.match(html,/Token discovery evidence unavailable/);
  assert.doesNotMatch(html,/data:image\/(?:webp|png);base64/);
  assert.ok(Buffer.byteLength(html)<100_000);
 });
