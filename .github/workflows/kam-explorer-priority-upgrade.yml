@@ -12,9 +12,6 @@ on:
       - 'scripts/refine-kam-explorer-priority.mjs'
       - 'scripts/apply-kam-explorer-ui-priority.sh'
       - '.github/workflows/kam-explorer-priority-upgrade.yml'
-  workflow_run:
-    workflows: ['KAM Explorer V2 Deploy']
-    types: [completed]
 
 permissions:
   contents: read
@@ -25,7 +22,7 @@ concurrency:
 
 jobs:
   preflight:
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' || github.event_name == 'push' }}
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
@@ -52,7 +49,7 @@ jobs:
         run: node scripts/diagnose-blockscout.mjs
 
   deploy:
-    if: ${{ github.event_name != 'pull_request' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') }}
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     needs: preflight
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
     timeout-minutes: 15
@@ -79,7 +76,7 @@ jobs:
         run: node scripts/diagnose-blockscout.mjs
 
   public-post-verify:
-    if: ${{ github.event_name != 'pull_request' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') }}
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     needs: deploy
     runs-on: ubuntu-latest
     timeout-minutes: 8
