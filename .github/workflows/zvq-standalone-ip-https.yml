@@ -67,7 +67,7 @@ jobs:
           grep -Fq 'data-zvq-reference-visual="blue-gold-orbital-20260924"' "$body"
           grep -Fq 'data-zvq-token-discovery="indexed-v2"' "$body"
           echo 'standalone_trusted_ip_https=verified; status=200; approved_visual=yes'
-          blocks="$(curl --noproxy '*' --fail-with-body -fsS --connect-timeout 6 --max-time 15 "$origin/api/v2/blocks")"
+          blocks="$(curl --noproxy '*' --fail-with-body -sS --connect-timeout 6 --max-time 15 "$origin/api/v2/blocks")"
           jq -e '(.items|type=="array") and (.items|length>0)' <<<"$blocks" >/dev/null
           tip="$(jq -er '.items[0].height' <<<"$blocks")"
           echo "standalone_indexed_block_tip=$tip"
@@ -79,6 +79,18 @@ jobs:
           chain="$(curl -fsS --connect-timeout 6 --max-time 18 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' 'https://explorer.kriptoaman.com/rpc')"
           test "$(jq -er '.result' <<<"$chain")" = 0x560c
           echo 'cloudflare_public_home=preserved; public_chain_id=0x560c'
+          # Exercise a failed primary only on this disposable GitHub runner.
+          # Production DNS, Cloudflare routing and origin HTTP remain untouched.
+          host='explorer.kriptoaman.com'
+          if curl --noproxy '*' -fsS --connect-timeout 2 --max-time 3 \
+            --resolve "$host:443:127.0.0.1" "https://$host/" -o /dev/null 2>/dev/null; then
+            echo 'simulated_primary_failure=not_reproduced' >&2
+            exit 1
+          fi
+          fallback="$(curl --noproxy '*' --fail-with-body -LsS --connect-timeout 6 --max-time 15 -o "$body" -w '%{http_code}' "$origin/")"
+          test "$fallback" = 200
+          grep -Fq 'data-zvq-token-discovery="indexed-v2"' "$body"
+          echo 'simulated_primary_failure=runner_only; manual_ip_fallback=verified; production_dns_unchanged=yes'
           rm -f "$body"
   finalize:
     if: always() && github.event_name == 'push'
