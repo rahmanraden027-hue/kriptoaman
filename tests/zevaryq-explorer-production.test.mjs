@@ -67,9 +67,9 @@ test('legacy KAM deployment cannot overwrite protected ZEVARYQ homepage', async 
   const guard = legacy.indexOf('Protected ZEVARYQ homepage installed');
   const legacyWrite = legacy.indexOf('cat > /target/kam-dashboard/index.html');
   assert.ok(guard >= 0 && legacyWrite > guard, 'legacy deploy must reject ZVQ before writing homepage');
-  assert.equal((v2Workflow.match(/if: \\$\\{\\{ github.event_name == 'workflow_dispatch' \\}\\}/g) || []).length, 3);
-  assert.match(v2Workflow, /!explorer-dashboard\\/zevaryq-production\\.html/);
-  assert.match(v2Workflow, /!explorer-dashboard\\/assets\\/\\*\\*/);
-  assert.equal((priorityWorkflow.match(/if: \\$\\{\\{ github.event_name == 'workflow_dispatch' \\}\\}/g) || []).length, 2);
+  assert.equal(v2Workflow.split("if: ${{ github.event_name == 'workflow_dispatch' }}").length - 1, 3);
+  assert.ok(v2Workflow.includes("!explorer-dashboard/zevaryq-production.html"));
+  assert.ok(v2Workflow.includes("!explorer-dashboard/assets/**"));
+  assert.equal(priorityWorkflow.split("if: ${{ github.event_name == 'workflow_dispatch' }}").length - 1, 2);
   assert.doesNotMatch(priorityWorkflow, /^  workflow_run:/m);
 });
