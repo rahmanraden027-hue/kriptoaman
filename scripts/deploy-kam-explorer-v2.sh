@@ -88,6 +88,12 @@ PROXY_IMAGE="$(docker inspect "$PROXY_ID" --format '{{.Config.Image}}')"
 docker image inspect "$PROXY_IMAGE" >/dev/null 2>&1 || fail "proxy image unavailable"
 proxy_fs(){ docker run --rm --network none -i -v "$PROXY_DIR:/target" "$PROXY_IMAGE" sh -c "$1"; }
 proxy_fs "test -r /target/default.conf.template && test -w /target"
+# Never overwrite an already deployed ZEVARYQ production homepage with legacy KAM.
+# Check BEFORE writing either the homepage or proxy template. Manual invocation
+# must also respect the protected production identity.
+if proxy_fs "test -f /target/kam-dashboard/index.html && grep -q 'data-zevaryq-explorer-version' /target/kam-dashboard/index.html"; then
+  fail "Protected ZEVARYQ homepage installed; legacy KAM V2 deployment refused before any production writes"
+fi
 proxy_fs "cp -a /target/default.conf.template /target/$BACKUP_NAME"
 proxy_fs "mkdir -p /target/kam-dashboard && cat > /target/kam-dashboard/index.html && chmod 0644 /target/kam-dashboard/index.html" < "$SOURCE"
 proxy_fs "cat > /target/kam-dashboard/stats.html && chmod 0644 /target/kam-dashboard/stats.html" < "$STATS_SOURCE"
