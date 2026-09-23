@@ -14,8 +14,10 @@ test('Zevaryq production identity and chain are explicit', () => {
   assert.equal(html.includes("EXPECTED_CHAIN='0x560c'"), true);
 });
 
-test('premium Zevaryq emblem is wired to header, hero, satellite view and favicon', () => {
-  assert.equal((html.match(/\ssrc="\/zevaryq-assets\/zevaryq-emblem\.webp/g) || []).length, 3);
+test('complete ZVQ identity is visible in header, hero and satellite view', () => {
+  assert.equal((html.match(/class="earth-brandmark"/g) || []).length, 2);
+  assert.match(html, /class="logo logo-zvq"[^>]+>ZVQ<\/span>/);
+  assert.doesNotMatch(html, /<img class="earth-logo"/);
   assert.doesNotMatch(html, /data:image\/(webp|png);base64/);
   assert.ok(Buffer.byteLength(html) < 100_000, 'Explorer HTML must not embed its 3 emblem images or favicon');
   assert.match(html, /rel="icon"[^>]+zevaryq-favicon\.png/);
@@ -85,3 +87,12 @@ test('indexed Blockscout data remains visible if browser JSON-RPC preflight fail
   assert.match(html, /Browser RPC verification unavailable/);
 });
 
+
+test('gas price is exact and human-readable, and mesh links verify adjacent height', () => {
+  assert.match(html, /function formatGasPrice\(hex\)/);
+  assert.match(html, /wei<1_000_000n/);
+  assert.equal((html.match(/formatGasPrice\(state\.gas\)/g) || []).length, 2);
+  assert.doesNotMatch(html, /Number\(BigInt\(state\.gas\)\)\/1e9/);
+  assert.match(html, /Number\(b\.height\)===Number\(parent\.height\)\+1/);
+  assert.match(html, /Number\(b\.height\)===Number\(latest\[i\+1\]\.height\)\+1/);
+});
