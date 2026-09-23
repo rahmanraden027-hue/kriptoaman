@@ -2,6 +2,12 @@ name: KAM Private Mainnet Evidence
 
 on:
   workflow_dispatch:
+  # One guarded read-only refresh when this workflow is merged on main.
+  # Never run unreviewed PR code on a protected validator runner.
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kam-private-mainnet-evidence.yml'
 
 permissions:
   contents: read
@@ -31,6 +37,15 @@ jobs:
           set -euo pipefail
           mkdir -p artifacts
           node chain/kam-mainnet/scripts/collect-private-evidence.mjs | tee artifacts/kam-private-mainnet-evidence.json
+
+      - name: Probe finalized-tag support and independently verify canonical hash
+        shell: bash
+        env:
+          KAM_PRIVATE_RPC_URL: http://127.0.0.1:8648
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          node scripts/probe-zvq-private-finality.mjs | tee artifacts/zvq-private-finality-evidence.json
 
       - name: Verify backup and isolated restore evidence
         shell: bash
