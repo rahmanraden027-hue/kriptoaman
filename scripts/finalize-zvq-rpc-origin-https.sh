@@ -55,7 +55,7 @@ server {
  server_tokens off;
  client_max_body_size 32k;
  location = / {
-   limit_except POST { deny all; }
+   # Let the strict loopback gateway handle OPTIONS/CORS, POST method and JSON-RPC allowlist.
    proxy_pass http://127.0.0.1:18445;
    proxy_set_header Host 127.0.0.1;
    proxy_connect_timeout 3s;
