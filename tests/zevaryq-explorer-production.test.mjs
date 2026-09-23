@@ -1,15 +1,16 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { runInNewContext } from 'node:vm';
 
 const html = await readFile(new URL('../explorer-dashboard/zevaryq-production.html', import.meta.url), 'utf8');
 const deploy = await readFile(new URL('../scripts/deploy-zevaryq-explorer.sh', import.meta.url), 'utf8');
 
 test('Zevaryq production identity and chain are explicit', () => {
-  assert.match(html, /data-zevaryq-explorer-version="1\.1\.1"/);
+  assert.match(html, /data-zevaryq-explorer-version="1\.1\.2"/);
   assert.match(html, /ZEVARYQ EXPLORER/);
   assert.match(html, /http-equiv="Cache-Control" content="no-store, max-age=0, must-revalidate"/);
-  assert.match(html, /UI release 1\.1\.1/);
+  assert.match(html, /UI release 1\.1\.2/);
   assert.match(html, /Zevaryq Network/);
   assert.match(html, /ZVQ Mainnet/);
   assert.match(html, /Chain ID <b>22028/);
@@ -60,7 +61,7 @@ test('unverified values fail closed', () => {
 test('deployment is narrow and rollback safe', () => {
   assert.equal(deploy.includes('kam-dashboard/index.html'), true);
   assert.match(deploy, /rollback/);
-  assert.match(deploy, /public_explorer_release=current-v1\.1\.1/);
+  assert.match(deploy, /public_explorer_release=current-v1\.1\.2/);
   assert.match(deploy, /public_explorer_release=stale-default-url/);
   assert.ok(deploy.indexOf('trap - ERR') < deploy.indexOf('public_code='), 'origin rollback must be disabled before public-cache diagnosis');
   assert.match(deploy, /grep -q 'class="logo logo-zvq"' "\$body"/);
@@ -105,4 +106,39 @@ test('gas price is exact and human-readable, and mesh links verify adjacent heig
   assert.doesNotMatch(html, /Number\(BigInt\(state\.gas\)\)\/1e9/);
   assert.match(html, /Number\(b\.height\)===Number\(parent\.height\)\+1/);
   assert.match(html, /Number\(b\.height\)===Number\(latest\[i\+1\]\.height\)\+1/);
+});
+
+test('consensus parser accepts only a unique four-address QBFT header candidate', () => {
+  const from = html.indexOf('function qbftValidatorsFromExtraData(');
+  const to = html.indexOf('async function refreshConsensus(', from);
+  assert.ok(from >= 0 && to > from, 'pure proof helpers must be present');
+  const proof = runInNewContext(html.slice(from, to) + ';({qbftValidatorsFromExtraData,verifiedFinalizedBlock})');
+  const address = n => '94' + n.toString(16).padStart(2, '0').repeat(20);
+  const validators = [1, 2, 3, 4].map(address).join('');
+  // Fixture encodes a four-address list, empty vote, empty round and empty seals.
+  const extra = '0xf859f854' + validators + '8080c0';
+  const members = proof.qbftValidatorsFromExtraData(extra);
+  assert.deepEqual(Array.from(members), [1, 2, 3, 4].map(n => '0x' + n.toString(16).padStart(2, '0').repeat(20)));
+  assert.equal(proof.qbftValidatorsFromExtraData('0x'), null);
+  assert.equal(proof.qbftValidatorsFromExtraData(extra + 'ff'), null, 'RLP cannot contain trailing bytes');
+  const duplicate = '0xf859f854' + [1, 1, 3, 4].map(address).join('') + '8080c0';
+  assert.equal(proof.qbftValidatorsFromExtraData(duplicate), null, 'duplicate validator addresses must be rejected');
+  assert.doesNotMatch(html, /rpc\('qbft_getValidatorsByBlockNumber'/, 'public consensus namespace must remain blocked');
+});
+
+test('finality requires a supported finalized tag and a matching canonical block hash', () => {
+  const from = html.indexOf('function qbftValidatorsFromExtraData(');
+  const to = html.indexOf('async function refreshConsensus(', from);
+  const proof = runInNewContext(html.slice(from, to) + ';({qbftValidatorsFromExtraData,verifiedFinalizedBlock})');
+  const block = { number: '0x64', hash: '0x' + 'a'.repeat(64), timestamp: '0x65' };
+  const verified = proof.verifiedFinalizedBlock(block, { ...block }, 105);
+  assert.equal(verified.number, 100);
+  assert.equal(verified.timestamp, 101);
+  assert.equal(proof.verifiedFinalizedBlock(block, { ...block, hash: '0x' + 'b'.repeat(64) }, 105), null);
+  assert.equal(proof.verifiedFinalizedBlock(block, { ...block }, 99), null);
+  assert.equal(proof.verifiedFinalizedBlock({ ...block, hash: '' }, block, 105), null);
+  assert.match(html, /eth_getBlockByNumber',\['finalized',false\]/);
+  assert.doesNotMatch(html, /eth_getBlockByNumber',\['safe',false\]/, 'safe tag is not a finalized tag');
+  assert.match(html, /state\.validators=\[\];state\.validatorSource=null;state\.finalized=null/);
+  assert.match(html, /consensusProbeAt>=60000/);
 });
