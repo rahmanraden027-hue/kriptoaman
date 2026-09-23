@@ -58,3 +58,18 @@ test('deployment is narrow and rollback safe', () => {
   assert.equal(deploy.includes('kriptoaman.com/*'), false);
   assert.doesNotMatch(deploy, /genesis|validator private|postgres.*reset|redis.*reset/i);
 });
+
+
+test('legacy KAM deployment cannot overwrite protected ZEVARYQ homepage', async () => {
+  const legacy = await readFile(new URL('../scripts/deploy-kam-explorer-v2.sh', import.meta.url), 'utf8');
+  const v2Workflow = await readFile(new URL('../.github/workflows/kam-explorer-v2-deploy.yml', import.meta.url), 'utf8');
+  const priorityWorkflow = await readFile(new URL('../.github/workflows/kam-explorer-priority-upgrade.yml', import.meta.url), 'utf8');
+  const guard = legacy.indexOf('Protected ZEVARYQ homepage installed');
+  const legacyWrite = legacy.indexOf('cat > /target/kam-dashboard/index.html');
+  assert.ok(guard >= 0 && legacyWrite > guard, 'legacy deploy must reject ZVQ before writing homepage');
+  assert.equal((v2Workflow.match(/if: \\$\\{\\{ github.event_name == 'workflow_dispatch' \\}\\}/g) || []).length, 3);
+  assert.match(v2Workflow, /!explorer-dashboard\\/zevaryq-production\\.html/);
+  assert.match(v2Workflow, /!explorer-dashboard\\/assets\\/\\*\\*/);
+  assert.equal((priorityWorkflow.match(/if: \\$\\{\\{ github.event_name == 'workflow_dispatch' \\}\\}/g) || []).length, 2);
+  assert.doesNotMatch(priorityWorkflow, /^  workflow_run:/m);
+});
