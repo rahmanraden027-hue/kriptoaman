@@ -133,16 +133,57 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          sleep 4
-          for url in 'https://explorer.kriptoaman.com/' "https://explorer.kriptoaman.com/?zvq_release=${GITHUB_RUN_ID}"; do
-            body="$(mktemp)"
-            code="$(curl -LsS --retry 3 --retry-delay 2 --retry-all-errors --connect-timeout 8 --max-time 25 -o "$body" -w '%{http_code}' "$url")"
-            test "$code" = '200'
-            grep -Fq 'data-zevaryq-explorer-version="1.1.1"' "$body"
-            grep -Fq 'class="logo logo-zvq"' "$body"
-            grep -Fq 'class="earth-brandmark"' "$body"
-            if grep -Fq 'class="earth-logo"' "$body"; then echo "Legacy ZV image still present" >&2; exit 1; fi
-            rm -f "$body"
+          # Route changes propagate asynchronously across edge POPs. A 200
+          # from the previous Worker must not be treated as rollout proof.
+          verify_home() {
+            local label="$1" url="$2" headers body code version release status=1
+            headers="$(mktemp)"; body="$(mktemp)"
+            code="$(curl -LsS --connect-timeout 8 --max-time 25 \
+              -H 'Cache-Control: no-cache' -D "$headers" -o "$body" \
+              -w '%{http_code}' "$url" || true)"
+            version="$(grep -o 'data-zevaryq-explorer-version="[^"]*"' "$body" | head -1 || true)"
+            release="$(grep -i '^x-zevaryq-explorer-release:' "$headers" | tail -1 | tr -d '\r' || true)"
+            echo "public_${label}: http=${code} version=${version:-none} worker_header=${release:-none}"
+            grep -iE '^(cache-control|age|cf-cache-status|x-kam-explorer-cutover|x-zevaryq-explorer-release):' "$headers" || true
+            if [[ "$code" == '200' ]] \
+              && grep -Fq 'data-zevaryq-explorer-version="1.1.1"' "$body" \
+              && grep -Fq 'class="logo logo-zvq"' "$body" \
+              && grep -Fq 'class="earth-brandmark"' "$body" \
+              && ! grep -Fq 'class="earth-logo"' "$body" \
+              && grep -iq '^x-zevaryq-explorer-release: 1\.1\.1' "$headers"; then
+              status=0
+            fi
+            rm -f "$headers" "$body"
+            return "$status"
+          }
+          public_verified=false
+          for attempt in $(seq 1 12); do
+            echo "route_propagation_attempt=$attempt"
+            if verify_home default 'https://explorer.kriptoaman.com/' \
+              && verify_home bypass "https://explorer.kriptoaman.com/?zvq_release=1.1.1-${GITHUB_RUN_ID}"; then
+              sleep 4
+              if verify_home default 'https://explorer.kriptoaman.com/' \
+                && verify_home bypass "https://explorer.kriptoaman.com/?zvq_release=1.1.1-${GITHUB_RUN_ID}-confirm"; then
+                public_verified=true
+                break
+              fi
+            fi
+            if [[ "$attempt" -lt 12 ]]; then sleep 8; fi
+          done
+          if [[ "$public_verified" != true ]]; then
+            echo "::error::Public Explorer did not serve verified ZVQ v1.1.1 after bounded propagation window."
+            exit 1
+          fi
+          routes="$(curl -fsS --connect-timeout 7 --max-time 20 \
+            "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes" \
+            -H "Authorization: Bearer ${CF_API_TOKEN}")"
+          test "$(jq -r --arg p "${ROUTE_PATTERN}" '.result[] | select(.pattern == $p) | .script' <<<"$routes")" = "${NEW_WORKER}"
+          test "$(jq -r '.result[] | select(.pattern == "explorer.kriptoaman.com/api/v2/*") | .script' <<<"$routes")" = "${EXPECTED_API_WORKER}"
+          for asset in zevaryq-emblem.webp zevaryq-favicon.png; do
+            asset_code="$(curl -LsS --connect-timeout 8 --max-time 20 -o /dev/null -w '%{http_code}' \
+              "https://explorer.kriptoaman.com/zevaryq-assets/$asset" || true)"
+            echo "public_asset_${asset}=$asset_code"
+            test "$asset_code" = '200'
           done
           rpc="$(curl -fsS --connect-timeout 8 --max-time 20 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":2,"method":"eth_chainId","params":[]}' 'https://explorer.kriptoaman.com/rpc')"
           test "$(jq -r '.result' <<<"$rpc")" = '0x560c'
@@ -156,6 +197,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Never undo a newer operator's concurrent route change.
+          latest_routes="$(curl -fsS --connect-timeout 7 --max-time 20 \
+            "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes" \
+            -H "Authorization: Bearer ${CF_API_TOKEN}")"
+          active="$(jq -er --arg id "${ROUTE_ID}" '.result[] | select(.id == $id) | .script' <<<"$latest_routes")"
+          if [[ "$active" == "${OLD_WORKER}" ]]; then
+            echo "rollback=already_restored"
+            exit 0
+          fi
+          if [[ "$active" != "${NEW_WORKER}" ]]; then
+            echo "::error::Refusing to overwrite concurrent operator route change."
+            exit 1
+          fi
           payload="$(jq -nc --arg p "${ROUTE_PATTERN}" --arg script "${OLD_WORKER}" '{pattern:$p,script:$script}')"
           result="$(curl -fsS -X PUT "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes/${ROUTE_ID}" -H "Authorization: Bearer ${CF_API_TOKEN}" -H 'content-type: application/json' --data "${payload}")"
           test "$(jq -r '.success' <<<"${result}")" = true
