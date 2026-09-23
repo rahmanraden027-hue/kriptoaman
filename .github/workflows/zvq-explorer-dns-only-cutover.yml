@@ -1,0 +1,168 @@
+name: ZVQ Guarded Explorer DNS-only Cutover
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/zvq-explorer-dns-only-cutover.yml'
+      - 'tests/zvq-explorer-dns-only-cutover.test.mjs'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/zvq-explorer-dns-only-cutover.yml'
+      - 'tests/zvq-explorer-dns-only-cutover.test.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: zvq-explorer-guarded-dns-cutover
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/zvq-explorer-dns-only-cutover.test.mjs
+  preflight:
+    if: github.event_name != 'pull_request'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Prove trusted direct Explorer TLS, current UI and independent RPC identity before DNS change
+        shell: bash
+        run: |
+          set -euo pipefail
+          host=explorer.kriptoaman.com
+          ip=146.190.93.254
+          file="$(mktemp)"
+          code="$(curl --noproxy '*' --fail-with-body -LsS --connect-timeout 6 --max-time 20 --resolve "$host:443:$ip" -o "$file" -w '%{http_code}' "https://$host/")"
+          test "$code" = 200
+          grep -Fq 'data-zvq-reference-visual="blue-gold-orbital-20260924"' "$file"
+          grep -Fq 'data-zvq-token-discovery="indexed-v2"' "$file"
+          grep -Fq 'class="logo logo-zvq"' "$file"
+          blocks="$(curl --noproxy '*' --fail-with-body -sS --resolve "$host:443:$ip" "https://$host/api/v2/blocks")"
+          jq -e '(.items|type=="array") and (.items|length>0)' <<<"$blocks" >/dev/null
+          test "$(curl --noproxy '*' -sS --resolve "$host:443:$ip" -o /dev/null -w '%{http_code}' "https://$host/rpc")" = 403
+          test "$(curl --noproxy '*' --fail-with-body -LsS -o /dev/null -w '%{http_code}' "https://$ip/")" = 200
+          chain="$(curl --fail-with-body -sS -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' 'https://rpc.kriptoaman.com/')"
+          test "$(jq -r '.result' <<<"$chain")" = 0x560c
+          echo 'direct_origin_preflight=trusted_tls_plus_real_blocks; rpc_identity=0x560c; existing_ip_fallback=healthy'
+  cutover:
+    if: github.event_name != 'pull_request'
+    needs: preflight
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 6
+    outputs:
+      zone_id: ${{ steps.swap.outputs.zone_id }}
+      record_id: ${{ steps.swap.outputs.record_id }}
+      old_record: ${{ steps.swap.outputs.old_record }}
+    env:
+      CF_DNS_TOKEN: ${{ secrets.CLOUDFLARE_DNS_API_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - name: Read exact DNS record and switch only Explorer A record after verified snapshot
+        id: swap
+        shell: bash
+        run: |
+          set -euo pipefail
+          host=explorer.kriptoaman.com
+          ip=146.190.93.254
+          test -n "$CF_DNS_TOKEN" || { echo 'dns_cutover_blocked=missing_scoped_dns_token' >&2; exit 1; }
+          echo "::add-mask::$CF_DNS_TOKEN"
+          zones="$(curl -sS -G 'https://api.cloudflare.com/client/v4/zones' -H "Authorization: Bearer $CF_DNS_TOKEN" --data-urlencode 'name=kriptoaman.com')"
+          if ! jq -e '.success==true and (.result|length)==1' <<<"$zones" >/dev/null; then
+            echo 'dns_cutover_blocked=zone_read_permission' >&2; exit 1
+          fi
+          zone="$(jq -r '.result[0].id' <<<"$zones")"
+          response="$(curl -sS -G "https://api.cloudflare.com/client/v4/zones/$zone/dns_records" -H "Authorization: Bearer $CF_DNS_TOKEN" --data-urlencode "name=$host")"
+          if ! jq -e '.success==true' <<<"$response" >/dev/null; then
+            echo 'dns_cutover_blocked=dns_read_permission_required' >&2; exit 1
+          fi
+          records="$(jq --arg host "$host" '[.result[]|select(.name==$host and (.type=="A" or .type=="AAAA" or .type=="CNAME"))]' <<<"$response")"
+          if ! jq -e 'length==1 and .[0].type=="A"' <<<"$records" >/dev/null; then
+            echo 'dns_cutover_blocked=unexpected_record_topology; no_mutation' >&2; exit 1
+          fi
+          old="$(jq -c '.[0]|{id,name,type,content,proxied,ttl}' <<<"$records")"
+          id="$(jq -r '.id' <<<"$old")"
+          proxied="$(jq -r '.proxied' <<<"$old")"
+          current="$(jq -r '.content' <<<"$old")"
+          if [[ "$proxied" == false && "$current" == "$ip" ]]; then
+            echo 'dns_cutover=already_direct'
+            echo "zone_id=$zone" >> "$GITHUB_OUTPUT"
+            echo "record_id=$id" >> "$GITHUB_OUTPUT"
+            echo "old_record=$(printf %s "$old" | base64 -w0)" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          payload="$(jq -nc --arg host "$host" --arg ip "$ip" '{name:$host,type:"A",content:$ip,proxied:false,ttl:120}')"
+          result="$(curl -sS -X PATCH "https://api.cloudflare.com/client/v4/zones/$zone/dns_records/$id" -H "Authorization: Bearer $CF_DNS_TOKEN" -H 'content-type: application/json' --data "$payload")"
+          if ! jq -e --arg ip "$ip" '.success==true and .result.content==$ip and .result.proxied==false' <<<"$result" >/dev/null; then
+            echo 'dns_cutover=patch_rejected; check_current_record_before_retry' >&2; exit 1
+          fi
+          echo "zone_id=$zone" >> "$GITHUB_OUTPUT"
+          echo "record_id=$id" >> "$GITHUB_OUTPUT"
+          echo "old_record=$(printf %s "$old" | base64 -w0)" >> "$GITHUB_OUTPUT"
+          echo 'dns_cutover=switched_to_unproxied_origin; rpc_dns_unchanged=yes'
+  external:
+    if: github.event_name != 'pull_request'
+    needs: cutover
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Verify authoritative public DNS propagation, browser TLS, indexed blocks and retained independent RPC
+        shell: bash
+        run: |
+          set -euo pipefail
+          host=explorer.kriptoaman.com
+          ip=146.190.93.254
+          ready=false
+          for attempt in $(seq 1 20); do
+            a="$(dig +short A "$host" @1.1.1.1 | sort -u)"
+            b="$(dig +short A "$host" @8.8.8.8 | sort -u)"
+            c="$(dig +short A "$host" | sort -u)"
+            if [[ "$a" == "$ip" && "$b" == "$ip" && "$c" == "$ip" ]]; then
+              code="$(curl --noproxy '*' --fail-with-body -sS --connect-timeout 6 --max-time 15 -o /dev/null -w '%{http_code}' "https://$host/" || true)"
+              if [[ "$code" == 200 ]]; then ready=true; break; fi
+            fi
+            sleep 20
+          done
+          test "$ready" = true
+          blocks="$(curl --noproxy '*' --fail-with-body -sS "https://$host/api/v2/blocks")"
+          jq -e '(.items|type=="array") and (.items|length>0)' <<<"$blocks" >/dev/null
+          test "$(curl --noproxy '*' --fail-with-body -LsS -o /dev/null -w '%{http_code}' "https://$ip/")" = 200
+          chain="$(curl -sS --fail-with-body -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":2,"method":"eth_chainId","params":[]}' 'https://rpc.kriptoaman.com/')"
+          test "$(jq -r '.result' <<<"$chain")" = 0x560c
+          echo 'dns_only=externally_verified; explorer_domain_tls=trusted; indexed_blocks=healthy; rpc=0x560c; ip_failover=preserved'
+  rollback:
+    if: always() && github.event_name != 'pull_request' && needs.cutover.result == 'success' && needs.external.result != 'success'
+    needs: [cutover,external]
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 6
+    env:
+      CF_DNS_TOKEN: ${{ secrets.CLOUDFLARE_DNS_API_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+      ZONE_ID: ${{ needs.cutover.outputs.zone_id }}
+      RECORD_ID: ${{ needs.cutover.outputs.record_id }}
+      OLD_RECORD: ${{ needs.cutover.outputs.old_record }}
+    steps:
+      - name: Compare-and-restore only the previous Explorer DNS record on failed public proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$CF_DNS_TOKEN"
+          old="$(printf %s "$OLD_RECORD" | base64 -d)"
+          old_proxied="$(jq -r '.proxied' <<<"$old")"
+          old_content="$(jq -r '.content' <<<"$old")"
+          if [[ "$old_proxied" == false && "$old_content" == 146.190.93.254 ]]; then
+            echo 'rollback=already_direct_before_this_run'; exit 0
+          fi
+          current="$(curl --fail-with-body -sS "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records/$RECORD_ID" -H "Authorization: Bearer $CF_DNS_TOKEN")"
+          if ! jq -e '.result.content=="146.190.93.254" and .result.proxied==false' <<<"$current" >/dev/null; then
+            echo 'rollback=concurrent_change_detected; refusing_override' >&2; exit 1
+          fi
+          payload="$(jq -c '{name,type,content,proxied,ttl}' <<<"$old")"
+          response="$(curl --fail-with-body -sS -X PATCH "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records/$RECORD_ID" -H "Authorization: Bearer $CF_DNS_TOKEN" -H 'content-type: application/json' --data "$payload")"
+          test "$(jq -r '.success' <<<"$response")" = true
+          echo 'dns_rollback=previous_record_restored; independent_ip_fallback_unchanged'
