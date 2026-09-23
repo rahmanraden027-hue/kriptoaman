@@ -48,11 +48,17 @@ jobs:
       - name: Validate established SSH access to existing hosts
         run: |
           set -euo pipefail
-          for entry in validator-02:134.209.157.125 validator-03:134.199.158.210 validator-04:165.227.169.128 rpc-sentry:206.189.36.15; do
+          # Validators are audited read-only but do not block independent RPC TLS deployment.
+          for entry in validator-02:134.209.157.125 validator-03:134.199.158.210 validator-04:165.227.169.128; do
             name="$(cut -d: -f1 <<<"$entry")"; addr="$(cut -d: -f2 <<<"$entry")"
-            ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new "root@$addr" 'uname -srm' >/dev/null
-            echo "existing_host=$name; ssh_ready=true"
+            if ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new "root@$addr" 'uname -srm' >/dev/null; then
+              echo "existing_host=$name; ssh_ready=true"
+            else
+              echo "::warning::Existing $name SSH not reachable; track validator audit separately"
+            fi
           done
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15 'uname -srm' >/dev/null
+          echo 'existing_host=rpc-sentry; ssh_ready=true'
       - name: Serve one temporary HTTP-01 proof on free port 80
         run: |
           set -euo pipefail
