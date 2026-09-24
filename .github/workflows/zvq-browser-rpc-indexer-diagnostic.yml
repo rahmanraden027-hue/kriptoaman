@@ -60,7 +60,7 @@ jobs:
           console.log(method+'='+data.result);
           NODE
             acao="$(awk 'tolower($1)=="access-control-allow-origin:"{gsub("\r","",$2);print $2;exit}' "$scratch/$method.headers")"
-            echo "rpc_$method_cors=$acao"
+            echo "rpc_${method}_cors=$acao"
             [[ "$acao" == '*' || "$acao" == 'https://explorer.kriptoaman.com' ]] || fail_if "RPC $method not permitted by browser CORS response"
           done
           preflight="$(curl -sS --connect-timeout 6 --max-time 20 -D "$scratch/options.headers" -o /dev/null -w '%{http_code}' -X OPTIONS \
