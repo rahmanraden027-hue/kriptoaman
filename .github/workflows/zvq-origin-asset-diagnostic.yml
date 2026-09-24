@@ -1,0 +1,52 @@
+name: ZVQ Origin Asset Read-Only Diagnosis
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/zvq-origin-asset-diagnostic.yml"
+      - "scripts/deploy-zevaryq-explorer.sh"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    if: github.event_name == 'workflow_dispatch' || (github.head_ref == 'ops/zvq-assets-http-fallback-20260924' && github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare approved assets, host disk, NGINX mounts, and public HTTP responses
+        shell: bash
+        run: |
+          set -uo pipefail
+          echo 'APPROVED_REPO_ASSETS'
+          sha256sum explorer-dashboard/assets/zevaryq-emblem.webp explorer-dashboard/assets/zevaryq-favicon.png
+          host_dir=/opt/blockscout/docker-compose/proxy/kam-dashboard/zevaryq-assets
+          echo 'HOST_DISK_ASSETS'
+          for asset in zevaryq-emblem.webp zevaryq-favicon.png; do
+            if [[ -r "$host_dir/$asset" ]]; then
+              stat -c '%n bytes=%s' "$host_dir/$asset"
+              sha256sum "$host_dir/$asset"
+            else echo "MISSING_ON_HOST=$asset"; fi
+          done
+          cd /opt/blockscout/docker-compose
+          proxy="$(docker compose ps -q proxy)"
+          echo "PROXY_CONTAINER_PRESENT=$([[ -n "$proxy" ]] && echo yes || echo no)"
+          if [[ -n "$proxy" ]]; then
+            docker inspect "$proxy" --format '{{range .Mounts}}{{printf "%s -> %s\n" .Source .Destination}}{{end}}'
+            docker exec "$proxy" sh -c 'grep -hE "location |root |alias |try_files" /etc/nginx/conf.d/*.conf 2>/dev/null | head -60' || true
+          fi
+          scratch="$(mktemp -d)"
+          trap 'rm -rf "$scratch"' EXIT
+          for route in local public; do
+            for asset in zevaryq-emblem.webp zevaryq-favicon.png; do
+              if [[ "$route" == local ]]; then url="http://127.0.0.1/zevaryq-assets/$asset"; else url="https://explorer.kriptoaman.com/zevaryq-assets/$asset"; fi
+              code="$(curl --noproxy '*' -LsS --connect-timeout 5 --max-time 15 -D "$scratch/$route-$asset.headers" -o "$scratch/$route-$asset" -w '%{http_code}' "$url?v=20260924-goldblue-zvq" || true)"
+              echo "ASSET_HTTP_ROUTE=$route FILE=$asset HTTP=$code"
+              grep -iE '^(content-type|content-length|cache-control):' "$scratch/$route-$asset.headers" || true
+              sha256sum "$scratch/$route-$asset" 2>/dev/null || true
+              head -c 48 "$scratch/$route-$asset" 2>/dev/null | od -An -tx1 || true
+            done
+          done
+          curl --noproxy '*' -LsS --connect-timeout 5 --max-time 15 'http://127.0.0.1/' -o "$scratch/local-index.html" || true
+          sha256sum "$scratch/local-index.html" 2>/dev/null || true
+          echo 'READ_ONLY_PROBE_COMPLETE'
