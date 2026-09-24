@@ -1,0 +1,80 @@
+name: ZVQ Browser RPC and Indexer Read-Only Diagnostic
+on:
+  pull_request:
+    paths:
+      - .github/workflows/zvq-browser-rpc-indexer-diagnostic.yml
+  workflow_dispatch:
+  push:
+    branches: [audit/zvq-browser-rpc-indexer-20260924]
+    paths:
+      - .github/workflows/zvq-browser-rpc-indexer-diagnostic.yml
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe actual browser-facing paths without server changes
+        shell: bash
+        run: |
+          set -uo pipefail
+          scratch="$(mktemp -d)"
+          trap 'rm -rf "$scratch"' EXIT
+          origin='https://explorer.kriptoaman.com'
+          rpc='https://rpc.kriptoaman.com/'
+          fail=0
+          fail_if() { echo "::error::$1"; fail=1; }
+          get_status() {
+            curl -LsS --connect-timeout 6 --max-time 20 -H 'Cache-Control: no-cache' -o "$2" -D "$3" -w '%{http_code}' "$1" || true
+          }
+          html_code="$(get_status "$origin/?browser_probe=$GITHUB_RUN_ID" "$scratch/explorer.html" "$scratch/site.headers")"
+          echo "explorer_http=$html_code"
+          [[ "$html_code" == 200 ]] || fail_if "Public Explorer HTML unavailable"
+          grep -Fq 'data-zvq-official-logo="20260924-goldblue-zvq"' "$scratch/explorer.html" || fail_if "Explorer logo HTML marker missing"
+          api_code="$(get_status "$origin/api/v2/blocks" "$scratch/blocks.json" "$scratch/api.headers")"
+          echo "blockscout_http=$api_code"
+          if [[ "$api_code" == 200 ]]; then
+            node - "$scratch/blocks.json" <<'NODE' || fail_if "Blockscout response invalid"
+          const fs=require('node:fs');
+          const data=JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          if(!Array.isArray(data.items)||!data.items.length)process.exit(2);
+          const tip=Number(data.items[0].height);
+          if(!Number.isSafeInteger(tip)||tip<0)process.exit(3);
+          console.log('indexed_tip='+tip+' indexed_count='+data.items.length);
+          NODE
+          else fail_if "Blockscout API returned HTTP $api_code"; fi
+          for method in eth_chainId eth_blockNumber eth_gasPrice; do
+            code="$(curl -sS --connect-timeout 6 --max-time 20 -D "$scratch/$method.headers" -o "$scratch/$method.json" -w '%{http_code}' \
+              -H 'Content-Type: application/json' \
+              -H 'Origin: https://explorer.kriptoaman.com' \
+              --data "{\"jsonrpc\":\"2.0\",\"method\":\"$method\",\"params\":[],\"id\":1}" "$rpc" || true)"
+            echo "rpc_$method=http_$code"
+            if [[ "$code" != 200 ]]; then fail_if "$method RPC returned HTTP $code"; continue; fi
+            node - "$scratch/$method.json" "$method" <<'NODE' || fail_if "Invalid RPC JSON response"
+          const fs=require('node:fs');
+          const data=JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          const method=process.argv[3];
+          if(data.jsonrpc!=='2.0'||typeof data.result!=='string'||!/^0x[0-9a-f]+$/i.test(data.result))process.exit(2);
+          if(method==='eth_chainId'&&data.result.toLowerCase()!=='0x560c')process.exit(3);
+          console.log(method+'='+data.result);
+          NODE
+            acao="$(awk 'tolower($1)=="access-control-allow-origin:"{gsub("\r","",$2);print $2;exit}' "$scratch/$method.headers")"
+            echo "rpc_$method_cors=$acao"
+            [[ "$acao" == '*' || "$acao" == 'https://explorer.kriptoaman.com' ]] || fail_if "RPC $method not permitted by browser CORS response"
+          done
+          preflight="$(curl -sS --connect-timeout 6 --max-time 20 -D "$scratch/options.headers" -o /dev/null -w '%{http_code}' -X OPTIONS \
+            -H 'Origin: https://explorer.kriptoaman.com' \
+            -H 'Access-Control-Request-Method: POST' \
+            -H 'Access-Control-Request-Headers: content-type' "$rpc" || true)"
+          echo "rpc_cors_preflight=http_$preflight"
+          grep -iE '^(access-control-allow-origin|access-control-allow-methods|access-control-allow-headers):' "$scratch/options.headers" || true
+          [[ "$preflight" =~ ^20[04]$ ]] || fail_if "Browser RPC preflight failed"
+          acao="$(awk 'tolower($1)=="access-control-allow-origin:"{gsub("\r","",$2);print $2;exit}' "$scratch/options.headers")"
+          [[ "$acao" == '*' || "$acao" == 'https://explorer.kriptoaman.com' ]] || fail_if "RPC preflight missing allowed Explorer origin"
+          methods="$(grep -i '^access-control-allow-methods:' "$scratch/options.headers" | tr '[:lower:]' '[:upper:]')"
+          echo "$methods" | grep -Fq 'POST' || fail_if "RPC preflight missing POST"
+          headers="$(grep -i '^access-control-allow-headers:' "$scratch/options.headers" | tr '[:upper:]' '[:lower:]')"
+          echo "$headers" | grep -Fq 'content-type' || fail_if "RPC preflight missing Content-Type"
+          [[ "$fail" == 0 ]] || exit 1
+          echo "BROWSER_DATA_PROOF=PASS (public API + RPC chain + browser CORS)"
