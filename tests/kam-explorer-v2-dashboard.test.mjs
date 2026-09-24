@@ -135,16 +135,23 @@ test('Network status uses public endpoint evidence and treats browser RPC CORS s
   assert.match(status, /indexed block freshness/i);
 });
 
-test('Blocks, transactions and API use one KAM brand system and verified same-origin data', () => {
+test('Blocks and transactions display ZEVARYQ identity while retaining verified API and legacy compatibility', () => {
   assert.match(blocks, /data-kam-blocks-version="1\.0\.0"/);
   assert.match(transactions, /data-kam-transactions-version="1\.0\.0"/);
   assert.match(apiDocs, /data-kam-api-version="1\.0\.0"/);
   for (const surface of [blocks, transactions, apiDocs]) {
     assert.match(surface, /kriptoaman-mark\.svg/);
-    assert.match(surface, /KriptoAman Mainnet/);
     assert.equal(surface.includes('http://localhost'), false);
     assert.equal(surface.includes('127.0.0.1'), false);
   }
+  for (const surface of [blocks, transactions]) {
+    assert.match(surface, /data-zvq-public-brand="1\.0\.0"/);
+    assert.match(surface, /ZEVARYQ Explorer/);
+    assert.match(surface, /ZVQ Mainnet/);
+    assert.match(surface, /Chain ID 22028/);
+    assert.doesNotMatch(surface, /<strong>KAM Explorer<\/strong>/);
+  }
+  assert.match(apiDocs, /KriptoAman Mainnet/);
   assert.match(blocks, /\/api\/v2\/blocks/);
   assert.match(transactions, /\/api\/v2\/transactions/);
   assert.match(apiDocs, /\/api\/v2\/stats/);
