@@ -40,7 +40,7 @@ test('the smoothed, actual-sample curve handles flat and changing transaction co
 
 test('unavailable indexer preserves decorative layout but clearly labels preview or stale sample',()=>{
  assert.match(script,/samples\.length<2\|\|samples\.some/);
- assert.match(script,/data-provenance="illustrative"/);
+ assert.match(html,/data-provenance="illustrative"/);
  assert.match(script,/Illustrative color preview · verified transaction series unavailable/);
  assert.match(script,/wave\.setAttribute\('opacity',state\.api\?'1':'.48'\)/);
  assert.match(script,/if\(state\.blocks\.length\)renderBlocks\(\)/);
