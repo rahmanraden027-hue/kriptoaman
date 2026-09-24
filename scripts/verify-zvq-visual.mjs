@@ -46,13 +46,20 @@ try{
    return{viewport:window.innerWidth,scrollWidth:e.scrollWidth,emblems:imgs.map(x=>[x.complete,x.naturalWidth,x.naturalHeight]),rainbowPaths:document.querySelectorAll('#rainbowWaves .rainbowWave').length,mode:document.querySelector('#rainbowDataStatus')?.textContent};
   });
   assert.equal(readout.viewport,config.width,config.name+' viewport width');
+  if(readout.scrollWidth>config.width+1){
+   const protruding=await page.evaluate(()=>[...document.body.querySelectorAll('*')].map(el=>{
+    const r=el.getBoundingClientRect(),cs=getComputedStyle(el);
+    return{tag:el.tagName.toLowerCase(),id:el.id,cls:String(el.className?.baseVal??el.className??'').slice(0,65),left:Math.round(r.left),right:Math.round(r.right),width:Math.round(r.width),overflowX:cs.overflowX};
+   }).filter(v=>v.right>innerWidth+1&&v.width>0).sort((a,b)=>b.right-a.right).slice(0,20));
+   console.error('OVERFLOW_DETAILS '+config.name+' '+JSON.stringify(protruding));
+  }
+  const screenshot=join(imageDir,config.name+'.png');
+  await page.screenshot({path:screenshot,fullPage:true,animations:'disabled'});
   assert.ok(readout.scrollWidth<=config.width+1,config.name+' horizontal overflow: '+readout.scrollWidth);
   assert.equal(readout.emblems.length,3,config.name+' should preserve three official logo placements');
   assert.ok(readout.emblems.every(([loaded,w,h])=>loaded&&w>0&&h>0),config.name+' logo failed to decode');
   assert.equal(readout.rainbowPaths,8,config.name+' rainbow ribbons');
   assert.equal(readout.mode,'PREVIEW','local offline screenshot must not claim live data');
-  const screenshot=join(imageDir,config.name+'.png');
-  await page.screenshot({path:screenshot,fullPage:true,animations:'disabled'});
   if(config.width<=1050){
    await page.locator('#menu').click();
    assert.equal(await page.locator('#menu').getAttribute('aria-expanded'),'true');
