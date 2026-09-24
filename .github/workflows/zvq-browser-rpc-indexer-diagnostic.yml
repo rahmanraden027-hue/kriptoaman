@@ -67,7 +67,9 @@ jobs:
             -H 'Origin: https://explorer.kriptoaman.com' \
             -H 'Access-Control-Request-Method: POST' \
             -H 'Access-Control-Request-Headers: content-type' "$rpc" || true)"
+          echo "public_rpc_dns=$(getent ahostsv4 rpc.kriptoaman.com | awk '{print $1}' | sort -u | paste -sd, -)"
           echo "rpc_cors_preflight=http_$preflight"
+          grep -iE '^(server|via|www-authenticate|location|content-type):' "$scratch/options.headers" || true
           grep -iE '^(access-control-allow-origin|access-control-allow-methods|access-control-allow-headers):' "$scratch/options.headers" || true
           [[ "$preflight" =~ ^20[04]$ ]] || fail_if "Browser RPC preflight failed"
           acao="$(awk 'tolower($1)=="access-control-allow-origin:"{gsub("\r","",$2);print $2;exit}' "$scratch/options.headers")"
