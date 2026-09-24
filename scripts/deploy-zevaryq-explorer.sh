@@ -92,8 +92,8 @@ grep -q 'class="earth-brandmark"' "$body"
 grep -q 'data-zvq-token-discovery="indexed-v2"' "$body"
 for asset in zevaryq-emblem.webp zevaryq-favicon.png; do
   curl -fsS --retry 4 --retry-all-errors --max-time 20 "http://127.0.0.1/zevaryq-assets/$asset" -o "$body"
-  expected="$(sha256sum "$ASSET_DIR/$asset" | cut -d\x27 \x27 -f1)"
-  observed="$(sha256sum "$body" | cut -d\x27 \x27 -f1)"
+  expected="$(sha256sum "$ASSET_DIR/$asset" | awk '{print $1}')"
+  observed="$(sha256sum "$body" | awk '{print $1}')"
   [[ "$observed" == "$expected" ]] || fail "$asset returned wrong bytes; restoring origin"
   echo "verified_local_asset=$asset sha256=$observed"
 done
