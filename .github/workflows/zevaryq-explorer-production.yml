@@ -6,6 +6,7 @@ on:
       - "explorer-dashboard/assets/**"
       - "scripts/deploy-zevaryq-explorer.sh"
       - "tests/zevaryq-explorer-production.test.mjs"
+      - "tests/zevaryq-explorer-official-logo.test.mjs"
       - ".github/workflows/zevaryq-explorer-production.yml"
   push:
     branches: [main]
@@ -14,6 +15,7 @@ on:
       - "explorer-dashboard/assets/**"
       - "scripts/deploy-zevaryq-explorer.sh"
       - "tests/zevaryq-explorer-production.test.mjs"
+      - "tests/zevaryq-explorer-official-logo.test.mjs"
       - ".github/workflows/zevaryq-explorer-production.yml"
   workflow_dispatch:
     inputs:
@@ -40,7 +42,7 @@ jobs:
           grep -q 'ZEVARYQ EXPLORER' explorer-dashboard/zevaryq-production.html
           grep -q "EXPECTED_CHAIN='0x560c'" explorer-dashboard/zevaryq-production.html
           ! grep -Eqi 'kriptoaman\.com/\*|cloudflare pages|genesis|private.?key|postgres.*reset|redis.*reset' scripts/deploy-zevaryq-explorer.sh
-          node --test tests/zevaryq-explorer-production.test.mjs
+          node --test tests/zevaryq-explorer-production.test.mjs tests/zevaryq-explorer-reference-theme.test.mjs tests/zevaryq-explorer-official-logo.test.mjs
   deploy:
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     needs: validate
