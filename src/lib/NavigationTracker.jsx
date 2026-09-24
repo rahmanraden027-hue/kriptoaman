@@ -26,7 +26,7 @@ const PUBLIC_ROUTE_SEO = {
     },
     '/enterprise': {
         title: 'KriptoAman Enterprise — Data, Blockchain Infrastructure & Web3 Integration',
-        description: 'KriptoAman Enterprise provides data intelligence, dedicated KAM RPC, managed node infrastructure, security monitoring, Web3 integration, and technical research for organizations.',
+        description: 'KriptoAman Enterprise provides data intelligence, dedicated ZEVARYQ RPC, managed node infrastructure, security monitoring, Web3 integration, and technical research for organizations.',
     },
     '/AboutUs': {
         title: 'Tentang KriptoAman | PT Kripto Aman Indonesia',
@@ -53,16 +53,16 @@ const PUBLIC_ROUTE_SEO = {
         description: 'Dokumentasi publik tokenomics KAM, struktur suplai, utilitas yang direncanakan, dan informasi ekosistem yang tersedia untuk verifikasi.',
     },
     '/KAMNetwork': {
-        title: 'KAM Network | KriptoAman',
-        description: 'Informasi publik mengenai KAM Network, status jaringan yang tersedia, parameter teknis, dan sumber verifikasi KriptoAman.',
+        title: 'ZEVARYQ Network | KriptoAman',
+        description: 'Informasi publik mengenai ZEVARYQ Network, status jaringan yang tersedia, parameter teknis, dan sumber verifikasi KriptoAman.',
     },
     '/KAMTransactionLab': {
         title: 'KAM Transaction Lab | KriptoAman',
         description: 'Halaman resmi untuk menghubungkan wallet, memvalidasi Chain ID 22028, dan mencoba transaksi KAM bernilai kecil dengan konfirmasi langsung di wallet pengguna.',
     },
     '/KAMNetworkDocs': {
-        title: 'KAM Network Documentation | KriptoAman',
-        description: 'Dokumentasi teknis publik KAM Network untuk parameter jaringan, integrasi teknis, dan sumber verifikasi yang tersedia.',
+        title: 'ZEVARYQ Network Documentation | KriptoAman',
+        description: 'Dokumentasi teknis publik ZEVARYQ Network untuk parameter jaringan, integrasi teknis, dan sumber verifikasi yang tersedia.',
     },
     '/KAMLaunchReadiness': {
         title: 'KAM Launch Readiness | KriptoAman',
@@ -121,8 +121,8 @@ const PUBLIC_ROUTE_SEO = {
         description: 'KriptoAman Research by PT Kripto Aman Indonesia publishes evidence-oriented technical research on blockchain infrastructure, digital-asset intelligence, security, reliability, and network readiness.',
     },
     '/research/kam-mainnet-architecture': {
-        title: 'KAM Mainnet Architecture, Security & Public Readiness | KriptoAman Research',
-        description: 'Technical paper from KriptoAman Research documenting KAM Mainnet architecture, network identity, security controls, RPC and explorer integrity, reliability, and evidence-oriented public-readiness methodology.',
+        title: 'ZEVARYQ Mainnet Architecture, Security & Public Readiness | KriptoAman Research',
+        description: 'Technical paper from KriptoAman Research documenting ZEVARYQ Mainnet architecture, network identity, security controls, RPC and explorer integrity, reliability, and evidence-oriented public-readiness methodology.',
     },
 };
 

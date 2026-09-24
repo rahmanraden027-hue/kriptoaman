@@ -30,7 +30,7 @@ function SafePublicLanding() {
         <p className="mt-3 text-sm leading-6 text-slate-300">Crypto intelligence, digital asset monitoring, education, and security information.</p>
         <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <a href="/Market" className="min-h-12 rounded-xl bg-sky-600 px-5 py-3 font-bold">Pasar</a>
-          <a href="/KAM" className="min-h-12 rounded-xl border border-slate-700 bg-slate-900 px-5 py-3 font-bold">KAM Network</a>
+          <a href="/KAM" className="min-h-12 rounded-xl border border-slate-700 bg-slate-900 px-5 py-3 font-bold">ZEVARYQ Network</a>
           <a href="/SystemStatus" className="min-h-12 rounded-xl border border-slate-700 bg-slate-900 px-5 py-3 font-bold">Status Sistem</a>
           <a href="/login" className="min-h-12 rounded-xl border border-slate-700 bg-slate-900 px-5 py-3 font-bold">Masuk</a>
         </div>

@@ -78,6 +78,9 @@ export default function KAMCampaignNews() {
         </a>
 
         <article className="mt-6 overflow-hidden rounded-[30px] border border-sky-400/20 bg-gradient-to-b from-slate-900 via-slate-900 to-blue-950/40 shadow-2xl shadow-sky-950/20">
+          <aside className="border-b border-amber-400/20 bg-amber-400/10 px-6 py-4 text-sm leading-6 text-amber-100 sm:px-10">
+            <strong>Arsip identitas lama:</strong> artikel ini dipertahankan tanpa mengubah catatan historisnya. Identitas jaringan aktif saat ini adalah <strong>ZEVARYQ Network</strong>, native asset <strong>ZVQ</strong>, dengan Chain ID <strong>22028</strong>. KAM tidak lagi digunakan sebagai label jaringan aktif.
+          </aside>
           <header className="border-b border-white/10 p-6 sm:p-10">
             <div className="inline-flex items-center gap-2 rounded-full border border-sky-400/25 bg-sky-400/10 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-sky-300">
               <Sparkles className="h-4 w-4" /> KriptoAman News
