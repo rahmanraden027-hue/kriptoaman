@@ -24,10 +24,24 @@ on:
         required: true
 permissions:
   contents: read
+  statuses: write
 concurrency:
   group: zevaryq-explorer-production-${{ github.ref }}
   cancel-in-progress: false
 jobs:
+  announce:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish dedicated Explorer deployment start
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          payload="$(jq -nc --arg target "$target" '{state:"pending", context:"kriptoaman/zvq-explorer-origin-deploy", description:"Guarded origin deployment started; refer to workflow run", target_url:$target}')"
+          curl -fsS --retry 2 -X POST -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' -H 'Content-Type: application/json' --data "$payload" "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" >/dev/null
   validate:
     runs-on: ubuntu-latest
     steps:
@@ -57,3 +71,28 @@ jobs:
           test -f /opt/blockscout/docker-compose/proxy/default.conf.template
       - name: Deploy Explorer homepage only
         run: sudo bash scripts/deploy-zevaryq-explorer.sh explorer-dashboard/zevaryq-production.html
+
+  report:
+    if: ${{ always() && github.event_name != 'pull_request' }}
+    needs: [announce, validate, deploy]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish actual dedicated Explorer deployment result
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VALIDATE: ${{ needs.validate.result }}
+          DEPLOY: ${{ needs.deploy.result }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$VALIDATE" == success && "$DEPLOY" == success ]]; then
+            status=success
+            desc='Guarded ZEVARYQ origin deployment and local preflight passed'
+          else
+            status=failure
+            desc="Origin deployment incomplete (validate=$VALIDATE, deploy=$DEPLOY)"
+          fi
+          target="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          payload="$(jq -nc --arg state "$status" --arg description "$desc" --arg target "$target" '{state:$state, context:"kriptoaman/zvq-explorer-origin-deploy", description:$description, target_url:$target}')"
+          curl -fsS --retry 2 -X POST -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' -H 'Content-Type: application/json' --data "$payload" "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" > /dev/null
+          [[ "$status" == success ]]
