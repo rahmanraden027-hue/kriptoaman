@@ -37,7 +37,7 @@ if bash "$SCRIPT" --render-only "$tmp/patched" "$tmp/duplicate" 2>/dev/null; the
   echo 'Repeated injection unexpectedly succeeded' >&2; exit 1
 fi
 if command -v nginx >/dev/null; then
-  printf 'events {}\nhttp { include /etc/nginx/mime.types; include %s; }\n' "$tmp/patched" > "$tmp/nginx.conf"
+  printf 'pid %s/nginx.pid;\nerror_log stderr notice;\nevents {}\nhttp { access_log off; include /etc/nginx/mime.types; include %s; }\n' "$tmp" "$tmp/patched" > "$tmp/nginx.conf"
   nginx -t -c "$tmp/nginx.conf"
 fi
 echo 'PASS: isolated static route, protected ACME/homepage, no duplicate, NGINX syntax (if installed)'
