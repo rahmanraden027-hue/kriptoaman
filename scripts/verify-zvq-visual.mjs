@@ -120,4 +120,4 @@ try{
  }
 
  await writeFile(join(imageDir,'VISUAL_QA.txt'),'Local OFFLINE Explorer visual preview. All status data unavailable; rainbow marked illustrative.\n'+cases.map(c=>c.name).join('\n')+'\n');
-}finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve))}
+}finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
