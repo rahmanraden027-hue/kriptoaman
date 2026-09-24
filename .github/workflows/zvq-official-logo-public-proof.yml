@@ -35,6 +35,28 @@ jobs:
         run: |
           node --test tests/zevaryq-explorer-official-logo.test.mjs tests/zevaryq-explorer-reference-theme.test.mjs tests/zevaryq-explorer-production.test.mjs
           grep -Fq 'data-zvq-logo-integrity="sha256-3fcabc6475d975b65b49c5d6a88c5d1c6e64630b11d5674bfc773a92dd2ec95f"' explorer-dashboard/zevaryq-production.html
+
+      - name: Diagnose existing public and direct-origin logo assets (read only)
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -uo pipefail
+          host='explorer.kriptoaman.com'
+          for mode in origin public; do
+            opt=()
+            if [[ "$mode" == origin ]]; then opt=(--resolve "$host:443:146.190.93.254"); fi
+            out="$(mktemp -d)"
+            http="$(curl -LsS --connect-timeout 6 --max-time 20 "${opt[@]}" -o "$out/home" -w '%{http_code}' "https://$host/" || true)"
+            marker=absent; grep -Fq 'data-zvq-logo-integrity=' "$out/home" && marker=present || true
+            approved=absent; grep -Fq 'data-zvq-official-logo="20260924-goldblue-zvq"' "$out/home" && approved=present || true
+            printf 'logo_diagnostic_%s http=%s official=%s sha_marker=%s\n' "$mode" "$http" "$approved" "$marker"
+            for asset in zevaryq-emblem.webp zevaryq-favicon.png; do
+              asset_http="$(curl -LsS --connect-timeout 6 --max-time 20 "${opt[@]}" -o "$out/$asset" -w '%{http_code}' "https://$host/zevaryq-assets/$asset?v=20260924-goldblue-zvq" || true)"
+              actual="$(sha256sum "$out/$asset" | cut -d' ' -f1)"
+              echo "logo_diagnostic_$mode $asset http=$asset_http sha256=$actual"
+            done
+            rm -rf "$out"
+          done
   public:
     if: github.event_name != 'pull_request'
     needs: validate
