@@ -42,6 +42,35 @@ jobs:
           target="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           payload="$(jq -nc --arg target "$target" '{state:"pending", context:"kriptoaman/zvq-explorer-origin-deploy", description:"Guarded origin deployment started; refer to workflow run", target_url:$target}')"
           curl -fsS --retry 2 -X POST -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' -H 'Content-Type: application/json' --data "$payload" "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" >/dev/null
+
+  diagnose-assets:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 5
+    steps:
+      - name: Inspect NGINX asset route and actual bytes without changing production
+        shell: bash
+        run: |
+          set -uo pipefail
+          cd /opt/blockscout/docker-compose || exit 1
+          echo '::group::NGINX template static-route references'
+          grep -nE 'location|kam-dashboard|zevaryq-assets|root|alias|try_files' proxy/default.conf.template | head -90 || true
+          echo '::endgroup::'
+          echo '::group::Deployed approved asset bytes on host'
+          for asset in zevaryq-emblem.webp zevaryq-favicon.png; do
+            path="proxy/kam-dashboard/zevaryq-assets/$asset"
+            if [[ -f "$path" ]]; then stat -c '%n bytes=%s' "$path"; sha256sum "$path"; else echo "MISSING=$path"; fi
+          done
+          echo '::endgroup::'
+          echo '::group::HTTP direct loopback asset responses'
+          for asset in zevaryq-emblem.webp zevaryq-favicon.png; do
+            tmp="$(mktemp)"
+            code="$(curl -sS --max-time 15 -o "$tmp" -w '%{http_code}' "http://127.0.0.1/zevaryq-assets/$asset" || true)"
+            echo "$asset http=$code bytes=$(wc -c < "$tmp")"
+            sha256sum "$tmp"
+            rm -f "$tmp"
+          done
+          echo '::endgroup::'
   validate:
     runs-on: ubuntu-latest
     steps:
