@@ -53,6 +53,13 @@ jobs:
         run: |
           set -uo pipefail
           cd /opt/blockscout/docker-compose || exit 1
+          echo '::group::Existing proxy runtime mounts and image'
+          id="$(docker compose ps -q proxy)"
+          if [[ -n "$id" ]]; then
+            docker inspect "$id" --format 'image={{.Config.Image}} entrypoint={{json .Config.Entrypoint}} cmd={{json .Config.Cmd}}'
+            docker inspect "$id" --format '{{range .Mounts}}{{println .Source " => " .Destination}}{{end}}'
+          fi
+          echo '::endgroup::'
           echo '::group::NGINX template static-route references'
           grep -nE 'location|kam-dashboard|zevaryq-assets|root|alias|try_files' proxy/default.conf.template | head -90 || true
           echo '::endgroup::'
