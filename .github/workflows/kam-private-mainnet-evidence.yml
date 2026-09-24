@@ -2,7 +2,7 @@ name: KAM Private Mainnet Evidence
 
 on:
   workflow_dispatch:
-  # Evidence refresh only. No change to validator, genesis, DNS, or chain state.
+  # Evidence refresh only. No changes to validator infrastructure, DNS, or chain state.
   schedule:
     - cron: '23 1,13 * * *'
   # One guarded read-only refresh when this workflow is merged on main.
