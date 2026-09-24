@@ -7,6 +7,7 @@ on:
       - "scripts/deploy-zevaryq-explorer.sh"
       - "tests/zevaryq-explorer-production.test.mjs"
       - "tests/zevaryq-explorer-official-logo.test.mjs"
+      - "tests/zevaryq-explorer-rainbow-reference.test.mjs"
       - ".github/workflows/zevaryq-explorer-production.yml"
   push:
     branches: [main]
@@ -16,6 +17,7 @@ on:
       - "scripts/deploy-zevaryq-explorer.sh"
       - "tests/zevaryq-explorer-production.test.mjs"
       - "tests/zevaryq-explorer-official-logo.test.mjs"
+      - "tests/zevaryq-explorer-rainbow-reference.test.mjs"
       - ".github/workflows/zevaryq-explorer-production.yml"
   workflow_dispatch:
     inputs:
@@ -42,7 +44,25 @@ jobs:
           grep -q 'ZEVARYQ EXPLORER' explorer-dashboard/zevaryq-production.html
           grep -q "EXPECTED_CHAIN='0x560c'" explorer-dashboard/zevaryq-production.html
           ! grep -Eqi 'kriptoaman\.com/\*|cloudflare pages|genesis|private.?key|postgres.*reset|redis.*reset' scripts/deploy-zevaryq-explorer.sh
-          node --test tests/zevaryq-explorer-production.test.mjs tests/zevaryq-explorer-reference-theme.test.mjs tests/zevaryq-explorer-official-logo.test.mjs
+          node --test tests/zevaryq-explorer-production.test.mjs tests/zevaryq-explorer-reference-theme.test.mjs tests/zevaryq-explorer-official-logo.test.mjs tests/zevaryq-explorer-rainbow-reference.test.mjs
+  quality:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install frozen dependencies
+        run: npm ci --ignore-scripts
+      - name: Full build
+        run: npm run build
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
   deploy:
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     needs: validate
