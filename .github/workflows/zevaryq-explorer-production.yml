@@ -60,7 +60,10 @@ jobs:
             docker inspect "$id" --format '{{range .Mounts}}{{println .Source " => " .Destination}}{{end}}'
           fi
           echo '::endgroup::'
-          echo '::group::Existing frontend NGINX configuration excerpt'\n          sed -n '1,85p' proxy/default.conf.template\n          echo '::endgroup::'\n          echo '::group::NGINX template static-route references'
+          echo '::group::Existing frontend NGINX configuration excerpt'
+          sed -n '1,85p' proxy/default.conf.template
+          echo '::endgroup::'
+          echo '::group::NGINX template static-route references'
           grep -nE 'location|kam-dashboard|zevaryq-assets|root|alias|try_files' proxy/default.conf.template | head -90 || true
           echo '::endgroup::'
           echo '::group::Deployed approved asset bytes on host'
