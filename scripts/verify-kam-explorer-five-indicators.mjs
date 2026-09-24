@@ -1,4 +1,5 @@
-const rpcUrl = process.env.KAM_EXPLORER_RPC_URL || 'https://explorer.kriptoaman.com/rpc';
+// Direct Explorer /rpc intentionally returns 403; verify QBFT evidence on the public read-only RPC.
+const rpcUrl = process.env.KAM_EXPLORER_RPC_URL || 'https://rpc.kriptoaman.com';
 const expectedChainId = '0x560c';
 const expectedValidatorCount = 4;
 const timeoutMs = 12000;
