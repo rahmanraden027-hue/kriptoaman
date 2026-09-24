@@ -36,3 +36,8 @@ test('local origin requires independently visible approved visual marker', () =>
   assert.match(workflow, /\$design" != 1/);
   assert.match(workflow, /public_dns=/);
 });
+
+test('public diagnostics use supported indexed token directory instead of unsupported global creation filter', () => {
+  assert.match(workflow, /for route in 'blocks' 'tokens\?type=ERC-20'; do/);
+  assert.doesNotMatch(workflow, /transactions\?type=token_creation/);
+});
