@@ -165,6 +165,8 @@ header.glass{background:rgba(3,13,30,.96);border-radius:14px;padding:8px 13px;bo
 @media(max-width:560px){.strip{grid-template-columns:repeat(2,minmax(0,1fr))}.strip>div{min-width:0}.strip .value{display:block;min-width:0;max-width:100%;font-size:clamp(13px,3.9vw,20px);overflow-wrap:anywhere;line-height:1.2}}
 @media(max-width:355px){.brand b{font-size:10px}.space{height:250px}.space .sat.s2{top:129px}.card{padding-left:43px}}
 @media(prefers-reduced-motion:reduce){.rainbowWave{filter:none}.sat svg{filter:none}}
+/* Approved saturated rainbow art remains visible in explicitly marked PREVIEW mode; only live samples change its geometry. */
+.activityViz #rainbowWaves[data-provenance="illustrative"]{opacity:.70}
 /* Keep the approved reference dashboard uninterrupted; preserve extra functional panels below Latest Blocks. */
 .extendedDivider{display:flex;align-items:center;gap:14px;margin:25px 0 10px;color:#d4c188;letter-spacing:.18em;font-size:10px;font-weight:900}.extendedDivider:after{content:"";flex:1;height:1px;background:linear-gradient(90deg,#bc9e47,rgba(21,127,255,.7),transparent)}
 .strip #liveText{display:block;font-size:12px;line-height:1.35;overflow-wrap:anywhere;margin-top:5px}.strip .trustReadout{display:block;color:#ffe5a1;font-size:10px;font-weight:850;margin-top:4px;letter-spacing:.04em}.strip #trust:not(:empty){text-shadow:0 0 8px rgba(255,207,77,.22)}
