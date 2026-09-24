@@ -139,12 +139,20 @@ test('Blocks, transactions and API use one KAM brand system and verified same-or
   assert.match(blocks, /data-kam-blocks-version="1\.0\.0"/);
   assert.match(transactions, /data-kam-transactions-version="1\.0\.0"/);
   assert.match(apiDocs, /data-kam-api-version="1\.0\.0"/);
+  for (const surface of [blocks, transactions]) {
+    assert.match(surface, /zevaryq-emblem\.webp/);
+    assert.match(surface, /ZEVARYQ Explorer/);
+    assert.match(surface, /ZEVARYQ Mainnet/);
+    assert.doesNotMatch(surface, /KAM NETWORK/);
+  }
+  // Historical/API compatibility remains separate until the full identity migration.
+  assert.match(apiDocs, /kriptoaman-mark\.svg/);
+  assert.match(apiDocs, /KriptoAman Mainnet/);
   for (const surface of [blocks, transactions, apiDocs]) {
-    assert.match(surface, /kriptoaman-mark\.svg/);
-    assert.match(surface, /KriptoAman Mainnet/);
     assert.equal(surface.includes('http://localhost'), false);
     assert.equal(surface.includes('127.0.0.1'), false);
   }
+  assert.match(transactions, /\}\s*ZVQ`/);
   assert.match(blocks, /\/api\/v2\/blocks/);
   assert.match(transactions, /\/api\/v2\/transactions/);
   assert.match(apiDocs, /\/api\/v2\/stats/);
