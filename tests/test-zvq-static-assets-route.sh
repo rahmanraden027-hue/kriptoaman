@@ -6,7 +6,7 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 cat > "$tmp/original" <<'NGINX'
 server {
-    listen 80;
+    listen 18080;
     location ^~ /.well-known/acme-challenge/ {
         root /etc/nginx/templates;
         try_files /kam-dashboard$uri =404;
