@@ -21,6 +21,7 @@ const transactionDetail = await readFile(new URL('../explorer-dashboard/transact
 const blockDetail = await readFile(new URL('../explorer-dashboard/block-detail.html', import.meta.url), 'utf8');
 const addressDetail = await readFile(new URL('../explorer-dashboard/address-detail.html', import.meta.url), 'utf8');
 const deploy = await readFile(new URL('../scripts/deploy-kam-explorer-v2.sh', import.meta.url), 'utf8');
+const finalityGate = await readFile(new URL('../scripts/verify-kam-explorer-five-indicators.mjs', import.meta.url), 'utf8');
 
 const finalSurfaces = [html, stats, tokens, developer, docs, examples, verify, addresses, validators, contracts, status, blocks, transactions, apiDocs, transactionDetail, blockDetail, addressDetail];
 
@@ -231,4 +232,11 @@ test('deployment is exact-route, narrow, nginx-safe, rollback-safe and avoids cu
   assert.match(deploy, /block-detail\.html/);
   assert.match(deploy, /address-detail\.html/);
   assert.match(deploy, /\/token\/\$CANONICAL_WKAM/);
+});
+
+
+test('five-indicator gate uses approved public RPC while direct Explorer RPC remains blocked', () => {
+  assert.match(finalityGate, /KAM_EXPLORER_RPC_URL \|\| 'https:\/\/rpc\.kriptoaman\.com'/);
+  assert.doesNotMatch(finalityGate, /https:\/\/explorer\.kriptoaman\.com\/rpc/);
+  assert.match(finalityGate, /expectedChainId = '0x560c'/);
 });
