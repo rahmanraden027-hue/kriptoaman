@@ -6,6 +6,7 @@ on:
       - '.github/workflows/kam-mainnet-24x7-monitor.yml'
       - 'scripts/assess-zevaryq-public-proof.mjs'
       - 'tests/zevaryq-public-proof.test.mjs'
+      - 'tests/zvq-monitor-evidence.test.mjs'
   workflow_dispatch:
   schedule:
     - cron: '7 * * * *'
