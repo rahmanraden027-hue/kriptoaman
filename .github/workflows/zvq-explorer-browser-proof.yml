@@ -1,0 +1,50 @@
+name: ZEVARYQ Explorer Live Browser Proof
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - scripts/verify-zvq-public-browser.mjs
+      - .github/workflows/zvq-explorer-browser-proof.yml
+  push:
+    branches: [main]
+    paths:
+      - scripts/verify-zvq-public-browser.mjs
+      - .github/workflows/zvq-explorer-browser-proof.yml
+  schedule:
+    - cron: '11 2,14 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: zvq-explorer-live-browser-proof
+  cancel-in-progress: false
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Locate isolated Chrome
+        shell: bash
+        run: |
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || true)"
+          test -n "$CHROME"
+          echo "ZVQ_CHROME=$CHROME" >> "$GITHUB_ENV"
+      - name: Install isolated Playwright client
+        shell: bash
+        run: |
+          npm install --prefix "$RUNNER_TEMP/zvq-playwright" --no-package-lock --ignore-scripts --no-audit --no-fund playwright-core@1.55.0
+          echo "PLAYWRIGHT_CORE=$RUNNER_TEMP/zvq-playwright/node_modules/playwright-core/index.mjs" >> "$GITHUB_ENV"
+          echo "ZVQ_BROWSER_EVIDENCE_DIR=$RUNNER_TEMP/zvq-browser-evidence" >> "$GITHUB_ENV"
+      - name: Verify public mobile and desktop browser hydration
+        run: node scripts/verify-zvq-public-browser.mjs
+      - name: Preserve read-only browser evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zvq-public-browser-evidence
+          path: ${{ runner.temp }}/zvq-browser-evidence
+          if-no-files-found: warn
+          retention-days: 14
