@@ -98,6 +98,10 @@ jobs:
             marker="data-zvq-reference-visual=\"$visual\""
             test "$http" = 200
             grep -Fq "$marker" "$body"
+            grep -Fq 'data-zvq-rainbow="indexed-v1"' "$body"
+            grep -Fq 'id="rainbowWaves"' "$body"
+            grep -Fq 'id="walletConnect"' "$body"
+            grep -Fq 'ADDITIONAL VERIFIED INTELLIGENCE' "$body"
             grep -Fq 'data-zevaryq-features="immune-token-v1"' "$body"
             grep -Fq 'class="triad"' "$body"
             grep -Fq 'class="satellite-row"' "$body"
