@@ -85,6 +85,28 @@ jobs:
             echo "::error::The approved logo or favicon is not yet proven on both trusted origin and public domain. No DNS, Worker, NGINX, RPC, validator or chain changes were made."
             exit 1
           fi
+      - name: Diagnose exact public and origin logo after proof failure
+        if: failure()
+        shell: bash
+        run: |
+          set -uo pipefail
+          host=explorer.kriptoaman.com
+          for mode in origin public; do
+            opts=()
+            if [[ "$mode" == origin ]]; then opts=(--resolve "$host:443:146.190.93.254"); fi
+            dir="$(mktemp -d)"
+            code="$(curl -LsS --connect-timeout 6 --max-time 20 -H 'Cache-Control: no-cache' "${opts[@]}" -o "$dir/index.html" -w '%{http_code}' "https://$host/?zvq_logo_diag=$GITHUB_RUN_ID-$mode" || true)"
+            marker="$(grep -o 'data-zvq-official-logo="[^"]*"' "$dir/index.html" 2>/dev/null | head -1 || true)"
+            integrity="$(grep -o 'data-zvq-logo-integrity="[^"]*"' "$dir/index.html" 2>/dev/null | head -1 || true)"
+            placements="$(grep -o 'class="official-emblem"' "$dir/index.html" 2>/dev/null | wc -l || true)"
+            echo "logo_diagnosis route=$mode html_http=$code placements=$placements marker=$marker integrity=$integrity"
+            for asset in zevaryq-emblem.webp zevaryq-favicon.png; do
+              code="$(curl -LsS --connect-timeout 6 --max-time 20 -H 'Cache-Control: no-cache' "${opts[@]}" -o "$dir/$asset" -w '%{http_code}' "https://$host/zevaryq-assets/$asset?v=20260924-goldblue-zvq" || true)"
+              actual="$(sha256sum "$dir/$asset" 2>/dev/null | cut -d' ' -f1 || true)"
+              echo "logo_diagnosis route=$mode asset=$asset http=$code sha256=$actual"
+            done
+            rm -rf "$dir"
+          done
       - name: Publish independent logo proof status
         if: always()
         env:
