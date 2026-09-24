@@ -19,7 +19,8 @@ test('Zevaryq production identity and chain are explicit', () => {
 
 test('complete ZVQ identity is visible in header, hero and satellite view', () => {
   assert.equal((html.match(/class="earth-brandmark"/g) || []).length, 2);
-  assert.match(html, /class="logo logo-zvq"[^>]+>ZVQ<\/span>/);
+  assert.match(html, /<img class="logo logo-zvq"[^>]+src="\/zevaryq-assets\/zevaryq-emblem\.webp\?v=20260924"/);
+  assert.equal((html.match(/<img class="earth-brandmark"[^>]+src="\/zevaryq-assets\/zevaryq-emblem\.webp\?v=20260924"/g) || []).length, 2);
   assert.doesNotMatch(html, /<img class="earth-logo"/);
   assert.doesNotMatch(html, /data:image\/(webp|png);base64/);
   assert.ok(Buffer.byteLength(html) < 100_000, 'Explorer HTML must not embed its 3 emblem images or favicon');

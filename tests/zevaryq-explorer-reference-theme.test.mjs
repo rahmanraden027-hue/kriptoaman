@@ -25,6 +25,8 @@ test('all reference dashboard sections retain accessible live data mounting poin
     assert.match(main, new RegExp('class="[^"]*' + cls + '[^"]*"'));
   }
   assert.equal((main.match(/class="earth-brandmark"/g) || []).length, 2);
+  assert.equal((html.match(/src="\/zevaryq-assets\/zevaryq-emblem\.webp\?v=20260924"/g) || []).length, 3,
+    "approved user-supplied emblem must appear in header, hero and satellite view");
   assert.equal((main.match(/<section\b/g) || []).length, (main.match(/<\/section>/g) || []).length,
     'semantic sections must be balanced');
   assert.equal((main.match(/<div\b/g) || []).length, (main.match(/<\/div>/g) || []).length,
