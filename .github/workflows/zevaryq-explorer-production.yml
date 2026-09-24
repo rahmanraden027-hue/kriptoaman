@@ -30,10 +30,10 @@ concurrency:
   cancel-in-progress: false
 jobs:
   announce:
-    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Publish dedicated Explorer deployment start
+        if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -73,11 +73,12 @@ jobs:
         run: sudo bash scripts/deploy-zevaryq-explorer.sh explorer-dashboard/zevaryq-production.html
 
   report:
-    if: ${{ always() && github.event_name != 'pull_request' }}
+    if: ${{ always() }}
     needs: [announce, validate, deploy]
     runs-on: ubuntu-latest
     steps:
       - name: Publish actual dedicated Explorer deployment result
+        if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
           VALIDATE: ${{ needs.validate.result }}
