@@ -1,0 +1,98 @@
+name: ZEVARYQ Official Logo Public Proof
+on:
+  pull_request:
+    paths:
+      - explorer-dashboard/zevaryq-production.html
+      - explorer-dashboard/assets/**
+      - tests/zevaryq-explorer-official-logo.test.mjs
+      - .github/workflows/zvq-official-logo-public-proof.yml
+  push:
+    branches: [main]
+    paths:
+      - explorer-dashboard/zevaryq-production.html
+      - explorer-dashboard/assets/**
+      - tests/zevaryq-explorer-official-logo.test.mjs
+      - .github/workflows/zvq-official-logo-public-proof.yml
+  workflow_dispatch:
+  schedule:
+    - cron: '23 */6 * * *'
+permissions:
+  contents: read
+  statuses: write
+concurrency:
+  group: zvq-official-logo-proof-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify approved assets, full ZVQ identity and fail-closed chain guards
+        run: |
+          node --test tests/zevaryq-explorer-official-logo.test.mjs tests/zevaryq-explorer-reference-theme.test.mjs tests/zevaryq-explorer-production.test.mjs
+          grep -Fq 'data-zvq-logo-integrity="sha256-3fcabc6475d975b65b49c5d6a88c5d1c6e64630b11d5674bfc773a92dd2ec95f"' explorer-dashboard/zevaryq-production.html
+  public:
+    if: github.event_name != 'pull_request'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Prove approved logo and favicon on trusted origin and public domain
+        id: probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          host='explorer.kriptoaman.com'
+          origin='146.190.93.254'
+          logo_sha='3fcabc6475d975b65b49c5d6a88c5d1c6e64630b11d5674bfc773a92dd2ec95f'
+          icon_sha='7cc9708233c2624b7b4f95b5ae0902c5cf1233e1648b271a5a41ab02dc95fffe'
+          scratch="$(mktemp -d)"
+          trap 'rm -rf "$scratch"' EXIT
+          verify() {
+            local label="$1" attempt="$2"
+            local -a options=()
+            if [[ "$label" == origin ]]; then options=(--resolve "$host:443:$origin"); fi
+            local url="https://$host"
+            curl -fLsS --connect-timeout 6 --max-time 18 -H 'Cache-Control: no-cache' "${options[@]}" "$url/" -o "$scratch/$label-default.html" || return 1
+            curl -fLsS --connect-timeout 6 --max-time 18 -H 'Cache-Control: no-cache' "${options[@]}" "$url/?official_logo_proof=${GITHUB_RUN_ID}-$attempt-$label" -o "$scratch/$label-bypass.html" || return 1
+            for page in default bypass; do
+              grep -Fq 'data-zvq-official-logo="20260924-goldblue-zvq"' "$scratch/$label-$page.html" || return 1
+              grep -Fq 'data-zvq-logo-integrity="sha256-3fcabc6475d975b65b49c5d6a88c5d1c6e64630b11d5674bfc773a92dd2ec95f"' "$scratch/$label-$page.html" || return 1
+              [[ "$(grep -o 'class="official-emblem"' "$scratch/$label-$page.html" | wc -l)" -eq 3 ]] || return 1
+              grep -Fq "EXPECTED_CHAIN='0x560c'" "$scratch/$label-$page.html" || return 1
+            done
+            curl -fLsS --connect-timeout 6 --max-time 20 "${options[@]}" "$url/zevaryq-assets/zevaryq-emblem.webp?v=20260924-goldblue-zvq" -o "$scratch/$label-emblem.webp" || return 1
+            curl -fLsS --connect-timeout 6 --max-time 20 "${options[@]}" "$url/zevaryq-assets/zevaryq-favicon.png?v=20260924-goldblue-zvq" -o "$scratch/$label-favicon.png" || return 1
+            [[ "$(sha256sum "$scratch/$label-emblem.webp" | cut -d' ' -f1)" == "$logo_sha" ]] || return 1
+            [[ "$(sha256sum "$scratch/$label-favicon.png" | cut -d' ' -f1)" == "$icon_sha" ]] || return 1
+            echo "official_logo_$label=verified; placements=3; emblem_sha256=$logo_sha; favicon_sha256=$icon_sha"
+          }
+          verified=false
+          for attempt in $(seq 1 18); do
+            dns="$(getent ahostsv4 "$host" | awk '{print $1}' | sort -u || true)"
+            echo "attempt=$attempt public_dns=$dns"
+            if [[ "$dns" == "$origin" ]] && verify origin "$attempt" && verify public "$attempt"; then
+              verified=true
+              break
+            fi
+            if [[ "$attempt" -lt 18 ]]; then sleep 12; fi
+          done
+          if [[ "$verified" != true ]]; then
+            echo "::error::The approved logo or favicon is not yet proven on both trusted origin and public domain. No DNS, Worker, NGINX, RPC, validator or chain changes were made."
+            exit 1
+          fi
+      - name: Publish independent logo proof status
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROBE_OUTCOME: ${{ steps.probe.outcome }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$PROBE_OUTCOME" == success ]]; then state=success; message='Exact approved ZVQ logo verified on origin and public site'; else state=failure; message='ZVQ logo public/origin proof incomplete'; fi
+          payload="$(jq -nc --arg state "$state" --arg description "$message" --arg target_url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" '{state:$state, context:"kriptoaman/zvq-official-logo-public", description:$description, target_url:$target_url}')"
+          curl -fsS --retry 2 -X POST -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' -H 'Content-Type: application/json' --data "$payload" "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" > /dev/null

@@ -19,6 +19,7 @@ test('official ZVQ logo assets match the approved gold-and-blue files', async ()
 
 test('one official logo is consistently used in header, hero and satellite view', () => {
   assert.match(html, /data-zvq-official-logo="20260924-goldblue-zvq"/);
+  assert.match(html, /data-zvq-logo-integrity="sha256-3fcabc6475d975b65b49c5d6a88c5d1c6e64630b11d5674bfc773a92dd2ec95f"/);
   assert.equal((html.match(/class="official-emblem"/g) || []).length, 3);
   assert.equal((html.match(/class="earth-brandmark"/g) || []).length, 2);
   assert.match(html, /class="logo logo-zvq" role="img" aria-label="ZEVARYQ ZVQ official/);
