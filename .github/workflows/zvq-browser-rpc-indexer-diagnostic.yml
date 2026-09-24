@@ -105,3 +105,25 @@ jobs:
             curl -ksS -X OPTIONS -H "Origin: https://explorer.kriptoaman.com" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: content-type" --resolve "rpc.kriptoaman.com:443:127.0.0.1" -D - -o /dev/null --connect-timeout 4 --max-time 10 "https://rpc.kriptoaman.com/" | grep -iE "HTTP/|^server:|^access-control" || true
             echo "RPC_ORIGIN_READ_ONLY_COMPLETE"
           '
+
+  inspect-from-explorer-host:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 4
+    steps:
+      - name: Read-only cross-host RPC routing inspection from existing Explorer
+        shell: bash
+        run: |
+          set -uo pipefail
+          echo "EXPLORER_TO_RPC_INTERNAL_REACHABILITY"
+          curl -ksS -X OPTIONS -H 'Origin: https://explorer.kriptoaman.com' -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: content-type' --connect-timeout 4 --max-time 9 -o /dev/null -D - https://206.189.36.15/ | grep -iE 'HTTP/|^server:|^access-control' || true
+          echo "RPC_PRIVATE_SSH_ROUTING_READ_ONLY"
+          ssh -o BatchMode=yes -o ConnectTimeout=7 -o StrictHostKeyChecking=accept-new root@10.104.0.2 '
+            echo "RPC_HOST_IDENTITY"; hostname
+            echo "NGINX_HTTPS_LISTENERS"; ss -ltn "( sport = :443 )" | head -12 || true
+            echo "LIVE_RPC_NGINX_ROUTING_METADATA"
+            (nginx -T 2>/dev/null | grep -nE "server_name|listen 443|location = /|limit_except|proxy_pass|[Aa]ccess-[Cc]ontrol-[Aa]llow|return 403" | head -90) || true
+            echo "ISOLATED_RPC_CONTAINER"
+            if docker ps --format "{{.Names}}" | grep -Fxq zvq-rpc-origin-tls; then
+              (docker exec zvq-rpc-origin-tls nginx -T 2>/dev/null | grep -nE "server_name|listen 443|location = /|limit_except|proxy_pass|[Aa]ccess-[Cc]ontrol-[Aa]llow|return 403" | head -90) || true
+            fi
+          '
