@@ -5,6 +5,7 @@ import test from 'node:test';
 
 const root = new URL('../explorer-dashboard/', import.meta.url);
 const html = await readFile(new URL('zevaryq-production.html', root), 'utf8');
+const deploy = await readFile(new URL('../scripts/deploy-zevaryq-explorer.sh', import.meta.url), 'utf8');
 const approved = [
   ['assets/zevaryq-emblem.webp', '3fcabc6475d975b65b49c5d6a88c5d1c6e64630b11d5674bfc773a92dd2ec95f'],
   ['assets/zevaryq-favicon.png', '7cc9708233c2624b7b4f95b5ae0902c5cf1233e1648b271a5a41ab02dc95fffe'],
@@ -34,4 +35,19 @@ test('visual-only logo change preserves mainnet and verified-data safeguards', (
   assert.match(html, /unavailable values are never simulated/);
   assert.match(html, /setInterval\(probe,12000\)/);
   assert.match(html, /@media\(max-width:560px\)/);
+});
+
+
+test('exact origin image routes prevent HTML catch-all and verify the actual served asset bytes', () => {
+  assert.match(deploy, /ZVQ_OFFICIAL_ASSETS_V1/);
+  for (const asset of ['zevaryq-emblem.webp', 'zevaryq-favicon.png']) {
+    assert.ok(deploy.includes('location = /zevaryq-assets/' + asset + ' {'), 'missing exact image route: ' + asset);
+    assert.ok(deploy.includes('try_files /kam-dashboard/zevaryq-assets/' + asset + ' =404;'), 'asset route must never serve homepage');
+  }
+  assert.match(deploy, /default_type image\/webp/);
+  assert.match(deploy, /default_type image\/png/);
+  assert.match(deploy, /TEMPLATE_BACKUP/);
+  assert.match(deploy, /verified_local_asset=\$asset sha256=\$observed/);
+  assert.match(deploy, /docker exec "\$\(docker compose ps -q proxy\)" nginx -t/);
+  assert.match(deploy, /--force-recreate --no-deps proxy/);
 });

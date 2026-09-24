@@ -12,6 +12,7 @@ EMBLEM="$ASSET_DIR/zevaryq-emblem.webp"
 FAVICON="$ASSET_DIR/zevaryq-favicon.png"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 BACKUP="index.html.zevaryq.$STAMP.bak"
+TEMPLATE_BACKUP="default.conf.template.zvq-logo.$STAMP.bak"
 fail(){ echo "Zevaryq Explorer deploy: $*" >&2; exit 1; }
 [[ -f "$SOURCE" ]] || fail "source missing"
 [[ -r "$EMBLEM" && -r "$FAVICON" ]] || fail "brand assets missing"
@@ -27,15 +28,59 @@ PROXY_IMAGE="$(docker inspect "$PROXY_ID" --format '{{.Config.Image}}')"
 docker image inspect "$PROXY_IMAGE" >/dev/null
 proxy_fs(){ docker run --rm --network none -i -v "$PROXY_DIR:/target" "$PROXY_IMAGE" sh -c "$1"; }
 proxy_fs "test -r /target/default.conf.template && test -w /target/kam-dashboard"
+proxy_fs "cp -a /target/default.conf.template /target/$TEMPLATE_BACKUP"
 proxy_fs "cp -a /target/kam-dashboard/index.html /target/kam-dashboard/$BACKUP"
 proxy_fs "mkdir -p /target/kam-dashboard/zevaryq-assets; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp.$STAMP.bak; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png.$STAMP.bak"
-rollback(){ code=$?; proxy_fs "cp -a /target/kam-dashboard/$BACKUP /target/kam-dashboard/index.html; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp.$STAMP.bak || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp.$STAMP.bak /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png.$STAMP.bak || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png.$STAMP.bak /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png" || true; docker compose up -d --force-recreate proxy >/dev/null 2>&1 || true; exit "$code"; }
+rollback(){ code=$?; proxy_fs "cp -a /target/$TEMPLATE_BACKUP /target/default.conf.template; cp -a /target/kam-dashboard/$BACKUP /target/kam-dashboard/index.html; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp.$STAMP.bak || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp.$STAMP.bak /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png.$STAMP.bak || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png.$STAMP.bak /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png" || true; docker compose up -d --force-recreate --no-deps proxy >/dev/null 2>&1 || true; exit "$code"; }
 trap rollback ERR
 proxy_fs "cat > /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp && chmod 0644 /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp" < "$EMBLEM"
 proxy_fs "cat > /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png && chmod 0644 /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png" < "$FAVICON"
 proxy_fs "cat > /target/kam-dashboard/index.html && chmod 0644 /target/kam-dashboard/index.html" < "$SOURCE"
+# Serve only the two approved image files. The generic Explorer catch-all
+# previously returned HTTP 200 with HTML for both image URLs, which made
+# the official ZVQ emblem render as a broken image despite green HTTP checks.
+# Keep the rest of NGINX/RPC/Blockscout untouched and retain a rollback copy.
+if ! grep -Fq 'ZVQ_OFFICIAL_ASSETS_V1' "$PROXY_DIR/default.conf.template"; then
+  python3 - "$PROXY_DIR/default.conf.template" <<'PY'
+from pathlib import Path
+import os, sys
+path=Path(sys.argv[1])
+source=path.read_text()
+needle='    location = / {'
+if source.count(needle)!=1:
+    raise SystemExit('Unexpected Explorer NGINX root location; refusing to patch')
+if 'location = /zevaryq-assets/zevaryq-emblem.webp' in source or 'location = /zevaryq-assets/zevaryq-favicon.png' in source:
+    raise SystemExit('Unexpected existing logo asset route; refusing to overwrite')
+block='''    # ZVQ_OFFICIAL_ASSETS_V1 — exact verified binary assets; no SPA fallback.
+    location = /zevaryq-assets/zevaryq-emblem.webp {
+        root /etc/nginx/templates;
+        try_files /kam-dashboard/zevaryq-assets/zevaryq-emblem.webp =404;
+        default_type image/webp;
+        add_header Cache-Control "public, max-age=300" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        limit_except GET { deny all; }
+    }
+    location = /zevaryq-assets/zevaryq-favicon.png {
+        root /etc/nginx/templates;
+        try_files /kam-dashboard/zevaryq-assets/zevaryq-favicon.png =404;
+        default_type image/png;
+        add_header Cache-Control "public, max-age=300" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        limit_except GET { deny all; }
+    }
+
+'''
+temporary=path.with_name(path.name+'.zvq-logo-staged')
+temporary.write_text(source.replace(needle,block+needle,1))
+stat=path.stat()
+os.chmod(temporary,stat.st_mode)
+os.chown(temporary,stat.st_uid,stat.st_gid)
+temporary.replace(path)
+PY
+fi
 docker compose config -q
-docker compose up -d --force-recreate proxy
+docker compose up -d --force-recreate --no-deps proxy
+docker exec "$(docker compose ps -q proxy)" nginx -t
 body="$(mktemp)"; trap 'rm -f "$body"' EXIT
 # Hard deployment gate: verify the dedicated Explorer origin locally so
 # Cloudflare edge throttling (HTTP 429) cannot roll back a valid UI release.
@@ -45,8 +90,13 @@ grep -q 'ZEVARYQ EXPLORER' "$body"
 grep -q 'class="logo logo-zvq"' "$body"
 grep -q 'class="earth-brandmark"' "$body"
 grep -q 'data-zvq-token-discovery="indexed-v2"' "$body"
-curl -fsS --retry 4 --retry-all-errors --max-time 20 http://127.0.0.1/zevaryq-assets/zevaryq-emblem.webp -o /dev/null
-curl -fsS --retry 4 --retry-all-errors --max-time 20 http://127.0.0.1/zevaryq-assets/zevaryq-favicon.png -o /dev/null
+for asset in zevaryq-emblem.webp zevaryq-favicon.png; do
+  curl -fsS --retry 4 --retry-all-errors --max-time 20 "http://127.0.0.1/zevaryq-assets/$asset" -o "$body"
+  expected="$(sha256sum "$ASSET_DIR/$asset" | awk '{print $1}')"
+  observed="$(sha256sum "$body" | awk '{print $1}')"
+  [[ "$observed" == "$expected" ]] || fail "$asset returned wrong bytes; restoring origin"
+  echo "verified_local_asset=$asset sha256=$observed"
+done
 
 # Origin is proven; subsequent public-edge diagnostics must never trigger
 # rollback of a healthy ZVQ origin just because browser/CDN caches are stale.
