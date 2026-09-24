@@ -80,3 +80,28 @@ jobs:
           echo "$headers" | grep -Fq 'content-type' || fail_if "RPC preflight missing Content-Type"
           [[ "$fail" == 0 ]] || exit 1
           echo "BROWSER_DATA_PROOF=PASS (public API + RPC chain + browser CORS)"
+
+  inspect-origin:
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 4
+    steps:
+      - name: Read only RPC HTTPS routing and allowed CORS methods
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15 '
+            set -u
+            echo "RPC_HTTPS_LISTENERS"
+            ss -ltn "( sport = :443 )" | head -15 || true
+            echo "SYSTEM_NGINX_ROUTING_METADATA"
+            (nginx -T 2>/dev/null | grep -nE "server_name|listen 443|location = /|limit_except|proxy_pass|[Aa]ccess-[Cc]ontrol-[Aa]llow|return 403" | head -100) || true
+            echo "KNOWN_RPC_CONTAINERS"
+            docker ps --format "{{.Names}}" | grep -E "(rpc|nginx|gateway)" || true
+            if docker ps --format "{{.Names}}" | grep -Fxq "zvq-rpc-origin-tls"; then
+              echo "ISOLATED_RPC_NGINX_ROUTING_METADATA"
+              (docker exec zvq-rpc-origin-tls nginx -T 2>/dev/null | grep -nE "server_name|listen 443|location = /|limit_except|proxy_pass|[Aa]ccess-[Cc]ontrol-[Aa]llow|return 403" | head -85) || true
+            fi
+            echo "LOOPBACK_PUBLIC_NAME_OPTIONS"
+            curl -ksS -X OPTIONS -H "Origin: https://explorer.kriptoaman.com" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: content-type" --resolve "rpc.kriptoaman.com:443:127.0.0.1" -D - -o /dev/null --connect-timeout 4 --max-time 10 "https://rpc.kriptoaman.com/" | grep -iE "HTTP/|^server:|^access-control" || true
+            echo "RPC_ORIGIN_READ_ONLY_COMPLETE"
+          '
