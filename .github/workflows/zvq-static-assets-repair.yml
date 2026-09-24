@@ -1,0 +1,96 @@
+name: ZEVARYQ Explorer Static Asset Route Repair
+on:
+  pull_request:
+    paths:
+      - scripts/repair-zevaryq-assets-nginx.sh
+      - tests/test-zvq-static-assets-route.sh
+      - .github/workflows/zvq-static-assets-repair.yml
+  push:
+    branches: [main]
+    paths:
+      - scripts/repair-zevaryq-assets-nginx.sh
+      - .github/workflows/zvq-static-assets-repair.yml
+permissions:
+  contents: read
+concurrency:
+  group: zvq-static-route-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test bounded patch, NGINX syntax and protected routes
+        run: |
+          bash tests/test-zvq-static-assets-route.sh
+          grep -Fq 'EXPECTED_CHAIN=' explorer-dashboard/zevaryq-production.html
+          grep -Fq 'data-zvq-official-logo="20260924-goldblue-zvq"' explorer-dashboard/zevaryq-production.html
+  origin-preflight:
+    if: github.event_name == 'pull_request' && github.head_ref == 'ops/zvq-assets-http-fallback-20260924' && github.event.pull_request.head.repo.full_name == github.repository
+    needs: validate
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Render candidate from actual existing NGINX template without writes
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          candidate="$(mktemp)"
+          trap 'rm -f "$candidate"' EXIT
+          bash scripts/repair-zevaryq-assets-nginx.sh --render-only /opt/blockscout/docker-compose/proxy/default.conf.template "$candidate"
+          grep -Fq 'location ^~ /zevaryq-assets/' "$candidate"
+          grep -Fq 'location = / {' "$candidate"
+          echo 'origin_route_render=passed; no host config changes'
+  repair:
+    if: github.event_name == 'push'
+    needs: validate
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch ONLY the existing Explorer NGINX static-asset location
+        run: sudo bash scripts/repair-zevaryq-assets-nginx.sh
+  public:
+    if: github.event_name == 'push'
+    needs: repair
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Verify exact emblem and favicon on public DNS-only origin
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          host=explorer.kriptoaman.com
+          expected_ip=146.190.93.254
+          emblem=3fcabc6475d975b65b49c5d6a88c5d1c6e64630b11d5674bfc773a92dd2ec95f
+          favicon=7cc9708233c2624b7b4f95b5ae0902c5cf1233e1648b271a5a41ab02dc95fffe
+          scratch="$(mktemp -d)"
+          trap 'rm -rf "$scratch"' EXIT
+          dns="$(getent ahostsv4 "$host" | awk '{print $1}' | sort -u)"
+          [[ "$dns" == "$expected_ip" ]] || { echo "Unexpected Explorer DNS: $dns" >&2; exit 1; }
+          for attempt in $(seq 1 12); do
+            verified=yes
+            for mode in origin public; do
+              opts=()
+              if [[ "$mode" == origin ]]; then opts=(--resolve "$host:443:$expected_ip"); fi
+              curl -fLsS --connect-timeout 5 --max-time 15 "${opts[@]}" "https://$host/?zvq_asset_repair=$GITHUB_RUN_ID-$attempt-$mode" -o "$scratch/$mode.html" || verified=no
+              grep -Fq 'data-zvq-official-logo="20260924-goldblue-zvq"' "$scratch/$mode.html" 2>/dev/null || verified=no
+              [[ "$(grep -oc 'class="official-emblem"' "$scratch/$mode.html" 2>/dev/null || true)" -eq 3 ]] || verified=no
+              for asset in zevaryq-emblem.webp zevaryq-favicon.png; do
+                curl -fLsS --connect-timeout 5 --max-time 15 "${opts[@]}" "https://$host/zevaryq-assets/$asset?v=20260924-goldblue-zvq" -o "$scratch/$mode-$asset" || verified=no
+                case "$asset" in zevaryq-emblem.webp) want="$emblem";; *) want="$favicon";; esac
+                actual="$(sha256sum "$scratch/$mode-$asset" 2>/dev/null | cut -d' ' -f1 || true)"
+                [[ "$actual" == "$want" ]] || verified=no
+                echo "asset_check attempt=$attempt mode=$mode asset=$asset sha256=$actual"
+              done
+            done
+            if [[ "$verified" == yes ]]; then
+              echo 'ZVQ_LOGO_PUBLIC_VERIFIED=YES; exactly three image placements; original image hashes match origin and public'
+              exit 0
+            fi
+            if [[ "$attempt" -lt 12 ]]; then sleep 5; fi
+          done
+          echo '::error::Public/origin image verification incomplete; preserve current configuration for diagnosis'
+          exit 1
