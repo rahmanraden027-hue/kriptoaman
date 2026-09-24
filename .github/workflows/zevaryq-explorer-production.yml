@@ -7,6 +7,8 @@ on:
       - "scripts/deploy-zevaryq-explorer.sh"
       - "tests/zevaryq-explorer-production.test.mjs"
       - "tests/zevaryq-explorer-official-logo.test.mjs"
+      - "tests/zevaryq-explorer-rainbow-reference.test.mjs"
+      - "scripts/verify-zvq-visual.mjs"
       - ".github/workflows/zevaryq-explorer-production.yml"
   push:
     branches: [main]
@@ -16,6 +18,8 @@ on:
       - "scripts/deploy-zevaryq-explorer.sh"
       - "tests/zevaryq-explorer-production.test.mjs"
       - "tests/zevaryq-explorer-official-logo.test.mjs"
+      - "tests/zevaryq-explorer-rainbow-reference.test.mjs"
+      - "scripts/verify-zvq-visual.mjs"
       - ".github/workflows/zevaryq-explorer-production.yml"
   workflow_dispatch:
     inputs:
@@ -42,7 +46,79 @@ jobs:
           grep -q 'ZEVARYQ EXPLORER' explorer-dashboard/zevaryq-production.html
           grep -q "EXPECTED_CHAIN='0x560c'" explorer-dashboard/zevaryq-production.html
           ! grep -Eqi 'kriptoaman\.com/\*|cloudflare pages|genesis|private.?key|postgres.*reset|redis.*reset' scripts/deploy-zevaryq-explorer.sh
-          node --test tests/zevaryq-explorer-production.test.mjs tests/zevaryq-explorer-reference-theme.test.mjs tests/zevaryq-explorer-official-logo.test.mjs
+          node --test tests/zevaryq-explorer-production.test.mjs tests/zevaryq-explorer-reference-theme.test.mjs tests/zevaryq-explorer-official-logo.test.mjs tests/zevaryq-explorer-rainbow-reference.test.mjs
+  quality:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install frozen dependencies
+        run: npm ci --ignore-scripts
+      - name: Full build
+        run: npm run build
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck and compare existing main-branch baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          if npm run typecheck > /tmp/zvq-pr-types.log 2>&1; then
+            echo "Typecheck passed with zero errors."
+            exit 0
+          fi
+          grep -E 'error TS[0-9]+:' /tmp/zvq-pr-types.log | LC_ALL=C sort > /tmp/zvq-pr-errors || true
+          if [[ ! -s /tmp/zvq-pr-errors ]]; then
+            cat /tmp/zvq-pr-types.log
+            exit 1
+          fi
+          git worktree add --detach /tmp/zvq-typecheck-base "${{ github.event.pull_request.base.sha }}"
+          ln -s "$GITHUB_WORKSPACE/node_modules" /tmp/zvq-typecheck-base/node_modules
+          (cd /tmp/zvq-typecheck-base && ./node_modules/.bin/tsc -p ./jsconfig.json > /tmp/zvq-base-types.log 2>&1 || true)
+          grep -E 'error TS[0-9]+:' /tmp/zvq-base-types.log | LC_ALL=C sort > /tmp/zvq-base-errors || true
+          if [[ ! -s /tmp/zvq-base-errors ]]; then
+            echo "::error::Typecheck failed on this PR but the main branch has no comparable failures."
+            tail -60 /tmp/zvq-pr-types.log
+            exit 1
+          fi
+          if ! diff -u /tmp/zvq-base-errors /tmp/zvq-pr-errors; then
+            echo "::error::This PR introduces or changes typecheck errors versus main."
+            exit 1
+          fi
+          echo "::warning::Full app typecheck retains $(wc -l < /tmp/zvq-pr-errors) identical pre-existing main-branch errors. Zero new errors in this Explorer-only PR."
+  visual:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Locate local Chrome
+        shell: bash
+        run: |
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || true)"
+          test -n "$CHROME"
+          echo "ZVQ_CHROME=$CHROME" >> "$GITHUB_ENV"
+      - name: Install isolated browser automation client
+        shell: bash
+        run: |
+          npm install --prefix "$RUNNER_TEMP/zvq-playwright" --no-package-lock --ignore-scripts --no-audit --no-fund playwright-core@1.55.0
+          echo "PLAYWRIGHT_CORE=$RUNNER_TEMP/zvq-playwright/node_modules/playwright-core/index.mjs" >> "$GITHUB_ENV"
+          echo "ZVQ_SCREENSHOT_DIR=$RUNNER_TEMP/zvq-visual-proof" >> "$GITHUB_ENV"
+      - name: Responsive Chrome proof and reference screenshots
+        run: node scripts/verify-zvq-visual.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zvq-reference-responsive-screenshots
+          path: ${{ runner.temp }}/zvq-visual-proof
+          if-no-files-found: warn
+          retention-days: 14
   deploy:
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     needs: validate
