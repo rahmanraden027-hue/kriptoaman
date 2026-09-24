@@ -88,6 +88,14 @@ test('legacy KAM deployment cannot overwrite protected ZEVARYQ homepage', async 
 });
 
 
+test('indexed Blockscout data renders independently while browser RPC preflight is blocked', () => {
+  assert.match(html, /const probeRpc=async\(\)=>/);
+  assert.match(html, /const probeIndexer=async\(\)=>/);
+  assert.match(html, /await Promise\.all\(\[probeRpc\(\),probeIndexer\(\)\]\)/);
+  assert.match(html, /finally\{renderStatic\(\);if\(state\.blocks\.length\)renderBlocks\(\);renderImmune\(\);\}/);
+  assert.match(html, /if\(state\.api\)state\.lastGoodBlocksAt=Date\.now\(\)/);
+});
+
 test('indexed Blockscout data remains visible if browser JSON-RPC preflight fails', () => {
   assert.match(html, /hasIndexedHeight/);
   assert.match(html, /latestBlockSource=state\.rpc/);
