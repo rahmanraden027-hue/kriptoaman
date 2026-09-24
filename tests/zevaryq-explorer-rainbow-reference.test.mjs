@@ -4,7 +4,7 @@ import test from 'node:test';
 import { Script, runInNewContext } from 'node:vm';
 
 const html=await readFile(new URL('../explorer-dashboard/zevaryq-production.html',import.meta.url),'utf8');
-const script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1]||'';
+const script=html.match(/<script>([\s\S]*?)<\/script>/i)?.[1]||'';
 
 test('reference fidelity uses only the preserved, approved official logo in all three placements',()=>{
  assert.equal((html.match(/class="official-emblem"/g)||[]).length,3);
