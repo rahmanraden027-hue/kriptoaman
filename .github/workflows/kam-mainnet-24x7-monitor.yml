@@ -26,7 +26,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Verify public-monitor policy unit tests
-        run: node --test tests/zevaryq-public-proof.test.mjs
+        run: node --test tests/zevaryq-public-proof.test.mjs tests/zvq-monitor-evidence.test.mjs
 
       - name: Verify KriptoAman network-status contract
         id: status_contract
