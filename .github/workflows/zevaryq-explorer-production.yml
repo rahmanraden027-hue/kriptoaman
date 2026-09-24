@@ -8,6 +8,7 @@ on:
       - "tests/zevaryq-explorer-production.test.mjs"
       - "tests/zevaryq-explorer-official-logo.test.mjs"
       - "tests/zevaryq-explorer-rainbow-reference.test.mjs"
+      - "scripts/verify-zvq-visual.mjs"
       - ".github/workflows/zevaryq-explorer-production.yml"
   push:
     branches: [main]
@@ -18,6 +19,7 @@ on:
       - "tests/zevaryq-explorer-production.test.mjs"
       - "tests/zevaryq-explorer-official-logo.test.mjs"
       - "tests/zevaryq-explorer-rainbow-reference.test.mjs"
+      - "scripts/verify-zvq-visual.mjs"
       - ".github/workflows/zevaryq-explorer-production.yml"
   workflow_dispatch:
     inputs:
@@ -90,6 +92,33 @@ jobs:
             exit 1
           fi
           echo "::warning::Full app typecheck retains $(wc -l < /tmp/zvq-pr-errors) identical pre-existing main-branch errors. Zero new errors in this Explorer-only PR."
+  visual:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Locate local Chrome
+        shell: bash
+        run: |
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || true)"
+          test -n "$CHROME"
+          echo "ZVQ_CHROME=$CHROME" >> "$GITHUB_ENV"
+      - name: Install isolated browser automation client
+        shell: bash
+        run: |
+          npm install --prefix "$RUNNER_TEMP/zvq-playwright" --no-package-lock --ignore-scripts --no-audit --no-fund playwright-core@1.55.0
+          echo "PLAYWRIGHT_CORE=$RUNNER_TEMP/zvq-playwright/node_modules/playwright-core/index.mjs" >> "$GITHUB_ENV"
+          echo "ZVQ_SCREENSHOT_DIR=$RUNNER_TEMP/zvq-visual-proof" >> "$GITHUB_ENV"
+      - name: Responsive Chrome proof and reference screenshots
+        run: node scripts/verify-zvq-visual.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zvq-reference-responsive-screenshots
+          path: ${{ runner.temp }}/zvq-visual-proof
+          if-no-files-found: warn
+          retention-days: 14
   deploy:
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     needs: validate
