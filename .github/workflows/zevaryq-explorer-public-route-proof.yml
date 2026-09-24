@@ -56,7 +56,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for route in 'blocks' 'transactions?type=token_creation'; do
+          for route in 'blocks' 'tokens?type=ERC-20'; do
             body="$(mktemp)"
             status="$(curl -LsS --connect-timeout 6 --max-time 20 -o "$body" -w '%{http_code}' "https://explorer.kriptoaman.com/api/v2/$route" || true)"
             if [[ "$status" == 200 ]]; then
