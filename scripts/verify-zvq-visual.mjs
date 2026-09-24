@@ -84,5 +84,40 @@ try{
  assert.equal(fixture.status,'INDEXED');assert.equal(fixture.provenance,'indexed');assert.equal(fixture.paths,8);assert.match(fixture.notation,/28 transactions across 4 sampled blocks/);
  console.log('RAINBOW_FIXTURE_OK; QA-only synthetic counts are never rendered in production.');
  await context.close();
+
+ // An injected EIP-1193 test provider verifies the deliberate click-to-connect
+ // flow and wrong-chain fail-closed behavior without accessing a real wallet.
+ for(const chainId of ['0x560c','0x1']){
+  const walletContext=await browser.newContext({viewport:{width:1440,height:900}});
+  await walletContext.addInitScript(chain=>{
+   window.__zvqWalletMethods=[];
+   window.ethereum={request:async({method})=>{
+    window.__zvqWalletMethods.push(method);
+    if(method==='eth_requestAccounts')return ['0x'+'a'.repeat(40)];
+    if(method==='eth_chainId')return chain;
+    throw Error('Unexpected wallet request');
+   }};
+  },chainId);
+  const walletPage=await walletContext.newPage();
+  await walletPage.route('https://rpc.kriptoaman.com/**',route=>route.fulfill({status:503,body:'{"error":"QA offline"}',headers:{'access-control-allow-origin':'*','content-type':'application/json'}}));
+  await walletPage.goto(origin,{waitUntil:'domcontentloaded'});
+  await walletPage.locator('#walletConnect').click();
+  const wallet=await walletPage.evaluate(()=>({
+   methods:window.__zvqWalletMethods,
+   button:document.querySelector('#walletConnect').textContent,
+   status:document.querySelector('#walletState').textContent
+  }));
+  assert.deepEqual(wallet.methods,['eth_requestAccounts','eth_chainId'],'wallet control requests no transaction');
+  if(chainId==='0x560c'){
+   assert.match(wallet.button,/^0xaaa…aaaaa$/);
+   assert.match(wallet.status,/Wallet connected on ZVQ/);
+  }else{
+   assert.equal(wallet.button,'Wrong network');
+   assert.match(wallet.status,/switch to ZVQ Chain ID 22028/);
+  }
+  console.log('WALLET_QA_OK chain='+chainId+' methods='+wallet.methods.join(',')+' status='+wallet.status);
+  await walletContext.close();
+ }
+
  await writeFile(join(imageDir,'VISUAL_QA.txt'),'Local OFFLINE Explorer visual preview. All status data unavailable; rainbow marked illustrative.\n'+cases.map(c=>c.name).join('\n')+'\n');
 }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve))}
