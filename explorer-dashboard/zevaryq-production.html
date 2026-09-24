@@ -419,28 +419,41 @@ async function probeTokens(){
  }finally{state.tokenProbeInFlight=false;}
 }
 
+
 async function probe(){
  if(state.probing)return;
  state.probing=true;state.lastProbeAt=Date.now();$('#refreshData').disabled=true;
- try{
-  const t=performance.now(),r=await rpc('eth_chainId');
-  state.rpcLatency=Math.round(performance.now()-t);
-  state.rpc=r.result?.toLowerCase()===EXPECTED_CHAIN;
-  if(!state.rpc)throw Error('Unexpected chain ID; refusing to display unverified head');
-  const [head,gas]=await Promise.all([rpc('eth_blockNumber'),rpc('eth_gasPrice')]);
-  state.head=head.result?parseInt(head.result,16):null;state.gas=gas.result??null;
-  if(!Number.isSafeInteger(state.head))throw Error('Invalid verified block height');
-  if(Date.now()-state.consensusProbeAt>=60000||!state.consensusProbeAt)await refreshConsensus(head.result);
-  state.rpcError=null;
- }catch(e){state.rpc=false;state.rpcLatency=null;state.head=null;state.gas=null;state.rpcError=String(e?.message||e);state.validators=[];state.validatorSource=null;state.finalized=null;state.finalitySource=null;state.consensusProbeAt=0;}
- try{
-  const data=await getJSON(API+'/blocks',{},12000);
-  if(!Array.isArray(data.items))throw Error('Unexpected Blockscout API response');
-  state.blocks=data.items;state.api=state.blocks.length>0;state.apiError=state.api?null:'Indexer returned no blocks';
-  if(state.api){state.lastGoodBlocksAt=Date.now();renderBlocks()}
- }catch(e){state.api=false;state.apiError=String(e?.message||e);if(state.blocks.length){$('#freshness').textContent='STALE · last indexed '+(state.lastGoodBlocksAt?new Date(state.lastGoodBlocksAt).toLocaleTimeString():'previous check');$('#meshStatus').textContent='Cached indexed history · live API unavailable';}}
- state.consecutiveFailures=state.rpc||state.api?0:state.consecutiveFailures+1;
- renderStatic();if(state.blocks.length)renderBlocks();renderImmune();state.probing=false;$('#refreshData').disabled=false;
+ // Verify independently: browser RPC preflight may be blocked while the
+ // Blockscout same-origin read-only API still has real indexed blocks.
+ const probeRpc=async()=>{
+  try{
+   const t=performance.now(),r=await rpc('eth_chainId');
+   state.rpcLatency=Math.round(performance.now()-t);
+   state.rpc=r.result?.toLowerCase()===EXPECTED_CHAIN;
+   if(!state.rpc)throw Error('Unexpected chain ID; refusing to display unverified head');
+   const [head,gas]=await Promise.all([rpc('eth_blockNumber'),rpc('eth_gasPrice')]);
+   state.head=head.result?parseInt(head.result,16):null;state.gas=gas.result??null;
+   if(!Number.isSafeInteger(state.head))throw Error('Invalid verified block height');
+   if(Date.now()-state.consensusProbeAt>=60000||!state.consensusProbeAt)await refreshConsensus(head.result);
+   state.rpcError=null;
+  }catch(e){state.rpc=false;state.rpcLatency=null;state.head=null;state.gas=null;state.rpcError=String(e?.message||e);state.validators=[];state.validatorSource=null;state.finalized=null;state.finalitySource=null;state.consensusProbeAt=0;}
+  finally{renderStatic();renderImmune();}
+ };
+ const probeIndexer=async()=>{
+  try{
+   const data=await getJSON(API+'/blocks',{},12000);
+   if(!Array.isArray(data.items))throw Error('Unexpected Blockscout API response');
+   state.blocks=data.items;state.api=state.blocks.length>0;state.apiError=state.api?null:'Indexer returned no blocks';
+   if(state.api)state.lastGoodBlocksAt=Date.now();
+  }catch(e){state.api=false;state.apiError=String(e?.message||e);if(state.blocks.length){$('#freshness').textContent='STALE · last indexed '+(state.lastGoodBlocksAt?new Date(state.lastGoodBlocksAt).toLocaleTimeString():'previous check');$('#meshStatus').textContent='Cached indexed history · live API unavailable';}}
+  finally{renderStatic();if(state.blocks.length)renderBlocks();renderImmune();}
+ };
+ try{await Promise.all([probeRpc(),probeIndexer()]);}
+ finally{
+  state.consecutiveFailures=state.rpc||state.api?0:state.consecutiveFailures+1;
+  renderStatic();if(state.blocks.length)renderBlocks();renderImmune();
+  state.probing=false;$('#refreshData').disabled=false;
+ }
 }
 $('#search').addEventListener('submit',e=>{e.preventDefault();const q=$('#q').value.trim(),m=$('#searchmsg');m.className='searchmsg';if(/^\d+$/.test(q))location.href='/block/'+q;else if(/^0x[a-fA-F0-9]{64}$/.test(q))location.href='/tx/'+q;else if(/^0x[a-fA-F0-9]{40}$/.test(q))location.href='/address/'+q;else{m.textContent='Enter a block number, 66-character transaction hash, or 42-character EVM address.';m.classList.add('error')}});
 $('#menu').onclick=()=>$('#nav').classList.toggle('open');$('#refreshData').onclick=probe;renderStatic();renderImmune();probe().then(probeTokens,probeTokens);setInterval(probe,12000);setInterval(probeTokens,60000);
