@@ -9,6 +9,7 @@
  function labelTime(s){if(!s)return 'Time unavailable';const t=Date.parse(s);if(!Number.isFinite(t))return 'Time unavailable';const age=Math.max(0,Math.round((Date.now()-t)/1000));return age<60?age+'s ago':age<3600?Math.floor(age/60)+'m ago':Math.floor(age/3600)+'h ago'}
  function validTx(t){
   if(!t||!validHash.test(t.hash||''))return null;
+  if(!(typeof t.block_number==='number'&&Number.isSafeInteger(t.block_number))&&!(typeof t.block_number==='string'&&/^[0-9]{1,16}$/.test(t.block_number)))return null;
   const block=Number(t.block_number);
   if(!Number.isSafeInteger(block)||block<0)return null;
   const timestamp=typeof t.timestamp==='string'&&Number.isFinite(Date.parse(t.timestamp))?t.timestamp:null;
@@ -26,7 +27,7 @@
   const blocks=state.blocks.slice(0,12).reverse(),samples=blocks.map(b=>Number(b.tx_count??b.transactions_count));
   if(samples.length<2||samples.some(x=>!Number.isSafeInteger(x)||x<0)){flow.innerHTML='<p class="v2-datameta">Transaction-count sample unavailable; no illustrative trend is presented as live data.</p>';return}
   const path=spark(samples),p=state.api?'INDEXED':'STALE',count=samples.reduce((a,b)=>a+b,0);
-  flow.innerHTML='<h3>Recent transaction counts · '+p+'</h3><svg viewBox="0 0 100 42" preserveAspectRatio="none" role="img" aria-label="Indexed transaction-count trend from '+samples.length+' consecutive indexed blocks"><defs><linearGradient id="v2-gradient" x1="0" x2="1"><stop stop-color="#46dfff"/><stop offset=".5" stop-color="#d075ff"/><stop offset="1" stop-color="#ffe07e"/></linearGradient></defs><path d="'+path+'" stroke="url(#v2-gradient)" stroke-width="1.8" fill="none" vector-effect="non-scaling-stroke"/><path d="'+path+' L100 42 L0 42 Z" fill="rgba(70,177,251,.12)"/></svg><p class="v2-datameta"><span class="v2-provenance '+p.toLowerCase()+'">'+p+'</span>'+count.toLocaleString()+' transactions · '+samples.length+' observed blocks</p>';
+  flow.innerHTML='<h3>Recent transaction counts · '+p+'</h3><svg viewBox="0 0 100 42" preserveAspectRatio="none" role="img" aria-label="Indexed transaction-count trend from '+samples.length+' sampled indexed blocks"><defs><linearGradient id="v2-gradient" x1="0" x2="1"><stop stop-color="#46dfff"/><stop offset=".5" stop-color="#d075ff"/><stop offset="1" stop-color="#ffe07e"/></linearGradient></defs><path d="'+path+'" stroke="url(#v2-gradient)" stroke-width="1.8" fill="none" vector-effect="non-scaling-stroke"/><path d="'+path+' L100 42 L0 42 Z" fill="rgba(70,177,251,.12)"/></svg><p class="v2-datameta"><span class="v2-provenance '+p.toLowerCase()+'">'+p+'</span>'+count.toLocaleString()+' transactions · '+samples.length+' observed blocks</p>';
  }
  function renderMetrics(state){
   const cards=[...document.querySelectorAll('#metrics .card')];
