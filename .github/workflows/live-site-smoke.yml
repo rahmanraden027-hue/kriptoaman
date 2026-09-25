@@ -62,8 +62,8 @@ jobs:
           esac
 
       - name: Allow production deployment to settle
-        if: github.event_name == 'push'
-        run: sleep 60
+        if: github.event_name != 'schedule'
+        run: sleep 225
 
       - name: Wait for homepage readiness
         if: github.event_name != 'pull_request' || (github.head_ref != 'feature/zevaryq-explorer-production' && github.head_ref != 'codex/zevaryq-premium-logo' && github.head_ref != 'fix/zevaryq-explorer-absolute-assets' && github.head_ref != 'fix/explorer-ui-local-gate' && github.head_ref != 'fix/zevaryq-inline-emblem')
