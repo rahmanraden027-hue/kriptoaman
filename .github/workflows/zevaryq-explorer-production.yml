@@ -10,6 +10,9 @@ on:
       - "tests/zevaryq-explorer-rainbow-reference.test.mjs"
       - "tests/zevaryq-explorer-v2.test.mjs"
       - "scripts/verify-zvq-visual.mjs"
+      - "scripts/update-zvq-public-orbits.mjs"
+      - "tests/zevaryq-public-orbits.test.mjs"
+      - ".github/workflows/zevaryq-public-orbits.yml"
       - ".github/workflows/zevaryq-explorer-production.yml"
   push:
     branches: [main]
@@ -22,6 +25,9 @@ on:
       - "tests/zevaryq-explorer-rainbow-reference.test.mjs"
       - "tests/zevaryq-explorer-v2.test.mjs"
       - "scripts/verify-zvq-visual.mjs"
+      - "scripts/update-zvq-public-orbits.mjs"
+      - "tests/zevaryq-public-orbits.test.mjs"
+      - ".github/workflows/zevaryq-public-orbits.yml"
       - ".github/workflows/zevaryq-explorer-production.yml"
   workflow_dispatch:
     inputs:
@@ -47,9 +53,10 @@ jobs:
           test -f scripts/deploy-zevaryq-explorer.sh
           grep -q 'ZEVARYQ EXPLORER' explorer-dashboard/zevaryq-production.html
           grep -q "EXPECTED_CHAIN='0x560c'" explorer-dashboard/zevaryq-production.html
+          grep -q 'data-zvq-public-orbits="celestrak-gp-v1"' explorer-dashboard/zevaryq-production.html
           ! grep -Eqi 'kriptoaman\.com/\*|cloudflare pages|genesis|private.?key|postgres.*reset|redis.*reset' scripts/deploy-zevaryq-explorer.sh
           bash -n scripts/deploy-zevaryq-explorer.sh
-          node --test tests/zevaryq-explorer-production.test.mjs tests/zevaryq-explorer-reference-theme.test.mjs tests/zevaryq-explorer-official-logo.test.mjs tests/zevaryq-explorer-rainbow-reference.test.mjs tests/zevaryq-explorer-v2.test.mjs
+          node --test tests/zevaryq-explorer-production.test.mjs tests/zevaryq-explorer-reference-theme.test.mjs tests/zevaryq-explorer-official-logo.test.mjs tests/zevaryq-explorer-rainbow-reference.test.mjs tests/zevaryq-explorer-v2.test.mjs tests/zevaryq-public-orbits.test.mjs
   quality:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest

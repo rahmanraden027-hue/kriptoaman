@@ -72,3 +72,21 @@ html[data-zvq-dashboard-version="2.0.0"]{--bg:#020915;--blue:#127BFA;--cyan:#42D
 @media(max-width:560px){.network-panel .card{min-height:106px;padding:11px 6px 10px 48px}.network-panel .card .value{font-size:clamp(17px,5.2vw,25px)}.network-panel .card .source{font-size:9px;letter-spacing:0}.v2-dashboard{gap:8px}.v2-tx-item,.v2-activity-item{grid-template-columns:minmax(0,1.3fr) minmax(0,.85fr);padding:9px}.v2-tx-item strong,.v2-activity-item strong{font-size:11px}.v2-method{font-size:9px;padding:4px 5px}.chainnode{flex-basis:145px;min-width:140px}.space .netdot{animation-duration:5s}}
 @media(max-width:355px){.network-panel .card{padding-left:40px}.network-panel .card .value{font-size:16px}.v2-tx-item,.v2-activity-item{grid-template-columns:1fr;gap:6px}.v2-tx-item>div:last-child,.v2-activity-item>div:last-child{text-align:left}}
 @media(prefers-reduced-motion:reduce){.space .orbit,.satview .orbit,.space .netdot,.satview .netdot,.reference-worldmap circle{animation:none!important}.chainnode,.v2-tx-item,.v2-activity-item{transition:none!important}.chainnode:hover,.chainnode:focus-visible{transform:none}}
+
+/* Independent public orbital elements: never conflated with physical satellite telemetry. */
+.zvq-public-orbits{margin:10px 0;padding:12px;min-width:0;border:1px solid rgba(66,217,255,.46);border-radius:12px;background:linear-gradient(130deg,rgba(3,22,53,.96),rgba(5,39,79,.88))}
+.zvq-orbit-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.zvq-orbit-heading strong{color:#F8C86A;font-size:13px;letter-spacing:.02em}
+.zvq-orbit-badge{padding:4px 8px;border:1px solid rgba(163,182,212,.52);border-radius:6px;color:#cad6e9;font-size:10px;font-weight:800;letter-spacing:.065em}
+.zvq-orbit-badge.public-gp{border-color:#42D9FF;color:#42D9FF;background:rgba(18,123,250,.16)}
+.zvq-orbit-badge.stale{border-color:#F8C86A;color:#F8C86A;background:rgba(248,200,106,.1)}
+.zvq-orbit-description,.zvq-orbit-footnote{font-size:11px;line-height:1.55;color:#bcd4f0;overflow-wrap:anywhere}
+.zvq-orbit-footnote{border-left:2px solid #F8C86A;padding-left:8px;margin-bottom:8px}
+.zvq-orbit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:8px;min-width:0}
+.zvq-orbit-tile{display:grid;gap:6px;padding:10px;border:1px solid rgba(39,138,255,.49);border-radius:9px;background:rgba(5,26,60,.72);overflow-wrap:anywhere}
+.zvq-orbit-tile strong{font-size:11px;color:#ecf6ff}
+.zvq-orbit-tile span{font-size:11px;color:#42D9FF}
+.zvq-orbit-tile small,.zvq-orbit-empty{font-size:10px;color:#a8c4e5;line-height:1.5}
+.zvq-orbit-source{font-size:11px;color:#42D9FF;text-decoration:underline;text-underline-offset:3px}
+.zvq-orbit-source:focus-visible{outline:2px solid #F8C86A;outline-offset:3px}
+@media(max-width:393px){.zvq-public-orbits{padding:9px}.zvq-orbit-grid{grid-template-columns:1fr}}

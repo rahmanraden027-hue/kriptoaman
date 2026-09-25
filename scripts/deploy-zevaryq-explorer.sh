@@ -24,6 +24,7 @@ grep -q 'ZEVARYQ EXPLORER' "$SOURCE" || fail "brand marker missing"
 grep -q 'data-zvq-dashboard-version="2.0.0"' "$SOURCE" || fail "v2 dashboard marker missing"
 grep -q 'zvq-v2.css?v=20260925' "$SOURCE" || fail "v2 CSS reference missing"
 grep -q 'zvq-v2.js?v=20260925' "$SOURCE" || fail "v2 JS reference missing"
+grep -q 'data-zvq-public-orbits="celestrak-gp-v1"' "$SOURCE" || fail "public orbit provenance missing"
 grep -q 'data-zvq-token-discovery="indexed-v2"' "$SOURCE" || fail "token discovery provenance missing"
 grep -q "EXPECTED_CHAIN='0x560c'" "$SOURCE" || fail "chain guard missing"
 ! grep -Eqi '21[ /]+21|128\+ nodes|1,236 pending|3\.4 TPS|100% Secure' "$SOURCE" || fail "mockup metric detected"
@@ -121,6 +122,37 @@ v2='''    # ZVQ_EXPLORER_V2_ASSETS - read-only same-origin presentation assets.
 '''
 tmp=path.with_name(path.name+'.zvq-v2-staged')
 tmp.write_text(source.replace(needle,v2+needle,1))
+st=path.stat()
+os.chmod(tmp,st.st_mode)
+os.chown(tmp,st.st_uid,st.st_gid)
+tmp.replace(path)
+PY
+fi
+# Exact public-orbit route: missing data returns 404, never the SPA HTML.
+if ! grep -Fq 'ZVQ_PUBLIC_ORBITS_V1' "$PROXY_DIR/default.conf.template"; then
+  python3 - "$PROXY_DIR/default.conf.template" <<'PY'
+from pathlib import Path
+import os,sys
+path=Path(sys.argv[1])
+source=path.read_text()
+needle='    location = / {'
+if source.count(needle)!=1:
+    raise SystemExit('Unexpected Explorer root route; refusing orbital data route patch')
+if 'location = /zevaryq-assets/public-orbits.json' in source:
+    raise SystemExit('Existing public-orbits route without release marker; inspect manually')
+block='''    # ZVQ_PUBLIC_ORBITS_V1 — public CelesTrak orbital elements, NOT telemetry.
+    location = /zevaryq-assets/public-orbits.json {
+        root /etc/nginx/templates;
+        try_files /kam-dashboard/zevaryq-assets/public-orbits.json =404;
+        default_type application/json;
+        add_header Cache-Control "public, max-age=300" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        limit_except GET { deny all; }
+    }
+
+'''
+tmp=path.with_name(path.name+'.zvq-orbits-staged')
+tmp.write_text(source.replace(needle,block+needle,1))
 st=path.stat()
 os.chmod(tmp,st.st_mode)
 os.chown(tmp,st.st_uid,st.st_gid)
