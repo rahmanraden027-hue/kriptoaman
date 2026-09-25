@@ -1,0 +1,120 @@
+name: ZEVARYQ Verified Public Orbits
+on:
+  pull_request:
+    paths:
+      - "scripts/update-zvq-public-orbits.mjs"
+      - "tests/zevaryq-public-orbits.test.mjs"
+      - "explorer-dashboard/assets/zvq-v2.js"
+      - "explorer-dashboard/zevaryq-production.html"
+      - ".github/workflows/zevaryq-public-orbits.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/update-zvq-public-orbits.mjs"
+      - "tests/zevaryq-public-orbits.test.mjs"
+      - ".github/workflows/zevaryq-public-orbits.yml"
+  schedule:
+    - cron: "17 */4 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: zevaryq-public-orbits-publisher
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Strict offline public-orbital-element tests
+        run: node --test tests/zevaryq-public-orbits.test.mjs
+  generate:
+    if: github.event_name != 'pull_request'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Request three allowlisted CelesTrak GP catalog objects (no rapid retries)
+        run: |
+          set -euo pipefail
+          node scripts/update-zvq-public-orbits.mjs --output public-orbits.json --cache .existing-orbits-read-only.json
+          node --input-type=module <<'NODE'
+          import {readFile} from 'node:fs/promises';
+          import {isRecentSnapshot} from './scripts/update-zvq-public-orbits.mjs';
+          const data=JSON.parse(await readFile('public-orbits.json','utf8'));
+          if(!isRecentSnapshot(data))throw Error('Public-orbit snapshot invalid or outdated');
+          console.log('VALIDATED_GP_RECORDS='+data.records.length+' checked_at='+data.checked_at);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zvq-public-orbits-gp
+          path: public-orbits.json
+          if-no-files-found: error
+          retention-days: 1
+  publish:
+    if: github.event_name != 'pull_request'
+    needs: generate
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: zvq-public-orbits-gp
+          path: .zvq-artifacts
+      - name: Validate publisher payload and atomically install the Explorer GP JSON
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import {readFile} from 'node:fs/promises';
+          import {isRecentSnapshot} from './scripts/update-zvq-public-orbits.mjs';
+          const payload=JSON.parse(await readFile('.zvq-artifacts/public-orbits.json','utf8'));
+          if(!isRecentSnapshot(payload))throw Error('Unverified or expired publisher artifact');
+          if(payload.records.length>3)throw Error('Unexpected catalog count');
+          console.log('PUBLIC_GP_SOURCE_VERIFIED='+payload.checked_at+' objects='+payload.records.length);
+          NODE
+          base=/opt/blockscout/docker-compose/proxy/kam-dashboard/zevaryq-assets
+          target="$base/public-orbits.json"
+          test -d "$base"
+          test -f /opt/blockscout/docker-compose/proxy/default.conf.template
+          grep -Fq ZVQ_PUBLIC_ORBITS_V1 /opt/blockscout/docker-compose/proxy/default.conf.template
+          sudo install -m 0644 .zvq-artifacts/public-orbits.json "$target.next"
+          trap 'sudo rm -f "$target.next"' EXIT
+          sudo mv -f "$target.next" "$target"
+          expected="$(sha256sum .zvq-artifacts/public-orbits.json | cut -d' ' -f1)"
+          observed="$(sudo sha256sum "$target" | cut -d' ' -f1)"
+          test "$expected" = "$observed"
+          echo "PUBLIC_GP_ORIGIN_STORED_SHA256=$observed"
+      - name: Prove exact JSON via localhost, trusted origin and public HTTPS
+        shell: bash
+        run: |
+          set -euo pipefail
+          src=.zvq-artifacts/public-orbits.json
+          for label in local origin public; do
+            temp="$(mktemp)"
+            if [[ "$label" == local ]]; then
+              curl -fsS --retry 2 --retry-all-errors --retry-delay 2 --connect-timeout 6 --max-time 25 "http://127.0.0.1/zevaryq-assets/public-orbits.json?proof=$GITHUB_RUN_ID" -o "$temp"
+            elif [[ "$label" == origin ]]; then
+              curl -fsS --retry 2 --retry-all-errors --retry-delay 2 --connect-timeout 6 --max-time 25 --resolve "explorer.kriptoaman.com:443:146.190.93.254" "https://explorer.kriptoaman.com/zevaryq-assets/public-orbits.json?proof=$GITHUB_RUN_ID" -o "$temp"
+            else
+              curl -fsS --retry 2 --retry-all-errors --retry-delay 2 --connect-timeout 6 --max-time 25 "https://explorer.kriptoaman.com/zevaryq-assets/public-orbits.json?proof=$GITHUB_RUN_ID" -o "$temp"
+            fi
+            if ! cmp -s "$src" "$temp"; then
+              rm -f "$temp"
+              echo "::error::Public GP dataset mismatch at $label"
+              exit 1
+            fi
+            rm -f "$temp"
+            echo "PUBLIC_GP_EXACT_BYTES_VERIFIED_$label=PASS"
+          done
+          echo 'PUBLIC_GP_CONNECTED=YES; PHYSICAL_SATELLITE_TELEMETRY=NOT_CONNECTED'
