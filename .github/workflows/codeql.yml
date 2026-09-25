@@ -37,3 +37,13 @@ jobs:
         uses: github/codeql-action/analyze@v3
         with:
           category: /language:javascript-typescript
+          output: ${{ runner.temp }}/zvq-codeql-sarif
+      - name: Diagnostic Explorer CodeQL findings
+        if: always() && github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          for file in "${{ runner.temp }}"/zvq-codeql-sarif/*.sarif; do
+            test -f "$file" || continue
+            echo "DIAGNOSTIC_SARIF=$file"
+            jq -r '[.runs[].results[] | {rule:.ruleId,level:(.level//"note"),msg:(.message.text//""),uri:(.locations[0].physicalLocation.artifactLocation.uri//""),line:(.locations[0].physicalLocation.region.startLine//0)} | select(.uri|test("explorer-dashboard|scripts/deploy-zevaryq|scripts/verify-zvq"))] | .[:30][] | [.rule,.level,.uri,.line,.msg] | @tsv' "$file" || true
+          done
