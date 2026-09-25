@@ -15,7 +15,10 @@ await mkdir(imageDir,{recursive:true});
 const served={
  '/':['zevaryq-production.html','text/html; charset=utf-8'],
  '/zevaryq-assets/zevaryq-emblem.webp':['assets/zevaryq-emblem.webp','image/webp'],
- '/zevaryq-assets/zevaryq-favicon.png':['assets/zevaryq-favicon.png','image/png']
+ '/zevaryq-assets/zevaryq-favicon.png':['assets/zevaryq-favicon.png','image/png'],
+ '/zevaryq-assets/zvq-v2.css':['assets/zvq-v2.css','text/css; charset=utf-8'],
+ '/zevaryq-assets/zvq-v2.js':['assets/zvq-v2.js','application/javascript; charset=utf-8'],
+ '/before':['zevaryq-before.html','text/html; charset=utf-8']
 };
 const server=createServer(async(req,res)=>{
  const pathname=new URL(req.url,'http://127.0.0.1').pathname;
@@ -25,7 +28,7 @@ const server=createServer(async(req,res)=>{
   catch{res.writeHead(500);res.end('Local preview asset unavailable')}
   return;
  }
- if(pathname==='/api/v2/blocks'||pathname==='/rpc'){res.writeHead(503,{'content-type':'application/json','access-control-allow-origin':'*'});res.end('{"error":"Offline local visual preview"}');return}
+ if(pathname==='/api/v2/blocks'||pathname==='/api/v2/transactions'||pathname==='/rpc'){res.writeHead(503,{'content-type':'application/json','access-control-allow-origin':'*'});res.end('{"error":"Offline local visual preview"}');return}
  res.writeHead(404);res.end('Not found');
 });
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
@@ -33,7 +36,7 @@ const origin='http://127.0.0.1:'+server.address().port;
 let browser;
 try{
  browser=await chromium.launch({headless:true,executablePath:chromePath,args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
- const cases=[{name:'android-390',width:390,height:844},{name:'tablet-820',width:820,height:1180},{name:'desktop-1440',width:1440,height:900}];
+ const cases=[{name:'android-360',width:360,height:800},{name:'android-393',width:393,height:852},{name:'tablet-768',width:768,height:1024},{name:'desktop-1440',width:1440,height:900}];
  for(const config of cases){
   const context=await browser.newContext({viewport:{width:config.width,height:config.height},deviceScaleFactor:1});
   const page=await context.newPage(),errors=[];
@@ -43,9 +46,11 @@ try{
   await page.locator('#rainbowWaves').waitFor();
   const readout=await page.evaluate(()=>{
    const e=document.documentElement,imgs=[...document.querySelectorAll('.official-emblem')];
-   return{viewport:window.innerWidth,scrollWidth:e.scrollWidth,emblems:imgs.map(x=>[x.complete,x.naturalWidth,x.naturalHeight]),rainbowPaths:document.querySelectorAll('#rainbowWaves .rainbowWave').length,mode:document.querySelector('#rainbowDataStatus')?.textContent};
+   return{viewport:window.innerWidth,scrollWidth:e.scrollWidth,emblems:imgs.map(x=>[x.complete,x.naturalWidth,x.naturalHeight]),rainbowPaths:document.querySelectorAll('#rainbowWaves .rainbowWave').length,mode:document.querySelector('#rainbowDataStatus')?.textContent,v2:typeof window.ZVQv2?.validTx==='function',txPanel:!!document.querySelector('#v2-tx-list')};
   });
   assert.equal(readout.viewport,config.width,config.name+' viewport width');
+  assert.equal(readout.v2,true,config.name+' v2 runtime asset missing');
+  assert.equal(readout.txPanel,true,config.name+' indexed transaction panel missing');
   if(readout.scrollWidth>config.width+1){
    const protruding=await page.evaluate(()=>[...document.body.querySelectorAll('*')].map(el=>{
     const r=el.getBoundingClientRect(),cs=getComputedStyle(el);
@@ -53,6 +58,7 @@ try{
    }).filter(v=>v.right>innerWidth+1&&v.width>0).sort((a,b)=>b.right-a.right).slice(0,20));
    console.error('OVERFLOW_DETAILS '+config.name+' '+JSON.stringify(protruding));
   }
+  if(config.width<=393){const scroll=await page.evaluate(()=>{window.scrollTo(0,Math.min(900,document.documentElement.scrollHeight-innerHeight));return window.scrollY});assert.ok(scroll>0,config.name+' vertical Android scrolling');await page.evaluate(()=>window.scrollTo(0,0))}
   const screenshot=join(imageDir,config.name+'.png');
   await page.screenshot({path:screenshot,fullPage:true,animations:'disabled'});
   assert.ok(readout.scrollWidth<=config.width+1,config.name+' horizontal overflow: '+readout.scrollWidth);
@@ -70,6 +76,46 @@ try{
   assert.deepEqual(errors,[],config.name+' JavaScript runtime error');
   console.log('VISUAL_OK '+config.name+' viewport='+readout.viewport+' scrollWidth='+readout.scrollWidth+' logos='+readout.emblems.length+' rainbow='+readout.rainbowPaths+' preview='+readout.mode+' screenshot='+screenshot);
   await context.close();
+ }
+ // Before/after screenshot proof: the base revision is served only in this isolated offline preview.
+ for(const width of [393,1440]){
+  const ctx=await browser.newContext({viewport:{width,height:width===393?852:900}});
+  const p=await ctx.newPage();
+  await p.route('https://rpc.kriptoaman.com/**',r=>r.fulfill({status:503,body:'{"error":"QA offline baseline"}',headers:{'access-control-allow-origin':'*','content-type':'application/json'}}));
+  await p.goto(origin+'/before',{waitUntil:'domcontentloaded'});
+  await p.screenshot({path:join(imageDir,'BEFORE-'+width+'.png'),fullPage:true,animations:'disabled'});
+  console.log('BASELINE_SCREENSHOT_OK '+width);
+  await ctx.close();
+ }
+ // Prove that indexed data renders while browser RPC returns HTTP 403, using QA-only fixture values.
+ {
+  const ctx=await browser.newContext({viewport:{width:393,height:852}});
+  const p=await ctx.newPage();
+  const timestamp=new Date().toISOString(),older=new Date(Date.now()-3000).toISOString();
+  const h1='0x'+'1'.repeat(64),h2='0x'+'2'.repeat(64);
+  await p.route('https://rpc.kriptoaman.com/**',r=>r.fulfill({status:403,contentType:'application/json',body:'{"error":"QA RPC 403"}',headers:{'access-control-allow-origin':'*'}}));
+  await p.route('**/rpc',r=>r.fulfill({status:403,contentType:'application/json',body:'{"error":"QA RPC 403"}'}));
+  await p.route('**/api/v2/blocks',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({items:[{height:200,hash:h1,parent_hash:h2,timestamp,tx_count:2},{height:199,hash:h2,parent_hash:'0x'+'3'.repeat(64),timestamp:older,tx_count:1}]})}));
+  await p.route('**/api/v2/transactions',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({items:[{hash:'0x'+'a'.repeat(64),block_number:200,timestamp,method:'swap',value:'1000000000000000000',status:'ok'},{hash:'0x'+'b'.repeat(64),block_number:199,timestamp:older,method:'transfer',value:'250000000000000000',status:'ok'}]})}));
+  await p.goto(origin,{waitUntil:'domcontentloaded'});
+  await p.waitForFunction(()=>document.querySelector('#v2-tx-status')?.textContent==='INDEXED'&&document.querySelector('#meshStatus')?.textContent.includes('verified parent links'),{timeout:20000});
+  const proof=await p.evaluate(()=>({txRows:document.querySelectorAll('#v2-tx-list .v2-tx-item').length,activity:document.querySelectorAll('#v2-activity-list .v2-activity-item').length,trust:document.querySelector('#trust').textContent,mesh:document.querySelector('#meshStatus').textContent,latest:document.querySelector('#blocks').textContent,latency:document.querySelector('#v2-telemetry-proof').textContent}));
+  assert.equal(proof.txRows,2);assert.equal(proof.activity,2);assert.equal(proof.trust,'INDEXED');assert.match(proof.mesh,/1 verified parent links/);
+  assert.match(proof.latest,/#200/);assert.match(proof.latency,/Satellite telemetry requires/);
+  await p.screenshot({path:join(imageDir,'QA-indexer-works-RPC-403.png'),fullPage:true,animations:'disabled'});
+  console.log('RPC_403_INDEXER_QA_OK '+JSON.stringify(proof));
+  await ctx.close();
+ }
+ // Respect user system preference: no satellite or chain animation under reduced motion.
+ {
+  const ctx=await browser.newContext({viewport:{width:393,height:852},reducedMotion:'reduce'});
+  const p=await ctx.newPage();
+  await p.route('https://rpc.kriptoaman.com/**',r=>r.fulfill({status:503,body:'{"error":"QA offline"}',headers:{'access-control-allow-origin':'*','content-type':'application/json'}}));
+  await p.goto(origin,{waitUntil:'domcontentloaded'});
+  const result=await p.evaluate(()=>({reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,orbit:getComputedStyle(document.querySelector('.space .orbit')).animationName}));
+  assert.equal(result.reduced,true);assert.equal(result.orbit,'none');
+  console.log('REDUCED_MOTION_QA_OK');
+  await ctx.close();
  }
  // Explicitly test transaction-bound ribbons using QA-only fixture; never publish these counts as live.
  const context=await browser.newContext({viewport:{width:1440,height:900}});
@@ -119,5 +165,5 @@ try{
   await walletContext.close();
  }
 
- await writeFile(join(imageDir,'VISUAL_QA.txt'),'Local OFFLINE Explorer visual preview. All status data unavailable; rainbow marked illustrative.\n'+cases.map(c=>c.name).join('\n')+'\n');
+ await writeFile(join(imageDir,'VISUAL_QA.txt'),'Explorer offline screenshots use unavailable status; indexed and RPC-403 screenshot uses QA-only synthetic fixtures and is NOT production evidence.\n'+cases.map(c=>c.name).join('\n')+'\n');
 }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
