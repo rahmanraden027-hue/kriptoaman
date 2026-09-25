@@ -35,6 +35,7 @@ test('audit is bounded, read-only and does not submit transactions',()=>{
 test('HTTP 200 is denied only when JSON-RPC explicitly rejects the method',()=>{
  const error={jsonrpc:'2.0',id:3,error:{code:-32601,message:'Method not found'}};
  assert.equal(classifyAdminResponse(200,error).blocked,true);
+ assert.equal(classifyAdminResponse(200,{jsonrpc:'2.0',error:{code:-32604,message:'Method not enabled'}}).blocked,true);
  assert.equal(classifyAdminResponse(403,null).blocked,true);
  assert.equal(classifyAdminResponse(200,{jsonrpc:'2.0',id:3,result:[]}).blocked,false);
  assert.equal(classifyAdminResponse(200,{jsonrpc:'2.0',id:3,error:{code:-32000,message:'backend unavailable'}}).blocked,false);
