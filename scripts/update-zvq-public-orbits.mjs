@@ -47,7 +47,7 @@ export async function collectPublicOrbits({httpFetch=fetch,now=Date.now(),cached
     const url='https://celestrak.org/NORAD/elements/gp.php?CATNR='+number+'&FORMAT=JSON';
     const response=await httpFetch(url,{
       method:'GET',headers:{accept:'application/json'},
-      signal:AbortSignal.timeout(12000),redirect:'follow'
+      signal:AbortSignal.timeout(18000),redirect:'follow'
     });
     if(!response.ok)throw Error('CelesTrak '+number+' HTTP '+response.status);
     const body=await response.text();
@@ -60,7 +60,10 @@ export async function collectPublicOrbits({httpFetch=fetch,now=Date.now(),cached
   }));
   const records=[],unavailable=[];
   results.forEach((r,i)=>{if(r.status==='fulfilled')records.push(r.value);else unavailable.push(CATALOG[i]);});
-  if(!records.length)throw Error('CelesTrak orbital catalog unavailable; existing last-good snapshot retained');
+  if(!records.length){
+    const causes=results.map((result,i)=>CATALOG[i]+':'+String(result.reason?.name||'Error')+'/'+String(result.reason?.message||'unknown').replace(/[^a-zA-Z0-9 .:_/-]/g,'').slice(0,95));
+    throw Error('CelesTrak orbital catalog unavailable; no fabricated data. '+causes.join(' | '));
+  }
   return {
     skipped:false,
     snapshot:{
