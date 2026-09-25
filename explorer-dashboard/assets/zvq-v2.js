@@ -106,7 +106,7 @@
   }catch(error){
    txState.error=String(error?.name==='AbortError'?'Request timed out':error?.message||error).slice(0,90);
    txState.failures++;txState.nextAttempt=Date.now()+Math.min(180000,30000*2**Math.min(txState.failures,3));
-  }finally{clearTimeout(timeout);txState.fetching=false;renderTx()}
+  }finally{clearTimeout(timeout);txState.fetching=false;renderTx();}
  }
  function render(state){
   renderMetrics(state);renderSampleChart(state);
