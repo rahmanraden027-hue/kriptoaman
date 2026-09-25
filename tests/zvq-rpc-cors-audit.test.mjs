@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {readFileSync} from 'node:fs';
-import {evaluatePreflight,evaluateUnapprovedPreflight,parseRpcResult} from '../scripts/audit-zvq-rpc-cors.mjs';
+import {evaluatePreflight,evaluateUnapprovedPreflight,parseRpcResult,classifyAdminResponse} from '../scripts/audit-zvq-rpc-cors.mjs';
 const headers=(origin,methods='POST, OPTIONS',allowed='Content-Type')=>new Headers({
  'access-control-allow-origin':origin,'access-control-allow-methods':methods,
  'access-control-allow-headers':allowed
@@ -30,4 +30,12 @@ test('audit is bounded, read-only and does not submit transactions',()=>{
  assert.match(source,/requestsMaximum:8/);
  assert.doesNotMatch(source,/eth_sendRawTransaction|personal_unlockAccount|debug_trace/i);
  assert.match(source,/admin_peers/);
+});
+
+test('HTTP 200 is denied only when JSON-RPC explicitly rejects the method',()=>{
+ const error={jsonrpc:'2.0',id:3,error:{code:-32601,message:'Method not found'}};
+ assert.equal(classifyAdminResponse(200,error).blocked,true);
+ assert.equal(classifyAdminResponse(403,null).blocked,true);
+ assert.equal(classifyAdminResponse(200,{jsonrpc:'2.0',id:3,result:[]}).blocked,false);
+ assert.equal(classifyAdminResponse(200,{jsonrpc:'2.0',id:3,error:{code:-32000,message:'backend unavailable'}}).blocked,false);
 });
