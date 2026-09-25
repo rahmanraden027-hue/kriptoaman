@@ -1,0 +1,112 @@
+name: Incident Public Access Diagnostics
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/incident-public-access-diagnostics.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      ZONE_NAME: kriptoaman.com
+      PAGES_PROJECT: kriptoaman
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Validate Cloudflare credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${CF_ACCOUNT_ID:-}"
+          test -n "${CF_API_TOKEN:-}"
+          echo "::add-mask::${CF_API_TOKEN}"
+
+      - name: Probe public endpoints
+        shell: bash
+        run: |
+          set -u
+          mkdir -p incident-evidence
+          for url in https://kriptoaman.com/ https://explorer.kriptoaman.com/ https://rpc.kriptoaman.com/; do
+            safe="$(echo "$url" | sed 's#https://##; s#[/:]#_#g')"
+            echo "=== $url ===" | tee -a incident-evidence/public-probes.txt
+            curl -sS -D "incident-evidence/${safe}.headers" -o "incident-evidence/${safe}.body"               --connect-timeout 10 --max-time 25 "$url" || true
+            head -n 30 "incident-evidence/${safe}.headers" | tee -a incident-evidence/public-probes.txt
+            printf 'body-prefix=' | tee -a incident-evidence/public-probes.txt
+            head -c 400 "incident-evidence/${safe}.body" | tr '\n' ' ' | tee -a incident-evidence/public-probes.txt || true
+            echo | tee -a incident-evidence/public-probes.txt
+          done
+
+      - name: Inventory Cloudflare control plane without mutation
+        shell: bash
+        run: |
+          set -u
+          auth=(-H "Authorization: Bearer ${CF_API_TOKEN}" -H 'Accept: application/json')
+          mkdir -p incident-evidence
+
+          capture() {
+            local name="$1"; shift
+            local body code
+            body="$(mktemp)"
+            code="$(curl -sS -o "$body" -w '%{http_code}' "$@" || true)"
+            printf '%s\n' "$code" > "incident-evidence/${name}.http-status"
+            cp "$body" "incident-evidence/${name}.json"
+            rm -f "$body"
+            echo "${name}_http=${code}"
+          }
+
+          zones="$(curl -sS --get 'https://api.cloudflare.com/client/v4/zones' "${auth[@]}"             --data-urlencode "name=${ZONE_NAME}" --data-urlencode "account.id=${CF_ACCOUNT_ID}")"
+          echo "$zones" > incident-evidence/zones-raw.json
+          zone_id="$(jq -r '.result[0].id // empty' <<<"$zones")"
+          if [[ -z "$zone_id" ]]; then
+            echo "zone resolution failed"
+            exit 0
+          fi
+          echo "$zone_id" > incident-evidence/zone-id.txt
+          jq '{success,errors,result:[.result[]|{id,name,status,paused,type,development_mode,name_servers}]}' <<<"$zones"             > incident-evidence/zone.json
+
+          capture worker-routes             "https://api.cloudflare.com/client/v4/zones/${zone_id}/workers/routes" "${auth[@]}"
+          capture worker-scripts             "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts" "${auth[@]}"
+          capture pages-project             "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${PAGES_PROJECT}" "${auth[@]}"
+          capture pages-production-deployments             --get "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${PAGES_PROJECT}/deployments"             "${auth[@]}" --data-urlencode 'env=production' --data-urlencode 'page=1' --data-urlencode 'per_page=10'
+          capture dns             "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records?per_page=100" "${auth[@]}"
+          capture rulesets             "https://api.cloudflare.com/client/v4/zones/${zone_id}/rulesets" "${auth[@]}"
+          capture legacy-rate-limits             "https://api.cloudflare.com/client/v4/zones/${zone_id}/rate_limits?per_page=100" "${auth[@]}"
+
+          echo '--- endpoint permissions ---'
+          for f in incident-evidence/*.http-status; do
+            printf '%s=' "$(basename "$f" .http-status)"
+            cat "$f"
+          done
+
+          echo '--- zone ---'
+          jq . incident-evidence/zone.json || true
+          echo '--- worker routes ---'
+          jq '{success,errors,result:[.result[]? | {id,pattern,script}]}' incident-evidence/worker-routes.json || true
+          echo '--- worker scripts ---'
+          jq '{success,errors,result:[.result[]? | {id,created_on,modified_on}]}' incident-evidence/worker-scripts.json || true
+          echo '--- pages project ---'
+          jq '{success,errors,result:(.result|{name,subdomain,domains,production_branch,latest_deployment:(.latest_deployment|{id,url,environment,created_on,modified_on,deployment_trigger,stages})})}' incident-evidence/pages-project.json || true
+          echo '--- production deployments ---'
+          jq '{success,errors,result:[.result[]? | {id,url,environment,created_on,modified_on,deployment_trigger,stages}]}' incident-evidence/pages-production-deployments.json || true
+          echo '--- dns ---'
+          jq '{success,errors,result:[.result[]? | select(.name=="kriptoaman.com" or .name=="www.kriptoaman.com" or .name=="explorer.kriptoaman.com" or .name=="explorer-new.kriptoaman.com" or .name=="rpc.kriptoaman.com") | {id,type,name,content,proxied,ttl}]}' incident-evidence/dns.json || true
+          echo '--- rulesets ---'
+          jq '{success,errors,result:[.result[]? | {id,name,kind,phase,version,last_updated}]}' incident-evidence/rulesets.json || true
+          echo '--- legacy rate limits ---'
+          jq '{success,errors,result:[.result[]? | {id,disabled,description,threshold,period,action,match}]}' incident-evidence/legacy-rate-limits.json || true
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: incident-public-access-diagnostics
+          path: incident-evidence/
+          retention-days: 7
