@@ -39,17 +39,21 @@ const SecurityHub = lazy(() => import('./pages/SecurityHub'));
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
-const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
+const EmptyPage = () => null;
+const MainPage = mainPageKey ? Pages[mainPageKey] : EmptyPage;
 const DashboardPage = Pages.Home ?? MainPage;
 
 const ADMIN_PAGE_KEYS = new Set([
   'AdminKAMAnalytics', 'AdminKAMBulkRewards', 'AdminKAMRewards', 'AdminKAMSnapshotApproval', 'AdminKAMSnapshotReadiness', 'AdminSKAMLaunch', 'AdminKYCManagement', 'AdminPlatformAssets', 'AdminProfitAnalytics', 'AdminUserBalances',
   'ServerControl', 'BigQueryKYCReports', 'RegulatoryDocs', 'AppBuildAnalytics',
-  'AssetManager', 'SecureVault', 'AMLDashboard', 'SecurityCenter', 'KAMIncidentResponse',
+  'AssetManager', 'AMLDashboard', 'SecurityCenter', 'KAMIncidentResponse',
   'FeatureUpdateBroadcast',
 ]);
 
-const STORE_RESTRICTED_PAGE_KEYS = new Set(['AutoTrading', 'DEXSavings', 'P2PLending', 'TradingAnalytics']);
+const PRODUCTION_RESTRICTED_PAGE_KEYS = new Set([
+  'AutoTrading', 'DEXSavings', 'KAMDEX', 'MarketResearch', 'P2PLending', 'PaperTrading',
+  'PriceTracker', 'TradingAnalytics', 'TxHistory', 'Web3Wallet',
+]);
 
 const StoreAvailabilityNotice = () => (
   <div className="ka-bg min-h-screen flex items-center justify-center px-5 text-white">
@@ -121,7 +125,7 @@ const AuthenticatedApp = () => {
           <Route path="/dashboard" element={<LayoutWrapper currentPageName="Home"><DashboardPage /></LayoutWrapper>} />
           {Object.entries(Pages).map(([path, Page]) => {
             if (PUBLIC_PAGE_KEYS.has(path)) return null;
-            const wrapped = <LayoutWrapper currentPageName={path}>{STORE_RESTRICTED_PAGE_KEYS.has(path) ? <StoreAvailabilityNotice /> : <Page />}</LayoutWrapper>;
+            const wrapped = <LayoutWrapper currentPageName={path}>{PRODUCTION_RESTRICTED_PAGE_KEYS.has(path) ? <StoreAvailabilityNotice /> : <Page />}</LayoutWrapper>;
             return <Route key={path} path={`/${path}`} element={ADMIN_PAGE_KEYS.has(path) ? <AdminRoute>{wrapped}</AdminRoute> : wrapped} />;
           })}
           <Route path="/FeatureUpdateBroadcast" element={<AdminRoute><LayoutWrapper currentPageName="FeatureUpdateBroadcast"><FeatureUpdateBroadcast /></LayoutWrapper></AdminRoute>} />

@@ -1,22 +1,20 @@
 import React from 'react';
-import { ArrowLeft, CheckCircle2, FileDown, FileText, Globe2, Network, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, FileText, Globe2, Network, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
-
-const PDF_URL = '/docs/KriptoAman_KAM_USD29_37_Positive_Confident_Roadmap.pdf';
 
 const COPY = {
   id: {
     badge: 'KAM GLOBAL CAMPAIGN ROADMAP 2026–2027',
     title: 'KAM Global Campaign Roadmap 2026–2027',
     subtitle: 'Membangun Jaringan. Memperluas Utilitas. Menghubungkan Pasar Global.',
-    referenceLabel: 'Referensi Skenario Indikatif',
-    referenceMeta: 'Kerangka arah pertumbuhan berbasis fundamental',
+    referenceLabel: 'Status Data Pasar',
+    referenceMeta: 'Tidak ada harga pasar terverifikasi',
     marketStatus: 'Status Pasar',
     marketValue: 'Belum Diperdagangkan',
     framework: 'Kerangka Nilai',
     frameworkValue: 'Utility · Adoption · Liquidity · Global Access',
     direction: 'Executive Direction',
-    directionBody: 'KAM dikembangkan sebagai aset native KriptoAman Network dengan fokus pada kekuatan infrastruktur, kegunaan jaringan, akses global, likuiditas, adopsi, dan pertumbuhan ekosistem. US$29.37 digunakan sebagai referensi skenario indikatif untuk membaca arah pengembangan berdasarkan pencapaian fundamental.',
+    directionBody: 'KAM dikembangkan sebagai aset native KriptoAman Network dengan fokus pada kekuatan infrastruktur, kegunaan jaringan, akses global, likuiditas, adopsi, dan pertumbuhan ekosistem. Tidak ada prediksi atau harga skenario yang ditampilkan tanpa sumber pasar nyata.',
     principles: 'Strategic Principles',
     principleItems: [
       ['Infrastructure Excellence', 'Jaringan kuat, validator terdistribusi, RPC aman, explorer, backup, dan observability.'],
@@ -25,8 +23,8 @@ const COPY = {
       ['Healthy Liquidity', 'Likuiditas, volume organik, dan sumber harga independen mendukung price discovery.'],
       ['Transparent Growth', 'Governance, vesting, audit trail, dan change control memperkuat disiplin ekosistem.'],
     ],
-    scenarioPositioning: 'Scenario Positioning',
-    scenarioPositioningBody: 'Referensi US$29.37 ditempatkan sebagai skenario strategis yang terhubung dengan kemajuan fundamental. Harga pasar aktual akan menggunakan data perdagangan dan likuiditas nyata saat pasar KAM aktif.',
+    scenarioPositioning: 'Kebijakan Data Pasar',
+    scenarioPositioningBody: 'Harga, volume, market cap, dan valuasi tetap tidak tersedia sampai data perdagangan dan likuiditas nyata dapat diverifikasi dari sumber independen.',
     roadmapTitle: 'Roadmap Kampanye Terbaru KAM',
     roadmapIntro: 'Delapan pilar kampanye yang menyatukan teknologi, transparansi, governance, utilitas, dan kemajuan yang dapat diverifikasi.',
     columns: ['Fase', 'Milestone Utama', 'Indikator Utama', 'Dampak Strategis'],
@@ -53,9 +51,8 @@ const COPY = {
       ['Global', 'Wallet integration, store distribution, partnerships, dan international reach.'],
     ],
     closing: 'KAM dibangun untuk tumbuh bersama kekuatan jaringan, utilitas nyata, akses global, adopsi, dan ekosistem yang berkelanjutan.',
-    classification: 'Reference Classification: US$29.37 — Indicative Scenario Reference. Market price akan aktif saat data trading dan likuiditas nyata tersedia.',
+    classification: 'Klasifikasi data: harga pasar belum tersedia. Data hanya akan aktif setelah trading dan likuiditas nyata dapat diverifikasi.',
     back: 'Kembali ke KAM',
-    pdf: 'Baca PDF Resmi',
     milestone: 'Milestone',
     indicator: 'Indikator Utama',
     impact: 'Dampak Strategis',
@@ -64,14 +61,14 @@ const COPY = {
     badge: 'KAM GLOBAL CAMPAIGN ROADMAP 2026–2027',
     title: 'KAM Global Campaign Roadmap 2026–2027',
     subtitle: 'Build the Network. Expand Utility. Connect Global Markets.',
-    referenceLabel: 'Indicative Scenario Reference',
-    referenceMeta: 'Fundamental growth direction framework',
+    referenceLabel: 'Market Data Status',
+    referenceMeta: 'No verified market price',
     marketStatus: 'Market Status',
     marketValue: 'Not Yet Trading',
     framework: 'Value Framework',
     frameworkValue: 'Utility · Adoption · Liquidity · Global Access',
     direction: 'Executive Direction',
-    directionBody: 'KAM is being developed as the native asset of KriptoAman Network with focus on infrastructure strength, network utility, global access, liquidity, adoption, and ecosystem growth. US$29.37 is used as an indicative scenario reference for understanding development direction based on fundamental milestones.',
+    directionBody: 'KAM is being developed as the native asset of KriptoAman Network with focus on infrastructure strength, network utility, global access, liquidity, adoption, and ecosystem growth. No price prediction or scenario price is shown without real market sources.',
     principles: 'Strategic Principles',
     principleItems: [
       ['Infrastructure Excellence', 'Strong network, distributed validators, secure RPC, explorer, backup, and observability.'],
@@ -80,8 +77,8 @@ const COPY = {
       ['Healthy Liquidity', 'Liquidity, organic volume, and independent price sources support price discovery.'],
       ['Transparent Growth', 'Governance, vesting, audit trails, and change control strengthen ecosystem discipline.'],
     ],
-    scenarioPositioning: 'Scenario Positioning',
-    scenarioPositioningBody: 'US$29.37 is positioned as a strategic scenario connected to fundamental progress. Actual market price will use real trading and liquidity data when the KAM market becomes active.',
+    scenarioPositioning: 'Market Data Policy',
+    scenarioPositioningBody: 'Price, volume, market capitalization, and valuation remain unavailable until actual trading and liquidity data can be independently verified.',
     roadmapTitle: 'Latest KAM Campaign Roadmap',
     roadmapIntro: 'Eight campaign pillars uniting technology, transparency, governance, utility, and verifiable progress.',
     columns: ['Phase', 'Primary Milestone', 'Core Indicator', 'Strategic Impact'],
@@ -108,9 +105,8 @@ const COPY = {
       ['Global', 'Wallet integration, store distribution, partnerships, and international reach.'],
     ],
     closing: 'KAM is built to grow with network strength, real utility, global access, adoption, and a sustainable ecosystem.',
-    classification: 'Reference Classification: US$29.37 — Indicative Scenario Reference. Market price becomes active when real trading and liquidity data are available.',
+    classification: 'Data classification: market price is unavailable. Data becomes active only after real trading and liquidity can be verified.',
     back: 'Back to KAM',
-    pdf: 'Read Official PDF',
     milestone: 'Milestone',
     indicator: 'Core Indicator',
     impact: 'Strategic Impact',
@@ -128,9 +124,6 @@ export default function KAMGlobalRoadmap() {
           <a href="/KAM" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-700 bg-slate-950/50 px-4 text-sm font-bold text-slate-200 transition hover:border-sky-400/40 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/70">
             <ArrowLeft className="h-4 w-4" /> {text.back}
           </a>
-          <a href={PDF_URL} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-4 text-sm font-bold text-emerald-100 transition hover:bg-emerald-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/70">
-            <FileDown className="h-4 w-4" /> {text.pdf}
-          </a>
         </div>
 
         <section className="ka-command-hero overflow-hidden p-6 sm:p-9">
@@ -144,7 +137,7 @@ export default function KAMGlobalRoadmap() {
             </div>
             <div className="rounded-[28px] border border-emerald-400/20 bg-emerald-500/5 p-6">
               <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">{text.referenceLabel}</p>
-              <p className="mt-2 text-4xl font-black tracking-[-0.04em]">US$29.37</p>
+              <p className="mt-2 text-2xl font-black tracking-[-0.04em]">{text.marketValue}</p>
               <p className="mt-2 text-xs font-semibold text-slate-400">{text.referenceMeta}</p>
             </div>
           </div>
@@ -152,7 +145,7 @@ export default function KAMGlobalRoadmap() {
 
         <section className="grid gap-3 md:grid-cols-3">
           {[
-            [TrendingUp, text.referenceLabel, 'US$29.37'],
+            [TrendingUp, text.referenceLabel, text.marketValue],
             [Network, text.marketStatus, text.marketValue],
             [Globe2, text.framework, text.frameworkValue],
           ].map(([Icon, label, value]) => (
@@ -188,7 +181,7 @@ export default function KAMGlobalRoadmap() {
         </section>
 
         <section>
-          <p className="ka-command-kicker">KAM SCENARIO DRIVERS</p>
+          <p className="ka-command-kicker">KAM READINESS DRIVERS</p>
           <h2 className="mt-1 text-2xl font-black">{text.roadmapTitle}</h2>
           <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-400">{text.roadmapIntro}</p>
 
@@ -247,9 +240,6 @@ export default function KAMGlobalRoadmap() {
         <section className="ka-command-hero p-6 text-center sm:p-8">
           <p className="mx-auto max-w-4xl text-lg font-black leading-8 text-white">{text.closing}</p>
           <p className="mx-auto mt-4 max-w-4xl text-xs font-semibold leading-6 text-slate-400">{text.classification}</p>
-          <a href={PDF_URL} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-4 text-sm font-bold text-emerald-100 transition hover:bg-emerald-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/70">
-            <FileDown className="h-4 w-4" /> {text.pdf}
-          </a>
         </section>
       </main>
     </div>

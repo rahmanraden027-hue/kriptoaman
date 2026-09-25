@@ -80,7 +80,7 @@ export function TOTPSetup({ onDone, onCancel }) {
                       type="text"
                       inputMode="numeric"
                       autoComplete="one-time-code"
-                      maxLength="6"
+                      maxLength={6}
                       value={totpCode}
                       onChange={(e) => setTotpCode(e.target.value.replace(/[^0-9]/g, ''))}
                       onKeyDown={(e) => { if (e.key === 'Enter' && totpCode.length === 6 && !loading) handleVerifyTOTP(); }}

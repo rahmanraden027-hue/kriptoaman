@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -10,6 +9,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import AuthLayout from "@/components/AuthLayout";
 import { toast } from "@/components/ui/use-toast";
 import { useLanguage } from "@/lib/LanguageContext";
+import { kriptoAuth } from "@/lib/kriptoAuth";
 
 const COPY = {
   id: { title:"Buat akun KriptoAman", subtitle:"Daftar untuk mulai memantau aset digital", hasAccount:"Sudah memiliki akun?", login:"Masuk", password:"Kata sandi", confirm:"Konfirmasi kata sandi", mismatch:"Konfirmasi kata sandi tidak cocok", exists:"Email ini sudah terdaftar dan terverifikasi. Silakan masuk, bukan meminta OTP baru.", failed:"Pendaftaran gagal", guidance:"Gunakan minimal 12 karakter. Jangan gunakan ulang kata sandi dari akun lain.", consentStart:"Saya telah membaca dan menyetujui", terms:"Syarat Penggunaan", and:"serta", privacy:"Kebijakan Privasi", consentEnd:"Saya memahami KriptoAman saat ini menyediakan informasi, pemantauan, edukasi, dan keamanan aset digital—bukan jaminan keuntungan investasi.", creating:"Membuat akun...", register:"Daftar", verifyTitle:"Verifikasi email Anda", verifySubtitle:"Kami mengirim kode ke", verifying:"Memverifikasi...", verify:"Verifikasi", noCode:"Belum menerima kode?", resend:"Kirim ulang", sentTitle:"Kode dikirim", sentDescription:"Periksa email Anda untuk kode baru.", invalidCode:"Kode verifikasi tidak valid", resendFailed:"Gagal mengirim ulang kode" },
@@ -37,7 +37,7 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      await base44.auth.register({ email, password, termsAccepted });
+      await kriptoAuth.register({ email, password, termsAccepted });
       setShowOtp(true);
     } catch (err) {
       if (err.status === 409) {
@@ -54,10 +54,7 @@ export default function Register() {
     setError("");
     setLoading(true);
     try {
-      const result = await base44.auth.verifyOtp({ email, otpCode });
-      if (result?.access_token) {
-        base44.auth.setToken(result.access_token);
-      }
+      await kriptoAuth.verifyOtp({ email, otpCode });
       window.location.href = "/dashboard";
     } catch (err) {
       setError(err.message || text.invalidCode);
@@ -69,7 +66,7 @@ export default function Register() {
   const handleResend = async () => {
     setError("");
     try {
-      await base44.auth.resendOtp(email);
+      await kriptoAuth.resendOtp(email);
       toast({
         title: text.sentTitle,
         description: text.sentDescription,

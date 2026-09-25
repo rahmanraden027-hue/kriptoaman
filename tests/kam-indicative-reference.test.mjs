@@ -4,31 +4,25 @@ import test from 'node:test';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('KAM server keeps indicative scenario reference separate from market price', async () => {
+test('KAM server exposes unavailable market data without a scenario price', async () => {
   const api = await read('functions/api/kam/network-status.js');
   assert.match(api, /marketPrice: null/);
   assert.match(api, /marketPriceStatus: 'not-yet-trading'/);
-  assert.match(api, /value: 29\.37/);
-  assert.match(api, /type: 'internal-scenario-estimate'/);
-  assert.match(api, /isLiveMarketPrice: false/);
-  assert.match(api, /Not a live market price/);
-  assert.match(api, /official listing price/);
-  assert.match(api, /guaranteed value/);
+  assert.doesNotMatch(api, /29\.37/);
+  assert.doesNotMatch(api, /indicativeListingReference/);
 });
 
-test('KAM UI labels US$29.37 as a scenario estimate and excludes it from live valuation', async () => {
+test('KAM UI keeps price and valuation unavailable without a verified source', async () => {
   const page = await read('src/pages/KAM.jsx');
-  assert.match(page, /Indicative Scenario Reference/);
-  assert.match(page, /Referensi Skenario Indikatif/);
-  assert.match(page, /Not a live market price/);
-  assert.match(page, /Bukan harga pasar live/);
-  assert.match(page, /market cap, P\/L, portfolio valuation, and live tickers/);
-  assert.match(page, /market cap, P\/L, nilai portofolio, atau ticker live/);
+  assert.match(page, /No verified market-price source/);
+  assert.match(page, /Tidak ada sumber harga pasar terverifikasi/);
+  assert.match(page, /does not display KAM price, volume, market cap, P\/L, or valuation/);
+  assert.doesNotMatch(page, /29\.37/);
 });
 
 test('KAM scenario drivers roadmap uses evidence-based milestones without price promises', async () => {
   const page = await read('src/pages/KAM.jsx');
-  assert.match(page, /KAM SCENARIO DRIVERS/);
+  assert.match(page, /KAM READINESS DRIVERS/);
   assert.match(page, /Public mainnet with distributed validators/);
   assert.match(page, /Transparent liquidity infrastructure/);
   assert.match(page, /Market-based price discovery/);

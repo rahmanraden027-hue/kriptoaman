@@ -75,7 +75,6 @@ const ADMIN_SECONDARY_NAV = [
   { id: 'regulatoryDocs', page: 'RegulatoryDocs', icon: ShieldCheck },
   { id: 'profit', page: 'AdminProfitAnalytics', icon: BarChart3 },
   { id: 'platformAssets', page: 'AdminPlatformAssets', icon: Wallet },
-  { id: 'vault', page: 'SecureVault', icon: Lock },
   { id: 'securityCenter', page: 'SecurityCenter', icon: ShieldCheck },
   { id: 'amlScreening', page: 'AMLDashboard', icon: AlertTriangle },
   { id: 'kycReports', page: 'BigQueryKYCReports', icon: BarChart3 },
@@ -86,12 +85,12 @@ const ADMIN_LABELS = {
   id: {
     heading: 'Operasi Admin', access: 'AKSES ADMIN', footer: 'ADMIN OPS', serviceMatrix: 'Matriks Layanan',
     kycOps: 'Operasi KYC', balances: 'Saldo Pengguna', assets: 'Aset Platform', aml: 'Pemantauan AML', securityCenter: 'Pusat Keamanan', server: 'Kontrol Server',
-    kycMgmt: 'Kelola KYC', platformDocs: 'Dokumen Platform', regulatoryDocs: 'Dokumen Regulasi', profit: 'Analitik Admin', platformAssets: 'Aset Platform', vault: 'Vault Internal', amlScreening: 'Penyaringan AML', kycReports: 'Laporan KYC',
+    kycMgmt: 'Kelola KYC', platformDocs: 'Dokumen Platform', regulatoryDocs: 'Dokumen Regulasi', profit: 'Analitik Admin', platformAssets: 'Aset Platform', amlScreening: 'Penyaringan AML', kycReports: 'Laporan KYC',
   },
   en: {
     heading: 'Admin Operations', access: 'ADMIN ACCESS', footer: 'ADMIN OPS', serviceMatrix: 'Service Matrix',
     kycOps: 'KYC Operations', balances: 'User Balances', assets: 'Platform Assets', aml: 'AML Monitoring', securityCenter: 'Security Center', server: 'Server Control',
-    kycMgmt: 'KYC Management', platformDocs: 'Platform Docs', regulatoryDocs: 'Regulatory Docs', profit: 'Admin Analytics', platformAssets: 'Platform Assets', vault: 'Internal Vault', amlScreening: 'AML Screening', kycReports: 'KYC Reports',
+    kycMgmt: 'KYC Management', platformDocs: 'Platform Docs', regulatoryDocs: 'Regulatory Docs', profit: 'Admin Analytics', platformAssets: 'Platform Assets', amlScreening: 'AML Screening', kycReports: 'KYC Reports',
   },
 };
 

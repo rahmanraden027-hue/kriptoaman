@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
 import { kriptoAuth } from "@/lib/kriptoAuth";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -59,7 +58,7 @@ export default function Login() {
       }
 
       if (isAdminEmail) {
-        await base44.auth.requestAdminLink(email);
+        await kriptoAuth.requestAdminLink(email);
         setAdminLinkSent(true);
         return;
       }
@@ -70,7 +69,7 @@ export default function Login() {
         return;
       }
 
-      const result = await base44.auth.loginViaEmailPassword(email, password);
+      const result = await kriptoAuth.loginViaEmailPassword(email, password);
       if (result?.two_factor_required) {
         setRequires2FA(true);
         setTotpCode("");
@@ -85,7 +84,7 @@ export default function Login() {
   };
 
   return (
-    <AuthLayout icon={LogIn} title={text.title} subtitle={text.subtitle} logo darkBlue footer={<>{text.noAccount}{" "}<Link to="/register" className="font-semibold text-sky-400 hover:text-sky-300 hover:underline">{text.register}</Link></>}>
+    <AuthLayout icon={LogIn} title={text.title} subtitle={text.subtitle} darkBlue footer={<>{text.noAccount}{" "}<Link to="/register" className="font-semibold text-sky-400 hover:text-sky-300 hover:underline">{text.register}</Link></>}>
       {error && <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>}
 
       <form onSubmit={handleSubmit} className="space-y-4">

@@ -67,7 +67,7 @@ function Card({ icon: Icon, title, sub, children }) {
   );
 }
 
-function MiniStat({ icon: Icon, label, ok, pending, loading, onClick, link, text }) {
+function MiniStat({ icon: Icon, label, ok = false, pending = false, loading = false, onClick = null, link = '', text }) {
   const status = pending ? text.developing : loading ? text.checking : ok ? text.active : text.readyEnable;
   const inner = (
     <div className="ka-surface ka-surface-hover group flex min-h-28 flex-col items-center justify-center gap-2 p-3 text-center">

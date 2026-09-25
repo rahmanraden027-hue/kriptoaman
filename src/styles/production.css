@@ -1,0 +1,18 @@
+/*
+ * KriptoAman production design-system entrypoint.
+ * Import order is intentional: legacy foundations first, final v9 lock and
+ * mobile safety overrides last. New production overrides belong in v9.
+ */
+@import './workspace-polish.css';
+@import './admin-suite.css';
+@import './final-ui-2026.css';
+@import './final-ui-v2.css';
+@import './final-ui-v3.css';
+@import './final-ui-v4.css';
+@import './final-ui-v5.css';
+@import './final-ui-v6.css';
+@import './final-ui-v7.css';
+@import './final-ui-v8.css';
+@import './final-ui-v9.css';
+@import './world-class-ui.css';
+@import './mobile-overlap-final.css';

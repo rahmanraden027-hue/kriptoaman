@@ -16,6 +16,7 @@ async function request(path, options = {}) {
     });
     const data = response.status === 204 ? null : await response.json().catch(() => null);
     if (!response.ok) {
+      /** @type {Error & {status?: number, data?: any, code?: string}} */
       const error = new Error(data?.error || 'Authentication request failed');
       error.status = response.status;
       error.data = data;
@@ -24,6 +25,7 @@ async function request(path, options = {}) {
     return data;
   } catch (cause) {
     if (cause?.status) throw cause;
+    /** @type {Error & {status?: number, data?: any, code?: string}} */
     const error = new Error('Koneksi ke layanan autentikasi sementara tidak tersedia. Periksa jaringan lalu coba lagi.');
     error.status = 0;
     error.code = cause?.name === 'AbortError' ? 'AUTH_REQUEST_TIMEOUT' : 'AUTH_NETWORK_UNAVAILABLE';
