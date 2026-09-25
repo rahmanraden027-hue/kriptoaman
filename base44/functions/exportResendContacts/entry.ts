@@ -8,7 +8,7 @@ function normalizeEmail(value) {
 
 function isValidExportEmail(email) {
   // CSV/spreadsheet-safe subset: reject quotes, controls, and formula prefixes.
-  return /^[a-z0-9][a-z0-9.!#$%&'*+/=?^_`{|}~-]*@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i.test(email);
+  return /^[a-z0-9][a-z0-9.!#$%&'*+/=?^_`{|}~-]*@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i.test(email);
 }
 
 function isVerified(user) {
@@ -89,7 +89,7 @@ Deno.serve(async (request) => {
     }
 
     const emails = [...eligible].filter((email) => !optedOut.has(email)).sort();
-    const csv = ['email', ...emails].join('\\r\\n') + '\\r\\n';
+    const csv = ['email', ...emails].join('\r\n') + '\r\n';
 
     return Response.json({
       success: true,
