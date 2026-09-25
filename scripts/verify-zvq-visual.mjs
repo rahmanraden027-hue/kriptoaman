@@ -78,8 +78,9 @@ try{
   await context.close();
  }
  // Before/after screenshot proof: the base revision is served only in this isolated offline preview.
- for(const width of [393,1440]){
-  const ctx=await browser.newContext({viewport:{width,height:width===393?852:900}});
+ for(const width of [360,393,768,1440]){
+  const config=cases.find(item=>item.width===width);
+  const ctx=await browser.newContext({viewport:{width,height:config.height}});
   const p=await ctx.newPage();
   await p.route('https://rpc.kriptoaman.com/**',r=>r.fulfill({status:503,body:'{"error":"QA offline baseline"}',headers:{'access-control-allow-origin':'*','content-type':'application/json'}}));
   await p.goto(origin+'/before',{waitUntil:'domcontentloaded'});
