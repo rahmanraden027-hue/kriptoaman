@@ -58,7 +58,7 @@ try{
    }).filter(v=>v.right>innerWidth+1&&v.width>0).sort((a,b)=>b.right-a.right).slice(0,20));
    console.error('OVERFLOW_DETAILS '+config.name+' '+JSON.stringify(protruding));
   }
-  if(config.width<=393){const scroll=await page.evaluate(()=>{document.documentElement.style.scrollBehavior='auto';window.scrollTo({top:Math.min(900,document.documentElement.scrollHeight-innerHeight),behavior:'instant'});return window.scrollY});assert.ok(scroll>0,config.name+' vertical Android scrolling');await page.evaluate(()=>window.scrollTo(0,0))}
+  if(config.width<=393){const scroll=await page.evaluate(()=>{document.documentElement.style.scrollBehavior='auto';window.scrollTo({top:Math.min(900,document.documentElement.scrollHeight-innerHeight),behavior:'instant'});return window.scrollY});assert.ok(scroll>0,config.name+' vertical Android scrolling');await page.evaluate(()=>window.scrollTo(0,0));}
   const screenshot=join(imageDir,config.name+'.png');
   await page.screenshot({path:screenshot,fullPage:true,animations:'disabled'});
   assert.ok(readout.scrollWidth<=config.width+1,config.name+' horizontal overflow: '+readout.scrollWidth);

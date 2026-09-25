@@ -1,5 +1,6 @@
 /* ZEVARYQ EXPLORER 2.0: source-aware premium visualization layer. */
-:root{--v2-violet:#a47bff;--v2-pink:#f46acb;--v2-gold:#ffd782;--v2-cyan:#40dcff;--v2-emerald:#48e7ae}
+:root{--v2-violet:#9652FA;--v2-pink:#F841D8;--v2-gold:#F8C86A;--v2-cyan:#42D9FF;--v2-emerald:#34E6B8;--zvq-rainbow-blue:#278AFF;--zvq-rainbow-cyan:#40D9FF;--zvq-rainbow-violet:#9652FA;--zvq-rainbow-magenta:#F841D8;--zvq-rainbow-pink:#FF71BD;--zvq-rainbow-yellow:#FFDC38;--zvq-rainbow-green:#38EF8D;--zvq-rainbow-sky:#00CAFF}
+html[data-zvq-dashboard-version="2.0.0"]{--bg:#020915;--blue:#127BFA;--cyan:#42D9FF;--gold:#F8C86A;--green:#34E6B8}
 .hero.glass{border-color:rgba(54,167,255,.9);background:radial-gradient(ellipse at 79% 46%,rgba(16,114,227,.28),transparent 49%),linear-gradient(115deg,#031024,#061b40 63%,#09234c)}
 .hero .space{filter:drop-shadow(0 0 12px rgba(43,158,255,.2))}
 .space .orbit,.satview .orbit{animation:v2OrbitGlow 9s ease-in-out infinite}
@@ -12,7 +13,7 @@
 .network-panel .card .source{display:inline-flex;max-width:100%;padding:4px 6px;border:1px solid rgba(83,170,250,.25);border-radius:6px;background:rgba(4,20,48,.6);font-size:10px;font-weight:850;letter-spacing:.06em;overflow-wrap:anywhere}
 .network-panel .card:has(.source:first-child){min-width:0}
 .network-panel .card .source:where(:not(:empty)){color:#a8d9ff}
-.network-panel .card:nth-child(2),.network-panel .card:nth-child(6){border-color:rgba(71,231,172,.48)}
+.network-panel .card:nth-child(2),.network-panel .card:nth-child(6){border-color:rgba(66,217,255,.48)}
 .network-panel .card:nth-child(4),.network-panel .card:nth-child(8){border-color:rgba(244,180,74,.49)}
 .reference-worldmap{filter:drop-shadow(0 0 9px rgba(30,178,255,.66))}
 .reference-worldmap circle{transform-box:fill-box;transform-origin:center;animation:v2MapPulse 4s ease-in-out infinite}

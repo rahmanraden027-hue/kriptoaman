@@ -4,7 +4,7 @@
  const API='/api/v2',validHash=/^0x[a-f0-9]{64}$/i,validAddress=/^0x[a-f0-9]{40}$/i;
  const select=id=>document.getElementById(id);
  const txState={items:[],lastGood:0,error:null,fetching:false,failures:0,nextAttempt:0};
- const txClasses=['transfer','swap','stake','mint','bridge'];
+ // Blockscout's method label alone is not a verified token or contract action.
  function shortHash(h){return typeof h==='string'&&h.length>20?h.slice(0,9)+'…'+h.slice(-6):'—'}
  function labelTime(s){if(!s)return 'Time unavailable';const t=Date.parse(s);if(!Number.isFinite(t))return 'Time unavailable';const age=Math.max(0,Math.round((Date.now()-t)/1000));return age<60?age+'s ago':age<3600?Math.floor(age/60)+'m ago':Math.floor(age/3600)+'h ago'}
  function validTx(t){
@@ -12,10 +12,12 @@
   if(!(typeof t.block_number==='number'&&Number.isSafeInteger(t.block_number))&&!(typeof t.block_number==='string'&&/^[0-9]{1,16}$/.test(t.block_number)))return null;
   const block=Number(t.block_number);
   if(!Number.isSafeInteger(block)||block<0)return null;
-  const timestamp=typeof t.timestamp==='string'&&Number.isFinite(Date.parse(t.timestamp))?t.timestamp:null;
+  const parsedAt=typeof t.timestamp==='string'?Date.parse(t.timestamp):NaN;
+  if(!Number.isFinite(parsedAt)||parsedAt>Date.now()+300000)return null;
+  const timestamp=t.timestamp;
   const sender=t.from?.hash,receiver=t.to?.hash;
   const method=typeof t.method==='string'?t.method.trim().slice(0,52):'';
-  const kind=txClasses.find(k=>new RegExp('(^|[^a-z])'+k+'([^a-z]|$)','i').test(method))||'';
+  const kind=''; // Receipt, decoded event logs and contract proof are not in the summary endpoint.
   const status=['ok','error'].includes(t.status)?t.status:'';
   const value=typeof t.value==='string'&&/^[0-9]{1,78}$/.test(t.value)?t.value:null;
   return {hash:t.hash,block,timestamp,sender:validAddress.test(sender||'')?sender:null,receiver:validAddress.test(receiver||'')?receiver:null,method:method||'Indexed transaction',kind,status,value};
@@ -77,7 +79,7 @@
   const provenance=fresh?'INDEXED':txState.items.length?'STALE':'UNAVAILABLE';
   badge.textContent=provenance;badge.className='tag v2-provenance '+provenance.toLowerCase();
   note.textContent=provenance==='INDEXED'
-   ?'Read-only Blockscout /api/v2/transactions · checked '+new Date(txState.lastGood).toLocaleTimeString()
+   ?'Read-only Blockscout /api/v2/transactions · checked '+new Date(txState.lastGood).toLocaleTimeString()+' · Method names are unverified; action classes require decoded receipt and log evidence.'
    :txState.items.length?'Cached indexed history · current refresh unavailable'
    :txState.error?'Indexer transactions unavailable: '+txState.error
    :'Connecting to indexed transaction history…';
@@ -101,7 +103,7 @@
    const data=await response.json();
    if(!Array.isArray(data?.items))throw Error('Invalid indexed response');
    const seen=new Set();
-   txState.items=data.items.map(validTx).filter(t=>{if(!t||seen.has(t.hash.toLowerCase()))return false;seen.add(t.hash.toLowerCase());return true}).sort((a,b)=>b.block-a.block).slice(0,16);
+   txState.items=data.items.map(validTx).filter(t=>{if(!t||seen.has(t.hash.toLowerCase()))return false;seen.add(t.hash.toLowerCase());return true}).sort((a,b)=>b.block-a.block||Date.parse(b.timestamp)-Date.parse(a.timestamp)).slice(0,16);
    txState.lastGood=Date.now();txState.error=null;txState.failures=0;txState.nextAttempt=Date.now()+30000;
   }catch(error){
    txState.error=String(error?.name==='AbortError'?'Request timed out':error?.message||error).slice(0,90);
