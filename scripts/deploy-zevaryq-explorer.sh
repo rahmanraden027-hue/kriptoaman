@@ -27,7 +27,7 @@ grep -q 'data-zevaryq-explorer-version="1.1.2"' "$SOURCE" || fail "version marke
 grep -q 'ZEVARYQ EXPLORER' "$SOURCE" || fail "brand marker missing"
 grep -q 'data-zvq-dashboard-version="2.0.0"' "$SOURCE" || fail "v2 dashboard marker missing"
 grep -q 'zvq-v2.css?v=20260925' "$SOURCE" || fail "v2 CSS reference missing"
-grep -q 'zvq-v2.js?v=20260925' "$SOURCE" || fail "v2 JS reference missing"
+grep -q 'zvq-v2.js?v=20260925-orbit1' "$SOURCE" || fail "v2 JS reference missing"
 grep -q 'data-zvq-public-orbits="celestrak-gp-v1"' "$SOURCE" || fail "public orbit provenance missing"
 grep -q 'data-zvq-token-discovery="indexed-v2"' "$SOURCE" || fail "token discovery provenance missing"
 grep -q "EXPECTED_CHAIN='0x560c'" "$SOURCE" || fail "chain guard missing"
