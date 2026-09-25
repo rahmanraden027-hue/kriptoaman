@@ -27,6 +27,14 @@ export function parseRpcResult(value,method){
  if(method==='eth_blockNumber'&&!/^0x[0-9a-f]+$/i.test(value.result))throw new Error('Invalid block height');
  return value.result;
 }
+export function classifyAdminResponse(status,body){
+ const error=body?.jsonrpc==='2.0'&&body.error&&typeof body.error==='object'&&!Object.prototype.hasOwnProperty.call(body,'result')?body.error:null;
+ const denied=!!error&&[-32601,-32000,-32001].includes(Number(error.code))&&
+  /method.*(not found|disabled|not allowed|denied|unsupported)|forbidden|unauthori[sz]ed|access denied/.test(String(error.message||'').toLowerCase());
+ return {httpStatus:status,errorCode:error?Number(error.code):null,
+  resultPresent:body?Object.prototype.hasOwnProperty.call(body,'result'):null,
+  blocked:status===403||status===200&&denied};
+}
 async function request(url,init={}){
  return fetch(url,{...init,redirect:'error',cache:'no-store',signal:AbortSignal.timeout(12000)});
 }
@@ -62,8 +70,10 @@ export async function collectEvidence(){
  await run('privileged method rejection',async()=>{
   const response=await request(RPC,{method:'POST',headers:{'content-type':'application/json'},
    body:JSON.stringify({jsonrpc:'2.0',id:3,method:'admin_peers',params:[]})});
-  e.privilegedBlocked=response.status===403;
-  if(!e.privilegedBlocked)throw new Error('admin_peers HTTP '+response.status+'; expected 403');
+  const payload=response.status===200?await response.json().catch(()=>null):null;
+  e.adminProbe=classifyAdminResponse(response.status,payload);
+  e.privilegedBlocked=e.adminProbe.blocked;
+  if(!e.privilegedBlocked)throw new Error('admin_peers not confirmed denied; HTTP '+response.status);
  });
  await run('indexed block tip',async()=>{
   const response=await request(BLOCKS);
