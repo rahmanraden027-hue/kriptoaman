@@ -51,7 +51,8 @@ export default function FeatureUpdateBroadcast() {
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
-      URL.revokeObjectURL(url);
+      // Allow mobile browsers to finish the download before revoking the URL.
+      window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
       setExportCount(Number(data.eligibleCount));
     } catch (err) {
       setError(err.response?.data?.error || err.message || 'Ekspor kontak gagal');
