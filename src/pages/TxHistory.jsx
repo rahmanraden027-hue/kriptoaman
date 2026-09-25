@@ -11,7 +11,7 @@ export function addTransaction(tx) {
   try {
     const history = JSON.parse(localStorage.getItem(TX_KEY)) || [];
     const entry = {
-      id: Date.now() + Math.random(),
+      id: crypto.randomUUID(),
       date: new Date().toISOString(),
       status: 'success',
       ...tx,

@@ -1,6 +1,6 @@
 // Custom token management for EVM chains (ERC-20, BEP-20, etc.)
 
-const STORAGE_KEY = 'coinvault_custom_tokens';
+const STORAGE_KEY = 'kriptoaman_custom_tokens';
 
 const EVM_CHAIN_CONFIG = {
   ETH:   { rpcUrl: 'https://eth.drpc.org',            explorerApi: 'https://api.etherscan.io/api',             explorerTx: 'https://etherscan.io/tx/',           nativeSymbol: 'ETH',  chainId: 1 },

@@ -25,7 +25,7 @@ const SETUP_STEPS = [
 <!-- Status bar styling (iOS) -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="COINVAULT">`,
+<meta name="apple-mobile-web-app-title" content="KriptoAman">`,
     status: 'pending'
   },
   {
@@ -63,8 +63,8 @@ if (navigator.serviceWorker.controller) {
     title: 'Create manifest.json',
     description: 'Add to public root directory with app metadata',
     code: `{
-  "name": "COINVAULT - Cryptocurrency Wallet & Trading",
-  "short_name": "COINVAULT",
+  "name": "KriptoAman - Crypto Intelligence",
+  "short_name": "KriptoAman",
   "description": "Secure crypto wallet with DEX trading",
   "start_url": "/",
   "scope": "/",
@@ -207,7 +207,7 @@ export default function PWASetupGuide() {
           <Code2 className="w-8 h-8 text-indigo-400" />
           PWA Setup Guide
         </h1>
-        <p className="text-slate-400">Step-by-step instructions to make COINVAULT a production-ready PWA</p>
+        <p className="text-slate-400">Step-by-step instructions to make KriptoAman a production-ready PWA</p>
       </div>
 
       <div className="space-y-4">

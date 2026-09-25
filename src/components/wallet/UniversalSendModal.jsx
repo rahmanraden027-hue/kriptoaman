@@ -5,7 +5,6 @@ import { Label } from '@/components/ui/label';
 import { X, AlertTriangle, CheckCircle2, Loader2, ExternalLink } from 'lucide-react';
 import { COINS, getBalance, getRecommendedFeesByCoin } from './multiCoinApi';
 import { decryptData } from './walletUtils';
-import { collectTransactionFee } from './collectFeeHelper';
 
 const COIN_ICONS = { BTC: '₿', ETH: 'Ξ', LTC: 'Ł', BNB: 'B', SOL: '◎', DOGE: 'Ð', MATIC: 'M', ARB: 'A', OP: 'O', BASE: 'Ⓑ', AVAX: '🔺', FTM: 'F' };
 const EVM_COINS = ['ETH', 'BNB', 'MATIC', 'ARB', 'OP', 'BASE', 'AVAX', 'FTM'];
@@ -49,30 +48,8 @@ export default function UniversalSendModal({ wallet, sessionPassword, activeCoin
 
   const handleSend = async () => {
     setLoading(true);
-    setErrorMsg('');
-    try {
-      if (activeCoin === 'BTC') {
-        const txHash = await sendBTC();
-        setTxHash(txHash);
-      } else if (EVM_COINS.includes(activeCoin)) {
-        // EVM: simulate broadcast (no private key export for EVM in this app)
-        await new Promise(r => setTimeout(r, 1500));
-        setTxHash('0x' + Math.random().toString(16).slice(2).padEnd(64, '0'));
-      } else {
-        // LTC, DOGE, SOL: simulate
-        await new Promise(r => setTimeout(r, 1500));
-        setTxHash(Math.random().toString(36).slice(2).repeat(3).slice(0, 64));
-      }
-      
-      // Collect transaction fee
-      await collectTransactionFee('send', activeCoin, parseFloat(amount));
-      
-      setStep('success');
-      onSuccess && onSuccess();
-    } catch (e) {
-      setErrorMsg(e.message || 'Transaksi gagal');
-      setStep('error');
-    }
+    setErrorMsg('Pengiriman dinonaktifkan sampai setiap jaringan memiliki simulasi, persetujuan wallet, broadcast, dan receipt yang terverifikasi.');
+    setStep('error');
     setLoading(false);
   };
 

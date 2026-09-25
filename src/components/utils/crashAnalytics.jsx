@@ -11,7 +11,7 @@ const LOG_KEY = 'crash_logs';
 function getSessionId() {
   let sid = sessionStorage.getItem('ka_session_id');
   if (!sid) {
-    sid = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    sid = `sess_${crypto.randomUUID()}`;
     sessionStorage.setItem('ka_session_id', sid);
   }
   return sid;

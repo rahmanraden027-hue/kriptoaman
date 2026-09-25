@@ -10,7 +10,7 @@ const DEPLOYMENT_STEPS = {
         'Buka https://developer.apple.com',
         'Daftar dengan Apple ID',
         'Bayar biaya annual ($99)',
-        'Buat App ID unik (com.coinvault.app)',
+        'Gunakan App ID resmi KriptoAman yang tercatat di konfigurasi rilis',
         'Setup certificates & provisioning profiles'
       ],
       time: '1-2 hari'
@@ -68,7 +68,7 @@ const DEPLOYMENT_STEPS = {
     {
       title: 'Generate Signing Key',
       items: [
-        'Buat keystore: keytool -genkey -v -keystore coinvault.jks -keyalg RSA -keysize 2048 -validity 10000 -alias coinvault',
+        'Gunakan keystore produksi KriptoAman dari penyimpanan rahasia resmi',
         'Simpan keystore di tempat aman',
         'Ingat password (JANGAN lupa!)',
         'Backup keystore - CRITICAL untuk updates!'
@@ -79,7 +79,7 @@ const DEPLOYMENT_STEPS = {
       title: 'Setup Bubblewrap',
       items: [
         'npm install -g @bubblewrap/cli',
-        'bubblewrap init --manifest-url https://coinvault.app/manifest.json',
+        'bubblewrap init --manifest-url https://kriptoaman.com/manifest.json',
         'Edit app metadata di bubblewrap.json',
         'Copy keystore ke project directory'
       ],
@@ -144,7 +144,7 @@ export default function StoreDeploymentGuide() {
       <div>
         <h1 className="text-3xl font-bold text-white mb-2">📦 Store Deployment Guide</h1>
         <p className="text-slate-400">
-          Step-by-step petunjuk untuk submit COINVAULT ke App Store dan Play Store
+          Petunjuk bertahap untuk mengirim KriptoAman ke App Store dan Play Store
         </p>
       </div>
 

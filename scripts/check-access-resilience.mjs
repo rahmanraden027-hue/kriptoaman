@@ -142,44 +142,59 @@ async function checkMarketContinuity(origin) {
   };
 }
 
+async function captureCheck(name, check) {
+  const started = Date.now();
+  try {
+    const details = await check();
+    return {
+      name,
+      healthy: true,
+      latencyMs: Date.now() - started,
+      ...(details === undefined ? {} : { details }),
+    };
+  } catch (error) {
+    return {
+      name,
+      healthy: false,
+      latencyMs: Date.now() - started,
+      error: String(error?.message || error),
+    };
+  }
+}
+
 async function checkOrigin(label, origin) {
   const started = Date.now();
-  await checkPage(origin, '/', { securityHeaders: true });
-  await checkPage(origin, '/login');
-  await checkPage(origin, '/register');
-  await checkReadiness(origin);
-  await checkRegistrationContract(origin);
-  const marketSnapshot = await checkMarketSnapshot(origin);
-  const marketContinuity = await checkMarketContinuity(origin);
-  const latencyMs = Date.now() - started;
-  console.log(JSON.stringify({
+  const checks = await Promise.all([
+    captureCheck('homepage-and-security-headers', () => checkPage(origin, '/', { securityHeaders: true })),
+    captureCheck('login-page', () => checkPage(origin, '/login')),
+    captureCheck('register-page', () => checkPage(origin, '/register')),
+    captureCheck('auth-readiness', () => checkReadiness(origin)),
+    captureCheck('registration-contract', () => checkRegistrationContract(origin)),
+    captureCheck('market-snapshot', () => checkMarketSnapshot(origin)),
+    captureCheck('market-continuity', () => checkMarketContinuity(origin)),
+  ]);
+  const result = {
     label,
     origin,
-    healthy: true,
-    latencyMs,
-    marketSnapshot,
-    marketContinuity,
-  }));
-  return { label, origin, healthy: true, latencyMs, marketSnapshot, marketContinuity };
+    healthy: checks.every((check) => check.healthy),
+    latencyMs: Date.now() - started,
+    checks,
+  };
+  console.log(JSON.stringify(result));
+  return result;
 }
 
 const results = [];
 let failed = false;
 
-try {
-  results.push(await checkOrigin('primary', PRIMARY));
-} catch (error) {
-  failed = true;
-  results.push({ label: 'primary', origin: PRIMARY, healthy: false, error: String(error?.message || error) });
-}
+const primary = await checkOrigin('primary', PRIMARY);
+results.push(primary);
+failed ||= !primary.healthy;
 
 if (SECONDARY) {
-  try {
-    results.push(await checkOrigin('secondary', SECONDARY));
-  } catch (error) {
-    failed = true;
-    results.push({ label: 'secondary', origin: SECONDARY, healthy: false, error: String(error?.message || error) });
-  }
+  const secondary = await checkOrigin('secondary', SECONDARY);
+  results.push(secondary);
+  failed ||= !secondary.healthy;
 } else if (REQUIRE_SECONDARY) {
   failed = true;
   results.push({ label: 'secondary', origin: null, healthy: false, error: 'SECONDARY_ORIGIN is required but not configured' });

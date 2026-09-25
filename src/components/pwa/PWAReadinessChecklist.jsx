@@ -136,7 +136,7 @@ export default function PWAReadinessChecklist() {
     <div className="max-w-2xl mx-auto p-4 space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-white mb-1">📊 App Store Readiness</h1>
-        <p className="text-slate-400 text-sm mb-4">COINVAULT — PWA Deployment Checklist</p>
+        <p className="text-slate-400 text-sm mb-4">KriptoAman - PWA Deployment Checklist</p>
 
         <div className="bg-gradient-to-r from-green-900/40 to-emerald-900/40 border border-green-500/30 rounded-xl p-4 mb-4">
           <div className="flex items-center justify-between mb-3">

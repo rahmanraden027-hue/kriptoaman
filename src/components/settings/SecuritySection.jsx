@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { ShieldCheck, ShieldOff, Smartphone, Monitor, Globe, Clock, Trash2, CheckCircle2, XCircle, AlertTriangle, Copy, Check, Lock, Fingerprint, Timer, FileText, Badge as BadgeIcon } from 'lucide-react';
+import { ShieldCheck, ShieldOff, Smartphone, Monitor, Globe, Clock, Trash2, CheckCircle2, XCircle, AlertTriangle, Lock, Fingerprint, Timer, FileText, Badge as BadgeIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PinSetup, PIN_ENABLED_KEY, BIOMETRIC_ENABLED_KEY, PIN_STORAGE_KEY } from '../security/PinLock';
@@ -9,14 +9,6 @@ import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
 
 const STORAGE_KEY_2FA = 'cv_2fa_enabled';
-const STORAGE_KEY_DEVICES = 'cv_login_devices';
-const STORAGE_KEY_SECRET = 'cv_2fa_secret';
-
-// Simulate TOTP secret generation
-function generateSecret() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-  return Array.from({ length: 32 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-}
 
 function getDeviceIcon(type) {
   if (type === 'mobile') return Smartphone;
@@ -24,127 +16,8 @@ function getDeviceIcon(type) {
   return Monitor;
 }
 
-function generateMockDevices() {
-  const devices = [
-    {
-      id: '1',
-      name: 'Perangkat Ini',
-      type: 'browser',
-      browser: 'Chrome 122',
-      os: 'Windows 11',
-      ip: '103.xx.xx.xx',
-      location: 'Jakarta, Indonesia',
-      lastLogin: new Date().toISOString(),
-      current: true,
-      trusted: true,
-    },
-    {
-      id: '2',
-      name: 'iPhone 15 Pro',
-      type: 'mobile',
-      browser: 'Safari',
-      os: 'iOS 17.3',
-      ip: '103.xx.xx.xx',
-      location: 'Jakarta, Indonesia',
-      lastLogin: new Date(Date.now() - 2 * 24 * 3600000).toISOString(),
-      current: false,
-      trusted: true,
-    },
-    {
-      id: '3',
-      name: 'Laptop Kantor',
-      type: 'monitor',
-      browser: 'Firefox 123',
-      os: 'macOS Sonoma',
-      ip: '180.xx.xx.xx',
-      location: 'Surabaya, Indonesia',
-      lastLogin: new Date(Date.now() - 7 * 24 * 3600000).toISOString(),
-      current: false,
-      trusted: false,
-    },
-  ];
-  return devices;
-}
-
-function generateLoginHistory() {
-  const actions = ['Login berhasil', 'Login berhasil', 'Login berhasil', 'Login gagal (salah password)', 'Login berhasil', 'Login dari perangkat baru'];
-  const locations = ['Jakarta, ID', 'Jakarta, ID', 'Jakarta, ID', 'Jakarta, ID', 'Surabaya, ID', 'Jakarta, ID'];
-  return Array.from({ length: 6 }, (_, i) => ({
-    id: i.toString(),
-    action: actions[i],
-    success: !actions[i].includes('gagal'),
-    location: locations[i],
-    ip: `103.${Math.floor(Math.random() * 255)}.xx.xx`,
-    date: new Date(Date.now() - i * 18 * 3600000).toISOString(),
-    device: i % 2 === 0 ? 'Chrome / Windows' : 'Safari / iPhone',
-  }));
-}
-
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-}
-
-function TwoFASetup({ secret, onDone, onCancel }) {
-  const [code, setCode] = useState('');
-  const [copied, setCopied] = useState(false);
-  const [error, setError] = useState('');
-  const otpauthUrl = `otpauth://totp/CoinVault?secret=${secret}&issuer=CoinVault`;
-
-  const copySecret = () => {
-    navigator.clipboard.writeText(secret).catch(() => {});
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleVerify = () => {
-    if (code.length !== 6 || !/^\d{6}$/.test(code)) {
-      setError('Masukkan 6 digit kode dari aplikasi autentikator');
-      return;
-    }
-    // Simulate verify (accept any 6 digit code for demo)
-    onDone();
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-start gap-2 bg-blue-500/10 border border-blue-500/20 rounded-xl p-3">
-        <AlertTriangle className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
-        <p className="text-blue-300 text-xs">Gunakan aplikasi seperti Google Authenticator, Authy, atau 1Password untuk scan QR atau masukkan kunci rahasia di bawah ini.</p>
-      </div>
-
-      {/* Manual key */}
-      <div className="bg-slate-800 rounded-xl p-4 space-y-2">
-        <p className="text-slate-400 text-xs font-semibold">KUNCI RAHASIA (manual entry)</p>
-        <div className="flex items-center gap-2">
-          <code className="text-orange-400 font-mono text-xs break-all flex-1 bg-slate-900 px-2 py-1.5 rounded-lg">{secret}</code>
-          <button onClick={copySecret} className="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-400 hover:text-white transition-colors shrink-0">
-            {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
-          </button>
-        </div>
-        <p className="text-slate-600 text-[10px]">Pilih "Enter key manually" di aplikasi autentikator Anda dan paste kunci di atas.</p>
-      </div>
-
-      {/* Code input */}
-      <div className="space-y-2">
-        <label className="text-slate-300 text-sm font-medium">Kode Verifikasi</label>
-        <Input
-          type="text"
-          maxLength={6}
-          inputMode="numeric"
-          value={code}
-          onChange={e => { setCode(e.target.value.replace(/\D/g, '')); setError(''); }}
-          placeholder="Masukkan 6 digit kode"
-          className="bg-slate-800 border-slate-700 text-white text-center text-xl tracking-[0.3em] font-mono"
-        />
-        {error && <p className="text-red-400 text-sm">{error}</p>}
-      </div>
-
-      <div className="flex gap-2">
-        <Button variant="outline" onClick={onCancel} className="flex-1 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white">Batal</Button>
-        <Button onClick={handleVerify} className="flex-1 bg-green-600 hover:bg-green-700 text-white">Aktifkan 2FA</Button>
-      </div>
-    </div>
-  );
 }
 
 const SESSION_TIMEOUT_KEY = 'cv_session_timeout_min';
@@ -152,9 +25,8 @@ const SESSION_TIMEOUT_KEY = 'cv_session_timeout_min';
 export default function SecuritySection({ onNavigateTo }) {
   const [is2FAEnabled, setIs2FAEnabled] = useState(() => localStorage.getItem(STORAGE_KEY_2FA) === 'true');
   const [setupMode, setSetupMode] = useState(false);
-  const [secret, setSecret] = useState(() => localStorage.getItem(STORAGE_KEY_SECRET) || '');
-  const [devices] = useState(generateMockDevices);
-  const [loginHistory] = useState(generateLoginHistory);
+  const [devices] = useState([]);
+  const [loginHistory] = useState([]);
   const [disableConfirm, setDisableConfirm] = useState(false);
   const [disableCode, setDisableCode] = useState('');
   const [disableError, setDisableError] = useState('');
@@ -408,6 +280,11 @@ export default function SecuritySection({ onNavigateTo }) {
           <span className="text-white font-semibold text-sm">Perangkat Terhubung</span>
           <span className="ml-auto text-[10px] text-slate-500">{devices.length} perangkat</span>
         </div>
+        {devices.length === 0 && (
+          <p className="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3 text-xs text-slate-400">
+            Data perangkat belum tersedia dari layanan autentikasi.
+          </p>
+        )}
         {devices.map(device => {
           const Icon = getDeviceIcon(device.type);
           return (
@@ -440,8 +317,13 @@ export default function SecuritySection({ onNavigateTo }) {
         <div className="flex items-center gap-2 mb-1">
           <Clock className="w-4 h-4 text-purple-400" />
           <span className="text-white font-semibold text-sm">Riwayat Login</span>
-          <span className="ml-auto text-[10px] text-slate-500">6 aktivitas terakhir</span>
+          <span className="ml-auto text-[10px] text-slate-500">{loginHistory.length} aktivitas</span>
         </div>
+        {loginHistory.length === 0 && (
+          <p className="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3 text-xs text-slate-400">
+            Riwayat login belum tersedia dari layanan autentikasi.
+          </p>
+        )}
         {loginHistory.map(log => (
           <div key={log.id} className="flex items-start gap-3 py-2 border-b border-slate-700/30 last:border-0">
             <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${log.success ? 'bg-green-500/20' : 'bg-red-500/20'}`}>

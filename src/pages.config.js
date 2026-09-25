@@ -10,7 +10,7 @@ const PAGE_NAMES = [
   'Founder', 'Home', 'IntelligenceHub', 'KAM', 'KAMCampaignNews', 'KAMDeveloper', 'KAMDEX', 'KAMGlobalRoadmap', 'KAMIncidentResponse', 'KAMLaunchReadiness', 'KAMNetwork', 'KAMNetworkDocs', 'KAMTokenomics', 'KAMTransactionLab', 'KYC', 'KYCVerificationPage', 'LandingPage', 'Market', 'MarketResearch',
   'P2PLending', 'PWAValidation', 'PaperTrading', 'PlatformDocs', 'PortfolioOverview', 'Premium',
   'PriceTracker', 'PrivacyPolicy', 'RPCPrivacyPolicy', 'Profile', 'Referral', 'RegulatoryDocs',
-  'SEOLanding', 'SecureVault', 'SecurityCenter', 'ServerControl', 'Settings', 'SystemStatus',
+  'SEOLanding', 'SecurityCenter', 'ServerControl', 'Settings', 'SystemStatus',
   'StoreDeploymentGuide', 'Support', 'TermsOfService', 'TradingAnalytics',
   'TxHistory', 'Wallet', 'Web3Wallet', 'ReadinessCheck', 'AccountDeletion',
 ];

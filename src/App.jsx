@@ -45,7 +45,7 @@ const DashboardPage = Pages.Home ?? MainPage;
 const ADMIN_PAGE_KEYS = new Set([
   'AdminKAMAnalytics', 'AdminKAMBulkRewards', 'AdminKAMRewards', 'AdminKAMSnapshotApproval', 'AdminKAMSnapshotReadiness', 'AdminSKAMLaunch', 'AdminKYCManagement', 'AdminPlatformAssets', 'AdminProfitAnalytics', 'AdminUserBalances',
   'ServerControl', 'BigQueryKYCReports', 'RegulatoryDocs', 'AppBuildAnalytics',
-  'AssetManager', 'SecureVault', 'AMLDashboard', 'SecurityCenter', 'KAMIncidentResponse',
+  'AssetManager', 'AMLDashboard', 'SecurityCenter', 'KAMIncidentResponse',
   'FeatureUpdateBroadcast',
 ]);
 
