@@ -1,0 +1,64 @@
+name: KAM DEX Core Read-only RPC
+
+on:
+  pull_request:
+    paths:
+      - 'chain/kam-mainnet/deployments/dex.json'
+      - '.github/workflows/kam-dex-core-readonly.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - name: Verify KAM DEX core deployment read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          RPC='https://rpc.kriptoaman.com'
+          MANIFEST='chain/kam-mainnet/deployments/dex.json'
+
+          CHAIN_ID_HEX=$(cast rpc --rpc-url "$RPC" eth_chainId | tr -d '"')
+          test "$((CHAIN_ID_HEX))" -eq 22028
+
+          FACTORY=$(jq -r '.factory.address' "$MANIFEST")
+          ROUTER=$(jq -r '.router.address' "$MANIFEST")
+          WKAM=$(jq -r '.wkam.address' "$MANIFEST")
+
+          test "$FACTORY" != "null"
+          test "$ROUTER" != "null"
+          test "$WKAM" != "null"
+
+          FACTORY_CODE=$(cast code --rpc-url "$RPC" "$FACTORY")
+          ROUTER_CODE=$(cast code --rpc-url "$RPC" "$ROUTER")
+          test "$FACTORY_CODE" != "0x"
+          test "$ROUTER_CODE" != "0x"
+
+          PAIRS=$(cast call --rpc-url "$RPC" "$FACTORY" 'allPairsLength()(uint256)')
+          test "$PAIRS" = "0"
+
+          OBS_FACTORY=$(cast call --rpc-url "$RPC" "$ROUTER" 'factory()(address)')
+          OBS_WKAM=$(cast call --rpc-url "$RPC" "$ROUTER" 'WKAM()(address)')
+
+          test "${OBS_FACTORY,,}" = "${FACTORY,,}"
+          test "${OBS_WKAM,,}" = "${WKAM,,}"
+
+          echo "chainId=22028"
+          echo "factory=$FACTORY"
+          echo "router=$ROUTER"
+          echo "wkam=$WKAM"
+          echo "allPairsLength=$PAIRS"
+      - name: Assert workflow has no signing material
+        shell: bash
+        run: |
+          test -z "${DEPLOYER_PRIVATE_KEY:-}"
+          test -z "${PRIVATE_KEY:-}"
+          test -z "${MNEMONIC:-}"
