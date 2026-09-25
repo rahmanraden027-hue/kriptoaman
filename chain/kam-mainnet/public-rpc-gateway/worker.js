@@ -22,6 +22,7 @@ const HEAVY_METHODS = new Set(['eth_getLogs', 'eth_call', 'eth_estimateGas', 'et
 const DEVELOPER_CONSOLE_URL = 'https://kriptoaman.com/KAMDeveloper';
 const EXPECTED_CHAIN_ID = '0x560c';
 const UPSTREAM_TIMEOUT_MS = 2500;
+// Browser preflight is terminated at this edge so the protected origin never needs public OPTIONS access.
 const CORS_HEADERS = {
   'access-control-allow-origin': '*',
   'access-control-allow-methods': 'GET, POST, OPTIONS',
