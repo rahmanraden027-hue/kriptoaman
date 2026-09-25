@@ -17,6 +17,12 @@ export const COIN_META = {
   UNI: { name: 'Uniswap', logo: 'https://assets.coingecko.com/coins/images/12504/large/uniswap-uni.png', color: '#ff007a' },
   USDT: { name: 'Tether', logo: 'https://assets.coingecko.com/coins/images/325/large/Tether.png', color: '#26a17b' },
   USDC: { name: 'USD Coin', logo: 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png', color: '#2775ca' },
+  ATOM: { name: 'Cosmos', logo: 'https://assets.coingecko.com/coins/images/1481/large/cosmos_hub.png', color: '#6f7390' },
+  ARB: { name: 'Arbitrum', logo: 'https://assets.coingecko.com/coins/images/16547/large/arb.jpg', color: '#28a0f0' },
+  OP: { name: 'Optimism', logo: 'https://assets.coingecko.com/coins/images/25244/large/Optimism.png', color: '#ff0420' },
+  SUI: { name: 'Sui', logo: 'https://assets.coingecko.com/coins/images/26375/large/sui_asset.jpeg', color: '#4da2ff' },
+  APT: { name: 'Aptos', logo: 'https://assets.coingecko.com/coins/images/26455/large/aptos_round.png', color: '#00d4b4' },
+  NEAR: { name: 'NEAR Protocol', logo: 'https://assets.coingecko.com/coins/images/10365/large/near.jpg', color: '#00c08b' },
 };
 
 export const LIVE_COINS = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP'];

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { COIN_META } from '../home/coinMeta';
 
 const TICKER_ASSETS = [
   { id: 'BTC', symbol: 'BTC/USD', binance: 'btcusdt', color: '#F7931A' },
@@ -144,15 +145,33 @@ export default function LiveTickerBar() {
 
   return (
     <div className="relative h-8 w-full overflow-hidden border-b border-slate-800/60 bg-slate-950/90" aria-label="Live cryptocurrency market ticker">
-      <div className="ticker-scroll flex h-full items-center gap-6 whitespace-nowrap px-4">
+      <div className="ticker-scroll flex h-full w-max items-center gap-6 whitespace-nowrap px-4">
         {items.map((asset, index) => {
           const data = prices[asset.id];
           const change = data.change24h;
           const isUp = change >= 0;
+          const meta = COIN_META[asset.id];
 
           return (
             <div key={`${asset.id}-${index}`} className="flex shrink-0 items-center gap-1.5 text-xs">
-              <div className="h-3 w-3 shrink-0 rounded-full" style={{ background: asset.color }} aria-hidden="true" />
+              <span
+                className="relative h-4 w-4 shrink-0 overflow-hidden rounded-full ring-1 ring-white/10"
+                style={{ backgroundColor: meta?.color || asset.color }}
+                aria-hidden="true"
+              >
+                {meta?.logo && (
+                  <img
+                    src={meta.logo}
+                    alt=""
+                    width="16"
+                    height="16"
+                    className="absolute inset-0 h-full w-full object-contain"
+                    loading="eager"
+                    decoding="async"
+                    onError={event => { event.currentTarget.style.display = 'none'; }}
+                  />
+                )}
+              </span>
               <span className="font-medium text-slate-400">{asset.symbol}</span>
               <span className={`font-bold transition-colors duration-300 ${
                 data.tick === 'up'
@@ -172,11 +191,17 @@ export default function LiveTickerBar() {
       </div>
 
       <style>{`
-        .ticker-scroll { animation: ticker-move 60s linear infinite; }
+        .ticker-scroll {
+          animation: ticker-move 60s linear infinite;
+          will-change: transform;
+        }
         .ticker-scroll:hover { animation-play-state: paused; }
         @keyframes ticker-move {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
+          0% { transform: translate3d(0, 0, 0); }
+          100% { transform: translate3d(-50%, 0, 0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .ticker-scroll { animation-duration: 120s; }
         }
       `}</style>
     </div>
