@@ -12,6 +12,9 @@ EMBLEM="$ASSET_DIR/zevaryq-emblem.webp"
 FAVICON="$ASSET_DIR/zevaryq-favicon.png"
 V2_CSS="$ASSET_DIR/zvq-v2.css"
 V2_JS="$ASSET_DIR/zvq-v2.js"
+PUBLIC_ORBITS="$ASSET_DIR/public-orbits.json"
+PUBLIC_ORBITS_STAGED="$ASSET_DIR/public-orbits.staged.json"
+PUBLIC_ORBIT_UPDATER="$PWD/scripts/update-zvq-public-orbits.mjs"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 BACKUP="index.html.zevaryq.$STAMP.bak"
 TEMPLATE_BACKUP="default.conf.template.zvq-logo.$STAMP.bak"
@@ -19,6 +22,7 @@ fail(){ echo "Zevaryq Explorer deploy: $*" >&2; exit 1; }
 [[ -f "$SOURCE" ]] || fail "source missing"
 [[ -r "$EMBLEM" && -r "$FAVICON" ]] || fail "brand assets missing"
 [[ -s "$V2_CSS" && -s "$V2_JS" ]] || fail "v2 presentation assets missing"
+[[ -f "$PUBLIC_ORBIT_UPDATER" ]] || fail "public orbit updater missing"
 grep -q 'data-zevaryq-explorer-version="1.1.2"' "$SOURCE" || fail "version marker missing"
 grep -q 'ZEVARYQ EXPLORER' "$SOURCE" || fail "brand marker missing"
 grep -q 'data-zvq-dashboard-version="2.0.0"' "$SOURCE" || fail "v2 dashboard marker missing"
@@ -38,14 +42,25 @@ proxy_fs "test -r /target/default.conf.template && test -w /target/kam-dashboard
 proxy_fs "cp -a /target/default.conf.template /target/$TEMPLATE_BACKUP"
 proxy_fs "cp -a /target/kam-dashboard/index.html /target/kam-dashboard/$BACKUP"
 proxy_fs "mkdir -p /target/kam-dashboard/zevaryq-assets; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp.$STAMP.bak; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png.$STAMP.bak"
-rollback(){ code=$?; proxy_fs "cp -a /target/$TEMPLATE_BACKUP /target/default.conf.template; cp -a /target/kam-dashboard/$BACKUP /target/kam-dashboard/index.html; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp.$STAMP.bak || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp.$STAMP.bak /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png.$STAMP.bak || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png.$STAMP.bak /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png" || true; proxy_fs "for name in zvq-v2.css zvq-v2.js; do if test -f /target/kam-dashboard/zevaryq-assets/\$name.$STAMP.bak; then cp -a /target/kam-dashboard/zevaryq-assets/\$name.$STAMP.bak /target/kam-dashboard/zevaryq-assets/\$name; else rm -f /target/kam-dashboard/zevaryq-assets/\$name; fi; done" || true; docker compose up -d --force-recreate --no-deps proxy >/dev/null 2>&1 || true; exit "$code"; }
+rollback(){ code=$?; proxy_fs "cp -a /target/$TEMPLATE_BACKUP /target/default.conf.template; cp -a /target/kam-dashboard/$BACKUP /target/kam-dashboard/index.html; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp.$STAMP.bak || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp.$STAMP.bak /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png.$STAMP.bak || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png.$STAMP.bak /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png" || true; proxy_fs "for name in zvq-v2.css zvq-v2.js public-orbits.json; do if test -f /target/kam-dashboard/zevaryq-assets/\$name.$STAMP.bak; then cp -a /target/kam-dashboard/zevaryq-assets/\$name.$STAMP.bak /target/kam-dashboard/zevaryq-assets/\$name; else rm -f /target/kam-dashboard/zevaryq-assets/\$name; fi; done" || true; docker compose up -d --force-recreate --no-deps proxy >/dev/null 2>&1 || true; exit "$code"; }
 trap rollback ERR
 # Version-specific assets are backed up and restored with the homepage on origin failure.
-for name in zvq-v2.css zvq-v2.js; do
+for name in zvq-v2.css zvq-v2.js public-orbits.json; do
   proxy_fs "test ! -f /target/kam-dashboard/zevaryq-assets/$name || cp -a /target/kam-dashboard/zevaryq-assets/$name /target/kam-dashboard/zevaryq-assets/$name.$STAMP.bak"
 done
 proxy_fs "cat > /target/kam-dashboard/zevaryq-assets/zvq-v2.css && chmod 0644 /target/kam-dashboard/zevaryq-assets/zvq-v2.css" < "$V2_CSS"
 proxy_fs "cat > /target/kam-dashboard/zevaryq-assets/zvq-v2.js && chmod 0644 /target/kam-dashboard/zevaryq-assets/zvq-v2.js" < "$V2_JS"
+# Refresh bounded public GP data; refresh failure never invents or upgrades telemetry status.
+rm -f "$PUBLIC_ORBITS_STAGED"
+if node "$PUBLIC_ORBIT_UPDATER" --output "$PUBLIC_ORBITS_STAGED" --cache "$PUBLIC_ORBITS"; then
+  if [[ -s "$PUBLIC_ORBITS_STAGED" ]]; then mv -f "$PUBLIC_ORBITS_STAGED" "$PUBLIC_ORBITS"; fi
+else
+  echo "::warning::CelesTrak GP refresh unavailable; retaining last-good snapshot if present."
+  rm -f "$PUBLIC_ORBITS_STAGED"
+fi
+if [[ -s "$PUBLIC_ORBITS" ]]; then
+  proxy_fs "cat > /target/kam-dashboard/zevaryq-assets/public-orbits.json && chmod 0644 /target/kam-dashboard/zevaryq-assets/public-orbits.json" < "$PUBLIC_ORBITS"
+fi
 proxy_fs "cat > /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp && chmod 0644 /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp" < "$EMBLEM"
 proxy_fs "cat > /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png && chmod 0644 /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png" < "$FAVICON"
 proxy_fs "cat > /target/kam-dashboard/index.html && chmod 0644 /target/kam-dashboard/index.html" < "$SOURCE"
@@ -106,6 +121,14 @@ v2='''    # ZVQ_EXPLORER_V2_ASSETS - read-only same-origin presentation assets.
         root /etc/nginx/templates;
         try_files /kam-dashboard/zevaryq-assets/zvq-v2.css =404;
         default_type text/css;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Cache-Control "public, max-age=300" always;
+        limit_except GET { deny all; }
+    }
+    location = /zevaryq-assets/public-orbits.json {
+        root /etc/nginx/templates;
+        try_files /kam-dashboard/zevaryq-assets/public-orbits.json =404;
+        default_type application/json;
         add_header X-Content-Type-Options "nosniff" always;
         add_header Cache-Control "public, max-age=300" always;
         limit_except GET { deny all; }
@@ -178,6 +201,13 @@ for asset in zevaryq-emblem.webp zevaryq-favicon.png zvq-v2.css zvq-v2.js; do
   [[ "$observed" == "$expected" ]] || fail "$asset returned wrong bytes; restoring origin"
   echo "verified_local_asset=$asset sha256=$observed"
 done
+orbit_code="$(curl -sS --max-time 10 -o "$body" -w '%{http_code}' http://127.0.0.1/zevaryq-assets/public-orbits.json || true)"
+if [[ "$orbit_code" == "200" ]]; then
+  node -e 'const fs=require("fs"),x=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));if(x.schema!=="zvq-public-orbits/v1"||x.provider!=="CelesTrak"||x.source_type!=="public_orbital_elements"||x.is_satellite_link_telemetry!==false||x.affiliation!=="none_claimed"||!Array.isArray(x.records)||!x.records.length)process.exit(2)' "$body"
+  echo "verified_local_public_orbits=CelesTrak-GP physical_telemetry=false"
+else
+  echo "::warning::Public orbital snapshot unavailable (HTTP $orbit_code); physical satellite telemetry remains UNAVAILABLE."
+fi
 
 # Origin is proven; subsequent public-edge diagnostics must never trigger
 # rollback of a healthy ZVQ origin just because browser/CDN caches are stale.
