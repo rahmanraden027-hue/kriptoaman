@@ -12,6 +12,9 @@ EMBLEM="$ASSET_DIR/zevaryq-emblem.webp"
 FAVICON="$ASSET_DIR/zevaryq-favicon.png"
 V2_CSS="$ASSET_DIR/zvq-v2.css"
 V2_JS="$ASSET_DIR/zvq-v2.js"
+PUBLIC_ORBITS_PUBLISHER="$PWD/scripts/update-zvq-public-orbits.mjs"
+PUBLIC_ORBITS_STAGED="$(mktemp)"
+PUBLIC_ORBITS_CACHE="$PROXY_DIR/kam-dashboard/zevaryq-assets/public-orbits.json"
 PUBLIC_ORBITS="$ASSET_DIR/public-orbits.json"
 PUBLIC_ORBITS_STAGED="$ASSET_DIR/public-orbits.staged.json"
 PUBLIC_ORBIT_UPDATER="$PWD/scripts/update-zvq-public-orbits.mjs"
@@ -22,6 +25,7 @@ fail(){ echo "Zevaryq Explorer deploy: $*" >&2; exit 1; }
 [[ -f "$SOURCE" ]] || fail "source missing"
 [[ -r "$EMBLEM" && -r "$FAVICON" ]] || fail "brand assets missing"
 [[ -s "$V2_CSS" && -s "$V2_JS" ]] || fail "v2 presentation assets missing"
+[[ -s "$PUBLIC_ORBITS_PUBLISHER" ]] || fail "public orbital publisher missing"
 [[ -f "$PUBLIC_ORBIT_UPDATER" ]] || fail "public orbit updater missing"
 grep -q 'data-zevaryq-explorer-version="1.1.2"' "$SOURCE" || fail "version marker missing"
 grep -q 'ZEVARYQ EXPLORER' "$SOURCE" || fail "brand marker missing"
@@ -32,6 +36,11 @@ grep -q 'data-zvq-public-orbits="celestrak-gp-v1"' "$SOURCE" || fail "public orb
 grep -q 'data-zvq-token-discovery="indexed-v2"' "$SOURCE" || fail "token discovery provenance missing"
 grep -q "EXPECTED_CHAIN='0x560c'" "$SOURCE" || fail "chain guard missing"
 ! grep -Eqi '21[ /]+21|128\+ nodes|1,236 pending|3\.4 TPS|100% Secure' "$SOURCE" || fail "mockup metric detected"
+# Fetch a bounded public GP snapshot before touching the running proxy. Failure is fail-closed:
+# no fake orbital values are published and the current Explorer remains untouched.
+node "$PUBLIC_ORBITS_PUBLISHER" --output "$PUBLIC_ORBITS_STAGED" --cache "$PUBLIC_ORBITS_CACHE"
+[[ -s "$PUBLIC_ORBITS_STAGED" ]] || { [[ -s "$PUBLIC_ORBITS_CACHE" ]] && cp "$PUBLIC_ORBITS_CACHE" "$PUBLIC_ORBITS_STAGED"; }
+[[ -s "$PUBLIC_ORBITS_STAGED" ]] || fail "no validated public orbital snapshot available"
 cd "$BASE"
 PROXY_ID="$(docker compose ps -q proxy)"
 [[ -n "$PROXY_ID" ]] || fail "proxy container unavailable"
@@ -50,6 +59,7 @@ for name in zvq-v2.css zvq-v2.js public-orbits.json; do
 done
 proxy_fs "cat > /target/kam-dashboard/zevaryq-assets/zvq-v2.css && chmod 0644 /target/kam-dashboard/zevaryq-assets/zvq-v2.css" < "$V2_CSS"
 proxy_fs "cat > /target/kam-dashboard/zevaryq-assets/zvq-v2.js && chmod 0644 /target/kam-dashboard/zevaryq-assets/zvq-v2.js" < "$V2_JS"
+proxy_fs "cat > /target/kam-dashboard/zevaryq-assets/public-orbits.json && chmod 0644 /target/kam-dashboard/zevaryq-assets/public-orbits.json" < "$PUBLIC_ORBITS_STAGED"
 # Refresh bounded public GP data; refresh failure never invents or upgrades telemetry status.
 rm -f "$PUBLIC_ORBITS_STAGED"
 if node "$PUBLIC_ORBIT_UPDATER" --output "$PUBLIC_ORBITS_STAGED" --cache "$PUBLIC_ORBITS"; then
@@ -131,6 +141,14 @@ v2='''    # ZVQ_EXPLORER_V2_ASSETS - read-only same-origin presentation assets.
         default_type application/json;
         add_header X-Content-Type-Options "nosniff" always;
         add_header Cache-Control "public, max-age=300" always;
+        limit_except GET { deny all; }
+    }
+    location = /zevaryq-assets/public-orbits.json {
+        root /etc/nginx/templates;
+        try_files /kam-dashboard/zevaryq-assets/public-orbits.json =404;
+        default_type application/json;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Cache-Control "public, max-age=900" always;
         limit_except GET { deny all; }
     }
     location = /zevaryq-assets/zvq-v2.js {
