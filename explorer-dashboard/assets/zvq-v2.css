@@ -58,7 +58,7 @@
 .v2-live-flow{border:1px solid rgba(62,192,254,.4);border-radius:10px;padding:11px;background:linear-gradient(120deg,rgba(6,33,80,.8),rgba(4,13,32,.92))}
 .v2-live-flow h3{font-size:12px;color:#f9dfab;margin:0 0 7px}
 .v2-live-flow svg{display:block;height:65px;width:100%}
-.v2-live-flow path{fill:none;stroke:#55dbff;stroke-width:2}
+.v2-live-flow path{fill:none;stroke:url(#v2-gradient);stroke-width:2}
 .v2-live-flow .v2-flow-fill{stroke:none;fill:rgba(36,147,242,.12)}
 .v2-sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 @media(max-width:850px){.v2-dashboard{grid-template-columns:1fr}.chainmesh{min-height:164px}}
