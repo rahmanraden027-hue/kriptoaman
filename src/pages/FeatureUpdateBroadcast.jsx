@@ -13,6 +13,8 @@ export default function FeatureUpdateBroadcast() {
   const [featureLink, setFeatureLink] = useState('');
   const [sending, setSending] = useState(false);
   const [auditing, setAuditing] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [exportCount, setExportCount] = useState(null);
   const [audit, setAudit] = useState(null);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
@@ -25,6 +27,38 @@ export default function FeatureUpdateBroadcast() {
     } catch (err) {
       setError(err.response?.data?.error || err.message || 'Gagal mengaudit penerima');
     } finally { setAuditing(false); }
+  };
+
+  const handleExport = async () => {
+    if (!audit?.summary) { setError('Jalankan audit penerima terlebih dahulu.'); return; }
+    if (Number(audit.summary.conservativeEligible || 0) === 0) {
+      setError('Tidak ada penerima dengan email terverifikasi dan opt-in eksplisit.');
+      return;
+    }
+    setExporting(true); setError(null); setExportCount(null);
+    try {
+      const res = await base44.functions.invoke('exportResendContacts', {});
+      const data = res.data || {};
+      if (!data.success || !data.csv || !Number(data.eligibleCount)) {
+        throw new Error('Tidak ada kontak yang memenuhi persyaratan ekspor.');
+      }
+      // CSV stays in the administrator's browser; it is not committed to GitHub.
+      const blob = new Blob([data.csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = 'kriptoaman-resend-optin.csv';
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      // Allow mobile browsers to finish the download before revoking the URL.
+      window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
+      setExportCount(Number(data.eligibleCount));
+    } catch (err) {
+      setError(err.response?.data?.error || err.message || 'Ekspor kontak gagal');
+    } finally {
+      setExporting(false);
+    }
   };
 
   const handleSend = async () => {
@@ -49,6 +83,17 @@ export default function FeatureUpdateBroadcast() {
         <div className="pt-4 flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center"><Mail className="w-5 h-5 text-indigo-400" /></div><div><h1 className="text-lg font-bold text-white">Broadcast Pembaruan Fitur</h1><p className="text-xs text-slate-400">Audit penerima terlebih dahulu sebelum pengiriman</p></div></div>
 
         <Card className="bg-slate-800/30 border-slate-700/30"><CardHeader><CardTitle className="text-white text-base flex items-center gap-2"><Users className="w-4 h-4"/>Audit Penerima</CardTitle></CardHeader><CardContent className="space-y-4"><Button onClick={handleAudit} disabled={auditing} className="w-full bg-sky-600 hover:bg-sky-700">{auditing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin"/>Mengaudit...</> : <><ShieldCheck className="w-4 h-4 mr-2"/>Hitung & Audit Penerima</>}</Button>{s && <div className="grid grid-cols-2 gap-3 text-sm"><Stat label="Total akun" value={s.totalAccounts}/><Stat label="Punya email" value={s.accountsWithEmail}/><Stat label="Email unik valid" value={s.uniqueValidEmail}/><Stat label="Duplikat" value={s.duplicateEmailRecords}/><Stat label="Email terverifikasi" value={s.verifiedEmail}/><Stat label="Verifikasi belum diketahui" value={s.verificationUnknown}/><Stat label="Opt-in eksplisit" value={s.explicitOptIn}/><Stat label="Opt-out" value={s.optedOut}/><Stat label="Kandidat dapat dihubungi" value={s.contactableCandidates}/><Stat label="Layak konservatif" value={s.conservativeEligible}/></div>}{audit?.sample?.length > 0 && <details className="text-xs"><summary className="text-slate-400 cursor-pointer">Contoh penerima (email disamarkan)</summary><div className="mt-2 space-y-1 max-h-44 overflow-y-auto">{audit.sample.map((r,i)=><div key={i} className="flex items-center justify-between gap-3 text-slate-400"><span>{r.email}</span><span>{r.verified} · {r.consent}</span></div>)}</div></details>}</CardContent></Card>
+
+        <Card className="bg-slate-800/30 border-slate-700/30">
+          <CardHeader><CardTitle className="text-white text-base">Ekspor Kontak Resend</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-slate-400">Ekspor ini hanya mencakup akun Base44 yang emailnya terverifikasi, memberikan opt-in eksplisit, dan tidak memiliki opt-out. Pengguna AUTH_DB perlu diaudit secara terpisah. Tidak ada email yang dikirim.</p>
+            <Button onClick={handleExport} disabled={exporting || !audit?.summary || Number(audit.summary.conservativeEligible || 0) === 0} className="w-full bg-emerald-600 hover:bg-emerald-700">
+              {exporting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Menyiapkan CSV...</> : 'Unduh CSV Opt-in untuk Resend'}
+            </Button>
+            {exportCount !== null && <p className="text-sm text-emerald-300">CSV siap: {exportCount} alamat email. Impor ke segmen General di Resend.</p>}
+          </CardContent>
+        </Card>
 
         <Card className="bg-slate-800/30 border-slate-700/30"><CardHeader><CardTitle className="text-white text-base">Detail Pembaruan</CardTitle></CardHeader><CardContent className="space-y-4"><div className="space-y-2"><Label className="text-slate-300 text-sm">Judul Fitur *</Label><Input value={featureTitle} onChange={e=>setFeatureTitle(e.target.value)} placeholder="Mis. KriptoAman Global Product Update 2026" className="bg-slate-900/50 border-slate-700 text-white placeholder-slate-500"/></div><div className="space-y-2"><Label className="text-slate-300 text-sm">Deskripsi</Label><Textarea value={featureDescription} onChange={e=>setFeatureDescription(e.target.value)} rows={4} className="bg-slate-900/50 border-slate-700 text-white placeholder-slate-500"/></div><div className="space-y-2"><Label className="text-slate-300 text-sm">Link *</Label><Input value={featureLink} onChange={e=>setFeatureLink(e.target.value)} placeholder="https://kriptoaman.com/" className="bg-slate-900/50 border-slate-700 text-white placeholder-slate-500"/></div></CardContent></Card>
 
