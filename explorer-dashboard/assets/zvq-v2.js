@@ -117,11 +117,93 @@
   const sat=select('v2-satellite-evidence');if(sat)sat.textContent='ILLUSTRATIVE · Orbit and satellite artwork; no verified physical satellite feed connected.';
   const marker=select('v2-head-proof');if(marker){const head=state.rpc&&Number.isSafeInteger(state.head)?state.head:null;const idx=state.api&&state.blocks.length?Number(state.blocks[0].height):null;marker.textContent=head!==null?'RPC verified head #'+head+(Number.isSafeInteger(idx)?' · indexed #'+idx:''):Number.isSafeInteger(idx)?'INDEXED block #'+idx+' · browser RPC unverified':'Latest verified head unavailable'}
  }
- function start(state){
-  render(state);renderTx();loadTx();
-  setInterval(()=>{if(!document.hidden)loadTx()},30000);
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadTx()});
+ // Public GP elements are NOT connected satellites or physical link telemetry.
+ const PUBLIC_ORBITS='/zevaryq-assets/public-orbits.json';
+ const orbitState={snapshot:null,error:null,fetching:false,nextAttempt:0};
+ const orbitCatalog=[25544,20580,33591];
+ function validOrbitSnapshot(data,now=Date.now()){
+  if(!data||data.schema!=='zvq-public-orbits/v1'||data.provider!=='CelesTrak'||
+    data.source_type!=='public_orbital_elements'||data.is_satellite_link_telemetry!==false||
+    data.affiliation!=='none_claimed'||!Array.isArray(data.records)||
+    data.records.length<1||data.records.length>3)return null;
+  const checked=Date.parse(data.checked_at);
+  if(!Number.isFinite(checked)||checked>now+300000||now-checked>48*3600000)return null;
+  const observed=new Set(),records=[];
+  for(const r of data.records){
+   const catalog=Number(r.catalog_number),epoch=Date.parse(r.epoch);
+   const numerical=[r.inclination_deg,r.eccentricity,r.mean_motion_rev_per_day,r.ascending_node_deg];
+   if(!orbitCatalog.includes(catalog)||observed.has(catalog)||
+      typeof r.object_name!=='string'||!/^[A-Za-z0-9 .()/-]{2,64}$/.test(r.object_name)||
+      !Number.isFinite(epoch)||epoch>now+600000||now-epoch>14*86400000||
+      numerical.some(x=>typeof x!=='number'||!Number.isFinite(x))||
+      r.inclination_deg<0||r.inclination_deg>180||
+      r.eccentricity<0||r.eccentricity>=1||
+      r.mean_motion_rev_per_day<=0||r.mean_motion_rev_per_day>18||
+      r.ascending_node_deg<0||r.ascending_node_deg>360)return null;
+   observed.add(catalog);records.push(r);
+  }
+  return {checked,records,missing:orbitCatalog.filter(n=>!observed.has(n))};
  }
- window.ZVQv2={start,render,loadTx,validTx};
+ function publicOrbitPanel(){
+  const marker=select('v2-satellite-evidence');if(!marker)return null;
+  let area=select('zvq-public-orbits');if(area)return area;
+  area=makeElement('section','zvq-public-orbits');
+  area.id='zvq-public-orbits';area.setAttribute('aria-label','Independent public orbital data');
+  const title=makeElement('div','zvq-orbit-heading');
+  title.append(makeElement('strong',null,'Public orbital elements · CelesTrak GP'),
+    makeElement('span','zvq-orbit-badge','UNAVAILABLE'));
+  const detail=makeElement('p','zvq-orbit-description',
+    'Source: CelesTrak general perturbations catalog · not KriptoAman satellite or communication-link telemetry.');
+  const grid=makeElement('div','zvq-orbit-grid');grid.id='zvq-orbit-grid';
+  const footer=makeElement('p','zvq-orbit-footnote',
+    'Orbit elements are periodic public observations, not real-time spacecraft positions, satellite links, bandwidth or latency. Physical network telemetry: UNAVAILABLE.');
+  const link=makeElement('a','zvq-orbit-source','CelesTrak documentation ↗');
+  link.href='https://celestrak.org/NORAD/documentation/gp-data-formats.php';
+  link.rel='noopener noreferrer';link.target='_blank';
+  area.append(title,detail,grid,footer,link);
+  marker.insertAdjacentElement('afterend',area);
+  return area;
+ }
+ function renderPublicOrbits(){
+  const area=publicOrbitPanel();if(!area)return;
+  const badge=area.querySelector('.zvq-orbit-badge'),grid=area.querySelector('#zvq-orbit-grid');
+  const snapshot=orbitState.snapshot,age=snapshot?Date.now()-snapshot.checked:null;
+  const status=!snapshot?'UNAVAILABLE':orbitState.error||age>4.5*3600000?'STALE':'PUBLIC GP';
+  badge.textContent=status;badge.className='zvq-orbit-badge '+status.toLowerCase().replace(/\s+/g,'-');
+  const detail=area.querySelector('.zvq-orbit-description');
+  detail.textContent=snapshot
+   ?'Provider: CelesTrak · checked '+new Date(snapshot.checked).toISOString().replace('T',' ').slice(0,16)+' UTC · '+snapshot.records.length+' public catalog records'+(snapshot.missing.length?' · '+snapshot.missing.length+' sample records unavailable':'')+(orbitState.error?' · latest refresh failed':'')
+   :orbitState.error?'Public orbital feed unavailable; no satellite connection claimed.':'Awaiting independently sourced public orbital data.';
+  if(!snapshot){grid.replaceChildren(makeElement('p','zvq-orbit-empty','No verified orbit feed. Physical satellite telemetry: UNAVAILABLE.'));return;}
+  grid.replaceChildren(...snapshot.records.map(r=>{
+    const tile=makeElement('article','zvq-orbit-tile');
+    tile.append(makeElement('strong',null,r.object_name+' · NORAD '+r.catalog_number),
+      makeElement('small',null,'Epoch '+new Date(r.epoch).toISOString().replace('T',' ').slice(0,16)+' UTC'),
+      makeElement('span',null,'Inclination '+r.inclination_deg.toFixed(2)+'° · Mean motion '+r.mean_motion_rev_per_day.toFixed(4)+' rev/day'),
+      makeElement('small',null,'Eccentricity '+r.eccentricity.toFixed(6)+' · RAAN '+r.ascending_node_deg.toFixed(2)+'°'));
+    return tile;
+  }));
+ }
+ async function loadPublicOrbits(){
+  if(orbitState.fetching||document.hidden||Date.now()<orbitState.nextAttempt)return;
+  orbitState.fetching=true;
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),9000);
+  try{
+   const res=await fetch(PUBLIC_ORBITS,{signal:controller.signal,cache:'no-store',headers:{accept:'application/json'}});
+   if(!res.ok)throw Error('HTTP '+res.status);
+   const raw=await res.text();if(raw.length>48000)throw Error('Oversized public orbit snapshot');
+   const data=validOrbitSnapshot(JSON.parse(raw));
+   if(!data)throw Error('Invalid or expired public orbit snapshot');
+   orbitState.snapshot=data;orbitState.error=null;orbitState.nextAttempt=Date.now()+1800000;
+  }catch(e){orbitState.error=String(e?.message||e).slice(0,70);orbitState.nextAttempt=Date.now()+900000;}
+  finally{clearTimeout(timeout);orbitState.fetching=false;renderPublicOrbits();}
+ }
+ function start(state){
+  render(state);renderTx();loadTx();publicOrbitPanel();loadPublicOrbits();
+  setInterval(()=>{if(!document.hidden)loadTx()},30000);
+  setInterval(()=>{if(!document.hidden)loadPublicOrbits()},1800000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){loadTx();loadPublicOrbits();}});
+ }
+ window.ZVQv2={start,render,loadTx,validTx,validOrbitSnapshot,loadPublicOrbits};
  if(typeof state!=='undefined')start(state);
 })();
