@@ -79,7 +79,7 @@ async function main(){
   const safeDir=dirname(resolve(output));
   if(resolve(cache)===resolve(output))throw Error('Output must be distinct from existing public cache');
   let existing=null;
-  try{existing=JSON.parse(await readFile(cache,'utf8'))}catch{}
+  try{existing=JSON.parse(await readFile(cache,'utf8'));}catch{existing=null;}
   const {skipped,snapshot}=await collectPublicOrbits({cached:existing});
   if(skipped){console.log('PUBLIC_ORBITS_REUSE: checked_at='+snapshot.checked_at);return;}
   const tmp=resolve(safeDir,'.'+basename(output)+'.staged-'+process.pid);
