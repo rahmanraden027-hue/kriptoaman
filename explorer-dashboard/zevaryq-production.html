@@ -172,6 +172,23 @@ header.glass{background:rgba(3,13,30,.96);border-radius:14px;padding:8px 13px;bo
 .extendedDivider{display:flex;align-items:center;gap:14px;margin:25px 0 10px;color:#d4c188;letter-spacing:.18em;font-size:10px;font-weight:900}.extendedDivider:after{content:"";flex:1;height:1px;background:linear-gradient(90deg,#bc9e47,rgba(21,127,255,.7),transparent)}
 .strip #liveText{display:block;font-size:12px;line-height:1.35;overflow-wrap:anywhere;margin-top:5px}.strip .trustReadout{display:block;color:#ffe5a1;font-size:10px;font-weight:850;margin-top:4px;letter-spacing:.04em}.strip #trust:not(:empty){text-shadow:0 0 8px rgba(255,207,77,.22)}
 @media(max-width:560px){.strip #liveText{font-size:11px}.strip .trustReadout{font-size:10px}.extendedDivider{margin:18px 0 8px;letter-spacing:.12em}}
+
+/* ZEVARYQ Explorer 2.0 — verified-data visualization refinement */
+.chainmesh{perspective:1200px;align-items:center}
+.chainnode{--block-accent:#278aff;min-height:154px;transform:rotateY(-7deg) rotateX(2deg);border-color:color-mix(in srgb,var(--block-accent) 70%,#fff 12%);box-shadow:inset 0 0 22px color-mix(in srgb,var(--block-accent) 20%,transparent),0 0 18px color-mix(in srgb,var(--block-accent) 30%,transparent);background:linear-gradient(145deg,color-mix(in srgb,var(--block-accent) 18%,#071a36),rgba(2,10,27,.97))}
+.chainnode:nth-of-type(6n+1){--block-accent:#278aff}.chainnode:nth-of-type(6n+2){--block-accent:#40d9ff}.chainnode:nth-of-type(6n+3){--block-accent:#ffcf58}.chainnode:nth-of-type(6n+4){--block-accent:#38ef8d}.chainnode:nth-of-type(6n+5){--block-accent:#9652fa}.chainnode:nth-of-type(6n){--block-accent:#f841d8}
+.chainnode:before{background:var(--block-accent);box-shadow:0 0 15px var(--block-accent)}
+.chainwire.verified{height:4px;background:linear-gradient(90deg,#278aff,#40d9ff,#ffcf58,#38ef8d,#9652fa,#f841d8);background-size:220% 100%;animation:verifiedSignal 5s linear infinite}
+@keyframes verifiedSignal{to{background-position:220% 0}}
+.provenanceStamp{display:inline-flex;align-items:center;gap:5px;font-size:8px;font-weight:900;letter-spacing:.09em;border:1px solid rgba(90,194,255,.36);border-radius:999px;padding:3px 6px;margin-left:5px;color:#cfe9ff}
+.provenanceStamp.live{color:#6af5c8;border-color:rgba(52,230,184,.5)}.provenanceStamp.stale{color:#ffd87d;border-color:rgba(255,207,88,.5)}.provenanceStamp.unavailable{color:#9bb1c9}
+.txType{display:inline-flex;border:1px solid rgba(73,174,255,.32);border-radius:999px;padding:3px 7px;font-size:9px;color:#d7ebff}
+#transactions td{vertical-align:middle}.freshnessLine{font-size:9px;color:#8eaecd;margin-top:3px}
+.satSignal{transform-origin:center;animation:satSignal 2.8s ease-in-out infinite}.satSignal:nth-child(2){animation-delay:.8s}.satSignal:nth-child(3){animation-delay:1.6s}
+@keyframes satSignal{50%{opacity:.28;transform:scale(.92)}}
+@media(prefers-reduced-motion:reduce){.chainwire.verified,.satSignal{animation:none}.chainnode{transform:none}}
+@media(max-width:560px){.chainnode{transform:none;flex-basis:150px}.tablewrap{max-width:100%}}
+
 </style>
 </head>
 <body><div class="shell">
@@ -214,6 +231,7 @@ header.glass{background:rgba(3,13,30,.96);border-radius:14px;padding:8px 13px;bo
  <section class="section glass"><div class="sectionhead"><div><h2>Latest Transactions</h2><p>Independently indexed transactions · no illustrative transactions</p></div><a class="tag" href="/txs">View all</a></div><div class="v2-datameta"><span class="tag v2-provenance unavailable" id="v2-tx-status">UNAVAILABLE</span><span id="v2-tx-note" role="status">Connecting to the transaction indexer…</span></div><div class="v2-tx-list" id="v2-tx-list"><p class="empty">Awaiting verified indexed transactions…</p></div></section>
  <section class="section glass"><div class="sectionhead"><div><h2>Recent On-Chain Activity</h2><p>Method labels shown only where present in indexed transaction evidence</p></div><a class="tag" href="/txs">Explore activity</a></div><div class="v2-activity-list" id="v2-activity-list"><p class="empty">Awaiting verified indexed activity…</p></div><div class="v2-live-flow" id="v2-block-flow"><p class="v2-datameta">Waiting for real indexed block counts…</p></div></section>
 </section>
+<section class="section glass"><div class="sectionhead"><div><h2>Latest Transactions</h2><p>Actual indexed transactions · classifications shown only when supported by indexed fields</p></div><span class="tag" id="txFreshness">Data pending</span></div><div class="tablewrap"><table class="table"><thead><tr><th>HASH</th><th>BLOCK</th><th>AGE</th><th>TYPE</th><th>FROM</th><th>TO</th></tr></thead><tbody id="transactions"><tr><td colspan="6" class="empty">Transaction data temporarily unavailable. No activity is fabricated.</td></tr></tbody></table></div></section>
 <div class="extendedDivider" role="heading" aria-level="2">ADDITIONAL VERIFIED INTELLIGENCE</div>
 <section class="section glass" id="token-discovery"><div class="sectionhead"><div><h2>Token Discovery · Indexed ERC-20</h2><p>Verified contract creations in sampled indexed blocks; indexed directory if available</p></div><a class="tag" href="/tokens">Token directory</a></div><div class="tokenList" id="tokens" aria-live="polite"><div class="empty">Checking verified contract creations and indexed ERC-20 directory…</div></div><p class="evidenceNote" id="token-note">Indexed token data does not establish recent creation, exchange listing, liquidity, audit or trading availability.</p></section>
 <section class="section glass liveMeshSection"><div class="sectionhead"><div><h2>Live Blockchain Mesh</h2><p>Linked blocks are connected only when their on-chain parent hashes match.</p></div><span class="tag" id="meshStatus">Waiting for indexed blocks</span></div><div class="chainmesh" id="mesh" aria-live="polite"><span class="empty">Connecting to Blockscout indexer…</span></div><div class="meshLegend"><span><i class="legendNode verified"></i>Verified parent link</span><span><i class="legendNode pending"></i>Parent link unavailable</span><span>Source: Blockscout indexed headers</span></div></section>
@@ -223,7 +241,7 @@ header.glass{background:rgba(3,13,30,.96);border-radius:14px;padding:8px 13px;bo
 <script>
 const EXPECTED_CHAIN='0x560c',RPC='/rpc',API='/api/v2';
 const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const state={rpc:false,api:false,blocks:[],rpcLatency:null,head:null,gas:null,rpcError:null,apiError:null,lastGoodBlocksAt:0,probing:false,validators:[],validatorSource:null,validatorHeader:null,finalized:null,finalitySource:null,consensusProbeAt:0,lastProbeAt:0,consecutiveFailures:0,tokens:[],tokenError:null,tokenProbeInFlight:false};
+const state={rpc:false,api:false,blocks:[],rpcLatency:null,head:null,gas:null,rpcError:null,apiError:null,lastGoodBlocksAt:0,probing:false,validators:[],validatorSource:null,validatorHeader:null,finalized:null,finalitySource:null,consensusProbeAt:0,lastProbeAt:0,consecutiveFailures:0,tokens:[],tokenError:null,tokenProbeInFlight:false,transactions:[],txError:null,lastGoodTxAt:0};
 const unavailable='Unavailable';
 function short(v,n=8){if(!v)return '—';return v.length>n*2?v.slice(0,n)+'…'+v.slice(-n):v}
 function age(ts){if(!ts)return '—';const s=Math.max(0,Math.floor((Date.now()-new Date(ts).getTime())/1000));return s<60?s+'s ago':s<3600?Math.floor(s/60)+'m ago':Math.floor(s/3600)+'h ago'}
@@ -376,6 +394,13 @@ function renderRainbowActivity(){
  status.textContent=state.api?'INDEXED':'STALE';
  note.textContent=(state.api?'INDEXED':'STALE')+' · '+samples.reduce((a,n)=>a+n,0).toLocaleString()+' transactions across '+samples.length+' sampled blocks';
 }
+function txKind(tx){if(tx?.created_contract?.hash||tx?.created_contract_address?.hash)return 'CONTRACT CREATE';if(tx?.token_transfers_count>0||Array.isArray(tx?.token_transfers)&&tx.token_transfers.length)return 'TOKEN';if(tx?.method&&String(tx.method).trim())return 'CONTRACT CALL';if(tx?.to?.hash||tx?.to)return 'TRANSFER';return 'INDEXED TX'}
+function renderTransactions(){
+ const body=$('#transactions'),fresh=$('#txFreshness');if(!body||!fresh)return;
+ if(!state.transactions.length){body.innerHTML='<tr><td colspan="6" class="empty">Indexed transactions unavailable. No activity is fabricated.</td></tr>';fresh.textContent=state.txError?'UNAVAILABLE':'Data pending';return}
+ body.innerHTML=state.transactions.slice(0,12).map(tx=>{const hash=tx.hash||'',block=tx.block_number??tx.block?.height??'—',from=tx.from?.hash||tx.from||'',to=tx.to?.hash||tx.to||'';return '<tr><td><a href="/tx/'+encodeURIComponent(hash)+'">'+esc(short(hash,9))+'</a></td><td>'+(block!=='—'?'<a href="/block/'+encodeURIComponent(block)+'">#'+esc(block)+'</a>':'—')+'</td><td>'+age(tx.timestamp)+'</td><td><span class="txType">'+esc(txKind(tx))+'</span></td><td>'+(from?'<a href="/address/'+encodeURIComponent(from)+'">'+esc(short(from,7))+'</a>':'—')+'</td><td>'+(to?'<a href="/address/'+encodeURIComponent(to)+'">'+esc(short(to,7))+'</a>':'—')+'</td></tr>'}).join('');
+ fresh.textContent=(state.api?'INDEXED':'STALE')+' · '+(state.lastGoodTxAt?new Date(state.lastGoodTxAt).toLocaleTimeString():'previous sample');
+}
 function renderBlocks(){
  if(!state.blocks.length)return;
  $('#stream').innerHTML=state.blocks.slice(0,9).map(b=>'<a class="blockcard" href="/block/'+encodeURIComponent(b.height)+'"><b>#'+esc(b.height)+'</b><small>'+age(b.timestamp)+'</small><small>'+esc(b.tx_count??b.transactions_count??0)+' tx</small></a>').join('');
@@ -517,7 +542,8 @@ async function probe(){
   }catch(e){state.rpc=false;state.rpcLatency=null;state.head=null;state.gas=null;state.rpcError=String(e?.message||e);state.validators=[];state.validatorSource=null;state.finalized=null;state.finalitySource=null;state.consensusProbeAt=0;}
   finally{renderStatic();renderImmune();}
  };
- const probeIndexer=async()=>{
+ const probeTransactions=async()=>{try{const data=await getJSON(API+'/transactions',{},12000);if(!Array.isArray(data.items))throw Error('Unexpected transaction API response');state.transactions=data.items;state.txError=null;if(state.transactions.length)state.lastGoodTxAt=Date.now()}catch(e){state.txError=String(e?.message||e)}finally{renderTransactions()}};
+  const probeIndexer=async()=>{
   try{
    const data=await getJSON(API+'/blocks',{},12000);
    if(!Array.isArray(data.items))throw Error('Unexpected Blockscout API response');
@@ -526,7 +552,7 @@ async function probe(){
   }catch(e){state.api=false;state.apiError=String(e?.message||e);if(state.blocks.length){$('#freshness').textContent='STALE · last indexed '+(state.lastGoodBlocksAt?new Date(state.lastGoodBlocksAt).toLocaleTimeString():'previous check');$('#meshStatus').textContent='Cached indexed history · live API unavailable';}}
   finally{renderStatic();if(state.blocks.length)renderBlocks();renderImmune();}
  };
- try{await Promise.all([probeRpc(),probeIndexer()]);}
+ try{await Promise.all([probeRpc(),probeIndexer(),probeTransactions()]);}
  finally{
   state.consecutiveFailures=state.rpc||state.api?0:state.consecutiveFailures+1;
   renderStatic();if(state.blocks.length)renderBlocks();renderImmune();
