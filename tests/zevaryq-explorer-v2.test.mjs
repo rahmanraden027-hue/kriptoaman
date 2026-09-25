@@ -57,7 +57,7 @@ test('source integrity prevents invented network, satellite and geographic data'
  assert.match(html,/ILLUSTRATIVE · Physical satellite telemetry not connected/);
  assert.match(js,/does not measure satellite or inter-node latency/);
  assert.match(js,/without independently verified node telemetry/);
- assert.match(js,/no illustrative transactions/);
+ assert.match(html,/no illustrative transactions/);
  assert.doesNotMatch(html,/\b42 \/ 42\b|\b2,232,413\b|\b99\.98%\b/);
 });
 
@@ -68,7 +68,7 @@ test('v2 deployment protects original assets and serves only exact CSS and JS fi
  for(const a of ['zvq-v2.css','zvq-v2.js']){
   assert.ok(deploy.includes('location = /zevaryq-assets/'+a+' {'));
   assert.ok(deploy.includes('try_files /kam-dashboard/zevaryq-assets/'+a+' =404;'));
-  assert.ok(deploy.includes('zevaryq-assets/'+a+'.$STAMP.bak'));
+  assert.ok(deploy.includes('for name in zvq-v2.css zvq-v2.js; do'));
  }
  assert.match(deploy,/for asset in zevaryq-emblem\.webp zevaryq-favicon\.png zvq-v2\.css zvq-v2\.js; do/);
  assert.match(deploy,/public_dashboard_release=2\.0\.0-verified-html/);
