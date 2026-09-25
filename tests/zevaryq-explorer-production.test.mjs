@@ -10,7 +10,7 @@ test('Zevaryq production identity and chain are explicit', () => {
   assert.match(html, /data-zevaryq-explorer-version="1\.1\.2"/);
   assert.match(html, /ZEVARYQ EXPLORER/);
   assert.match(html, /http-equiv="Cache-Control" content="no-store, max-age=0, must-revalidate"/);
-  assert.match(html, /UI release 1\.1\.2/);
+  assert.match(html, /UI dashboard 2\.0\.0 · Base release 1\.1\.2/);
   assert.match(html, /Zevaryq Network/);
   assert.match(html, /ZVQ Mainnet/);
   assert.match(html, /Chain ID <b>22028/);
