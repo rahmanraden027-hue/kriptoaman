@@ -47,7 +47,9 @@ test('runtime code is syntactically valid and maintains an exact transaction pro
 });
 
 test('source integrity prevents invented network, satellite and geographic data',()=>{
- const inline=html.match(/<script>([\s\S]*?)<\/script>/)?.[1]||'';
+ const from=html.indexOf('<script>'),to=html.indexOf('</script>',from+8);
+ assert.ok(from>=0&&to>from,'trusted inline production script exists');
+ const inline=html.slice(from+8,to);
  assert.doesNotThrow(()=>new Script(inline));
  assert.match(inline,/EXPECTED_CHAIN='0x560c'/);
  assert.match(inline,/verifiedIndexedBlock/);
