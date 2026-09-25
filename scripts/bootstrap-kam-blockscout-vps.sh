@@ -6,7 +6,7 @@ BLOCKSCOUT_GIT_TAG="${BLOCKSCOUT_GIT_TAG:-v11.2.3}"
 BLOCKSCOUT_DOCKER_TAG="${BLOCKSCOUT_DOCKER_TAG:-11.2.3}"
 BLOCKSCOUT_DIR="${BLOCKSCOUT_DIR:-/opt/blockscout}"
 COMPOSE_DIR="${BLOCKSCOUT_DIR}/docker-compose"
-RPC_URL="${KAM_RPC_URL:-https://explorer.kriptoaman.com/rpc}"
+RPC_URL="${KAM_RPC_URL:-}"
 PUBLIC_IP="${KAM_EXPLORER_PUBLIC_IP:-$(curl -fsS --max-time 5 https://api.ipify.org || true)}"
 DROPLET_ID="${KAM_EXPLORER_DROPLET_ID:-unknown}"
 CHAIN_ID_DEC=22028
@@ -16,6 +16,13 @@ log(){ printf '[kam-blockscout] %s\n' "$*"; }
 die(){ printf '[kam-blockscout] ERROR: %s\n' "$*" >&2; exit 1; }
 
 [[ "${EUID}" -eq 0 ]] || die "Run as root."
+
+[[ -n "${RPC_URL}" ]] || die "KAM_RPC_URL is required; set it to the private/internal KAM RPC endpoint (for example http://10.104.0.2:8545)."
+case "${RPC_URL}" in
+  http://explorer.kriptoaman.com/rpc|http://explorer.kriptoaman.com/rpc/|https://explorer.kriptoaman.com/rpc|https://explorer.kriptoaman.com/rpc/)
+    die "Refusing public Explorer RPC hostname: this would create a Cloudflare self-request loop."
+    ;;
+esac
 
 [[ "${PUBLIC_IP}" =~ ^[0-9]+.[0-9]+.[0-9]+.[0-9]+$ ]] || die "Unable to determine Explorer public IPv4 address"
 
