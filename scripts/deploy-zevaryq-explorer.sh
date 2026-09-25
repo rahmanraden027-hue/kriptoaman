@@ -10,14 +10,20 @@ esac
 ASSET_DIR="$(dirname "$SOURCE")/assets"
 EMBLEM="$ASSET_DIR/zevaryq-emblem.webp"
 FAVICON="$ASSET_DIR/zevaryq-favicon.png"
+V2_CSS="$ASSET_DIR/zvq-v2.css"
+V2_JS="$ASSET_DIR/zvq-v2.js"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 BACKUP="index.html.zevaryq.$STAMP.bak"
 TEMPLATE_BACKUP="default.conf.template.zvq-logo.$STAMP.bak"
 fail(){ echo "Zevaryq Explorer deploy: $*" >&2; exit 1; }
 [[ -f "$SOURCE" ]] || fail "source missing"
 [[ -r "$EMBLEM" && -r "$FAVICON" ]] || fail "brand assets missing"
+[[ -s "$V2_CSS" && -s "$V2_JS" ]] || fail "v2 presentation assets missing"
 grep -q 'data-zevaryq-explorer-version="1.1.2"' "$SOURCE" || fail "version marker missing"
 grep -q 'ZEVARYQ EXPLORER' "$SOURCE" || fail "brand marker missing"
+grep -q 'data-zvq-dashboard-version="2.0.0"' "$SOURCE" || fail "v2 dashboard marker missing"
+grep -q 'zvq-v2.css?v=20260925' "$SOURCE" || fail "v2 CSS reference missing"
+grep -q 'zvq-v2.js?v=20260925' "$SOURCE" || fail "v2 JS reference missing"
 grep -q 'data-zvq-token-discovery="indexed-v2"' "$SOURCE" || fail "token discovery provenance missing"
 grep -q "EXPECTED_CHAIN='0x560c'" "$SOURCE" || fail "chain guard missing"
 ! grep -Eqi '21[ /]+21|128\+ nodes|1,236 pending|3\.4 TPS|100% Secure' "$SOURCE" || fail "mockup metric detected"
@@ -31,8 +37,14 @@ proxy_fs "test -r /target/default.conf.template && test -w /target/kam-dashboard
 proxy_fs "cp -a /target/default.conf.template /target/$TEMPLATE_BACKUP"
 proxy_fs "cp -a /target/kam-dashboard/index.html /target/kam-dashboard/$BACKUP"
 proxy_fs "mkdir -p /target/kam-dashboard/zevaryq-assets; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp.$STAMP.bak; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png.$STAMP.bak"
-rollback(){ code=$?; proxy_fs "cp -a /target/$TEMPLATE_BACKUP /target/default.conf.template; cp -a /target/kam-dashboard/$BACKUP /target/kam-dashboard/index.html; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp.$STAMP.bak || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp.$STAMP.bak /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png.$STAMP.bak || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png.$STAMP.bak /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png" || true; docker compose up -d --force-recreate --no-deps proxy >/dev/null 2>&1 || true; exit "$code"; }
+rollback(){ code=$?; proxy_fs "cp -a /target/$TEMPLATE_BACKUP /target/default.conf.template; cp -a /target/kam-dashboard/$BACKUP /target/kam-dashboard/index.html; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp.$STAMP.bak || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp.$STAMP.bak /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png.$STAMP.bak || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png.$STAMP.bak /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png" || true; proxy_fs "for name in zvq-v2.css zvq-v2.js; do if test -f /target/kam-dashboard/zevaryq-assets/\$name.$STAMP.bak; then cp -a /target/kam-dashboard/zevaryq-assets/\$name.$STAMP.bak /target/kam-dashboard/zevaryq-assets/\$name; else rm -f /target/kam-dashboard/zevaryq-assets/\$name; fi; done" || true; docker compose up -d --force-recreate --no-deps proxy >/dev/null 2>&1 || true; exit "$code"; }
 trap rollback ERR
+# Version-specific assets are backed up and restored with the homepage on origin failure.
+for name in zvq-v2.css zvq-v2.js; do
+  proxy_fs "test ! -f /target/kam-dashboard/zevaryq-assets/$name || cp -a /target/kam-dashboard/zevaryq-assets/$name /target/kam-dashboard/zevaryq-assets/$name.$STAMP.bak"
+done
+proxy_fs "cat > /target/kam-dashboard/zevaryq-assets/zvq-v2.css && chmod 0644 /target/kam-dashboard/zevaryq-assets/zvq-v2.css" < "$V2_CSS"
+proxy_fs "cat > /target/kam-dashboard/zevaryq-assets/zvq-v2.js && chmod 0644 /target/kam-dashboard/zevaryq-assets/zvq-v2.js" < "$V2_JS"
 proxy_fs "cat > /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp && chmod 0644 /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp" < "$EMBLEM"
 proxy_fs "cat > /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png && chmod 0644 /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png" < "$FAVICON"
 proxy_fs "cat > /target/kam-dashboard/index.html && chmod 0644 /target/kam-dashboard/index.html" < "$SOURCE"
@@ -78,6 +90,43 @@ os.chown(temporary,stat.st_uid,stat.st_gid)
 temporary.replace(path)
 PY
 fi
+# Exact allowlisted paths; do not enable a generic static-assets or RPC route.
+if ! grep -Fq 'ZVQ_EXPLORER_V2_ASSETS' "$PROXY_DIR/default.conf.template"; then
+  python3 - "$PROXY_DIR/default.conf.template" <<'PY'
+from pathlib import Path
+import os, sys
+path=Path(sys.argv[1])
+source=path.read_text()
+needle='    location = / {'
+if source.count(needle)!=1:
+    raise SystemExit('Unexpected Explorer root location; declining v2 asset routing')
+v2='''    # ZVQ_EXPLORER_V2_ASSETS - read-only same-origin presentation assets.
+    location = /zevaryq-assets/zvq-v2.css {
+        root /etc/nginx/templates;
+        try_files /kam-dashboard/zevaryq-assets/zvq-v2.css =404;
+        default_type text/css;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Cache-Control "public, max-age=300" always;
+        limit_except GET { deny all; }
+    }
+    location = /zevaryq-assets/zvq-v2.js {
+        root /etc/nginx/templates;
+        try_files /kam-dashboard/zevaryq-assets/zvq-v2.js =404;
+        default_type application/javascript;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Cache-Control "public, max-age=300" always;
+        limit_except GET { deny all; }
+    }
+
+'''
+tmp=path.with_name(path.name+'.zvq-v2-staged')
+tmp.write_text(source.replace(needle,v2+needle,1))
+st=path.stat()
+os.chmod(tmp,st.st_mode)
+os.chown(tmp,st.st_uid,st.st_gid)
+tmp.replace(path)
+PY
+fi
 docker compose config -q
 docker compose up -d --force-recreate --no-deps proxy
 docker exec "$(docker compose ps -q proxy)" nginx -t
@@ -90,7 +139,7 @@ grep -q 'ZEVARYQ EXPLORER' "$body"
 grep -q 'class="logo logo-zvq"' "$body"
 grep -q 'class="earth-brandmark"' "$body"
 grep -q 'data-zvq-token-discovery="indexed-v2"' "$body"
-for asset in zevaryq-emblem.webp zevaryq-favicon.png; do
+for asset in zevaryq-emblem.webp zevaryq-favicon.png zvq-v2.css zvq-v2.js; do
   curl -fsS --retry 4 --retry-all-errors --max-time 20 "http://127.0.0.1/zevaryq-assets/$asset" -o "$body"
   expected="$(sha256sum "$ASSET_DIR/$asset" | awk '{print $1}')"
   observed="$(sha256sum "$body" | awk '{print $1}')"
@@ -148,4 +197,9 @@ else
   echo "::warning::Public Explorer returned HTTP $public_code; origin is healthy, independent public verification remains necessary."
 fi
 
-echo "Zevaryq Explorer origin deployed and verified; rollback=$PROXY_DIR/kam-dashboard/$BACKUP"
+if [[ "$public_code" == "200" ]] && grep -Fq 'data-zvq-dashboard-version="2.0.0"' /tmp/zevaryq-public.html; then
+  echo "public_dashboard_release=2.0.0-verified-html"
+else
+  echo "::warning::Explorer v2 origin verified; public edge dashboard v2 not independently confirmed."
+fi
+echo "Zevaryq Explorer v2 origin deployed and verified; rollback=$PROXY_DIR/kam-dashboard/$BACKUP"
