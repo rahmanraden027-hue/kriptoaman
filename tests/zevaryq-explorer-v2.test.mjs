@@ -43,6 +43,7 @@ test('runtime code is syntactically valid and maintains an exact transaction pro
  assert.match(js,/document\.hidden/);
  assert.match(js,/Math\.min\(180000,30000\*2\*\*/);
  assert.doesNotMatch(js,/eth_sendTransaction|eth_sendRawTransaction|wallet_switchEthereumChain/);
+ assert.doesNotMatch(js,/\.innerHTML\s*=/,'v2 indexed data must use safe DOM APIs rather than interpolating network responses into HTML');
 });
 
 test('source integrity prevents invented network, satellite and geographic data',()=>{
