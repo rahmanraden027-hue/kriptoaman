@@ -29,8 +29,8 @@ export function parseRpcResult(value,method){
 }
 export function classifyAdminResponse(status,body){
  const error=body?.jsonrpc==='2.0'&&body.error&&typeof body.error==='object'&&!Object.prototype.hasOwnProperty.call(body,'result')?body.error:null;
- const denied=!!error&&[-32601,-32000,-32001].includes(Number(error.code))&&
-  /method.*(not found|disabled|not allowed|denied|unsupported)|forbidden|unauthori[sz]ed|access denied/.test(String(error.message||'').toLowerCase());
+ const denied=!!error&&[-32601,-32604,-32000,-32001].includes(Number(error.code))&&
+  /method.*(not found|not enabled|disabled|not allowed|denied|unsupported)|forbidden|unauthori[sz]ed|access denied/.test(String(error.message||'').toLowerCase());
  return {httpStatus:status,errorCode:error?Number(error.code):null,
   resultPresent:body?Object.prototype.hasOwnProperty.call(body,'result'):null,
   blocked:status===403||status===200&&denied};
