@@ -4,11 +4,13 @@ on:
   pull_request:
     paths:
       - scripts/verify-zvq-public-browser.mjs
+      - scripts/verify-zvq-rpc-cors.mjs
       - .github/workflows/zvq-explorer-browser-proof.yml
   push:
     branches: [main]
     paths:
       - scripts/verify-zvq-public-browser.mjs
+      - scripts/verify-zvq-rpc-cors.mjs
       - .github/workflows/zvq-explorer-browser-proof.yml
   schedule:
     - cron: '11 2,14 * * *'
@@ -38,6 +40,8 @@ jobs:
           npm install --prefix "$RUNNER_TEMP/zvq-playwright" --no-package-lock --ignore-scripts --no-audit --no-fund playwright-core@1.55.0
           echo "PLAYWRIGHT_CORE=$RUNNER_TEMP/zvq-playwright/node_modules/playwright-core/index.mjs" >> "$GITHUB_ENV"
           echo "ZVQ_BROWSER_EVIDENCE_DIR=$RUNNER_TEMP/zvq-browser-evidence" >> "$GITHUB_ENV"
+      - name: Verify external RPC browser CORS and on-chain parity
+        run: node scripts/verify-zvq-rpc-cors.mjs
       - name: Verify public mobile and desktop browser hydration
         run: node scripts/verify-zvq-public-browser.mjs
       - name: Preserve read-only browser evidence
