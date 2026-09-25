@@ -46,11 +46,12 @@ try{
   await page.locator('#rainbowWaves').waitFor();
   const readout=await page.evaluate(()=>{
    const e=document.documentElement,imgs=[...document.querySelectorAll('.official-emblem')];
-   return{viewport:window.innerWidth,scrollWidth:e.scrollWidth,emblems:imgs.map(x=>[x.complete,x.naturalWidth,x.naturalHeight]),rainbowPaths:document.querySelectorAll('#rainbowWaves .rainbowWave').length,mode:document.querySelector('#rainbowDataStatus')?.textContent,v2:typeof window.ZVQv2?.validTx==='function',txPanel:!!document.querySelector('#v2-tx-list')};
+   return{viewport:window.innerWidth,scrollWidth:e.scrollWidth,emblems:imgs.map(x=>[x.complete,x.naturalWidth,x.naturalHeight]),rainbowPaths:document.querySelectorAll('#rainbowWaves .rainbowWave').length,mode:document.querySelector('#rainbowDataStatus')?.textContent,v2:typeof window.ZVQv2?.validTx==='function',txPanel:!!document.querySelector('#v2-tx-list'),orbitStatus:document.querySelector('.zvq-orbit-badge')?.textContent};
   });
   assert.equal(readout.viewport,config.width,config.name+' viewport width');
   assert.equal(readout.v2,true,config.name+' v2 runtime asset missing');
   assert.equal(readout.txPanel,true,config.name+' indexed transaction panel missing');
+  assert.equal(readout.orbitStatus,'UNAVAILABLE',config.name+' missing-public-orbit-feed must fail closed');
   if(readout.scrollWidth>config.width+1){
    const protruding=await page.evaluate(()=>[...document.body.querySelectorAll('*')].map(el=>{
     const r=el.getBoundingClientRect(),cs=getComputedStyle(el);
@@ -105,6 +106,42 @@ try{
   assert.match(proof.latest,/#200/);assert.match(proof.latency,/Satellite telemetry requires/);
   await p.screenshot({path:join(imageDir,'QA-indexer-works-RPC-403.png'),fullPage:true,animations:'disabled'});
   console.log('RPC_403_INDEXER_QA_OK '+JSON.stringify(proof));
+  await ctx.close();
+ }
+ // Public GP fixture validates the source-specific UI, not a spacecraft communications link.
+ {
+  const ctx=await browser.newContext({viewport:{width:393,height:852}});
+  const p=await ctx.newPage();
+  const now=new Date().toISOString(),catalog=[25544,20580,33591];
+  const body={
+   schema:'zvq-public-orbits/v1',provider:'CelesTrak',source_type:'public_orbital_elements',
+   is_satellite_link_telemetry:false,affiliation:'none_claimed',checked_at:now,
+   records:catalog.map((id,i)=>({
+    catalog_number:id,object_name:['ISS (ZARYA)','HST','NOAA 19'][i],epoch:now,
+    inclination_deg:51.5,eccentricity:0.0008,mean_motion_rev_per_day:15.5,ascending_node_deg:44.2
+   }))
+  };
+  await p.route('**/zevaryq-assets/public-orbits.json',route=>route.fulfill({
+   status:200,contentType:'application/json',body:JSON.stringify(body)
+  }));
+  await p.route('https://rpc.kriptoaman.com/**',route=>route.fulfill({
+   status:503,contentType:'application/json',body:'{"error":"QA offline"}',
+   headers:{'access-control-allow-origin':'*'}
+  }));
+  await p.goto(origin,{waitUntil:'domcontentloaded'});
+  await p.waitForFunction(()=>document.querySelector('.zvq-orbit-badge')?.textContent==='PUBLIC GP');
+  const proof=await p.evaluate(()=>({
+   status:document.querySelector('.zvq-orbit-badge')?.textContent,
+   count:document.querySelectorAll('.zvq-orbit-tile').length,
+   notice:document.querySelector('.zvq-orbit-footnote')?.textContent,
+   content:document.querySelector('#zvq-public-orbits')?.textContent
+  }));
+  assert.equal(proof.status,'PUBLIC GP');
+  assert.equal(proof.count,3);
+  assert.match(proof.notice,/not real-time spacecraft positions/i);
+  assert.match(proof.content,/Physical network telemetry: UNAVAILABLE/);
+  await p.screenshot({path:join(imageDir,'QA-public-GP-not-physical-telemetry.png'),fullPage:true,animations:'disabled'});
+  console.log('PUBLIC_GP_QA_ONLY_OK '+JSON.stringify({count:proof.count,status:proof.status}));
   await ctx.close();
  }
  // Respect user system preference: no satellite or chain animation under reduced motion.
@@ -166,5 +203,5 @@ try{
   await walletContext.close();
  }
 
- await writeFile(join(imageDir,'VISUAL_QA.txt'),'Explorer offline screenshots use unavailable status; indexed and RPC-403 screenshot uses QA-only synthetic fixtures and is NOT production evidence.\n'+cases.map(c=>c.name).join('\n')+'\n');
+ await writeFile(join(imageDir,'VISUAL_QA.txt'),'Explorer offline screenshots use unavailable status. Public GP and RPC-403 screenshots use QA-only synthetic fixtures and are NOT production or satellite-link evidence.\n'+cases.map(c=>c.name).join('\n')+'\n');
 }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
