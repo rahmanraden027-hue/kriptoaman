@@ -1,8 +1,8 @@
 """Fail-closed, domain-SNI-only ZVQ Explorer browser RPC config renderer.
 
 The independent IP fallback remains read-only, including its explicit /rpc deny.
-The Explorer domain delegates only to the separately installed canonical ZVQ
-method-allowlist gateway; deployment preflight proves write/admin methods are denied.
+The Explorer domain delegates only to a dedicated loopback method-allowlist
+gateway; deployment tests prove write/admin methods never reach the upstream.
 """
 from __future__ import annotations
 import sys
@@ -13,19 +13,13 @@ DENY = "location = /rpc { return 403; }"
 SENTINEL = "# ZVQ_DOMAIN_RPC_V2_READONLY"
 RATE_ZONE = "limit_req_zone $binary_remote_addr zone=zvq_domain_rpc:1m rate=10r/s;"
 DOMAIN_ROUTE = """location = /rpc {
-    # Domain-only browser bridge. The canonical upstream is the ZVQ JSON-RPC
-    # method-allowlist gateway; preflight and post-deploy tests fail closed.
+    # Domain-only browser bridge through a loopback JSON-RPC method allowlist.
     limit_except POST { deny all; }
     client_max_body_size 32k;
     limit_req zone=zvq_domain_rpc burst=20 nodelay;
     limit_req_status 429;
-    proxy_pass https://rpc.kriptoaman.com/;
-    proxy_ssl_server_name on;
-    proxy_ssl_name rpc.kriptoaman.com;
-    proxy_ssl_verify on;
-    proxy_ssl_trusted_certificate /etc/ssl/certs/ca-certificates.crt;
-    proxy_ssl_verify_depth 3;
-    proxy_set_header Host rpc.kriptoaman.com;
+    proxy_pass http://127.0.0.1:18446;
+    proxy_set_header Host 127.0.0.1;
     proxy_set_header Cookie "";
     proxy_set_header Authorization "";
     proxy_set_header X-Forwarded-For $remote_addr;

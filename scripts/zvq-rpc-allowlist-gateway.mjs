@@ -30,10 +30,14 @@ export function validateRpcPayload(value) {
   return true;
 }
 
-export function createRpcGateway({ upstreamPort, fetchImpl = fetch } = {}) {
-  if (!Number.isInteger(upstreamPort) || upstreamPort < 1 || upstreamPort > 65535) {
-    throw new Error('Valid, verified loopback upstreamPort is required');
+export function createRpcGateway({ upstreamPort, upstreamUrl, fetchImpl = fetch } = {}) {
+  const loopback = Number.isInteger(upstreamPort) && upstreamPort >= 1 && upstreamPort <= 65535
+    ? `http://127.0.0.1:${upstreamPort}/` : null;
+  const remote = upstreamUrl === 'https://rpc.kriptoaman.com/' ? upstreamUrl : null;
+  if ((loopback ? 1 : 0) + (remote ? 1 : 0) !== 1) {
+    throw new Error('Exactly one verified loopback port or canonical ZVQ RPC URL is required');
   }
+  const target = loopback ?? remote;
   const server = http.createServer(async (req, res) => {
     const origin = req.headers.origin;
     if (origin && APPROVED_ORIGINS.has(origin)) {
@@ -65,7 +69,7 @@ export function createRpcGateway({ upstreamPort, fetchImpl = fetch } = {}) {
       let payload;
       try { payload = JSON.parse(body); } catch { return finish(400); }
       if (!validateRpcPayload(payload)) return finish(403);
-      const upstream = await fetchImpl(`http://127.0.0.1:${upstreamPort}/`, {
+      const upstream = await fetchImpl(target, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body,
@@ -90,10 +94,11 @@ export function createRpcGateway({ upstreamPort, fetchImpl = fetch } = {}) {
 }
 
 if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) {
-  const upstreamPort = Number(process.env.ZVQ_UPSTREAM_PORT);
+  const upstreamPort = process.env.ZVQ_UPSTREAM_PORT ? Number(process.env.ZVQ_UPSTREAM_PORT) : undefined;
+  const upstreamUrl = process.env.ZVQ_UPSTREAM_URL;
   const gatewayPort = Number(process.env.ZVQ_GATEWAY_PORT ?? 18445);
-  if (!Number.isInteger(gatewayPort) || gatewayPort !== 18445) throw new Error('Unexpected gateway port');
-  createRpcGateway({ upstreamPort }).listen(gatewayPort, '127.0.0.1', () => {
+  if (![18445, 18446].includes(gatewayPort)) throw new Error('Unexpected gateway port');
+  createRpcGateway({ upstreamPort, upstreamUrl }).listen(gatewayPort, '127.0.0.1', () => {
     console.log('zvq_rpc_readonly_gateway=loopback_ready');
   });
 }
