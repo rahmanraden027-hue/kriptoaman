@@ -77,7 +77,6 @@ def check_preconditions() -> str:
         raise RuntimeError("Independent TLS container is not running")
     if not CONFIG.is_file() or not GATEWAY_SOURCE.is_file():
         raise RuntimeError("Expected NGINX config or reviewed gateway source unavailable")
-    cmd(["docker", "image", "inspect", "node:24-alpine"])
     cert = Path("/etc/letsencrypt/live/zvq-explorer-domain/fullchain.pem")
     key = Path("/etc/letsencrypt/live/zvq-explorer-domain/privkey.pem")
     if not (cert.is_file() and key.is_file()):
