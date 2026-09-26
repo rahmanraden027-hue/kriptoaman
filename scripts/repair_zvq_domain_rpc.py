@@ -28,6 +28,10 @@ IP = "146.190.93.254"
 REQUEST = json.dumps({
     "jsonrpc": "2.0", "id": "zvq-domain-rpc-cutover", "method": "eth_chainId", "params": []
 })
+BLOCKED_METHODS = (
+    "eth_sendRawTransaction", "personal_listAccounts", "admin_peers",
+    "debug_traceTransaction", "txpool_content", "qbft_getValidatorsByBlockNumber",
+)
 
 
 def cmd(argv: list[str], *, capture: bool = False) -> str:
@@ -51,6 +55,13 @@ def rpc_probe(url: str, *, resolve: bool = False) -> bool:
         return False
 
 
+def rpc_status(url: str, method: str) -> str:
+    payload = json.dumps({"jsonrpc": "2.0", "id": "zvq-policy-check", "method": method, "params": []})
+    return cmd(["curl", "--noproxy", "*", "-sS", "--max-time", "12",
+                "-o", "/dev/null", "-w", "%{http_code}",
+                "-H", "Content-Type: application/json", "--data", payload, url], capture=True)
+
+
 def status(url: str) -> str:
     return cmd(["curl", "--noproxy", "*", "-sS", "--max-time", "12",
                 "-o", "/dev/null", "-w", "%{http_code}", url], capture=True)
@@ -70,6 +81,9 @@ def check_preconditions() -> str:
     cmd(["openssl", "x509", "-in", str(cert), "-noout", "-checkend", "172800"])
     if not rpc_probe(f"https://{RPC}/"):
         raise RuntimeError("Canonical RPC chain identity unavailable; refuse routing")
+    for method in BLOCKED_METHODS:
+        if rpc_status(f"https://{RPC}/", method) != "403":
+            raise RuntimeError(f"Canonical RPC allowlist failed for {method}; refuse routing")
     ips = {ipaddress.ip_address(row[4][0]) for row in socket.getaddrinfo(RPC, 443)}
     if not ips or ipaddress.ip_address(IP) in ips or any(ip.is_loopback for ip in ips):
         raise RuntimeError("Canonical upstream resolves to Explorer origin/loopback")
@@ -125,7 +139,7 @@ def main() -> None:
             modified = True
             cmd(["docker", "exec", CONTAINER, "nginx", "-t"])
             loaded = cmd(["docker", "exec", CONTAINER, "nginx", "-T"], capture=True)
-            if "# ZVQ_DOMAIN_RPC_V1" not in loaded or "server_name explorer.kriptoaman.com;" not in loaded:
+            if "# ZVQ_DOMAIN_RPC_V2_READONLY" not in loaded or "server_name explorer.kriptoaman.com;" not in loaded:
                 raise RuntimeError("Active container did not load reviewed domain route")
             cmd(["docker", "exec", CONTAINER, "nginx", "-s", "reload"])
             ok = False
