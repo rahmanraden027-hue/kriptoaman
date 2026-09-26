@@ -1,0 +1,38 @@
+name: ZVQ treasury public forensic snapshot
+
+on:
+  pull_request:
+    paths:
+      - "chain/kam-mainnet/scripts/zvq-treasury-forensic-readonly.mjs"
+      - ".github/workflows/zvq-treasury-public-forensics.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Check out reviewed source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Validate read-only script syntax
+        run: node --check chain/kam-mainnet/scripts/zvq-treasury-forensic-readonly.mjs
+      - name: Collect rate-bounded public evidence
+        run: node chain/kam-mainnet/scripts/zvq-treasury-forensic-readonly.mjs > zvq-treasury-public-snapshot.json
+      - name: Archive evidence, including incomplete results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zvq-treasury-public-snapshot
+          path: zvq-treasury-public-snapshot.json
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Flag incomplete public evidence without implying recovered funds
+        run: |
+          node -e "const r=require('./zvq-treasury-public-snapshot.json'); if(!r.gates.chainIdentityMatches || !r.gates.officialTreasuryBalanceObserved || !r.gates.reconstructedCandidateBalanceObserved || !r.gates.noRateLimit) process.exit(1); console.log(r.disposition);"
