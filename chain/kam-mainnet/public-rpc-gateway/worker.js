@@ -23,12 +23,25 @@ const DEVELOPER_CONSOLE_URL = 'https://kriptoaman.com/KAMDeveloper';
 const EXPECTED_CHAIN_ID = '0x560c';
 const UPSTREAM_TIMEOUT_MS = 2500;
 // Browser preflight is terminated at this edge so the protected origin never needs public OPTIONS access.
+const APPROVED_BROWSER_ORIGINS = new Set([
+  'https://explorer.kriptoaman.com',
+  'https://kriptoaman.com',
+]);
 const CORS_HEADERS = {
-  'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'GET, POST, OPTIONS',
+  'access-control-allow-methods': 'POST, OPTIONS',
   'access-control-allow-headers': 'content-type',
-  'access-control-max-age': '86400',
+  'access-control-max-age': '600',
+  vary: 'Origin',
 };
+
+// The existing public RPC host is DNS-only today; this prepares the optional
+// Worker route without widening browser access if a reviewed cutover occurs.
+function corsFor(request) {
+  const origin = request.headers.get('origin');
+  return APPROVED_BROWSER_ORIGINS.has(origin)
+    ? { ...CORS_HEADERS, 'access-control-allow-origin': origin }
+    : { vary: 'Origin' };
+}
 
 function json(body, status = 200, headers = {}) {
   return new Response(JSON.stringify(body), {
@@ -176,13 +189,35 @@ async function probeOrigin(env) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    const jsonFor = (body, status = 200, headers = {}) =>
+      json(body, status, { ...corsFor(request), ...headers });
+    const rpcReject = (id, code, message, status = 400) =>
+      jsonFor({ jsonrpc: '2.0', id: id ?? null, error: { code, message } }, status);
 
     if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: CORS_HEADERS });
+      const origin = request.headers.get('origin');
+      const requestedMethod = request.headers.get('access-control-request-method');
+      const requestedHeaders = (request.headers.get('access-control-request-headers') || '')
+        .toLowerCase().split(',').map((value) => value.trim()).filter(Boolean);
+      const approved = url.pathname === '/' &&
+        APPROVED_BROWSER_ORIGINS.has(origin) &&
+        requestedMethod?.toUpperCase() === 'POST' &&
+        requestedHeaders.includes('content-type') &&
+        requestedHeaders.every((value) => value === 'content-type');
+      if (!approved) {
+        return new Response(null, {
+          status: 403,
+          headers: { vary: 'Origin', 'cache-control': 'no-store' },
+        });
+      }
+      return new Response(null, {
+        status: 204,
+        headers: { ...corsFor(request), 'cache-control': 'no-store' },
+      });
     }
 
     if (url.pathname === '/health') {
-      return json({
+      return jsonFor({
         service: 'kam-public-rpc-gateway',
         network: 'KriptoAman Mainnet Candidate',
         expectedChainId: EXPECTED_CHAIN_ID,
@@ -194,7 +229,7 @@ export default {
 
     if (url.pathname === '/ready' && request.method === 'GET') {
       const readiness = await probeOrigin(env);
-      return json({
+      return jsonFor({
         service: 'kam-public-rpc-gateway',
         network: 'KriptoAman Mainnet Candidate',
         expectedChainId: EXPECTED_CHAIN_ID,
@@ -213,55 +248,55 @@ export default {
     }
 
     if (request.method !== 'POST' || url.pathname !== '/') {
-      return json({ error: 'JSON-RPC POST only' }, 405, { allow: 'GET, POST, OPTIONS' });
+      return jsonFor({ error: 'JSON-RPC POST only' }, 405, { allow: 'GET, POST, OPTIONS' });
     }
 
     if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
-      return json({ error: 'Content-Type must be application/json' }, 415);
+      return jsonFor({ error: 'Content-Type must be application/json' }, 415);
     }
 
     const contentLength = Number(request.headers.get('content-length') || 0);
-    if (contentLength > MAX_BODY_BYTES) return json({ error: 'Request too large' }, 413);
+    if (contentLength > MAX_BODY_BYTES) return jsonFor({ error: 'Request too large' }, 413);
 
     const clientKey = request.headers.get('cf-connecting-ip') || 'anonymous';
     if (env.RPC_RATE_LIMITER) {
       const { success } = await env.RPC_RATE_LIMITER.limit({ key: clientKey });
-      if (!success) return json({ error: 'Rate limit exceeded' }, 429, { 'retry-after': '60' });
+      if (!success) return jsonFor({ error: 'Rate limit exceeded' }, 429, { 'retry-after': '60' });
     }
 
     const raw = await request.text();
-    if (new TextEncoder().encode(raw).byteLength > MAX_BODY_BYTES) return json({ error: 'Request too large' }, 413);
+    if (new TextEncoder().encode(raw).byteLength > MAX_BODY_BYTES) return jsonFor({ error: 'Request too large' }, 413);
 
     let payload;
     try {
       payload = JSON.parse(raw);
     } catch {
-      return rpcError(null, -32700, 'Parse error');
+      return rpcReject(null, -32700, 'Parse error');
     }
 
     const batch = Array.isArray(payload);
     const items = batch ? payload : [payload];
-    if (!items.length || items.length > 20) return rpcError(null, -32600, 'Invalid Request');
+    if (!items.length || items.length > 20) return rpcReject(null, -32600, 'Invalid Request');
 
     for (const item of items) {
       if (!isAllowedRpcItem(item)) {
-        return rpcError(item?.id, -32601, 'Method not available on public gateway', 403);
+        return rpcReject(item?.id, -32601, 'Method not available on public gateway', 403);
       }
     }
 
     if (env.RPC_HEAVY_RATE_LIMITER && items.some((item) => HEAVY_METHODS.has(item.method))) {
       const { success } = await env.RPC_HEAVY_RATE_LIMITER.limit({ key: clientKey });
-      if (!success) return rpcError(items[0]?.id, -32005, 'Heavy RPC rate limit exceeded', 429);
+      if (!success) return rpcReject(items[0]?.id, -32005, 'Heavy RPC rate limit exceeded', 429);
     }
 
-    if (!env.KAM_EXPLORER_GATEWAY && !env.KAM_RPC_ORIGIN) return json({ error: 'RPC origin not configured' }, 503);
+    if (!env.KAM_EXPLORER_GATEWAY && !env.KAM_RPC_ORIGIN) return jsonFor({ error: 'RPC origin not configured' }, 503);
 
     let upstream;
     try {
       upstream = await fetchOrigin(env, raw);
     } catch (error) {
-      if (error?.name === 'AbortError') return json({ error: 'RPC upstream timeout' }, 504);
-      return json({ error: 'RPC upstream unavailable' }, 502);
+      if (error?.name === 'AbortError') return jsonFor({ error: 'RPC upstream timeout' }, 504);
+      return jsonFor({ error: 'RPC upstream unavailable' }, 502);
     }
 
     const responseText = await upstream.text();
@@ -271,7 +306,7 @@ export default {
         'content-type': 'application/json; charset=utf-8',
         'cache-control': 'no-store',
         'x-content-type-options': 'nosniff',
-        ...CORS_HEADERS,
+        ...corsFor(request),
       },
     });
   },
