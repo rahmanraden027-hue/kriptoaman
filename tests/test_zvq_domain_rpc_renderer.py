@@ -25,18 +25,21 @@ ORIGINAL = IP + "\n" + MARKER + "\n" + DOMAIN
 
 
 class DomainRpcRendererTests(unittest.TestCase):
-    def test_only_domain_sni_gets_rate_limited_tls_upstream(self):
+    def test_only_domain_sni_gets_scoped_readonly_gateway(self):
         candidate = render(ORIGINAL)
         fallback, domain = candidate.split(MARKER, 1)
         self.assertIn(IP, fallback)
         self.assertIn("location = /rpc { return 403; }", fallback)
+        self.assertNotIn("proxy_pass", fallback)
         self.assertEqual(domain.count("location = /rpc { return 403; }"), 0)
         self.assertIn(DOMAIN_ROUTE, domain)
+        self.assertIn("proxy_pass https://rpc.kriptoaman.com/;", domain)
         self.assertIn("proxy_ssl_verify on;", domain)
         self.assertIn("limit_except POST { deny all; }", domain)
         self.assertIn(RATE_ZONE, candidate)
-        self.assertIn("standalone-domain-rpc-scoped", domain)
+        self.assertIn("standalone-domain-rpc-readonly", domain)
         self.assertIn("location ^~ /api/ { return 403; }", domain)
+        self.assertNotIn("proxy_set_header Authorization $", domain)
 
     def test_refuses_unrecognized_or_incomplete_https_config(self):
         for cfg in (
