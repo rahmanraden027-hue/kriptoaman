@@ -46,7 +46,9 @@ test('required production panels and search routes exist', () => {
   assert.match(html, /Live Blockchain Mesh/);
   assert.match(html, /id="refreshData"/);
   assert.match(html, /parent_hash\.toLowerCase\(\)===parent\.hash\.toLowerCase\(\)/);
-  assert.ok(html.includes("for(const url of [RPC,'https://rpc.kriptoaman.com'])"));
+  assert.ok(html.includes("const data=await getJSON(RPC,options,12000)"), 'browser RPC stays same-origin');
+  assert.ok(!html.includes("for(const url of [RPC,'https://rpc.kriptoaman.com'])"), 'do not retry through blocked cross-origin CORS');
+  assert.ok(html.includes('rpcNextProbeAt'), 'failed RPC requests must back off without throttling indexed data');
   assert.match(html, /if\(state\.probing\)return/);
 });
 
