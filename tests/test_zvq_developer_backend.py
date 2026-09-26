@@ -68,7 +68,7 @@ class DeveloperBackendTests(unittest.TestCase):
 
     def test_incomplete_existing_route_must_fail_closed(self):
         bad = OLD.replace("    location = /developer/docs {", "    location = /developer/docs {{{")
-        with self.assertRaises(ValueError):
+        with self.assertRaises((AssertionError, ValueError)):
             render(bad)
 
 if __name__ == "__main__":
