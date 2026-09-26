@@ -120,8 +120,8 @@ jobs:
           test "$(curl -sS --max-time 10 -o /dev/null -w '%{http_code}' -X POST https://explorer.kriptoaman.com/developer)" = 403
           curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks |
             python3 -c 'import json,sys; assert json.load(sys.stdin).get("items")'
-          curl -fsS --max-time 15 https://explorer.kriptoaman.com/ |
-            grep -Fq 'data-zevaryq-explorer-version'
+          curl -fsS --max-time 15 -o /tmp/zvq-protected-homepage.html https://explorer.kriptoaman.com/
+          grep -Fq 'data-zevaryq-explorer-version' /tmp/zvq-protected-homepage.html
           echo 'developer_public=7/7 rpc_readonly=pass chain=22028 blocks=advancing fallback=protected'
 
   android-visual:
