@@ -67,7 +67,7 @@ def render(source: str) -> str:
     }}""")
     # The independent IP block is byte-for-byte unchanged; zone is scoped to
     # the existing HTTP context immediately before the domain SNI listener.
-    domain = domain.replace('server {', RATE_ZONE + '\\nserver {', 1)
+    domain = domain.replace('server {', RATE_ZONE + '\nserver {', 1)
     patched_domain = domain.replace(CATCHALL, "\n".join(routes) + "\n    " + CATCHALL, 1)
     rendered = ip + DOMAIN_MARKER + patched_domain
     old_ip, new_domain = rendered.split(DOMAIN_MARKER, 1)
