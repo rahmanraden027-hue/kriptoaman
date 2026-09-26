@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - scripts/repair_zvq_developer_center.sh
+      - scripts/render_zvq_developer_backend.py
+      - tests/test_zvq_developer_backend.py
       - scripts/render_zvq_developer_https.py
       - scripts/probe_zvq_developer_routes.py
       - explorer-dashboard/developer*.html
@@ -23,6 +25,8 @@ jobs:
         run: |
           set -euo pipefail
           bash -n scripts/repair_zvq_developer_center.sh
+          python3 -m unittest discover -s tests -p 'test_zvq_developer_backend.py' -v
+          python3 -m py_compile scripts/render_zvq_developer_backend.py
           python3 -m unittest discover -s tests -p 'test_zvq_developer_https.py' -v
           python3 -m py_compile scripts/render_zvq_developer_https.py scripts/probe_zvq_developer_routes.py
           grep -Fq 'data-kam-developer-version="1.0.0"' explorer-dashboard/developer.html
@@ -50,8 +54,7 @@ jobs:
       - name: Apply Developer-only assets and exact routes with rollback
         run: |
           set -euo pipefail
-          chmod +x scripts/repair_zvq_developer_center.sh
-          scripts/repair_zvq_developer_center.sh
+          sudo -n bash scripts/repair_zvq_developer_center.sh
 
   public-post-verify:
     if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
