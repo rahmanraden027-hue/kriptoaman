@@ -55,9 +55,12 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
+      - name: Inventory installed static pages and active routing (read-only)
+        run: python3 scripts/probe_zvq_developer_routes.py --scope inventory
       - name: Check existing local port-80 Developer content before any 443 patch
         run: python3 scripts/probe_zvq_developer_routes.py --scope backend --require-ready
-      - name: Record actual direct-origin 443 Developer routes
+      - name: Record actual direct-origin 443 Developer routes even when backend is not ready
+        if: always()
         run: python3 scripts/probe_zvq_developer_routes.py --scope origin
       - name: Confirm protected IP fallback and live RPC identity
         shell: bash
