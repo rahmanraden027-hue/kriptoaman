@@ -12,6 +12,7 @@ from pathlib import Path
 DOMAIN_MARKER = "# ZVQ_DOMAIN_TLS_V1"
 RPC_MARKER = "# ZVQ_DOMAIN_RPC_V2_READONLY"
 MARKER = "# ZVQ_DEVELOPER_HTTPS_V1"
+RATE_ZONE = "limit_req_zone $binary_remote_addr zone=zvq_developer:1m rate=5r/s;"
 CATCHALL = "location / { return 404; }"
 PAGES = (
     "/developer",
@@ -25,7 +26,7 @@ PAGES = (
 
 
 def render(source: str) -> str:
-    if MARKER in source:
+    if MARKER in source or RATE_ZONE in source:
         raise ValueError("Developer HTTPS already applied; refusing a second patch")
     if (source.count(DOMAIN_MARKER) != 1 or source.count(RPC_MARKER) != 1
             or source.count("server {") != 2):
@@ -49,6 +50,9 @@ def render(source: str) -> str:
     for path in PAGES:
         routes.append(f"""    location = {path} {{
         limit_except GET {{ deny all; }}
+        limit_req zone=zvq_developer burst=12 nodelay;
+        limit_req_status 429;
+        client_max_body_size 1024;
         proxy_pass http://127.0.0.1:18447;
         proxy_set_header Host 127.0.0.1;
         proxy_set_header Authorization "";
@@ -61,10 +65,14 @@ def render(source: str) -> str:
         add_header Cache-Control "no-store" always;
         add_header X-Content-Type-Options "nosniff" always;
     }}""")
+    # The independent IP block is byte-for-byte unchanged; zone is scoped to
+    # the existing HTTP context immediately before the domain SNI listener.
+    domain = domain.replace('server {', RATE_ZONE + '\\nserver {', 1)
     patched_domain = domain.replace(CATCHALL, "\n".join(routes) + "\n    " + CATCHALL, 1)
     rendered = ip + DOMAIN_MARKER + patched_domain
     old_ip, new_domain = rendered.split(DOMAIN_MARKER, 1)
     if (old_ip != ip or new_domain.count(MARKER) != 1
+            or new_domain.count(RATE_ZONE) != 1
             or new_domain.count("proxy_pass http://127.0.0.1:18446/;") != 1
             or rendered.count("location = /rpc { return 403; }") != 1):
         raise ValueError("Route isolation check failed")
