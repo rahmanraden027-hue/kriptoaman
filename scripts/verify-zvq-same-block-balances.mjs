@@ -9,10 +9,10 @@ export const RPCS = Object.freeze([
   'https://explorer.kriptoaman.com/rpc',
 ]);
 export const ACCOUNTS = Object.freeze([
-  { label: 'repository-labelled treasury candidate (ownership unverified)',
+  { label: 'legacy KAM Treasury label (current ownership unverified)',
     address: '0xab481451eaf642384d2d9888b355f10d327c5de9' },
-  { label: 'reconstructed genesis candidate (ownership unverified)',
-    address: '0xd74ea7d92bbb40d475bcea170367b85971acb0f' },
+  { label: 'historical WKAM deployer label (ownership unverified)',
+    address: '0x9d4b034758202ce555504d038f92a344540d47b0' },
 ]);
 const CHAIN_ID = '0x560c';
 const MAX_CALLS = 16;
