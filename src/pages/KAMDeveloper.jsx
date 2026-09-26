@@ -20,10 +20,10 @@ import {
 } from 'lucide-react';
 
 const NETWORK = {
-  name: 'KriptoAman Mainnet Candidate',
+  name: 'ZEVARYQ Mainnet',
   chainId: 22028,
   chainIdHex: '0x560c',
-  symbol: 'KAM',
+  symbol: 'ZVQ',
   decimals: 18,
   rpc: 'https://rpc.kriptoaman.com',
   explorer: 'https://explorer.kriptoaman.com',
@@ -199,12 +199,12 @@ export default function KAMDeveloper() {
         params: [{
           chainId: NETWORK.chainIdHex,
           chainName: NETWORK.name,
-          nativeCurrency: { name: 'KriptoAman', symbol: NETWORK.symbol, decimals: NETWORK.decimals },
+          nativeCurrency: { name: 'ZEVARYQ', symbol: NETWORK.symbol, decimals: NETWORK.decimals },
           rpcUrls: [NETWORK.rpc],
           blockExplorerUrls: [NETWORK.explorer],
         }],
       });
-      setWalletMessage('KAM Network berhasil ditambahkan atau dikonfirmasi di wallet.');
+      setWalletMessage('ZVQ Network berhasil ditambahkan atau dikonfirmasi di wallet.');
     } catch (error) {
       setWalletMessage(error?.message || 'Permintaan wallet dibatalkan.');
     }
@@ -219,9 +219,9 @@ export default function KAMDeveloper() {
           <div className="relative z-10 grid gap-8 lg:grid-cols-[1.2fr_.8fr] lg:items-end">
             <div>
               <div className="flex items-center gap-3">
-                <img src="/icons/kriptoaman-192.png" alt="KriptoAman" className="h-12 w-12 rounded-2xl object-contain" />
+                <img src="/brand/zevaryq-mark.svg" alt="KriptoAman" className="h-12 w-12 rounded-2xl object-contain" />
                 <div>
-                  <p className="ka-command-kicker">KAM DEVELOPER CONSOLE</p>
+                  <p className="ka-command-kicker">ZVQ DEVELOPER CONSOLE</p>
                   <h1 className="mt-1 text-3xl font-black tracking-tight sm:text-4xl">RPC Command Center</h1>
                 </div>
               </div>
@@ -271,7 +271,7 @@ export default function KAMDeveloper() {
 
           <div className="ka-command-panel p-5 sm:p-6">
             <p className="ka-command-kicker">NETWORK ACCESS</p>
-            <h2 className="mt-1 text-xl font-black">Connect to KAM</h2>
+            <h2 className="mt-1 text-xl font-black">Connect to ZVQ</h2>
             <div className="mt-5 divide-y divide-slate-800/80 overflow-hidden rounded-2xl border border-slate-800/80">
               {[
                 ['RPC endpoint', NETWORK.rpc],
@@ -282,10 +282,10 @@ export default function KAMDeveloper() {
                 <div key={label} className="flex items-center justify-between gap-3 px-4 py-3.5"><div className="min-w-0"><p className="text-[9px] font-black uppercase tracking-wider text-slate-600">{label}</p><p className="mt-1 truncate text-xs font-bold text-slate-200">{value}</p></div><button onClick={() => copy(value)} className="rounded-lg border border-slate-800 p-2 text-slate-500 hover:text-white" aria-label={`Copy ${label}`}><Copy className="h-3.5 w-3.5" /></button></div>
               ))}
             </div>
-            <button onClick={addToWallet} className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-sky-600 px-5 text-sm font-black text-white transition hover:bg-sky-500"><WalletCards className="h-4 w-4" /> Add KAM Network</button>
+            <button onClick={addToWallet} className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-sky-600 px-5 text-sm font-black text-white transition hover:bg-sky-500"><WalletCards className="h-4 w-4" /> Add ZVQ Network</button>
             <a href={LIVE_STARTER} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-violet-400/20 bg-violet-400/10 px-5 text-xs font-black text-violet-200"><Play className="h-4 w-4" /> Open Live dApp Starter</a>
             <a href={DEVELOPER_CENTER} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-sky-400/20 bg-sky-400/10 px-5 text-xs font-black text-sky-200"><Code2 className="h-4 w-4" /> Open Developer Center</a>
-            <a href={NETWORK.explorer} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-5 text-xs font-black text-emerald-200"><ExternalLink className="h-4 w-4" /> Open KAM Explorer</a>
+            <a href={NETWORK.explorer} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-5 text-xs font-black text-emerald-200"><ExternalLink className="h-4 w-4" /> Open ZVQ Explorer</a>
             {walletMessage && <p className="mt-3 text-xs leading-5 text-slate-400">{walletMessage}</p>}
             <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950/40 p-4 text-[10px] leading-5 text-slate-500"><strong className="text-slate-300">Browser note:</strong> opening the RPC URL directly uses HTTP GET and may return <code>405 Not Allowed</code>. That is expected for a POST-only JSON-RPC endpoint and does not mean the RPC is offline.</div>
           </div>
@@ -331,8 +331,8 @@ export default function KAMDeveloper() {
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <a href="/KAMNetwork" className="ka-command-panel p-5 transition hover:border-sky-400/30"><Network className="h-5 w-5 text-sky-300" /><h3 className="mt-3 font-black">Network Status</h3><p className="mt-1 text-xs leading-5 text-slate-500">Dedicated public network health, wallet metadata, and block progression view.</p></a>
           <a href="/KAMNetworkDocs" className="ka-command-panel p-5 transition hover:border-violet-400/30"><Server className="h-5 w-5 text-violet-300" /><h3 className="mt-3 font-black">Developer Docs</h3><p className="mt-1 text-xs leading-5 text-slate-500">Network configuration, RPC integration guidance, and EVM-compatible development references.</p></a>
-          <a href={LIVE_STARTER} target="_blank" rel="noreferrer" className="ka-command-panel p-5 transition hover:border-violet-400/30"><Play className="h-5 w-5 text-violet-300" /><h3 className="mt-3 font-black">Live dApp Starter</h3><p className="mt-1 text-xs leading-5 text-slate-500">Run verified read-only checks and user-approved wallet onboarding against the public KAM developer surface.</p></a>
-          <a href={NETWORK.explorer} target="_blank" rel="noreferrer" className="ka-command-panel p-5 transition hover:border-emerald-400/30"><ExternalLink className="h-5 w-5 text-emerald-300" /><h3 className="mt-3 font-black">Block Explorer</h3><p className="mt-1 text-xs leading-5 text-slate-500">Inspect blocks, transactions, addresses, and public KAM network activity.</p></a>
+          <a href={LIVE_STARTER} target="_blank" rel="noreferrer" className="ka-command-panel p-5 transition hover:border-violet-400/30"><Play className="h-5 w-5 text-violet-300" /><h3 className="mt-3 font-black">Live dApp Starter</h3><p className="mt-1 text-xs leading-5 text-slate-500">Run verified read-only checks and user-approved wallet onboarding against the public ZVQ developer surface.</p></a>
+          <a href={NETWORK.explorer} target="_blank" rel="noreferrer" className="ka-command-panel p-5 transition hover:border-emerald-400/30"><ExternalLink className="h-5 w-5 text-emerald-300" /><h3 className="mt-3 font-black">Block Explorer</h3><p className="mt-1 text-xs leading-5 text-slate-500">Inspect blocks, transactions, addresses, and public ZVQ network activity.</p></a>
         </section>
 
         <section className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4 text-[10px] leading-relaxed text-slate-600">Security model: the Developer Console intentionally uses only public read-only JSON-RPC methods. Validator admin/debug/personal/QBFT management methods, private topology, signing material, and protected-origin details are not exposed. Session uptime and request analytics shown here are browser-session telemetry, not formal 24-hour production-readiness evidence.</section>
