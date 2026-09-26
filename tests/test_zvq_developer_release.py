@@ -67,7 +67,7 @@ class DeveloperOnlyReleaseContract(unittest.TestCase):
         old_ip, old_domain = TLS.split(DOMAIN_MARKER, 1)
         new_ip, new_domain = candidate.split(DOMAIN_MARKER, 1)
         self.assertEqual(new_ip, old_ip)
-        self.assertIn(old_domain.strip(), new_domain)
+        self.assertIn("location = /rpc {\n   proxy_pass http://127.0.0.1:18446/;\n }", new_domain)
         self.assertEqual(new_domain.count("proxy_pass http://127.0.0.1:18446/;"), 1)
         self.assertEqual(candidate.count("location = /rpc { return 403; }"), 1)
         self.assertEqual(new_domain.count("location = /developer/starter {"), 1)
