@@ -1,0 +1,57 @@
+name: ZVQ Domain Browser RPC Repair
+on:
+  pull_request:
+    paths:
+      - scripts/render_zvq_domain_rpc.py
+      - scripts/repair_zvq_domain_rpc.py
+      - tests/test_zvq_domain_rpc_renderer.py
+      - .github/workflows/zvq-domain-rpc-repair.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  review-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate renderer isolation and fail-closed source checks
+        run: |
+          python3 -m unittest discover -s tests -p 'test_zvq_domain_rpc_renderer.py' -v
+          python3 -m py_compile scripts/render_zvq_domain_rpc.py scripts/repair_zvq_domain_rpc.py
+
+  manually-authorized-origin-repair:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: review-contract
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - name: Preview isolated TLS candidate without changes
+        run: sudo -n env ZVQ_RPC_RUN_ID="$GITHUB_RUN_ID" python3 scripts/repair_zvq_domain_rpc.py
+      - name: Apply domain-only route, verify public service and preserve rollback
+        run: sudo -n env ZVQ_RPC_RUN_ID="$GITHUB_RUN_ID" python3 scripts/repair_zvq_domain_rpc.py --apply
+
+  public-post-verify:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: manually-authorized-origin-repair
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Verify browser gateway, canonical chain identity and indexed blocks
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          for url in https://rpc.kriptoaman.com https://explorer.kriptoaman.com/rpc; do
+            curl -fsS --retry 2 --retry-all-errors --max-time 15 \
+              -H 'Content-Type: application/json' \
+              -d '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+              "$url" | python3 -c 'import json,sys; assert json.load(sys.stdin)["result"]=="0x560c"'
+          done
+          curl -fsS --retry 2 --retry-all-errors --max-time 15 \
+            https://explorer.kriptoaman.com/api/v2/blocks \
+            | python3 -c 'import json,sys; d=json.load(sys.stdin); assert isinstance(d.get("items"),list) and d["items"]'
+          test "$(curl -sS --max-time 10 -o /dev/null -w '%{http_code}' https://146.190.93.254/rpc)" = 403
+          echo "ZVQ domain gateway=200, chain=22028, independent IP fallback=/rpc 403"
