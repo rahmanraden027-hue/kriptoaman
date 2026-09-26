@@ -39,7 +39,10 @@ class DeveloperTlsRoutesTest(unittest.TestCase):
         for path in PAGES:
             self.assertIn("location = " + path + " {", domain)
         self.assertEqual(domain.count("limit_except GET { deny all; }"), len(PAGES))
-        self.assertEqual(domain.count("proxy_pass http://127.0.0.1:80;"), len(PAGES))
+        self.assertEqual(domain.count("proxy_pass http://127.0.0.1:18447;"), len(PAGES))
+        self.assertNotIn("proxy_pass http://127.0.0.1:80;", domain)
+        self.assertNotIn("18447", ip)
+        self.assertEqual(domain.count("proxy_set_header Host 127.0.0.1;"), len(PAGES))
         self.assertEqual(domain.count('proxy_set_header Authorization "";'), len(PAGES))
 
     def test_rejects_duplicate_or_unknown_tls_state(self):
@@ -96,6 +99,55 @@ class DeveloperTlsRoutesTest(unittest.TestCase):
         self.assertTrue(summary["page_files"]["/developer"]["reviewed_zvq_content"])
         self.assertEqual(json.loads(output.getvalue()), summary)
         self.assertNotIn("private", output.getvalue().lower())
+
+
+class DeveloperDeploymentSourceTests(unittest.TestCase):
+    def test_rejects_legacy_developer_assets_before_host_modification(self):
+        import json
+        import tempfile
+        from unittest.mock import patch
+        from probe_zvq_developer_routes import PAGES, SOURCE_FILES
+        import repair_zvq_developer_https as deploy
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            for url, name in SOURCE_FILES.items():
+                if name == "developer-network.json":
+                    payload = {"chainId": 22028, "chainIdHex": "0x560c",
+                               "nativeCurrency": {"symbol": "ZVQ"},
+                               "publicDeveloperAccess": True,
+                               "security": {"privateKeysRequired": False}}
+                    (folder / name).write_text(json.dumps(payload))
+                else:
+                    # Legacy KAM can include identical version markers but must
+                    # never qualify as reviewed ZVQ content.
+                    marker = PAGES[url]
+                    (folder / name).write_text("<main " + marker + ">KAM old branding</main>")
+            with patch.object(deploy, "PUBLIC_ASSETS", folder):
+                with self.assertRaisesRegex(RuntimeError, "Not verified ZVQ content"):
+                    deploy.validate_sources()
+            for url, name in SOURCE_FILES.items():
+                if name != "developer-network.json":
+                    (folder / name).write_text(
+                        '<main ' + PAGES[url] + '>ZVQ Developer</main>')
+            with patch.object(deploy, "PUBLIC_ASSETS", folder):
+                assets = deploy.validate_sources()
+                self.assertEqual(len(assets), 6)
+
+    def test_read_only_rollback_and_namespace_contract(self):
+        source = (Path(__file__).resolve().parent.parent /
+                  "scripts/repair_zvq_developer_https.py").read_text()
+        gateway = (Path(__file__).resolve().parent.parent /
+                   "scripts/zvq-developer-static-gateway.mjs").read_text()
+        self.assertIn('f"container:{TLS}"', source)
+        self.assertIn('"--read-only"', source)
+        self.assertIn('"--cap-drop", "ALL"', source)
+        self.assertIn('CONFIG.write_bytes(before)', source)
+        self.assertIn('"--rollback"', source)
+        self.assertIn('immutable_gateway_image()', source)
+        self.assertNotIn('docker compose up', source)
+        self.assertNotIn('iptables', source)
+        self.assertIn("Object.hasOwn(ROUTES, path)", gateway)
+        self.assertIn("127.0.0.1", gateway)
 
 
 if __name__ == "__main__":
