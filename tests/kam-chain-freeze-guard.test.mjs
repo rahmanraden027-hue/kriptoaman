@@ -22,6 +22,8 @@ test('main protected-path changes require exact authoritative merged PR associat
   assert.match(workflow, /GH_TOKEN: \$\{\{ github\.token \}\}/);
   assert.match(workflow, /commits\/\$\{AFTER\}\/pulls/);
   assert.match(workflow, /merge_commit_sha == \$sha/);
+  assert.match(workflow, /curl --fail-with-body -sS/);
+  assert.doesNotMatch(workflow, /curl --fail-with-body -fsS/, 'curl -f and --fail-with-body cannot be combined');
   assert.match(workflow, /\.merged_at != null/);
   assert.match(workflow, /\.base\.ref == "main"/);
   assert.match(workflow, /if type == "array" then any/);
