@@ -135,7 +135,10 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
   deploy:
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+    # Safety: merging a reviewed Explorer patch must never restart the live proxy.
+    # This deployment recreates only the Explorer proxy, but even that requires
+    # explicit manual approval and a dedicated production-run audit trail.
+    if: github.event_name == 'workflow_dispatch' && inputs.confirm_explorer_only == 'DEPLOY-ZEVARYQ-EXPLORER'
     needs: validate
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
     timeout-minutes: 20
