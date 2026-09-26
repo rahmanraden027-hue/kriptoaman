@@ -133,6 +133,36 @@ class DeveloperDeploymentSourceTests(unittest.TestCase):
                 assets = deploy.validate_sources()
                 self.assertEqual(len(assets), 6)
 
+
+    def test_post_deploy_rollback_restores_exact_original_and_removes_only_our_sidecar(self):
+        import tempfile
+        from unittest.mock import patch
+        import repair_zvq_developer_https as deploy
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = root / "default.conf"
+            old = BASE.encode()
+            config.write_bytes((BASE + "\n# ZVQ_DEVELOPER_HTTPS_V1\n").encode())
+            stage = root / "developer-static-12345678"
+            stage.mkdir()
+            (stage / "developer.html").write_text("ZVQ")
+            gateway = root / "developer-static-gateway-12345678.mjs"
+            gateway.write_text("approved-gateway")
+            actions = []
+            with patch.object(deploy, "CONFIG", config), \
+                 patch.object(deploy, "owned_sidecar", return_value=True), \
+                 patch.object(deploy, "cmd",
+                              side_effect=lambda args, **_kw: actions.append(args) or ""), \
+                 patch.object(deploy, "chain_ok", return_value=True), \
+                 patch.object(deploy, "status", return_value="403"):
+                deploy.restore(old, "12345678", stage, gateway)
+            self.assertEqual(config.read_bytes(), old)
+            self.assertFalse(stage.exists())
+            self.assertFalse(gateway.exists())
+            self.assertIn(["docker", "rm", "-f", deploy.DEV_GATEWAY], actions)
+            self.assertIn(["docker", "exec", deploy.TLS, "nginx", "-t"], actions)
+            self.assertIn(["docker", "exec", deploy.TLS, "nginx", "-s", "reload"], actions)
+
     def test_read_only_rollback_and_namespace_contract(self):
         source = (Path(__file__).resolve().parent.parent /
                   "scripts/repair_zvq_developer_https.py").read_text()
