@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+if [[ "$(id -u)" != 0 ]]; then echo "Root access through reviewed workflow required" >&2; exit 1; fi
+REPO="$(pwd -P)"
 
 BASE=/opt/blockscout/docker-compose
 PROXY_DIR="$BASE/proxy"
@@ -18,12 +20,12 @@ trap cleanup EXIT
 fail(){ echo "ZVQ Developer repair: $*" >&2; exit 1; }
 
 declare -A FILES=(
-  [developer.html]=explorer-dashboard/developer.html
-  [developer-docs.html]=explorer-dashboard/developer-docs.html
-  [developer-examples.html]=explorer-dashboard/developer-examples.html
-  [developer-verify.html]=explorer-dashboard/developer-verify.html
-  [developer-starter.html]=explorer-dashboard/developer-starter.html
-  [developer-network.json]=explorer-dashboard/developer-network.json
+  [developer.html]="$REPO/explorer-dashboard/developer.html"
+  [developer-docs.html]="$REPO/explorer-dashboard/developer-docs.html"
+  [developer-examples.html]="$REPO/explorer-dashboard/developer-examples.html"
+  [developer-verify.html]="$REPO/explorer-dashboard/developer-verify.html"
+  [developer-starter.html]="$REPO/explorer-dashboard/developer-starter.html"
+  [developer-network.json]="$REPO/explorer-dashboard/developer-network.json"
 )
 for f in "${FILES[@]}"; do test -f "$f" || fail "missing reviewed source: $f"; done
 grep -Fq 'data-kam-developer-version="1.0.0"' explorer-dashboard/developer.html
@@ -70,38 +72,7 @@ for name in "${!FILES[@]}"; do
   proxy_fs "mkdir -p /target/kam-dashboard; cat > /target/kam-dashboard/$name; chmod 0644 /target/kam-dashboard/$name" < "${FILES[$name]}"
 done
 
-python3 - "$TEMPLATE" "$CANDIDATE" <<'PY'
-from pathlib import Path
-import sys
-p=Path(sys.argv[1]); out=Path(sys.argv[2]); text=p.read_text()
-begin="    # ZVQ_DEVELOPER_BACKEND_V1_BEGIN\n"; end="    # ZVQ_DEVELOPER_BACKEND_V1_END\n"
-if begin in text:
-    before,rest=text.split(begin,1)
-    if end not in rest: raise SystemExit("incomplete existing Developer backend marker")
-    _,after=rest.split(end,1); text=before+after
-needle="    location / {\n"
-if needle not in text: raise SystemExit("frontend catch-all missing")
-def route(path,file,ctype="text/html"):
-    return f"""    location = {path} {{
-        limit_except GET {{ deny all; }}
-        root /etc/nginx/templates;
-        try_files /kam-dashboard/{file} =404;
-        default_type {ctype};
-        add_header Cache-Control "no-store" always;
-        add_header X-Content-Type-Options "nosniff" always;
-    }}
-"""
-block=begin
-block+=route("/developer","developer.html")
-block+=route("/developers","developer.html")
-block+=route("/developer/docs","developer-docs.html")
-block+=route("/developer/examples","developer-examples.html")
-block+=route("/developer/verify","developer-verify.html")
-block+=route("/developer/starter","developer-starter.html")
-block+=route("/developer/network.json","developer-network.json","application/json")
-block+=end
-out.write_text(text.replace(needle,block+needle,1))
-PY
+python3 "$REPO/scripts/render_zvq_developer_backend.py" "$TEMPLATE" "$CANDIDATE"
 proxy_fs "cat > /target/default.conf.template" < "$CANDIDATE"
 docker compose up -d --force-recreate proxy
 
@@ -118,7 +89,7 @@ PY
   fi
 done
 
-python3 scripts/render_zvq_developer_https.py "$TLS_CONFIG" "$CANDIDATE"
+python3 "$REPO/scripts/render_zvq_developer_https.py" "$TLS_CONFIG" "$CANDIDATE"
 cat "$CANDIDATE" > "$TLS_CONFIG"
 docker exec "$TLS_NAME" nginx -t
 docker exec "$TLS_NAME" nginx -s reload
@@ -126,8 +97,16 @@ docker exec "$TLS_NAME" nginx -s reload
 test "$(curl --noproxy '*' -sS --max-time 12 -o /dev/null -w '%{http_code}' https://146.190.93.254/rpc)" = 403
 test "$(curl --noproxy '*' -sS --max-time 12 -o /dev/null -w '%{http_code}' https://146.190.93.254/api/admin)" = 403
 curl --noproxy '*' -fsS --max-time 12 --resolve explorer.kriptoaman.com:443:146.190.93.254 -H 'Content-Type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' https://explorer.kriptoaman.com/rpc | python3 -c 'import json,sys; assert json.load(sys.stdin).get("result")=="0x560c"'
-python3 scripts/probe_zvq_developer_routes.py --scope origin --require-ready
-python3 scripts/probe_zvq_developer_routes.py --scope public --require-ready
+for attempt in 1 2 3 4 5 6; do
+  if python3 "$REPO/scripts/probe_zvq_developer_routes.py" --scope origin --require-ready; then break; fi
+  if [[ "$attempt" == 6 ]]; then echo "Developer direct-origin verification failed" >&2; false; fi
+  sleep 2
+done
+for attempt in 1 2 3 4 5 6; do
+  if python3 "$REPO/scripts/probe_zvq_developer_routes.py" --scope public --require-ready; then break; fi
+  if [[ "$attempt" == 6 ]]; then echo "Developer public verification failed" >&2; false; fi
+  sleep 2
+done
 
 trap - ERR
 echo "zvq_developer_repair=success backup_dir=$BACKUP_DIR template_backup=$TEMPLATE_BACKUP tls_backup=$TLS_BACKUP"
