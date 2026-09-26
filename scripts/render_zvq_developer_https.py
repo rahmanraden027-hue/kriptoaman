@@ -1,7 +1,9 @@
 """Render exact GET-only ZVQ Developer Center routes onto the *existing* TLS listener.
 
 Never modifies the independent IP fallback, JSON-RPC gateway, or Blockscout.
-The reviewed public pages must already exist on the local port-80 proxy.
+The reviewed static pages are served only by a separate loopback-only
+Developer sidecar in the existing TLS network namespace; never trust legacy
+port-80 Developer routes or overwrite the ZEVARYQ homepage.
 """
 from __future__ import annotations
 import sys
@@ -47,13 +49,13 @@ def render(source: str) -> str:
     for path in PAGES:
         routes.append(f"""    location = {path} {{
         limit_except GET {{ deny all; }}
-        proxy_pass http://127.0.0.1:80;
-        proxy_set_header Host explorer.kriptoaman.com;
+        proxy_pass http://127.0.0.1:18447;
+        proxy_set_header Host 127.0.0.1;
         proxy_set_header Authorization "";
         proxy_set_header Cookie "";
         proxy_set_header X-Forwarded-For $remote_addr;
         proxy_connect_timeout 3s;
-        proxy_read_timeout 12s;
+        proxy_read_timeout 5s;
         proxy_next_upstream off;
         proxy_hide_header Set-Cookie;
         add_header Cache-Control "no-store" always;
