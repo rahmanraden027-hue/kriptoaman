@@ -167,6 +167,15 @@ class DeveloperDeploymentSourceTests(unittest.TestCase):
             self.assertIn(["docker", "exec", deploy.TLS, "nginx", "-t"], actions)
             self.assertIn(["docker", "exec", deploy.TLS, "nginx", "-s", "reload"], actions)
 
+    def test_interrupted_or_partial_tls_update_restores_backup(self):
+        source = (Path(__file__).resolve().parent.parent /
+                  "scripts/repair_zvq_developer_https.py").read_text()
+        self.assertIn("signal.signal(signal.SIGTERM, interrupted)", source)
+        self.assertIn("signal.signal(signal.SIGINT, interrupted)", source)
+        self.assertIn("finally:\n            if not committed:", source)
+        self.assertLess(source.index("changed = True  # partial bind-mounted writes"),
+                        source.index('CONFIG.write_bytes(candidate_text.encode("utf-8"))'))
+
     def test_read_only_rollback_and_namespace_contract(self):
         source = (Path(__file__).resolve().parent.parent /
                   "scripts/repair_zvq_developer_https.py").read_text()
