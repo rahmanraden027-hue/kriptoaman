@@ -44,6 +44,15 @@ test('Wallet uses verified same-origin status when browser RPC preflight is bloc
   assert.equal(requests.some(([url]) => url === 'https://rpc.kriptoaman.com'), false);
 });
 
+test('New ZVQ-native API balance field is preferred over the legacy compatibility alias', async () => {
+  const address = '0x1234567890123456789012345678901234567890';
+  const api = loadService(async (url) => {
+    if (url.startsWith('/api/kam/network-status?address=')) return json(goodStatus({ address, balanceZVQ: '2', balanceKAM: '1' }));
+    throw new Error('Unexpected direct RPC request');
+  });
+  assert.equal(await api.fetchZvqBalance(address), '2');
+});
+
 test('Explorer can be connected when both browser RPC and same-origin status fail', async () => {
   const api = loadService(async (url) => {
     if (url === 'https://explorer.kriptoaman.com/api/v2/blocks') return json({ items: [{ height: 147343 }] });

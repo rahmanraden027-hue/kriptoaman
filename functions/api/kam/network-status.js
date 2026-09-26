@@ -58,8 +58,8 @@ export async function onRequestGet({ request }) {
 
   const probeStartedAt = Date.now();
   const base = {
-    networkName: 'KriptoAman Mainnet',
-    symbol: 'KAM',
+    networkName: 'ZEVARYQ Mainnet',
+    symbol: 'ZVQ',
     decimals: 18,
     status: 'mainnet-candidate-not-public',
     chainId: EXPECTED_CHAIN_ID,
@@ -71,7 +71,7 @@ export async function onRequestGet({ request }) {
     marketPrice: null,
     marketPriceSource: null,
     marketPriceStatus: 'not-yet-trading',
-    indicativeListingReference: KAM_INDICATIVE_LISTING_REFERENCE,
+    legacyKamIndicativeListingReference: KAM_INDICATIVE_LISTING_REFERENCE,
     commercialLaunchEnabled: false,
   };
 
@@ -101,7 +101,7 @@ export async function onRequestGet({ request }) {
       verified: true,
       status: 'mainnet-candidate-rpc-verified',
       blockNumber,
-      wallet: address ? { address, balanceKAM: formatKam(walletBalance) } : null,
+      wallet: address ? { address, balanceZVQ: formatKam(walletBalance), balanceKAM: formatKam(walletBalance) } : null,
       checkedAt: new Date().toISOString(),
       probeDurationMs: Date.now() - probeStartedAt,
     }, {
@@ -115,7 +115,7 @@ export async function onRequestGet({ request }) {
       live: false,
       verified: false,
       blockNumber: null,
-      wallet: address ? { address, balanceKAM: null } : null,
+      wallet: address ? { address, balanceZVQ: null, balanceKAM: null } : null,
       reason: error?.name === 'AbortError' ? 'rpc-timeout' : 'rpc-unavailable-or-unverified',
       checkedAt: new Date().toISOString(),
       probeDurationMs: Date.now() - probeStartedAt,

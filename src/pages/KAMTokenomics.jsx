@@ -20,7 +20,7 @@ function Card({ icon: Icon, title, children }) {
 export default function KAMTokenomics() {
   useEffect(() => {
     const previousTitle = document.title;
-    document.title = 'KAM Tokenomics & Roadmap | KriptoAman';
+    document.title = 'Archive: KAM Tokenomics v1 | KriptoAman';
 
     let description = document.querySelector('meta[name="description"]');
     const previousDescription = description?.getAttribute('content') || '';
@@ -29,7 +29,7 @@ export default function KAMTokenomics() {
       description.setAttribute('name', 'description');
       document.head.appendChild(description);
     }
-    description.setAttribute('content', 'Canonical KAM tokenomics, supply model, allocation, vesting, KriptoAman Mainnet identity, and strategic KAM roadmap.');
+    description.setAttribute('content', 'Archived KAM economic baseline (not the current ZVQ tokenomics), supply model, allocation, vesting, KriptoAman Mainnet identity, and strategic KAM roadmap.');
 
     let canonical = document.querySelector('link[rel="canonical"]');
     const previousCanonical = canonical?.getAttribute('href') || '';
@@ -54,11 +54,11 @@ export default function KAMTokenomics() {
           <div className="flex min-w-0 flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-4">
             <KriptoAmanLogo size={44} textSize="text-base sm:text-lg" className="max-w-full shrink-0" />
             <div className="min-w-0 max-w-full">
-              <p className="break-words text-[10px] font-black uppercase tracking-[0.15em] text-sky-300 sm:tracking-[0.18em]">KAM ECONOMIC DOCUMENTATION</p>
+              <p className="break-words text-[10px] font-black uppercase tracking-[0.15em] text-sky-300 sm:tracking-[0.18em]">HISTORICAL KAM ECONOMIC ARCHIVE</p>
               <h1 className="mt-1 max-w-full break-words text-[clamp(1.85rem,9vw,3rem)] font-black leading-[1.05] tracking-tight">KAM Tokenomics v1</h1>
             </div>
           </div>
-          <p className="mt-5 max-w-3xl text-sm leading-6 text-slate-300">Canonical public presentation of the approved KAM economic baseline. This page does not change genesis or chain state and does not declare a commercial mainnet launch, exchange listing, guaranteed liquidity, or guaranteed price.</p>
+          <p className="mt-5 max-w-3xl text-sm leading-6 text-slate-300">Historical KAM economic baseline preserved for transparency. ZVQ supply and allocations require separate on-chain reconciliation before publication. This page does not change genesis or chain state and does not declare a commercial mainnet launch, exchange listing, guaranteed liquidity, or guaranteed price.</p>
           <div className="mt-4 inline-flex max-w-full rounded-2xl border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-[10px] font-bold leading-5 text-amber-200 sm:rounded-full sm:text-[11px]">PRE-COMMERCIAL LAUNCH · SUPPLY REQUIRES FINAL ON-CHAIN RECONCILIATION</div>
           <div className="mt-5 grid gap-3 sm:flex sm:flex-wrap">
             <Link to="/KAMGlobalRoadmap" className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-sky-600 px-4 text-center text-sm font-black text-white hover:bg-sky-500 sm:w-auto">View KAM Strategic Roadmap</Link>

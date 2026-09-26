@@ -8,14 +8,16 @@ const docs = await readFile(new URL('../explorer-dashboard/developer-docs.html',
 const networkConfig = JSON.parse(await readFile(new URL('../explorer-dashboard/developer-network.json', import.meta.url), 'utf8'));
 const deploy = await readFile(new URL('../scripts/deploy-kam-developer-starter.sh', import.meta.url), 'utf8');
 
-test('live KAM starter is canonical and browser-safe', () => {
+test('live ZEVARYQ starter is canonical and browser-safe', () => {
   assert.match(starter, /data-kam-developer-starter-version="1\.0\.0"/);
-  assert.match(starter, /KriptoAman Mainnet/);
+  assert.match(starter, /ZEVARYQ Mainnet/);
   assert.match(starter, /Chain ID 22028/);
   assert.match(starter, /0x560c/);
   assert.equal(networkConfig.chainId, 22028);
   assert.equal(networkConfig.chainIdHex, '0x560c');
-  assert.equal(networkConfig.nativeCurrency.symbol, 'KAM');
+  assert.equal(networkConfig.networkName, 'ZEVARYQ Mainnet');
+  assert.match(starter, /nativeCurrency:\{name:'ZVQ',symbol:'ZVQ'/);
+  assert.equal(networkConfig.nativeCurrency.symbol, 'ZVQ');
   assert.match(starter, /readJson\('\/developer\/network\.json'\)/);
   assert.match(starter, /readJson\('\/api\/v2\/blocks'\)/);
   assert.match(starter, /readJson\('\/api\/v2\/stats'\)/);
@@ -39,7 +41,7 @@ test('Developer Center and Docs make the live starter directly discoverable', ()
   assert.match(developer, /href="\/developer\/starter"/);
   assert.match(developer, /Run Live dApp Starter/);
   assert.match(docs, /href="\/developer\/starter"/);
-  assert.match(docs, /KAM Live dApp Starter/);
+  assert.match(docs, /ZVQ Live dApp Starter/);
   assert.match(docs, /GitHub starter folder/);
 });
 
@@ -63,4 +65,16 @@ test('starter deployment is exact-route, isolated and rollback-safe', () => {
   assert.match(deploy, /x-kam-developer-starter-version/);
   assert.doesNotMatch(deploy, /curl[^\n]*\|\s*grep/);
   assert.doesNotMatch(deploy, /--privileged/);
+});
+
+test('PR validation is independent of not-yet-deployed V2 network route; production install remains gated', async () => {
+  const workflow = await readFile(new URL('../.github/workflows/kam-developer-starter-deploy.yml', import.meta.url), 'utf8');
+  assert.match(workflow, /explorer-dashboard\/developer-network\.json/);
+  assert.match(workflow, /live indexed blocks unavailable/);
+  assert.match(workflow, /Run the gated Explorer V2 deployment first/);
+  assert.match(workflow, /d\['nativeCurrency'\]\['symbol'\]=='ZVQ'/);
+  assert.match(workflow, /if: \$\{\{ github\.event_name == 'workflow_dispatch' \}\}/);
+  assert.doesNotMatch(workflow, /if: \$\{\{ github\.event_name != 'pull_request' \}\}/);
+  assert.match(deploy, /ZEVARYQ network\.json unavailable after deployment/);
+  assert.match(deploy, /d\['networkName'\]=='ZEVARYQ Mainnet'/);
 });

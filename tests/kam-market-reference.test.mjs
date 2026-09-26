@@ -20,7 +20,7 @@ test('Market preserves the dedicated KAM audit-status surface inside the multi-a
   assert.match(page, /1–3 weeks after auditor kickoff/);
   assert.match(page, /BELUM DIPERDAGANGKAN/);
   assert.match(page, /NOT YET TRADING/);
-  assert.match(page, /\/KAMGlobalRoadmap/);
+  assert.match(page, /\/KAMNetwork/);
   assert.match(page, /\/IntelligenceHub/);
   assert.doesNotMatch(page, /INDICATIVE_REFERENCE/);
   assert.doesNotMatch(page, /US\$29\.37/);

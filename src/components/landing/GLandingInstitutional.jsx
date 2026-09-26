@@ -30,7 +30,7 @@ const ITEMS = [
   {
     icon: Network,
     eyebrow: 'Blockchain Infrastructure',
-    title: 'KAM Network & Explorer',
+    title: 'ZEVARYQ Network & Explorer',
     desc: 'Akses informasi jaringan dan explorer publik untuk pemeriksaan on-chain. Status jaringan ditampilkan berdasarkan endpoint yang dapat diverifikasi.',
     href: 'https://explorer.kriptoaman.com',
     cta: 'Buka explorer',
