@@ -1,0 +1,36 @@
+name: ZVQ Browser RPC Gateway Diagnostic
+on:
+  push:
+    branches:
+      - codex/zvq-explorer-rpc-diagnostic-20260927
+    paths:
+      - scripts/probe-zevaryq-browser-rpc.mjs
+      - .github/workflows/zvq-browser-rpc-diagnostic.yml
+  pull_request:
+    paths:
+      - scripts/probe-zevaryq-browser-rpc.mjs
+      - .github/workflows/zvq-browser-rpc-diagnostic.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  read-only-public-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Check out diagnostic
+        uses: actions/checkout@v7
+      - name: Set up Node 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Probe canonical RPC, same-origin browser RPC and indexed blocks once
+        run: node scripts/probe-zevaryq-browser-rpc.mjs
+      - name: Upload read-only public gateway evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zvq-browser-rpc-gateway-evidence
+          path: zvq-rpc-gateway-report.json
+          if-no-files-found: warn
+          retention-days: 7
