@@ -141,7 +141,7 @@ def main() -> None:
         modified = False
         committed = False
         try:
-            cmd(["docker", "run", "-d", "--name", GATEWAY, "--network", "host",
+            cmd(["docker", "run", "-d", "--name", GATEWAY, "--network", f"container:{CONTAINER}",
                  "--restart", "unless-stopped", "--read-only", "--user", "10001:10001",
                  "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
                  "--memory", "128m", "--pids-limit", "64", "--tmpfs", "/tmp",
