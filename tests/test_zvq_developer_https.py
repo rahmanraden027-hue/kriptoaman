@@ -43,7 +43,7 @@ class DeveloperTlsRoutesTest(unittest.TestCase):
         self.assertEqual(domain.count(RATE_ZONE), 1)
         self.assertEqual(domain.count("limit_req zone=zvq_developer burst=12 nodelay;"), len(PAGES))
         self.assertEqual(domain.count("limit_req_status 429;"), len(PAGES))
-        self.assertIn(RATE_ZONE + "\\nserver {", domain)
+        self.assertIn(RATE_ZONE + "\nserver {", domain)
         self.assertNotIn("proxy_pass http://127.0.0.1:80;", domain)
         self.assertNotIn("18447", ip)
         self.assertEqual(domain.count("proxy_set_header Host 127.0.0.1;"), len(PAGES))
