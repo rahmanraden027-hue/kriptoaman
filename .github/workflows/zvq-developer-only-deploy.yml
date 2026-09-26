@@ -1,0 +1,176 @@
+name: ZVQ Developer-Only Production Release
+on:
+  pull_request:
+    paths:
+      - scripts/deploy_zvq_developer_only.py
+      - scripts/render_zvq_developer_https.py
+      - explorer-dashboard/developer.html
+      - explorer-dashboard/developer-docs.html
+      - explorer-dashboard/developer-examples.html
+      - explorer-dashboard/developer-verify.html
+      - explorer-dashboard/developer-starter.html
+      - explorer-dashboard/developer-network.json
+      - tests/test_zvq_developer_release.py
+      - scripts/verify-zvq-public-mobile.mjs
+      - .github/workflows/zvq-developer-only-deploy.yml
+  workflow_dispatch:
+    inputs:
+      confirm_developer_only:
+        description: "Type DEPLOY-ZVQ-DEVELOPER-ONLY"
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: zvq-developer-only-release
+  cancel-in-progress: false
+
+jobs:
+  review-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate isolated Developer-only candidate and original RPC protections
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 -m unittest discover -s tests -p 'test_zvq_developer_release.py' -v
+          python3 -m unittest discover -s tests -p 'test_zvq_developer_https.py' -v
+          python3 -m py_compile scripts/deploy_zvq_developer_only.py scripts/render_zvq_developer_https.py
+          node --test tests/zvq-rpc-allowlist-gateway.test.mjs tests/kam-developer-starter-live.test.mjs
+          node --check scripts/verify-zvq-public-mobile.mjs
+          ! grep -Fq 'KAM Contract Verification' explorer-dashboard/developer-verify.html
+
+  public-baseline:
+    if: github.event_name == 'pull_request'
+    needs: review-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Do not mask current production defect or weaken the existing gateway
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          for url in https://rpc.kriptoaman.com/ https://explorer.kriptoaman.com/rpc; do
+            curl -fsS --max-time 15 -H 'Content-Type: application/json' \
+              --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' "$url" |
+              python3 -c 'import json,sys; assert json.load(sys.stdin).get("result")=="0x560c"'
+          done
+          test "$(curl -sS --max-time 10 -o /dev/null -w '%{http_code}' https://146.190.93.254/rpc)" = 403
+          curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks |
+            python3 -c 'import json,sys; assert json.load(sys.stdin).get("items")'
+          echo 'public_rpc_and_indexer_baseline=verified; developer_404_remains_until_manual_release'
+
+  manually-authorized-developer-only:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.confirm_developer_only == 'DEPLOY-ZVQ-DEVELOPER-ONLY'
+    needs: review-contract
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate only the reviewed config candidate without production mutation
+        run: sudo -n env ZVQ_DEV_RUN_ID="$GITHUB_RUN_ID" python3 scripts/deploy_zvq_developer_only.py
+      - name: Stage exact Developer static routes, apply scoped TLS and prove rollback safety
+        run: sudo -n env ZVQ_DEV_RUN_ID="$GITHUB_RUN_ID" python3 scripts/deploy_zvq_developer_only.py --apply
+
+  public-post-verify:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: manually-authorized-developer-only
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate all seven Developer pages and native ZVQ network configuration
+        run: python3 scripts/probe_zvq_developer_routes.py --scope public --require-ready
+      - name: Independently verify approved logo, RPC allowlist, chain and indexer
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          curl -fsS --max-time 15 -o /tmp/zvq-home.html https://explorer.kriptoaman.com/
+          grep -Fq 'data-zevaryq-explorer-version' /tmp/zvq-home.html
+          curl -fsS --max-time 15 -o /tmp/zvq-developer.html https://explorer.kriptoaman.com/developer
+          grep -Fq '/zevaryq-assets/zevaryq-emblem.webp' /tmp/zvq-developer.html
+          curl -fsS --max-time 15 -o /tmp/zvq-emblem.webp https://explorer.kriptoaman.com/zevaryq-assets/zevaryq-emblem.webp
+          echo "3fcabc6475d975b65b49c5d6a88c5d1c6e64630b11d5674bfc773a92dd2ec95f  /tmp/zvq-emblem.webp" | sha256sum -c -
+          rpc() {
+            local endpoint="$1" method="$2" params="$3"
+            curl -sS --max-time 12 -H 'Content-Type: application/json' \
+              -o /tmp/zvq-public-rpc.json -w '%{http_code}' \
+              --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"$method\",\"params\":$params}" "$endpoint"
+          }
+          for endpoint in https://rpc.kriptoaman.com/ https://explorer.kriptoaman.com/rpc; do
+            test "$(rpc "$endpoint" eth_chainId '[]')" = 200
+            python3 -c 'import json; assert json.load(open("/tmp/zvq-public-rpc.json")).get("result")=="0x560c"'
+          done
+          for method in eth_sendRawTransaction personal_listAccounts admin_peers debug_traceTransaction txpool_content qbft_getValidatorsByBlockNumber; do
+            test "$(rpc https://explorer.kriptoaman.com/rpc "$method" '[]')" = 403
+          done
+          test "$(curl -sS --max-time 12 -o /dev/null -w '%{http_code}' https://146.190.93.254/rpc)" = 403
+          test "$(curl -sS --max-time 12 -o /dev/null -w '%{http_code}' https://146.190.93.254/api/admin)" = 403
+          test "$(rpc https://explorer.kriptoaman.com/rpc eth_blockNumber '[]')" = 200
+          a="$(python3 -c 'import json; print(int(json.load(open("/tmp/zvq-public-rpc.json"))["result"],16))')"
+          sleep 12
+          test "$(rpc https://explorer.kriptoaman.com/rpc eth_blockNumber '[]')" = 200
+          b="$(python3 -c 'import json; print(int(json.load(open("/tmp/zvq-public-rpc.json"))["result"],16))')"
+          test "$b" -gt "$a"
+          curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks |
+            python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("items"); print("indexed_head="+str(d["items"][0].get("height")))'
+          echo 'developer_public=pass; chain_id=22028; blocks=advancing; rpc_write_admin=denied; independent_ip=protected'
+
+      - name: Public same-block balances for two repository-labelled addresses
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          node --input-type=module <<'JS'
+          const RPCS = ['https://rpc.kriptoaman.com/','https://explorer.kriptoaman.com/rpc'];
+          const ADDRESSES = [
+            ['repository-labelled treasury (ownership unverified)', '0xab481451eaf642384d2d9888b355f10d327c5de9'],
+            ['reconstructed-genesis candidate (ownership unverified)', '0xd74ea7d92bbb40d475bcea170367b85971acb0f'],
+          ];
+          let requests=0;
+          async function rpc(url,method,params=[]){
+            if(++requests>8)throw Error('Read-only request budget exceeded');
+            const response=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:requests,method,params}),signal:AbortSignal.timeout(12000)});
+            if(!response.ok)throw Error(method+' HTTP '+response.status);
+            const d=await response.json();
+            if(d.error||typeof d.result!=='string')throw Error(method+' returned no verified result');
+            return d.result;
+          }
+          const id=await rpc(RPCS[0],'eth_chainId');
+          if(id!=='0x560c')throw Error('Wrong-chain wallet balances are prohibited');
+          const height=await rpc(RPCS[0],'eth_blockNumber');
+          for(const [label,address] of ADDRESSES){
+            const values=await Promise.all(RPCS.map(url=>rpc(url,'eth_getBalance',[address,height])));
+            if(values[0].toLowerCase()!==values[1].toLowerCase())throw Error('Same-block balance mismatch for '+address);
+            const n=BigInt(values[0]), base=10n**18n;
+            console.log(JSON.stringify({label,address,chain_id:22028,block:height,balance_wei:n.toString(),
+              balance_zvq:(n/base).toString()+'.'+(n%base).toString().padStart(18,'0'),provider_agreement:true}));
+          }
+          JS
+
+  public-mobile-proof:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: public-post-verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Locate official Chrome and isolated test client
+        shell: bash
+        run: |
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || true)"
+          test -n "$CHROME"
+          echo "ZVQ_CHROME=$CHROME" >> "$GITHUB_ENV"
+          npm install --prefix "$RUNNER_TEMP/zvq-playwright" --no-package-lock --ignore-scripts --no-audit --no-fund playwright-core@1.55.0
+          echo "PLAYWRIGHT_CORE=$RUNNER_TEMP/zvq-playwright/node_modules/playwright-core/index.mjs" >> "$GITHUB_ENV"
+      - name: Real public mobile viewport, approved emblem, routing and indexed display
+        run: node scripts/verify-zvq-public-mobile.mjs
+        env:
+          ZVQ_PUBLIC_SCREENSHOTS: /tmp/zvq-public-mobile-proof
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zvq-public-developer-and-explorer-mobile-screenshots
+          path: /tmp/zvq-public-mobile-proof
+          if-no-files-found: warn
+          retention-days: 14
