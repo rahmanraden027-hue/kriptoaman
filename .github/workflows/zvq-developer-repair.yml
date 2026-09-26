@@ -1,0 +1,76 @@
+name: ZVQ Developer Center Surgical Repair
+on:
+  pull_request:
+    paths:
+      - scripts/repair_zvq_developer_center.sh
+      - scripts/render_zvq_developer_https.py
+      - scripts/probe_zvq_developer_routes.py
+      - explorer-dashboard/developer*.html
+      - explorer-dashboard/developer-network.json
+      - .github/workflows/zvq-developer-repair.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  review-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Developer repair source only
+        run: |
+          set -euo pipefail
+          bash -n scripts/repair_zvq_developer_center.sh
+          python3 -m unittest discover -s tests -p 'test_zvq_developer_https.py' -v
+          python3 -m py_compile scripts/render_zvq_developer_https.py scripts/probe_zvq_developer_routes.py
+          grep -Fq 'data-kam-developer-version="1.0.0"' explorer-dashboard/developer.html
+          python3 - <<'PY'
+          import json
+          d=json.load(open("explorer-dashboard/developer-network.json"))
+          assert d["chainId"]==22028 and d["chainIdHex"]=="0x560c"
+          assert d["networkName"]=="ZEVARYQ Mainnet" and d["nativeCurrency"]["symbol"]=="ZVQ"
+          PY
+      - name: Confirm live RPC remains healthy before any manual deployment
+        run: |
+          set -euo pipefail
+          curl -fsS --max-time 15 -H 'Content-Type: application/json'             --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}'             https://explorer.kriptoaman.com/rpc |
+            python3 -c 'import json,sys; assert json.load(sys.stdin).get("result")=="0x560c"'
+          curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks |
+            python3 -c 'import json,sys; assert json.load(sys.stdin).get("items")'
+
+  authorized-repair:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: review-contract
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply Developer-only assets and exact routes with rollback
+        run: |
+          set -euo pipefail
+          chmod +x scripts/repair_zvq_developer_center.sh
+          scripts/repair_zvq_developer_center.sh
+
+  public-post-verify:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: authorized-repair
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify all public Developer routes
+        run: python3 scripts/probe_zvq_developer_routes.py --scope public --require-ready
+      - name: Reconfirm RPC security and Blockscout
+        run: |
+          set -euo pipefail
+          for method in eth_chainId eth_blockNumber eth_getBalance; do
+            test "$(curl -sS --max-time 15 -o /tmp/rpc.json -w '%{http_code}' -H 'Content-Type: application/json' --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"$method\",\"params\":[]}" https://explorer.kriptoaman.com/rpc)" = 200
+          done
+          for method in eth_sendRawTransaction personal_unlockAccount admin_peers debug_traceTransaction txpool_status; do
+            test "$(curl -sS --max-time 15 -o /dev/null -w '%{http_code}' -H 'Content-Type: application/json' --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"$method\",\"params\":[]}" https://explorer.kriptoaman.com/rpc)" = 403
+          done
+          curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks |
+            python3 -c 'import json,sys; assert json.load(sys.stdin).get("items")'
+          echo 'developer_routes=pass rpc_read=pass rpc_write_blocked=pass blockscout=pass'
