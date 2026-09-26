@@ -1,0 +1,73 @@
+name: ZVQ Developer HTTPS Read-only Preflight
+on:
+  pull_request:
+    paths:
+      - scripts/render_zvq_developer_https.py
+      - scripts/probe_zvq_developer_routes.py
+      - tests/test_zvq_developer_https.py
+      - .github/workflows/zvq-developer-https.yml
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/zvq-developer-https.yml
+
+permissions:
+  contents: read
+
+jobs:
+  review-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Review domain-only routes and source syntax
+        run: |
+          python3 -m unittest discover -s tests -p 'test_zvq_developer_https.py' -v
+          python3 -m py_compile scripts/render_zvq_developer_https.py scripts/probe_zvq_developer_routes.py
+          test -f explorer-dashboard/developer.html
+          test -f explorer-dashboard/developer-starter.html
+          test -f explorer-dashboard/developer-network.json
+
+  public-availability:
+    needs: review-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Probe public Developer Center without changing production
+        run: python3 scripts/probe_zvq_developer_routes.py --scope public
+      - name: Verify canonical and Explorer RPC plus Blockscout (read-only)
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          for url in https://rpc.kriptoaman.com/ https://explorer.kriptoaman.com/rpc; do
+            curl -fsS --max-time 15 -H 'Content-Type: application/json' \
+              --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' "$url" |
+              python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("result")=="0x560c"; print("chain_id=22028")'
+          done
+          curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks |
+            python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("items"); print("indexed_blocks_available=true")'
+
+  protected-origin-read-only-preflight:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: review-contract
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check existing local port-80 Developer content before any 443 patch
+        run: python3 scripts/probe_zvq_developer_routes.py --scope backend --require-ready
+      - name: Record actual direct-origin 443 Developer routes
+        run: python3 scripts/probe_zvq_developer_routes.py --scope origin
+      - name: Confirm protected IP fallback and live RPC identity
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test "$(curl --noproxy '*' -sS --max-time 12 -o /dev/null -w '%{http_code}' https://146.190.93.254/rpc)" = 403
+          test "$(curl --noproxy '*' -sS --max-time 12 -o /dev/null -w '%{http_code}' https://146.190.93.254/api/admin)" = 403
+          curl --noproxy '*' -fsS --max-time 12 \
+            --resolve explorer.kriptoaman.com:443:146.190.93.254 \
+            -H 'Content-Type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+            https://explorer.kriptoaman.com/rpc |
+            python3 -c 'import json,sys; assert json.load(sys.stdin).get("result")=="0x560c"; print("origin_chain_id=22028")'
