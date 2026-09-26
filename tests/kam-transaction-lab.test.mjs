@@ -23,7 +23,7 @@ test('transaction flow remains wallet-approved and constrained', async () => {
   assert.match(page, /wallet_switchEthereumChain/);
   assert.match(page, /wallet_addEthereumChain/);
   assert.match(page, /eth_sendTransaction/);
-  assert.match(page, /MAX_TRIAL_KAM = '1'/);
+  assert.match(page, /MAX_TRIAL_ZVQ = '1'/);
   assert.match(page, /stage !== 'preview'/);
   assert.match(page, /!acknowledged/);
   assert.match(page, /Chain ID 22028/);
@@ -36,6 +36,6 @@ test('transaction input validation rejects malformed targets and self-transfer',
   assert.match(page, /\^0x\[a-fA-F0-9\]\{40\}\$/);
   assert.match(page, /recipient\.toLowerCase\(\) !== account\.toLowerCase\(\)/);
   assert.match(page, /amountWei > 0n/);
-  assert.match(page, /amountWei <= parseKam\(MAX_TRIAL_KAM\)/);
+  assert.match(page, /amountWei <= parseKam\(MAX_TRIAL_ZVQ\)/);
   assert.match(page, /HASH_RE\.test/);
 });
