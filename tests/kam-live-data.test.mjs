@@ -12,7 +12,8 @@ test('KAM UI uses verified live data and never invents market values', async () 
   ]);
   assert.match(card, /\/api\/kam\/network-status/);
   assert.match(card, /network\.verified/);
-  assert.match(card, /balanceKAM/);
+  assert.match(card, /balanceZVQ/);
+  assert.match(endpoint, /balanceKAM/); // Legacy additive API alias for existing clients.
   assert.doesNotMatch(card, /\$2\.47|marketPrice:\s*[1-9]/);
   assert.match(endpoint, /eth_chainId/);
   assert.match(endpoint, /eth_blockNumber/);
