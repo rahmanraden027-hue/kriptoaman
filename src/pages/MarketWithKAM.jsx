@@ -7,16 +7,16 @@ import { useLanguage } from '@/lib/LanguageContext';
 
 const COPY = {
   id: {
-    eyebrow: 'KAM NETWORK REFERENCE',
-    title: 'KAM · Referensi Ekosistem',
+    eyebrow: 'ZEVARYQ NETWORK REFERENCE',
+    title: 'ZEVARYQ · Referensi Ekosistem',
     status: 'BELUM DIPERDAGANGKAN',
     auditStatus: 'AUDIT BERLANGSUNG',
     reference: 'Review independen · production hold',
-    body: 'Scope KAM DEX V2 Revision 3 telah dibekukan dan dikirim untuk review independen. Belum ada laporan audit eksternal yang diterima.',
+    body: 'Cakupan kontrak historis KAM DEX V2 Revision 3 telah dibekukan dan dikirim untuk review independen. Belum ada laporan audit eksternal yang diterima.',
     auditEta: 'Estimasi internal: 1–3 minggu setelah kickoff auditor · dapat berubah sesuai temuan',
     network: 'KriptoAman Network · Chain ID 22028',
     networkState: 'Mainnet candidate · belum dipromosikan sebagai jaringan publik',
-    roadmap: 'Roadmap KAM',
+    roadmap: 'Jaringan ZEVARYQ',
     intelligence: 'Intelligence Hub',
     paper: 'Paper Trading',
     intelligenceKicker: 'MARKET INTELLIGENCE',
@@ -33,16 +33,16 @@ const COPY = {
     disclaimer: 'Ringkasan ini dihitung dari aset yang memiliki data harga dan perubahan 24 jam. Bukan sinyal beli/jual atau rekomendasi investasi.',
   },
   en: {
-    eyebrow: 'KAM NETWORK REFERENCE',
-    title: 'KAM · Ecosystem Reference',
+    eyebrow: 'ZEVARYQ NETWORK REFERENCE',
+    title: 'ZEVARYQ · Ecosystem Reference',
     status: 'NOT YET TRADING',
     auditStatus: 'AUDIT IN PROGRESS',
     reference: 'Independent review · production hold',
-    body: 'The KAM DEX V2 Revision 3 scope is frozen and has been sent for independent review. No attributable external audit report has been received yet.',
+    body: 'The legacy KAM DEX V2 Revision 3 contract scope is frozen and has been sent for independent review. No attributable external audit report has been received yet.',
     auditEta: 'Internal estimate: 1–3 weeks after auditor kickoff · subject to findings',
     network: 'KriptoAman Network · Chain ID 22028',
     networkState: 'Mainnet candidate · not promoted as a public network',
-    roadmap: 'KAM Roadmap',
+    roadmap: 'ZEVARYQ Network',
     intelligence: 'Intelligence Hub',
     paper: 'Paper Trading',
     intelligenceKicker: 'MARKET INTELLIGENCE',
@@ -136,7 +136,7 @@ export default function MarketWithKAM() {
               <Link to="/IntelligenceHub" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-sky-400/20 bg-sky-400/10 px-4 text-xs font-bold text-sky-200 transition hover:border-sky-300/40 hover:bg-sky-400/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">
                 <BrainCircuit className="h-4 w-4" /> {text.intelligence}
               </Link>
-              <Link to="/KAMGlobalRoadmap" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-sky-500 px-4 text-xs font-black text-slate-950 transition hover:bg-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">
+              <Link to="/KAMNetwork" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-sky-500 px-4 text-xs font-black text-slate-950 transition hover:bg-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">
                 <CircleDollarSign className="h-4 w-4" /> {text.roadmap} <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
