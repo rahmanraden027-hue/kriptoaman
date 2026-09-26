@@ -66,3 +66,15 @@ test('starter deployment is exact-route, isolated and rollback-safe', () => {
   assert.doesNotMatch(deploy, /curl[^\n]*\|\s*grep/);
   assert.doesNotMatch(deploy, /--privileged/);
 });
+
+test('PR validation is independent of not-yet-deployed V2 network route; production install remains gated', async () => {
+  const workflow = await readFile(new URL('../.github/workflows/kam-developer-starter-deploy.yml', import.meta.url), 'utf8');
+  assert.match(workflow, /explorer-dashboard\/developer-network\.json/);
+  assert.match(workflow, /live indexed blocks unavailable/);
+  assert.match(workflow, /Run the gated Explorer V2 deployment first/);
+  assert.match(workflow, /d\['nativeCurrency'\]\['symbol'\]=='ZVQ'/);
+  assert.match(workflow, /if: \$\{\{ github\.event_name == 'workflow_dispatch' \}\}/);
+  assert.doesNotMatch(workflow, /if: \$\{\{ github\.event_name != 'pull_request' \}\}/);
+  assert.match(deploy, /ZEVARYQ network\.json unavailable after deployment/);
+  assert.match(deploy, /d\['networkName'\]=='ZEVARYQ Mainnet'/);
+});
