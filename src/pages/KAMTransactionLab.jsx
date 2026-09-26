@@ -14,14 +14,14 @@ const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
 const HASH_RE = /^0x[a-fA-F0-9]{64}$/;
 const METAMASK_DAPP_LINK = 'https://link.metamask.io/dapp/kriptoaman.com/KAMTransactionLab';
 
-function parseKam(value) {
+function parseZvq(value) {
   const normalized = String(value).trim();
   if (!/^\d+(\.\d{0,18})?$/.test(normalized)) throw new Error('Masukkan nominal ZVQ yang valid.');
   const [whole, fraction = ''] = normalized.split('.');
   return BigInt(whole) * 10n ** 18n + BigInt((fraction + '0'.repeat(18)).slice(0, 18));
 }
 
-function formatKam(hexValue) {
+function formatZvq(hexValue) {
   const wei = BigInt(hexValue || '0x0');
   const whole = wei / 10n ** 18n;
   const fraction = (wei % 10n ** 18n).toString().padStart(18, '0').slice(0, 6).replace(/0+$/, '');
@@ -47,9 +47,9 @@ export default function KAMTransactionLab() {
   const chainReady = chainId.toLowerCase() === NETWORK.chainId;
   const validRecipient = ADDRESS_RE.test(recipient.trim());
   const amountWei = useMemo(() => {
-    try { return parseKam(amount); } catch { return 0n; }
+    try { return parseZvq(amount); } catch { return 0n; }
   }, [amount]);
-  const amountReady = amountWei > 0n && amountWei <= parseKam(MAX_TRIAL_ZVQ);
+  const amountReady = amountWei > 0n && amountWei <= parseZvq(MAX_TRIAL_ZVQ);
   const canPreview = walletAvailable && account && chainReady && validRecipient && amountReady && recipient.toLowerCase() !== account.toLowerCase();
   const busy = stage === 'connecting' || stage === 'switching' || stage === 'sending';
 
@@ -62,9 +62,9 @@ export default function KAMTransactionLab() {
     const nextAccount = accounts?.[0] || '';
     setAccount(nextAccount);
     setChainId(String(currentChain || ''));
-    if (nextAccount) {
+    if (nextAccount && String(currentChain || '').toLowerCase() === NETWORK.chainId) {
       const nextBalance = await window.ethereum.request({ method: 'eth_getBalance', params: [nextAccount, 'latest'] });
-      setBalance(formatKam(nextBalance));
+      setBalance(formatZvq(nextBalance));
     } else {
       setBalance(null);
     }
@@ -115,7 +115,7 @@ export default function KAMTransactionLab() {
         await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [NETWORK] });
       }
       await refreshWallet();
-      setMessage('ZVQ Network telah dipilih di wallet.');
+      setMessage('ZEVARYQ Network telah dipilih di wallet.');
       setStage('idle');
     } catch (error) {
       setMessage(error?.code === 4001 ? 'Perubahan jaringan dibatalkan di wallet.' : error?.message || 'Jaringan belum dapat dipilih.');
@@ -145,7 +145,7 @@ export default function KAMTransactionLab() {
       });
       if (!HASH_RE.test(String(hash))) throw new Error('Wallet tidak mengembalikan hash transaksi yang valid.');
       setTxHash(hash);
-      setMessage('Transaksi telah dikirim. Status final harus diverifikasi melalui ZVQ Explorer.');
+      setMessage('Transaksi telah dikirim. Status final harus diverifikasi melalui ZEVARYQ Explorer.');
       setStage('submitted');
       await refreshWallet();
     } catch (error) {
@@ -163,7 +163,7 @@ export default function KAMTransactionLab() {
     <main className="ka-bg min-h-screen px-4 pb-24 pt-6 text-white">
       <div className="mx-auto max-w-5xl space-y-5">
         <section className="ka-command-hero overflow-hidden p-6 sm:p-8">
-          <a href="/KAMNetwork" className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-slate-300 hover:text-white"><ArrowLeft className="h-4 w-4" /> Kembali ke ZVQ Network</a>
+          <a href="/KAMNetwork" className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-slate-300 hover:text-white"><ArrowLeft className="h-4 w-4" /> Kembali ke ZEVARYQ Network</a>
           <div className="mt-6 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
               <p className="ka-command-kicker">ZVQ NETWORK · TRANSACTION LAB</p>
@@ -176,7 +176,7 @@ export default function KAMTransactionLab() {
 
         <section className="grid gap-4 md:grid-cols-3">
           <div className="ka-command-panel p-5"><p className="text-sm font-bold text-slate-400">Wallet</p><p className="mt-3 text-lg font-black">{account ? short(account) : 'Belum terhubung'}</p><button onClick={account ? refreshWallet : walletAvailable ? connect : openMetaMask} disabled={busy} className="mt-4 min-h-11 w-full rounded-xl bg-sky-600 px-4 text-sm font-black hover:bg-sky-500 disabled:opacity-50">{stage === 'connecting' ? 'Menghubungkan…' : account ? 'Perbarui Wallet' : walletAvailable ? 'Hubungkan Wallet' : 'Buka di MetaMask'}</button>{!walletAvailable && <p className="mt-3 text-sm leading-6 text-slate-400">Browser ini belum menyediakan koneksi wallet. Buka halaman ini di MetaMask untuk melanjutkan dengan aman.</p>}</div>
-          <div className="ka-command-panel p-5"><p className="text-sm font-bold text-slate-400">Jaringan</p><p className={`mt-3 text-lg font-black ${chainReady ? 'text-emerald-300' : 'text-amber-300'}`}>{chainReady ? 'ZVQ Network' : chainId ? `Chain ${parseInt(chainId, 16)}` : 'Belum terdeteksi'}</p><button onClick={switchNetwork} disabled={busy || chainReady} className="mt-4 min-h-11 w-full rounded-xl border border-sky-400/25 bg-sky-500/10 px-4 text-sm font-black text-sky-200 disabled:opacity-50">{chainReady ? 'Jaringan Sesuai' : 'Pilih ZVQ Network'}</button></div>
+          <div className="ka-command-panel p-5"><p className="text-sm font-bold text-slate-400">Jaringan</p><p className={`mt-3 text-lg font-black ${chainReady ? 'text-emerald-300' : 'text-amber-300'}`}>{chainReady ? 'ZEVARYQ Network' : chainId ? `Chain ${parseInt(chainId, 16)}` : 'Belum terdeteksi'}</p><button onClick={switchNetwork} disabled={busy || chainReady} className="mt-4 min-h-11 w-full rounded-xl border border-sky-400/25 bg-sky-500/10 px-4 text-sm font-black text-sky-200 disabled:opacity-50">{chainReady ? 'Jaringan Sesuai' : 'Pilih ZEVARYQ Network'}</button></div>
           <div className="ka-command-panel p-5"><p className="text-sm font-bold text-slate-400">Saldo tersedia</p><p className="mt-3 text-lg font-black">{balance == null ? '—' : `${balance} ZVQ`}</p><p className="mt-4 text-sm leading-6 text-slate-500">Dibaca langsung dari wallet pada blok terbaru.</p></div>
         </section>
 
@@ -212,7 +212,7 @@ export default function KAMTransactionLab() {
         )}
 
         {message && <div aria-live="polite" className="rounded-2xl border border-sky-400/20 bg-sky-500/10 p-4 text-sm leading-6 text-sky-100">{message}</div>}
-        {txHash && HASH_RE.test(txHash) && <a href={`${NETWORK.blockExplorerUrls[0]}/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-emerald-400/25 bg-emerald-500/10 px-5 text-sm font-black text-emerald-200">Verifikasi transaksi di ZVQ Explorer <ExternalLink className="h-5 w-5" /></a>}
+        {txHash && HASH_RE.test(txHash) && <a href={`${NETWORK.blockExplorerUrls[0]}/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-emerald-400/25 bg-emerald-500/10 px-5 text-sm font-black text-emerald-200">Verifikasi transaksi di ZEVARYQ Explorer <ExternalLink className="h-5 w-5" /></a>}
 
         <p className="px-1 text-sm leading-6 text-slate-500">KriptoAman tidak pernah meminta seed phrase, private key, atau password wallet. Seluruh persetujuan dan tanda tangan transaksi dilakukan di dalam wallet pengguna.</p>
       </div>
