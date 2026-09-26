@@ -1,7 +1,7 @@
 import React from 'react';
 import { ExternalLink, Network, Server, ShieldCheck, WalletCards } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import KriptoAmanLogo from '../components/brand/KriptoAmanLogo';
+import ZevaryqMark from '../components/zevaryq-wallet/ZevaryqMark';
 
 const rows = [
   ['Network name', 'ZEVARYQ Mainnet (candidate)'],
@@ -25,7 +25,7 @@ export default function KAMNetworkDocs() {
     <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 pb-24 pt-6 text-white">
       <div className="mx-auto max-w-4xl space-y-5">
         <header className="rounded-[28px] border border-sky-400/20 bg-sky-500/5 p-6 sm:p-8">
-          <div className="flex items-center gap-3"><KriptoAmanLogo size={44} /><div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-300">Official Network Documentation</p><h1 className="mt-1 text-3xl font-black">ZEVARYQ Network</h1></div></div>
+          <div className="flex items-center gap-3"><ZevaryqMark className="h-11 w-11" /><div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-300">Official Network Documentation</p><h1 className="mt-1 text-3xl font-black">ZEVARYQ Network</h1></div></div>
           <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-300">Canonical public documentation for ZEVARYQ network identity, wallet metadata, public endpoints, security posture, tokenomics references, and third-party registry references. The network remains labeled <strong>mainnet-candidate-not-public</strong> until the production promotion gate is fully satisfied.</p>
         </header>
 
