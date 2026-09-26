@@ -8,6 +8,7 @@ No NGINX reload, DNS changes, secrets, or chain write methods.
 import argparse
 import json
 import subprocess
+from pathlib import Path
 
 DOMAIN = "explorer.kriptoaman.com"
 IP = "146.190.93.254"
@@ -63,6 +64,75 @@ def valid(path, body):
     return PAGES[path] in body and "ZVQ" in body.upper()
 
 
+
+BACKEND_DIR = Path("/opt/blockscout/docker-compose/proxy")
+TLS_CONFIG = Path("/var/lib/zvq-origin-ip-tls/default.conf")
+SOURCE_FILES = {
+    "/developer": "developer.html",
+    "/developers": "developer.html",
+    "/developer/docs": "developer-docs.html",
+    "/developer/examples": "developer-examples.html",
+    "/developer/verify": "developer-verify.html",
+    "/developer/starter": "developer-starter.html",
+    "/developer/network.json": "developer-network.json",
+}
+
+
+def _safe_read(path):
+    """Public static pages/config only. Never print their contents or read secrets."""
+    try:
+        if path.stat().st_size > 2_000_000:
+            return ""
+        return path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        return ""
+
+
+def inventory():
+    """No writes: diagnose missing static assets, routes and HTML fallback separately."""
+    page_files = {}
+    for url, filename in SOURCE_FILES.items():
+        source = BACKEND_DIR / "kam-dashboard" / filename
+        body = _safe_read(source)
+        page_files[url] = {
+            "exists": source.is_file(),
+            "reviewed_zvq_content": valid(url, body),
+        }
+    home = _safe_read(BACKEND_DIR / "kam-dashboard" / "index.html")
+    template = _safe_read(BACKEND_DIR / "default.conf.template")
+    tls = _safe_read(TLS_CONFIG)
+    backend = {}
+    for url in PAGES:
+        http, body = get(url, "backend")
+        backend[url] = {
+            "http": http,
+            "expected_marker": PAGES[url] in body if PAGES[url] else False,
+            "zvq_content": http == "200" and valid(url, body),
+            "explorer_home_fallback": "data-zevaryq-explorer-version" in body,
+            "spa_fallback": '<div id="root"' in body or '<div id="app"' in body,
+        }
+    report = {
+        "scope": "backend_inventory",
+        "page_files": page_files,
+        "protected_zvq_home_installed": "data-zevaryq-explorer-version" in home,
+        "port80_template_exists": bool(template),
+        "port80_developer_exact_routes": {
+            path: ("location = " + path + " {") in template
+            for path in SOURCE_FILES
+        },
+        "port80_legacy_v2_route_marker": "KAM_EXPLORER_V2_BEGIN" in template,
+        "tls_config_exists": bool(tls),
+        "tls_domain_rpc_preserved": (
+            "ZVQ_DOMAIN_RPC_V2_READONLY" in tls
+            and "proxy_pass http://127.0.0.1:18446/;" in tls
+        ),
+        "tls_developer_patch_present": "ZVQ_DEVELOPER_HTTPS_V1" in tls,
+        "backend": backend,
+    }
+    print(json.dumps(report, sort_keys=True), flush=True)
+    return report
+
+
 def report(scope):
     result = {}
     for path in PAGES:
@@ -74,10 +144,10 @@ def report(scope):
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
-    p.add_argument("--scope", choices=("public", "backend", "origin", "fallback"),
+    p.add_argument("--scope", choices=("public", "backend", "origin", "fallback", "inventory"),
                    default="public")
     p.add_argument("--require-ready", action="store_true")
     args = p.parse_args()
-    actual = report(args.scope)
+    actual = inventory() if args.scope == "inventory" else report(args.scope)
     if args.require_ready and not all(x["zvq_content"] for x in actual.values()):
         raise SystemExit("Developer pages not ready at requested read-only scope")

@@ -61,5 +61,42 @@ class DeveloperTlsRoutesTest(unittest.TestCase):
         self.assertNotIn("proxy_pass https://rpc.kriptoaman.com", rendered)
 
 
+    def test_inventory_is_read_only_and_flags_homepage_fallback(self):
+        import contextlib
+        import io
+        import json
+        from unittest.mock import patch
+        import probe_zvq_developer_routes as probe
+        dev = '<main data-kam-developer-version="1.0.0">ZVQ Developer</main>'
+        def read(path):
+            p = str(path)
+            if p.endswith("/default.conf.template"):
+                return "location = /developer {"
+            if p.endswith("/default.conf"):
+                return "# ZVQ_DOMAIN_RPC_V2_READONLY\nproxy_pass http://127.0.0.1:18446/;"
+            if p.endswith("/kam-dashboard/index.html"):
+                return '<main data-zevaryq-explorer-version="2.0.0">ZVQ</main>'
+            if p.endswith("/kam-dashboard/developer.html"):
+                return dev
+            return ""
+        fallback = '<main data-zevaryq-explorer-version="2.0.0">ZVQ</main>'
+        with patch.object(probe, "_safe_read", side_effect=read), \
+             patch("pathlib.Path.is_file", return_value=True), \
+             patch.object(probe, "get", return_value=("200", fallback)) as read_page, \
+             contextlib.redirect_stdout(io.StringIO()) as output:
+            summary = probe.inventory()
+        self.assertEqual(read_page.call_count, len(probe.PAGES))
+        self.assertTrue(summary["protected_zvq_home_installed"])
+        self.assertTrue(summary["tls_domain_rpc_preserved"])
+        self.assertTrue(summary["port80_developer_exact_routes"]["/developer"])
+        self.assertFalse(summary["port80_developer_exact_routes"]["/developer/starter"])
+        self.assertFalse(summary["tls_developer_patch_present"])
+        self.assertTrue(summary["backend"]["/developer"]["explorer_home_fallback"])
+        self.assertFalse(summary["backend"]["/developer"]["zvq_content"])
+        self.assertTrue(summary["page_files"]["/developer"]["reviewed_zvq_content"])
+        self.assertEqual(json.loads(output.getvalue()), summary)
+        self.assertNotIn("private", output.getvalue().lower())
+
+
 if __name__ == "__main__":
     unittest.main()
