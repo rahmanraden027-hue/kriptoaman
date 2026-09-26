@@ -36,6 +36,6 @@ test('transaction input validation rejects malformed targets and self-transfer',
   assert.match(page, /\^0x\[a-fA-F0-9\]\{40\}\$/);
   assert.match(page, /recipient\.toLowerCase\(\) !== account\.toLowerCase\(\)/);
   assert.match(page, /amountWei > 0n/);
-  assert.match(page, /amountWei <= parseKam\(MAX_TRIAL_ZVQ\)/);
+  assert.match(page, /amountWei <= parseZvq\(MAX_TRIAL_ZVQ\)/);
   assert.match(page, /HASH_RE\.test/);
 });
