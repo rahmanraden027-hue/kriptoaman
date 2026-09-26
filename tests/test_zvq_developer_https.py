@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
-from render_zvq_developer_https import DOMAIN_MARKER, MARKER, PAGES, render
+from render_zvq_developer_https import DOMAIN_MARKER, MARKER, RATE_ZONE, PAGES, render
 
 IP = """# ZVQ_DOMAIN_RPC_V2_READONLY
 server {
@@ -40,6 +40,10 @@ class DeveloperTlsRoutesTest(unittest.TestCase):
             self.assertIn("location = " + path + " {", domain)
         self.assertEqual(domain.count("limit_except GET { deny all; }"), len(PAGES))
         self.assertEqual(domain.count("proxy_pass http://127.0.0.1:18447;"), len(PAGES))
+        self.assertEqual(domain.count(RATE_ZONE), 1)
+        self.assertEqual(domain.count("limit_req zone=zvq_developer burst=12 nodelay;"), len(PAGES))
+        self.assertEqual(domain.count("limit_req_status 429;"), len(PAGES))
+        self.assertIn(RATE_ZONE + "\\nserver {", domain)
         self.assertNotIn("proxy_pass http://127.0.0.1:80;", domain)
         self.assertNotIn("18447", ip)
         self.assertEqual(domain.count("proxy_set_header Host 127.0.0.1;"), len(PAGES))
