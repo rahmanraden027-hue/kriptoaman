@@ -78,10 +78,12 @@ test('deployment is narrow and rollback safe', () => {
 
 test('the live Explorer proxy can only be recreated by a confirmed manual deployment', async () => {
   const workflow = await readFile(new URL('../.github/workflows/zevaryq-explorer-production.yml', import.meta.url), 'utf8');
-  assert.match(workflow, /deploy:\\n    # Safety:[\\s\\S]*?if: github\\.event_name == 'workflow_dispatch' && inputs\\.confirm_explorer_only == 'DEPLOY-ZEVARYQ-EXPLORER'/);
-  assert.doesNotMatch(workflow, /if: [^\\n]*github\\.event_name == 'push'/);
-  assert.match(deploy, /docker compose up -d --force-recreate --no-deps proxy/);
-  assert.match(workflow, /test "\\\$\\{\\{ inputs\\.confirm_explorer_only \\\}\\}" = "DEPLOY-ZEVARYQ-EXPLORER"/);
+  const deployJob = workflow.slice(workflow.lastIndexOf('\n  deploy:'));
+  assert.ok(deployJob.includes("if: github.event_name == 'workflow_dispatch' && inputs.confirm_explorer_only == 'DEPLOY-ZEVARYQ-EXPLORER'"));
+  assert.ok(!deployJob.includes("github.event_name == 'push'"), 'no unapproved main-branch push may restart the proxy');
+  assert.ok(workflow.includes('test "${{ inputs.confirm_explorer_only }}" = "DEPLOY-ZEVARYQ-EXPLORER"'));
+  assert.ok(deploy.includes('docker compose up -d --force-recreate --no-deps proxy'),
+    'manual review is mandatory because the guarded deployment recreates the live proxy');
 });
 
 test('legacy KAM deployment cannot overwrite protected ZEVARYQ homepage', async () => {
