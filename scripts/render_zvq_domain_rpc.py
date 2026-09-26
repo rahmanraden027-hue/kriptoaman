@@ -18,7 +18,8 @@ DOMAIN_ROUTE = """location = /rpc {
     client_max_body_size 32k;
     limit_req zone=zvq_domain_rpc burst=20 nodelay;
     limit_req_status 429;
-    proxy_pass http://127.0.0.1:18446;
+    # Rewrite exact /rpc to /: the loopback gateway intentionally accepts only /.
+    proxy_pass http://127.0.0.1:18446/;
     proxy_set_header Host 127.0.0.1;
     proxy_set_header Cookie "";
     proxy_set_header Authorization "";

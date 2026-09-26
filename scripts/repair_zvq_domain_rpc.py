@@ -58,16 +58,22 @@ def rpc_probe(url: str, *, resolve: bool = False) -> bool:
         return False
 
 
-def rpc_status(url: str, method: str) -> str:
+def rpc_status(url: str, method: str, *, resolve: bool = False) -> str:
     payload = json.dumps({"jsonrpc": "2.0", "id": "zvq-policy-check", "method": method, "params": []})
-    return cmd(["curl", "--noproxy", "*", "-sS", "--max-time", "12",
-                "-o", "/dev/null", "-w", "%{http_code}",
-                "-H", "Content-Type: application/json", "--data", payload, url], capture=True)
+    args = ["curl", "--noproxy", "*", "-sS", "--max-time", "12",
+            "-o", "/dev/null", "-w", "%{http_code}",
+            "-H", "Content-Type: application/json", "--data", payload]
+    if resolve:
+        args += ["--resolve", f"{DOMAIN}:443:{IP}"]
+    return cmd(args + [url], capture=True)
 
 
-def status(url: str) -> str:
-    return cmd(["curl", "--noproxy", "*", "-sS", "--max-time", "12",
-                "-o", "/dev/null", "-w", "%{http_code}", url], capture=True)
+def status(url: str, *, resolve: bool = False) -> str:
+    args = ["curl", "--noproxy", "*", "-sS", "--max-time", "12",
+            "-o", "/dev/null", "-w", "%{http_code}"]
+    if resolve:
+        args += ["--resolve", f"{DOMAIN}:443:{IP}"]
+    return cmd(args + [url], capture=True)
 
 
 def check_preconditions() -> str:
@@ -92,13 +98,32 @@ def check_preconditions() -> str:
     return cmd(["docker", "inspect", "-f", "{{.Config.Image}}", CONTAINER], capture=True)
 
 
+def safe_http_status(probe, *args, **kwargs) -> str:
+    """Emit bounded, credential-free evidence even if an individual curl fails."""
+    try:
+        return probe(*args, **kwargs)
+    except subprocess.CalledProcessError as exc:
+        return f"curl_exit_{exc.returncode}"
+    except OSError:
+        return "curl_execution_error"
+
+
 def verify_local() -> bool:
-    return (
-        rpc_probe(f"https://{DOMAIN}/rpc", resolve=True)
-        and status(f"https://{IP}/rpc") == "403"
-        and status(f"https://{IP}/api/admin") == "403"
-        and status(f"https://{DOMAIN}/") == "200"
-    )
+    """Check all four direct-origin routes independently, never short-circuit."""
+    results = {
+        "domain_rpc": safe_http_status(
+            rpc_status, f"https://{DOMAIN}/rpc", "eth_chainId", resolve=True),
+        "ip_rpc": safe_http_status(status, f"https://{IP}/rpc"),
+        "ip_api_admin": safe_http_status(status, f"https://{IP}/api/admin"),
+        "origin_home": safe_http_status(status, f"https://{DOMAIN}/", resolve=True),
+    }
+    chain_valid = (results["domain_rpc"] == "200"
+                   and rpc_probe(f"https://{DOMAIN}/rpc", resolve=True))
+    print(json.dumps({"direct_origin_probes": results,
+                      "domain_rpc_chain_22028": chain_valid}), flush=True)
+    return (results == {"domain_rpc": "200", "ip_rpc": "403",
+                        "ip_api_admin": "403", "origin_home": "200"}
+            and chain_valid)
 
 
 def main() -> None:
