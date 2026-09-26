@@ -44,6 +44,7 @@ jobs:
           python3 -m py_compile scripts/render_zvq_developer_https.py scripts/repair_zvq_developer_https.py scripts/probe_zvq_developer_routes.py
           python3 -c 'import sys; sys.path.insert(0,"scripts"); from repair_zvq_developer_https import validate_sources; assert len(validate_sources()) == 6; print("reviewed_zvq_static_assets=6")'
           node --check scripts/zvq-developer-static-gateway.mjs
+          node --check scripts/verify-zvq-developer-visual.mjs
           node --test tests/zvq-developer-static-gateway.test.mjs
           test -f explorer-dashboard/developer.html
           test -f explorer-dashboard/developer-starter.html
