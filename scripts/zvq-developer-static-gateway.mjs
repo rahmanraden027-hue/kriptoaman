@@ -1,7 +1,7 @@
 // Exact, dependency-free GET-only ZVQ Developer static gateway.
 // Lives on TLS container loopback; no public port, keys, RPC or admin methods.
 import http from 'node:http';
-import { readFile, stat } from 'node:fs/promises';
+import { open } from 'node:fs/promises';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
@@ -39,9 +39,16 @@ export function createDeveloperGateway({ root = '/public' } = {}) {
     try {
       const [file, contentType] = ROUTES[path];
       const location = join(root, file);
-      const info = await stat(location);
-      if (!info.isFile() || info.size > MAX_FILE_BYTES) return respond(503);
-      return respond(200, await readFile(location), contentType);
+      // Open once, then validate/read through the SAME file descriptor.
+      // Separate stat(path) + readFile(path) permits a TOCTOU substitution.
+      const file = await open(location, 'r');
+      try {
+        const info = await file.stat();
+        if (!info.isFile() || info.size > MAX_FILE_BYTES) return respond(503);
+        return respond(200, await file.readFile(), contentType);
+      } finally {
+        await file.close();
+      }
     } catch {
       return respond(503);
     }
