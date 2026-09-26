@@ -41,13 +41,13 @@ export function createDeveloperGateway({ root = '/public' } = {}) {
       const location = join(root, file);
       // Open once, then validate/read through the SAME file descriptor.
       // Separate stat(path) + readFile(path) permits a TOCTOU substitution.
-      const file = await open(location, 'r');
+      const handle = await open(location, 'r');
       try {
-        const info = await file.stat();
+        const info = await handle.stat();
         if (!info.isFile() || info.size > MAX_FILE_BYTES) return respond(503);
-        return respond(200, await file.readFile(), contentType);
+        return respond(200, await handle.readFile(), contentType);
       } finally {
-        await file.close();
+        await handle.close();
       }
     } catch {
       return respond(503);
