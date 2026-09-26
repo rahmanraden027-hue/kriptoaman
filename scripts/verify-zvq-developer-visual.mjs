@@ -33,13 +33,17 @@ try {
       scrollWidth: document.documentElement.scrollWidth,
       scrollHeight: document.documentElement.scrollHeight,
       heroVisible: Boolean(document.querySelector('.hero h1')),
-      rpcLink: Boolean(document.querySelector('a[href="https://rpc.kriptoaman.com"]')),
+      rpcCopyButton: Boolean(document.querySelector('[data-copy="https://rpc.kriptoaman.com"]')),
+      approvedLogo: (() => {
+        const image = document.querySelector('.mark');
+        return image?.tagName === 'IMG' && image.complete && image.naturalWidth > 0;
+      })(),
       walletButton: Boolean(document.querySelector('#addWallet')),
     }));
     assert.equal(sizes.width, spec.width, spec.name + ' viewport');
     assert.ok(sizes.scrollWidth <= spec.width + 1,
       spec.name + ' horizontal overflow: ' + JSON.stringify(sizes));
-    assert.ok(sizes.heroVisible && sizes.rpcLink && sizes.walletButton,
+    assert.ok(sizes.heroVisible && sizes.rpcCopyButton && sizes.approvedLogo && sizes.walletButton,
       spec.name + ' incomplete Developer UI');
     if (spec.width < 500) {
       await page.evaluate(() => window.scrollTo(0, 600));
