@@ -1,0 +1,81 @@
+name: ZVQ ACME NGINX Path Evidence
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/zvq-acme-nginx-config-proof.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  origin-config:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 4
+    steps:
+      - name: Inspect exact static ACME path and mount behavior without exposing credentials
+        shell: bash
+        run: |
+          set -uo pipefail
+          base='/opt/blockscout/docker-compose'
+          config="$base/proxy/default.conf.template"
+          echo "nginx_template_exists=$([[ -r "$config" ]] && echo yes || echo no)"
+          if [[ -r "$config" ]]; then
+            awk '
+              /location|root[[:space:]]|alias[[:space:]]|try_files|index[[:space:]]|listen[[:space:]]|server_name/ {
+                line=$0;gsub(/https?:\/\/[^; ]+/, "[upstream-redacted]", line);
+                print "template_linenum=" NR " config=" line
+              }
+            ' "$config" | head -75
+          fi
+          proxy_id="$(cd "$base" && docker compose ps -q proxy 2>/dev/null)"
+          if [[ -n "$proxy_id" ]]; then
+            docker inspect "$proxy_id" --format '{{range .Mounts}}{{println "mount_type=" .Type " target=" .Destination}}{{end}}' | head -15
+            docker exec "$proxy_id" sh -c 'nginx -T 2>/dev/null | grep -nE "location|root |alias |try_files|index |listen " | head -45' 2>/dev/null || true
+          fi
+          # .well-known proof file must have been removed by previous workflow.
+          challenge="$base/proxy/kam-dashboard/.well-known/acme-challenge"
+          echo "acme_directory_exists=$([[ -d "$challenge" ]] && echo yes || echo no)"
+          echo "acme_directory_writable_by_runner=$([[ -w "$challenge" ]] && echo yes || echo no)"
+          probe_rpc() {
+            local label="$1" url="$2" status body chain
+            body="$(mktemp)"
+            status="$(curl --noproxy '*' -sS --connect-timeout 3 --max-time 6 \
+              -H 'content-type: application/json' \
+              --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+              -o "$body" -w '%{http_code}' "$url" 2>/dev/null || true)"
+            chain="$(python3 -c 'import json,sys; print(json.load(sys.stdin).get("result","unavailable"))' <"$body" 2>/dev/null || true)"
+            echo "origin_probe_rpc $label http=$status chain_id=$chain"
+            rm -f "$body"
+          }
+          probe_rpc nginx_same_origin http://127.0.0.1/rpc
+          probe_rpc private_sentry_8545 http://10.104.0.2:8545/
+          probe_rpc private_sentry_8546 http://10.104.0.2:8546/
+          blocks="$(mktemp)"
+          status="$(curl --noproxy '*' -sS --connect-timeout 3 --max-time 6 -o "$blocks" -w '%{http_code}' http://127.0.0.1/api/v2/blocks 2>/dev/null || true)"
+          count="$(python3 -c 'import json,sys; b=json.load(sys.stdin); print(len(b.get("items",[])) if isinstance(b.get("items"),list) else "not-array")' <"$blocks" 2>/dev/null || true)"
+          echo "origin_probe_blockscout nginx_same_origin http=$status indexed_items=$count"
+          rm -f "$blocks"
+  rpc-origin-public:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Compare public RPC DNS, direct RPC sentry origin TLS and private routing clues
+        shell: bash
+        run: |
+          set -uo pipefail
+          getent ahostsv4 rpc.kriptoaman.com | awk '{print "rpc_public_dns=" $1}' | sort -u || true
+          probe() {
+            local label="$1" url="$2"; shift 2
+            local body code chain
+            body="$(mktemp)"
+            code="$(curl --noproxy '*' -sS --connect-timeout 5 --max-time 12 \
+              -H 'content-type: application/json' \
+              --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+              -o "$body" -w '%{http_code}' "$@" "$url" 2>/dev/null || true)"
+            chain="$(node -e 'try {let p=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"));console.log(p.result||"unavailable")}catch{}' "$body")"
+            echo "rpc_origin_probe $label http=$code chain_id=$chain"
+            rm -f "$body"
+          }
+          probe public_rpc 'https://rpc.kriptoaman.com'
+          probe direct_tls_with_hostname 'https://rpc.kriptoaman.com' --resolve 'rpc.kriptoaman.com:443:206.189.36.15'
+          probe direct_ip_tls 'https://206.189.36.15' -k
+          probe direct_ip_http 'http://206.189.36.15' -k
