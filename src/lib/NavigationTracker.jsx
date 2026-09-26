@@ -40,6 +40,10 @@ const PUBLIC_ROUTE_SEO = {
         title: 'Status Sistem KriptoAman',
         description: 'Lihat status layanan publik KriptoAman dan informasi operasional yang tersedia untuk membantu pengguna memantau ketersediaan platform.',
     },
+    '/ZEVARYQ': {
+        title: 'ZEVARYQ Network · ZVQ | KriptoAman',
+        description: 'Identitas resmi ZEVARYQ Mainnet, ZVQ, Chain ID 22028 dan sumber verifikasi RPC serta Explorer.',
+    },
     '/KAM': {
         title: 'KAM Economics Archive | KriptoAman',
         description: 'Informasi resmi KAM di KriptoAman, termasuk dokumentasi publik, perkembangan jaringan, roadmap, dan sumber verifikasi yang tersedia.',
