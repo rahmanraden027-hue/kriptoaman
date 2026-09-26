@@ -1,4 +1,6 @@
-const rpcUrl = process.env.KAM_EXPLORER_RPC_URL || 'https://explorer.kriptoaman.com/rpc';
+const rpcUrl = process.env.KAM_EXPLORER_RPC_URL || 'https://rpc.kriptoaman.com';
+const explorerBrowserRpcUrl = 'https://explorer.kriptoaman.com/rpc';
+const requireExplorerBrowserRpc = /^(1|true|yes)$/i.test(String(process.env.REQUIRE_EXPLORER_BROWSER_RPC || 'false'));
 const expectedChainId = '0x560c';
 const expectedValidatorCount = 4;
 const timeoutMs = 12000;
@@ -20,6 +22,42 @@ async function rpc(method, params = []) {
     if (!response.ok) throw new Error(method + ': HTTP ' + response.status);
     if (payload?.error) throw new Error(method + ': ' + (payload.error.message || 'RPC error'));
     return payload?.result;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// The canonical public RPC is the source of truth for the five on-chain checks.
+// The Explorer same-origin browser gateway is a separate deployment dependency:
+// PR checks report its 403/timeout without weakening chain checks; manual
+// production deployment requires the browser gateway to pass as well.
+async function probeExplorerBrowserRpc() {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(explorerBrowserRpcUrl, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 'browser-gateway-preflight', method: 'eth_chainId', params: [] }),
+      signal: controller.signal,
+      cache: 'no-store',
+    });
+    const payload = await response.json().catch(() => null);
+    return {
+      required: requireExplorerBrowserRpc,
+      ok: response.ok && payload?.result === expectedChainId,
+      httpStatus: response.status,
+      chainId: payload?.result ?? null,
+      error: !response.ok ? 'HTTP ' + response.status : payload?.result !== expectedChainId ? 'chain-id-unverified' : null,
+    };
+  } catch (error) {
+    return {
+      required: requireExplorerBrowserRpc,
+      ok: false,
+      httpStatus: null,
+      chainId: null,
+      error: error?.name === 'AbortError' ? 'timeout' : 'gateway-unreachable',
+    };
   } finally {
     clearTimeout(timer);
   }
@@ -158,6 +196,12 @@ async function main() {
     ready: false,
   };
 
+  report.checks.explorerBrowserRpc = await probeExplorerBrowserRpc();
+  console.log('Explorer same-origin RPC: ' + JSON.stringify(report.checks.explorerBrowserRpc));
+  if (requireExplorerBrowserRpc && !report.checks.explorerBrowserRpc.ok) {
+    throw new Error('Explorer browser /rpc gateway unavailable or wrong chain; production deploy blocked');
+  }
+
   const chainId = await rpc('eth_chainId');
   report.checks.chainId = { ok: chainId === expectedChainId, value: chainId };
   if (!report.checks.chainId.ok) throw new Error('Chain ID mismatch');
@@ -234,7 +278,7 @@ async function main() {
   };
   if (!report.checks.chainStatus.ok) throw new Error('Block head did not advance');
 
-  report.ready = Object.values(report.checks).every((check) => check.ok === true);
+  report.ready = Object.values(report.checks).every((check) => check.required === false || check.ok === true);
   console.log(JSON.stringify(report, null, 2));
   if (!report.ready) process.exitCode = 1;
 }
