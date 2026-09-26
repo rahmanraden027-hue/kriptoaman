@@ -66,7 +66,8 @@ done
 cp -a "$TLS_CONFIG" "$TLS_BACKUP"
 
 rollback(){
-  code=$?
+  local code="${1:-$?}"
+  trap - ERR INT TERM
   echo "repair failed; rolling back Developer-only changes" >&2
   proxy_fs "cp -a /target/$(basename "$TEMPLATE_BACKUP") /target/default.conf.template" || true
   for name in "${!FILES[@]}"; do
@@ -78,6 +79,8 @@ rollback(){
   exit "$code"
 }
 trap rollback ERR
+trap 'rollback 130' INT
+trap 'rollback 143' TERM
 
 for name in "${!FILES[@]}"; do
   proxy_fs "mkdir -p /target/kam-dashboard; cat > /target/kam-dashboard/$name; chmod 0644 /target/kam-dashboard/$name" < "${FILES[$name]}"
@@ -123,5 +126,5 @@ for attempt in 1 2 3 4 5 6; do
   sleep 2
 done
 
-trap - ERR
+trap - ERR INT TERM
 echo "zvq_developer_repair=success backup_dir=$BACKUP_DIR template_backup=$TEMPLATE_BACKUP tls_backup=$TLS_BACKUP"
