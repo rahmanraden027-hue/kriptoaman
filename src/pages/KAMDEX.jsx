@@ -52,13 +52,13 @@ export default function KAMDEX() {
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <StatusChip>KAM Mainnet · Chain ID 22028</StatusChip>
+                <StatusChip>ZEVARYQ Mainnet · Chain ID 22028</StatusChip>
                 <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">Factory + Router Source Verified</span>
                 <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-xs font-bold text-amber-200">Liquidity Not Yet Enabled</span>
               </div>
               <h1 className="mt-5 text-3xl font-black tracking-tight sm:text-4xl">KriptoAman DEX</h1>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400 sm:text-base">
-                KAMFactory, KAMRouter, dan WKAM telah dicocokkan secara reproducible dengan runtime bytecode di KAM Mainnet. Pool dan likuiditas tetap dinonaktifkan sampai independent contract review, provenance counter-asset, dan otorisasi treasury selesai.
+                Arsip kontrak KAMFactory, KAMRouter, dan WKAM pada Chain ID 22028. Branding jaringan kini ZEVARYQ (ZVQ), tetapi nama dan bytecode kontrak lama tidak otomatis berubah. Swap dan likuiditas tetap dinonaktifkan sampai audit independen, verifikasi kesesuaian wrapper ZVQ, provenance counter-asset, dan otorisasi treasury selesai.
               </p>
             </div>
             <div className="flex gap-3">
@@ -76,8 +76,8 @@ export default function KAMDEX() {
           <section className="rounded-[26px] border border-slate-800 bg-slate-950/80 p-5">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-300">Network Overview</p>
             <div className="mt-4 grid grid-cols-2 gap-3">
-              <Metric label="Native Asset" value="KAM" note="18 decimals" />
-              <Metric label="Wrapped Asset" value="WKAM" note="1:1 native wrapper" />
+              <Metric label="Network Native Asset" value="ZVQ" note="18 decimals" />
+              <Metric label="Legacy Wrapper" value="WKAM" note="ZVQ compatibility pending audit" />
               <Metric label="Swap Fee" value="0.30%" note="AMM contract model" />
               <Metric label="AMM" value="x · y = k" note="constant product" />
             </div>
@@ -92,7 +92,7 @@ export default function KAMDEX() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-300">Swap</p>
-                <h2 className="mt-1 text-xl font-black">KAM Native Swap</h2>
+                <h2 className="mt-1 text-xl font-black">Legacy KAM DEX · Disabled</h2>
               </div>
               <ArrowDownUp className="h-5 w-5 text-sky-300" />
             </div>
@@ -101,7 +101,7 @@ export default function KAMDEX() {
               <div className="flex items-center justify-between text-xs text-slate-500"><span>From</span><span>Balance: —</span></div>
               <div className="mt-3 flex items-center justify-between gap-4">
                 <span className="text-3xl font-black text-slate-300">0.00</span>
-                <span className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-black">KAM</span>
+                <span className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-black">KAM (legacy)</span>
               </div>
             </div>
 
