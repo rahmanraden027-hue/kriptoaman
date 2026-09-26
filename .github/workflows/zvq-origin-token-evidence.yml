@@ -43,6 +43,34 @@ jobs:
           probe indexed_erc20_tokens 'tokens?type=ERC-20'
           probe indexed_tokens 'tokens'
           rm -f "$tmp"
+  cloudflare-dns-scope-readonly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      CF_DNS_TOKEN: ${{ secrets.CLOUDFLARE_DNS_API_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - name: Verify DNS read permission before attempting ACME DNS-01 issuance
+        shell: bash
+        run: |
+          set -uo pipefail
+          if [[ -z "$CF_DNS_TOKEN" ]]; then echo "cf_dns_token=unavailable"; exit 0; fi
+          echo "cf_dns_token=present_redacted"
+          zonefile="$(mktemp)"; dnsfile="$(mktemp)"
+          zones_http="$(curl -sS --connect-timeout 6 --max-time 15 -o "$zonefile" -w '%{http_code}' \
+            'https://api.cloudflare.com/client/v4/zones?name=kriptoaman.com' \
+            -H "Authorization: Bearer $CF_DNS_TOKEN" || true)"
+          zone_id="$(jq -r '.result[0].id // empty' "$zonefile" 2>/dev/null || true)"
+          if [[ "$zones_http" != 200 || -z "$zone_id" ]]; then
+            echo "cf_zone_read=unavailable_http_$zones_http"; rm -f "$zonefile" "$dnsfile"; exit 0
+          fi
+          echo "cf_zone_read=available"
+          dns_http="$(curl -sS --connect-timeout 6 --max-time 15 -o "$dnsfile" -w '%{http_code}' \
+            "https://api.cloudflare.com/client/v4/zones/$zone_id/dns_records?type=TXT&name=_acme-challenge.explorer.kriptoaman.com" \
+            -H "Authorization: Bearer $CF_DNS_TOKEN" || true)"
+          if [[ "$dns_http" == 200 ]] && jq -e '.success == true' "$dnsfile" >/dev/null 2>&1; then
+            echo "cf_dns_read=available; dns_write=not_proven"
+          else echo "cf_dns_read=unavailable_http_$dns_http; dns_write=not_proven"; fi
+          rm -f "$zonefile" "$dnsfile"
   origin-tls-readonly:
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
     timeout-minutes: 4
@@ -71,3 +99,31 @@ jobs:
           probe direct_public_tls --resolve explorer.kriptoaman.com:443:146.190.93.254 https://explorer.kriptoaman.com/
           trusted="$(curl --noproxy '*' -LsS --connect-timeout 3 --max-time 8 --resolve explorer.kriptoaman.com:443:146.190.93.254 -o /dev/null -w '%{http_code}' https://explorer.kriptoaman.com/ 2>/dev/null || true)"
           echo "origin_direct_trusted_tls_http=$trusted"
+          for command in nginx caddy certbot acme.sh docker openssl ss curl; do
+            if command -v "$command" >/dev/null 2>&1; then echo "origin_tool_$command=available"
+            else echo "origin_tool_$command=unavailable"; fi
+          done
+          if sudo -n true 2>/dev/null; then echo "origin_sudo_noninteractive=available"
+          else echo "origin_sudo_noninteractive=unavailable"; fi
+          for package in python3-certbot-dns-cloudflare certbot nginx caddy; do
+            if dpkg-query -W "$package" 2>/dev/null | grep -q "$package"; then
+              echo "origin_package_$package=installed"
+            else echo "origin_package_$package=absent"; fi
+          done
+          if command -v docker >/dev/null 2>&1; then
+            port80="$(docker ps --format '{{.Ports}}' 2>/dev/null | grep -Ec '0\.0\.0\.0:80->|:::80->' || true)"
+            port443="$(docker ps --format '{{.Ports}}' 2>/dev/null | grep -Ec '0\.0\.0\.0:443->|:::443->' || true)"
+            echo "origin_docker_published_80=$port80"
+            echo "origin_docker_published_443=$port443"
+          fi
+          if [[ -r /opt/blockscout/docker-compose/proxy/default.conf.template ]]; then
+            config=/opt/blockscout/docker-compose/proxy/default.conf.template
+            for pattern in 'listen 80' 'listen 443' 'proxy_pass' 'ssl_certificate'; do
+              key="$(echo "$pattern" | tr ' ' '_')"
+              if grep -Fq "$pattern" "$config"; then echo "origin_nginx_conf_has_$key=yes"
+              else echo "origin_nginx_conf_has_$key=no"; fi
+            done
+          fi
+          if command -v ufw >/dev/null 2>&1; then
+            echo "origin_ufw_state=$(sudo -n ufw status 2>/dev/null | head -1 | tr -cd '[:alnum:] :_' | cut -c 1-50)"
+          fi
