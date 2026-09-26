@@ -46,7 +46,9 @@ test('required production panels and search routes exist', () => {
   assert.match(html, /Live Blockchain Mesh/);
   assert.match(html, /id="refreshData"/);
   assert.match(html, /parent_hash\.toLowerCase\(\)===parent\.hash\.toLowerCase\(\)/);
-  assert.ok(html.includes("for(const url of [RPC,'https://rpc.kriptoaman.com'])"));
+  assert.ok(html.includes("const data=await getJSON(RPC,options,12000)"), 'browser RPC stays same-origin');
+  assert.ok(!html.includes("for(const url of [RPC,'https://rpc.kriptoaman.com'])"), 'do not retry through blocked cross-origin CORS');
+  assert.ok(html.includes('rpcNextProbeAt'), 'failed RPC requests must back off without throttling indexed data');
   assert.match(html, /if\(state\.probing\)return/);
 });
 
@@ -72,6 +74,17 @@ test('deployment is narrow and rollback safe', () => {
   assert.doesNotMatch(deploy, /genesis|validator private|postgres.*reset|redis.*reset/i);
 });
 
+
+
+test('the live Explorer proxy can only be recreated by a confirmed manual deployment', async () => {
+  const workflow = await readFile(new URL('../.github/workflows/zevaryq-explorer-production.yml', import.meta.url), 'utf8');
+  const deployJob = workflow.slice(workflow.lastIndexOf('\n  deploy:'));
+  assert.ok(deployJob.includes("if: github.event_name == 'workflow_dispatch' && inputs.confirm_explorer_only == 'DEPLOY-ZEVARYQ-EXPLORER'"));
+  assert.ok(!deployJob.includes("github.event_name == 'push'"), 'no unapproved main-branch push may restart the proxy');
+  assert.ok(workflow.includes('test "${{ inputs.confirm_explorer_only }}" = "DEPLOY-ZEVARYQ-EXPLORER"'));
+  assert.ok(deploy.includes('docker compose up -d --force-recreate --no-deps proxy'),
+    'manual review is mandatory because the guarded deployment recreates the live proxy');
+});
 
 test('legacy KAM deployment cannot overwrite protected ZEVARYQ homepage', async () => {
   const legacy = await readFile(new URL('../scripts/deploy-kam-explorer-v2.sh', import.meta.url), 'utf8');

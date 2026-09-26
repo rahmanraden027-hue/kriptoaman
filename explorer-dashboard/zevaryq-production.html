@@ -222,23 +222,21 @@ header.glass{background:rgba(3,13,30,.96);border-radius:14px;padding:8px 13px;bo
 <script>
 const EXPECTED_CHAIN='0x560c',RPC='/rpc',API='/api/v2';
 const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const state={rpc:false,api:false,blocks:[],rpcLatency:null,head:null,gas:null,rpcError:null,apiError:null,lastGoodBlocksAt:0,probing:false,validators:[],validatorSource:null,validatorHeader:null,finalized:null,finalitySource:null,consensusProbeAt:0,lastProbeAt:0,consecutiveFailures:0,tokens:[],tokenError:null,tokenProbeInFlight:false};
+const state={rpc:false,api:false,blocks:[],rpcLatency:null,head:null,gas:null,rpcError:null,rpcNextProbeAt:0,apiError:null,lastGoodBlocksAt:0,probing:false,validators:[],validatorSource:null,validatorHeader:null,finalized:null,finalitySource:null,consensusProbeAt:0,lastProbeAt:0,consecutiveFailures:0,tokens:[],tokenError:null,tokenProbeInFlight:false};
 const unavailable='Unavailable';
 function short(v,n=8){if(!v)return '—';return v.length>n*2?v.slice(0,n)+'…'+v.slice(-n):v}
 function age(ts){if(!ts)return '—';const s=Math.max(0,Math.floor((Date.now()-new Date(ts).getTime())/1000));return s<60?s+'s ago':s<3600?Math.floor(s/60)+'m ago':Math.floor(s/3600)+'h ago'}
 async function getJSON(url,opt={},ms=8000){const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);try{const r=await fetch(url,{...opt,signal:c.signal,headers:{accept:'application/json',...(opt.headers||{})}});if(!r.ok)throw Error('HTTP '+r.status);return await r.json()}finally{clearTimeout(t)}}
+// The direct Explorer origin currently blocks /rpc and the separate RPC host
+// does not permit browser CORS. Never retry against a knowingly blocked
+// cross-origin path: use independently indexed Blockscout data until the
+// reviewed, restricted browser RPC transport passes its own live proof.
 async function rpc(method,params=[]){
  const options={method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,params})};
- let firstError=null;
- for(const url of [RPC,'https://rpc.kriptoaman.com']){
-  try{
-   const data=await getJSON(url,options,12000);
-   if(data?.error)throw Error(String(data.error.message||'RPC rejected request'));
-   if(data?.jsonrpc!=='2.0'||typeof data?.result==='undefined')throw Error('Invalid JSON-RPC response');
-   return data;
-  }catch(error){firstError??=error}
- }
- throw firstError||Error('Both protected RPC paths unavailable');
+ const data=await getJSON(RPC,options,12000);
+ if(data?.error)throw Error(String(data.error.message||'RPC rejected request'));
+ if(data?.jsonrpc!=='2.0'||typeof data?.result==='undefined')throw Error('Invalid JSON-RPC response');
+ return data;
 }
 function mini(label,value,source='UNAVAILABLE'){return '<div class="mini"><span class="label">'+label+'</span><b>'+esc(value)+'</b><span class="source">'+source+'</span></div>'}
 function formatGasPrice(hex){
@@ -505,6 +503,8 @@ async function probe(){
  // Verify independently: browser RPC preflight may be blocked while the
  // Blockscout same-origin read-only API still has real indexed blocks.
  const probeRpc=async()=>{
+  // Rate-limit only failed RPC probes; the indexer continues independently every 12 s.
+  if(Date.now()<state.rpcNextProbeAt){renderStatic();renderImmune();return;}
   try{
    const t=performance.now(),r=await rpc('eth_chainId');
    state.rpcLatency=Math.round(performance.now()-t);
@@ -514,8 +514,8 @@ async function probe(){
    state.head=head.result?parseInt(head.result,16):null;state.gas=gas.result??null;
    if(!Number.isSafeInteger(state.head))throw Error('Invalid verified block height');
    if(Date.now()-state.consensusProbeAt>=60000||!state.consensusProbeAt)await refreshConsensus(head.result);
-   state.rpcError=null;
-  }catch(e){state.rpc=false;state.rpcLatency=null;state.head=null;state.gas=null;state.rpcError=String(e?.message||e);state.validators=[];state.validatorSource=null;state.finalized=null;state.finalitySource=null;state.consensusProbeAt=0;}
+   state.rpcError=null;state.rpcNextProbeAt=0;
+  }catch(e){state.rpc=false;state.rpcLatency=null;state.head=null;state.gas=null;state.rpcError=String(e?.message||e);state.rpcNextProbeAt=Date.now()+(/HTTP (403|429)/.test(state.rpcError)?300000:60000);state.validators=[];state.validatorSource=null;state.finalized=null;state.finalitySource=null;state.consensusProbeAt=0;}
   finally{renderStatic();renderImmune();}
  };
  const probeIndexer=async()=>{
