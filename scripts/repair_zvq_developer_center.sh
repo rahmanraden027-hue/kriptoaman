@@ -43,6 +43,17 @@ assert d["publicDeveloperAccess"] is True
 PY
 
 test -f "$TEMPLATE"; test -f "$TLS_CONFIG"
+# Refuse to overwrite the protected production homepage or a different RPC
+# listener. Render both candidates before any production asset/config writes.
+grep -Fq 'data-zevaryq-explorer-version' "$PROXY_DIR/kam-dashboard/index.html"
+python3 "$REPO/scripts/render_zvq_developer_backend.py" "$TEMPLATE" "$CANDIDATE"
+python3 "$REPO/scripts/render_zvq_developer_https.py" "$TLS_CONFIG" "$CANDIDATE"
+test "$(docker inspect -f '{{.State.Status}}' "$TLS_NAME")" = running
+CERT=/etc/letsencrypt/live/zvq-explorer-domain/fullchain.pem
+test -r "$CERT"
+openssl x509 -in "$CERT" -noout -checkend 172800 >/dev/null
+openssl x509 -in "$CERT" -noout -ext subjectAltName | grep -Fq 'DNS:explorer.kriptoaman.com'
+test ! -e "$BACKUP_DIR"; test ! -e "$TEMPLATE_BACKUP"; test ! -e "$TLS_BACKUP"
 cd "$BASE"
 PROXY_ID="$(docker compose ps -q proxy)"; test -n "$PROXY_ID"
 PROXY_IMAGE="$(docker inspect "$PROXY_ID" --format '{{.Config.Image}}')"
@@ -97,6 +108,10 @@ docker exec "$TLS_NAME" nginx -s reload
 test "$(curl --noproxy '*' -sS --max-time 12 -o /dev/null -w '%{http_code}' https://146.190.93.254/rpc)" = 403
 test "$(curl --noproxy '*' -sS --max-time 12 -o /dev/null -w '%{http_code}' https://146.190.93.254/api/admin)" = 403
 curl --noproxy '*' -fsS --max-time 12 --resolve explorer.kriptoaman.com:443:146.190.93.254 -H 'Content-Type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' https://explorer.kriptoaman.com/rpc | python3 -c 'import json,sys; assert json.load(sys.stdin).get("result")=="0x560c"'
+for method in eth_sendRawTransaction admin_peers debug_traceTransaction; do
+  code="$(curl --noproxy '*' -sS --max-time 12 -o /dev/null -w '%{http_code}' --resolve explorer.kriptoaman.com:443:146.190.93.254 -H 'Content-Type: application/json' --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"$method\",\"params\":[]}" https://explorer.kriptoaman.com/rpc)"
+  test "$code" = 403
+done
 for attempt in 1 2 3 4 5 6; do
   if python3 "$REPO/scripts/probe_zvq_developer_routes.py" --scope origin --require-ready; then break; fi
   if [[ "$attempt" == 6 ]]; then echo "Developer direct-origin verification failed" >&2; false; fi
