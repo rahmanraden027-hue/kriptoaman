@@ -15,6 +15,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: zvq-developer-surgical-repair
+  cancel-in-progress: false
+
 jobs:
   review-contract:
     runs-on: ubuntu-latest
