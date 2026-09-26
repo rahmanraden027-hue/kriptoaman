@@ -3,6 +3,7 @@ import { test, before, after } from 'node:test';
 import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { readFileSync } from 'node:fs';
 import { createDeveloperGateway, ROUTES } from '../scripts/zvq-developer-static-gateway.mjs';
 
 let root, server, base;
@@ -63,4 +64,14 @@ test('missing approved source fails closed instead of serving homepage', async (
   const missing = await fetch(base + '/developer/verify');
   assert.equal(missing.status, 503);
   assert.doesNotMatch(await missing.text(), /ZVQ/);
+});
+
+test('filesystem race guard: validate and serve one immutable file descriptor', () => {
+  const source = readFileSync(new URL('../scripts/zvq-developer-static-gateway.mjs', import.meta.url), 'utf8');
+  assert.match(source, /await open\(location, 'r'\)/);
+  assert.match(source, /await file\.stat\(\)/);
+  assert.match(source, /await file\.readFile\(\)/);
+  assert.match(source, /await file\.close\(\)/);
+  assert.doesNotMatch(source, /await stat\(location\)/);
+  assert.doesNotMatch(source, /await readFile\(location\)/);
 });
