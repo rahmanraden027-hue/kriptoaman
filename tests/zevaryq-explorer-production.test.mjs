@@ -75,6 +75,15 @@ test('deployment is narrow and rollback safe', () => {
 });
 
 
+
+test('the live Explorer proxy can only be recreated by a confirmed manual deployment', async () => {
+  const workflow = await readFile(new URL('../.github/workflows/zevaryq-explorer-production.yml', import.meta.url), 'utf8');
+  assert.match(workflow, /deploy:\\n    # Safety:[\\s\\S]*?if: github\\.event_name == 'workflow_dispatch' && inputs\\.confirm_explorer_only == 'DEPLOY-ZEVARYQ-EXPLORER'/);
+  assert.doesNotMatch(workflow, /if: [^\\n]*github\\.event_name == 'push'/);
+  assert.match(deploy, /docker compose up -d --force-recreate --no-deps proxy/);
+  assert.match(workflow, /test "\\\$\\{\\{ inputs\\.confirm_explorer_only \\\}\\}" = "DEPLOY-ZEVARYQ-EXPLORER"/);
+});
+
 test('legacy KAM deployment cannot overwrite protected ZEVARYQ homepage', async () => {
   const legacy = await readFile(new URL('../scripts/deploy-kam-explorer-v2.sh', import.meta.url), 'utf8');
   const v2Workflow = await readFile(new URL('../.github/workflows/kam-explorer-v2-deploy.yml', import.meta.url), 'utf8');
