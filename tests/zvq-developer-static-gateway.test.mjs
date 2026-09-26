@@ -69,9 +69,9 @@ test('missing approved source fails closed instead of serving homepage', async (
 test('filesystem race guard: validate and serve one immutable file descriptor', () => {
   const source = readFileSync(new URL('../scripts/zvq-developer-static-gateway.mjs', import.meta.url), 'utf8');
   assert.match(source, /await open\(location, 'r'\)/);
-  assert.match(source, /await file\.stat\(\)/);
-  assert.match(source, /await file\.readFile\(\)/);
-  assert.match(source, /await file\.close\(\)/);
+  assert.match(source, /await handle\.stat\(\)/);
+  assert.match(source, /await handle\.readFile\(\)/);
+  assert.match(source, /await handle\.close\(\)/);
   assert.doesNotMatch(source, /await stat\(location\)/);
   assert.doesNotMatch(source, /await readFile\(location\)/);
 });
