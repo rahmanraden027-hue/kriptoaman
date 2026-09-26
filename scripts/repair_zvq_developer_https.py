@@ -11,6 +11,7 @@ import argparse
 import json
 import os
 import re
+import signal
 import shutil
 import subprocess
 import sys
@@ -241,6 +242,11 @@ def main():
         raise RuntimeError("Explicit numeric authorized GitHub run ID required")
     if args.apply and args.rollback:
         raise RuntimeError("Choose apply or rollback")
+    if args.apply:
+        def interrupted(signum, _frame):
+            raise RuntimeError(f"Production rollout interrupted by signal {signum}; restoring backups")
+        signal.signal(signal.SIGTERM, interrupted)
+        signal.signal(signal.SIGINT, interrupted)
     stage = BASE / f"developer-static-{run_id}"
     installed = BASE / f"developer-static-gateway-{run_id}.mjs"
     backup = BASE / f"default.conf.developer-{run_id}.bak"
@@ -275,8 +281,8 @@ def main():
         committed = False
         try:
             stage_and_start(assets, node_image, stage, installed, run_id)
+            changed = True  # partial bind-mounted writes must also trigger restoration
             CONFIG.write_bytes(candidate_text.encode("utf-8"))
-            changed = True
             cmd(["docker", "exec", TLS, "nginx", "-t"])
             loaded = cmd(["docker", "exec", TLS, "nginx", "-T"], capture=True)
             if (loaded.count(MARKER) != 1
