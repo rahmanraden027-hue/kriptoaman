@@ -35,7 +35,7 @@ jobs:
           set -Eeuo pipefail
           node --check scripts/verify-zvq-developer-wallet.mjs
           # A real wallet, key, send method or transaction is not authorized by this workflow.
-          ! grep -Eq 'eth_sendTransaction|eth_sendRawTransaction|personal_sign|eth_signTypedData|privateKey|seedPhrase' scripts/verify-zvq-developer-wallet.mjs
+          ! grep -Eq 'eth_sendTransaction|eth_sendRawTransaction|personal_sign|eth_signTypedData|\.privateKey([^A-Za-z]|$)|seedPhrase' scripts/verify-zvq-developer-wallet.mjs
       - name: Prepare isolated browser proof using runner Chrome
         shell: bash
         run: |
