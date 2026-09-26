@@ -16,7 +16,7 @@ const SEARCH_ITEMS = [
   { id: 'alerts', path: '/Alerts', icon: Bell, idLabel: 'Notification Center', enLabel: 'Notification Center', keywords: 'alert notification target price security system portfolio kam' },
   { id: 'wallet', path: '/Wallet', icon: Wallet, idLabel: 'Pantau Wallet', enLabel: 'Watch Wallet', keywords: 'wallet watch portfolio address' },
   { id: 'tx', path: '/TxHistory', icon: Search, idLabel: 'Riwayat Transaksi', enLabel: 'Transaction History', keywords: 'transaction tx hash history explorer' },
-  { id: 'kam-network', path: '/KAMNetwork', icon: Network, idLabel: 'KAM Network', enLabel: 'KAM Network', keywords: 'kam network chain mainnet rpc explorer' },
+  { id: 'kam-network', path: '/KAMNetwork', icon: Network, idLabel: 'ZEVARYQ Network', enLabel: 'ZEVARYQ Network', keywords: 'kam network chain mainnet rpc explorer' },
   { id: 'security', path: '/SecurityHub', icon: ShieldCheck, idLabel: 'Security Hub', enLabel: 'Security Hub', keywords: 'security protection safety 2fa device session' },
   { id: 'kyc', path: '/KYC', icon: CheckCircle2, idLabel: 'KYC', enLabel: 'KYC', keywords: 'verification identity account setup' },
   { id: 'security-admin', path: '/SecurityCenter', icon: ShieldCheck, idLabel: 'Security Center Admin', enLabel: 'Admin Security Center', keywords: 'admin security posture score controls', adminOnly: true },
@@ -46,7 +46,7 @@ function contextualResults(query, language) {
   if (ASSETS.includes(upper)) results.push({ id: `asset-${upper}`, path: `/Market?asset=${upper}`, icon: TrendingUp, idLabel: `${upper} · Market`, enLabel: `${upper} · Market`, keywords: upper });
   if (/^0x[a-fA-F0-9]{40}$/.test(q)) results.push({ id: 'address', path: `/Wallet?address=${encodeURIComponent(q)}`, icon: Wallet, idLabel: 'Pantau alamat wallet', enLabel: 'Watch wallet address', keywords: q });
   if (/^0x[a-fA-F0-9]{64}$/.test(q)) results.push({ id: 'txhash', path: `/TxHistory?hash=${encodeURIComponent(q)}`, icon: Search, idLabel: 'Cari hash transaksi', enLabel: 'Find transaction hash', keywords: q });
-  if (/^(kam|kam network|mainnet kam)$/i.test(q)) results.push({ id: 'network-kam-query', path: '/KAMNetwork', icon: Network, idLabel: 'KAM Network', enLabel: 'KAM Network', keywords: q });
+  if (/^(kam|kam network|mainnet kam|zvq|zevaryq|zevaryq network|zvq mainnet)$/i.test(q)) results.push({ id: 'network-kam-query', path: '/KAMNetwork', icon: Network, idLabel: 'ZEVARYQ Network', enLabel: 'ZEVARYQ Network', keywords: q });
   return results.map(item => ({ ...item, label: language === 'en' ? item.enLabel : item.idLabel }));
 }
 
