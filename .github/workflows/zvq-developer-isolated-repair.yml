@@ -1,0 +1,190 @@
+name: ZVQ Developer Isolated Production Repair
+on:
+  pull_request:
+    paths:
+      - scripts/render_zvq_developer_https.py
+      - scripts/repair_zvq_developer_https.py
+      - scripts/zvq-developer-static-gateway.mjs
+      - scripts/verify-zvq-developer-visual.mjs
+      - tests/test_zvq_developer_https.py
+      - tests/zvq-developer-static-gateway.test.mjs
+      - explorer-dashboard/developer.html
+      - explorer-dashboard/developer-docs.html
+      - explorer-dashboard/developer-examples.html
+      - explorer-dashboard/developer-verify.html
+      - explorer-dashboard/developer-starter.html
+      - explorer-dashboard/developer-network.json
+      - .github/workflows/zvq-developer-isolated-repair.yml
+  workflow_dispatch:
+    inputs:
+      confirm_developer_only:
+        description: "Type FIX-ZVQ-DEVELOPER to confirm exact Developer-only change"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+concurrency:
+  group: zvq-developer-isolated-production
+  cancel-in-progress: false
+
+jobs:
+  review-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Validate Developer isolation, legacy-content protection and rollback
+        run: |
+          set -Eeuo pipefail
+          python3 -m unittest discover -s tests -p 'test_zvq_developer_https.py' -v
+          python3 -m py_compile scripts/render_zvq_developer_https.py scripts/repair_zvq_developer_https.py scripts/probe_zvq_developer_routes.py
+          python3 -c 'import sys; sys.path.insert(0,"scripts"); from repair_zvq_developer_https import validate_sources; assert len(validate_sources()) == 6; print("reviewed_zvq_static_assets=6")'
+          node --check scripts/zvq-developer-static-gateway.mjs
+          node --test tests/zvq-developer-static-gateway.test.mjs
+          test -f explorer-dashboard/developer.html
+          test -f explorer-dashboard/developer-starter.html
+          test -f explorer-dashboard/developer-network.json
+
+  public-before:
+    needs: review-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v7
+      - name: Read-only current Developer and RPC/Blockscout evidence
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 scripts/probe_zvq_developer_routes.py --scope public
+          for url in https://rpc.kriptoaman.com/ https://explorer.kriptoaman.com/rpc; do
+            curl -fsS --max-time 15 -H 'Content-Type: application/json' \
+              --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' "$url" |
+              python3 -c 'import json,sys; assert json.load(sys.stdin).get("result")=="0x560c"'
+          done
+          curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks |
+            python3 -c 'import json,sys; assert isinstance(json.load(sys.stdin).get("items"), list)'
+
+  deploy:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.confirm_developer_only == 'FIX-ZVQ-DEVELOPER'
+    needs: [review-contract, public-before]
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - name: Preview isolated NGINX candidate with preserved RPC and IP fallback
+        run: sudo -n env ZVQ_DEV_RUN_ID="$GITHUB_RUN_ID" python3 scripts/repair_zvq_developer_https.py
+      - name: Apply exact GET-only Developer routes and verify origin/public with rollback
+        run: sudo -n env ZVQ_DEV_RUN_ID="$GITHUB_RUN_ID" python3 scripts/repair_zvq_developer_https.py --apply
+
+  public-post-verify:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - name: Verify all seven ZVQ Developer pages from public network
+        run: python3 scripts/probe_zvq_developer_routes.py --scope public --require-ready
+      - name: Independently prove read-only RPC, Chain ID, advancing blocks and protected IP
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          rpc() {
+            local method="$1"
+            curl -sS --retry 2 --retry-all-errors --max-time 15 \
+              -o /tmp/zvq-rpc-response.json -w '%{http_code}' \
+              -H 'Content-Type: application/json' \
+              --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"$method\",\"params\":[]}" \
+              https://explorer.kriptoaman.com/rpc
+          }
+          test "$(rpc eth_chainId)" = 200
+          python3 -c 'import json; assert json.load(open("/tmp/zvq-rpc-response.json")).get("result")=="0x560c"'
+          test "$(rpc eth_blockNumber)" = 200
+          first="$(python3 -c 'import json; print(int(json.load(open("/tmp/zvq-rpc-response.json"))["result"],16))')"
+          sleep 12
+          test "$(rpc eth_blockNumber)" = 200
+          second="$(python3 -c 'import json; print(int(json.load(open("/tmp/zvq-rpc-response.json"))["result"],16))')"
+          test "$second" -gt "$first"
+          for method in eth_sendRawTransaction personal_listAccounts admin_peers debug_traceTransaction txpool_content qbft_getValidatorsByBlockNumber; do
+            test "$(rpc "$method")" = 403
+          done
+          test "$(curl -sS --max-time 10 -o /dev/null -w '%{http_code}' https://146.190.93.254/rpc)" = 403
+          test "$(curl -sS --max-time 10 -o /dev/null -w '%{http_code}' https://146.190.93.254/api/admin)" = 403
+          test "$(curl -sS --max-time 10 -o /dev/null -w '%{http_code}' https://146.190.93.254/developer)" = 404
+          test "$(curl -sS --max-time 10 -o /dev/null -w '%{http_code}' -X POST https://explorer.kriptoaman.com/developer)" = 403
+          curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks |
+            python3 -c 'import json,sys; assert json.load(sys.stdin).get("items")'
+          curl -fsS --max-time 15 -o /tmp/zvq-protected-homepage.html https://explorer.kriptoaman.com/
+          grep -Fq 'data-zevaryq-explorer-version' /tmp/zvq-protected-homepage.html
+          echo 'developer_public=7/7 rpc_readonly=pass chain=22028 blocks=advancing fallback=protected'
+
+  android-visual:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: public-post-verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Install isolated browser client and use runner Chrome
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || true)"
+          test -n "$CHROME"
+          echo "ZVQ_CHROME=$CHROME" >> "$GITHUB_ENV"
+          npm install --prefix "$RUNNER_TEMP/zvq-dev-playwright" --no-package-lock --ignore-scripts --no-audit --no-fund playwright-core@1.55.0
+          echo "PLAYWRIGHT_CORE=$RUNNER_TEMP/zvq-dev-playwright/node_modules/playwright-core/index.mjs" >> "$GITHUB_ENV"
+          echo "ZVQ_DEV_SCREENSHOT_DIR=$GITHUB_WORKSPACE/zvq-dev-screenshots" >> "$GITHUB_ENV"
+      - name: Verify real Android 360/393 and desktop 1440 Developer experience
+        run: node scripts/verify-zvq-developer-visual.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zvq-developer-live-android-desktop
+          path: zvq-dev-screenshots/
+          if-no-files-found: warn
+          retention-days: 14
+
+  rollback-on-failed-postverify:
+    if: always() && github.event_name == 'workflow_dispatch' && needs.deploy.result == 'success' && (needs.public-post-verify.result != 'success' || needs.android-visual.result != 'success')
+    needs: [deploy, public-post-verify, android-visual]
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - name: Restore preserved TLS and remove exact Developer sidecar, leave RPC intact
+        run: sudo -n env ZVQ_DEV_RUN_ID="$GITHUB_RUN_ID" python3 scripts/repair_zvq_developer_https.py --rollback
+
+  release-gate:
+    if: always() && github.event_name == 'workflow_dispatch'
+    needs: [review-contract, public-before, deploy, public-post-verify, android-visual, rollback-on-failed-postverify]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail closed if any deployment, security, UI or public gate did not pass
+        env:
+          REVIEW: ${{ needs.review-contract.result }}
+          PUBLIC_BEFORE: ${{ needs.public-before.result }}
+          DEPLOY: ${{ needs.deploy.result }}
+          PUBLIC_AFTER: ${{ needs.public-post-verify.result }}
+          VISUAL: ${{ needs.android-visual.result }}
+          ROLLBACK: ${{ needs.rollback-on-failed-postverify.result }}
+        run: |
+          set -Eeuo pipefail
+          test "$REVIEW" = success
+          test "$PUBLIC_BEFORE" = success
+          test "$DEPLOY" = success
+          test "$PUBLIC_AFTER" = success
+          test "$VISUAL" = success
+          test "$ROLLBACK" = skipped
+          echo 'zvq_developer_manual_release=verified_no_rollback'
