@@ -21,7 +21,11 @@ test('scheduled public proof checks exact approved design on public default and 
 test('production public proof checks RPC Chain ID, indexed blocks and both brand assets', () => {
   assert.match(workflow, /eth_chainId/);
   assert.ok(workflow.includes("'https://rpc.kriptoaman.com/'"));
-  assert.match(workflow, /test "\$blocked" = 403/);
+  assert.match(workflow, /explorer_domain_rpc=read-only/);
+  assert.match(workflow, /explorer_chain/);
+  assert.match(workflow, /for method in eth_sendRawTransaction personal_listAccounts admin_peers/);
+  assert.match(workflow, /test "\$fallback" = 403/);
+  assert.doesNotMatch(workflow, /test "\$blocked" = 403/);
   assert.match(workflow, /test "\$\(jq -er '\.result' <<<"\$chain"\)" = '0x560c'/);
   assert.match(workflow, /\/api\/v2\/blocks/);
   assert.match(workflow, /length > 0/);

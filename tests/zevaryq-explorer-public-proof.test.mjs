@@ -14,5 +14,10 @@ test('public and dedicated origin probes reject stale explorer evidence panels',
  assert.match(workflow,/zvq_feature=immune-token-v1-\$GITHUB_RUN_ID/);
  assert.match(workflow,/Blockscout route \$route returned HTTP \$status/);
  assert.match(workflow,/ROUTE_PROOF_COMPLETE: read-only/);
- assert.doesNotMatch(workflow,/eth_sendRawTransaction|docker compose up|DELETE FROM|reset genesis|private.?key/i);
+ // The only appearance of a write method is a fail-closed negative HTTP-403 probe.
+ assert.doesNotMatch(workflow,/docker compose up|DELETE FROM|reset genesis|private.?key/i);
+ assert.equal((workflow.match(/eth_sendRawTransaction/g) || []).length, 1);
+ assert.ok(workflow.includes('for method in eth_sendRawTransaction personal_listAccounts admin_peers'));
+ assert.ok(workflow.includes('if [[ "$status" != 403 ]]; then'));
+ assert.ok(workflow.includes('test "$fallback" = 403'));
 });
