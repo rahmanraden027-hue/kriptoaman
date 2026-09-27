@@ -1,0 +1,47 @@
+name: ZVQ 1M Transfer Read-only Preview
+on:
+  pull_request:
+    paths:
+      - scripts/zvq-million-transfer-readonly-preview.mjs
+      - tests/zvq-million-transfer-readonly-preview.test.mjs
+      - .github/workflows/zvq-million-readonly-preview.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: zvq-one-million-readonly-preview-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  public-readonly-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Enforce read-only preview contract and test deterministic gas math
+        run: |
+          set -euo pipefail
+          node --check scripts/zvq-million-transfer-readonly-preview.mjs
+          node --test tests/zvq-million-transfer-readonly-preview.test.mjs
+      - name: Probe only two public RPC read-only endpoints without wallets or signatures
+        run: |
+          set -euo pipefail
+          node scripts/zvq-million-transfer-readonly-preview.mjs | tee /tmp/zvq-million-readonly-preview.log
+          grep -q '^ZVQ_MILLION_PREVIEW ' /tmp/zvq-million-readonly-preview.log
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            const x=JSON.parse(readFileSync("/tmp/zvq-million-readonly-preview.log","utf8").replace(/^ZVQ_MILLION_PREVIEW /,""));
+            if(x.chain_id!==22028||x.preview.amount_zvq!=="1000000.000000000000000000"||
+              !x.providers_agree||x.signing_performed||x.transaction_submitted||x.ready_to_submit||
+              x.source_genesis_verified||x.recipient_ownership_verified)process.exit(1);
+            console.log("ZVQ_MILLION_READONLY_PROOF_PASS blockchain proof only; ownership and transfer remain unverified");
+          '
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zvq-million-readonly-preview
+          path: /tmp/zvq-million-readonly-preview.log
+          if-no-files-found: warn
+          retention-days: 7
