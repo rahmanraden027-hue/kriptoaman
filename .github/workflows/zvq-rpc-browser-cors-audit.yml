@@ -1,0 +1,55 @@
+name: ZVQ Public RPC Browser CORS Proof
+on:
+  pull_request:
+    paths:
+      - scripts/audit-zvq-rpc-cors.mjs
+      - tests/zvq-rpc-cors-audit.test.mjs
+      - .github/workflows/zvq-rpc-browser-cors-audit.yml
+  push:
+    branches: [main]
+    paths:
+      - scripts/audit-zvq-rpc-cors.mjs
+      - tests/zvq-rpc-cors-audit.test.mjs
+      - .github/workflows/zvq-rpc-browser-cors-audit.yml
+  workflow_dispatch:
+  schedule:
+    - cron: '37 1,13 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: zvq-public-rpc-browser-cors-proof
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and defensive tests
+        run: |
+          node --check scripts/audit-zvq-rpc-cors.mjs
+          node --test tests/zvq-rpc-cors-audit.test.mjs
+  external-public-proof:
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Bounded live RPC, browser CORS and indexer read-only proof
+        env:
+          ZVQ_CORS_AUDIT_PATH: artifacts/zvq-cors-evidence/proof.json
+        run: node scripts/audit-zvq-rpc-cors.mjs
+      - name: Keep sanitized diagnostic evidence even if live probe fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zvq-public-rpc-cors-evidence
+          path: artifacts/zvq-cors-evidence/proof.json
+          if-no-files-found: warn
+          retention-days: 14
