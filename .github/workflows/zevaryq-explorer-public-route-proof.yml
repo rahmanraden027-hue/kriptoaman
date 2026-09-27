@@ -120,12 +120,29 @@ jobs:
             test "$status" = 200
             echo "verified_asset_$asset=http_$status"
           done
-          # The Explorer direct origin intentionally forbids its /rpc path.
-          blocked="$(curl -sS --retry 2 --connect-timeout 8 --max-time 20 \
-            -o /dev/null -w '%{http_code}' -H 'content-type: application/json' \
+          # The Explorer SNI now serves an isolated read-only domain-only browser RPC.
+          # Keep validating the allowlist instead of the retired blanket /rpc deny.
+          explorer_chain="$(curl -fsS --retry 2 --connect-timeout 8 --max-time 20 \
+            -H 'content-type: application/json' \
             --data '{"jsonrpc":"2.0","id":0,"method":"eth_chainId","params":[]}' \
             'https://explorer.kriptoaman.com/rpc')"
-          test "$blocked" = 403
+          test "$(jq -er '.result' <<<"$explorer_chain")" = '0x560c'
+          for method in eth_sendRawTransaction personal_listAccounts admin_peers debug_traceTransaction txpool_content qbft_getValidatorsByBlockNumber; do
+            status="$(curl -sS --retry 2 --connect-timeout 8 --max-time 20 \
+              -o /dev/null -w '%{http_code}' -H 'content-type: application/json' \
+              --data "{\"jsonrpc\":\"2.0\",\"id\":0,\"method\":\"$method\",\"params\":[]}" \
+              'https://explorer.kriptoaman.com/rpc')"
+            if [[ "$status" != 403 ]]; then
+              echo "::error::Explorer browser RPC did not block $method (HTTP $status)"
+              exit 1
+            fi
+          done
+          # IP-address fallback must remain denied; -k is confined to this IP-only
+          # negative test, while all public hostname probes verify normal TLS.
+          fallback="$(curl -ksS --retry 2 --connect-timeout 8 --max-time 20 \
+            -o /dev/null -w '%{http_code}' 'https://146.190.93.254/rpc')"
+          test "$fallback" = 403
+          echo 'explorer_domain_rpc=read-only; chain=0x560c; privileged_methods=blocked; ip_fallback=403'
           # Verify Chain ID independently on the established public RPC hostname.
           chain="$(curl -fsS --retry 2 --connect-timeout 8 --max-time 20 \
             -H 'content-type: application/json' \
