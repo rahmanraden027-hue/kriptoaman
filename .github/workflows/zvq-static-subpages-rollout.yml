@@ -6,6 +6,7 @@ on:
       - "explorer-dashboard/transactions.html"
       - "scripts/deploy-zvq-static-subpages.sh"
       - "tests/zvq-static-subpages-guard.test.mjs"
+      - "tests/zvq-static-subpages-simulation.py"
       - ".github/workflows/zvq-static-subpages-rollout.yml"
   push:
     branches: [main]
@@ -14,6 +15,7 @@ on:
       - "explorer-dashboard/transactions.html"
       - "scripts/deploy-zvq-static-subpages.sh"
       - "tests/zvq-static-subpages-guard.test.mjs"
+      - "tests/zvq-static-subpages-simulation.py"
       - ".github/workflows/zvq-static-subpages-rollout.yml"
   workflow_dispatch:
     inputs:
@@ -39,6 +41,7 @@ jobs:
           test -f explorer-dashboard/transactions.html
           bash -n scripts/deploy-zvq-static-subpages.sh
           node --test tests/zvq-static-subpages-guard.test.mjs
+          python3 tests/zvq-static-subpages-simulation.py
   public_before:
     if: github.event_name == 'workflow_dispatch' && inputs.confirm_routes == 'DEPLOY-ZVQ-SUBPAGES'
     needs: validate
