@@ -203,3 +203,42 @@ test('new Explorer inline JavaScript parses, filters indexed token addresses and
  assert.match(script,/renderImmune\(\)/);
  assert.match(script,/setInterval\(probeTokens,60000\)/);
 });
+
+
+test('block utilization uses fresh consecutive indexed gas evidence only', () => {
+  const from = html.indexOf('function calcBlockTime()');
+  const to = html.indexOf('function freshness()', from);
+  assert.ok(from >= 0 && to > from, 'isolated calculation helpers must be present');
+  const fixture = { api: true, blocks: [
+    { height: 101, timestamp: '2026-09-27T03:00:03Z', gas_used: '50', gas_limit: '100' },
+    { height: 100, timestamp: '2026-09-27T03:00:00Z', gas_used: '25', gas_limit: '100' },
+  ] };
+  const utilization = runInNewContext(
+    'const state=fixture; const unavailable="Unavailable";' +
+      html.slice(from, to) + ';calcBlockUtilization', { fixture },
+  );
+  assert.equal(utilization(), '37.5%');
+  fixture.api = false;
+  assert.equal(utilization(), 'Unavailable', 'stale API must not imply live capacity');
+  fixture.api = true;
+  fixture.blocks[0].gas_limit = '';
+  assert.equal(utilization(), 'Unavailable', 'missing indexer fields must fail closed');
+  fixture.blocks[0].gas_limit = '10';
+  assert.equal(utilization(), 'Unavailable', 'gas used cannot exceed gas limit');
+  fixture.blocks[0].gas_limit = '100';
+  fixture.blocks[0].height = 103;
+  assert.equal(utilization(), 'Unavailable', 'sample must be consecutive');
+  fixture.blocks[0].height = 101;
+  fixture.blocks[0].gas_used = '0';
+  fixture.blocks[1].gas_used = '0';
+  assert.equal(utilization(), '0.0%', 'zero is real evidence, not missing data');
+});
+
+test('QBFT threshold is not presented as observed voting or measured finality latency', () => {
+  assert.match(html, /mini\('Required quorum',state\.validators\.length===4\?'3 of 4'/);
+  assert.match(html, /QBFT RULE · NOT OBSERVED/);
+  assert.match(html, /mini\('Finalized block age'/);
+  assert.doesNotMatch(html, /mini\('Finality time'/);
+  assert.match(html, /mini\('Block utilization',utilization,utilization!==unavailable/);
+  assert.match(html, /mini\('Propagation time',unavailable/);
+});
