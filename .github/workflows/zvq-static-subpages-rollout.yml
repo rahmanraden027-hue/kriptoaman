@@ -1,0 +1,167 @@
+name: ZVQ Static Subpages Guarded Rollout
+on:
+  pull_request:
+    paths:
+      - "explorer-dashboard/blocks.html"
+      - "explorer-dashboard/transactions.html"
+      - "scripts/deploy-zvq-static-subpages.sh"
+      - "tests/zvq-static-subpages-guard.test.mjs"
+      - "tests/zvq-static-subpages-simulation.py"
+      - ".github/workflows/zvq-static-subpages-rollout.yml"
+  push:
+    branches: [main]
+    paths:
+      - "explorer-dashboard/blocks.html"
+      - "explorer-dashboard/transactions.html"
+      - "scripts/deploy-zvq-static-subpages.sh"
+      - "tests/zvq-static-subpages-guard.test.mjs"
+      - "tests/zvq-static-subpages-simulation.py"
+      - ".github/workflows/zvq-static-subpages-rollout.yml"
+  workflow_dispatch:
+    inputs:
+      confirm_routes:
+        description: "Type DEPLOY-ZVQ-SUBPAGES to replace only reviewed /blocks and /txs"
+        required: true
+permissions:
+  contents: read
+# Serialize with the existing Explorer homepage workflow on the same main ref.
+concurrency:
+  group: zevaryq-explorer-production-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate exact-source markers and script syntax
+        run: |
+          set -euo pipefail
+          test -f explorer-dashboard/blocks.html
+          test -f explorer-dashboard/transactions.html
+          bash -n scripts/deploy-zvq-static-subpages.sh
+          node --test tests/zvq-static-subpages-guard.test.mjs
+          python3 tests/zvq-static-subpages-simulation.py
+  public_before:
+    if: github.event_name == 'workflow_dispatch' && inputs.confirm_routes == 'DEPLOY-ZVQ-SUBPAGES'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Independent read-only preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS --connect-timeout 8 --max-time 22 https://explorer.kriptoaman.com/ -o /tmp/root.html
+          grep -Fq 'data-zevaryq-explorer-version' /tmp/root.html
+          for route in blocks txs; do
+            curl -fsS --connect-timeout 8 --max-time 22 \
+              "https://explorer.kriptoaman.com/$route?before=$GITHUB_RUN_ID" -o "/tmp/$route.html"
+            grep -Eq 'data-zvq-public-brand="1.0.0"|KAM NETWORK' "/tmp/$route.html"
+          done
+          chain=$(curl -fsS --connect-timeout 8 --max-time 18 \
+            -H 'Content-Type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+            https://explorer.kriptoaman.com/rpc)
+          jq -e '.result == "0x560c"' <<<"$chain" >/dev/null
+          curl -fsS --connect-timeout 8 --max-time 18 \
+            https://explorer.kriptoaman.com/api/v2/blocks \
+            | jq -e '(.items | type == "array") and (.items | length > 0)' >/dev/null
+          test "$(curl -k -sS --connect-timeout 6 --max-time 15 -o /dev/null \
+            -w '%{http_code}' https://146.190.93.254/rpc)" = 403
+          echo 'zvq_subpages_public_before=verified'
+  deploy:
+    if: github.event_name == 'workflow_dispatch' && inputs.confirm_routes == 'DEPLOY-ZVQ-SUBPAGES'
+    needs: public_before
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 15
+    outputs:
+      stamp: ${{ steps.apply.outputs.stamp }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply only two protected mounted files with automatic rollback
+        id: apply
+        shell: bash
+        run: |
+          set -euo pipefail
+          response=$(sudo bash scripts/deploy-zvq-static-subpages.sh) || {
+            echo '::error::Protected rollout failed and attempted its own exact-file rollback'
+            exit 1
+          }
+          printf '%s\n' "$response"
+          stamp=$(printf '%s\n' "$response" \
+            | sed -n 's/^ZVQ_SUBPAGES_DEPLOY_STAMP=//p' | tail -1)
+          echo "stamp=$stamp" >> "$GITHUB_OUTPUT"
+  public_after:
+    if: github.event_name == 'workflow_dispatch' && inputs.confirm_routes == 'DEPLOY-ZVQ-SUBPAGES'
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Independent HTTPS, identity, indexer, RPC and denial proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS --connect-timeout 8 --max-time 22 https://explorer.kriptoaman.com/ -o /tmp/root.html
+          grep -Fq 'data-zevaryq-explorer-version' /tmp/root.html
+          for route in blocks txs; do
+            curl -fsS --connect-timeout 8 --max-time 22 \
+              -H 'Cache-Control: no-cache' \
+              "https://explorer.kriptoaman.com/$route?after=$GITHUB_RUN_ID" -o "/tmp/$route.html"
+            grep -Fq 'data-zvq-public-brand="1.0.0"' "/tmp/$route.html"
+            grep -Fq 'ZEVARYQ Explorer' "/tmp/$route.html"
+            ! grep -Eq 'KAM NETWORK|<strong>KAM Explorer</strong>' "/tmp/$route.html"
+          done
+          chain=$(curl -fsS --connect-timeout 8 --max-time 18 \
+            -H 'Content-Type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+            https://explorer.kriptoaman.com/rpc)
+          jq -e '.result == "0x560c"' <<<"$chain" >/dev/null
+          for method in eth_sendRawTransaction admin_peers; do
+            status=$(curl -sS --connect-timeout 8 --max-time 18 -o /dev/null \
+              -w '%{http_code}' -H 'Content-Type: application/json' \
+              --data "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"$method\",\"params\":[]}" \
+              https://explorer.kriptoaman.com/rpc)
+            test "$status" = 403
+          done
+          test "$(curl -k -sS --connect-timeout 6 --max-time 15 -o /dev/null \
+            -w '%{http_code}' https://146.190.93.254/rpc)" = 403
+          curl -fsS --connect-timeout 8 --max-time 18 \
+            https://explorer.kriptoaman.com/api/v2/blocks \
+            | jq -e '(.items | type == "array") and (.items | length > 0)' >/dev/null
+          curl -fsS --connect-timeout 8 --max-time 22 \
+            https://explorer.kriptoaman.com/developer/network.json \
+            | jq -e '.chainId == 22028 and .nativeCurrency.symbol == "ZVQ"' >/dev/null
+          curl -fsS --connect-timeout 8 --max-time 18 -o /dev/null https://kriptoaman.com/
+          echo 'zvq_static_subpages_release=public_verified'
+  rollback_on_failure:
+    if: always() && github.event_name == 'workflow_dispatch' && needs.deploy.result == 'success' && needs.public_after.result != 'success' && needs.deploy.outputs.stamp != ''
+    needs: [deploy, public_after]
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore original two files only, refuse concurrent edits
+        env:
+          ROLLBACK_STAMP: ${{ needs.deploy.outputs.stamp }}
+        run: |
+          set -euo pipefail
+          sudo bash scripts/deploy-zvq-static-subpages.sh --rollback "$ROLLBACK_STAMP"
+  release_gate:
+    if: always() && github.event_name == 'workflow_dispatch'
+    needs: [public_before, deploy, public_after, rollback_on_failure]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reject partial or reverted release
+        env:
+          BEFORE: ${{ needs.public_before.result }}
+          DEPLOY: ${{ needs.deploy.result }}
+          AFTER: ${{ needs.public_after.result }}
+          ROLLBACK: ${{ needs.rollback_on_failure.result }}
+        run: |
+          set -euo pipefail
+          test "$BEFORE" = success
+          test "$DEPLOY" = success
+          test "$AFTER" = success
+          test "$ROLLBACK" = skipped
+          echo 'zvq_static_subpages_release_gate=PASS'

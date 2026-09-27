@@ -159,6 +159,7 @@ export default function KAM() {
   return (
     <div className="ka-bg min-h-screen pb-24 text-white">
       <div className="mx-auto max-w-6xl space-y-8 px-4 pt-6 sm:px-6 sm:pt-10 lg:px-8">
+        <div role="status" className="rounded-2xl border border-amber-400/30 bg-amber-500/10 p-4 text-sm leading-6 text-amber-100"><strong>ARSIP HISTORIS KAM.</strong> Jaringan aktif dengan Chain ID 22028 kini menggunakan identitas ZEVARYQ / ZVQ. Angka suplai, skenario harga, dan roadmap pada halaman ini adalah arsip KAM, bukan tokenomics atau harga pasar ZVQ. <a className="underline" href="/KAMNetwork">Lihat status ZEVARYQ.</a></div>
         <section className="ka-command-hero overflow-hidden p-6 sm:p-9">
           <div className="relative z-10 grid gap-8 lg:grid-cols-[1.35fr_.65fr] lg:items-center">
             <div>

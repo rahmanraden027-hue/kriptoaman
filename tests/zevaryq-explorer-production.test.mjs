@@ -46,7 +46,9 @@ test('required production panels and search routes exist', () => {
   assert.match(html, /Live Blockchain Mesh/);
   assert.match(html, /id="refreshData"/);
   assert.match(html, /parent_hash\.toLowerCase\(\)===parent\.hash\.toLowerCase\(\)/);
-  assert.ok(html.includes("for(const url of [RPC,'https://rpc.kriptoaman.com'])"));
+  assert.ok(html.includes("const data=await getJSON(RPC,options,12000)"), 'browser RPC stays same-origin');
+  assert.ok(!html.includes("for(const url of [RPC,'https://rpc.kriptoaman.com'])"), 'do not retry through blocked cross-origin CORS');
+  assert.ok(html.includes('rpcNextProbeAt'), 'failed RPC requests must back off without throttling indexed data');
   assert.match(html, /if\(state\.probing\)return/);
 });
 
@@ -72,6 +74,17 @@ test('deployment is narrow and rollback safe', () => {
   assert.doesNotMatch(deploy, /genesis|validator private|postgres.*reset|redis.*reset/i);
 });
 
+
+
+test('the live Explorer proxy can only be recreated by a confirmed manual deployment', async () => {
+  const workflow = await readFile(new URL('../.github/workflows/zevaryq-explorer-production.yml', import.meta.url), 'utf8');
+  const deployJob = workflow.slice(workflow.lastIndexOf('\n  deploy:'));
+  assert.ok(deployJob.includes("if: github.event_name == 'workflow_dispatch' && inputs.confirm_explorer_only == 'DEPLOY-ZEVARYQ-EXPLORER'"));
+  assert.ok(!deployJob.includes("github.event_name == 'push'"), 'no unapproved main-branch push may restart the proxy');
+  assert.ok(workflow.includes('test "${{ inputs.confirm_explorer_only }}" = "DEPLOY-ZEVARYQ-EXPLORER"'));
+  assert.ok(deploy.includes('docker compose up -d --force-recreate --no-deps proxy'),
+    'manual review is mandatory because the guarded deployment recreates the live proxy');
+});
 
 test('legacy KAM deployment cannot overwrite protected ZEVARYQ homepage', async () => {
   const legacy = await readFile(new URL('../scripts/deploy-kam-explorer-v2.sh', import.meta.url), 'utf8');
@@ -189,4 +202,50 @@ test('new Explorer inline JavaScript parses, filters indexed token addresses and
  assert.match(script,/function verifiedFinalizedBlock/);
  assert.match(script,/renderImmune\(\)/);
  assert.match(script,/setInterval\(probeTokens,60000\)/);
+});
+
+
+test('block utilization uses fresh consecutive indexed gas evidence only', () => {
+  const from = html.indexOf('function calcBlockTime()');
+  const to = html.indexOf('function freshness()', from);
+  assert.ok(from >= 0 && to > from, 'isolated calculation helpers must be present');
+  const now = Date.now();
+  const fixture = { api: true, blocks: [
+    { height: 101, timestamp: new Date(now - 3000).toISOString(), gas_used: '50', gas_limit: '100' },
+    { height: 100, timestamp: new Date(now - 6000).toISOString(), gas_used: '25', gas_limit: '100' },
+  ] };
+  const utilization = runInNewContext(
+    'const state=fixture; const unavailable="Unavailable";' +
+      html.slice(from, to) + ';calcBlockUtilization', { fixture },
+  );
+  assert.equal(utilization(), '37.5%');
+  fixture.api = false;
+  assert.equal(utilization(), 'Unavailable', 'stale API must not imply live capacity');
+  fixture.api = true;
+  fixture.blocks[0].gas_limit = '';
+  assert.equal(utilization(), 'Unavailable', 'missing indexer fields must fail closed');
+  fixture.blocks[0].gas_limit = '10';
+  assert.equal(utilization(), 'Unavailable', 'gas used cannot exceed gas limit');
+  fixture.blocks[0].gas_limit = '100';
+  fixture.blocks[0].height = 103;
+  assert.equal(utilization(), 'Unavailable', 'sample must be consecutive');
+  fixture.blocks[0].height = 101;
+  fixture.blocks[0].gas_used = '0';
+  fixture.blocks[1].gas_used = '0';
+  assert.equal(utilization(), '0.0%', 'zero is real evidence, not missing data');
+  fixture.blocks[0].timestamp = new Date(now - 120_000).toISOString();
+  fixture.blocks[1].timestamp = new Date(now - 123_000).toISOString();
+  assert.equal(utilization(), 'Unavailable', 'successful API fetch is not proof the latest indexed block is fresh');
+  fixture.blocks[0].timestamp = new Date(now + 120_000).toISOString();
+  fixture.blocks[1].timestamp = new Date(now + 117_000).toISOString();
+  assert.equal(utilization(), 'Unavailable', 'future-dated indexer timestamps must fail closed');
+});
+
+test('QBFT threshold is not presented as observed voting or measured finality latency', () => {
+  assert.match(html, /mini\('Required quorum',state\.validators\.length===4\?'3 of 4'/);
+  assert.match(html, /QBFT RULE · NOT OBSERVED/);
+  assert.match(html, /mini\('Finalized block age'/);
+  assert.doesNotMatch(html, /mini\('Finality time'/);
+  assert.match(html, /mini\('Block utilization',utilization,utilization!==unavailable/);
+  assert.match(html, /mini\('Propagation time',unavailable/);
 });

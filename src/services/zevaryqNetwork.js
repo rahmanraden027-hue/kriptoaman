@@ -108,10 +108,10 @@ export async function fetchZvqBalance(address) {
   try {
     const status = await verifiedSameOriginStatus(address);
     if (status.wallet?.address?.toLowerCase() !== address.toLowerCase() ||
-        !/^\d+(?:\.\d+)?$/.test(String(status.wallet.balanceKAM))) {
+        !/^\d+(?:\.\d+)?$/.test(String((status.wallet.balanceZVQ ?? status.wallet.balanceKAM)))) {
       throw new Error('Balance could not be verified');
     }
-    return String(status.wallet.balanceKAM);
+    return String((status.wallet.balanceZVQ ?? status.wallet.balanceKAM));
   } catch {
     // Never present a balance from a browser fallback without checking chain identity.
     const chain = await rpc('eth_chainId');

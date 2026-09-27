@@ -40,7 +40,7 @@ export default function GLandingBody({ stats }) {
     ? stats.networks.filter((network) => network?.status === 'online')
     : [];
   const featuredNetworks = verifiedNetworks
-    .sort((a, b) => Number(b?.name === 'KAM Network') - Number(a?.name === 'KAM Network'))
+    .sort((a, b) => Number(b?.name === 'ZEVARYQ Network') - Number(a?.name === 'ZEVARYQ Network'))
     .slice(0, 8);
   const assetCountValue = stats?.loading
     ? '…'

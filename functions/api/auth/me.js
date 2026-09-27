@@ -25,10 +25,13 @@ async function resolveVerifiedSession(request, env, tokenSession, user) {
 export async function onRequestGet({ request, env }) {
   try {
     requireBindings(env, ['AUTH_DB', 'SESSION_SECRET']);
-    await ensureAuthSchema(env.AUTH_DB);
+    // Anonymous and invalid sessions must not trigger schema creation or D1 reads.
+    // Authenticated sessions retain the full database-backed verification below.
     const token = getSessionToken(request);
+    if (!token) return json({ authenticated: false }, { status: 401 });
     const session = await verifySessionToken(env.SESSION_SECRET, token);
     if (!session) return json({ authenticated: false }, { status: 401 });
+    await ensureAuthSchema(env.AUTH_DB);
     const user = await getUserById(env.AUTH_DB, session.sub);
     if (!user) return json({ authenticated: false }, { status: 401 });
 
@@ -50,9 +53,11 @@ export async function onRequestPatch({ request, env }) {
   try {
     requireBindings(env, ['AUTH_DB', 'SESSION_SECRET']);
     requireSameOrigin(request, env);
-    await ensureAuthSchema(env.AUTH_DB);
-    const session = await verifySessionToken(env.SESSION_SECRET, getSessionToken(request));
+    const token = getSessionToken(request);
+    if (!token) return json({ authenticated: false }, { status: 401 });
+    const session = await verifySessionToken(env.SESSION_SECRET, token);
     if (!session) return json({ authenticated: false }, { status: 401 });
+    await ensureAuthSchema(env.AUTH_DB);
     const existingUser = await getUserById(env.AUTH_DB, session.sub);
     if (!existingUser) return json({ authenticated: false }, { status: 401 });
     const sessionId = await resolveVerifiedSession(request, env, session, existingUser);

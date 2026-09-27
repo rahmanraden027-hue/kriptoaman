@@ -1,0 +1,57 @@
+name: ZVQ Developer Wallet Read-only Browser Proof
+
+on:
+  pull_request:
+    paths:
+      - scripts/verify-zvq-developer-wallet.mjs
+      - .github/workflows/zvq-developer-wallet-browser-proof.yml
+      - explorer-dashboard/developer.html
+      - explorer-dashboard/developer-starter.html
+      - explorer-dashboard/developer-network.json
+  push:
+    branches: [main]
+    paths:
+      - scripts/verify-zvq-developer-wallet.mjs
+      - .github/workflows/zvq-developer-wallet-browser-proof.yml
+      - explorer-dashboard/developer.html
+      - explorer-dashboard/developer-starter.html
+      - explorer-dashboard/developer-network.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-browser-wallet-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Verify read-only synthetic wallet proof syntax
+        run: |
+          set -Eeuo pipefail
+          node --check scripts/verify-zvq-developer-wallet.mjs
+          # A real wallet, key, send method or transaction is not authorized by this workflow.
+          ! grep -Eq 'eth_sendTransaction|eth_sendRawTransaction|personal_sign|eth_signTypedData|\.privateKey([^A-Za-z]|$)|seedPhrase' scripts/verify-zvq-developer-wallet.mjs
+      - name: Prepare isolated browser proof using runner Chrome
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || true)"
+          test -n "$CHROME"
+          echo "ZVQ_CHROME=$CHROME" >> "$GITHUB_ENV"
+          npm install --prefix "$RUNNER_TEMP/zvq-wallet-playwright" --no-package-lock --ignore-scripts --no-audit --no-fund playwright-core@1.55.0
+          echo "PLAYWRIGHT_CORE=$RUNNER_TEMP/zvq-wallet-playwright/node_modules/playwright-core/index.mjs" >> "$GITHUB_ENV"
+          echo "ZVQ_WALLET_PROOF_DIR=$GITHUB_WORKSPACE/zvq-wallet-proof" >> "$GITHUB_ENV"
+      - name: Prove public ZVQ network, Android and desktop wallet UI without live signing
+        run: node scripts/verify-zvq-developer-wallet.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zvq-developer-wallet-readonly-browser-proof
+          path: zvq-wallet-proof/
+          if-no-files-found: warn
+          retention-days: 14

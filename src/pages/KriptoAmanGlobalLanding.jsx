@@ -99,25 +99,25 @@ export default function KriptoAmanGlobalLanding() {
       const kamCheckedAt = kam.checkedAt || kamPayload?.checkedAt || null;
 
       if (kamVerified) {
-        const hadKam = next.networks.some((network) => network?.name === 'KAM Network');
+        const hadKam = next.networks.some((network) => Number(network?.chainId) === 22028 || ['KAM Network', 'ZEVARYQ Network'].includes(network?.name));
         const kamNetworkEntry = kam?.status === 'operational'
           ? {
-              name: 'KAM Network',
-              symbol: 'KAM',
+              name: 'ZEVARYQ Network',
+              symbol: 'ZVQ',
               status: 'online',
               verification: 'platform-status',
               chainId: 22028,
               blockNumber: kamBlockNumber,
             }
           : {
-              name: 'KAM Network',
-              symbol: 'KAM',
+              name: 'ZEVARYQ Network',
+              symbol: 'ZVQ',
               status: 'online',
               verification: 'kam-network-status',
               chainId: 22028,
               blockNumber: kamBlockNumber,
             };
-        next.networks = [...next.networks.filter((network) => network?.name !== 'KAM Network'), kamNetworkEntry];
+        next.networks = [...next.networks.filter((network) => Number(network?.chainId) !== 22028 && !['KAM Network', 'ZEVARYQ Network'].includes(network?.name)), kamNetworkEntry];
         next.networkCheckedAt = next.networkCheckedAt || kamCheckedAt;
         if (!hadKam) {
           next.networkActiveCount = (Number(next.networkActiveCount) || 0) + 1;

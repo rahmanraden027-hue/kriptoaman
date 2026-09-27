@@ -115,3 +115,19 @@ test('preflight and rollback only touch per-run temporary resources and new RPC 
   assert.match(rollback, /ufw_rule_added=yes/);
   assert.doesNotMatch(rollback, /genesis\.json|rm -rf .*postgres|reset-chain/i);
 });
+
+test('Explorer gateway accepts only the exact canonical HTTPS upstream', async () => {
+  const gateway = createRpcGateway({
+    upstreamUrl: 'https://rpc.kriptoaman.com/',
+    fetchImpl: async (url) => {
+      assert.equal(url, 'https://rpc.kriptoaman.com/');
+      return new Response(JSON.stringify({ jsonrpc: '2.0', id: 1, result: '0x560c' }));
+    },
+  });
+  await new Promise(resolve => gateway.listen(0, '127.0.0.1', resolve));
+  const url = `http://127.0.0.1:${gateway.address().port}/`;
+  const response = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(allowed) });
+  assert.equal(response.status, 200);
+  await new Promise(resolve => gateway.close(resolve));
+  assert.throws(() => createRpcGateway({ upstreamUrl: 'https://attacker.example/' }));
+});

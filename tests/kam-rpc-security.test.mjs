@@ -179,3 +179,55 @@ test('KAM RPC rate-limit configuration has separate general and heavy budgets', 
   assert.match(config, /"binding"\s*:\s*"KAM_EXPLORER_GATEWAY"/);
   assert.match(config, /"service"\s*:\s*"kam-mainnet-explorer-cutover"/);
 });
+
+test('RPC Worker preflight admits exactly the two approved browser origins', async () => {
+  for (const origin of ['https://explorer.kriptoaman.com', 'https://kriptoaman.com']) {
+    const response = await gateway.fetch(new Request('https://rpc.kriptoaman.com/', {
+      method: 'OPTIONS',
+      headers: {
+        Origin: origin,
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'Content-Type',
+      },
+    }), {});
+    assert.equal(response.status, 204);
+    assert.equal(response.headers.get('access-control-allow-origin'), origin);
+    assert.match(response.headers.get('access-control-allow-methods'), /POST/);
+    assert.match(response.headers.get('access-control-allow-headers'), /content-type/);
+  }
+});
+
+test('RPC Worker preflight rejects foreign origins and unexpected methods or headers', async () => {
+  for (const [origin, method, headers] of [
+    ['https://untrusted.invalid', 'POST', 'content-type'],
+    ['https://explorer.kriptoaman.com', 'GET', 'content-type'],
+    ['https://explorer.kriptoaman.com', 'POST', 'authorization'],
+  ]) {
+    const response = await gateway.fetch(new Request('https://rpc.kriptoaman.com/', {
+      method: 'OPTIONS',
+      headers: {
+        Origin: origin,
+        'Access-Control-Request-Method': method,
+        'Access-Control-Request-Headers': headers,
+      },
+    }), {});
+    assert.equal(response.status, 403);
+    assert.equal(response.headers.get('access-control-allow-origin'), null);
+  }
+});
+
+test('RPC Worker POST CORS echoes only approved origins and still denies admin namespace', async () => {
+  for (const [origin, expected] of [
+    ['https://explorer.kriptoaman.com', 'https://explorer.kriptoaman.com'],
+    ['https://untrusted.invalid', null],
+  ]) {
+    const response = await gateway.fetch(new Request('https://rpc.kriptoaman.com/', {
+      method: 'POST',
+      headers: { Origin: origin, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 7, method: 'admin_peers', params: [] }),
+    }), {});
+    assert.equal(response.status, 403);
+    assert.equal(response.headers.get('access-control-allow-origin'), expected);
+    assert.equal((await response.json()).error.code, -32601);
+  }
+});

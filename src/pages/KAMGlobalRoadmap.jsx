@@ -124,6 +124,7 @@ export default function KAMGlobalRoadmap() {
   return (
     <div className="ka-bg min-h-screen pb-24 text-white">
       <main className="mx-auto max-w-6xl space-y-7 px-4 py-7 sm:px-6 lg:px-8">
+        <div role="status" className="rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm leading-6 text-amber-100">HISTORICAL KAM ROADMAP · The live network identity is ZEVARYQ / ZVQ. Prior KAM figures and valuation scenarios are archived, not ZVQ market data. <a href="/KAMNetwork" className="underline">ZEVARYQ Network Status</a></div>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <a href="/KAM" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-700 bg-slate-950/50 px-4 text-sm font-bold text-slate-200 transition hover:border-sky-400/40 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/70">
             <ArrowLeft className="h-4 w-4" /> {text.back}

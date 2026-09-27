@@ -40,37 +40,41 @@ const PUBLIC_ROUTE_SEO = {
         title: 'Status Sistem KriptoAman',
         description: 'Lihat status layanan publik KriptoAman dan informasi operasional yang tersedia untuk membantu pengguna memantau ketersediaan platform.',
     },
+    '/ZEVARYQ': {
+        title: 'ZEVARYQ Network · ZVQ | KriptoAman',
+        description: 'Identitas resmi ZEVARYQ Mainnet, ZVQ, Chain ID 22028 dan sumber verifikasi RPC serta Explorer.',
+    },
     '/KAM': {
-        title: 'KAM | KriptoAman',
+        title: 'KAM Economics Archive | KriptoAman',
         description: 'Informasi resmi KAM di KriptoAman, termasuk dokumentasi publik, perkembangan jaringan, roadmap, dan sumber verifikasi yang tersedia.',
     },
     '/KAMGlobalRoadmap': {
-        title: 'KAM Global Campaign Roadmap 2026–2027 | KriptoAman',
+        title: 'Archived KAM Roadmap 2026–2027 | KriptoAman',
         description: 'Roadmap kampanye resmi terbaru KAM: Technology First, Transparency, Governance, utility, global access, dan Verifiable Milestones.',
     },
     '/KAMTokenomics': {
-        title: 'KAM Tokenomics | KriptoAman',
+        title: 'Archived KAM Tokenomics | KriptoAman',
         description: 'Dokumentasi publik tokenomics KAM, struktur suplai, utilitas yang direncanakan, dan informasi ekosistem yang tersedia untuk verifikasi.',
     },
     '/KAMNetwork': {
-        title: 'KAM Network | KriptoAman',
-        description: 'Informasi publik mengenai KAM Network, status jaringan yang tersedia, parameter teknis, dan sumber verifikasi KriptoAman.',
+        title: 'ZEVARYQ Network | KriptoAman',
+        description: 'Informasi publik mengenai ZEVARYQ Network, status jaringan yang tersedia, parameter teknis, dan sumber verifikasi KriptoAman.',
     },
     '/KAMTransactionLab': {
-        title: 'KAM Transaction Lab | KriptoAman',
-        description: 'Halaman resmi untuk menghubungkan wallet, memvalidasi Chain ID 22028, dan mencoba transaksi KAM bernilai kecil dengan konfirmasi langsung di wallet pengguna.',
+        title: 'ZVQ Transaction Lab | KriptoAman',
+        description: 'Halaman resmi untuk menghubungkan wallet, memvalidasi Chain ID 22028, dan mencoba transaksi ZVQ bernilai kecil dengan konfirmasi langsung di wallet pengguna.',
     },
     '/KAMNetworkDocs': {
-        title: 'KAM Network Documentation | KriptoAman',
-        description: 'Dokumentasi teknis publik KAM Network untuk parameter jaringan, integrasi teknis, dan sumber verifikasi yang tersedia.',
+        title: 'ZEVARYQ Network Documentation | KriptoAman',
+        description: 'Dokumentasi teknis publik ZEVARYQ Network untuk parameter jaringan, integrasi teknis, dan sumber verifikasi yang tersedia.',
     },
     '/KAMLaunchReadiness': {
-        title: 'KAM Launch Readiness | KriptoAman',
+        title: 'ZEVARYQ Launch Readiness | KriptoAman',
         description: 'Halaman kesiapan publik KAM yang merangkum indikator teknis dan bukti verifikasi tanpa menyatakan peluncuran final sebelum seluruh syarat terpenuhi.',
     },
     '/KAMDeveloper': {
-        title: 'KAM Developer Resources | KriptoAman',
-        description: 'Sumber daya developer KAM untuk dokumentasi jaringan, integrasi teknis, dan referensi publik yang tersedia.',
+        title: 'ZEVARYQ Developer Resources | KriptoAman',
+        description: 'Sumber daya developer ZEVARYQ untuk dokumentasi jaringan, integrasi teknis, dan referensi publik yang tersedia.',
     },
     '/RPCPrivacyPolicy': {
         title: 'RPC Privacy Policy | KriptoAman',

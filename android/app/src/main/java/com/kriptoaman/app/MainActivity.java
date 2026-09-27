@@ -85,7 +85,7 @@ public class MainActivity extends BridgeActivity {
         int logoSize = Math.min(dp(300), availableWidth);
 
         ImageView emblem = new ImageView(this);
-        emblem.setImageResource(R.drawable.ic_launcher_foreground_brand);
+        emblem.setImageResource(R.drawable.zevaryq_wallet_launcher);
         emblem.setScaleType(ImageView.ScaleType.FIT_CENTER);
         emblem.setAdjustViewBounds(true);
         emblem.setContentDescription(null);

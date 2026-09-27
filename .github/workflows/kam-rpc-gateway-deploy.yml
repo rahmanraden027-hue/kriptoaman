@@ -2,6 +2,12 @@ name: KAM RPC Gateway Security Deploy
 
 on:
   workflow_dispatch:
+    inputs:
+      approve_worker_custom_domain:
+        description: "Approved custom-domain routing after verifying no externally managed DNS conflict"
+        type: boolean
+        required: true
+        default: false
   pull_request:
     paths:
       - 'chain/kam-mainnet/public-rpc-gateway/**'
@@ -35,7 +41,9 @@ jobs:
       - run: node --test tests/kam-rpc-security.test.mjs
 
   deploy:
-    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+    # The live RPC hostname has an externally managed A record; never rebind it on main push.
+    # A manual route cutover must be separately approved after DNS, origin and rollback review.
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.approve_worker_custom_domain == true }}
     needs: verify
     runs-on: ubuntu-latest
     timeout-minutes: 8

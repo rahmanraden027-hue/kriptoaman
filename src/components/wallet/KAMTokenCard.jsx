@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ShieldCheck, Clock3, Sparkles, Users, Gift, ArrowRight, X, Activity, Database } from 'lucide-react';
-import KriptoAmanLogo from '../brand/KriptoAmanLogo';
+import ZevaryqMark from '../zevaryq-wallet/ZevaryqMark';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useWeb3 } from '../web3/Web3Provider';
 
@@ -53,7 +53,7 @@ export default function KAMTokenCard() {
           cache: 'no-store',
         });
         const data = await response.json();
-        if (!response.ok) throw new Error(data?.error || 'KAM network unavailable');
+        if (!response.ok) throw new Error(data?.error || 'ZEVARYQ network unavailable');
         if (active) setNetwork({ ...data, loading: false });
       } catch (error) {
         if (active && error?.name !== 'AbortError') {
@@ -100,11 +100,11 @@ export default function KAMTokenCard() {
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/15 bg-[#06101d]/70">
-              <KriptoAmanLogo size={48} showText={false} />
+              <ZevaryqMark className="h-12 w-12" />
             </div>
             <div>
-              <h2 id="kam-token-title" className="text-xl font-bold">KAM</h2>
-              <p className="text-sm text-sky-100">KriptoAman Token</p>
+              <h2 id="kam-token-title" className="text-xl font-bold">ZEVARYQ (ZVQ)</h2>
+              <p className="text-sm text-sky-100">ZEVARYQ Mainnet · Chain ID 22028</p>
             </div>
           </div>
           <span className={`rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${network.verified ? 'border-emerald-300/30 bg-emerald-300/10 text-emerald-200' : 'border-amber-300/25 bg-amber-300/10 text-amber-200'}`}>
@@ -123,15 +123,15 @@ export default function KAMTokenCard() {
             </p>
           </div>
           <div className="rounded-xl bg-black/15 p-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-sky-100">{en ? 'On-chain KAM' : 'KAM on-chain'}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-sky-100">{en ? 'On-chain ZVQ' : 'ZVQ on-chain'}</p>
             <p className="mt-1 text-lg font-bold">
-              {network.verified && web3?.account && network.wallet?.balanceKAM != null
+              {network.verified && web3?.account && (network.wallet?.balanceZVQ ?? network.wallet?.balanceKAM) != null
                 ? Number(network.wallet.balanceKAM).toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 8 })
                 : '—'}
             </p>
             <p className="mt-1 text-[10px] text-sky-100/70">
               {web3?.account
-                ? (network.verified ? (en ? 'Verified from KAM RPC.' : 'Terverifikasi dari RPC KAM.') : (en ? 'RPC not publicly verified.' : 'RPC belum terverifikasi publik.'))
+                ? (network.verified ? (en ? 'Verified from ZEVARYQ RPC.' : 'Terverifikasi dari RPC ZEVARYQ.') : (en ? 'RPC not publicly verified.' : 'RPC belum terverifikasi publik.'))
                 : (en ? 'Connect an EVM public address.' : 'Hubungkan alamat publik EVM.')}
             </p>
           </div>
@@ -159,7 +159,7 @@ export default function KAMTokenCard() {
           onClick={() => setShowAcquireFlow(true)}
           className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white px-4 py-3 text-sm font-extrabold text-[#08213b] shadow-lg shadow-black/15 transition hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-300"
         >
-          {en ? 'Get KAM' : 'Dapatkan KAM'}
+          {en ? 'ZVQ Access' : 'Akses ZVQ'}
           <ArrowRight className="h-4 w-4" />
         </button>
       </div>
@@ -168,8 +168,8 @@ export default function KAMTokenCard() {
         <div className="rounded-2xl border border-cyan-400/20 bg-[#071827] p-4 shadow-xl shadow-black/20" aria-live="polite">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-cyan-300">KAM ACCESS</p>
-              <h3 className="mt-1 text-lg font-extrabold text-white">{en ? 'How to get KAM' : 'Cara mendapatkan KAM'}</h3>
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-cyan-300">ZVQ ACCESS</p>
+              <h3 className="mt-1 text-lg font-extrabold text-white">{en ? 'ZVQ access' : 'Akses ZVQ'}</h3>
               <p className="mt-1 text-xs leading-relaxed text-slate-400">
                 {en
                   ? 'During pre-release, access starts with KAM Points and official KriptoAman programs. Public token purchase is not active.'
@@ -216,8 +216,8 @@ export default function KAMTokenCard() {
             <p className="text-xs font-semibold text-emerald-300">{en ? 'Mainnet migration' : 'Migrasi mainnet'}</p>
             <p className="mt-1 text-xs leading-relaxed text-slate-400">
               {en
-                ? 'Eligible KAM Points may be migrated or converted to on-chain KAM only after the public network, official addresses, distribution rules, and required verification are formally released.'
-                : 'KAM Points yang memenuhi ketentuan dapat dimigrasikan atau dikonversi menjadi KAM on-chain hanya setelah jaringan publik, alamat resmi, aturan distribusi, dan verifikasi yang diperlukan dirilis secara resmi.'}
+                ? 'KAM Points remain separate off-chain rewards. Any conversion to ZVQ requires separately published, approved distribution rules and verification; no automatic conversion is implied.'
+                : 'KAM Points tetap merupakan poin off-chain terpisah. Konversi apa pun ke ZVQ memerlukan aturan distribusi resmi yang disetujui dan verifikasi; tidak ada konversi otomatis.'}
             </p>
           </div>
         </div>
@@ -229,8 +229,8 @@ export default function KAMTokenCard() {
           <div>
             <p className="font-semibold text-white">
               {network.verified
-                ? (en ? 'Verified KAM on-chain data' : 'Data on-chain KAM terverifikasi')
-                : (en ? 'KAM mainnet candidate — not public' : 'Kandidat mainnet KAM — belum publik')}
+                ? (en ? 'Verified ZVQ on-chain data' : 'Data on-chain ZVQ terverifikasi')
+                : (en ? 'ZEVARYQ mainnet candidate — not public' : 'Kandidat mainnet ZEVARYQ — belum publik')}
             </p>
             <p className="mt-1 text-sm leading-relaxed text-slate-400">
               {network.verified

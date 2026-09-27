@@ -105,7 +105,16 @@ curl -L -sSIf --retry 6 --retry-delay 2 --retry-all-errors --max-time 25 -o "$VE
 grep -Eqi '^x-kam-developer-starter-version: *1' "$VERIFY_HEADERS"
 
 curl -fsS --retry 4 --retry-all-errors --max-time 15 'https://explorer.kriptoaman.com/api/v2/blocks' | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("items")'
-curl -fsS --retry 4 --retry-all-errors --max-time 15 'https://explorer.kriptoaman.com/developer/network.json' | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["chainId"]==22028 and d["chainIdHex"]=="0x560c"'
+: > "$VERIFY_BODY"
+curl -fsS --retry 2 --retry-delay 2 --retry-all-errors --max-time 15 \
+  -o "$VERIFY_BODY" 'https://explorer.kriptoaman.com/developer/network.json' || fail "ZEVARYQ network.json unavailable after deployment"
+python3 - "$VERIFY_BODY" <<'PY'
+import json,sys
+with open(sys.argv[1], encoding='utf-8') as f: d=json.load(f)
+assert d['networkName']=='ZEVARYQ Mainnet'
+assert d['chainId']==22028 and d['chainIdHex']=='0x560c'
+assert d['nativeCurrency']['symbol']=='ZVQ'
+PY
 curl -L -fsS --retry 4 --retry-all-errors --max-time 20 'https://explorer.kriptoaman.com/developer/docs' -o /dev/null
 
 trap - ERR

@@ -29,11 +29,11 @@
       "icons": [{ "src": "/icons/kriptoaman-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
-      "name": "Wallet Monitor",
+      "name": "ZEVARYQ Wallet",
       "short_name": "Wallet",
-      "description": "Open wallet and public-address monitoring.",
+      "description": "Open ZEVARYQ Wallet and verified on-chain address monitoring.",
       "url": "/Wallet",
-      "icons": [{ "src": "/icons/kriptoaman-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [{ "src": "/brand/zevaryq-mark.svg", "sizes": "any", "type": "image/svg+xml" }]
     },
     {
       "name": "Security Center",
