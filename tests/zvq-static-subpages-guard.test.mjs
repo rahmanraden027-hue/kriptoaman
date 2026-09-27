@@ -8,7 +8,7 @@ const blocks = await readFile(new URL('../explorer-dashboard/blocks.html', impor
 const txs = await readFile(new URL('../explorer-dashboard/transactions.html', import.meta.url), 'utf8');
 
 test('reviewed sources have identical approved ZVQ identity and retain indexed APIs', () => {
-  for (const [name, html] of [['blocks',blocks],['txs',txs]]) {
+  for (const html of [blocks,txs]) {
     assert.match(html,/data-zvq-public-brand="1\.0\.0"/);
     assert.match(html,/ZEVARYQ Explorer/);
     assert.match(html,/ZVQ Mainnet/);
