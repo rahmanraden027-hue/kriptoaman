@@ -1,0 +1,33 @@
+name: ZVQ 1M Genesis Read-only Transfer Preview
+on:
+  pull_request:
+    paths:
+      - scripts/preview-zvq-genesis-1m-readonly.mjs
+      - tests/preview-zvq-genesis-1m-readonly.test.mjs
+      - .github/workflows/zvq-genesis-1m-readonly-preview.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: zvq-readonly-transfer-preview
+  cancel-in-progress: false
+jobs:
+  read-only-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate read-only RPC contract and run deterministic regression checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check scripts/preview-zvq-genesis-1m-readonly.mjs
+          node --test tests/preview-zvq-genesis-1m-readonly.test.mjs
+      - name: Check live dual-RPC Genesis and destination balances and simulate gas only
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/preview-zvq-genesis-1m-readonly.mjs
