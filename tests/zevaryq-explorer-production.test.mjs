@@ -209,9 +209,10 @@ test('block utilization uses fresh consecutive indexed gas evidence only', () =>
   const from = html.indexOf('function calcBlockTime()');
   const to = html.indexOf('function freshness()', from);
   assert.ok(from >= 0 && to > from, 'isolated calculation helpers must be present');
+  const now = Date.now();
   const fixture = { api: true, blocks: [
-    { height: 101, timestamp: '2026-09-27T03:00:03Z', gas_used: '50', gas_limit: '100' },
-    { height: 100, timestamp: '2026-09-27T03:00:00Z', gas_used: '25', gas_limit: '100' },
+    { height: 101, timestamp: new Date(now - 3000).toISOString(), gas_used: '50', gas_limit: '100' },
+    { height: 100, timestamp: new Date(now - 6000).toISOString(), gas_used: '25', gas_limit: '100' },
   ] };
   const utilization = runInNewContext(
     'const state=fixture; const unavailable="Unavailable";' +
@@ -232,6 +233,12 @@ test('block utilization uses fresh consecutive indexed gas evidence only', () =>
   fixture.blocks[0].gas_used = '0';
   fixture.blocks[1].gas_used = '0';
   assert.equal(utilization(), '0.0%', 'zero is real evidence, not missing data');
+  fixture.blocks[0].timestamp = new Date(now - 120_000).toISOString();
+  fixture.blocks[1].timestamp = new Date(now - 123_000).toISOString();
+  assert.equal(utilization(), 'Unavailable', 'successful API fetch is not proof the latest indexed block is fresh');
+  fixture.blocks[0].timestamp = new Date(now + 120_000).toISOString();
+  fixture.blocks[1].timestamp = new Date(now + 117_000).toISOString();
+  assert.equal(utilization(), 'Unavailable', 'future-dated indexer timestamps must fail closed');
 });
 
 test('QBFT threshold is not presented as observed voting or measured finality latency', () => {
