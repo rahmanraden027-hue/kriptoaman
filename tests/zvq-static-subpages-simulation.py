@@ -70,6 +70,9 @@ cp "$source" "$out"
         ]:
             assert previous in patched, f"Production boundary changed: {previous}"
             patched = patched.replace(previous, new_line, 1)
+        # Production still requires sudo; only the sandbox copy bypasses its UID gate.
+        assert '[[ "$EUID" == 0 ]]' in patched
+        patched = patched.replace('[[ "$EUID" == 0 ]]', '[[ 0 == 0 ]]', 1)
         script = base / "deploy.sh"
         script.write_text(patched)
         env = dict(os.environ, PATH=str(bindir) + os.pathsep + os.environ["PATH"],
