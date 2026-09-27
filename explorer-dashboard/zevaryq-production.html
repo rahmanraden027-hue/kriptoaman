@@ -227,10 +227,7 @@ const unavailable='Unavailable';
 function short(v,n=8){if(!v)return '—';return v.length>n*2?v.slice(0,n)+'…'+v.slice(-n):v}
 function age(ts){if(!ts)return '—';const s=Math.max(0,Math.floor((Date.now()-new Date(ts).getTime())/1000));return s<60?s+'s ago':s<3600?Math.floor(s/60)+'m ago':Math.floor(s/3600)+'h ago'}
 async function getJSON(url,opt={},ms=8000){const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);try{const r=await fetch(url,{...opt,signal:c.signal,headers:{accept:'application/json',...(opt.headers||{})}});if(!r.ok)throw Error('HTTP '+r.status);return await r.json()}finally{clearTimeout(t)}}
-// The direct Explorer origin currently blocks /rpc and the separate RPC host
-// does not permit browser CORS. Never retry against a knowingly blocked
-// cross-origin path: use independently indexed Blockscout data until the
-// reviewed, restricted browser RPC transport passes its own live proof.
+// Use only the reviewed same-origin, read-only JSON-RPC gateway.
 async function rpc(method,params=[]){
  const options={method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,params})};
  const data=await getJSON(RPC,options,12000);
@@ -344,7 +341,7 @@ function renderStatic(){
 function calcBlockTime(){const b=sampledBlocks();if(b.length<2)return unavailable;const sec=(new Date(b[0].timestamp)-new Date(b[b.length-1].timestamp))/1000;return sec>0?(sec/(b.length-1)).toFixed(1)+' s':unavailable}
 function sampledBlocks(){const rows=state.blocks.slice(0,8);if(rows.length<2||rows.some(b=>!Number.isFinite(Date.parse(b.timestamp))))return [];return rows.every((b,i)=>i===0||Number(rows[i-1].height)===Number(b.height)+1)?rows:[]}
 function calcTps(){const b=sampledBlocks();if(b.length<2)return unavailable;const counts=b.slice(0,-1).map(v=>Number(v.tx_count??v.transactions_count));if(counts.some(n=>!Number.isSafeInteger(n)||n<0))return unavailable;const secs=(new Date(b[0].timestamp)-new Date(b[b.length-1].timestamp))/1000;return secs>0?(counts.reduce((a,n)=>a+n,0)/secs).toFixed(2):unavailable}
-function calcBlockUtilization(){if(!state.api)return unavailable;const rows=sampledBlocks();if(rows.length<2)return unavailable;let used=0n,limit=0n;for(const b of rows){const u=String(b.gas_used??''),l=String(b.gas_limit??'');if(!/^\d+$/.test(u)||! /^[1-9]\d*$/.test(l))return unavailable;const x=BigInt(u),y=BigInt(l);if(x>y)return unavailable;used+=x;limit+=y}return(Number((used*1000n+limit/2n)/limit)/10).toFixed(1)+'%'}
+function calcBlockUtilization(){if(!state.api)return unavailable;const rows=sampledBlocks();if(rows.length<2)return unavailable;const newest=Date.parse(rows[0].timestamp),ageMs=Date.now()-newest;if(!Number.isFinite(newest)||!Number.isFinite(ageMs)||ageMs<0||ageMs>90_000)return unavailable;let used=0n,limit=0n;for(const b of rows){const u=String(b.gas_used??''),l=String(b.gas_limit??'');if(!/^\d+$/.test(u)||! /^[1-9]\d*$/.test(l))return unavailable;const x=BigInt(u),y=BigInt(l);if(x>y)return unavailable;used+=x;limit+=y}return(Number((used*1000n+limit/2n)/limit)/10).toFixed(1)+'%'}
 function freshness(){if(!state.blocks[0]?.timestamp)return unavailable;return age(state.blocks[0].timestamp)}
 function verifiedIndexedBlock(b){return Number.isSafeInteger(Number(b?.height))&&Number(b.height)>=0&&/^0x[a-f0-9]{64}$/i.test(b.hash||'')&&Number.isFinite(Date.parse(b.timestamp||''))}
 
