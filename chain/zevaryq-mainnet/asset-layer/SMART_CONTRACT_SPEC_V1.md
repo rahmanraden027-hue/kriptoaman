@@ -193,7 +193,7 @@ measured in satoshis.
 
 Each BTC deposit must map to a unique identifier such as:
 
-`depositId = keccak256(sourceNetwork, txid, vout)`
+`depositId = keccak256(targetChainId, bridgeController, assetId, sourceDomain, txid, vout)`
 
 A `depositId` is permanently single-use.
 
@@ -210,7 +210,7 @@ Mint requires:
 - bridge operations not paused;
 - deposit finality policy satisfied;
 - attestation quorum reached;
-- deposit identifier unused;
+- deposit identifier is computed canonically by the controller from source-domain + source-event fields and is unused;
 - recipient nonzero;
 - amount matches the attested source amount;
 - resulting total supply does not exceed verified locked backing.
@@ -223,7 +223,7 @@ Suggested event:
 
 Recommended state:
 
-`NONE -> REQUESTED -> BURN_AUTHORIZED -> BURNED -> RELEASE_ATTESTED`
+`NONE -> REQUESTED -> BURN_AUTHORIZED -> BURNED -> RELEASE_ATTESTED`\n\nor\n\n`REQUESTED -> CANCELLED`
 
 A redemption request commits to a Bitcoin destination hash rather than storing raw destination metadata when possible.
 
