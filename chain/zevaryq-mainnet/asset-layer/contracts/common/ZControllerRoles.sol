@@ -38,7 +38,9 @@ abstract contract ZControllerRoles {
     mapping(bytes32 role => PendingRoleChange pending) public pendingRoleChange;
 
     event TokenInitialized(address indexed token);
-    event RoleChangeScheduled(bytes32 indexed role, address indexed currentAccount, address indexed nextAccount, uint64 eta);
+    event RoleChangeScheduled(
+        bytes32 indexed role, address indexed currentAccount, address indexed nextAccount, uint64 eta
+    );
     event RoleChangeCancelled(bytes32 indexed role, address indexed pendingAccount);
     event RoleChanged(bytes32 indexed role, address indexed previousAccount, address indexed nextAccount);
 
