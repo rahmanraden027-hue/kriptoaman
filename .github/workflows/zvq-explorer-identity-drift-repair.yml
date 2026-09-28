@@ -54,6 +54,47 @@ jobs:
           grep -Fq 'rolling back exact two files' "$file"
           ! grep -Eqi 'genesis|private.?key|validator.?key|cloudflare|ufw|iptables|docker compose (up|down|restart)|eth_sendTransaction|personal_sign|eth_sign|wallet_' "$file"
 
+
+  diagnostic_public_contract:
+    if: github.event_name == 'pull_request'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Report live RPC and indexer contract without mutation
+        shell: bash
+        run: |
+          set -u
+          probe_rpc() {
+            local label="$1" endpoint="$2" method="$3" body status compact
+            body="$(mktemp)"
+            status="$(curl -sS --connect-timeout 8 --max-time 18 -o "$body" -w '%{http_code}' \
+              -H 'Content-Type: application/json' \
+              --data "{\"jsonrpc\":\"2.0\",\"id\":7,\"method\":\"$method\",\"params\":[]}" "$endpoint" || printf 'curl_error')"
+            compact="$(tr '\n' ' ' < "$body" | head -c 500)"
+            rm -f "$body"
+            echo "RPC_PROBE label=$label method=$method http=$status body=$compact"
+          }
+          probe_http() {
+            local label="$1" url="$2" body status
+            body="$(mktemp)"
+            status="$(curl -sS --connect-timeout 8 --max-time 18 -o "$body" -w '%{http_code}' "$url" || printf 'curl_error')"
+            echo "HTTP_PROBE label=$label http=$status bytes=$(wc -c < "$body")"
+            rm -f "$body"
+          }
+          probe_http blocks_api https://explorer.kriptoaman.com/api/v2/blocks
+          probe_http transactions_api https://explorer.kriptoaman.com/api/v2/transactions
+          for spec in \
+            "explorer|https://explorer.kriptoaman.com/rpc" \
+            "canonical|https://rpc.kriptoaman.com"; do
+            label="${spec%%|*}"
+            endpoint="${spec#*|}"
+            for method in eth_chainId eth_blockNumber eth_sendRawTransaction admin_peers; do
+              probe_rpc "$label" "$endpoint" "$method"
+            done
+          done
+          echo 'diagnostic_only=no_production_write'
+
   public_before:
     if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.confirm == 'DEPLOY-ZVQ-IDENTITY')
     needs: validate
