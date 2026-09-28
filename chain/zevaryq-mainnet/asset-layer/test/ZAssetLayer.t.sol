@@ -14,8 +14,7 @@ interface VmAssetLayer {
 }
 
 contract ZAssetLayerTest {
-    VmAssetLayer internal constant vm =
-        VmAssetLayer(address(uint160(uint256(keccak256("hevm cheat code")))));
+    VmAssetLayer internal constant vm = VmAssetLayer(address(uint160(uint256(keccak256("hevm cheat code")))));
 
     address internal constant RESERVE_ATTESTOR = address(0xA11CE);
     address internal constant MINT_OPERATOR = address(0xB0B);
@@ -40,33 +39,18 @@ contract ZAssetLayerTest {
     function setUp() public {
         vm.chainId(22028);
 
-        reserve = new ZUSDReserveController(
-            address(this),
-            RESERVE_ATTESTOR,
-            MINT_OPERATOR,
-            SETTLEMENT_OPERATOR,
-            GUARDIAN
-        );
+        reserve =
+            new ZUSDReserveController(address(this), RESERVE_ATTESTOR, MINT_OPERATOR, SETTLEMENT_OPERATOR, GUARDIAN);
         zusd = new ZUSD(address(this), address(reserve));
         reserve.initializeToken(address(zusd));
 
-        btcBridge = new ZAssetBridgeController(
-            keccak256("zBTC"),
-            address(this),
-            BRIDGE_ATTESTOR,
-            RELEASE_OPERATOR,
-            GUARDIAN
-        );
+        btcBridge =
+            new ZAssetBridgeController(keccak256("zBTC"), address(this), BRIDGE_ATTESTOR, RELEASE_OPERATOR, GUARDIAN);
         zbtc = new zBTC(address(this), address(btcBridge));
         btcBridge.initializeToken(address(zbtc));
 
-        ethBridge = new ZAssetBridgeController(
-            keccak256("zETH"),
-            address(this),
-            BRIDGE_ATTESTOR,
-            RELEASE_OPERATOR,
-            GUARDIAN
-        );
+        ethBridge =
+            new ZAssetBridgeController(keccak256("zETH"), address(this), BRIDGE_ATTESTOR, RELEASE_OPERATOR, GUARDIAN);
         zeth = new zETH(address(this), address(ethBridge));
         ethBridge.initializeToken(address(zeth));
     }
@@ -94,9 +78,8 @@ contract ZAssetLayerTest {
         require(zusd.totalSupply() == 600_000_000, "supply after mint");
 
         vm.prank(MINT_OPERATOR);
-        (bool ok,) = address(reserve).call(
-            abi.encodeCall(ZUSDReserveController.mintAgainstReserve, (USER, 400_000_001, 1))
-        );
+        (bool ok,) =
+            address(reserve).call(abi.encodeCall(ZUSDReserveController.mintAgainstReserve, (USER, 400_000_001, 1)));
         require(!ok, "unbacked ZUSD mint accepted");
         require(zusd.totalSupply() <= reserve.verifiedReserveUnits(), "reserve invariant");
     }
@@ -125,9 +108,7 @@ contract ZAssetLayerTest {
         vm.warp(expiry + 1);
 
         vm.prank(MINT_OPERATOR);
-        (bool ok,) = address(reserve).call(
-            abi.encodeCall(ZUSDReserveController.mintAgainstReserve, (USER, 1, 1))
-        );
+        (bool ok,) = address(reserve).call(abi.encodeCall(ZUSDReserveController.mintAgainstReserve, (USER, 1, 1)));
         require(!ok, "expired attestation minted");
     }
 
@@ -136,12 +117,13 @@ contract ZAssetLayerTest {
         _attestReserve(1, 1_000_000, evidence, uint64(block.timestamp + 1 days));
 
         vm.prank(RESERVE_ATTESTOR);
-        (bool ok,) = address(reserve).call(
-            abi.encodeCall(
-                ZUSDReserveController.attestReserve,
-                (uint64(2), uint256(2_000_000), evidence, uint64(block.timestamp + 1 days))
-            )
-        );
+        (bool ok,) = address(reserve)
+            .call(
+                abi.encodeCall(
+                    ZUSDReserveController.attestReserve,
+                    (uint64(2), uint256(2_000_000), evidence, uint64(block.timestamp + 1 days))
+                )
+            );
         require(!ok, "reserve evidence replayed");
     }
 
@@ -197,9 +179,8 @@ contract ZAssetLayerTest {
         reserve.pauseMint(pauseUntil);
 
         vm.prank(MINT_OPERATOR);
-        (bool ok,) = address(reserve).call(
-            abi.encodeCall(ZUSDReserveController.mintAgainstReserve, (USER, 1_000_000, 1))
-        );
+        (bool ok,) =
+            address(reserve).call(abi.encodeCall(ZUSDReserveController.mintAgainstReserve, (USER, 1_000_000, 1)));
         require(!ok, "mint bypassed pause");
 
         vm.warp(pauseUntil + 1);
@@ -214,15 +195,7 @@ contract ZAssetLayerTest {
 
         bytes32 txid = keccak256("btc-tx-1");
         vm.prank(BRIDGE_ATTESTOR);
-        bytes32 depositId = btcBridge.attestDeposit(
-            BTC_DOMAIN,
-            txid,
-            0,
-            keccak256("btc-proof-1"),
-            USER,
-            2e8,
-            1
-        );
+        bytes32 depositId = btcBridge.attestDeposit(BTC_DOMAIN, txid, 0, keccak256("btc-proof-1"), USER, 2e8, 1);
 
         require(depositId == btcBridge.computeDepositId(BTC_DOMAIN, txid, 0), "deposit id mismatch");
 
@@ -231,12 +204,13 @@ contract ZAssetLayerTest {
         require(zbtc.totalSupply() <= btcBridge.verifiedLockedUnits(), "BTC backing invariant");
 
         vm.prank(BRIDGE_ATTESTOR);
-        (bool ok,) = address(btcBridge).call(
-            abi.encodeCall(
-                ZAssetBridgeController.attestDeposit,
-                (BTC_DOMAIN, txid, uint256(0), keccak256("alternate-proof"), USER, uint256(2e8), uint64(1))
-            )
-        );
+        (bool ok,) = address(btcBridge)
+            .call(
+                abi.encodeCall(
+                    ZAssetBridgeController.attestDeposit,
+                    (BTC_DOMAIN, txid, uint256(0), keccak256("alternate-proof"), USER, uint256(2e8), uint64(1))
+                )
+            );
         require(!ok, "same BTC source event minted twice");
     }
 
@@ -245,18 +219,10 @@ contract ZAssetLayerTest {
 
         vm.prank(BRIDGE_ATTESTOR);
         bytes32 depositId = btcBridge.attestDeposit(
-            BTC_DOMAIN,
-            keccak256("btc-too-large"),
-            1,
-            keccak256("btc-proof-large"),
-            USER,
-            2e8,
-            1
+            BTC_DOMAIN, keccak256("btc-too-large"), 1, keccak256("btc-proof-large"), USER, 2e8, 1
         );
 
-        (bool ok,) = address(btcBridge).call(
-            abi.encodeCall(ZAssetBridgeController.mintFromDeposit, (depositId))
-        );
+        (bool ok,) = address(btcBridge).call(abi.encodeCall(ZAssetBridgeController.mintFromDeposit, (depositId)));
         require(!ok, "bridge minted above backing");
         require(zbtc.totalSupply() == 0, "unbacked zBTC supply");
     }
@@ -266,13 +232,7 @@ contract ZAssetLayerTest {
 
         vm.prank(BRIDGE_ATTESTOR);
         bytes32 depositId = btcBridge.attestDeposit(
-            BTC_DOMAIN,
-            keccak256("btc-redeem-deposit"),
-            0,
-            keccak256("btc-redeem-proof"),
-            USER,
-            2e8,
-            1
+            BTC_DOMAIN, keccak256("btc-redeem-deposit"), 0, keccak256("btc-redeem-proof"), USER, 2e8, 1
         );
         btcBridge.mintFromDeposit(depositId);
 
@@ -299,13 +259,7 @@ contract ZAssetLayerTest {
 
         vm.prank(BRIDGE_ATTESTOR);
         bytes32 depositId = btcBridge.attestDeposit(
-            BTC_DOMAIN,
-            keccak256("btc-cancel-deposit"),
-            0,
-            keccak256("btc-cancel-proof"),
-            USER,
-            1e8,
-            1
+            BTC_DOMAIN, keccak256("btc-cancel-deposit"), 0, keccak256("btc-cancel-proof"), USER, 1e8, 1
         );
         btcBridge.mintFromDeposit(depositId);
 
@@ -345,7 +299,9 @@ contract ZAssetLayerTest {
         uint256 reserveUnits = (uint256(reserveRaw) % 1e24) + 1;
         uint256 amount = (uint256(mintRaw) % reserveUnits) + 1;
 
-        _attestReserve(1, reserveUnits, keccak256(abi.encode("fuzz-reserve", reserveUnits)), uint64(block.timestamp + 1 days));
+        _attestReserve(
+            1, reserveUnits, keccak256(abi.encode("fuzz-reserve", reserveUnits)), uint64(block.timestamp + 1 days)
+        );
 
         vm.prank(MINT_OPERATOR);
         reserve.mintAgainstReserve(USER, amount, 1);
@@ -353,9 +309,8 @@ contract ZAssetLayerTest {
 
         uint256 excessive = reserveUnits - amount + 1;
         vm.prank(MINT_OPERATOR);
-        (bool ok,) = address(reserve).call(
-            abi.encodeCall(ZUSDReserveController.mintAgainstReserve, (USER, excessive, uint64(1)))
-        );
+        (bool ok,) = address(reserve)
+            .call(abi.encodeCall(ZUSDReserveController.mintAgainstReserve, (USER, excessive, uint64(1))));
         require(!ok, "fuzz overmint accepted");
     }
 
