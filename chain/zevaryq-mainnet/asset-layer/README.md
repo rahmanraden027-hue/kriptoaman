@@ -45,7 +45,11 @@ Pre-deployment review package:
 - [AUDIT_HANDOFF_V1.md](./AUDIT_HANDOFF_V1.md)
 - [THREAT_MODEL_V1.md](./THREAT_MODEL_V1.md)
 - [DEPLOYMENT_READINESS_V1.md](./DEPLOYMENT_READINESS_V1.md)
-- [deployment-readiness-v1.json](./deployment-readiness-v1.json) Candidate contracts live under `contracts/`; no deployment script is permitted in this directory while authorization remains closed.
+- [deployment-readiness-v1.json](./deployment-readiness-v1.json)
+- [AUDIT_FREEZE_V1.json](./AUDIT_FREEZE_V1.json)
+- [GOVERNANCE_ROLE_MATRIX_V1.md](./GOVERNANCE_ROLE_MATRIX_V1.md)
+- [governance-role-registry-v1.json](./governance-role-registry-v1.json)
+- [BACKING_EVIDENCE_SCHEMA_V1.md](./BACKING_EVIDENCE_SCHEMA_V1.md) Candidate contracts live under `contracts/`; no deployment script is permitted in this directory while authorization remains closed.
 
 Current state:
 
