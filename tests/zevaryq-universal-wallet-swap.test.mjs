@@ -38,8 +38,8 @@ test('ZEVARYQ native swap is fail-closed and uses verified Chain 22028 contracts
   assert.match(service, /VITE_ZEVARYQ_SWAP_TOKENS_JSON/);
   assert.match(service, /getBytecode/);
   assert.match(service, /getAmountsOut/);
-  assert.match(service, /swapExactETHForTokens/);
-  assert.match(service, /swapExactTokensForETH/);
+  assert.match(service, /swapExactZVQForTokens/);
+  assert.match(service, /swapExactTokensForZVQ/);
   assert.match(service, /waitForTransactionReceipt/);
   assert.match(service, /Quote expired/);
   assert.match(ui, /No fallback or simulated price is shown/);
