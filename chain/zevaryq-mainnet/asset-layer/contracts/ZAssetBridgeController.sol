@@ -16,6 +16,7 @@ contract ZAssetBridgeController is ZControllerRoles {
     error InvalidDepositState();
     error InvalidRedemption();
     error InvalidRedemptionState();
+    error ReleaseReplay();
 
     bytes32 public constant BRIDGE_ATTESTOR_ROLE = keccak256("ZASSET_BRIDGE_ATTESTOR");
     bytes32 public constant RELEASE_OPERATOR_ROLE = keccak256("ZASSET_RELEASE_OPERATOR");
@@ -60,22 +61,24 @@ contract ZAssetBridgeController is ZControllerRoles {
     uint64 public backingAttestedAt;
     uint64 public backingValidUntil;
     uint256 public verifiedLockedUnits;
+    uint256 public releasedUnitsSinceAttestation;
+    uint256 public pendingReleaseUnits;
     bytes32 public backingAttestationHash;
     uint64 public bridgeOpsPausedUntil;
     uint256 public redemptionNonce;
+    uint256 public pendingDeposits;
+    uint256 public activeRedemptions;
 
     mapping(bytes32 hash => bool used) public usedBackingAttestation;
+    mapping(bytes32 hash => bool used) public usedReleaseProof;
     mapping(bytes32 depositId => DepositRecord record) public depositRecord;
     mapping(bytes32 redemptionId => RedemptionRecord record) public redemptionRecord;
     mapping(bytes32 redemptionId => bytes32 releaseProofHash) public releaseReference;
 
     event BackingAttested(
-        uint64 indexed epoch,
-        uint256 verifiedLockedUnits,
-        bytes32 indexed attestationHash,
-        uint64 validUntil
+        uint64 indexed epoch, uint256 verifiedLockedUnits, bytes32 indexed attestationHash, uint64 validUntil
     );
-    event BackingDeficit(uint64 indexed epoch, uint256 verifiedLockedUnits, uint256 totalSupply);
+    event BackingDeficit(uint64 indexed epoch, uint256 effectiveLockedUnits, uint256 totalSupply);
     event DepositAttested(
         bytes32 indexed depositId,
         address indexed recipient,
@@ -89,6 +92,7 @@ contract ZAssetBridgeController is ZControllerRoles {
     event RedemptionBurned(bytes32 indexed redemptionId, uint256 amount);
     event RedemptionCancelled(bytes32 indexed redemptionId);
     event SourceReleaseAttested(bytes32 indexed redemptionId, bytes32 releaseProofHash);
+    event BackingOutflowRecorded(bytes32 indexed redemptionId, uint256 amount, uint256 cumulativeReleasedUnits);
     event BridgePauseSet(uint64 until);
 
     constructor(
@@ -108,6 +112,16 @@ contract ZAssetBridgeController is ZControllerRoles {
 
     function bridgeOpsPaused() public view returns (bool) {
         return block.timestamp < bridgeOpsPausedUntil;
+    }
+
+    function effectiveLockedUnits() public view returns (uint256) {
+        uint256 unavailable = releasedUnitsSinceAttestation + pendingReleaseUnits;
+        if (unavailable >= verifiedLockedUnits) return 0;
+        return verifiedLockedUnits - unavailable;
+    }
+
+    function canRelinquishControl() public view override returns (bool) {
+        return pendingDeposits == 0 && activeRedemptions == 0 && pendingReleaseUnits == 0;
     }
 
     function computeDepositId(bytes32 sourceDomain, bytes32 sourceTxId, uint256 sourceIndex)
@@ -130,12 +144,11 @@ contract ZAssetBridgeController is ZControllerRoles {
         );
     }
 
-    function attestBacking(
-        uint64 epoch,
-        uint256 lockedUnits,
-        bytes32 evidenceHash,
-        uint64 expiresAt
-    ) external onlyRole(BRIDGE_ATTESTOR_ROLE) tokenInitialized {
+    function attestBacking(uint64 epoch, uint256 lockedUnits, bytes32 evidenceHash, uint64 expiresAt)
+        external
+        onlyRole(BRIDGE_ATTESTOR_ROLE)
+        activeTokenController
+    {
         if (epoch <= backingEpoch) revert InvalidEpoch();
         if (evidenceHash == bytes32(0) || expiresAt <= block.timestamp) revert InvalidAttestation();
         if (usedBackingAttestation[evidenceHash]) revert AttestationReplay();
@@ -143,13 +156,15 @@ contract ZAssetBridgeController is ZControllerRoles {
         usedBackingAttestation[evidenceHash] = true;
         backingEpoch = epoch;
         verifiedLockedUnits = lockedUnits;
+        releasedUnitsSinceAttestation = 0;
         backingAttestationHash = evidenceHash;
         backingAttestedAt = uint64(block.timestamp);
         backingValidUntil = expiresAt;
 
         uint256 supply = IZControlledToken(token).totalSupply();
-        if (lockedUnits < supply) {
-            emit BackingDeficit(epoch, lockedUnits, supply);
+        uint256 effective = effectiveLockedUnits();
+        if (effective < supply) {
+            emit BackingDeficit(epoch, effective, supply);
         }
         emit BackingAttested(epoch, lockedUnits, evidenceHash, expiresAt);
     }
@@ -162,10 +177,10 @@ contract ZAssetBridgeController is ZControllerRoles {
         address recipient,
         uint256 amount,
         uint64 attestationEpoch
-    ) external onlyRole(BRIDGE_ATTESTOR_ROLE) tokenInitialized returns (bytes32 depositId) {
+    ) external onlyRole(BRIDGE_ATTESTOR_ROLE) activeTokenController returns (bytes32 depositId) {
         if (bridgeOpsPaused()) revert OperationPaused();
         if (recipient == address(0) || amount == 0 || sourceProofHash == bytes32(0)) revert InvalidDeposit();
-        if (attestationEpoch != backingEpoch || block.timestamp > backingValidUntil) revert AttestationExpired();
+        if (attestationEpoch != backingEpoch || block.timestamp >= backingValidUntil) revert AttestationExpired();
 
         depositId = computeDepositId(sourceDomain, sourceTxId, sourceIndex);
         DepositRecord storage record = depositRecord[depositId];
@@ -176,28 +191,47 @@ contract ZAssetBridgeController is ZControllerRoles {
         record.amount = amount;
         record.attestationEpoch = attestationEpoch;
         record.state = DepositState.ATTESTED;
+        pendingDeposits += 1;
 
         emit DepositAttested(depositId, recipient, amount, sourceProofHash, attestationEpoch);
     }
 
-    function mintFromDeposit(bytes32 depositId) external tokenInitialized {
+    function mintFromDeposit(bytes32 depositId) external activeTokenController {
         if (bridgeOpsPaused()) revert OperationPaused();
-        if (block.timestamp > backingValidUntil) revert AttestationExpired();
+        if (block.timestamp >= backingValidUntil) revert AttestationExpired();
 
         DepositRecord storage record = depositRecord[depositId];
         if (record.state != DepositState.ATTESTED) revert InvalidDepositState();
+        if (record.attestationEpoch != backingEpoch) revert InvalidEpoch();
 
         IZControlledToken controlledToken = IZControlledToken(token);
-        if (controlledToken.totalSupply() + record.amount > verifiedLockedUnits) revert BackingExceeded();
+        if (controlledToken.totalSupply() + record.amount > effectiveLockedUnits()) revert BackingExceeded();
 
         record.state = DepositState.MINTED;
+        pendingDeposits -= 1;
         controlledToken.controllerMint(record.recipient, record.amount);
         emit BridgeMinted(depositId, record.recipient, record.amount);
     }
 
+    function refreshDepositAttestation(bytes32 depositId, bytes32 refreshedProofHash, uint64 attestationEpoch)
+        external
+        onlyRole(BRIDGE_ATTESTOR_ROLE)
+        activeTokenController
+    {
+        if (refreshedProofHash == bytes32(0)) revert InvalidDeposit();
+        if (attestationEpoch != backingEpoch || block.timestamp >= backingValidUntil) revert AttestationExpired();
+
+        DepositRecord storage record = depositRecord[depositId];
+        if (record.state != DepositState.ATTESTED) revert InvalidDepositState();
+
+        record.sourceProofHash = refreshedProofHash;
+        record.attestationEpoch = attestationEpoch;
+        emit DepositAttested(depositId, record.recipient, record.amount, refreshedProofHash, attestationEpoch);
+    }
+
     function requestRedemption(uint256 amount, bytes32 destinationRefHash)
         external
-        tokenInitialized
+        activeTokenController
         returns (bytes32 redemptionId)
     {
         if (bridgeOpsPaused()) revert OperationPaused();
@@ -225,6 +259,7 @@ contract ZAssetBridgeController is ZControllerRoles {
         record.destinationRefHash = destinationRefHash;
         record.requestedAt = uint64(block.timestamp);
         record.state = RedemptionState.REQUESTED;
+        activeRedemptions += 1;
 
         if (!IZControlledToken(token).transferFrom(msg.sender, address(this), amount)) {
             revert InvalidRedemption();
@@ -233,18 +268,19 @@ contract ZAssetBridgeController is ZControllerRoles {
         emit RedemptionRequested(redemptionId, msg.sender, amount);
     }
 
-    function cancelRedemption(bytes32 redemptionId) external tokenInitialized {
+    function cancelRedemption(bytes32 redemptionId) external activeTokenController {
         RedemptionRecord storage record = redemptionRecord[redemptionId];
         if (record.state != RedemptionState.REQUESTED || record.requester != msg.sender) {
             revert InvalidRedemptionState();
         }
 
         record.state = RedemptionState.CANCELLED;
+        activeRedemptions -= 1;
         if (!IZControlledToken(token).transfer(msg.sender, record.amount)) revert InvalidRedemption();
         emit RedemptionCancelled(redemptionId);
     }
 
-    function authorizeBurn(bytes32 redemptionId) external onlyRole(RELEASE_OPERATOR_ROLE) {
+    function authorizeBurn(bytes32 redemptionId) external onlyRole(RELEASE_OPERATOR_ROLE) activeTokenController {
         RedemptionRecord storage record = redemptionRecord[redemptionId];
         if (record.state != RedemptionState.REQUESTED) revert InvalidRedemptionState();
 
@@ -252,11 +288,12 @@ contract ZAssetBridgeController is ZControllerRoles {
         emit RedemptionBurnAuthorized(redemptionId);
     }
 
-    function finalizeBurn(bytes32 redemptionId) external tokenInitialized {
+    function finalizeBurn(bytes32 redemptionId) external activeTokenController {
         RedemptionRecord storage record = redemptionRecord[redemptionId];
         if (record.state != RedemptionState.BURN_AUTHORIZED) revert InvalidRedemptionState();
 
         record.state = RedemptionState.BURNED;
+        pendingReleaseUnits += record.amount;
         IZControlledToken(token).controllerBurnEscrow(record.amount);
         emit RedemptionBurned(redemptionId, record.amount);
     }
@@ -264,13 +301,23 @@ contract ZAssetBridgeController is ZControllerRoles {
     function attestSourceRelease(bytes32 redemptionId, bytes32 releaseProofHash)
         external
         onlyRole(RELEASE_OPERATOR_ROLE)
+        activeTokenController
     {
         if (releaseProofHash == bytes32(0)) revert InvalidRedemption();
+        if (usedReleaseProof[releaseProofHash]) revert ReleaseReplay();
+
         RedemptionRecord storage record = redemptionRecord[redemptionId];
         if (record.state != RedemptionState.BURNED) revert InvalidRedemptionState();
+        if (pendingReleaseUnits < record.amount) revert InvalidRedemptionState();
 
+        usedReleaseProof[releaseProofHash] = true;
+        pendingReleaseUnits -= record.amount;
+        releasedUnitsSinceAttestation += record.amount;
+        activeRedemptions -= 1;
         record.state = RedemptionState.RELEASE_ATTESTED;
         releaseReference[redemptionId] = releaseProofHash;
+
+        emit BackingOutflowRecorded(redemptionId, record.amount, releasedUnitsSinceAttestation);
         emit SourceReleaseAttested(redemptionId, releaseProofHash);
     }
 
