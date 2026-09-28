@@ -98,6 +98,20 @@ jobs:
           test -n "$(find android/app/build/outputs/apk/wallet/release -name '*.apk' -print -quit)"
           find android/app/build/outputs/bundle/platformRelease android/app/build/outputs/apk/platform/release android/app/build/outputs/bundle/walletRelease android/app/build/outputs/apk/wallet/release -maxdepth 1 -type f -print -exec ls -lh {} \;
 
+      - name: Verify built APK package identities
+        if: env.SIGNED_RELEASE != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          platform_apk="$(find android/app/build/outputs/apk/platform/release -name '*.apk' -print -quit)"
+          wallet_apk="$(find android/app/build/outputs/apk/wallet/release -name '*.apk' -print -quit)"
+          test -n "$platform_apk"
+          test -n "$wallet_apk"
+          APKANALYZER="$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer"
+          test -x "$APKANALYZER"
+          test "$("$APKANALYZER" manifest application-id "$platform_apk")" = "com.kriptoaman.app"
+          test "$("$APKANALYZER" manifest application-id "$wallet_apk")" = "com.kriptoaman.wallet"
+
       - name: Upload KriptoAman Platform preflight AAB
         if: env.SIGNED_RELEASE != 'true'
         uses: actions/upload-artifact@v7
@@ -186,6 +200,17 @@ jobs:
           test -n "$(find android/app/build/outputs/bundle/walletRelease -name '*.aab' -print -quit)"
           test -n "$(find android/app/build/outputs/apk/wallet/release -name '*.apk' -print -quit)"
           find android/app/build/outputs/bundle/platformRelease android/app/build/outputs/apk/platform/release android/app/build/outputs/bundle/walletRelease android/app/build/outputs/apk/wallet/release -maxdepth 1 -type f -print -exec ls -lh {} \;
+
+      - name: Verify signed APK package identities
+        if: env.SIGNED_RELEASE == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          platform_apk="$(find android/app/build/outputs/apk/platform/release -name '*.apk' -print -quit)"
+          wallet_apk="$(find android/app/build/outputs/apk/wallet/release -name '*.apk' -print -quit)"
+          APKANALYZER="$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer"
+          test "$("$APKANALYZER" manifest application-id "$platform_apk")" = "com.kriptoaman.app"
+          test "$("$APKANALYZER" manifest application-id "$wallet_apk")" = "com.kriptoaman.wallet"
 
       - name: Create APK checksums
         if: env.SIGNED_RELEASE == 'true'
