@@ -15,7 +15,7 @@ test('ZEVARYQ canonical public metadata preserves chain identity and no fabricat
 });
 
 test('Public frontend, status API, wallet and Android agree on network branding', async () => {
-  const [landing, status, wallet, api, docs, native, styles, icon24] = await Promise.all([
+  const [landing, status, wallet, api, docs, native, styles, walletAlias] = await Promise.all([
     read('src/pages/KriptoAmanGlobalLanding.jsx'),
     read('src/pages/KAMNetwork.jsx'),
     read('src/pages/Wallet.jsx'),
@@ -23,7 +23,7 @@ test('Public frontend, status API, wallet and Android agree on network branding'
     read('src/pages/KAMNetworkDocs.jsx'),
     read('android/app/src/main/java/com/kriptoaman/app/MainActivity.java'),
     read('android/app/src/main/res/values/styles.xml'),
-    read('android/app/src/main/res/mipmap-anydpi-v24/ic_launcher.xml'),
+    read('android/app/src/wallet/res/values/aliases.xml'),
   ]);
   assert.match(landing, /name: 'ZEVARYQ Network'/);
   assert.match(landing, /symbol: 'ZVQ'/);
@@ -33,9 +33,9 @@ test('Public frontend, status API, wallet and Android agree on network branding'
   assert.match(api, /balanceZVQ:/);
   assert.match(api, /balanceKAM:/); // Temporary additive compatibility alias only.
   assert.match(docs, /ZEVARYQ Network/);
-  assert.match(native, /R\.drawable\.zevaryq_wallet_launcher/);
-  assert.match(styles, /@drawable\/zevaryq_wallet_launcher/);
-  assert.match(icon24, /@drawable\/zevaryq_wallet_launcher/);
+  assert.match(native, /R\.drawable\.app_launch_emblem/);
+  assert.match(styles, /@drawable\/app_launch_emblem/);
+  assert.match(walletAlias, /@drawable\/zevaryq_wallet_launcher/);
 });
 
 test('Historical economics and reward points are not mislabeled as current ZVQ supply', async () => {

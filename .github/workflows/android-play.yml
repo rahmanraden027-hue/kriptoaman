@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       signed_release:
-        description: 'Build signed Play AAB/APK'
+        description: 'Build signed Play AAB/APK for KriptoAman Platform and ZEVARYQ Wallet'
         required: false
         default: true
         type: boolean
@@ -63,48 +63,85 @@ jobs:
       - name: Run release regression tests
         run: npm run test
 
-      - name: Validate Android release identity
+      - name: Validate dual Android application identities
         shell: bash
         run: |
           set -euo pipefail
-          grep -q '"appId": "com.kriptoaman.app"' capacitor.config.json
           grep -q 'applicationId "com.kriptoaman.app"' android/app/build.gradle
+          grep -q 'applicationId "com.kriptoaman.wallet"' android/app/build.gradle
           grep -q 'versionCode 8' android/app/build.gradle
           grep -q 'versionName "1.5.2"' android/app/build.gradle
+          grep -q 'versionCode 1' android/app/build.gradle
+          grep -q 'versionName "1.0.0"' android/app/build.gradle
+          grep -q '"appId": "com.kriptoaman.app"' android/app/src/platform/assets/capacitor.config.json
+          grep -q '"appId": "com.kriptoaman.wallet"' android/app/src/wallet/assets/capacitor.config.json
+          grep -q 'https://kriptoaman.com/wallet-app' android/app/src/wallet/assets/capacitor.config.json
           grep -q 'targetSdkVersion = 36' android/variables.gradle
           grep -q 'android:usesCleartextTraffic="false"' android/app/src/main/AndroidManifest.xml
 
       - name: Build web app and sync Capacitor
         run: npm run android:sync
 
-      - name: Build unsigned Android preflight artifacts
+      - name: Build unsigned dual-app preflight artifacts
         if: env.SIGNED_RELEASE != 'true'
         working-directory: android
-        run: ./gradlew bundleRelease assembleRelease
+        run: ./gradlew bundlePlatformRelease assemblePlatformRelease bundleWalletRelease assembleWalletRelease
 
-      - name: Verify unsigned preflight artifacts
+      - name: Verify unsigned dual-app preflight artifacts
         if: env.SIGNED_RELEASE != 'true'
         shell: bash
         run: |
           set -euo pipefail
-          test -s android/app/build/outputs/bundle/release/app-release.aab
-          test -s android/app/build/outputs/apk/release/app-release-unsigned.apk
-          ls -lh android/app/build/outputs/bundle/release/app-release.aab android/app/build/outputs/apk/release/app-release-unsigned.apk
+          test -n "$(find android/app/build/outputs/bundle/platformRelease -name '*.aab' -print -quit)"
+          test -n "$(find android/app/build/outputs/apk/platform/release -name '*.apk' -print -quit)"
+          test -n "$(find android/app/build/outputs/bundle/walletRelease -name '*.aab' -print -quit)"
+          test -n "$(find android/app/build/outputs/apk/wallet/release -name '*.apk' -print -quit)"
+          find android/app/build/outputs/bundle/platformRelease android/app/build/outputs/apk/platform/release android/app/build/outputs/bundle/walletRelease android/app/build/outputs/apk/wallet/release -maxdepth 1 -type f -print -exec ls -lh {} \;
 
-      - name: Upload Android preflight AAB
+      - name: Verify built APK package identities
+        if: env.SIGNED_RELEASE != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          platform_apk="$(find android/app/build/outputs/apk/platform/release -name '*.apk' -print -quit)"
+          wallet_apk="$(find android/app/build/outputs/apk/wallet/release -name '*.apk' -print -quit)"
+          test -n "$platform_apk"
+          test -n "$wallet_apk"
+          APKANALYZER="$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer"
+          test -x "$APKANALYZER"
+          test "$("$APKANALYZER" manifest application-id "$platform_apk")" = "com.kriptoaman.app"
+          test "$("$APKANALYZER" manifest application-id "$wallet_apk")" = "com.kriptoaman.wallet"
+
+      - name: Upload KriptoAman Platform preflight AAB
         if: env.SIGNED_RELEASE != 'true'
         uses: actions/upload-artifact@v7
         with:
           name: kriptoaman-preflight-aab
-          path: android/app/build/outputs/bundle/release/app-release.aab
+          path: android/app/build/outputs/bundle/platformRelease/*.aab
           if-no-files-found: error
 
-      - name: Upload Android preflight APK
+      - name: Upload KriptoAman Platform preflight APK
         if: env.SIGNED_RELEASE != 'true'
         uses: actions/upload-artifact@v7
         with:
           name: kriptoaman-preflight-apk
-          path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+          path: android/app/build/outputs/apk/platform/release/*.apk
+          if-no-files-found: error
+
+      - name: Upload ZEVARYQ Wallet preflight AAB
+        if: env.SIGNED_RELEASE != 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: zevaryq-wallet-preflight-aab
+          path: android/app/build/outputs/bundle/walletRelease/*.aab
+          if-no-files-found: error
+
+      - name: Upload ZEVARYQ Wallet preflight APK
+        if: env.SIGNED_RELEASE != 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: zevaryq-wallet-preflight-apk
+          path: android/app/build/outputs/apk/wallet/release/*.apk
           if-no-files-found: error
 
       - name: Validate Play signing configuration
@@ -144,44 +181,80 @@ jobs:
           test -s android/app/kriptoaman-release.jks
           keytool -list -keystore android/app/kriptoaman-release.jks -storepass "$PLAY_KEYSTORE_PASSWORD" -alias "$PLAY_KEY_ALIAS" >/dev/null
 
-      - name: Build signed release AAB and APK
+      - name: Build signed dual-app release AAB and APK
         if: env.SIGNED_RELEASE == 'true'
         working-directory: android
         env:
           PLAY_KEYSTORE_PASSWORD: ${{ secrets.PLAY_KEYSTORE_PASSWORD }}
           PLAY_KEY_ALIAS: ${{ secrets.PLAY_KEY_ALIAS }}
           PLAY_KEY_PASSWORD: ${{ secrets.PLAY_KEY_PASSWORD }}
-        run: ./gradlew bundleRelease assembleRelease -PKRIPTOAMAN_KEYSTORE_FILE=kriptoaman-release.jks -PKRIPTOAMAN_KEYSTORE_PASSWORD="$PLAY_KEYSTORE_PASSWORD" -PKRIPTOAMAN_KEY_ALIAS="$PLAY_KEY_ALIAS" -PKRIPTOAMAN_KEY_PASSWORD="$PLAY_KEY_PASSWORD"
+        run: ./gradlew bundlePlatformRelease assemblePlatformRelease bundleWalletRelease assembleWalletRelease -PKRIPTOAMAN_KEYSTORE_FILE=kriptoaman-release.jks -PKRIPTOAMAN_KEYSTORE_PASSWORD="$PLAY_KEYSTORE_PASSWORD" -PKRIPTOAMAN_KEY_ALIAS="$PLAY_KEY_ALIAS" -PKRIPTOAMAN_KEY_PASSWORD="$PLAY_KEY_PASSWORD"
 
-      - name: Verify signed release artifacts
+      - name: Verify signed dual-app release artifacts
         if: env.SIGNED_RELEASE == 'true'
         shell: bash
         run: |
           set -euo pipefail
-          test -s android/app/build/outputs/bundle/release/app-release.aab
-          test -s android/app/build/outputs/apk/release/app-release.apk
-          ls -lh android/app/build/outputs/bundle/release/app-release.aab android/app/build/outputs/apk/release/app-release.apk
+          test -n "$(find android/app/build/outputs/bundle/platformRelease -name '*.aab' -print -quit)"
+          test -n "$(find android/app/build/outputs/apk/platform/release -name '*.apk' -print -quit)"
+          test -n "$(find android/app/build/outputs/bundle/walletRelease -name '*.aab' -print -quit)"
+          test -n "$(find android/app/build/outputs/apk/wallet/release -name '*.apk' -print -quit)"
+          find android/app/build/outputs/bundle/platformRelease android/app/build/outputs/apk/platform/release android/app/build/outputs/bundle/walletRelease android/app/build/outputs/apk/wallet/release -maxdepth 1 -type f -print -exec ls -lh {} \;
 
-      - name: Create APK checksum
+      - name: Verify signed APK package identities
         if: env.SIGNED_RELEASE == 'true'
-        run: sha256sum android/app/build/outputs/apk/release/app-release.apk > android/app/build/outputs/apk/release/app-release.apk.sha256
+        shell: bash
+        run: |
+          set -euo pipefail
+          platform_apk="$(find android/app/build/outputs/apk/platform/release -name '*.apk' -print -quit)"
+          wallet_apk="$(find android/app/build/outputs/apk/wallet/release -name '*.apk' -print -quit)"
+          APKANALYZER="$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer"
+          test "$("$APKANALYZER" manifest application-id "$platform_apk")" = "com.kriptoaman.app"
+          test "$("$APKANALYZER" manifest application-id "$wallet_apk")" = "com.kriptoaman.wallet"
 
-      - name: Upload signed Play AAB
+      - name: Create APK checksums
+        if: env.SIGNED_RELEASE == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          for apk in android/app/build/outputs/apk/platform/release/*.apk android/app/build/outputs/apk/wallet/release/*.apk; do
+            sha256sum "$apk" > "$apk.sha256"
+          done
+
+      - name: Upload signed KriptoAman Platform Play AAB
         if: env.SIGNED_RELEASE == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: kriptoaman-play-aab
-          path: android/app/build/outputs/bundle/release/app-release.aab
+          path: android/app/build/outputs/bundle/platformRelease/*.aab
           if-no-files-found: error
 
-      - name: Upload signed direct APK
+      - name: Upload signed KriptoAman Platform direct APK
         if: env.SIGNED_RELEASE == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: kriptoaman-direct-apk
           path: |
-            android/app/build/outputs/apk/release/app-release.apk
-            android/app/build/outputs/apk/release/app-release.apk.sha256
+            android/app/build/outputs/apk/platform/release/*.apk
+            android/app/build/outputs/apk/platform/release/*.sha256
+          if-no-files-found: error
+
+      - name: Upload signed ZEVARYQ Wallet Play AAB
+        if: env.SIGNED_RELEASE == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: zevaryq-wallet-play-aab
+          path: android/app/build/outputs/bundle/walletRelease/*.aab
+          if-no-files-found: error
+
+      - name: Upload signed ZEVARYQ Wallet direct APK
+        if: env.SIGNED_RELEASE == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: zevaryq-wallet-direct-apk
+          path: |
+            android/app/build/outputs/apk/wallet/release/*.apk
+            android/app/build/outputs/apk/wallet/release/*.sha256
           if-no-files-found: error
 
       - name: Publish Android build status
@@ -198,7 +271,7 @@ jobs:
               state: succeeded ? 'success' : 'failure',
               context: signed ? 'kriptoaman/android-signed-release' : 'kriptoaman/android-preflight',
               description: succeeded
-                ? (signed ? 'Signed Android AAB/APK built successfully' : 'Unsigned Android preflight AAB/APK built successfully')
-                : (signed ? 'Signed Android release failed; inspect Actions' : 'Android preflight failed; inspect Actions'),
+                ? (signed ? 'Platform + Wallet signed AAB/APK built successfully' : 'Platform + Wallet preflight AAB/APK built successfully')
+                : (signed ? 'Dual-app signed Android release failed; inspect Actions' : 'Dual-app Android preflight failed; inspect Actions'),
               target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
             });

@@ -85,18 +85,25 @@ public class MainActivity extends BridgeActivity {
         int logoSize = Math.min(dp(300), availableWidth);
 
         ImageView emblem = new ImageView(this);
-        emblem.setImageResource(R.drawable.zevaryq_wallet_launcher);
+        emblem.setImageResource(R.drawable.app_launch_emblem);
         emblem.setScaleType(ImageView.ScaleType.FIT_CENTER);
         emblem.setAdjustViewBounds(true);
         emblem.setContentDescription(null);
         stack.addView(emblem, new LinearLayout.LayoutParams(logoSize, logoSize));
 
         TextView wordmark = new TextView(this);
-        SpannableString brand = new SpannableString("KriptoAman");
-        brand.setSpan(new ForegroundColorSpan(white), 0, 6, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        brand.setSpan(new ForegroundColorSpan(gold), 6, 10, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        final boolean walletBuild = "com.kriptoaman.wallet".equals(getPackageName());
+        final String brandText = walletBuild ? "ZEVARYQ Wallet" : "KriptoAman";
+        SpannableString brand = new SpannableString(brandText);
+        if (walletBuild) {
+            brand.setSpan(new ForegroundColorSpan(gold), 0, 7, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            brand.setSpan(new ForegroundColorSpan(white), 8, brandText.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        } else {
+            brand.setSpan(new ForegroundColorSpan(white), 0, 6, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            brand.setSpan(new ForegroundColorSpan(gold), 6, 10, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
         wordmark.setText(brand);
-        wordmark.setTextSize(TypedValue.COMPLEX_UNIT_SP, 36);
+        wordmark.setTextSize(TypedValue.COMPLEX_UNIT_SP, walletBuild ? 32 : 36);
         wordmark.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
         wordmark.setGravity(Gravity.CENTER);
         wordmark.setIncludeFontPadding(false);
@@ -185,8 +192,8 @@ public class MainActivity extends BridgeActivity {
 
         offlineDialogVisible = true;
         new AlertDialog.Builder(this)
-                .setTitle("KriptoAman sedang offline")
-                .setMessage("Koneksi internet diperlukan untuk sinkronisasi akun dan data live. Setelah jaringan tersedia, pilih Coba lagi.")
+                .setTitle(getString(R.string.offline_title))
+                .setMessage(getString(R.string.offline_message))
                 .setCancelable(false)
                 .setPositiveButton("Coba lagi", (dialog, which) -> {
                     offlineDialogVisible = false;

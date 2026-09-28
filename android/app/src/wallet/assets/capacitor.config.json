@@ -1,0 +1,17 @@
+{
+  "appId": "com.kriptoaman.wallet",
+  "appName": "ZEVARYQ Wallet",
+  "webDir": "dist",
+  "server": {
+    "url": "https://kriptoaman.com/wallet-app",
+    "cleartext": false,
+    "allowNavigation": [
+      "kriptoaman.com"
+    ]
+  },
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  }
+}

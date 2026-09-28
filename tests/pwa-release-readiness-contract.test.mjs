@@ -12,6 +12,8 @@ const androidActivityLayout = await readFile(new URL('../android/app/src/main/re
 const androidBuild = await readFile(new URL('../android/app/build.gradle', import.meta.url), 'utf8');
 const androidVariables = await readFile(new URL('../android/variables.gradle', import.meta.url), 'utf8');
 const capacitorConfig = JSON.parse(await readFile(new URL('../capacitor.config.json', import.meta.url), 'utf8'));
+const platformCapacitorConfig = JSON.parse(await readFile(new URL('../android/app/src/platform/assets/capacitor.config.json', import.meta.url), 'utf8'));
+const walletCapacitorConfig = JSON.parse(await readFile(new URL('../android/app/src/wallet/assets/capacitor.config.json', import.meta.url), 'utf8'));
 
 test('PWA manifest is aligned with Android 1.5.2 release identity', () => {
   assert.equal(manifest.short_name, 'KriptoAman');
@@ -51,12 +53,20 @@ test('PWA readiness page does not make hard-coded completion claims', () => {
   assert.match(readiness, /Play Console Data safety/);
 });
 
-test('Android release identity and target SDK remain Play-ready', () => {
+test('Android dual release identities and target SDK remain Play-ready', () => {
   assert.equal(capacitorConfig.appId, 'com.kriptoaman.app');
   assert.equal(capacitorConfig.appName, 'KriptoAman');
-  assert.match(androidBuild, /applicationId\s+"com\.kriptoaman\.app"/);
-  assert.match(androidBuild, /versionCode\s+8/);
-  assert.match(androidBuild, /versionName\s+"1\.5\.2"/);
+
+  assert.equal(platformCapacitorConfig.appId, 'com.kriptoaman.app');
+  assert.equal(platformCapacitorConfig.appName, 'KriptoAman');
+  assert.equal(platformCapacitorConfig.server.url, 'https://kriptoaman.com');
+
+  assert.equal(walletCapacitorConfig.appId, 'com.kriptoaman.wallet');
+  assert.equal(walletCapacitorConfig.appName, 'ZEVARYQ Wallet');
+  assert.equal(walletCapacitorConfig.server.url, 'https://kriptoaman.com/wallet-app');
+
+  assert.match(androidBuild, /platform\s*\{[\s\S]*applicationId\s+"com\.kriptoaman\.app"[\s\S]*versionCode\s+8[\s\S]*versionName\s+"1\.5\.2"/);
+  assert.match(androidBuild, /wallet\s*\{[\s\S]*applicationId\s+"com\.kriptoaman\.wallet"[\s\S]*versionCode\s+1[\s\S]*versionName\s+"1\.0\.0"/);
   assert.match(androidVariables, /compileSdkVersion\s*=\s*36/);
   assert.match(androidVariables, /targetSdkVersion\s*=\s*36/);
 });
