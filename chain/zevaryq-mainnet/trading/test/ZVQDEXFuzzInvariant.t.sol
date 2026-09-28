@@ -278,7 +278,7 @@ contract ZVQDEXFuzzInvariantTest {
         require(out1 < reserveOut && out2 < reserveOut, "output exhausted reserve");
     }
 
-    function testFuzzNativeKAMRefundAndWZVQBacking(uint96 initialSeed, uint96 topUpSeed) public {
+    function testFuzzNativeZVQRefundAndWZVQBacking(uint96 initialSeed, uint96 topUpSeed) public {
         uint256 initialLiquidity = _bound(uint256(initialSeed), 10 ether, 1_000 ether);
         uint256 topUp = _bound(uint256(topUpSeed), 1 ether, initialLiquidity / 2);
 
