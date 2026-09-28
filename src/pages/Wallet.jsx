@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { ArrowDownToLine, ArrowLeft, ArrowLeftRight, ArrowUpRight, Bell, Check, ChevronRight, Clipboard, Compass, ExternalLink, Fingerprint, Globe2, HelpCircle, Languages, LockKeyhole, Maximize, QrCode, ScanLine, Settings as SettingsIcon, Share2, ShieldCheck, Smartphone, UserRoundCog, WalletCards } from 'lucide-react';
+import { ArrowDownToLine, ArrowLeft, ArrowLeftRight, ArrowUpRight, Bell, Check, ChevronRight, Clipboard, ExternalLink, Fingerprint, Globe2, HelpCircle, Languages, LockKeyhole, Maximize, QrCode, ScanLine, Settings as SettingsIcon, Share2, ShieldCheck, Smartphone, UserRoundCog, WalletCards } from 'lucide-react';
 import { useWeb3 } from '@/components/web3/Web3Provider';
 import ZevaryqMark from '@/components/zevaryq-wallet/ZevaryqMark';
 import NetworkInfrastructureCard from '@/components/zevaryq-wallet/NetworkInfrastructureCard';
