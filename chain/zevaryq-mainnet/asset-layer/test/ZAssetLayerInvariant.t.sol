@@ -34,18 +34,17 @@ contract ZUSDInvariantHandler {
         uint256 supply = token.totalSupply();
         uint256 excessive = (backing - supply) + (uint256(seed) % 1_000_000) + 1;
 
-        address(reserve).call(
-            abi.encodeCall(
-                ZUSDReserveController.mintAgainstReserve,
-                (address(this), excessive, reserve.reserveEpoch())
-            )
-        );
+        address(reserve)
+            .call(
+                abi.encodeCall(
+                    ZUSDReserveController.mintAgainstReserve, (address(this), excessive, reserve.reserveEpoch())
+                )
+            );
     }
 }
 
 contract ZAssetLayerInvariantTest {
-    VmInvariant internal constant vm =
-        VmInvariant(address(uint160(uint256(keccak256("hevm cheat code")))));
+    VmInvariant internal constant vm = VmInvariant(address(uint160(uint256(keccak256("hevm cheat code")))));
 
     address internal constant ATTESTOR = address(0xA11CE);
     address internal constant SETTLER = address(0xCAFE);
@@ -59,13 +58,7 @@ contract ZAssetLayerInvariantTest {
     function setUp() public {
         vm.chainId(22028);
 
-        reserve = new ZUSDReserveController(
-            address(this),
-            ATTESTOR,
-            address(this),
-            SETTLER,
-            GUARDIAN
-        );
+        reserve = new ZUSDReserveController(address(this), ATTESTOR, address(this), SETTLER, GUARDIAN);
         zusd = new ZUSD(address(this), address(reserve));
         reserve.initializeToken(address(zusd));
 
@@ -77,12 +70,7 @@ contract ZAssetLayerInvariantTest {
         reserve.executeRoleChange(reserve.MINT_OPERATOR_ROLE());
 
         vm.prank(ATTESTOR);
-        reserve.attestReserve(
-            1,
-            1_000_000_000_000,
-            keccak256("invariant-reserve"),
-            uint64(block.timestamp + 30 days)
-        );
+        reserve.attestReserve(1, 1_000_000_000_000, keccak256("invariant-reserve"), uint64(block.timestamp + 30 days));
 
     }
 
