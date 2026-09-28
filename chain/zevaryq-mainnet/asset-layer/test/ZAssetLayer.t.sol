@@ -24,6 +24,7 @@ contract ZAssetLayerTest {
     address internal constant RELEASE_OPERATOR = address(0xD00D);
     address internal constant GUARDIAN = address(0xF00D);
     address internal constant USER = address(0x1234);
+    address internal constant USER2 = address(0x5678);
 
     bytes32 internal constant BTC_DOMAIN = keccak256("bitcoin-mainnet");
     bytes32 internal constant ETH_DOMAIN = keccak256("eip155:1");
@@ -388,6 +389,219 @@ contract ZAssetLayerTest {
         bytes32 ethId = ethBridge.computeDepositId(ETH_DOMAIN, txid, 7);
         bytes32 btcId = btcBridge.computeDepositId(ETH_DOMAIN, txid, 7);
         require(ethId != btcId, "controller domain collision");
+    }
+
+    function testZUSDSettledReserveOutflowCannotBeRemintedBeforeFreshBacking() public {
+        _attestReserve(1, 100_000_000, keccak256("reserve-outflow"), uint64(block.timestamp + 2 days));
+
+        vm.prank(MINT_OPERATOR);
+        reserve.mintAgainstReserve(USER, 100_000_000, 1);
+
+        vm.prank(USER);
+        zusd.approve(address(reserve), 40_000_000);
+
+        vm.prank(USER);
+        bytes32 claimId = reserve.requestRedemption(40_000_000, keccak256("outflow-destination"));
+
+        vm.prank(SETTLEMENT_OPERATOR);
+        reserve.confirmSettlement(claimId, keccak256("outflow-settlement"));
+
+        require(reserve.effectiveReserveUnits() == 60_000_000, "reserve outflow not deducted");
+
+        reserve.finalizeRedemptionBurn(claimId);
+        require(zusd.totalSupply() == 60_000_000, "redemption burn mismatch");
+
+        vm.prank(MINT_OPERATOR);
+        (bool ok,) = address(reserve).call(
+            abi.encodeCall(ZUSDReserveController.mintAgainstReserve, (USER, uint256(1), uint64(1)))
+        );
+        require(!ok, "stale reserve capacity reused");
+
+        _attestReserve(2, 100_000_000, keccak256("fresh-reserve-after-outflow"), uint64(block.timestamp + 2 days));
+        require(reserve.effectiveReserveUnits() == 100_000_000, "fresh reserve did not reset outflow");
+
+        vm.prank(MINT_OPERATOR);
+        reserve.mintAgainstReserve(USER, 40_000_000, 2);
+        require(zusd.totalSupply() == 100_000_000, "fresh reserve did not restore capacity");
+    }
+
+    function testZUSDSettlementReferenceCannotReplayAcrossClaims() public {
+        _attestReserve(1, 100_000_000, keccak256("reserve-settlement-replay"), uint64(block.timestamp + 2 days));
+
+        vm.prank(MINT_OPERATOR);
+        reserve.mintAgainstReserve(USER, 100_000_000, 1);
+
+        vm.prank(USER);
+        zusd.approve(address(reserve), 40_000_000);
+
+        vm.prank(USER);
+        bytes32 claim1 = reserve.requestRedemption(20_000_000, keccak256("dest-1"));
+
+        vm.prank(USER);
+        bytes32 claim2 = reserve.requestRedemption(20_000_000, keccak256("dest-2"));
+
+        bytes32 settlementRef = keccak256("single-bank-settlement");
+        vm.prank(SETTLEMENT_OPERATOR);
+        reserve.confirmSettlement(claim1, settlementRef);
+
+        vm.prank(SETTLEMENT_OPERATOR);
+        (bool ok,) = address(reserve).call(
+            abi.encodeCall(ZUSDReserveController.confirmSettlement, (claim2, settlementRef))
+        );
+        require(!ok, "settlement evidence replayed");
+    }
+
+    function testBridgeReleaseCannotRestoreStaleMintCapacity() public {
+        _attestBTCBacking(1, 5e8, keccak256("btc-outflow-backing"), uint64(block.timestamp + 2 days));
+
+        vm.prank(BRIDGE_ATTESTOR);
+        bytes32 depositId = btcBridge.attestDeposit(
+            BTC_DOMAIN,
+            keccak256("btc-five"),
+            0,
+            keccak256("btc-five-proof"),
+            USER,
+            5e8,
+            1
+        );
+        btcBridge.mintFromDeposit(depositId);
+
+        vm.prank(USER);
+        zbtc.approve(address(btcBridge), 2e8);
+
+        vm.prank(USER);
+        bytes32 redemptionId = btcBridge.requestRedemption(2e8, keccak256("btc-release-destination"));
+
+        vm.prank(RELEASE_OPERATOR);
+        btcBridge.authorizeBurn(redemptionId);
+        btcBridge.finalizeBurn(redemptionId);
+
+        require(btcBridge.pendingReleaseUnits() == 2e8, "pending release missing");
+        require(btcBridge.effectiveLockedUnits() == 3e8, "pending release did not reserve backing");
+
+        vm.prank(BRIDGE_ATTESTOR);
+        bytes32 pendingDeposit = btcBridge.attestDeposit(
+            BTC_DOMAIN,
+            keccak256("btc-new-before-refresh"),
+            0,
+            keccak256("btc-new-before-refresh-proof"),
+            USER2,
+            1e8,
+            1
+        );
+
+        (bool beforeRelease,) = address(btcBridge).call(
+            abi.encodeCall(ZAssetBridgeController.mintFromDeposit, (pendingDeposit))
+        );
+        require(!beforeRelease, "mint reused backing reserved for release");
+
+        vm.prank(RELEASE_OPERATOR);
+        btcBridge.attestSourceRelease(redemptionId, keccak256("btc-source-release"));
+        require(btcBridge.effectiveLockedUnits() == 3e8, "released backing was reused");
+
+        (bool afterRelease,) = address(btcBridge).call(
+            abi.encodeCall(ZAssetBridgeController.mintFromDeposit, (pendingDeposit))
+        );
+        require(!afterRelease, "mint reused released backing");
+
+        _attestBTCBacking(2, 4e8, keccak256("btc-refreshed-backing"), uint64(block.timestamp + 2 days));
+
+        vm.prank(BRIDGE_ATTESTOR);
+        btcBridge.refreshDepositAttestation(pendingDeposit, keccak256("btc-refreshed-deposit-proof"), 2);
+
+        btcBridge.mintFromDeposit(pendingDeposit);
+        require(zbtc.totalSupply() == 4e8, "fresh bridge backing did not restore capacity");
+    }
+
+    function testBridgeReleaseProofCannotReplay() public {
+        _attestBTCBacking(1, 4e8, keccak256("btc-release-replay-backing"), uint64(block.timestamp + 2 days));
+
+        vm.prank(BRIDGE_ATTESTOR);
+        bytes32 depositId = btcBridge.attestDeposit(
+            BTC_DOMAIN,
+            keccak256("btc-release-replay-deposit"),
+            0,
+            keccak256("btc-release-replay-proof"),
+            USER,
+            4e8,
+            1
+        );
+        btcBridge.mintFromDeposit(depositId);
+
+        vm.prank(USER);
+        zbtc.approve(address(btcBridge), 2e8);
+
+        vm.prank(USER);
+        bytes32 redemption1 = btcBridge.requestRedemption(1e8, keccak256("btc-destination-1"));
+
+        vm.prank(USER);
+        bytes32 redemption2 = btcBridge.requestRedemption(1e8, keccak256("btc-destination-2"));
+
+        vm.prank(RELEASE_OPERATOR);
+        btcBridge.authorizeBurn(redemption1);
+        btcBridge.finalizeBurn(redemption1);
+
+        vm.prank(RELEASE_OPERATOR);
+        btcBridge.authorizeBurn(redemption2);
+        btcBridge.finalizeBurn(redemption2);
+
+        bytes32 releaseProof = keccak256("one-release-proof");
+        vm.prank(RELEASE_OPERATOR);
+        btcBridge.attestSourceRelease(redemption1, releaseProof);
+
+        vm.prank(RELEASE_OPERATOR);
+        (bool ok,) = address(btcBridge).call(
+            abi.encodeCall(ZAssetBridgeController.attestSourceRelease, (redemption2, releaseProof))
+        );
+        require(!ok, "release proof replayed");
+    }
+
+    function testControllerMigrationRejectsEOA() public {
+        (bool ok,) = address(zusd).call(
+            abi.encodeWithSignature("scheduleController(address)", address(0x9999))
+        );
+        require(!ok, "EOA accepted as controller");
+    }
+
+    function testControllerMigrationWaitsForOutstandingRedemption() public {
+        ZUSDReserveController nextReserve = new ZUSDReserveController(
+            address(this),
+            RESERVE_ATTESTOR,
+            MINT_OPERATOR,
+            SETTLEMENT_OPERATOR,
+            GUARDIAN
+        );
+
+        zusd.scheduleController(address(nextReserve));
+        nextReserve.initializeToken(address(zusd));
+
+        _attestReserve(1, 10_000_000, keccak256("migration-reserve"), uint64(block.timestamp + 2 days));
+        vm.prank(MINT_OPERATOR);
+        reserve.mintAgainstReserve(USER, 10_000_000, 1);
+
+        vm.prank(USER);
+        zusd.approve(address(reserve), 1_000_000);
+
+        vm.prank(USER);
+        bytes32 claimId = reserve.requestRedemption(1_000_000, keccak256("migration-destination"));
+
+        vm.warp(block.timestamp + 1 days);
+
+        (bool blocked,) = address(zusd).call(abi.encodeWithSignature("executeControllerChange()"));
+        require(!blocked, "controller migrated with active redemption");
+
+        vm.prank(USER);
+        reserve.cancelRedemption(claimId);
+
+        zusd.executeControllerChange();
+        require(zusd.controller() == address(nextReserve), "controller migration failed after quiescence");
+    }
+
+    function testZeroValueERC20TransferRemainsCompatible() public {
+        vm.prank(USER);
+        bool ok = zusd.transfer(USER2, 0);
+        require(ok, "zero transfer rejected");
+        require(zusd.balanceOf(USER) == 0 && zusd.balanceOf(USER2) == 0, "zero transfer changed balances");
     }
 
     function _attestReserve(uint64 epoch, uint256 units, bytes32 evidence, uint64 expiry) internal {
