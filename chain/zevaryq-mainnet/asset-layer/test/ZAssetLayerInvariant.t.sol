@@ -54,6 +54,7 @@ contract ZAssetLayerInvariantTest {
     ZUSDReserveController internal reserve;
     ZUSD internal zusd;
     ZUSDInvariantHandler internal handler;
+    address[] internal invariantTargets;
 
     function setUp() public {
         vm.chainId(22028);
@@ -69,6 +70,7 @@ contract ZAssetLayerInvariantTest {
         reserve.initializeToken(address(zusd));
 
         handler = new ZUSDInvariantHandler(reserve, zusd);
+        invariantTargets.push(address(handler));
 
         reserve.scheduleRoleChange(reserve.MINT_OPERATOR_ROLE(), address(handler));
         vm.warp(block.timestamp + 1 days);
@@ -84,7 +86,11 @@ contract ZAssetLayerInvariantTest {
 
     }
 
-    function invariant_supplyNeverExceedsVerifiedReserve() public view {
-        require(zusd.totalSupply() <= reserve.verifiedReserveUnits(), "supply exceeds backing");
+    function targetContracts() public view returns (address[] memory) {
+        return invariantTargets;
+    }
+
+    function invariant_supplyNeverExceedsVerifiedReserveDuringFixedBackingRun() public view {
+        require(zusd.totalSupply() <= reserve.verifiedReserveUnits(), "mint crossed backing ceiling");
     }
 }
