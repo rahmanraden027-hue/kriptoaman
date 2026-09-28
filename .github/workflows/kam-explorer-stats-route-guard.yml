@@ -16,6 +16,7 @@ on:
 
 permissions:
   contents: read
+  statuses: write
 
 concurrency:
   group: kam-explorer-stats-route-guard
@@ -24,7 +25,7 @@ concurrency:
 jobs:
   verify-and-heal-stats-route:
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - name: Checkout trusted main source
         uses: actions/checkout@v7
@@ -241,3 +242,39 @@ jobs:
           curl -L -fsS --max-time 20 'https://explorer.kriptoaman.com/sitemap.xml' | grep -Fq '<loc>https://explorer.kriptoaman.com/stats</loc>'
 
           echo 'stats_route_and_seo_guard=verified'
+
+      - name: Publish Explorer route-guard status
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JOB_STATUS: ${{ job.status }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$JOB_STATUS" = "success" ]; then
+            state="success"
+            description="Explorer routes, dynamic details and SEO guard verified"
+          else
+            state="failure"
+            description="Explorer route guard failed; inspect run evidence"
+          fi
+          python3 - "$state" "$description" "$RUN_URL" > /tmp/status.json <<'PY'
+          import json,sys
+          state,description,target=sys.argv[1:4]
+          print(json.dumps({
+              "state": state,
+              "context": "kriptoaman/explorer-route-guard",
+              "description": description[:140],
+              "target_url": target,
+          }))
+          PY
+          curl -fsS -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$REPO/statuses/$SHA" \
+            --data-binary @/tmp/status.json >/dev/null
+
