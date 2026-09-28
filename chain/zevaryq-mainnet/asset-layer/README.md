@@ -1,6 +1,6 @@
 # ZEVARYQ Asset Layer v1
 
-Status: **IMPLEMENTATION CANDIDATE v0.1 / NOT DEPLOYED**
+Status: **IMPLEMENTATION CANDIDATE v0.2 HARDENING / NOT DEPLOYED**
 
 Chain: ZEVARYQ Mainnet  
 Chain ID: 22028 (`0x560c`)
@@ -31,6 +31,13 @@ Issuer assets may only be displayed with issuer/bridge provenance after a legiti
 8. Public token transfers remain independent of bridge/custody control.
 9. Emergency controls are scoped and time-bounded.
 10. Liquidity and market price are outside token contracts.
+
+Additional v0.2 hardening:
+- reserve/bridge outflows reduce effective mint backing until a fresh attestation;
+- settlement and release evidence are replay-protected;
+- pending bridge releases reserve backing before the underlying asset leaves custody;
+- controller migration requires a contract-bound successor and zero outstanding obligations;
+- zero-value ERC-20 transfers remain compatible.
 
 See [SMART_CONTRACT_SPEC_V1.md](./SMART_CONTRACT_SPEC_V1.md) for the normative specification. Candidate contracts live under `contracts/`; no deployment script is permitted in this directory while authorization remains closed.
 
