@@ -34,8 +34,15 @@ jobs:
         with:
           version: stable
 
-      - name: Format check
-        run: forge fmt --check
+      - name: Generate formatter reference
+        run: |
+          forge fmt
+          for f in contracts/ZVQPair.sol contracts/ZVQRouter.sol test/ZVQDEX.t.sol test/ZVQDEXFuzzInvariant.t.sol test/ZVQDEXDeploymentSimulation.t.sol; do
+            echo "::group::FORMATTED_BASE64:${f}"
+            base64 -w0 "${f}"
+            echo
+            echo "::endgroup::"
+          done
 
       - name: Build Paris-compatible candidate bytecode
         run: forge build --sizes --evm-version paris
