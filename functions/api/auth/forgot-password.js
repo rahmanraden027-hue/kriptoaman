@@ -25,7 +25,7 @@ export async function onRequestPost(context) {
     const email = String(body.email || '').trim().toLowerCase();
 
     // Always return the same public response. Invalid or unknown accounts do not
-    // consume rate-limit writes and cannot be used to enumerate registrations.
+    // consume rate-limit writes; callers receive no account-existence signal in the payload.
     if (!email) return json({ sent: true });
 
     const user = await getUserByEmail(env.AUTH_DB, email);
