@@ -1,0 +1,85 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+
+const root = 'chain/zevaryq-mainnet/asset-layer';
+const read = (name) => fs.readFileSync(`${root}/${name}`, 'utf8');
+
+test('asset-layer tokenomics remain source-only and correctly parameterized', () => {
+  const data = JSON.parse(read('tokenomics-v1.json'));
+
+  assert.equal(data.chain.chainId, 22028);
+  assert.equal(data.chain.nativeAsset, 'ZVQ');
+
+  assert.equal(data.assets.ZUSD.symbol, 'ZUSD');
+  assert.equal(data.assets.ZUSD.decimals, 6);
+  assert.equal(data.assets.ZUSD.premine, '0');
+  assert.equal(data.assets.ZUSD.deploymentAuthorized, false);
+
+  assert.equal(data.assets.zBTC.symbol, 'zBTC');
+  assert.equal(data.assets.zBTC.decimals, 8);
+  assert.equal(data.assets.zBTC.premine, '0');
+  assert.equal(data.assets.zBTC.deploymentAuthorized, false);
+
+  assert.equal(data.assets.zETH.symbol, 'zETH');
+  assert.equal(data.assets.zETH.decimals, 18);
+  assert.equal(data.assets.zETH.premine, '0');
+  assert.equal(data.assets.zETH.deploymentAuthorized, false);
+
+  for (const value of Object.values(data.authorization)) {
+    assert.equal(value, false);
+  }
+
+  assert.equal(data.thirdPartyIssuerAssets.USDC, 'not-created-by-this-specification');
+  assert.equal(data.thirdPartyIssuerAssets.USDT, 'not-created-by-this-specification');
+});
+
+test('asset-layer remains specification/interfaces only', () => {
+  const files = fs.readdirSync(`${root}/interfaces`);
+  assert.deepEqual(files.sort(), ['IZAssetBridge.sol', 'IZUSD.sol']);
+
+  for (const file of files) {
+    const source = read(`interfaces/${file}`);
+    assert.match(source, /interface\s+I/);
+    assert.doesNotMatch(source, /\bcontract\s+[A-Za-z_]/);
+    assert.doesNotMatch(source, /delegatecall/i);
+  }
+
+  const entries = fs.readdirSync(root, { recursive: true });
+  assert.equal(entries.some((entry) => /\.s\.sol$/i.test(String(entry))), false);
+});
+
+test('production authorization flags remain closed', () => {
+  const readme = read('README.md');
+  const spec = read('SMART_CONTRACT_SPEC_V1.md');
+
+  for (const flag of [
+    'ZUSD_DEPLOYMENT_AUTHORIZED = false',
+    'ZBTC_DEPLOYMENT_AUTHORIZED = false',
+    'ZETH_DEPLOYMENT_AUTHORIZED = false',
+    'RESERVE_BACKING_VERIFIED = false',
+    'BRIDGE_BACKING_VERIFIED = false',
+    'LIQUIDITY_AUTHORIZED = false'
+  ]) {
+    assert.ok(readme.includes(flag), flag);
+  }
+
+  for (const flag of [
+    'ASSET_LAYER_DEPLOYMENT_AUTHORIZED = false',
+    'LIQUIDITY_AUTHORIZED = false',
+    'PUBLIC_TRADING_AUTHORIZED = false'
+  ]) {
+    assert.ok(spec.includes(flag), flag);
+  }
+});
+
+test('spec explicitly prevents issuer impersonation and unbacked mint', () => {
+  const spec = read('SMART_CONTRACT_SPEC_V1.md');
+
+  assert.match(spec, /must not:\n\n- create a token called USDT or USDC and imply issuer authorization/i);
+  assert.match(spec, /totalSupply <= verifiedReserveUnits/);
+  assert.match(spec, /totalSupply\(zBTC\) <= verifiedLockedBTC/);
+  assert.match(spec, /totalSupply\(zETH\) <= verifiedLockedETH/);
+  assert.match(spec, /deposit identifier can mint at most once/);
+  assert.match(spec, /No unrestricted `ownerMint`/);
+});
