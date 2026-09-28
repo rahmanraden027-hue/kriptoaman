@@ -71,7 +71,7 @@ jobs:
           test -z "${DEPLOYER_PRIVATE_KEY:-}"
           test -z "${PRIVATE_KEY:-}"
           test -z "${MNEMONIC:-}"
-          ! grep -R -n -- '--broadcast' ../../../.github/workflows/zevaryq-dex-mainnet-presign.yml
+          ! grep -v 'grep .*--broadcast' ../../../.github/workflows/zevaryq-dex-mainnet-presign.yml | grep -n -- '--broadcast'
 
       - name: Upload pre-sign evidence
         uses: actions/upload-artifact@v7
