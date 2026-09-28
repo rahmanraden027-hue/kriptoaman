@@ -272,7 +272,6 @@ contract ZVQDEXTest {
         require(!ok, "LP removal without approval accepted");
     }
 
-
     function testWalletQuoteRouteMatchesRouterMath() public {
         router.addLiquidity(
             address(tokenA),
@@ -317,12 +316,7 @@ contract ZVQDEXTest {
     function testWalletTokenToNativeZVQSurface() public {
         vm.deal(address(this), 10_000 ether);
         router.addLiquidityZVQ{value: 1_000 ether}(
-            address(tokenA),
-            1_000 ether,
-            1_000 ether,
-            1_000 ether,
-            address(this),
-            DEADLINE
+            address(tokenA), 1_000 ether, 1_000 ether, 1_000 ether, address(this), DEADLINE
         );
 
         address recipient = address(0xBEEF);
