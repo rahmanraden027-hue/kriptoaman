@@ -81,5 +81,5 @@ test('spec explicitly prevents issuer impersonation and unbacked mint', () => {
   assert.match(spec, /totalSupply\(zBTC\) <= verifiedLockedBTC/);
   assert.match(spec, /totalSupply\(zETH\) <= verifiedLockedETH/);
   assert.match(spec, /deposit identifier can mint at most once/);
-  assert.match(spec, /No unrestricted `ownerMint`/);
+  assert.match(spec, /no unrestricted `ownerMint`/i);
 });
