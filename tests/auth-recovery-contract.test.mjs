@@ -61,8 +61,10 @@ test('authenticated home remains vertically scrollable', () => {
 
 test('auth health probe uses independent bounded request timeouts', () => {
   const smoke = read('scripts/check-auth-surface.mjs');
-  assert.match(smoke, /fetchWithTimeout/);
+  assert.match(smoke, /async function fetchWithTimeout/);
   assert.match(smoke, /12_000/);
   assert.match(smoke, /example\.invalid/);
-  assert.doesNotMatch(smoke, /const controller = new AbortController\(\);[\s\S]*try \{[\s\S]*expectHtml\('\/login'\)/);
+  assert.equal((smoke.match(/new AbortController\(\)/g) || []).length, 1);
+  assert.match(smoke, /const login = await expectHtml\('\/login'\)/);
+  assert.match(smoke, /const forgot = await expectHtml\('\/forgot-password'\)/);
 });
