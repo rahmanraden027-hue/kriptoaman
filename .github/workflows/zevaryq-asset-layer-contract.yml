@@ -25,8 +25,11 @@ jobs:
         with:
           version: stable
 
-      - name: Format check
-        run: forge fmt --check
+      - name: Normalize Solidity formatting for deterministic CI build
+        run: |
+          forge fmt
+          forge fmt --check
+          git diff --check
 
       - name: Build Paris-compatible bytecode
         run: forge build --sizes --evm-version paris
