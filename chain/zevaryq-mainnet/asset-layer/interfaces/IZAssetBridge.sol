@@ -15,7 +15,8 @@ interface IZAssetBridge {
         REQUESTED,
         BURN_AUTHORIZED,
         BURNED,
-        RELEASE_ATTESTED
+        RELEASE_ATTESTED,
+        CANCELLED
     }
 
     struct DepositRecord {
@@ -64,13 +65,21 @@ interface IZAssetBridge {
         uint64 validUntil
     ) external;
 
+    function computeDepositId(
+        bytes32 sourceDomain,
+        bytes32 sourceTxId,
+        uint256 sourceIndex
+    ) external view returns (bytes32 depositId);
+
     function attestDeposit(
-        bytes32 depositId,
+        bytes32 sourceDomain,
+        bytes32 sourceTxId,
+        uint256 sourceIndex,
         bytes32 sourceProofHash,
         address recipient,
         uint256 amount,
         uint64 attestationEpoch
-    ) external;
+    ) external returns (bytes32 depositId);
 
     function mintFromDeposit(bytes32 depositId) external;
 
@@ -79,6 +88,7 @@ interface IZAssetBridge {
         bytes32 destinationRefHash
     ) external returns (bytes32 redemptionId);
 
+    function cancelRedemption(bytes32 redemptionId) external;
     function authorizeBurn(bytes32 redemptionId) external;
     function finalizeBurn(bytes32 redemptionId) external;
     function attestSourceRelease(bytes32 redemptionId, bytes32 releaseProofHash) external;
