@@ -1,0 +1,65 @@
+name: ZEVARYQ DEX Contract Candidate
+
+on:
+  pull_request:
+    paths:
+      - 'chain/zevaryq-mainnet/trading/**'
+      - 'src/services/zevaryqSwap.js'
+      - 'tests/zevaryq-dex-candidate.test.mjs'
+      - '.github/workflows/zevaryq-dex-contract.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'chain/zevaryq-mainnet/trading/**'
+      - 'src/services/zevaryqSwap.js'
+      - 'tests/zevaryq-dex-candidate.test.mjs'
+      - '.github/workflows/zevaryq-dex-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: chain/zevaryq-mainnet/trading
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Format check
+        run: forge fmt --check
+
+      - name: Build Paris-compatible candidate bytecode
+        run: forge build --sizes --evm-version paris
+
+      - name: Unit and wallet ABI tests
+        run: forge test --match-path test/ZVQDEX.t.sol -vvv --evm-version paris
+
+      - name: Fuzz and invariant hardening
+        run: forge test --match-path test/ZVQDEXFuzzInvariant.t.sol -vvv --evm-version paris
+
+      - name: Deployment simulation
+        run: forge test --match-path test/ZVQDEXDeploymentSimulation.t.sol -vvv --evm-version paris
+
+      - name: Verify candidate remains non-deploying
+        working-directory: .
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(find chain/zevaryq-mainnet/trading -type f \( -name '*.s.sol' -o -name '*deploy*.mjs' -o -name '*deploy*.js' \) -print -quit)"
+          ! grep -R -n -E 'startBroadcast|broadcast\(' chain/zevaryq-mainnet/trading
+          ! grep -R -n -E 'DEPLOYER_PRIVATE_KEY|LIQUIDITY_PRIVATE_KEY|PRIVATE_KEY' chain/zevaryq-mainnet/trading
+
+      - name: Assert CI has no signing secrets
+        run: |
+          test -z "${DEPLOYER_PRIVATE_KEY:-}"
+          test -z "${LIQUIDITY_PRIVATE_KEY:-}"
+          test -z "${PRIVATE_KEY:-}"
