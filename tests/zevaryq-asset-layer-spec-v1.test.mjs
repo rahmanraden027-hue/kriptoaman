@@ -55,6 +55,27 @@ test('asset-layer implementation remains source-only and non-deploying', () => {
   }
 });
 
+
+test('v0.2 hardening prevents backing reuse and unsafe controller migration', () => {
+  const zusd = read('contracts/ZUSDReserveController.sol');
+  const bridge = read('contracts/ZAssetBridgeController.sol');
+  const token = read('contracts/common/ZControlledERC20.sol');
+
+  assert.match(zusd, /reserveOutflowSinceAttestation/);
+  assert.match(zusd, /usedSettlementReference/);
+  assert.match(zusd, /effectiveReserveUnits\(\)/);
+
+  assert.match(bridge, /releasedUnitsSinceAttestation/);
+  assert.match(bridge, /pendingReleaseUnits/);
+  assert.match(bridge, /usedReleaseProof/);
+  assert.match(bridge, /effectiveLockedUnits\(\)/);
+  assert.match(bridge, /refreshDepositAttestation/);
+
+  assert.match(token, /nextController\.code\.length/);
+  assert.match(token, /canRelinquishControl\(\)/);
+  assert.match(token, /candidate\.token\(\) != address\(this\)/);
+});
+
 test('production authorization flags remain closed', () => {
   const readme = read('README.md');
   const spec = read('SMART_CONTRACT_SPEC_V1.md');
