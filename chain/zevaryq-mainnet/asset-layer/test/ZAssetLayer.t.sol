@@ -101,6 +101,24 @@ contract ZAssetLayerTest {
         require(zusd.totalSupply() <= reserve.verifiedReserveUnits(), "reserve invariant");
     }
 
+    function testZUSDDeficitAttestationDisablesFurtherMintWithoutConfiscation() public {
+        _attestReserve(1, 100_000_000, keccak256("reserve-before-deficit"), uint64(block.timestamp + 2 days));
+
+        vm.prank(MINT_OPERATOR);
+        reserve.mintAgainstReserve(USER, 100_000_000, 1);
+
+        _attestReserve(2, 50_000_000, keccak256("reserve-deficit"), uint64(block.timestamp + 2 days));
+
+        require(zusd.totalSupply() == 100_000_000, "deficit confiscated user supply");
+        require(reserve.verifiedReserveUnits() == 50_000_000, "deficit not recorded");
+
+        vm.prank(MINT_OPERATOR);
+        (bool ok,) = address(reserve).call(
+            abi.encodeCall(ZUSDReserveController.mintAgainstReserve, (USER, 1, uint64(2)))
+        );
+        require(!ok, "mint continued during reserve deficit");
+    }
+
     function testZUSDExpiredAttestationCannotMint() public {
         uint64 expiry = uint64(block.timestamp + 10);
         _attestReserve(1, 1_000_000, keccak256("reserve-expiry"), expiry);
