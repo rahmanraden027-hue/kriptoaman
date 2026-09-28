@@ -8,6 +8,7 @@ import "./MockToken.sol";
 
 interface VmAudit {
     function warp(uint256 newTimestamp) external;
+    function deal(address who, uint256 newBalance) external;
 }
 
 contract ZVQDEXTest {
@@ -269,6 +270,75 @@ contract ZVQDEXTest {
                 )
             );
         require(!ok, "LP removal without approval accepted");
+    }
+
+
+    function testWalletQuoteRouteMatchesRouterMath() public {
+        router.addLiquidity(
+            address(tokenA),
+            address(tokenB),
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            address(this),
+            DEADLINE
+        );
+        address pair = factory.getPair(address(tokenA), address(tokenB));
+        (uint112 r0, uint112 r1,) = ZVQPair(pair).getReserves();
+        (uint256 reserveIn, uint256 reserveOut) =
+            address(tokenA) < address(tokenB) ? (uint256(r0), uint256(r1)) : (uint256(r1), uint256(r0));
+
+        address[] memory path = new address[](2);
+        path[0] = address(tokenA);
+        path[1] = address(tokenB);
+        uint256[] memory amounts = router.getAmountsOut(100 ether, path);
+
+        require(amounts.length == 2, "quote path length");
+        require(amounts[0] == 100 ether, "quote input");
+        require(amounts[1] == router.getAmountOut(100 ether, reserveIn, reserveOut), "quote output");
+    }
+
+    function testWalletNativeZVQToTokenSurface() public {
+        vm.deal(address(this), 10_000 ether);
+        router.addLiquidityZVQ{value: 1_000 ether}(
+            address(tokenA),
+            1_000 ether,
+            1_000 ether,
+            1_000 ether,
+            address(this),
+            DEADLINE
+        );
+
+        uint256 tokenBefore = tokenA.balanceOf(address(this));
+        uint256 out = router.swapExactZVQForTokens{value: 10 ether}(1, address(tokenA), address(this), DEADLINE);
+
+        require(out > 0, "no token output");
+        require(tokenA.balanceOf(address(this)) == tokenBefore + out, "token output mismatch");
+        require(address(router).balance == 0, "router retained native ZVQ");
+        require(address(canonicalWZVQ).balance == canonicalWZVQ.totalSupply(), "WZVQ backing mismatch");
+    }
+
+    function testWalletTokenToNativeZVQSurface() public {
+        vm.deal(address(this), 10_000 ether);
+        router.addLiquidityZVQ{value: 1_000 ether}(
+            address(tokenA),
+            1_000 ether,
+            1_000 ether,
+            1_000 ether,
+            address(this),
+            DEADLINE
+        );
+
+        address recipient = address(0xBEEF);
+        uint256 nativeBefore = recipient.balance;
+        uint256 out =
+            router.swapExactTokensForZVQ(10 ether, 1, address(tokenA), recipient, DEADLINE);
+
+        require(out > 0, "no native output");
+        require(recipient.balance == nativeBefore + out, "native output mismatch");
+        require(address(router).balance == 0, "router retained native ZVQ");
+        require(address(canonicalWZVQ).balance == canonicalWZVQ.totalSupply(), "WZVQ backing mismatch");
     }
 
     function testQuoteAndFeeMath() public view {
