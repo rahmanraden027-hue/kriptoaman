@@ -1,15 +1,27 @@
 const ORIGIN = process.env.AUTH_SMOKE_ORIGIN || 'https://kriptoaman.com';
-const controller = new AbortController();
-const timeout = setTimeout(() => controller.abort(), 30_000);
+
+async function fetchWithTimeout(url, init = {}, timeoutMs = 12_000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      throw new Error(`${new URL(url).pathname} exceeded ${timeoutMs}ms health timeout`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 async function expectHtml(path) {
-  const response = await fetch(`${ORIGIN}${path}`, {
+  const response = await fetchWithTimeout(`${ORIGIN}${path}`, {
     headers: {
       Accept: 'text/html,application/xhtml+xml',
       'User-Agent': 'KriptoAman-Auth-Smoke/1.0',
     },
     redirect: 'follow',
-    signal: controller.signal,
   });
   if (!response.ok) throw new Error(`${path} returned HTTP ${response.status}`);
   const type = response.headers.get('content-type') || '';
@@ -18,8 +30,8 @@ async function expectHtml(path) {
 }
 
 async function expectForgotPasswordEndpoint() {
-  const syntheticEmail = `auth-smoke-${Date.now()}@invalid.example`;
-  const response = await fetch(`${ORIGIN}/api/auth/forgot-password`, {
+  const syntheticEmail = `auth-smoke-${Date.now()}@example.invalid`;
+  const response = await fetchWithTimeout(`${ORIGIN}/api/auth/forgot-password`, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
@@ -29,7 +41,6 @@ async function expectForgotPasswordEndpoint() {
       'User-Agent': 'KriptoAman-Auth-Smoke/1.0',
     },
     body: JSON.stringify({ email: syntheticEmail }),
-    signal: controller.signal,
   });
   const payload = await response.json().catch(() => null);
   if (!response.ok) throw new Error(`forgot-password returned HTTP ${response.status}: ${JSON.stringify(payload)}`);
@@ -37,18 +48,15 @@ async function expectForgotPasswordEndpoint() {
   return response.status;
 }
 
-try {
-  const login = await expectHtml('/login');
-  const forgot = await expectHtml('/forgot-password');
-  const resetEndpoint = await expectForgotPasswordEndpoint();
-  console.log(JSON.stringify({
-    status: 'healthy',
-    origin: ORIGIN,
-    login_http: login,
-    forgot_page_http: forgot,
-    forgot_endpoint_http: resetEndpoint,
-    checked_at: new Date().toISOString(),
-  }));
-} finally {
-  clearTimeout(timeout);
-}
+const login = await expectHtml('/login');
+const forgot = await expectHtml('/forgot-password');
+const resetEndpoint = await expectForgotPasswordEndpoint();
+
+console.log(JSON.stringify({
+  status: 'healthy',
+  origin: ORIGIN,
+  login_http: login,
+  forgot_page_http: forgot,
+  forgot_endpoint_http: resetEndpoint,
+  checked_at: new Date().toISOString(),
+}));
