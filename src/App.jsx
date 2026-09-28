@@ -41,6 +41,7 @@ const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
 const DashboardPage = Pages.Home ?? MainPage;
+const WalletStandalonePage = Pages.Wallet;
 
 const ADMIN_PAGE_KEYS = new Set([
   'AdminKAMAnalytics', 'AdminKAMBulkRewards', 'AdminKAMRewards', 'AdminKAMSnapshotApproval', 'AdminKAMSnapshotReadiness', 'AdminSKAMLaunch', 'AdminKYCManagement', 'AdminPlatformAssets', 'AdminProfitAnalytics', 'AdminUserBalances',
@@ -109,6 +110,7 @@ const AuthenticatedApp = () => {
         <Route path="/research" element={<Research />} />
         <Route path="/research/kam-mainnet-architecture" element={<KAMResearchPaper />} />
         <Route path="/SystemStatus" element={<SystemStatus />} />
+        <Route path="/wallet-app" element={WalletStandalonePage ? <WalletStandalonePage /> : <PageNotFound />} />
 
         {Object.entries(Pages).map(([path, Page]) => {
           if (!PUBLIC_PAGE_KEYS.has(path)) return null;
