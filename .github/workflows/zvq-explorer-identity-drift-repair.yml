@@ -54,6 +54,44 @@ jobs:
           grep -Fq 'rolling back exact two files' "$file"
           ! grep -Eqi 'genesis|private.?key|validator.?key|cloudflare|ufw|iptables|docker compose (up|down|restart)|eth_sendTransaction|personal_sign|eth_sign|wallet_' "$file"
 
+
+  diagnostic_public_contract:
+    if: github.event_name == 'pull_request'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Report live RPC and indexer contract without mutation
+        shell: bash
+        run: |
+          set -u
+          probe_rpc() {
+            local label="$1" endpoint="$2" method="$3" body status compact
+            body="$(mktemp)"
+            status="$(curl -sS --connect-timeout 8 --max-time 18 -o "$body" -w '%{http_code}' \
+              -H 'Content-Type: application/json' \
+              --data "{\"jsonrpc\":\"2.0\",\"id\":7,\"method\":\"$method\",\"params\":[]}" "$endpoint" || printf 'curl_error')"
+            compact="$(tr '\n' ' ' < "$body" | head -c 500)"
+            rm -f "$body"
+            echo "RPC_PROBE label=$label method=$method http=$status body=$compact"
+          }
+          probe_http() {
+            local label="$1" url="$2" body status
+            body="$(mktemp)"
+            status="$(curl -sS --connect-timeout 8 --max-time 18 -o "$body" -w '%{http_code}' "$url" || printf 'curl_error')"
+            echo "HTTP_PROBE label=$label http=$status bytes=$(wc -c < "$body")"
+            rm -f "$body"
+          }
+          probe_http blocks_api https://explorer.kriptoaman.com/api/v2/blocks
+          probe_http transactions_api https://explorer.kriptoaman.com/api/v2/transactions
+          for method in eth_chainId eth_blockNumber eth_sendRawTransaction admin_peers; do
+            probe_rpc explorer https://explorer.kriptoaman.com/rpc "$method"
+          done
+          for method in eth_chainId eth_blockNumber admin_peers; do
+            probe_rpc canonical https://rpc.kriptoaman.com "$method"
+          done
+          echo 'diagnostic_only=no_production_write explorer_gateway_policy=strict-read-only canonical_write=not-probed'
+
   public_before:
     if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.confirm == 'DEPLOY-ZVQ-IDENTITY')
     needs: validate
@@ -80,13 +118,31 @@ jobs:
           test "$(rpc https://rpc.kriptoaman.com eth_chainId | jq -r '.result')" = 0x560c
           rpc "$base/rpc" eth_blockNumber | jq -e '.result|test("^0x[0-9a-fA-F]+$")' >/dev/null
           rpc https://rpc.kriptoaman.com eth_blockNumber | jq -e '.result|test("^0x[0-9a-fA-F]+$")' >/dev/null
-          for endpoint in "$base/rpc" https://rpc.kriptoaman.com; do
-            for method in eth_sendRawTransaction admin_peers; do
-              status=$(curl -sS --connect-timeout 8 --max-time 18 -o /dev/null -w '%{http_code}'                 -H 'Content-Type: application/json'                 --data "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"$method\",\"params\":[]}" "$endpoint")
-              test "$status" = 403
-            done
+          # The Explorer browser gateway is the reviewed read-only boundary.
+          for method in eth_sendRawTransaction admin_peers; do
+            status=$(curl -sS --connect-timeout 8 --max-time 18 -o /dev/null -w '%{http_code}' \
+              -H 'Content-Type: application/json' \
+              --data "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"$method\",\"params\":[]}" "$base/rpc")
+            test "$status" = 403
           done
-          echo 'zvq_identity_public_before=PASS'
+          # Canonical RPC remains a separate transport; require admin namespace to stay unavailable.
+          admin_body=$(mktemp)
+          admin_status=$(curl -sS --connect-timeout 8 --max-time 18 -o "$admin_body" -w '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            --data '{"jsonrpc":"2.0","id":3,"method":"admin_peers","params":[]}' https://rpc.kriptoaman.com)
+          if test "$admin_status" = 403; then
+            :
+          elif test "$admin_status" = 200 && jq -e 'has("result")|not' "$admin_body" >/dev/null \
+            && jq -e '.error.code == -32601 or .error.code == -32604 or .error.code == -32000 or .error.code == -32001' "$admin_body" >/dev/null; then
+            :
+          else
+            cat "$admin_body" >&2
+            rm -f "$admin_body"
+            echo 'canonical admin namespace was not confirmed denied' >&2
+            exit 1
+          fi
+          rm -f "$admin_body"
+          echo 'zvq_identity_public_before=PASS explorer_write_admin=403 canonical_admin=denied'
 
   deploy:
     if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.confirm == 'DEPLOY-ZVQ-IDENTITY')
@@ -179,13 +235,29 @@ jobs:
           print(f'explorer_head={e1}->{e2} canonical_head={c1}->{c2}')
           PY
 
-          for endpoint in "$base/rpc" https://rpc.kriptoaman.com; do
-            for method in eth_sendRawTransaction admin_peers; do
-              status=$(curl -sS --connect-timeout 8 --max-time 18 -o /dev/null -w '%{http_code}'                 -H 'Content-Type: application/json'                 --data "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"$method\",\"params\":[]}" "$endpoint")
-              test "$status" = 403
-            done
+          for method in eth_sendRawTransaction admin_peers; do
+            status=$(curl -sS --connect-timeout 8 --max-time 18 -o /dev/null -w '%{http_code}' \
+              -H 'Content-Type: application/json' \
+              --data "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"$method\",\"params\":[]}" "$base/rpc")
+            test "$status" = 403
           done
-          echo 'zvq_identity_live_gate=PASS'
+          admin_body=$(mktemp)
+          admin_status=$(curl -sS --connect-timeout 8 --max-time 18 -o "$admin_body" -w '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            --data '{"jsonrpc":"2.0","id":3,"method":"admin_peers","params":[]}' https://rpc.kriptoaman.com)
+          if test "$admin_status" = 403; then
+            :
+          elif test "$admin_status" = 200 && jq -e 'has("result")|not' "$admin_body" >/dev/null \
+            && jq -e '.error.code == -32601 or .error.code == -32604 or .error.code == -32000 or .error.code == -32001' "$admin_body" >/dev/null; then
+            :
+          else
+            cat "$admin_body" >&2
+            rm -f "$admin_body"
+            echo 'canonical admin namespace was not confirmed denied' >&2
+            exit 1
+          fi
+          rm -f "$admin_body"
+          echo 'zvq_identity_live_gate=PASS explorer_write_admin=403 canonical_admin=denied'
 
   rollback_on_failure:
     if: always() && needs.deploy.result == 'success' && needs.public_after.result != 'success' && needs.deploy.outputs.stamp != ''
