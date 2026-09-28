@@ -55,11 +55,7 @@ contract ZVQRouter {
         amountOut = (amountInWithFee * reserveOut) / (reserveIn * 1000 + amountInWithFee);
     }
 
-    function getAmountsOut(uint256 amountIn, address[] calldata path)
-        external
-        view
-        returns (uint256[] memory amounts)
-    {
+    function getAmountsOut(uint256 amountIn, address[] calldata path) external view returns (uint256[] memory amounts) {
         (address tokenIn, address tokenOut) = _validatePath(path);
         address pair = ZVQFactory(factory).getPair(tokenIn, tokenOut);
         require(pair != address(0), "ZVQRouter: PAIR_MISSING");
@@ -128,8 +124,7 @@ contract ZVQRouter {
         require(to != address(0), "ZVQRouter: ZERO_TO");
         address pair = _pairFor(tokenA, tokenB);
         (uint256 reserveA, uint256 reserveB) = _reservesFor(pair, tokenA, tokenB);
-        (amountA, amountB) =
-            _optimalAmounts(amountADesired, amountBDesired, amountAMin, amountBMin, reserveA, reserveB);
+        (amountA, amountB) = _optimalAmounts(amountADesired, amountBDesired, amountAMin, amountBMin, reserveA, reserveB);
 
         require(IERC20Minimal(tokenA).transferFrom(msg.sender, pair, amountA), "ZVQRouter: TRANSFER_A");
         require(IERC20Minimal(tokenB).transferFrom(msg.sender, pair, amountB), "ZVQRouter: TRANSFER_B");
@@ -226,12 +221,12 @@ contract ZVQRouter {
         amounts = _amounts(amountIn, amountOut);
     }
 
-    function swapExactZVQForTokens(
-        uint256 amountOutMin,
-        address[] calldata path,
-        address to,
-        uint256 deadline
-    ) public payable ensure(deadline) returns (uint256[] memory amounts) {
+    function swapExactZVQForTokens(uint256 amountOutMin, address[] calldata path, address to, uint256 deadline)
+        public
+        payable
+        ensure(deadline)
+        returns (uint256[] memory amounts)
+    {
         (address tokenIn, address tokenOut) = _validatePath(path);
         require(tokenIn == WZVQ, "ZVQRouter: PATH_NOT_WZVQ");
         uint256 amountOut = _swapExactNativeForTokens(msg.value, amountOutMin, tokenOut, to);
@@ -252,12 +247,12 @@ contract ZVQRouter {
     }
 
     /// @notice Compatibility alias for V2 clients. Native asset remains ZVQ.
-    function swapExactETHForTokens(
-        uint256 amountOutMin,
-        address[] calldata path,
-        address to,
-        uint256 deadline
-    ) external payable ensure(deadline) returns (uint256[] memory amounts) {
+    function swapExactETHForTokens(uint256 amountOutMin, address[] calldata path, address to, uint256 deadline)
+        external
+        payable
+        ensure(deadline)
+        returns (uint256[] memory amounts)
+    {
         (address tokenIn, address tokenOut) = _validatePath(path);
         require(tokenIn == WZVQ, "ZVQRouter: PATH_NOT_WZVQ");
         uint256 amountOut = _swapExactNativeForTokens(msg.value, amountOutMin, tokenOut, to);
@@ -313,12 +308,10 @@ contract ZVQRouter {
         _pairSwap(pair, WZVQ, tokenOut, amountOut, to);
     }
 
-    function _swapExactTokensForNative(
-        uint256 amountIn,
-        uint256 amountOutMin,
-        address tokenIn,
-        address to
-    ) internal returns (uint256 amountOut) {
+    function _swapExactTokensForNative(uint256 amountIn, uint256 amountOutMin, address tokenIn, address to)
+        internal
+        returns (uint256 amountOut)
+    {
         require(to != address(0), "ZVQRouter: ZERO_TO");
         address pair = ZVQFactory(factory).getPair(tokenIn, WZVQ);
         require(pair != address(0), "ZVQRouter: PAIR_MISSING");
