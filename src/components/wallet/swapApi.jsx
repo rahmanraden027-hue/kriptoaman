@@ -24,13 +24,15 @@ function fromBaseAmount(amount) {
 
 export async function getSwapQuote({ fromCoin, toCoin, amount, destinationAddress }) {
   if (!amount || parseFloat(amount) <= 0) return null;
+  if (!destinationAddress || typeof destinationAddress !== 'string') {
+    throw new Error('Alamat tujuan asli wajib diisi sebelum meminta quote cross-chain.');
+  }
   const fromAsset = SWAP_COINS[fromCoin]?.asset;
   const toAsset   = SWAP_COINS[toCoin]?.asset;
   if (!fromAsset || !toAsset) return null;
 
   const amountBase = toBaseAmount(amount);
-  const dest = destinationAddress || 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
-  const url = `${THORCHAIN_API}/quote/swap?from_asset=${fromAsset}&to_asset=${toAsset}&amount=${amountBase}&destination=${dest}`;
+  const url = `${THORCHAIN_API}/quote/swap?from_asset=${encodeURIComponent(fromAsset)}&to_asset=${encodeURIComponent(toAsset)}&amount=${amountBase}&destination=${encodeURIComponent(destinationAddress)}`;
 
   const res = await fetch(url);
   if (!res.ok) throw new Error('Gagal mendapatkan quote swap');

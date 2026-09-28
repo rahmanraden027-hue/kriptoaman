@@ -34,6 +34,7 @@ export default function Web3DEXSwap() {
   const [quote, setQuote] = useState(null);
   const [loading, setLoading] = useState(false);
   const [slippage, setSlippage] = useState(0.5);
+  const [error, setError] = useState('');
 
   const tokens = DEX_TOKENS[chainId] || DEX_TOKENS[1];
 
@@ -48,24 +49,21 @@ export default function Web3DEXSwap() {
     if (!fromToken || !toToken || !amount || parseFloat(amount) <= 0) return;
     setLoading(true);
     setQuote(null);
+    setError('');
     try {
       const amountIn = BigInt(Math.floor(parseFloat(amount) * 10 ** fromToken.decimals));
       const res = await fetch(
         `https://api.1inch.dev/swap/v6.0/${chainId}/quote?src=${fromToken.address}&dst=${toToken.address}&amount=${amountIn}`,
         { headers: { Accept: 'application/json' } }
       );
-      if (res.ok) {
-        const data = await res.json();
-        const outAmount = parseFloat(data.dstAmount) / 10 ** toToken.decimals;
-        setQuote({ outAmount, gas: data.gas, protocol: data.protocols?.[0]?.[0]?.[0]?.name || 'DEX' });
-      } else {
-        // Fallback: simulate quote
-        const mockRate = fromToken.symbol === 'ETH' ? 3200 : toToken.symbol === 'ETH' ? 1 / 3200 : 1;
-        setQuote({ outAmount: parseFloat(amount) * mockRate, gas: 150000, protocol: 'Uniswap V3 (sim)' });
-      }
-    } catch {
-      const mockRate = 1;
-      setQuote({ outAmount: parseFloat(amount) * mockRate, gas: 150000, protocol: 'Simulated' });
+      if (!res.ok) throw new Error(`DEX quote unavailable (HTTP ${res.status}).`);
+      const data = await res.json();
+      if (!data?.dstAmount) throw new Error('DEX returned no executable quote.');
+      const outAmount = parseFloat(data.dstAmount) / 10 ** toToken.decimals;
+      setQuote({ outAmount, gas: data.gas, protocol: data.protocols?.[0]?.[0]?.[0]?.name || 'DEX' });
+    } catch (quoteError) {
+      setQuote(null);
+      setError(quoteError?.message || 'Real DEX quote unavailable. No simulated quote will be shown.');
     }
     setLoading(false);
   };
@@ -151,6 +149,8 @@ export default function Web3DEXSwap() {
         </div>
       </div>
 
+      {error && <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300">{error}</div>}
+
       {/* Quote info */}
       {quote && (
         <div className="bg-slate-900/40 rounded-xl p-3 mb-4 text-xs space-y-1">
@@ -178,7 +178,7 @@ export default function Web3DEXSwap() {
       </div>
       <div className="flex items-center gap-1 mt-2 text-slate-500 text-xs">
         <Info className="w-3 h-3" />
-        Swap dieksekusi di Uniswap/1inch secara langsung
+        Hanya quote nyata yang ditampilkan; kegagalan provider tidak pernah diganti dengan harga simulasi
       </div>
     </div>
   );

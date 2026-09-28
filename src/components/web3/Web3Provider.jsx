@@ -4,7 +4,7 @@ const Web3Context = createContext(null);
 
 const WALLETCONNECT_PROJECT_ID = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID?.trim()
   || '90e4a891a15a75dadc1cd3a8d1f3f814';
-const READ_ONLY_RELEASE = true;
+const READ_ONLY_RELEASE = import.meta.env.VITE_ZEVARYQ_TRANSACTIONS_ENABLED !== 'true';
 
 export const SUPPORTED_CHAINS = {
   1:     { name: 'Ethereum', symbol: 'ETH',  rpc: 'https://eth.drpc.org',          explorer: 'https://etherscan.io',            color: '#627EEA' },
@@ -25,6 +25,19 @@ async function loadViem() {
   return { ...viemCore, chains: viemChains };
 }
 
+function chainParams(chainId) {
+  const chain = SUPPORTED_CHAINS[chainId];
+  if (!chain) return null;
+  return {
+    chainId: `0x${Number(chainId).toString(16)}`,
+    chainName: chain.name,
+    nativeCurrency: { name: chain.symbol, symbol: chain.symbol, decimals: 18 },
+    rpcUrls: [chain.rpc],
+    blockExplorerUrls: [chain.explorer],
+    ...(chain.icon ? { iconUrls: [chain.icon] } : {}),
+  };
+}
+
 export function Web3Provider({ children }) {
   const [account, setAccount] = useState(null);
   const [chainId, setChainId] = useState(null);
@@ -43,19 +56,25 @@ export function Web3Provider({ children }) {
     return viemRef.current;
   }, []);
 
-  const getPublicClient = useCallback(async (cId) => {
+  const resolveChain = useCallback(async (cId) => {
     const viem = await getViem();
     const builtIn = Object.values(viem.chains).find((item) => item.id === cId);
     const configured = SUPPORTED_CHAINS[cId];
-    const chain = builtIn || (configured ? viem.defineChain({
+    return builtIn || (configured ? viem.defineChain({
       id: cId,
       name: configured.name,
       nativeCurrency: { name: configured.symbol, symbol: configured.symbol, decimals: 18 },
       rpcUrls: { default: { http: [configured.rpc] } },
       blockExplorers: { default: { name: configured.name + ' Explorer', url: configured.explorer } },
     }) : viem.chains.mainnet);
-    return viem.createPublicClient({ chain, transport: viem.http(configured?.rpc) });
   }, [getViem]);
+
+  const getPublicClient = useCallback(async (cId) => {
+    const viem = await getViem();
+    const configured = SUPPORTED_CHAINS[cId];
+    const chain = await resolveChain(cId);
+    return viem.createPublicClient({ chain, transport: viem.http(configured?.rpc) });
+  }, [getViem, resolveChain]);
 
   const refreshBalance = useCallback(async (addr, cId) => {
     if (!addr || !cId) return;
@@ -84,15 +103,7 @@ export function Web3Provider({ children }) {
       }
       const chainIdHex = await selectedProvider.request({ method: 'eth_chainId' });
       const cId = parseInt(chainIdHex, 16);
-      const configured = SUPPORTED_CHAINS[cId];
-      const chain = Object.values(viem.chains).find(c => c.id === cId) || (configured ? viem.defineChain({
-        id: cId,
-        name: configured.name,
-        nativeCurrency: { name: configured.symbol, symbol: configured.symbol, decimals: 18 },
-        rpcUrls: { default: { http: [configured.rpc] } },
-        blockExplorers: { default: { name: configured.name + ' Explorer', url: configured.explorer } },
-      }) : viem.chains.mainnet);
-
+      const chain = await resolveChain(cId);
       const wClient = viem.createWalletClient({ account: accounts[0], chain, transport: viem.custom(selectedProvider) });
 
       setAccount(accounts[0]);
@@ -107,7 +118,7 @@ export function Web3Provider({ children }) {
     } finally {
       setConnecting(false);
     }
-  }, [getViem, refreshBalance]);
+  }, [getViem, refreshBalance, resolveChain]);
 
   const getWalletConnectProvider = useCallback(async () => {
     if (walletConnectRef.current) return walletConnectRef.current;
@@ -118,13 +129,13 @@ export function Web3Provider({ children }) {
     walletConnectRef.current = await EthereumProvider.init({
       projectId: WALLETCONNECT_PROJECT_ID,
       metadata: {
-        name: 'KriptoAman',
-        description: 'Pemantauan alamat aset digital secara read-only',
-        url: 'https://kriptoaman.com',
-        icons: ['https://kriptoaman.com/icons/kriptoaman-512.png'],
+        name: 'ZEVARYQ Wallet',
+        description: 'ZEVARYQ Mainnet wallet connection for the KriptoAman ecosystem',
+        url: 'https://kriptoaman.com/wallet-app',
+        icons: ['https://kriptoaman.com/brand/zevaryq-wallet-premium-icon.webp'],
       },
       chains: [1],
-      optionalChains: Object.keys(SUPPORTED_CHAINS).map(Number),
+      optionalChains: [22028, ...Object.keys(SUPPORTED_CHAINS).map(Number).filter((id) => id !== 22028 && id !== 1)],
       showQrModal: true,
       rpcMap: Object.fromEntries(Object.entries(SUPPORTED_CHAINS).map(([id, chain]) => [id, chain.rpc])),
     });
@@ -145,7 +156,7 @@ export function Web3Provider({ children }) {
       const chainIdHex = await provider.request({ method: 'eth_chainId' });
       const cId = typeof chainIdHex === 'string' ? parseInt(chainIdHex, 16) : Number(chainIdHex);
       const viem = await getViem();
-      const chain = Object.values(viem.chains).find((item) => item.id === cId) || viem.chains.mainnet;
+      const chain = await resolveChain(cId);
       setAccount(accounts[0]);
       setChainId(cId);
       setWalletClient(viem.createWalletClient({ account: accounts[0], chain, transport: viem.custom(provider) }));
@@ -158,7 +169,7 @@ export function Web3Provider({ children }) {
     } finally {
       setConnecting(false);
     }
-  }, [getViem, getWalletConnectProvider, refreshBalance]);
+  }, [getViem, getWalletConnectProvider, refreshBalance, resolveChain]);
 
   const disconnectWallet = useCallback(async () => {
     const activeProvider = providerRef.current;
@@ -177,27 +188,40 @@ export function Web3Provider({ children }) {
 
   const switchChain = useCallback(async (targetChainId) => {
     const selectedProvider = providerRef.current || window.ethereum;
-    if (!selectedProvider) return;
+    if (!selectedProvider) throw new Error('Wallet provider tidak tersedia.');
+    setConnectionError('');
+    const params = chainParams(targetChainId);
+    if (!params) throw new Error('Jaringan yang diminta belum dikonfigurasi.');
     try {
       await selectedProvider.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: `0x${targetChainId.toString(16)}` }],
+        params: [{ chainId: params.chainId }],
       });
+      return true;
     } catch (err) {
-      if (err.code === 4902 && SUPPORTED_CHAINS[targetChainId]) {
-        const chain = SUPPORTED_CHAINS[targetChainId];
-        await selectedProvider.request({
-          method: 'wallet_addEthereumChain',
-          params: [{
-            chainId: `0x${targetChainId.toString(16)}`,
-            chainName: chain.name,
-            nativeCurrency: { name: chain.symbol, symbol: chain.symbol, decimals: 18 },
-            rpcUrls: [chain.rpc],
-            blockExplorerUrls: [chain.explorer],
-            ...(chain.icon ? { iconUrls: [chain.icon] } : {}),
-          }],
-        });
+      const code = Number(err?.code);
+      if (code === 4001) {
+        setConnectionError('Permintaan pergantian jaringan dibatalkan di wallet.');
+        return false;
       }
+      if (code === 4902 || code === -32603 || /unknown chain|not added|unsupported chain/i.test(err?.message || '')) {
+        try {
+          await selectedProvider.request({
+            method: 'wallet_addEthereumChain',
+            params: [params],
+          });
+          await selectedProvider.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: params.chainId }],
+          });
+          return true;
+        } catch (addError) {
+          setConnectionError(addError?.message || 'Wallet ini tidak mendukung penambahan ZEVARYQ Mainnet.');
+          return false;
+        }
+      }
+      setConnectionError(err?.message || 'Wallet tidak dapat berpindah ke jaringan yang diminta.');
+      return false;
     }
   }, []);
 
@@ -253,13 +277,31 @@ export function Web3Provider({ children }) {
   useEffect(() => {
     const activeProvider = providerRef.current || window.ethereum;
     if (!activeProvider) return;
-    const handleAccounts = (accounts) => {
-      if (accounts.length === 0) disconnectWallet();
-      else { setAccount(accounts[0]); refreshBalance(accounts[0], chainId); }
+    const handleAccounts = async (accounts) => {
+      if (accounts.length === 0) {
+        disconnectWallet();
+        return;
+      }
+      const nextAccount = accounts[0];
+      setAccount(nextAccount);
+      try {
+        const viem = await getViem();
+        const cId = chainId || Number(await activeProvider.request({ method: 'eth_chainId' }));
+        const chain = await resolveChain(cId);
+        setWalletClient(viem.createWalletClient({ account: nextAccount, chain, transport: viem.custom(activeProvider) }));
+        refreshBalance(nextAccount, cId);
+      } catch {
+        refreshBalance(nextAccount, chainId);
+      }
     };
-    const handleChain = (chainIdHex) => {
-      const cId = parseInt(chainIdHex, 16);
+    const handleChain = async (chainIdHex) => {
+      const cId = typeof chainIdHex === 'string' ? parseInt(chainIdHex, 16) : Number(chainIdHex);
       setChainId(cId);
+      try {
+        const viem = await getViem();
+        const chain = await resolveChain(cId);
+        if (account) setWalletClient(viem.createWalletClient({ account, chain, transport: viem.custom(activeProvider) }));
+      } catch {}
       refreshBalance(account, cId);
     };
     activeProvider.on('accountsChanged', handleAccounts);
@@ -268,14 +310,14 @@ export function Web3Provider({ children }) {
       activeProvider.removeListener('accountsChanged', handleAccounts);
       activeProvider.removeListener('chainChanged', handleChain);
     };
-  }, [disconnectWallet, refreshBalance, account, chainId]);
+  }, [disconnectWallet, refreshBalance, account, chainId, getViem, resolveChain]);
 
   return (
     <Web3Context.Provider value={{
       account, chainId, balance, connecting, connectionError, walletType, walletClient, availableWallets,
       provider: walletClient, // backward compat alias
       signer: walletClient,   // backward compat alias
-      connectWallet, connectWalletConnect, disconnectWallet, switchChain, sendTransaction, signMessage,
+      connectWallet, connectWalletConnect, disconnectWallet, switchChain, addZevaryqNetwork: () => switchChain(22028), sendTransaction, signMessage,
       refreshBalance: () => refreshBalance(account, chainId),
       isConnected: !!account,
       walletConnectConfigured: !!WALLETCONNECT_PROJECT_ID,
