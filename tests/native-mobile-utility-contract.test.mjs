@@ -11,6 +11,9 @@ const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8');
 const services = await readFile(new URL('../src/pages/Services.jsx', import.meta.url), 'utf8');
 const styles = await readFile(new URL('../android/app/src/main/res/values/styles.xml', import.meta.url), 'utf8');
 const iconBackground = await readFile(new URL('../android/app/src/main/res/values/ic_launcher_background.xml', import.meta.url), 'utf8');
+const platformAlias = await readFile(new URL('../android/app/src/platform/res/values/aliases.xml', import.meta.url), 'utf8');
+const walletAlias = await readFile(new URL('../android/app/src/wallet/res/values/aliases.xml', import.meta.url), 'utf8');
+const platformLauncher = await readFile(new URL('../android/app/src/platform/res/drawable/kriptoaman_platform_launcher.xml', import.meta.url), 'utf8');
 
 test('Android registers the KriptoAman native utility plugin', () => {
   assert.match(plugin, /@CapacitorPlugin\(name = "KriptoAmanNative"\)/);
@@ -54,7 +57,10 @@ test('native connectivity loss is surfaced globally without affecting the websit
 test('Android splash and adaptive icon follow the KriptoAman dark identity', () => {
   assert.match(styles, /windowSplashScreenBackground/);
   assert.match(styles, /windowSplashScreenAnimatedIcon/);
-  assert.match(styles, /zevaryq_wallet_launcher/);
+  assert.match(styles, /app_launch_emblem/);
+  assert.match(platformAlias, /kriptoaman_platform_launcher/);
+  assert.match(walletAlias, /zevaryq_wallet_launcher/);
+  assert.match(platformLauncher, /#E7B438/i);
   assert.match(styles, /postSplashScreenTheme/);
   assert.match(iconBackground, /#071525/i);
   assert.match(manifest, /android:icon="@mipmap\/ic_launcher"/);
