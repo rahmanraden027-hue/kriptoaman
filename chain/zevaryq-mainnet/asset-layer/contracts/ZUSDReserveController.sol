@@ -53,10 +53,7 @@ contract ZUSDReserveController is ZControllerRoles {
     mapping(bytes32 claimId => bytes32 settlementRefHash) public settlementReference;
 
     event ReserveAttested(
-        uint64 indexed epoch,
-        uint256 verifiedReserveUnits,
-        bytes32 indexed attestationHash,
-        uint64 validUntil
+        uint64 indexed epoch, uint256 verifiedReserveUnits, bytes32 indexed attestationHash, uint64 validUntil
     );
     event ReserveDeficit(uint64 indexed epoch, uint256 verifiedReserveUnits, uint256 totalSupply);
     event MintedAgainstReserve(address indexed to, uint256 amount, uint64 indexed epoch);
@@ -88,12 +85,11 @@ contract ZUSDReserveController is ZControllerRoles {
         return block.timestamp < redemptionPausedUntil;
     }
 
-    function attestReserve(
-        uint64 epoch,
-        uint256 reserveUnits,
-        bytes32 evidenceHash,
-        uint64 expiresAt
-    ) external onlyRole(RESERVE_ATTESTOR_ROLE) tokenInitialized {
+    function attestReserve(uint64 epoch, uint256 reserveUnits, bytes32 evidenceHash, uint64 expiresAt)
+        external
+        onlyRole(RESERVE_ATTESTOR_ROLE)
+        tokenInitialized
+    {
         if (epoch <= reserveEpoch) revert InvalidEpoch();
         if (evidenceHash == bytes32(0) || expiresAt <= block.timestamp) revert InvalidAttestation();
         if (usedReserveAttestation[evidenceHash]) revert AttestationReplay();
@@ -162,10 +158,7 @@ contract ZUSDReserveController is ZControllerRoles {
         emit RedemptionRequested(claimId, msg.sender, amount);
     }
 
-    function confirmSettlement(bytes32 claimId, bytes32 settlementRefHash)
-        external
-        onlyRole(SETTLEMENT_OPERATOR_ROLE)
-    {
+    function confirmSettlement(bytes32 claimId, bytes32 settlementRefHash) external onlyRole(SETTLEMENT_OPERATOR_ROLE) {
         if (settlementRefHash == bytes32(0)) revert InvalidClaim();
         RedemptionClaim storage claim = redemptionClaim[claimId];
         if (claim.state != RedemptionState.REQUESTED) revert InvalidClaimState();
