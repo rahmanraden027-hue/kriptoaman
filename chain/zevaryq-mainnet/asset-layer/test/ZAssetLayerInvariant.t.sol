@@ -8,7 +8,6 @@ interface VmInvariant {
     function chainId(uint256 newChainId) external;
     function warp(uint256 newTimestamp) external;
     function prank(address msgSender) external;
-    function targetContract(address target) external;
 }
 
 contract ZUSDInvariantHandler {
@@ -83,7 +82,6 @@ contract ZAssetLayerInvariantTest {
             uint64(block.timestamp + 30 days)
         );
 
-        vm.targetContract(address(handler));
     }
 
     function invariant_supplyNeverExceedsVerifiedReserve() public view {
