@@ -24,7 +24,7 @@ jobs:
         working-directory: chain/zevaryq-mainnet/trading
     env:
       ZEVARYQ_RPC_URL: https://rpc.kriptoaman.com
-      DEPLOYER_ADDRESS: ${{ inputs.deployer_address || '0xd74ea7d92bbb40d475bccea170367b85971acb0f' }}
+      DEPLOYER_ADDRESS: ${{ inputs.deployer_address || '0x9D4b034758202cE555504d038F92A344540D47B0' }}
     steps:
       - uses: actions/checkout@v4
 
