@@ -1,0 +1,59 @@
+{
+  "version": "1.0-draft",
+  "chain": {
+    "name": "ZEVARYQ Mainnet",
+    "chainId": 22028,
+    "nativeAsset": "ZVQ"
+  },
+  "assets": {
+    "ZUSD": {
+      "name": "ZEVARYQ USD",
+      "symbol": "ZUSD",
+      "decimals": 6,
+      "supplyModel": "elastic-reserve-backed",
+      "premine": "0",
+      "targetUnit": "1 USD",
+      "backingInvariant": "totalSupply <= verifiedReserveUnits",
+      "deploymentAuthorized": false
+    },
+    "zBTC": {
+      "name": "ZEVARYQ Bitcoin",
+      "symbol": "zBTC",
+      "decimals": 8,
+      "supplyModel": "mint-on-verified-lock",
+      "premine": "0",
+      "representation": "1 zBTC targets 1 BTC locked by the approved bridge/custody mechanism",
+      "backingInvariant": "totalSupply <= verifiedLockedBTC",
+      "deploymentAuthorized": false
+    },
+    "zETH": {
+      "name": "ZEVARYQ Ethereum",
+      "symbol": "zETH",
+      "decimals": 18,
+      "supplyModel": "mint-on-verified-lock",
+      "premine": "0",
+      "representation": "1 zETH targets 1 ETH locked by the approved bridge/custody mechanism",
+      "backingInvariant": "totalSupply <= verifiedLockedETH",
+      "deploymentAuthorized": false
+    }
+  },
+  "proposedMarkets": [
+    "ZVQ/ZUSD",
+    "ZVQ/zBTC",
+    "ZVQ/zETH",
+    "zBTC/ZUSD",
+    "zETH/ZUSD"
+  ],
+  "thirdPartyIssuerAssets": {
+    "USDC": "not-created-by-this-specification",
+    "USDT": "not-created-by-this-specification"
+  },
+  "authorization": {
+    "reserveCustodyProven": false,
+    "btcBridgeBackingProven": false,
+    "ethBridgeBackingProven": false,
+    "assetLayerAuditComplete": false,
+    "liquidityAuthorized": false,
+    "publicTradingAuthorized": false
+  }
+}
