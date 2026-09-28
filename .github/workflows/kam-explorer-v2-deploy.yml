@@ -53,18 +53,50 @@ jobs:
         env:
           REQUIRE_EXPLORER_BROWSER_RPC: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
         run: node scripts/verify-kam-explorer-five-indicators.mjs
-      - name: Verify existing public detail routes
+      - name: Verify public detail-route state without blocking reviewed recovery
         run: |
           set -euo pipefail
-          TX="$(curl -fsS --max-time 20 'https://explorer.kriptoaman.com/api/v2/transactions' | python3 -c 'import json,sys; d=json.load(sys.stdin); items=d.get("items",[]); print((items[0].get("hash") or "") if items else "")')"
+          TX_JSON="$(mktemp)"
+          BLOCKS_JSON="$(mktemp)"
+          trap 'rm -f "$TX_JSON" "$BLOCKS_JSON"' EXIT
+          curl -fsS --max-time 20 'https://explorer.kriptoaman.com/api/v2/transactions' -o "$TX_JSON"
+          curl -fsS --max-time 20 'https://explorer.kriptoaman.com/api/v2/blocks' -o "$BLOCKS_JSON"
+          TX="$(python3 - "$TX_JSON" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1], encoding='utf-8')); items=d.get('items',[])
+          print((items[0].get('hash') or '') if items else '')
+          PY
+          )"
+          BLOCK="$(python3 - "$BLOCKS_JSON" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1], encoding='utf-8')); items=d.get('items',[])
+          print(items[0].get('height','') if items else '')
+          PY
+          )"
+          ADDRESS="$(python3 - "$BLOCKS_JSON" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1], encoding='utf-8')); items=d.get('items',[])
+          print((((items[0].get('miner') or {}).get('hash')) or '') if items else '')
+          PY
+          )"
+          probe_recoverable_detail() {
+            local label="$1" path="$2"
+            [ -n "$path" ] || { echo "$label=unavailable_no_indexed_source"; return 0; }
+            local code
+            code="$(curl -L -sS -o /dev/null -w '%{http_code}' --max-time 20 "https://explorer.kriptoaman.com$path" || true)"
+            echo "${label}_http=$code"
+            case "$code" in
+              200) echo "${label}=healthy" ;;
+              404) echo "${label}=predeploy_drift_recoverable" ;;
+              *) echo "::error::${label} returned unexpected HTTP ${code}"; exit 1 ;;
+            esac
+          }
+          probe_recoverable_detail transaction_detail "/tx/$TX"
+          probe_recoverable_detail block_detail "/block/$BLOCK"
+          probe_recoverable_detail address_detail "/address/$ADDRESS"
+
           CANONICAL_WKAM='0x0d8848CE88BB09a81a4248Efdd574d50B98b544A'
           SECONDARY_WKAM='0x36a416d3C74A5d4AF9Fd4826e010CE9B00289fc7'
-          if [ -n "$TX" ]; then
-            echo "indexed_tx_for_route_check=$TX"
-            curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/tx/$TX" >/dev/null
-          else
-            echo 'transaction_detail_route=unavailable_no_indexed_transactions'
-          fi
           WKAM_INDEXED="$(curl -fsS --max-time 20 'https://explorer.kriptoaman.com/api/v2/tokens?type=ERC-20' | python3 -c 'import json,sys; d=json.load(sys.stdin); needle="0x0d8848ce88bb09a81a4248efdd574d50b98b544a"; print("yes" if needle in json.dumps(d).lower() else "no")')"
           if [ "$WKAM_INDEXED" = 'yes' ]; then
             curl -L -fsS --max-time 20 "https://explorer.kriptoaman.com/token/$CANONICAL_WKAM" >/dev/null

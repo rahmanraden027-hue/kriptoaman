@@ -164,12 +164,25 @@ test('transaction, block and address details use branded verified API surfaces',
   assert.match(addressDetail, /data-kam-address-detail-version="1\.0\.0"/);
   for (const surface of [transactionDetail, blockDetail, addressDetail]) {
     assert.match(surface, /kriptoaman-mark\.svg/);
-    assert.match(surface, /KriptoAman Mainnet/);
+    assert.match(surface, /ZEVARYQ Explorer/);
+    assert.match(surface, /ZEVARYQ Mainnet/);
     assert.match(surface, /No values are estimated/);
+    assert.doesNotMatch(surface, /KAM Explorer|KAM NETWORK|KriptoAman Mainnet|KAM balance/);
   }
   assert.match(transactionDetail, /\/api\/v2\/transactions\/\$\{hash\}/);
   assert.match(blockDetail, /\/api\/v2\/blocks\/\$\{id\}/);
   assert.match(addressDetail, /\/api\/v2\/addresses\/\$\{address\}/);
+});
+
+test('legacy Explorer public surfaces present ZEVARYQ identity while preserving internal compatibility markers', () => {
+  for (const surface of [addresses, contracts, status]) {
+    assert.match(surface, /ZEVARYQ Mainnet/);
+    assert.doesNotMatch(surface, /KAM NETWORK|KriptoAman Mainnet|KAM balance|<strong>KAM/);
+  }
+  assert.match(addresses, /ZVQ balance/);
+  assert.match(addresses, / ZVQ/);
+  assert.match(contracts, /ZVQ Verified Contracts/);
+  assert.match(status, /ZVQ Network Status/);
 });
 
 test('KAM public final surfaces do not ship known mockup-only KPI values', () => {
