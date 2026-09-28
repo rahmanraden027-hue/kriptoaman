@@ -302,12 +302,7 @@ contract ZVQDEXTest {
     function testWalletNativeZVQToTokenSurface() public {
         vm.deal(address(this), 10_000 ether);
         router.addLiquidityZVQ{value: 1_000 ether}(
-            address(tokenA),
-            1_000 ether,
-            1_000 ether,
-            1_000 ether,
-            address(this),
-            DEADLINE
+            address(tokenA), 1_000 ether, 1_000 ether, 1_000 ether, address(this), DEADLINE
         );
 
         uint256 tokenBefore = tokenA.balanceOf(address(this));
@@ -332,8 +327,7 @@ contract ZVQDEXTest {
 
         address recipient = address(0xBEEF);
         uint256 nativeBefore = recipient.balance;
-        uint256 out =
-            router.swapExactTokensForZVQ(10 ether, 1, address(tokenA), recipient, DEADLINE);
+        uint256 out = router.swapExactTokensForZVQ(10 ether, 1, address(tokenA), recipient, DEADLINE);
 
         require(out > 0, "no native output");
         require(recipient.balance == nativeBefore + out, "native output mismatch");
