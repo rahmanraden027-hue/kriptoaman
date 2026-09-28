@@ -2,7 +2,7 @@
 
 Status: **PRE-DEPLOYMENT / NO PUBLIC LIQUIDITY**
 
-This directory is the ZEVARYQ-native migration of the previously reviewed KAM DEX candidate. It deliberately uses new contract identities so historical KAM deployments cannot be confused with ZEVARYQ production contracts.
+This directory is the ZEVARYQ-native successor to the previously reviewed legacy DEX candidate. It deliberately uses new contract identities so historical deployments cannot be confused with ZEVARYQ production contracts.
 
 ## Chain binding
 
