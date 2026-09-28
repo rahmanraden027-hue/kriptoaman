@@ -25,14 +25,12 @@ contract ZVQDEXDeploymentSimulationTest {
         WZVQ wzvq = new WZVQ();
         ZVQFactory factory = new ZVQFactory();
 
-        (bool zeroFactory,) = address(this).call(
-            abi.encodeWithSelector(this.deployRouter.selector, address(0), address(wzvq))
-        );
+        (bool zeroFactory,) =
+            address(this).call(abi.encodeWithSelector(this.deployRouter.selector, address(0), address(wzvq)));
         require(!zeroFactory, "zero factory accepted");
 
-        (bool zeroWzvq,) = address(this).call(
-            abi.encodeWithSelector(this.deployRouter.selector, address(factory), address(0))
-        );
+        (bool zeroWzvq,) =
+            address(this).call(abi.encodeWithSelector(this.deployRouter.selector, address(factory), address(0)));
         require(!zeroWzvq, "zero WZVQ accepted");
     }
 
