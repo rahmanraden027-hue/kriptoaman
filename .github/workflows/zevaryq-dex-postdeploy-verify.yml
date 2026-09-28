@@ -13,11 +13,11 @@ jobs:
   verify-mainnet-deployment:
     runs-on: ubuntu-24.04
     env:
-      RPC: https://rpc.kriptoaman.com
-      DEPLOYER: 0x9D4b034758202cE555504d038F92A344540D47B0
-      WZVQ: 0x99774C60e40a25b78870a26c7666B986f65c47F8
-      FACTORY: 0x36a416d3C74A5d4AF9Fd4826e010CE9B00289fc7
-      ROUTER: 0xd3C8d2cC1DD9B8ED8abAD3Cc916ADCBbc429d062
+      RPC: 'https://rpc.kriptoaman.com'
+      DEPLOYER: '0x9D4b034758202cE555504d038F92A344540D47B0'
+      WZVQ: '0x99774C60e40a25b78870a26c7666B986f65c47F8'
+      FACTORY: '0x36a416d3C74A5d4AF9Fd4826e010CE9B00289fc7'
+      ROUTER: '0xd3C8d2cC1DD9B8ED8abAD3Cc916ADCBbc429d062'
     steps:
       - uses: actions/checkout@v4
 
@@ -44,7 +44,7 @@ jobs:
           for a in "$WZVQ" "$FACTORY" "$ROUTER"; do
             code="$(cast code "$a" --rpc-url "$RPC")"
             test "$code" != "0x"
-            echo "$a codeBytes=$(( (${#code} - 2) / 2 ))"
+            echo "$a codePresent=yes"
           done
 
       - name: Verify WZVQ metadata and zero supply
