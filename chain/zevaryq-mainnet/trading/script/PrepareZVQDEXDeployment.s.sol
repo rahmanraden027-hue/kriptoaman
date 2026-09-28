@@ -14,8 +14,7 @@ interface VmPreSign {
 /// @title Prepare ZEVARYQ DEX Deployment
 /// @notice Live-chain simulation only. This script never reads a private key and is not broadcast by CI.
 contract PrepareZVQDEXDeployment {
-    VmPreSign internal constant vm =
-        VmPreSign(address(uint160(uint256(keccak256("hevm cheat code")))));
+    VmPreSign internal constant vm = VmPreSign(address(uint160(uint256(keccak256("hevm cheat code")))));
 
     uint256 internal constant ZEVARYQ_CHAIN_ID = 22028;
 
