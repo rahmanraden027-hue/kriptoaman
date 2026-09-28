@@ -70,10 +70,7 @@ contract ZAssetBridgeController is ZControllerRoles {
     mapping(bytes32 redemptionId => bytes32 releaseProofHash) public releaseReference;
 
     event BackingAttested(
-        uint64 indexed epoch,
-        uint256 verifiedLockedUnits,
-        bytes32 indexed attestationHash,
-        uint64 validUntil
+        uint64 indexed epoch, uint256 verifiedLockedUnits, bytes32 indexed attestationHash, uint64 validUntil
     );
     event BackingDeficit(uint64 indexed epoch, uint256 verifiedLockedUnits, uint256 totalSupply);
     event DepositAttested(
@@ -130,12 +127,11 @@ contract ZAssetBridgeController is ZControllerRoles {
         );
     }
 
-    function attestBacking(
-        uint64 epoch,
-        uint256 lockedUnits,
-        bytes32 evidenceHash,
-        uint64 expiresAt
-    ) external onlyRole(BRIDGE_ATTESTOR_ROLE) tokenInitialized {
+    function attestBacking(uint64 epoch, uint256 lockedUnits, bytes32 evidenceHash, uint64 expiresAt)
+        external
+        onlyRole(BRIDGE_ATTESTOR_ROLE)
+        tokenInitialized
+    {
         if (epoch <= backingEpoch) revert InvalidEpoch();
         if (evidenceHash == bytes32(0) || expiresAt <= block.timestamp) revert InvalidAttestation();
         if (usedBackingAttestation[evidenceHash]) revert AttestationReplay();
