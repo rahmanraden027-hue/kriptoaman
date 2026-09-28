@@ -29,6 +29,20 @@ const ROUTER_ABI = [
   {
     type: 'function',
     stateMutability: 'view',
+    name: 'WETH',
+    inputs: [],
+    outputs: [{ name: 'wrappedNative', type: 'address' }],
+  },
+  {
+    type: 'function',
+    stateMutability: 'view',
+    name: 'factory',
+    inputs: [],
+    outputs: [{ name: 'factoryAddress', type: 'address' }],
+  },
+  {
+    type: 'function',
+    stateMutability: 'view',
     name: 'getAmountsOut',
     inputs: [
       { name: 'amountIn', type: 'uint256' },
@@ -64,6 +78,27 @@ const ROUTER_ABI = [
 ];
 
 const ERC20_ABI = [
+  {
+    type: 'function',
+    stateMutability: 'view',
+    name: 'symbol',
+    inputs: [],
+    outputs: [{ name: 'symbol', type: 'string' }],
+  },
+  {
+    type: 'function',
+    stateMutability: 'view',
+    name: 'decimals',
+    inputs: [],
+    outputs: [{ name: 'decimals', type: 'uint8' }],
+  },
+  {
+    type: 'function',
+    stateMutability: 'view',
+    name: 'balanceOf',
+    inputs: [{ name: 'owner', type: 'address' }],
+    outputs: [{ name: 'balance', type: 'uint256' }],
+  },
   {
     type: 'function',
     stateMutability: 'view',
@@ -143,7 +178,31 @@ export async function verifyZevaryqSwapContracts() {
     requireContract(config.wzvq, 'WZVQ'),
     ...config.tokens.map((token) => requireContract(token.address, token.symbol)),
   ]);
-  return { ...config, verified: true };
+
+  const [routerWrappedNative, factoryAddress] = await Promise.all([
+    publicClient.readContract({ address: config.router, abi: ROUTER_ABI, functionName: 'WETH' }),
+    publicClient.readContract({ address: config.router, abi: ROUTER_ABI, functionName: 'factory' }),
+  ]);
+  if (String(routerWrappedNative).toLowerCase() !== config.wzvq.toLowerCase()) {
+    throw new Error('Swap router wrapped-native contract does not match configured WZVQ.');
+  }
+  if (!isAddress(factoryAddress)) throw new Error('Swap router returned an invalid factory address.');
+  await requireContract(factoryAddress, 'Swap factory');
+
+  await Promise.all(config.tokens.map(async (token) => {
+    const [symbol, decimals] = await Promise.all([
+      publicClient.readContract({ address: token.address, abi: ERC20_ABI, functionName: 'symbol' }),
+      publicClient.readContract({ address: token.address, abi: ERC20_ABI, functionName: 'decimals' }),
+    ]);
+    if (String(symbol).toUpperCase() !== token.symbol) {
+      throw new Error(`${token.symbol} registry symbol does not match its on-chain contract.`);
+    }
+    if (Number(decimals) !== token.decimals) {
+      throw new Error(`${token.symbol} registry decimals do not match its on-chain contract.`);
+    }
+  }));
+
+  return { ...config, factory: factoryAddress, verified: true };
 }
 
 function tokenBySymbol(symbol) {
@@ -243,6 +302,7 @@ export async function executeZevaryqSwap({ walletClient, account, quote }) {
       });
       const approvalReceipt = await publicClient.waitForTransactionReceipt({ hash: approvalHash });
       if (approvalReceipt.status !== 'success') throw new Error('Token approval transaction failed.');
+      return { hash: null, approvalHash, requiresFreshQuote: true };
     }
   }
 
@@ -266,6 +326,20 @@ export async function executeZevaryqSwap({ walletClient, account, quote }) {
       });
 
   return { hash, approvalHash };
+}
+
+export async function fetchZevaryqTokenBalance(address, tokenSymbol) {
+  if (!isAddress(address)) throw new Error('Invalid wallet address.');
+  const token = tokenBySymbol(tokenSymbol);
+  if (!token) throw new Error('Token is not in the verified ZEVARYQ swap registry.');
+  await verifyZevaryqSwapContracts();
+  const balance = await publicClient.readContract({
+    address: token.address,
+    abi: ERC20_ABI,
+    functionName: 'balanceOf',
+    args: [address],
+  });
+  return formatUnits(balance, token.decimals);
 }
 
 export function getZevaryqSwapExplorerUrl(hash) {
