@@ -324,15 +324,23 @@ contract ZAssetLayerTest {
     }
 
     function testControllerChangeRequiresTimelock() public {
-        address nextController = address(0x9999);
-        zusd.scheduleController(nextController);
+        ZUSDReserveController nextController = new ZUSDReserveController(
+            address(this),
+            RESERVE_ATTESTOR,
+            MINT_OPERATOR,
+            SETTLEMENT_OPERATOR,
+            GUARDIAN
+        );
+
+        zusd.scheduleController(address(nextController));
+        nextController.initializeToken(address(zusd));
 
         (bool early,) = address(zusd).call(abi.encodeWithSignature("executeControllerChange()"));
         require(!early, "controller changed before delay");
 
         vm.warp(block.timestamp + 1 days);
         zusd.executeControllerChange();
-        require(zusd.controller() == nextController, "controller did not change");
+        require(zusd.controller() == address(nextController), "controller did not change");
     }
 
     function testUnauthorizedDirectTokenMintFails() public {
