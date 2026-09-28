@@ -14,7 +14,7 @@ test('ZEVARYQ DEX candidate matches the wallet real-swap ABI', () => {
     'function swapExactETHForTokens',
     'function swapExactTokensForETH',
   ]) {
-    assert.match(router, new RegExp(marker.replace(/[()]/g, '\\$&')));
+    assert.ok(router.includes(marker), `router ABI marker missing: ${marker}`);
   }
 
   assert.match(router, /address public immutable WZVQ/);
