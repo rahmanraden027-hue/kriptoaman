@@ -1,0 +1,34 @@
+{
+  "version": "1.0",
+  "network": {
+    "name": "ZEVARYQ Mainnet",
+    "chainId": 22028
+  },
+  "source": {
+    "implementation": "v0.2-hardened",
+    "solc": "0.8.24",
+    "evmVersion": "paris",
+    "sourceOnly": true
+  },
+  "gates": {
+    "sourceIntegrity": "partial-pass-independent-audit-pending",
+    "governance": "hold",
+    "zusdBacking": "hold",
+    "zbtcBacking": "hold",
+    "zethBacking": "hold",
+    "deploymentRehearsal": "hold",
+    "postDeployVerification": "not-started",
+    "pilotIssuance": "not-authorized",
+    "liquidity": "not-authorized",
+    "publicTrading": "not-authorized"
+  },
+  "authorization": {
+    "assetLayerAuditComplete": false,
+    "assetLayerDeploymentAuthorized": false,
+    "reserveCustodyProven": false,
+    "btcBridgeBackingProven": false,
+    "ethBridgeBackingProven": false,
+    "liquidityAuthorized": false,
+    "publicTradingAuthorized": false
+  }
+}
