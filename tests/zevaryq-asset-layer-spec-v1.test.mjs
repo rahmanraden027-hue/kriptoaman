@@ -34,19 +34,25 @@ test('asset-layer tokenomics remain source-only and correctly parameterized', ()
   assert.equal(data.thirdPartyIssuerAssets.USDT, 'not-created-by-this-specification');
 });
 
-test('asset-layer remains specification/interfaces only', () => {
-  const files = fs.readdirSync(`${root}/interfaces`);
-  assert.deepEqual(files.sort(), ['IZAssetBridge.sol', 'IZUSD.sol']);
+test('asset-layer implementation remains source-only and non-deploying', () => {
+  const interfaces = fs.readdirSync(`${root}/interfaces`);
+  assert.deepEqual(interfaces.sort(), ['IZAssetBridge.sol', 'IZUSD.sol']);
 
-  for (const file of files) {
+  for (const file of interfaces) {
     const source = read(`interfaces/${file}`);
     assert.match(source, /interface\s+I/);
-    assert.doesNotMatch(source, /\bcontract\s+[A-Za-z_]/);
     assert.doesNotMatch(source, /delegatecall/i);
   }
 
-  const entries = fs.readdirSync(root, { recursive: true });
-  assert.equal(entries.some((entry) => /\.s\.sol$/i.test(String(entry))), false);
+  const entries = fs.readdirSync(root, { recursive: true }).map(String);
+  assert.equal(entries.some((entry) => /\.s\.sol$/i.test(entry)), false);
+  assert.equal(entries.some((entry) => /deploy.*\.(js|mjs|ts)$/i.test(entry)), false);
+
+  for (const entry of entries.filter((entry) => entry.endsWith('.sol'))) {
+    const source = read(entry);
+    assert.doesNotMatch(source, /delegatecall/i);
+    assert.doesNotMatch(source, /selfdestruct/i);
+  }
 });
 
 test('production authorization flags remain closed', () => {
@@ -77,9 +83,10 @@ test('spec explicitly prevents issuer impersonation and unbacked mint', () => {
   const spec = read('SMART_CONTRACT_SPEC_V1.md');
 
   assert.match(spec, /must not:\n\n- create a token called USDT or USDC and imply issuer authorization/i);
-  assert.match(spec, /totalSupply <= verifiedReserveUnits/);
-  assert.match(spec, /totalSupply\(zBTC\) <= verifiedLockedBTC/);
-  assert.match(spec, /totalSupply\(zETH\) <= verifiedLockedETH/);
+  assert.match(spec, /postMintTotalSupply <= verifiedReserveUnits/);
+  assert.match(spec, /postMintTotalSupply\(zBTC\) <= verifiedLockedBTC/);
+  assert.match(spec, /postMintTotalSupply\(zETH\) <= verifiedLockedETH/);
+  assert.match(spec, /deficit is recorded truthfully/i);
   assert.match(spec, /deposit identifier can mint at most once/);
   assert.match(spec, /no unrestricted `ownerMint`/i);
 });

@@ -102,9 +102,9 @@ ZUSD v1 is designed for **reserve-backed issuance**, not an algorithmic peg.
 
 Normative invariant:
 
-`totalSupply <= verifiedReserveUnits`
+`postMintTotalSupply <= verifiedReserveUnits`
 
-where `verifiedReserveUnits` uses 6-decimal USD units.
+where `verifiedReserveUnits` uses 6-decimal USD units. If a later attestation reports reserve below outstanding supply, the deficit is recorded truthfully, user balances are not confiscated, and all further minting remains disabled until backing again covers supply.
 
 An attestation may authorize a mint ceiling, but the contract cannot independently prove bank/custody assets. Reserve attestation therefore represents a governance/custody trust boundary and must be supported by real external evidence before production use.
 
@@ -185,15 +185,15 @@ Never store bank-account or other sensitive destination data directly on-chain; 
 
 Normative backing target:
 
-`totalSupply(zBTC) <= verifiedLockedBTC`
+`postMintTotalSupply(zBTC) <= verifiedLockedBTC`
 
-measured in satoshis.
+measured in satoshis. A later backing deficit may be reported without forced user-balance destruction; new minting must remain disabled while the deficit exists.
 
 ### 5.2 Deposit identifier
 
 Each BTC deposit must map to a unique identifier such as:
 
-`depositId = keccak256(sourceNetwork, txid, vout)`
+`depositId = keccak256(targetChainId, bridgeController, assetId, sourceDomain, txid, vout)`
 
 A `depositId` is permanently single-use.
 
@@ -210,7 +210,7 @@ Mint requires:
 - bridge operations not paused;
 - deposit finality policy satisfied;
 - attestation quorum reached;
-- deposit identifier unused;
+- deposit identifier is computed canonically by the controller from source-domain + source-event fields and is unused;
 - recipient nonzero;
 - amount matches the attested source amount;
 - resulting total supply does not exceed verified locked backing.
@@ -223,7 +223,7 @@ Suggested event:
 
 Recommended state:
 
-`NONE -> REQUESTED -> BURN_AUTHORIZED -> BURNED -> RELEASE_ATTESTED`
+`NONE -> REQUESTED -> BURN_AUTHORIZED -> BURNED -> RELEASE_ATTESTED`\n\nor\n\n`REQUESTED -> CANCELLED`
 
 A redemption request commits to a Bitcoin destination hash rather than storing raw destination metadata when possible.
 
@@ -243,9 +243,9 @@ Every redemption identifier is replay-protected.
 
 Normative backing target:
 
-`totalSupply(zETH) <= verifiedLockedETH`
+`postMintTotalSupply(zETH) <= verifiedLockedETH`
 
-measured in wei.
+measured in wei. A later backing deficit may be reported without forced user-balance destruction; new minting must remain disabled while the deficit exists.
 
 ### 6.2 Deposit identifier
 

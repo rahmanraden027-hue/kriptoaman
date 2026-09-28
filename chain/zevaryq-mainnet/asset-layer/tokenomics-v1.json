@@ -13,7 +13,7 @@
       "supplyModel": "elastic-reserve-backed",
       "premine": "0",
       "targetUnit": "1 USD",
-      "backingInvariant": "totalSupply <= verifiedReserveUnits",
+      "backingInvariant": "successful mint requires postMintTotalSupply <= verifiedReserveUnits; deficit disables new mint",
       "deploymentAuthorized": false
     },
     "zBTC": {
@@ -23,7 +23,7 @@
       "supplyModel": "mint-on-verified-lock",
       "premine": "0",
       "representation": "1 zBTC targets 1 BTC locked by the approved bridge/custody mechanism",
-      "backingInvariant": "totalSupply <= verifiedLockedBTC",
+      "backingInvariant": "successful mint requires postMintTotalSupply <= verifiedLockedBTC; deficit disables new mint",
       "deploymentAuthorized": false
     },
     "zETH": {
@@ -33,7 +33,7 @@
       "supplyModel": "mint-on-verified-lock",
       "premine": "0",
       "representation": "1 zETH targets 1 ETH locked by the approved bridge/custody mechanism",
-      "backingInvariant": "totalSupply <= verifiedLockedETH",
+      "backingInvariant": "successful mint requires postMintTotalSupply <= verifiedLockedETH; deficit disables new mint",
       "deploymentAuthorized": false
     }
   },

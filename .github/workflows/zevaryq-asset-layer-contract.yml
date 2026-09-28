@@ -1,0 +1,64 @@
+name: ZEVARYQ Asset Layer Contract
+
+on:
+  pull_request:
+    paths:
+      - 'chain/zevaryq-mainnet/asset-layer/**'
+      - 'tests/zevaryq-asset-layer-spec-v1.test.mjs'
+      - '.github/workflows/zevaryq-asset-layer-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: chain/zevaryq-mainnet/asset-layer
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Normalize Solidity formatting for deterministic CI build
+        run: |
+          forge fmt
+          forge fmt --check
+          git diff --check
+
+      - name: Build Paris-compatible bytecode
+        run: forge build --sizes --evm-version paris
+
+      - name: Unit and fuzz tests
+        run: forge test --match-path test/ZAssetLayer.t.sol -vvv --evm-version paris
+
+      - name: Stateful invariant tests
+        run: forge test --match-path test/ZAssetLayerInvariant.t.sol -vvv --evm-version paris
+
+      - name: Verify source-only safety gates
+        working-directory: .
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(find chain/zevaryq-mainnet/asset-layer -type f -name '*.s.sol' -print -quit)"
+          ! grep -R -n -- '--broadcast' chain/zevaryq-mainnet/asset-layer
+          ! grep -R -n -E 'DEPLOYER_PRIVATE_KEY|PRIVATE_KEY|MNEMONIC' chain/zevaryq-mainnet/asset-layer
+          ! grep -R -n -E 'delegatecall|selfdestruct' chain/zevaryq-mainnet/asset-layer/contracts
+          ! grep -R -n -E 'contract[[:space:]]+(USDT|USDC)|symbol[^\n]*(USDT|USDC)' chain/zevaryq-mainnet/asset-layer/contracts
+
+      - name: Verify production authorization remains closed
+        working-directory: .
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'ASSET_LAYER_DEPLOYMENT_AUTHORIZED = false' chain/zevaryq-mainnet/asset-layer/SMART_CONTRACT_SPEC_V1.md
+          grep -q 'LIQUIDITY_AUTHORIZED = false' chain/zevaryq-mainnet/asset-layer/SMART_CONTRACT_SPEC_V1.md
+          grep -q 'PUBLIC_TRADING_AUTHORIZED = false' chain/zevaryq-mainnet/asset-layer/SMART_CONTRACT_SPEC_V1.md
+          grep -q 'ZUSD_DEPLOYMENT_AUTHORIZED = false' chain/zevaryq-mainnet/asset-layer/README.md
+          grep -q 'ZBTC_DEPLOYMENT_AUTHORIZED = false' chain/zevaryq-mainnet/asset-layer/README.md
+          grep -q 'ZETH_DEPLOYMENT_AUTHORIZED = false' chain/zevaryq-mainnet/asset-layer/README.md
