@@ -284,6 +284,36 @@ Attestations must be domain-separated for Chain 22028 to prevent cross-chain rep
 
 A quorum-attestation bridge is not equivalent to trustless custody. Production UI and documentation must state the actual trust model.
 
+## 7.1 Effective backing after redemptions
+
+A backing attestation is a snapshot. Once an external payout or source-chain release occurs, the corresponding backing capacity MUST NOT be reusable for new minting before the next snapshot.
+
+For ZUSD:
+
+`effectiveReserveUnits = verifiedReserveUnits - reserveOutflowSinceAttestation`
+
+A settlement reference is single-use. Confirming settlement records the reserve outflow immediately. A fresh reserve attestation resets the accumulated outflow because the new snapshot is expected to reflect the current reserve balance.
+
+For zBTC/zETH:
+
+`effectiveLockedUnits = verifiedLockedUnits - releasedUnitsSinceAttestation - pendingReleaseUnits`
+
+Burning a redemption reserves its future source-chain outflow in `pendingReleaseUnits`. Confirming source release converts that amount to `releasedUnitsSinceAttestation`. A fresh backing attestation resets only completed released outflow; pending releases remain reserved.
+
+Release proof hashes are single-use.
+
+## 7.2 Safe controller migration
+
+A token controller transition MUST:
+
+- target a deployed contract, never an EOA;
+- be scheduled behind the controller timelock;
+- bind the successor controller to the same token and Governance Safe before handoff;
+- require the current controller to report no outstanding redemption, deposit, or release obligations;
+- prevent the old controller from creating new obligations after handoff.
+
+This prevents a controller migration from trapping escrowed assets or bypassing backing controls.
+
 ## 8. Supply/backing invariants
 
 Mandatory invariants:

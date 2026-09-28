@@ -1,7 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-/// @notice Minimal immutable-accounting ERC-20 core for ZEVARYQ Asset Layer v0.1.
+interface IZControllerLifecycle {
+    function governanceSafe() external view returns (address);
+    function token() external view returns (address);
+    function canRelinquishControl() external view returns (bool);
+}
+
+/// @notice Minimal immutable-accounting ERC-20 core for ZEVARYQ Asset Layer.
 /// @dev No proxy, fee-on-transfer, rebase, blacklist or arbitrary owner mint.
 abstract contract ZControlledERC20 {
     error WrongChain();
@@ -13,6 +19,8 @@ abstract contract ZControlledERC20 {
     error ControllerChangePending();
     error ControllerChangeNotReady();
     error NoControllerChangePending();
+    error InvalidController();
+    error ControllerHasPendingOperations();
 
     uint256 public constant ZEVARYQ_CHAIN_ID = 22028;
     uint64 public constant CONTROLLER_CHANGE_DELAY = 1 days;
@@ -45,6 +53,7 @@ abstract contract ZControlledERC20 {
     ) {
         if (block.chainid != ZEVARYQ_CHAIN_ID) revert WrongChain();
         if (governanceSafe_ == address(0) || initialController_ == address(0)) revert ZeroAddress();
+        if (initialController_.code.length == 0) revert InvalidController();
 
         name = name_;
         symbol = symbol_;
@@ -91,6 +100,7 @@ abstract contract ZControlledERC20 {
 
     function scheduleController(address nextController) external onlyGovernance {
         if (nextController == address(0)) revert ZeroAddress();
+        if (nextController.code.length == 0) revert InvalidController();
         if (pendingController != address(0)) revert ControllerChangePending();
 
         pendingController = nextController;
@@ -111,6 +121,12 @@ abstract contract ZControlledERC20 {
         address pending = pendingController;
         if (pending == address(0)) revert NoControllerChangePending();
         if (block.timestamp < controllerEta) revert ControllerChangeNotReady();
+        if (!IZControllerLifecycle(controller).canRelinquishControl()) revert ControllerHasPendingOperations();
+
+        IZControllerLifecycle candidate = IZControllerLifecycle(pending);
+        if (candidate.governanceSafe() != governanceSafe || candidate.token() != address(this)) {
+            revert InvalidController();
+        }
 
         address previous = controller;
         controller = pending;
@@ -130,7 +146,6 @@ abstract contract ZControlledERC20 {
     }
 
     /// @notice Burns only tokens escrowed in the current controller itself.
-    /// @dev The controller cannot burn arbitrary user balances.
     function controllerBurnEscrow(uint256 amount) external onlyController {
         if (amount == 0) revert ZeroAmount();
         uint256 balance = balanceOf[msg.sender];
@@ -145,7 +160,6 @@ abstract contract ZControlledERC20 {
 
     function _transfer(address from, address to, uint256 amount) internal {
         if (to == address(0)) revert ZeroAddress();
-        if (amount == 0) revert ZeroAmount();
 
         uint256 balance = balanceOf[from];
         if (balance < amount) revert InsufficientBalance();

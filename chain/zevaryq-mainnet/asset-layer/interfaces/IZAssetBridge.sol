@@ -55,6 +55,11 @@ interface IZAssetBridge {
     event SourceReleaseAttested(bytes32 indexed redemptionId, bytes32 releaseProofHash);
 
     function verifiedLockedUnits() external view returns (uint256);
+    function releasedUnitsSinceAttestation() external view returns (uint256);
+    function pendingReleaseUnits() external view returns (uint256);
+    function effectiveLockedUnits() external view returns (uint256);
+    function pendingDeposits() external view returns (uint256);
+    function activeRedemptions() external view returns (uint256);
     function depositRecord(bytes32 depositId) external view returns (DepositRecord memory);
     function redemptionRecord(bytes32 redemptionId) external view returns (RedemptionRecord memory);
 
@@ -82,6 +87,12 @@ interface IZAssetBridge {
     ) external returns (bytes32 depositId);
 
     function mintFromDeposit(bytes32 depositId) external;
+
+    function refreshDepositAttestation(
+        bytes32 depositId,
+        bytes32 refreshedProofHash,
+        uint64 attestationEpoch
+    ) external;
 
     function requestRedemption(
         uint256 amount,
