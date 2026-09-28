@@ -21,8 +21,15 @@ test('password reset request is wired end-to-end', () => {
   const email = read('server/auth/email.js');
   assert.match(forgotPage, /resetPasswordRequest\(email\)/);
   assert.match(auth, /\/api\/auth\/forgot-password/);
-  assert.match(forgotApi, /sendPasswordResetEmail\(env, email, resetUrl\)/);
+  assert.match(forgotApi, /getUserByEmail\(env\.AUTH_DB, email\)/);
+  assert.match(forgotApi, /checkRateLimit\(env\.AUTH_DB, request, 'forgot', user\.id/);
+  assert.match(forgotApi, /scheduleDelivery\(context, sendPasswordResetEmail\(env, email, resetUrl\)\)/);
+  assert.match(forgotApi, /context\.waitUntil\(guarded\)/);
   assert.match(forgotApi, /ttlSeconds:\s*30\s*\*\s*60/);
+  assert.ok(
+    forgotApi.indexOf('getUserByEmail(env.AUTH_DB, email)') < forgotApi.indexOf("checkRateLimit(env.AUTH_DB, request, 'forgot', user.id"),
+    'unknown accounts should not consume rate-limit writes'
+  );
   assert.match(email, /subject:\s*'Reset password KriptoAman'/);
   assert.match(email, /RESEND_API_KEY/);
   assert.match(email, /AUTH_EMAIL_FROM/);
@@ -49,4 +56,15 @@ test('authenticated home remains vertically scrollable', () => {
   assert.match(layout, /-webkit-overflow-scrolling:\s*touch/);
   assert.doesNotMatch(layout, /html\s*\{\s*overflow:\s*hidden/);
   assert.doesNotMatch(css, /body\s*\{[^}]*overflow-y:\s*hidden/s);
+});
+
+
+test('auth health probe uses independent bounded request timeouts', () => {
+  const smoke = read('scripts/check-auth-surface.mjs');
+  assert.match(smoke, /async function fetchWithTimeout/);
+  assert.match(smoke, /12_000/);
+  assert.match(smoke, /example\.invalid/);
+  assert.equal((smoke.match(/new AbortController\(\)/g) || []).length, 1);
+  assert.match(smoke, /const login = await expectHtml\('\/login'\)/);
+  assert.match(smoke, /const forgot = await expectHtml\('\/forgot-password'\)/);
 });
