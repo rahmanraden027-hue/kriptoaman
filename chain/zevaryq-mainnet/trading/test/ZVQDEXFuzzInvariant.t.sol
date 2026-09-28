@@ -31,8 +31,13 @@ contract ReentrantTokenZVQ {
         balanceOf[to] += amount;
     }
 
-    function setTargetPair(address pair) external { targetPair = pair; }
-    function setEnabled(bool value) external { enabled = value; }
+    function setTargetPair(address pair) external {
+        targetPair = pair;
+    }
+
+    function setEnabled(bool value) external {
+        enabled = value;
+    }
 
     function approve(address spender, uint256 amount) external returns (bool) {
         allowance[msg.sender][spender] = amount;
@@ -42,9 +47,8 @@ contract ReentrantTokenZVQ {
     function transfer(address to, uint256 amount) external returns (bool) {
         if (msg.sender == targetPair && enabled && !attempted) {
             attempted = true;
-            (bool ok,) = targetPair.call(
-                abi.encodeWithSelector(ZVQPair.swap.selector, uint256(1), uint256(0), address(this))
-            );
+            (bool ok,) =
+                targetPair.call(abi.encodeWithSelector(ZVQPair.swap.selector, uint256(1), uint256(0), address(this)));
             succeeded = ok;
         }
         _transfer(msg.sender, to, amount);
@@ -113,8 +117,7 @@ contract ZVQDEXFuzzInvariantTest {
 
         vm.prank(ALICE);
         router.addLiquidity(
-            address(tokenA), address(tokenB),
-            liquidity, liquidity, liquidity, liquidity, ALICE, DEADLINE
+            address(tokenA), address(tokenB), liquidity, liquidity, liquidity, liquidity, ALICE, DEADLINE
         );
 
         address pair = factory.getPair(address(tokenA), address(tokenB));
@@ -126,9 +129,7 @@ contract ZVQDEXFuzzInvariantTest {
         uint256[] memory quoted = router.getAmountsOut(amountIn, path);
 
         vm.prank(ALICE);
-        uint256[] memory actual = router.swapExactTokensForTokens(
-            amountIn, quoted[1], path, ALICE, DEADLINE
-        );
+        uint256[] memory actual = router.swapExactTokensForTokens(amountIn, quoted[1], path, ALICE, DEADLINE);
         require(actual[1] == quoted[1], "quote mismatch");
 
         (uint112 r0After, uint112 r1After,) = ZVQPair(pair).getReserves();
@@ -140,8 +141,7 @@ contract ZVQDEXFuzzInvariantTest {
 
         vm.prank(ALICE);
         router.addLiquidity(
-            address(tokenA), address(tokenB),
-            liquidity, liquidity, liquidity, liquidity, ALICE, DEADLINE
+            address(tokenA), address(tokenB), liquidity, liquidity, liquidity, liquidity, ALICE, DEADLINE
         );
 
         address pair = factory.getPair(address(tokenA), address(tokenB));
@@ -153,12 +153,12 @@ contract ZVQDEXFuzzInvariantTest {
         uint256[] memory quoted = router.getAmountsOut(amountIn, path);
 
         vm.prank(ALICE);
-        (bool ok,) = address(router).call(
-            abi.encodeWithSelector(
-                router.swapExactTokensForTokens.selector,
-                amountIn, quoted[1] + 1, path, ALICE, DEADLINE
-            )
-        );
+        (bool ok,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.swapExactTokensForTokens.selector, amountIn, quoted[1] + 1, path, ALICE, DEADLINE
+                )
+            );
         require(!ok, "slippage bypassed");
 
         (uint112 r0After, uint112 r1After,) = ZVQPair(pair).getReserves();
@@ -189,15 +189,12 @@ contract ZVQDEXFuzzInvariantTest {
         uint256 topUp = _bound(uint256(topUpSeed), 1 ether, initial / 2);
 
         vm.prank(ALICE);
-        router.addLiquidityZVQ{value: initial}(
-            address(tokenA), initial, initial, initial, ALICE, DEADLINE
-        );
+        router.addLiquidityZVQ{value: initial}(address(tokenA), initial, initial, initial, ALICE, DEADLINE);
 
         uint256 nativeBefore = ALICE.balance;
         vm.prank(ALICE);
-        (uint256 amountToken, uint256 amountZVQ,) = router.addLiquidityZVQ{value: topUp * 2}(
-            address(tokenA), topUp, 0, 0, ALICE, DEADLINE
-        );
+        (uint256 amountToken, uint256 amountZVQ,) =
+            router.addLiquidityZVQ{value: topUp * 2}(address(tokenA), topUp, 0, 0, ALICE, DEADLINE);
 
         require(amountToken == topUp && amountZVQ == topUp, "optimal ratio mismatch");
         require(nativeBefore - ALICE.balance == amountZVQ, "refund mismatch");
@@ -214,10 +211,7 @@ contract ZVQDEXFuzzInvariantTest {
 
         vm.prank(ALICE);
         router.addLiquidity(
-            address(reentrant), address(tokenB),
-            10_000 ether, 10_000 ether,
-            10_000 ether, 10_000 ether,
-            ALICE, DEADLINE
+            address(reentrant), address(tokenB), 10_000 ether, 10_000 ether, 10_000 ether, 10_000 ether, ALICE, DEADLINE
         );
 
         address pair = factory.getPair(address(reentrant), address(tokenB));
@@ -226,9 +220,7 @@ contract ZVQDEXFuzzInvariantTest {
 
         address[] memory path = _path(address(tokenB), address(reentrant));
         vm.prank(ALICE);
-        uint256[] memory out = router.swapExactTokensForTokens(
-            100 ether, 1, path, ALICE, DEADLINE
-        );
+        uint256[] memory out = router.swapExactTokensForTokens(100 ether, 1, path, ALICE, DEADLINE);
 
         require(out[1] > 0, "outer swap failed");
         require(reentrant.attempted(), "reentry not attempted");
