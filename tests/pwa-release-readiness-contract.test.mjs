@@ -14,6 +14,7 @@ const androidVariables = await readFile(new URL('../android/variables.gradle', i
 const capacitorConfig = JSON.parse(await readFile(new URL('../capacitor.config.json', import.meta.url), 'utf8'));
 const platformCapacitorConfig = JSON.parse(await readFile(new URL('../android/app/src/platform/assets/capacitor.config.json', import.meta.url), 'utf8'));
 const walletCapacitorConfig = JSON.parse(await readFile(new URL('../android/app/src/wallet/assets/capacitor.config.json', import.meta.url), 'utf8'));
+const walletCss = await readFile(new URL('../src/pages/ZevaryqWallet.css', import.meta.url), 'utf8');
 
 test('PWA manifest is aligned with Android 1.5.2 release identity', () => {
   assert.equal(manifest.short_name, 'KriptoAman');
@@ -66,9 +67,15 @@ test('Android dual release identities and target SDK remain Play-ready', () => {
   assert.equal(walletCapacitorConfig.server.url, 'https://kriptoaman.com/wallet-app');
 
   assert.match(androidBuild, /platform\s*\{[\s\S]*applicationId\s+"com\.kriptoaman\.app"[\s\S]*versionCode\s+9[\s\S]*versionName\s+"1\.5\.3"/);
-  assert.match(androidBuild, /wallet\s*\{[\s\S]*applicationId\s+"com\.kriptoaman\.wallet"[\s\S]*versionCode\s+2[\s\S]*versionName\s+"1\.0\.1"/);
+  assert.match(androidBuild, /wallet\s*\{[\s\S]*applicationId\s+"com\.kriptoaman\.wallet"[\s\S]*versionCode\s+3[\s\S]*versionName\s+"1\.0\.2"/);
   assert.match(androidVariables, /compileSdkVersion\s*=\s*36/);
   assert.match(androidVariables, /targetSdkVersion\s*=\s*36/);
+});
+
+test('ZEVARYQ Wallet bottom navigation stays fixed and is not overridden by content positioning', () => {
+  assert.match(walletCss, /\.zv-bottom-nav\{[^}]*position:fixed/);
+  assert.doesNotMatch(walletCss, /\.zv-wallet-content\s*,\s*\.zv-bottom-nav\s*\{\s*position:relative/);
+  assert.match(walletCss, /padding-bottom:max\(10px,env\(safe-area-inset-bottom,0px\)\)/);
 });
 
 test('Android release disables application backup for sensitive app state', () => {
