@@ -83,9 +83,10 @@ test('spec explicitly prevents issuer impersonation and unbacked mint', () => {
   const spec = read('SMART_CONTRACT_SPEC_V1.md');
 
   assert.match(spec, /must not:\n\n- create a token called USDT or USDC and imply issuer authorization/i);
-  assert.match(spec, /totalSupply <= verifiedReserveUnits/);
-  assert.match(spec, /totalSupply\(zBTC\) <= verifiedLockedBTC/);
-  assert.match(spec, /totalSupply\(zETH\) <= verifiedLockedETH/);
+  assert.match(spec, /postMintTotalSupply <= verifiedReserveUnits/);
+  assert.match(spec, /postMintTotalSupply\(zBTC\) <= verifiedLockedBTC/);
+  assert.match(spec, /postMintTotalSupply\(zETH\) <= verifiedLockedETH/);
+  assert.match(spec, /deficit is recorded truthfully/i);
   assert.match(spec, /deposit identifier can mint at most once/);
   assert.match(spec, /no unrestricted `ownerMint`/i);
 });
