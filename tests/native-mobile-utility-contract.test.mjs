@@ -66,5 +66,6 @@ test('Android splash and adaptive icon follow the KriptoAman dark identity', () 
   assert.match(manifest, /android:icon="@mipmap\/ic_launcher"/);
   assert.match(manifest, /android:roundIcon="@mipmap\/ic_launcher_round"/);
   assert.match(mainActivity, /showLaunchBranding/);
-  assert.match(mainActivity, /com\.kriptoaman\.wallet/);\n  assert.match(mainActivity, /R\.drawable\.app_launch_emblem/);
+  assert.match(mainActivity, /com\.kriptoaman\.wallet/);
+  assert.match(mainActivity, /R\.drawable\.app_launch_emblem/);
 });
