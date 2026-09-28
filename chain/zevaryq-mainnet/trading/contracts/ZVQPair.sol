@@ -143,8 +143,7 @@ contract ZVQPair {
         uint256 balance0Adjusted = balance0 * 1000 - amount0In * 3;
         uint256 balance1Adjusted = balance1 * 1000 - amount1In * 3;
         require(
-            balance0Adjusted * balance1Adjusted >= uint256(_reserve0) * uint256(_reserve1) * 1_000_000,
-            "ZVQPair: K"
+            balance0Adjusted * balance1Adjusted >= uint256(_reserve0) * uint256(_reserve1) * 1_000_000, "ZVQPair: K"
         );
 
         _update(balance0, balance1);
