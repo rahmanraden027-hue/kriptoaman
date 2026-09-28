@@ -19,6 +19,10 @@ test('KAM UI uses verified live data and never invents market values', async () 
   assert.match(endpoint, /eth_blockNumber/);
   assert.match(endpoint, /eth_getBalance/);
   assert.match(endpoint, /RPC chain ID mismatch/);
+  const probeTimeout = Number(endpoint.match(/NETWORK_PROBE_TIMEOUT_MS\s*=\s*(\d+)/)?.[1]);
+  assert.ok(probeTimeout >= 3000 && probeTimeout <= 10000, 'network probe timeout must tolerate public RPC latency while remaining bounded');
+  assert.match(endpoint, /AbortError/);
+  assert.match(endpoint, /rpc-timeout/);
   assert.match(endpoint, /marketPrice:\s*null/);
   const parsed = JSON.parse(metadata);
   assert.equal(parsed.status, 'mainnet-candidate-not-public');

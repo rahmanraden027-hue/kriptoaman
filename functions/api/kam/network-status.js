@@ -5,8 +5,8 @@ const EXPECTED_CHAIN_ID_HEX = '0x560c';
 const RPC_URL = 'https://rpc.kriptoaman.com';
 const EXPLORER_URL = 'https://explorer.kriptoaman.com';
 const ADDRESS_PATTERN = /^0x[0-9a-fA-F]{40}$/;
-const NETWORK_PROBE_TIMEOUT_MS = 1100;
-const WALLET_PROBE_TIMEOUT_MS = 1800;
+const NETWORK_PROBE_TIMEOUT_MS = 4000;
+const WALLET_PROBE_TIMEOUT_MS = 5000;
 const VERIFIED_PUBLIC_STATUS_CACHE = 'public, max-age=5, s-maxage=20, stale-while-revalidate=40';
 const DEGRADED_PUBLIC_STATUS_CACHE = 'public, max-age=10, s-maxage=60, stale-while-revalidate=120';
 
@@ -77,8 +77,8 @@ export async function onRequestGet({ request }) {
 
   try {
     // Chain identity and current block are probed concurrently and independently.
-    // A non-responsive public RPC fails closed quickly instead of consuming the
-    // historical ~4.5s request budget on every status check.
+    // The public RPC remains fail-closed, but the probe budget allows realistic
+    // Internet/edge latency so a healthy chain is not misclassified as degraded.
     const [chainIdHex, blockHex] = await Promise.all([
       rpcWithTimeout('eth_chainId'),
       rpcWithTimeout('eth_blockNumber'),
