@@ -308,7 +308,7 @@ contract ZAssetLayerTest {
         address nextController = address(0x9999);
         zusd.scheduleController(nextController);
 
-        (bool early,) = address(zusd).call(abi.encodeCall(ZUSD.executeControllerChange, ()));
+        (bool early,) = address(zusd).call(abi.encodeWithSignature("executeControllerChange()"));
         require(!early, "controller changed before delay");
 
         vm.warp(block.timestamp + 1 days);
@@ -318,7 +318,7 @@ contract ZAssetLayerTest {
 
     function testUnauthorizedDirectTokenMintFails() public {
         (bool ok,) = address(zusd).call(
-            abi.encodeCall(ZUSD.controllerMint, (USER, uint256(1_000_000)))
+            abi.encodeWithSignature("controllerMint(address,uint256)", USER, uint256(1_000_000))
         );
         require(!ok, "direct mint accepted");
     }
