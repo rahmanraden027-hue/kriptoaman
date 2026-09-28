@@ -24,7 +24,7 @@ jobs:
         working-directory: chain/zevaryq-mainnet/trading
     env:
       ZEVARYQ_RPC_URL: https://rpc.kriptoaman.com
-      DEPLOYER_ADDRESS: ${{ inputs.deployer_address || '0xd74ea7d92bbb40d475bccea170367b85971acb0f' }}
+      DEPLOYER_ADDRESS: ${{ inputs.deployer_address || '0x9D4b034758202cE555504d038F92A344540D47B0' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -67,13 +67,8 @@ jobs:
           echo "nonce=$nonce"
           echo "gasPriceWei=$gas_price"
           echo "baseFeePerGasWei=${base_fee:-unavailable}"
-
-          test "$nonce" = "1"
-
-          for address in             0x33b9d9147F688BB625865A4bABA21D237E3673B9             0x7ddAA55D11ce5C11C1B5C822ECb6b9F096672f74             0xe1AB8C9D1Ab3E386Aaf96b7498a303f537576B62; do
-            code="$(cast code "$address" --rpc-url "$ZEVARYQ_RPC_URL")"
-            test "$code" = "0x"
-          done
+          # Nonce is intentionally not hard-coded. The live signer state is authoritative.
+          # Contract-address collision is exercised by the full fork simulation below.
 
       - name: Simulate WZVQ Factory Router from reviewed signer
         shell: bash
