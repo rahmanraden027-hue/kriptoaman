@@ -50,12 +50,30 @@ jobs:
           test "$b" -ge "$a"
           echo "chainId=22028 blockBefore=$a blockAfter=$b"
 
-      - name: Validate public deployer address only
+      - name: Validate deployer and live pre-sign state
         shell: bash
         run: |
           set -euo pipefail
           cast address-zero >/dev/null
           cast to-check-sum-address "$DEPLOYER_ADDRESS" >/dev/null
+
+          balance_wei="$(cast balance "$DEPLOYER_ADDRESS" --rpc-url "$ZEVARYQ_RPC_URL")"
+          nonce="$(cast nonce "$DEPLOYER_ADDRESS" --rpc-url "$ZEVARYQ_RPC_URL")"
+          gas_price="$(cast gas-price --rpc-url "$ZEVARYQ_RPC_URL")"
+          base_fee="$(cast block latest --field baseFeePerGas --rpc-url "$ZEVARYQ_RPC_URL" 2>/dev/null || true)"
+
+          echo "deployer=$DEPLOYER_ADDRESS"
+          echo "balanceWei=$balance_wei"
+          echo "nonce=$nonce"
+          echo "gasPriceWei=$gas_price"
+          echo "baseFeePerGasWei=${base_fee:-unavailable}"
+
+          test "$nonce" = "1"
+
+          for address in             0x33b9d9147F688BB625865A4bABA21D237E3673B9             0x7ddAA55D11ce5C11C1B5C822ECb6b9F096672f74             0xe1AB8C9D1Ab3E386Aaf96b7498a303f537576B62; do
+            code="$(cast code "$address" --rpc-url "$ZEVARYQ_RPC_URL")"
+            test "$code" = "0x"
+          done
 
       - name: Simulate WZVQ Factory Router from reviewed signer
         shell: bash
@@ -73,10 +91,19 @@ jobs:
           test -z "${MNEMONIC:-}"
           ! grep -v 'grep .*--broadcast' ../../../.github/workflows/zevaryq-dex-mainnet-presign.yml | grep -n -- '--broadcast'
 
+      - name: Collect unsigned deployment bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ../../../artifacts/zevaryq-dex-unsigned
+          cp broadcast/PrepareZVQDEXDeployment.s.sol/22028/dry-run/run-latest.json              ../../../artifacts/zevaryq-dex-unsigned/run-latest.json
+          cp ../../../artifacts/zevaryq-dex-presign.log              ../../../artifacts/zevaryq-dex-unsigned/presign.log
+          sha256sum ../../../artifacts/zevaryq-dex-unsigned/* |              tee ../../../artifacts/zevaryq-dex-unsigned/SHA256SUMS.txt
+
       - name: Upload pre-sign evidence
         uses: actions/upload-artifact@v7
         with:
           name: zevaryq-dex-presign-evidence
-          path: artifacts/zevaryq-dex-presign.log
+          path: artifacts/zevaryq-dex-unsigned/
           if-no-files-found: error
           retention-days: 30
