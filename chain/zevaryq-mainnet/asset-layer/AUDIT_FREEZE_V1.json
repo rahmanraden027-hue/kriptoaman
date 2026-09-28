@@ -1,0 +1,52 @@
+{
+  "version": "1.0",
+  "status": "internal-candidate-freeze-independent-audit-pending",
+  "network": {
+    "name": "ZEVARYQ Mainnet",
+    "chainId": 22028
+  },
+  "source": {
+    "contractSourceCommit": "17728f550f6dff32ca6ba44a7b886bffca01a95f",
+    "auditPackageBaseCommit": "2aca7e5439ff94510a0f0e1ab0dbb46a74043572",
+    "solc": "0.8.24",
+    "evmVersion": "paris",
+    "optimizer": true,
+    "optimizerRuns": 200
+  },
+  "files": {
+    "contracts/ZUSD.sol": "09d2d5e80e5a68b346ae7ac2a063cce6dcabcff6",
+    "contracts/zBTC.sol": "557cd874f6c679a5bd1008e4aa2d1c36771955ef",
+    "contracts/zETH.sol": "f14f3f0ef3e70247086fb291f59790af679e8197",
+    "contracts/ZUSDReserveController.sol": "0c4e4cc57b8aa3f252f5880e007be422b30f103f",
+    "contracts/ZAssetBridgeController.sol": "cc788695c98f0a76655fdb84ef840087706d9b3f",
+    "contracts/common/ZControlledERC20.sol": "41b5e3535d0b25f04a77108be0a281cb3ce35581",
+    "contracts/common/ZControllerRoles.sol": "8f3302a7cbe1278920ddbffad4cc933dbe1e7c48",
+    "foundry.toml": "13931cd8e75f25ffdeaf334c3d772f4d15656681",
+    "test/ZAssetLayer.t.sol": "9a39efba2d00ee335b06b3d6d7496f1c8f2505f9",
+    "test/ZAssetLayerInvariant.t.sol": "240567aba06eca39f7035861fef3b733aa6f548a"
+  },
+  "automatedEvidence": {
+    "unitAndFuzz": {
+      "status": "pass",
+      "unitAndFuzzTests": 24,
+      "fuzzRunsPerProperty": 2048
+    },
+    "statefulInvariant": {
+      "status": "pass",
+      "runs": 256,
+      "calls": 16384,
+      "reverts": 0
+    },
+    "securityAuditWorkflow": "pass",
+    "codeQL": "pass",
+    "ci": "pass"
+  },
+  "authorization": {
+    "independentAuditComplete": false,
+    "deploymentAuthorized": false,
+    "mintAuthorized": false,
+    "bridgeAuthorized": false,
+    "liquidityAuthorized": false,
+    "publicTradingAuthorized": false
+  }
+}
