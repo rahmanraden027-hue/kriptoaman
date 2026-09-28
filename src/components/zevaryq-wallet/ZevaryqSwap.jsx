@@ -21,7 +21,9 @@ export default function ZevaryqSwap({ web3, onConnect }) {
   const [quote, setQuote] = useState(null);
   const [phase, setPhase] = useState('idle');
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [txHash, setTxHash] = useState('');
+  const [txKind, setTxKind] = useState('swap');
 
   const onZevaryq = web3?.isConnected && web3.chainId === ZEVARYQ.chainId;
   const tokens = [ZEVARYQ.symbol, ...ZEVARYQ_SWAP_TOKENS.map((token) => token.symbol)];
@@ -49,11 +51,13 @@ export default function ZevaryqSwap({ web3, onConnect }) {
     setQuote(null);
     setTxHash('');
     setError('');
+    setNotice('');
   };
 
   const refreshQuote = async () => {
     setPhase('quoting');
     setError('');
+    setNotice('');
     setTxHash('');
     try {
       const next = await quoteZevaryqSwap({ fromSymbol, toSymbol, amount, slippageBps });
@@ -73,11 +77,22 @@ export default function ZevaryqSwap({ web3, onConnect }) {
     }
     setPhase('signing');
     setError('');
+    setNotice('');
     try {
       const result = await executeZevaryqSwap({ walletClient: web3?.walletClient, account: web3?.account, quote });
+      if (result.requiresFreshQuote && result.approvalHash) {
+        setTxHash(result.approvalHash);
+        setTxKind('approval');
+        setPhase('approvalComplete');
+        setQuote(null);
+        setNotice('Token approval confirmed. Refresh the on-chain quote before signing the swap transaction.');
+        return;
+      }
       setTxHash(result.hash);
+      setTxKind('swap');
       setPhase('submitted');
       setQuote(null);
+      setNotice('Swap transaction submitted to ZEVARYQ Mainnet.');
       await web3?.refreshBalance?.();
     } catch (nextError) {
       setError(nextError?.message || 'Swap was not submitted.');
@@ -187,10 +202,11 @@ export default function ZevaryqSwap({ web3, onConnect }) {
       )}
 
       {error && <p role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">{error}</p>}
+      {notice && <p className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-200">{notice}</p>}
 
       {txHash && (
         <a href={getZevaryqSwapExplorerUrl(txHash)} target="_blank" rel="noreferrer" className="zv-button-secondary w-full">
-          <ExternalLink className="h-4 w-4" /> View submitted swap on Explorer
+          <ExternalLink className="h-4 w-4" /> View {txKind === 'approval' ? 'approval' : 'swap'} on Explorer
         </a>
       )}
 
