@@ -68,18 +68,21 @@ contract ZVQDEXTest {
         require(pair != address(0), "pair missing");
         require(factory.getPair(address(tokenB), address(tokenA)) == pair, "reverse pair missing");
         require(factory.allPairsLength() == 1, "pair count");
-        (bool ok,) = address(factory).call(
-            abi.encodeWithSelector(factory.createPair.selector, address(tokenA), address(tokenB))
-        );
+        (bool ok,) =
+            address(factory).call(abi.encodeWithSelector(factory.createPair.selector, address(tokenA), address(tokenB)));
         require(!ok, "duplicate pair accepted");
     }
 
     function testAddLiquidityAndGetAmountsOut() public {
         router.addLiquidity(
-            address(tokenA), address(tokenB),
-            10_000 ether, 10_000 ether,
-            10_000 ether, 10_000 ether,
-            address(this), DEADLINE
+            address(tokenA),
+            address(tokenB),
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            address(this),
+            DEADLINE
         );
 
         address[] memory path = _path(address(tokenA), address(tokenB));
@@ -91,19 +94,22 @@ contract ZVQDEXTest {
 
     function testTokenToTokenSwapUsesQuotedOutput() public {
         router.addLiquidity(
-            address(tokenA), address(tokenB),
-            10_000 ether, 10_000 ether,
-            10_000 ether, 10_000 ether,
-            address(this), DEADLINE
+            address(tokenA),
+            address(tokenB),
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            address(this),
+            DEADLINE
         );
 
         address[] memory path = _path(address(tokenA), address(tokenB));
         uint256[] memory quoteAmounts = router.getAmountsOut(100 ether, path);
         uint256 beforeBalance = tokenB.balanceOf(address(this));
 
-        uint256[] memory actual = router.swapExactTokensForTokens(
-            100 ether, quoteAmounts[1], path, address(this), DEADLINE
-        );
+        uint256[] memory actual =
+            router.swapExactTokensForTokens(100 ether, quoteAmounts[1], path, address(this), DEADLINE);
 
         require(actual[1] == quoteAmounts[1], "swap quote mismatch");
         require(tokenB.balanceOf(address(this)) == beforeBalance + actual[1], "output missing");
@@ -118,15 +124,13 @@ contract ZVQDEXTest {
         uint256[] memory quoteAmounts = router.getAmountsOut(10 ether, path);
 
         uint256 beforeBalance = tokenA.balanceOf(address(this));
-        uint256[] memory explicitAmounts = router.swapExactZVQForTokens{value: 10 ether}(
-            quoteAmounts[1] * 99 / 100, path, address(this), DEADLINE
-        );
+        uint256[] memory explicitAmounts =
+            router.swapExactZVQForTokens{value: 10 ether}(quoteAmounts[1] * 99 / 100, path, address(this), DEADLINE);
         require(tokenA.balanceOf(address(this)) == beforeBalance + explicitAmounts[1], "explicit native swap failed");
 
         uint256[] memory secondQuote = router.getAmountsOut(10 ether, path);
-        uint256[] memory compatAmounts = router.swapExactETHForTokens{value: 10 ether}(
-            secondQuote[1] * 99 / 100, path, address(this), DEADLINE
-        );
+        uint256[] memory compatAmounts =
+            router.swapExactETHForTokens{value: 10 ether}(secondQuote[1] * 99 / 100, path, address(this), DEADLINE);
         require(compatAmounts[1] > 0, "compat native swap failed");
         require(address(router).balance == 0, "router retained native");
     }
@@ -140,9 +144,8 @@ contract ZVQDEXTest {
         uint256[] memory quoteAmounts = router.getAmountsOut(100 ether, path);
         uint256 nativeBefore = address(this).balance;
 
-        uint256[] memory actual = router.swapExactTokensForZVQ(
-            100 ether, quoteAmounts[1] * 99 / 100, path, address(this), DEADLINE
-        );
+        uint256[] memory actual =
+            router.swapExactTokensForZVQ(100 ether, quoteAmounts[1] * 99 / 100, path, address(this), DEADLINE);
 
         require(address(this).balance == nativeBefore + actual[1], "native output missing");
         require(address(router).balance == 0, "router retained native");
@@ -150,31 +153,35 @@ contract ZVQDEXTest {
 
     function testSlippageAndExpiredDeadlineFailAtomically() public {
         router.addLiquidity(
-            address(tokenA), address(tokenB),
-            10_000 ether, 10_000 ether,
-            10_000 ether, 10_000 ether,
-            address(this), DEADLINE
+            address(tokenA),
+            address(tokenB),
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            address(this),
+            DEADLINE
         );
 
         address pair = factory.getPair(address(tokenA), address(tokenB));
         (uint112 r0Before, uint112 r1Before,) = ZVQPair(pair).getReserves();
         address[] memory path = _path(address(tokenA), address(tokenB));
 
-        (bool slippageOk,) = address(router).call(
-            abi.encodeWithSelector(
-                router.swapExactTokensForTokens.selector,
-                100 ether, 10_000 ether, path, address(this), DEADLINE
-            )
-        );
+        (bool slippageOk,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.swapExactTokensForTokens.selector, 100 ether, 10_000 ether, path, address(this), DEADLINE
+                )
+            );
         require(!slippageOk, "slippage bypassed");
 
         vm.warp(100);
-        (bool expiredOk,) = address(router).call(
-            abi.encodeWithSelector(
-                router.swapExactTokensForTokens.selector,
-                100 ether, 1, path, address(this), uint256(99)
-            )
-        );
+        (bool expiredOk,) = address(router)
+            .call(
+                abi.encodeWithSelector(
+                    router.swapExactTokensForTokens.selector, 100 ether, 1, path, address(this), uint256(99)
+                )
+            );
         require(!expiredOk, "expired swap accepted");
 
         (uint112 r0After, uint112 r1After,) = ZVQPair(pair).getReserves();
@@ -187,40 +194,44 @@ contract ZVQDEXTest {
         multi[1] = address(wzvq);
         multi[2] = address(tokenB);
 
-        (bool pathOk,) = address(router).staticcall(
-            abi.encodeWithSelector(router.getAmountsOut.selector, 1 ether, multi)
-        );
+        (bool pathOk,) =
+            address(router).staticcall(abi.encodeWithSelector(router.getAmountsOut.selector, 1 ether, multi));
         require(!pathOk, "multi-hop accepted");
 
         router.addLiquidity(
-            address(tokenA), address(tokenB),
-            10_000 ether, 10_000 ether,
-            10_000 ether, 10_000 ether,
-            address(this), DEADLINE
+            address(tokenA),
+            address(tokenB),
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            address(this),
+            DEADLINE
         );
         address[] memory path = _path(address(tokenA), address(tokenB));
-        (bool recipientOk,) = address(router).call(
-            abi.encodeWithSelector(
-                router.swapExactTokensForTokens.selector,
-                1 ether, 1, path, address(0), DEADLINE
-            )
-        );
+        (bool recipientOk,) = address(router)
+            .call(
+                abi.encodeWithSelector(router.swapExactTokensForTokens.selector, 1 ether, 1, path, address(0), DEADLINE)
+            );
         require(!recipientOk, "zero recipient accepted");
     }
 
     function testRemoveLiquidityReturnsAssets() public {
         (,, uint256 liquidity) = router.addLiquidity(
-            address(tokenA), address(tokenB),
-            10_000 ether, 10_000 ether,
-            10_000 ether, 10_000 ether,
-            address(this), DEADLINE
+            address(tokenA),
+            address(tokenB),
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            10_000 ether,
+            address(this),
+            DEADLINE
         );
         address pair = factory.getPair(address(tokenA), address(tokenB));
         ZVQPair(pair).approve(address(router), liquidity);
 
-        (uint256 amountA, uint256 amountB) = router.removeLiquidity(
-            address(tokenA), address(tokenB), liquidity, 1, 1, address(this), DEADLINE
-        );
+        (uint256 amountA, uint256 amountB) =
+            router.removeLiquidity(address(tokenA), address(tokenB), liquidity, 1, 1, address(this), DEADLINE);
         require(amountA > 0 && amountB > 0, "liquidity not returned");
     }
 }
