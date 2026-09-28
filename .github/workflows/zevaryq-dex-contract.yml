@@ -49,14 +49,25 @@ jobs:
       - name: Deployment simulation
         run: forge test --match-path test/ZVQDEXDeploymentSimulation.t.sol -vvv --evm-version paris
 
-      - name: Verify candidate remains non-deploying
+      - name: Verify candidate remains non-broadcasting
         working-directory: .
         shell: bash
         run: |
           set -euo pipefail
-          test -z "$(find chain/zevaryq-mainnet/trading -type f \( -name '*.s.sol' -o -name '*deploy*.mjs' -o -name '*deploy*.js' \) -print -quit)"
-          ! grep -R -n -E 'startBroadcast|broadcast\(' chain/zevaryq-mainnet/trading
-          ! grep -R -n -E 'DEPLOYER_PRIVATE_KEY|LIQUIDITY_PRIVATE_KEY|PRIVATE_KEY' chain/zevaryq-mainnet/trading
+          SCRIPT='chain/zevaryq-mainnet/trading/script/PrepareZVQDEXDeployment.s.sol'
+
+          # The only allowed script is the reviewed public-address simulation.
+          mapfile -t scripts < <(find chain/zevaryq-mainnet/trading -type f -name '*.s.sol' -print)
+          test "${#scripts[@]}" -eq 1
+          test "${scripts[0]}" = "$SCRIPT"
+
+          # Simulation may record transactions from a public address, but it may
+          # never read a signing secret or broadcast from CI.
+          grep -q 'envAddress("DEPLOYER_ADDRESS")' "$SCRIPT"
+          grep -q 'startBroadcast(deployer)' "$SCRIPT"
+          ! grep -R -n -E 'DEPLOYER_PRIVATE_KEY|LIQUIDITY_PRIVATE_KEY|PRIVATE_KEY|MNEMONIC' chain/zevaryq-mainnet/trading
+          ! grep -R -n -- '--broadcast' chain/zevaryq-mainnet/trading
+          test -z "$(find chain/zevaryq-mainnet/trading -type f \( -name '*deploy*.mjs' -o -name '*deploy*.js' \) -print -quit)"
 
       - name: Assert CI has no signing secrets
         run: |

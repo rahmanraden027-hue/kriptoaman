@@ -1,0 +1,82 @@
+name: ZEVARYQ DEX Mainnet Pre-Sign
+
+on:
+  pull_request:
+    paths:
+      - 'chain/zevaryq-mainnet/trading/script/PrepareZVQDEXDeployment.s.sol'
+      - 'chain/zevaryq-mainnet/trading/contracts/**'
+      - '.github/workflows/zevaryq-dex-mainnet-presign.yml'
+  workflow_dispatch:
+    inputs:
+      deployer_address:
+        description: 'Public EVM address that will sign deployment later (no private key)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  no-broadcast-live-chain-simulation:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: chain/zevaryq-mainnet/trading
+    env:
+      ZEVARYQ_RPC_URL: https://rpc.kriptoaman.com
+      DEPLOYER_ADDRESS: ${{ inputs.deployer_address || '0x1111111111111111111111111111111111111111' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Format check
+        run: forge fmt --check
+
+      - name: Build exact Paris-compatible bytecode
+        run: forge build --sizes --evm-version paris
+
+      - name: Verify live chain identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(cast chain-id --rpc-url "$ZEVARYQ_RPC_URL")" = "22028"
+          a="$(cast block-number --rpc-url "$ZEVARYQ_RPC_URL")"
+          sleep 3
+          b="$(cast block-number --rpc-url "$ZEVARYQ_RPC_URL")"
+          test "$b" -ge "$a"
+          echo "chainId=22028 blockBefore=$a blockAfter=$b"
+
+      - name: Validate public deployer address only
+        shell: bash
+        run: |
+          set -euo pipefail
+          cast address-zero >/dev/null
+          cast to-check-sum-address "$DEPLOYER_ADDRESS" >/dev/null
+
+      - name: Simulate WZVQ Factory Router from reviewed signer
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ../../../artifacts
+          forge script script/PrepareZVQDEXDeployment.s.sol:PrepareZVQDEXDeployment             --rpc-url "$ZEVARYQ_RPC_URL"             --evm-version paris             -vvvv 2>&1 | tee ../../../artifacts/zevaryq-dex-presign.log
+
+      - name: Assert CI cannot broadcast
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${DEPLOYER_PRIVATE_KEY:-}"
+          test -z "${PRIVATE_KEY:-}"
+          test -z "${MNEMONIC:-}"
+          ! grep -v 'grep .*--broadcast' ../../../.github/workflows/zevaryq-dex-mainnet-presign.yml | grep -n -- '--broadcast'
+
+      - name: Upload pre-sign evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: zevaryq-dex-presign-evidence
+          path: artifacts/zevaryq-dex-presign.log
+          if-no-files-found: error
+          retention-days: 30
