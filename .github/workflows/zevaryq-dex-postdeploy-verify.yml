@@ -1,0 +1,92 @@
+name: ZEVARYQ DEX Post-Deploy Verification
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/zevaryq-dex-postdeploy-verify.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-mainnet-deployment:
+    runs-on: ubuntu-24.04
+    env:
+      RPC: 'https://rpc.kriptoaman.com'
+      DEPLOYER: '0x9D4b034758202cE555504d038F92A344540D47B0'
+      WZVQ: '0x99774C60e40a25b78870a26c7666B986f65c47F8'
+      FACTORY: '0x36a416d3C74A5d4AF9Fd4826e010CE9B00289fc7'
+      ROUTER: '0xd3C8d2cC1DD9B8ED8abAD3Cc916ADCBbc429d062'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Verify Chain 22028 and advancing block
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(cast chain-id --rpc-url "$RPC")" = "22028"
+          a="$(cast block-number --rpc-url "$RPC")"
+          sleep 3
+          b="$(cast block-number --rpc-url "$RPC")"
+          test "$b" -ge "$a"
+          echo "chainId=22028 blockBefore=$a blockAfter=$b"
+
+      - name: Verify deployed bytecode exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          for a in "$WZVQ" "$FACTORY" "$ROUTER"; do
+            code="$(cast code "$a" --rpc-url "$RPC")"
+            test "$code" != "0x"
+            echo "$a codePresent=yes"
+          done
+
+      - name: Verify WZVQ metadata and zero supply
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(cast call "$WZVQ" 'name()(string)' --rpc-url "$RPC" | tr -d '"')" = "Wrapped ZEVARYQ"
+          test "$(cast call "$WZVQ" 'symbol()(string)' --rpc-url "$RPC" | tr -d '"')" = "WZVQ"
+          test "$(cast call "$WZVQ" 'decimals()(uint8)' --rpc-url "$RPC")" = "18"
+          test "$(cast call "$WZVQ" 'totalSupply()(uint256)' --rpc-url "$RPC")" = "0"
+
+      - name: Verify Factory pristine state
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(cast call "$FACTORY" 'allPairsLength()(uint256)' --rpc-url "$RPC")" = "0"
+
+      - name: Verify Router bindings
+        shell: bash
+        run: |
+          set -euo pipefail
+          factory="$(cast call "$ROUTER" 'factory()(address)' --rpc-url "$RPC")"
+          wzvq="$(cast call "$ROUTER" 'WZVQ()(address)' --rpc-url "$RPC")"
+          weth="$(cast call "$ROUTER" 'WETH()(address)' --rpc-url "$RPC")"
+          test "${factory,,}" = "${FACTORY,,}"
+          test "${wzvq,,}" = "${WZVQ,,}"
+          test "${weth,,}" = "${WZVQ,,}"
+          echo "factory=$factory"
+          echo "WZVQ=$wzvq"
+          echo "WETH=$weth"
+
+      - name: Verify deployer nonce reached 3
+        shell: bash
+        run: |
+          set -euo pipefail
+          nonce="$(cast nonce "$DEPLOYER" --rpc-url "$RPC")"
+          test "$nonce" = "3"
+          echo "deployer=$DEPLOYER nonce=$nonce"
+
+      - name: Confirm liquidity is still absent
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(cast call "$FACTORY" 'allPairsLength()(uint256)' --rpc-url "$RPC")" = "0"
+          echo "liquidityState=PRISTINE_NO_PAIRS"
