@@ -16,6 +16,7 @@ interface IZUSD {
         uint64 attestedAt;
         uint64 validUntil;
         uint256 verifiedReserveUnits;
+        uint256 reserveOutflowSinceAttestation;
         bytes32 attestationHash;
     }
 
@@ -41,6 +42,8 @@ interface IZUSD {
     event RedemptionCancelled(bytes32 indexed claimId);
 
     function reserveState() external view returns (ReserveState memory);
+    function effectiveReserveUnits() external view returns (uint256);
+    function activeRedemptions() external view returns (uint256);
     function redemptionClaim(bytes32 claimId) external view returns (RedemptionClaim memory);
 
     function attestReserve(
