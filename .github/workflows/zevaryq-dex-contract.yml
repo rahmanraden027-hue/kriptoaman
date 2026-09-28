@@ -1,0 +1,57 @@
+name: ZEVARYQ DEX Contract
+
+on:
+  pull_request:
+    paths:
+      - 'chain/zevaryq-mainnet/trading/**'
+      - 'src/services/zevaryqSwap.js'
+      - 'tests/zevaryq-universal-wallet-swap.test.mjs'
+      - '.github/workflows/zevaryq-dex-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: chain/zevaryq-mainnet/trading
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Format check
+        run: forge fmt --check
+
+      - name: Build Paris-compatible bytecode
+        run: forge build --sizes --evm-version paris
+
+      - name: ZEVARYQ DEX unit tests
+        run: forge test --match-path test/ZVQDEX.t.sol -vvv --evm-version paris
+
+      - name: ZEVARYQ DEX fuzz and invariant hardening
+        run: forge test --match-path test/ZVQDEXFuzzInvariant.t.sol -vvv --evm-version paris
+
+      - name: ZEVARYQ DEX deployment simulation
+        run: forge test --match-path test/ZVQDEXDeploymentSimulation.t.sol -vvv --evm-version paris
+
+      - name: Verify no KAM contract identity remains
+        run: |
+          ! grep -R -n -E 'contract (WKAM|KAMFactory|KAMPair|KAMRouter)|symbol = "WKAM"|KAM-LP' contracts dex test
+
+      - name: Verify ZEVARYQ chain metadata
+        run: |
+          grep -q 'zevaryq = "${ZEVARYQ_RPC_URL}"' foundry.toml
+          grep -q 'Chain ID: 22028' README.md
+          grep -q 'PUBLIC_SWAP_AUTHORIZED = false' README.md
+
+      - name: Ensure CI has no signing secrets
+        run: |
+          test -z "${DEPLOYER_PRIVATE_KEY:-}"
+          test -z "${LIQUIDITY_PRIVATE_KEY:-}"
