@@ -14,6 +14,7 @@ contract ZUSDReserveController is ZControllerRoles {
     error InvalidPauseWindow();
     error InvalidClaim();
     error InvalidClaimState();
+    error SettlementReplay();
 
     bytes32 public constant RESERVE_ATTESTOR_ROLE = keccak256("ZUSD_RESERVE_ATTESTOR");
     bytes32 public constant MINT_OPERATOR_ROLE = keccak256("ZUSD_MINT_OPERATOR");
@@ -42,23 +43,24 @@ contract ZUSDReserveController is ZControllerRoles {
     uint64 public attestedAt;
     uint64 public validUntil;
     uint256 public verifiedReserveUnits;
+    uint256 public reserveOutflowSinceAttestation;
     bytes32 public attestationHash;
 
     uint64 public mintPausedUntil;
     uint64 public redemptionPausedUntil;
     uint256 public redemptionNonce;
+    uint256 public activeRedemptions;
 
     mapping(bytes32 hash => bool used) public usedReserveAttestation;
+    mapping(bytes32 referenceHash => bool used) public usedSettlementReference;
     mapping(bytes32 claimId => RedemptionClaim claim) public redemptionClaim;
     mapping(bytes32 claimId => bytes32 settlementRefHash) public settlementReference;
 
     event ReserveAttested(
-        uint64 indexed epoch,
-        uint256 verifiedReserveUnits,
-        bytes32 indexed attestationHash,
-        uint64 validUntil
+        uint64 indexed epoch, uint256 verifiedReserveUnits, bytes32 indexed attestationHash, uint64 validUntil
     );
-    event ReserveDeficit(uint64 indexed epoch, uint256 verifiedReserveUnits, uint256 totalSupply);
+    event ReserveDeficit(uint64 indexed epoch, uint256 effectiveReserveUnits, uint256 totalSupply);
+    event ReserveOutflowRecorded(bytes32 indexed claimId, uint256 amount, uint256 cumulativeOutflow);
     event MintedAgainstReserve(address indexed to, uint256 amount, uint64 indexed epoch);
     event RedemptionRequested(bytes32 indexed claimId, address indexed requester, uint256 amount);
     event RedemptionSettled(bytes32 indexed claimId, bytes32 settlementRefHash);
@@ -88,12 +90,20 @@ contract ZUSDReserveController is ZControllerRoles {
         return block.timestamp < redemptionPausedUntil;
     }
 
-    function attestReserve(
-        uint64 epoch,
-        uint256 reserveUnits,
-        bytes32 evidenceHash,
-        uint64 expiresAt
-    ) external onlyRole(RESERVE_ATTESTOR_ROLE) tokenInitialized {
+    function effectiveReserveUnits() public view returns (uint256) {
+        if (reserveOutflowSinceAttestation >= verifiedReserveUnits) return 0;
+        return verifiedReserveUnits - reserveOutflowSinceAttestation;
+    }
+
+    function canRelinquishControl() public view override returns (bool) {
+        return activeRedemptions == 0;
+    }
+
+    function attestReserve(uint64 epoch, uint256 reserveUnits, bytes32 evidenceHash, uint64 expiresAt)
+        external
+        onlyRole(RESERVE_ATTESTOR_ROLE)
+        activeTokenController
+    {
         if (epoch <= reserveEpoch) revert InvalidEpoch();
         if (evidenceHash == bytes32(0) || expiresAt <= block.timestamp) revert InvalidAttestation();
         if (usedReserveAttestation[evidenceHash]) revert AttestationReplay();
@@ -101,6 +111,7 @@ contract ZUSDReserveController is ZControllerRoles {
         usedReserveAttestation[evidenceHash] = true;
         reserveEpoch = epoch;
         verifiedReserveUnits = reserveUnits;
+        reserveOutflowSinceAttestation = 0;
         attestationHash = evidenceHash;
         attestedAt = uint64(block.timestamp);
         validUntil = expiresAt;
@@ -115,14 +126,14 @@ contract ZUSDReserveController is ZControllerRoles {
     function mintAgainstReserve(address to, uint256 amount, uint64 epoch)
         external
         onlyRole(MINT_OPERATOR_ROLE)
-        tokenInitialized
+        activeTokenController
     {
         if (mintPaused()) revert OperationPaused();
         if (amount == 0 || to == address(0)) revert InvalidAmount();
-        if (epoch != reserveEpoch || block.timestamp > validUntil) revert AttestationExpired();
+        if (epoch != reserveEpoch || block.timestamp >= validUntil) revert AttestationExpired();
 
         IZControlledToken controlledToken = IZControlledToken(token);
-        if (controlledToken.totalSupply() + amount > verifiedReserveUnits) revert BackingExceeded();
+        if (controlledToken.totalSupply() + amount > effectiveReserveUnits()) revert BackingExceeded();
 
         controlledToken.controllerMint(to, amount);
         emit MintedAgainstReserve(to, amount, epoch);
@@ -130,7 +141,7 @@ contract ZUSDReserveController is ZControllerRoles {
 
     function requestRedemption(uint256 amount, bytes32 destinationRefHash)
         external
-        tokenInitialized
+        activeTokenController
         returns (bytes32 claimId)
     {
         if (redemptionPaused()) revert OperationPaused();
@@ -157,6 +168,7 @@ contract ZUSDReserveController is ZControllerRoles {
         claim.destinationRefHash = destinationRefHash;
         claim.requestedAt = uint64(block.timestamp);
         claim.state = RedemptionState.REQUESTED;
+        activeRedemptions += 1;
 
         if (!IZControlledToken(token).transferFrom(msg.sender, address(this), amount)) revert InvalidClaim();
         emit RedemptionRequested(claimId, msg.sender, amount);
@@ -165,30 +177,46 @@ contract ZUSDReserveController is ZControllerRoles {
     function confirmSettlement(bytes32 claimId, bytes32 settlementRefHash)
         external
         onlyRole(SETTLEMENT_OPERATOR_ROLE)
+        activeTokenController
     {
         if (settlementRefHash == bytes32(0)) revert InvalidClaim();
+        if (usedSettlementReference[settlementRefHash]) revert SettlementReplay();
+        if (block.timestamp >= validUntil) revert AttestationExpired();
+
         RedemptionClaim storage claim = redemptionClaim[claimId];
         if (claim.state != RedemptionState.REQUESTED) revert InvalidClaimState();
+        if (claim.amount > effectiveReserveUnits()) revert BackingExceeded();
 
+        usedSettlementReference[settlementRefHash] = true;
+        reserveOutflowSinceAttestation += claim.amount;
         claim.state = RedemptionState.SETTLED;
         settlementReference[claimId] = settlementRefHash;
+
+        uint256 supply = IZControlledToken(token).totalSupply();
+        uint256 effective = effectiveReserveUnits();
+        if (effective < supply) {
+            emit ReserveDeficit(reserveEpoch, effective, supply);
+        }
+        emit ReserveOutflowRecorded(claimId, claim.amount, reserveOutflowSinceAttestation);
         emit RedemptionSettled(claimId, settlementRefHash);
     }
 
-    function finalizeRedemptionBurn(bytes32 claimId) external tokenInitialized {
+    function finalizeRedemptionBurn(bytes32 claimId) external activeTokenController {
         RedemptionClaim storage claim = redemptionClaim[claimId];
         if (claim.state != RedemptionState.SETTLED) revert InvalidClaimState();
 
         claim.state = RedemptionState.BURNED;
+        activeRedemptions -= 1;
         IZControlledToken(token).controllerBurnEscrow(claim.amount);
         emit RedemptionBurned(claimId, claim.amount);
     }
 
-    function cancelRedemption(bytes32 claimId) external tokenInitialized {
+    function cancelRedemption(bytes32 claimId) external activeTokenController {
         RedemptionClaim storage claim = redemptionClaim[claimId];
         if (claim.state != RedemptionState.REQUESTED || claim.requester != msg.sender) revert InvalidClaimState();
 
         claim.state = RedemptionState.CANCELLED;
+        activeRedemptions -= 1;
         if (!IZControlledToken(token).transfer(msg.sender, claim.amount)) revert InvalidClaim();
         emit RedemptionCancelled(claimId);
     }
