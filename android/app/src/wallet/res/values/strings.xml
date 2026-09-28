@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ZEVARYQ Wallet</string>
+    <string name="title_activity_main">ZEVARYQ Wallet</string>
+    <string name="package_name">com.kriptoaman.wallet</string>
+    <string name="custom_url_scheme">com.kriptoaman.wallet</string>
+    <string name="offline_title">ZEVARYQ Wallet sedang offline</string>
+    <string name="offline_message">Koneksi internet diperlukan untuk sinkronisasi ZEVARYQ Mainnet, saldo, dan Explorer. Setelah jaringan tersedia, pilih Coba lagi.</string>
+</resources>
