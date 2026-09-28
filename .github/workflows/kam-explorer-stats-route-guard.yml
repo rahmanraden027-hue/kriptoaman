@@ -63,6 +63,54 @@ jobs:
           if grep -Eqi 'amount in ETH|>ETH<' "$BODY"; then healthy=false; fi
           if ! grep -Eqi '^x-kam-explorer-stats-version: *2' "$HEADERS"; then healthy=false; fi
 
+          TX_JSON="$(mktemp)"
+          BLOCKS_JSON="$(mktemp)"
+          trap 'rm -f "$BODY" "$HEADERS" "$TX_JSON" "$BLOCKS_JSON"' EXIT
+          if ! curl -fsS --max-time 20 'https://explorer.kriptoaman.com/api/v2/transactions' -o "$TX_JSON"; then healthy=false; fi
+          if ! curl -fsS --max-time 20 'https://explorer.kriptoaman.com/api/v2/blocks' -o "$BLOCKS_JSON"; then healthy=false; fi
+          TX="$(python3 - "$TX_JSON" <<'PY'
+          import json,sys
+          try:
+              d=json.load(open(sys.argv[1], encoding='utf-8')); items=d.get('items',[])
+              print((items[0].get('hash') or '') if items else '')
+          except Exception:
+              print('')
+          PY
+          )"
+          BLOCK="$(python3 - "$BLOCKS_JSON" <<'PY'
+          import json,sys
+          try:
+              d=json.load(open(sys.argv[1], encoding='utf-8')); items=d.get('items',[])
+              print(items[0].get('height','') if items else '')
+          except Exception:
+              print('')
+          PY
+          )"
+          ADDRESS="$(python3 - "$BLOCKS_JSON" <<'PY'
+          import json,sys
+          try:
+              d=json.load(open(sys.argv[1], encoding='utf-8')); items=d.get('items',[])
+              print((((items[0].get('miner') or {}).get('hash')) or '') if items else '')
+          except Exception:
+              print('')
+          PY
+          )"
+          probe_detail() {
+            local label="$1" path="$2"
+            if [ -z "$path" ]; then
+              echo "${label}=unavailable_no_indexed_source"
+              healthy=false
+              return
+            fi
+            local code
+            code="$(curl -L -sS -o /dev/null -w '%{http_code}' --max-time 20 "https://explorer.kriptoaman.com$path" || true)"
+            echo "${label}_http=$code"
+            if [ "$code" != '200' ]; then healthy=false; fi
+          }
+          probe_detail transaction_detail "/tx/$TX"
+          probe_detail block_detail "/block/$BLOCK"
+          probe_detail address_detail "/address/$ADDRESS"
+
           if [[ "$healthy" == "true" ]]; then
             echo 'drift=false' >> "$GITHUB_OUTPUT"
             echo 'stats_route=healthy'
@@ -82,6 +130,39 @@ jobs:
           set -euo pipefail
           chmod +x scripts/deploy-kam-explorer-v2.sh
           bash scripts/deploy-kam-explorer-v2.sh
+
+      - name: Verify dynamic detail routes after drift healing
+        shell: bash
+        run: |
+          set -euo pipefail
+          TX_JSON="$(mktemp)"
+          BLOCKS_JSON="$(mktemp)"
+          trap 'rm -f "$TX_JSON" "$BLOCKS_JSON"' EXIT
+          curl -fsS --retry 4 --retry-delay 2 --retry-all-errors --max-time 20             'https://explorer.kriptoaman.com/api/v2/transactions' -o "$TX_JSON"
+          curl -fsS --retry 4 --retry-delay 2 --retry-all-errors --max-time 20             'https://explorer.kriptoaman.com/api/v2/blocks' -o "$BLOCKS_JSON"
+          TX="$(python3 - "$TX_JSON" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1], encoding='utf-8')); items=d.get('items',[])
+          print((items[0].get('hash') or '') if items else '')
+          PY
+          )"
+          BLOCK="$(python3 - "$BLOCKS_JSON" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1], encoding='utf-8')); items=d.get('items',[])
+          print(items[0].get('height','') if items else '')
+          PY
+          )"
+          ADDRESS="$(python3 - "$BLOCKS_JSON" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1], encoding='utf-8')); items=d.get('items',[])
+          print((((items[0].get('miner') or {}).get('hash')) or '') if items else '')
+          PY
+          )"
+          test -n "$TX" && test -n "$BLOCK" && test -n "$ADDRESS"
+          curl -L -fsS --retry 4 --retry-delay 2 --retry-all-errors --max-time 20 "https://explorer.kriptoaman.com/tx/$TX" >/dev/null
+          curl -L -fsS --retry 4 --retry-delay 2 --retry-all-errors --max-time 20 "https://explorer.kriptoaman.com/block/$BLOCK" >/dev/null
+          curl -L -fsS --retry 4 --retry-delay 2 --retry-all-errors --max-time 20 "https://explorer.kriptoaman.com/address/$ADDRESS" >/dev/null
+          echo 'dynamic_detail_routes=healthy'
 
       - name: Probe Explorer canonical indexing signals
         id: seo_probe
