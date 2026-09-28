@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 
 interface IZControlledToken {
     function controller() external view returns (address);
+    function pendingController() external view returns (address);
     function governanceSafe() external view returns (address);
     function totalSupply() external view returns (uint256);
     function transfer(address to, uint256 amount) external returns (bool);
@@ -63,6 +64,14 @@ abstract contract ZControllerRoles {
         _;
     }
 
+    modifier activeTokenController() {
+        address boundToken = token;
+        if (boundToken == address(0) || IZControlledToken(boundToken).controller() != address(this)) {
+            revert InvalidTokenBinding();
+        }
+        _;
+    }
+
     function roleAccount(bytes32 role) external view returns (address) {
         return _roleAccount[role];
     }
@@ -72,11 +81,18 @@ abstract contract ZControllerRoles {
         if (token_ == address(0) || token_.code.length == 0) revert InvalidTokenBinding();
 
         IZControlledToken candidate = IZControlledToken(token_);
-        if (candidate.controller() != address(this)) revert InvalidTokenBinding();
         if (candidate.governanceSafe() != governanceSafe) revert InvalidTokenBinding();
+
+        address current = candidate.controller();
+        address pending = candidate.pendingController();
+        if (current != address(this) && pending != address(this)) revert InvalidTokenBinding();
 
         token = token_;
         emit TokenInitialized(token_);
+    }
+
+    function canRelinquishControl() public view virtual returns (bool) {
+        return true;
     }
 
     function scheduleRoleChange(bytes32 role, address nextAccount) external onlyGovernance {
