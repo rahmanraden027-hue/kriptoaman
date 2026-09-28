@@ -12,6 +12,8 @@ const androidActivityLayout = await readFile(new URL('../android/app/src/main/re
 const androidBuild = await readFile(new URL('../android/app/build.gradle', import.meta.url), 'utf8');
 const androidVariables = await readFile(new URL('../android/variables.gradle', import.meta.url), 'utf8');
 const capacitorConfig = JSON.parse(await readFile(new URL('../capacitor.config.json', import.meta.url), 'utf8'));
+const platformCapacitorConfig = JSON.parse(await readFile(new URL('../android/app/src/platform/assets/capacitor.config.json', import.meta.url), 'utf8'));
+const walletCapacitorConfig = JSON.parse(await readFile(new URL('../android/app/src/wallet/assets/capacitor.config.json', import.meta.url), 'utf8'));
 
 test('PWA manifest is aligned with Android 1.5.2 release identity', () => {
   assert.equal(manifest.short_name, 'KriptoAman');
