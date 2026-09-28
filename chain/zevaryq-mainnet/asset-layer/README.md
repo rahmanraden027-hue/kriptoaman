@@ -1,6 +1,6 @@
 # ZEVARYQ Asset Layer v1
 
-Status: **SPECIFICATION ONLY / NOT DEPLOYED**
+Status: **IMPLEMENTATION CANDIDATE v0.1 / NOT DEPLOYED**
 
 Chain: ZEVARYQ Mainnet  
 Chain ID: 22028 (`0x560c`)
@@ -11,7 +11,7 @@ The Asset Layer defines three first-party financial representations for the ZEVA
 - **zBTC** — Bitcoin representation on ZEVARYQ, 8 decimals, mintable only against verified locked BTC.
 - **zETH** — Ethereum representation on ZEVARYQ, 18 decimals, mintable only against verified locked ETH.
 
-This directory intentionally contains specifications and interfaces only. It does **not** authorize or perform deployment, minting, bridging, custody, liquidity creation, treasury movement, or public trading.
+This directory contains the reviewed specification plus a source-only implementation candidate and Foundry tests. It does **not** authorize or perform deployment, minting on mainnet, bridging, custody, liquidity creation, treasury movement, or public trading.
 
 ## Naming policy
 
@@ -32,7 +32,7 @@ Issuer assets may only be displayed with issuer/bridge provenance after a legiti
 9. Emergency controls are scoped and time-bounded.
 10. Liquidity and market price are outside token contracts.
 
-See [SMART_CONTRACT_SPEC_V1.md](./SMART_CONTRACT_SPEC_V1.md) for the normative specification.
+See [SMART_CONTRACT_SPEC_V1.md](./SMART_CONTRACT_SPEC_V1.md) for the normative specification. Candidate contracts live under `contracts/`; no deployment script is permitted in this directory while authorization remains closed.
 
 Current state:
 
