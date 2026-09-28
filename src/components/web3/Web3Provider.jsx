@@ -277,13 +277,31 @@ export function Web3Provider({ children }) {
   useEffect(() => {
     const activeProvider = providerRef.current || window.ethereum;
     if (!activeProvider) return;
-    const handleAccounts = (accounts) => {
-      if (accounts.length === 0) disconnectWallet();
-      else { setAccount(accounts[0]); refreshBalance(accounts[0], chainId); }
+    const handleAccounts = async (accounts) => {
+      if (accounts.length === 0) {
+        disconnectWallet();
+        return;
+      }
+      const nextAccount = accounts[0];
+      setAccount(nextAccount);
+      try {
+        const viem = await getViem();
+        const cId = chainId || Number(await activeProvider.request({ method: 'eth_chainId' }));
+        const chain = await resolveChain(cId);
+        setWalletClient(viem.createWalletClient({ account: nextAccount, chain, transport: viem.custom(activeProvider) }));
+        refreshBalance(nextAccount, cId);
+      } catch {
+        refreshBalance(nextAccount, chainId);
+      }
     };
-    const handleChain = (chainIdHex) => {
-      const cId = parseInt(chainIdHex, 16);
+    const handleChain = async (chainIdHex) => {
+      const cId = typeof chainIdHex === 'string' ? parseInt(chainIdHex, 16) : Number(chainIdHex);
       setChainId(cId);
+      try {
+        const viem = await getViem();
+        const chain = await resolveChain(cId);
+        if (account) setWalletClient(viem.createWalletClient({ account, chain, transport: viem.custom(activeProvider) }));
+      } catch {}
       refreshBalance(account, cId);
     };
     activeProvider.on('accountsChanged', handleAccounts);
@@ -292,7 +310,7 @@ export function Web3Provider({ children }) {
       activeProvider.removeListener('accountsChanged', handleAccounts);
       activeProvider.removeListener('chainChanged', handleChain);
     };
-  }, [disconnectWallet, refreshBalance, account, chainId]);
+  }, [disconnectWallet, refreshBalance, account, chainId, getViem, resolveChain]);
 
   return (
     <Web3Context.Provider value={{
