@@ -1,0 +1,223 @@
+name: ZVQ Explorer Identity Drift Repair
+
+on:
+  pull_request:
+    paths:
+      - "scripts/deploy-zvq-explorer-identity-drift.sh"
+      - ".github/workflows/zvq-explorer-identity-drift-repair.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/deploy-zvq-explorer-identity-drift.sh"
+      - ".github/workflows/zvq-explorer-identity-drift-repair.yml"
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type DEPLOY-ZVQ-IDENTITY to deploy only api-docs.html and validators.html"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zevaryq-explorer-production-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate exact-file scope and source identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/deploy-zvq-explorer-identity-drift.sh
+          grep -Fq 'data-kam-api-version="1.0.0"' explorer-dashboard/api-docs.html
+          grep -Fq 'API · ZVQ Explorer' explorer-dashboard/api-docs.html
+          grep -Fq 'ZEVARYQ Mainnet' explorer-dashboard/api-docs.html
+          grep -Fq 'data-kam-validators-version="1.0.0"' explorer-dashboard/validators.html
+          grep -Fq 'ZVQ Proposer Observatory' explorer-dashboard/validators.html
+          grep -Fq 'ZEVARYQ Mainnet' explorer-dashboard/validators.html
+          ! grep -Eq 'KAM NETWORK|API · KAM Explorer|<strong>KAM Explorer</strong>' explorer-dashboard/api-docs.html
+          ! grep -Eq 'KAM NETWORK|<strong>KAM Explorer</strong>' explorer-dashboard/validators.html
+      - name: Enforce repair safety boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=scripts/deploy-zvq-explorer-identity-drift.sh
+          grep -Fq 'api-docs.html validators.html' "$file"
+          grep -Fq 'try_files /kam-dashboard/api-docs.html =404' "$file"
+          grep -Fq 'try_files /kam-dashboard/validators.html =404' "$file"
+          grep -Fq 'nginx template hash drift' "$file"
+          grep -Fq 'rolling back exact two files' "$file"
+          ! grep -Eqi 'genesis|private.?key|validator.?key|cloudflare|ufw|iptables|docker compose (up|down|restart)|eth_sendTransaction|personal_sign|eth_sign|wallet_' "$file"
+
+  public_before:
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.confirm == 'DEPLOY-ZVQ-IDENTITY')
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Read-only production preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          base=https://explorer.kriptoaman.com
+          for path in / /blocks /txs; do
+            curl -fsS --connect-timeout 8 --max-time 22 "$base$path?preflight=$GITHUB_RUN_ID" -o /tmp/page.html
+            grep -Fq 'ZEVARYQ' /tmp/page.html
+          done
+          curl -fsS --connect-timeout 8 --max-time 18 "$base/api/v2/blocks" | jq -e '(.items|type=="array") and (.items|length>0)' >/dev/null
+          curl -fsS --connect-timeout 8 --max-time 18 "$base/api/v2/transactions" | jq -e '(.items|type=="array")' >/dev/null
+          rpc(){
+            endpoint=$1
+            method=$2
+            curl -fsS --connect-timeout 8 --max-time 18 -H 'Content-Type: application/json'               --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"$method\",\"params\":[]}" "$endpoint"
+          }
+          test "$(rpc "$base/rpc" eth_chainId | jq -r '.result')" = 0x560c
+          test "$(rpc https://rpc.kriptoaman.com eth_chainId | jq -r '.result')" = 0x560c
+          rpc "$base/rpc" eth_blockNumber | jq -e '.result|test("^0x[0-9a-fA-F]+$")' >/dev/null
+          rpc https://rpc.kriptoaman.com eth_blockNumber | jq -e '.result|test("^0x[0-9a-fA-F]+$")' >/dev/null
+          for endpoint in "$base/rpc" https://rpc.kriptoaman.com; do
+            for method in eth_sendRawTransaction admin_peers; do
+              status=$(curl -sS --connect-timeout 8 --max-time 18 -o /dev/null -w '%{http_code}'                 -H 'Content-Type: application/json'                 --data "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"$method\",\"params\":[]}" "$endpoint")
+              test "$status" = 403
+            done
+          done
+          echo 'zvq_identity_public_before=PASS'
+
+  deploy:
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.confirm == 'DEPLOY-ZVQ-IDENTITY')
+    needs: public_before
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 15
+    outputs:
+      stamp: ${{ steps.apply.outputs.stamp }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Backup and atomically deploy only api-docs.html and validators.html
+        id: apply
+        shell: bash
+        run: |
+          set -euo pipefail
+          output=$(sudo bash scripts/deploy-zvq-explorer-identity-drift.sh) || {
+            echo '::error::Exact-file deployment failed; script attempted automatic rollback'
+            exit 1
+          }
+          printf '%s\n' "$output"
+          stamp=$(printf '%s\n' "$output" | sed -n 's/^ZVQ_IDENTITY_DEPLOY_STAMP=//p' | tail -1)
+          echo "stamp=$stamp" >> "$GITHUB_OUTPUT"
+
+  public_after:
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.confirm == 'DEPLOY-ZVQ-IDENTITY')
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Independent live 10-gate verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          base=https://explorer.kriptoaman.com
+          fetch(){
+            path=$1
+            out=$2
+            curl -fsS --connect-timeout 8 --max-time 22 -H 'Cache-Control: no-cache' "$base$path?verify=$GITHUB_RUN_ID" -o "$out"
+          }
+
+          fetch / /tmp/root.html
+          grep -Fq 'data-zevaryq-explorer-version' /tmp/root.html
+          grep -Fq 'ZEVARYQ EXPLORER' /tmp/root.html
+
+          fetch /blocks /tmp/blocks.html
+          grep -Fq 'ZEVARYQ Explorer' /tmp/blocks.html
+
+          fetch /txs /tmp/txs.html
+          grep -Fq 'ZEVARYQ Explorer' /tmp/txs.html
+
+          fetch /validators /tmp/validators.html
+          grep -Fq 'data-kam-validators-version="1.0.0"' /tmp/validators.html
+          grep -Fq 'ZVQ Proposer Observatory' /tmp/validators.html
+          grep -Fq 'ZEVARYQ Mainnet' /tmp/validators.html
+          ! grep -Eq 'KAM NETWORK|<strong>KAM Explorer</strong>' /tmp/validators.html
+
+          fetch /api-docs /tmp/api-docs.html
+          grep -Fq 'data-kam-api-version="1.0.0"' /tmp/api-docs.html
+          grep -Fq 'API · ZVQ Explorer' /tmp/api-docs.html
+          grep -Fq 'ZEVARYQ Mainnet' /tmp/api-docs.html
+          ! grep -Eq 'KAM NETWORK|API · KAM Explorer|<strong>KAM Explorer</strong>' /tmp/api-docs.html
+
+          curl -fsS --connect-timeout 8 --max-time 18 "$base/api/v2/blocks"             | tee /tmp/blocks.json | jq -e '(.items|type=="array") and (.items|length>0)' >/dev/null
+          curl -fsS --connect-timeout 8 --max-time 18 "$base/api/v2/transactions"             | tee /tmp/transactions.json | jq -e '(.items|type=="array")' >/dev/null
+
+          rpc(){
+            endpoint=$1
+            method=$2
+            curl -fsS --connect-timeout 8 --max-time 18 -H 'Content-Type: application/json'               --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"$method\",\"params\":[]}" "$endpoint"
+          }
+          for endpoint in "$base/rpc" https://rpc.kriptoaman.com; do
+            test "$(rpc "$endpoint" eth_chainId | jq -r '.result')" = 0x560c
+          done
+
+          e1=$(rpc "$base/rpc" eth_blockNumber | jq -r '.result')
+          c1=$(rpc https://rpc.kriptoaman.com eth_blockNumber | jq -r '.result')
+          python3 - "$e1" "$c1" <<'PY'
+          import sys
+          for value in sys.argv[1:]:
+              assert value.startswith('0x') and int(value,16) > 0
+          PY
+          sleep 20
+          e2=$(rpc "$base/rpc" eth_blockNumber | jq -r '.result')
+          c2=$(rpc https://rpc.kriptoaman.com eth_blockNumber | jq -r '.result')
+          python3 - "$e1" "$e2" "$c1" "$c2" <<'PY'
+          import sys
+          e1,e2,c1,c2=[int(x,16) for x in sys.argv[1:]]
+          assert e2 > e1, (e1,e2)
+          assert c2 > c1, (c1,c2)
+          print(f'explorer_head={e1}->{e2} canonical_head={c1}->{c2}')
+          PY
+
+          for endpoint in "$base/rpc" https://rpc.kriptoaman.com; do
+            for method in eth_sendRawTransaction admin_peers; do
+              status=$(curl -sS --connect-timeout 8 --max-time 18 -o /dev/null -w '%{http_code}'                 -H 'Content-Type: application/json'                 --data "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"$method\",\"params\":[]}" "$endpoint")
+              test "$status" = 403
+            done
+          done
+          echo 'zvq_identity_live_gate=PASS'
+
+  rollback_on_failure:
+    if: always() && needs.deploy.result == 'success' && needs.public_after.result != 'success' && needs.deploy.outputs.stamp != ''
+    needs: [deploy, public_after]
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Roll back the exact two files only
+        env:
+          ROLLBACK_STAMP: ${{ needs.deploy.outputs.stamp }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo bash scripts/deploy-zvq-explorer-identity-drift.sh --rollback "$ROLLBACK_STAMP"
+
+  release_gate:
+    if: always() && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    needs: [public_before, deploy, public_after, rollback_on_failure]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require full live success with no rollback
+        env:
+          BEFORE: ${{ needs.public_before.result }}
+          DEPLOY: ${{ needs.deploy.result }}
+          AFTER: ${{ needs.public_after.result }}
+          ROLLBACK: ${{ needs.rollback_on_failure.result }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$BEFORE" = success
+          test "$DEPLOY" = success
+          test "$AFTER" = success
+          test "$ROLLBACK" = skipped
+          echo 'zvq_identity_release_gate=PASS'
