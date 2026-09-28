@@ -13,3 +13,91 @@
 .zv-app-badge strong{font-size:13px;line-height:1.1;color:#f4f7fb}.zv-app-badge small{font-size:10px;color:#9fb3c8}
 .zv-wallet-shell:before{content:'';position:fixed;pointer-events:none;inset:0;background:radial-gradient(circle at 15% 12%,rgba(217,164,65,.08),transparent 18rem),radial-gradient(circle at 85% 30%,rgba(45,140,255,.12),transparent 22rem);z-index:0}
 .zv-wallet-content,.zv-bottom-nav{position:relative}
+
+
+/* Android/mobile production hardening: safe areas + no horizontal clipping */
+.zv-wallet-shell{
+  width:100%;
+  max-width:100vw;
+  overflow-x:hidden;
+  overflow-x:clip;
+  box-sizing:border-box;
+  padding-bottom:max(108px,calc(88px + env(safe-area-inset-bottom,0px)));
+}
+.zv-wallet-content{
+  width:100%;
+  max-width:720px;
+  min-width:0;
+  box-sizing:border-box;
+  padding-top:max(40px,calc(env(safe-area-inset-top,0px) + 16px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.zv-wallet-content>*,
+.zv-card,
+.zv-hero,
+.zv-header,
+.zv-app-badge{
+  min-width:0;
+  max-width:100%;
+  box-sizing:border-box;
+}
+.zv-header{overflow:hidden}
+.zv-header-actions{flex:0 0 auto;min-width:0}
+.zv-button-primary,
+.zv-button-secondary{
+  min-width:0;
+  max-width:100%;
+  white-space:normal;
+  line-height:1.2;
+  text-align:center;
+}
+.zv-network-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.zv-network-grid>*{min-width:0}
+.zv-network-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+.zv-network-actions>*{width:100%;min-width:0}
+.zv-action-grid{grid-template-columns:repeat(4,minmax(0,1fr));min-width:0}
+.zv-action-item{min-width:0;max-width:100%;overflow:hidden}
+.zv-action-item>span{max-width:100%}
+.zv-asset-row{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) minmax(72px,auto);
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
+.zv-asset-row>*{min-width:0}
+.zv-asset-row>div:last-child{max-width:100%;overflow-wrap:anywhere}
+.zv-bottom-nav{
+  box-sizing:border-box;
+  padding-bottom:max(10px,env(safe-area-inset-bottom,0px));
+}
+@media(max-width:1023px){
+  .zv-wallet-shell:after{
+    content:'';
+    position:fixed;
+    z-index:70;
+    top:0;
+    left:0;
+    right:0;
+    height:max(24px,env(safe-area-inset-top,0px));
+    pointer-events:none;
+    background:linear-gradient(180deg,#071522 0%,rgba(7,21,34,.98) 72%,rgba(7,21,34,.9) 100%);
+  }
+}
+@media(max-width:420px){
+  .zv-network-actions{grid-template-columns:1fr}
+  .zv-header-actions{gap:2px}
+  .zv-icon-button{width:38px;height:38px;border-radius:12px}
+  .zv-app-badge{padding:9px 10px;column-gap:8px}
+  .zv-action-grid{gap:8px}
+}
+@media(max-width:380px){
+  .zv-asset-row{grid-template-columns:auto minmax(0,1fr)}
+  .zv-asset-row>div:last-child{grid-column:2;text-align:left}
+  .zv-action-item>span{width:50px;height:50px}
+}
+@media(min-width:1024px){
+  .zv-wallet-shell{padding-bottom:112px}
+  .zv-bottom-nav{padding-bottom:0}
+}
