@@ -76,6 +76,27 @@ test('v0.2 hardening prevents backing reuse and unsafe controller migration', ()
   assert.match(token, /candidate\.token\(\) != address\(this\)/);
 });
 
+
+test('pre-deployment readiness package remains fail-closed', () => {
+  const readiness = JSON.parse(read('deployment-readiness-v1.json'));
+
+  assert.equal(readiness.network.chainId, 22028);
+  assert.equal(readiness.source.sourceOnly, true);
+  assert.equal(readiness.authorization.assetLayerAuditComplete, false);
+  assert.equal(readiness.authorization.assetLayerDeploymentAuthorized, false);
+  assert.equal(readiness.authorization.reserveCustodyProven, false);
+  assert.equal(readiness.authorization.btcBridgeBackingProven, false);
+  assert.equal(readiness.authorization.ethBridgeBackingProven, false);
+  assert.equal(readiness.authorization.liquidityAuthorized, false);
+  assert.equal(readiness.authorization.publicTradingAuthorized, false);
+
+  assert.equal(readiness.gates.governance, 'hold');
+  assert.equal(readiness.gates.zusdBacking, 'hold');
+  assert.equal(readiness.gates.zbtcBacking, 'hold');
+  assert.equal(readiness.gates.zethBacking, 'hold');
+  assert.equal(readiness.gates.deploymentRehearsal, 'hold');
+});
+
 test('production authorization flags remain closed', () => {
   const readme = read('README.md');
   const spec = read('SMART_CONTRACT_SPEC_V1.md');

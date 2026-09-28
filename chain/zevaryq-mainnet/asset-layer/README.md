@@ -39,7 +39,13 @@ Additional v0.2 hardening:
 - controller migration requires a contract-bound successor and zero outstanding obligations;
 - zero-value ERC-20 transfers remain compatible.
 
-See [SMART_CONTRACT_SPEC_V1.md](./SMART_CONTRACT_SPEC_V1.md) for the normative specification. Candidate contracts live under `contracts/`; no deployment script is permitted in this directory while authorization remains closed.
+See [SMART_CONTRACT_SPEC_V1.md](./SMART_CONTRACT_SPEC_V1.md) for the normative specification.
+
+Pre-deployment review package:
+- [AUDIT_HANDOFF_V1.md](./AUDIT_HANDOFF_V1.md)
+- [THREAT_MODEL_V1.md](./THREAT_MODEL_V1.md)
+- [DEPLOYMENT_READINESS_V1.md](./DEPLOYMENT_READINESS_V1.md)
+- [deployment-readiness-v1.json](./deployment-readiness-v1.json) Candidate contracts live under `contracts/`; no deployment script is permitted in this directory while authorization remains closed.
 
 Current state:
 
