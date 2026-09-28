@@ -5,8 +5,8 @@ import test from 'node:test';
 const source = await readFile(new URL('../functions/api/kam/network-status.js', import.meta.url), 'utf8');
 
 test('KAM public status uses a bounded fail-fast network probe', () => {
-  assert.match(source, /const NETWORK_PROBE_TIMEOUT_MS = 1100;/);
-  assert.match(source, /const WALLET_PROBE_TIMEOUT_MS = 1800;/);
+  assert.match(source, /const NETWORK_PROBE_TIMEOUT_MS = 4000;/);
+  assert.match(source, /const WALLET_PROBE_TIMEOUT_MS = 5000;/);
   assert.match(source, /async function rpcWithTimeout/);
   assert.match(source, /setTimeout\(\(\) => controller\.abort\(\), timeoutMs\)/);
   assert.match(source, /Promise\.all\(\[\s*rpcWithTimeout\('eth_chainId'\),\s*rpcWithTimeout\('eth_blockNumber'\)/);
