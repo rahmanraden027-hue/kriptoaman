@@ -1,0 +1,109 @@
+name: ZVQ RPC Production Allowlist Cutover
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/zvq-rpc-allowlist-gateway.mjs'
+      - 'scripts/deploy-zvq-rpc-sentry-allowlist.sh'
+      - 'tests/zvq-rpc-allowlist-gateway.test.mjs'
+      - '.github/workflows/zvq-rpc-production-allowlist-cutover.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/zvq-rpc-allowlist-gateway.mjs'
+      - 'scripts/deploy-zvq-rpc-sentry-allowlist.sh'
+      - '.github/workflows/zvq-rpc-production-allowlist-cutover.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zvq-rpc-production-allowlist-cutover
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Validate guarded cutover
+        run: |
+          set -euo pipefail
+          bash -n scripts/deploy-zvq-rpc-sentry-allowlist.sh
+          node --test tests/zvq-rpc-allowlist-gateway.test.mjs
+          ! grep -Eq '10\.[0-9]+\.[0-9]+\.[0-9]+' scripts/zvq-rpc-allowlist-gateway.mjs scripts/deploy-zvq-rpc-sentry-allowlist.sh
+
+  deploy:
+    if: github.event_name == 'push' && startsWith(github.event.head_commit.message, 'ZVQ RPC CUTOVER 20260929')
+    needs: validate
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - name: Preview sentry cutover
+        shell: bash
+        run: |
+          set -euo pipefail
+          scp -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new             scripts/deploy-zvq-rpc-sentry-allowlist.sh scripts/zvq-rpc-allowlist-gateway.mjs             root@206.189.36.15:/tmp/
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new             root@206.189.36.15             "ZVQ_RPC_CUTOVER_RUN_ID=$GITHUB_RUN_ID bash /tmp/deploy-zvq-rpc-sentry-allowlist.sh preview"
+      - name: Apply guarded allowlist cutover
+        shell: bash
+        run: |
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new             root@206.189.36.15             "ZVQ_RPC_CUTOVER_RUN_ID=$GITHUB_RUN_ID bash /tmp/deploy-zvq-rpc-sentry-allowlist.sh apply"
+
+  external-verify:
+    if: github.event_name == 'push' && startsWith(github.event.head_commit.message, 'ZVQ RPC CUTOVER 20260929')
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Verify public RPC, policy, CORS and Explorer
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          rpc_code() {
+            local method="$1" params="$2"
+            curl -sS --retry 2 --retry-all-errors --connect-timeout 8 --max-time 20               -o /tmp/rpc.json -w '%{http_code}'               -H 'Origin: https://explorer.kriptoaman.com'               -H 'Content-Type: application/json'               --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"$method\",\"params\":$params}"               https://rpc.kriptoaman.com/
+          }
+          test "$(rpc_code eth_chainId '[]')" = 200
+          test "$(jq -r '.result // empty' /tmp/rpc.json)" = 0x560c
+          test "$(rpc_code eth_blockNumber '[]')" = 200
+          a="$(jq -r '.result' /tmp/rpc.json)"
+          sleep 12
+          test "$(rpc_code eth_blockNumber '[]')" = 200
+          b="$(jq -r '.result' /tmp/rpc.json)"
+          test $((16#${b#0x})) -gt $((16#${a#0x}))
+          echo "public_blocks=$a->$b"
+          for method in admin_peers debug_traceTransaction eth_sendRawTransaction; do
+            params='[]'; test "$method" = eth_sendRawTransaction && params='["0x00"]'
+            code="$(rpc_code "$method" "$params")"
+            echo "public_blocked_method=$method http_code=$code"
+            test "$code" = 403
+          done
+          trusted="$(curl -sS -o /dev/null -w '%{http_code}' -X OPTIONS             -H 'Origin: https://explorer.kriptoaman.com'             -H 'Access-Control-Request-Method: POST'             -H 'Access-Control-Request-Headers: content-type'             https://rpc.kriptoaman.com/)"
+          untrusted="$(curl -sS -o /dev/null -w '%{http_code}' -X OPTIONS             -H 'Origin: https://attacker.example'             -H 'Access-Control-Request-Method: POST'             https://rpc.kriptoaman.com/)"
+          test "$trusted" = 204
+          test "$untrusted" = 403
+          test "$(curl -sS --max-time 15 -o /dev/null -w '%{http_code}' https://explorer.kriptoaman.com/)" = 200
+          curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks | jq -e '.items | type == "array"' >/dev/null
+          curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/transactions | jq -e '.items | type == "array"' >/dev/null
+          echo "zvq_external_production_gate=pass"
+
+  settle:
+    if: always() && needs.deploy.result == 'success'
+    needs: [deploy, external-verify]
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 8
+    steps:
+      - name: Commit or rollback cutover
+        shell: bash
+        run: |
+          set -euo pipefail
+          mode=rollback
+          test "${{ needs.external-verify.result }}" = success && mode=finalize
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new             root@206.189.36.15             "ZVQ_RPC_CUTOVER_RUN_ID=$GITHUB_RUN_ID bash /tmp/deploy-zvq-rpc-sentry-allowlist.sh $mode"
