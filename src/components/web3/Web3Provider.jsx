@@ -40,6 +40,7 @@ function chainParams(chainId) {
 
 export function Web3Provider({ children }) {
   const [account, setAccount] = useState(null);
+  const [accounts, setAccounts] = useState([]);
   const [chainId, setChainId] = useState(null);
   const [balance, setBalance] = useState('0');
   const [connecting, setConnecting] = useState(false);
@@ -96,8 +97,9 @@ export function Web3Provider({ children }) {
     setConnectionError('');
     try {
       const viem = await getViem();
-      const accounts = await selectedProvider.request({ method: options.silent ? 'eth_accounts' : 'eth_requestAccounts' });
-      if (!accounts?.length) {
+      const requestedAccounts = await selectedProvider.request({ method: options.silent ? 'eth_accounts' : 'eth_requestAccounts' });
+      const accounts = Array.from(new Set((requestedAccounts || []).map((item) => String(item)).filter(Boolean)));
+      if (!accounts.length) {
         if (options.silent) return;
         throw new Error('Wallet tidak memberikan akun publik.');
       }
@@ -106,6 +108,7 @@ export function Web3Provider({ children }) {
       const chain = await resolveChain(cId);
       const wClient = viem.createWalletClient({ account: accounts[0], chain, transport: viem.custom(selectedProvider) });
 
+      setAccounts(accounts);
       setAccount(accounts[0]);
       setChainId(cId);
       setWalletClient(wClient);
@@ -149,14 +152,16 @@ export function Web3Provider({ children }) {
       const provider = await getWalletConnectProvider();
       if (options.silent && !provider.session) return;
       if (!provider.session) await provider.connect();
-      const accounts = provider.accounts?.length
+      const requestedAccounts = provider.accounts?.length
         ? provider.accounts
         : await provider.request({ method: 'eth_accounts' });
-      if (!accounts?.length) throw new Error('WalletConnect tidak memberikan akun publik.');
+      const accounts = Array.from(new Set((requestedAccounts || []).map((item) => String(item)).filter(Boolean)));
+      if (!accounts.length) throw new Error('WalletConnect tidak memberikan akun publik.');
       const chainIdHex = await provider.request({ method: 'eth_chainId' });
       const cId = typeof chainIdHex === 'string' ? parseInt(chainIdHex, 16) : Number(chainIdHex);
       const viem = await getViem();
       const chain = await resolveChain(cId);
+      setAccounts(accounts);
       setAccount(accounts[0]);
       setChainId(cId);
       setWalletClient(viem.createWalletClient({ account: accounts[0], chain, transport: viem.custom(provider) }));
@@ -174,6 +179,7 @@ export function Web3Provider({ children }) {
   const disconnectWallet = useCallback(async () => {
     const activeProvider = providerRef.current;
     setAccount(null);
+    setAccounts([]);
     setChainId(null);
     setBalance('0');
     setWalletType(null);
@@ -224,6 +230,20 @@ export function Web3Provider({ children }) {
       return false;
     }
   }, []);
+
+  const selectAccount = useCallback(async (nextAddress) => {
+    const match = accounts.find((item) => item.toLowerCase() === String(nextAddress || '').toLowerCase());
+    if (!match) throw new Error('Address is not authorized by the connected wallet.');
+    const activeProvider = providerRef.current || window.ethereum;
+    if (!activeProvider) throw new Error('Wallet provider tidak tersedia.');
+    const viem = await getViem();
+    const cId = chainId || Number(await activeProvider.request({ method: 'eth_chainId' }));
+    const chain = await resolveChain(cId);
+    setAccount(match);
+    setWalletClient(viem.createWalletClient({ account: match, chain, transport: viem.custom(activeProvider) }));
+    await refreshBalance(match, cId);
+    return match;
+  }, [accounts, chainId, getViem, refreshBalance, resolveChain]);
 
   const sendTransaction = useCallback(async ({ to, value }) => {
     if (READ_ONLY_RELEASE) throw new Error('Transaksi dinonaktifkan pada rilis publik KriptoAman.');
@@ -277,12 +297,15 @@ export function Web3Provider({ children }) {
   useEffect(() => {
     const activeProvider = providerRef.current || window.ethereum;
     if (!activeProvider) return;
-    const handleAccounts = async (accounts) => {
-      if (accounts.length === 0) {
+    const handleAccounts = async (nextAccounts) => {
+      const normalized = Array.from(new Set((nextAccounts || []).map((item) => String(item)).filter(Boolean)));
+      if (normalized.length === 0) {
         disconnectWallet();
         return;
       }
-      const nextAccount = accounts[0];
+      setAccounts(normalized);
+      const preserved = account && normalized.some((item) => item.toLowerCase() === account.toLowerCase());
+      const nextAccount = preserved ? account : normalized[0];
       setAccount(nextAccount);
       try {
         const viem = await getViem();
@@ -314,10 +337,10 @@ export function Web3Provider({ children }) {
 
   return (
     <Web3Context.Provider value={{
-      account, chainId, balance, connecting, connectionError, walletType, walletClient, availableWallets,
+      account, accounts, chainId, balance, connecting, connectionError, walletType, walletClient, availableWallets,
       provider: walletClient, // backward compat alias
       signer: walletClient,   // backward compat alias
-      connectWallet, connectWalletConnect, disconnectWallet, switchChain, addZevaryqNetwork: () => switchChain(22028), sendTransaction, signMessage,
+      connectWallet, connectWalletConnect, disconnectWallet, selectAccount, switchChain, addZevaryqNetwork: () => switchChain(22028), sendTransaction, signMessage,
       refreshBalance: () => refreshBalance(account, chainId),
       isConnected: !!account,
       walletConnectConfigured: !!WALLETCONNECT_PROJECT_ID,
