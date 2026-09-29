@@ -48,12 +48,13 @@ test('economic calendar requires an explicit provider credential and does not us
   assert.doesNotMatch(endpoint, /guest:guest/);
 });
 
-test('Market V2 composes professional intelligence without removing KAM and crypto surfaces', async () => {
+test('primary Market V2 is crypto-only while legacy cross-asset modules remain isolated', async () => {
   const marketPage = await read('src/pages/MarketGlobal.jsx');
   const v2 = await read('src/components/market/GlobalMarketsHubV2.jsx');
   const panel = await read('src/components/market/GlobalMarketIntelligencePanel.jsx');
-  assert.match(marketPage, /GlobalMarketsHubV2/);
+  assert.match(marketPage, /FirstPartyCryptoIntelligenceStrip/);
   assert.match(marketPage, /MarketWithKAM/);
+  assert.doesNotMatch(marketPage, /GlobalMarketsHubV2|GlobalMarketIntelligencePanel/);
   assert.match(v2, /GlobalMarketsHub/);
   assert.match(v2, /GlobalMarketIntelligencePanel/);
   assert.match(panel, /Gold · Dollar · Crypto Context/);
