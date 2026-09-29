@@ -35,13 +35,30 @@ jobs:
           )
           test "${#methods[@]}" -ge 6
           payload() { jq -nc --arg m "$1" '{jsonrpc:"2.0",id:"final-gate",method:$m,params:[]}'; }
-          for method in "${methods[@]}"; do
-            body="$(payload "$method")"
-            public_code="$(curl -sS --connect-timeout 6 --max-time 15 -o /dev/null -w '%{http_code}' -H 'content-type: application/json' --data "$body" https://rpc.kriptoaman.com/)"
-            direct_code="$(curl --noproxy '*' --resolve rpc.kriptoaman.com:443:206.189.36.15 -sS --connect-timeout 6 --max-time 15 -o /dev/null -w '%{http_code}' -H 'content-type: application/json' --data "$body" https://rpc.kriptoaman.com/)"
-            echo "policy_method=$method public=$public_code direct_sni=$direct_code"
-            test "$public_code" = 403
-            test "$direct_code" = 403
+          for i in "${!methods[@]}"; do
+            method="${methods[$i]}"
+            params='[]'
+            # The first reviewed BLOCKED_METHODS entry is the write probe.
+            # Use the same intentionally invalid, non-signable marker as the official guarded workflow.
+            if [[ "$i" = 0 ]]; then params='["0x01"]'; fi
+            body="$(jq -nc --arg m "$method" --argjson p "$params" '{jsonrpc:"2.0",id:"final-gate",method:$m,params:$p}')"
+            public_body="$(mktemp)"; direct_body="$(mktemp)"
+            public_code="$(curl -sS --connect-timeout 6 --max-time 15 -o "$public_body" -w '%{http_code}' -H 'content-type: application/json' --data "$body" https://rpc.kriptoaman.com/)"
+            direct_code="$(curl --noproxy '*' --resolve rpc.kriptoaman.com:443:206.189.36.15 -sS --connect-timeout 6 --max-time 15 -o "$direct_body" -w '%{http_code}' -H 'content-type: application/json' --data "$body" https://rpc.kriptoaman.com/)"
+            for pair in "public:$public_code:$public_body" "direct_sni:$direct_code:$direct_body"; do
+              IFS=: read -r label code file <<<"$pair"
+              err_code="$(jq -r '.error.code // "none"' "$file" 2>/dev/null || echo malformed)"
+              err_msg="$(jq -r '.error.message // "none"' "$file" 2>/dev/null || echo malformed)"
+              echo "policy_method=$method target=$label http=$code rpc_error=$err_code message=$err_msg"
+              node --input-type=module - "$code" "$file" <<'NODE'
+              import fs from 'node:fs';
+              import { isAdminRpcBlocked } from './chain/kam-mainnet/scripts/rpc-security.mjs';
+              const status=Number(process.argv[2]);
+              const payload=JSON.parse(fs.readFileSync(process.argv[3],'utf8'));
+              if(!isAdminRpcBlocked(status,payload)) process.exit(1);
+NODE
+            done
+            rm -f "$public_body" "$direct_body"
           done
       - name: Verify direct-SNI identity and advancing blocks
         shell: bash
