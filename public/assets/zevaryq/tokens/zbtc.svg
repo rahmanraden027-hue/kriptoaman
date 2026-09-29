@@ -1,47 +1,61 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="t d">
-<title id="t">zBTC token icon</title><desc id="d">ZEVARYQ Bitcoin representation icon</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+<title id="title">zBTC premium token icon</title><desc id="desc">ZEVARYQ Bitcoin planned representation identity</desc>
+
   <defs>
-    <radialGradient id="bg" cx="50%" cy="42%" r="68%">
-      <stop offset="0" stop-color="#102b4b"/>
-      <stop offset="0.58" stop-color="#07182b"/>
-      <stop offset="1" stop-color="#020811"/>
+    <radialGradient id="bg" cx="50%" cy="40%" r="70%">
+      <stop offset="0" stop-color="#12365f"/>
+      <stop offset=".52" stop-color="#071b31"/>
+      <stop offset="1" stop-color="#020813"/>
     </radialGradient>
     <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#fff0a6"/>
-      <stop offset="0.28" stop-color="#f7c84f"/>
-      <stop offset="0.62" stop-color="#d99a18"/>
-      <stop offset="1" stop-color="#fff2ae"/>
+      <stop offset="0" stop-color="#fff4b5"/>
+      <stop offset=".22" stop-color="#ffd866"/>
+      <stop offset=".52" stop-color="#e2a42a"/>
+      <stop offset=".78" stop-color="#ffdf72"/>
+      <stop offset="1" stop-color="#b97308"/>
     </linearGradient>
-    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#5be7ff"/>
-      <stop offset="0.5" stop-color="#178cff"/>
-      <stop offset="1" stop-color="#00d5ff"/>
+    <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#91f7ff"/>
+      <stop offset=".38" stop-color="#22c7ff"/>
+      <stop offset="1" stop-color="#1670ff"/>
     </linearGradient>
     <linearGradient id="emerald" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#8bffe4"/>
-      <stop offset="1" stop-color="#00b987"/>
+      <stop offset="0" stop-color="#b9fff0"/>
+      <stop offset=".5" stop-color="#19e0bc"/>
+      <stop offset="1" stop-color="#009a78"/>
     </linearGradient>
-    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
-      <feGaussianBlur stdDeviation="7" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
-    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="2.5"/>
+    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="9" stdDeviation="8" flood-color="#000" flood-opacity=".55"/>
     </filter>
   </defs>
-  <circle cx="256" cy="256" r="238" fill="url(#bg)"/>
-  <circle cx="256" cy="256" r="229" fill="none" stroke="url(#gold)" stroke-width="18"/>
-  <circle cx="256" cy="256" r="207" fill="none" stroke="#188dff" stroke-width="5" filter="url(#glow)" opacity=".95"/>
-  <circle cx="256" cy="256" r="190" fill="none" stroke="#183b67" stroke-width="2" opacity=".9"/>
-  <path d="M256 44 l11 18 -11 18 -11-18z" fill="url(#emerald)" stroke="#f1c95f" stroke-width="3"/>
-  <path d="M256 432 l11 18 -11 18 -11-18z" fill="url(#emerald)" stroke="#f1c95f" stroke-width="3"/>
-  <ellipse cx="256" cy="259" rx="163" ry="61" fill="none" stroke="#ff8b1e" stroke-width="7" opacity=".55" transform="rotate(-9 256 259)" filter="url(#glow)"/>
-  <ellipse cx="256" cy="259" rx="166" ry="64" fill="none" stroke="url(#gold)" stroke-width="12" transform="rotate(-9 256 259)"/>
-  <rect x="190" y="126" width="30" height="262" rx="7" fill="url(#gold)"/>
-  <rect x="231" y="126" width="20" height="262" rx="6" fill="url(#gold)" opacity=".9"/>
-  <path d="M213 151 H292 C341 151 367 176 367 211 C367 241 347 261 317 268 C354 275 377 298 377 332 C377 374 344 395 291 395 H213 Z
-           M247 184 V246 H291 C317 246 332 236 332 215 C332 194 317 184 291 184 Z
-           M247 279 V360 H295 C326 360 342 347 342 320 C342 293 324 279 294 279 Z" fill="url(#gold)" stroke="#ff9a25" stroke-width="4" filter="url(#glow)" fill-rule="evenodd"/>
-  <path d="M146 166 H337 L203 347 H360" fill="none" stroke="#07182b" stroke-width="37" stroke-linejoin="miter"/>
-  <path d="M146 166 H337 L203 347 H360" fill="none" stroke="url(#gold)" stroke-width="25" stroke-linejoin="miter" filter="url(#glow)"/>
+  <circle cx="256" cy="256" r="239" fill="#02060c"/>
+  <circle cx="256" cy="256" r="228" fill="url(#bg)" stroke="url(#gold)" stroke-width="20" filter="url(#shadow)"/>
+  <circle cx="256" cy="256" r="207" fill="none" stroke="#20a8ff" stroke-width="7" filter="url(#glow)"/>
+  <circle cx="256" cy="256" r="189" fill="none" stroke="#174b82" stroke-width="3" opacity=".85"/>
+  <path d="M256 43 269 65 256 87 243 65Z" fill="url(#emerald)" stroke="#ffd86a" stroke-width="4"/>
+  <path d="M256 425 269 447 256 469 243 447Z" fill="url(#emerald)" stroke="#ffd86a" stroke-width="4"/>
+
+  <defs>
+    <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffe077"/>
+      <stop offset=".45" stop-color="#ff9f18"/>
+      <stop offset="1" stop-color="#ff5a00"/>
+    </linearGradient>
+  </defs>
+  <g filter="url(#shadow)" opacity=".98">
+    <rect x="216" y="118" width="20" height="278" rx="6" fill="url(#gold)"/>
+    <rect x="256" y="118" width="20" height="278" rx="6" fill="url(#gold)"/>
+    <path d="M217 157H295C338 157 363 177 363 212C363 241 346 259 318 268C353 276 375 299 375 333C375 375 343 396 292 396H217V157Z
+             M250 188V248H289C315 248 329 237 329 218C329 197 315 188 289 188H250Z
+             M250 281V364H293C322 364 339 351 339 324C339 295 322 281 292 281H250Z"
+          fill="url(#orange)" stroke="#ffcf55" stroke-width="5" fill-rule="evenodd"/>
+  </g>
+  <ellipse cx="256" cy="263" rx="168" ry="62" transform="rotate(-9 256 263)" fill="none" stroke="#ff6911" stroke-width="10" opacity=".78" filter="url(#glow)"/>
+  <ellipse cx="256" cy="263" rx="161" ry="57" transform="rotate(-9 256 263)" fill="none" stroke="url(#gold)" stroke-width="13"/>
+  <path d="M151 166H348L204 346H357" fill="none" stroke="#3d2200" stroke-width="45" stroke-linejoin="miter" opacity=".85"/>
+  <path d="M151 166H348L204 346H357" fill="none" stroke="url(#gold)" stroke-width="30" stroke-linejoin="miter" filter="url(#shadow)"/>
 </svg>
