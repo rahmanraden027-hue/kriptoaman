@@ -32,9 +32,12 @@ test('hero network, center logo and coin badges remain positioned without utilit
   assert.match(styles, /\.ka-coin-trx\{bottom:18px;right:6px;/);
 });
 
-test('desktop landing restores navigation and two-column hero', async () => {
+test('desktop landing keeps two-column hero while full navigation waits for wide desktop', async () => {
   const styles = await read('src/components/landing/GlobalLandingStyles.jsx');
   assert.match(styles, /@media \(min-width:1024px\)/);
-  assert.match(styles, /header nav\{display:flex/);
   assert.match(styles, /grid-template-columns:minmax\(0,1fr\) minmax\(0,1fr\)/);
+  assert.match(styles, /@media \(min-width:1280px\)/);
+  assert.match(styles, /header nav\{display:flex/);
+  assert.match(styles, /@media \(max-width:1279px\)/);
+  assert.match(styles, /button\[aria-label="Menu"\]\{display:flex!important;/);
 });
