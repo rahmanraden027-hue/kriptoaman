@@ -1,0 +1,20 @@
+name: ZVQ Dispatch Reviewed Public Proof
+on:
+  push:
+    branches: ['ops/zvq-rpc-recovery-20260929']
+    paths: ['.github/workflows/zvq-dispatch-reviewed-proof.yml']
+permissions:
+  contents: read
+  actions: write
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Dispatch existing reviewed public proof on main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run zevaryq-explorer-public-route-proof.yml --repo "$GITHUB_REPOSITORY" --ref main
+          echo 'reviewed_public_proof=dispatched'
