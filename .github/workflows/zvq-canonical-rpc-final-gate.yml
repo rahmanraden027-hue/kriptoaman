@@ -1,0 +1,54 @@
+name: ZVQ Canonical RPC Final Gate 2026-09-29
+on:
+  push:
+    branches: ['ops/zvq-rpc-recovery-20260929']
+    paths: ['.github/workflows/zvq-canonical-rpc-final-gate.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - name: Run repository public endpoint verifier
+        run: node chain/kam-mainnet/scripts/verify-public-endpoints.mjs
+      - name: Verify canonical and direct-SNI blocked policy from reviewed method list
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t methods < <(python3 - <<'PY'
+          import sys
+          sys.path.insert(0, 'scripts')
+          import repair_zvq_domain_rpc as m
+          for method in m.BLOCKED_METHODS:
+              print(method)
+          PY
+          )
+          test "${#methods[@]}" -ge 6
+          payload() { jq -nc --arg m "$1" '{jsonrpc:"2.0",id:"final-gate",method:$m,params:[]}'; }
+          for method in "${methods[@]}"; do
+            body="$(payload "$method")"
+            public_code="$(curl -sS --connect-timeout 6 --max-time 15 -o /dev/null -w '%{http_code}' -H 'content-type: application/json' --data "$body" https://rpc.kriptoaman.com/)"
+            direct_code="$(curl --noproxy '*' --resolve rpc.kriptoaman.com:443:206.189.36.15 -sS --connect-timeout 6 --max-time 15 -o /dev/null -w '%{http_code}' -H 'content-type: application/json' --data "$body" https://rpc.kriptoaman.com/)"
+            echo "policy_method=$method public=$public_code direct_sni=$direct_code"
+            test "$public_code" = 403
+            test "$direct_code" = 403
+          done
+      - name: Verify direct-SNI identity and advancing blocks
+        shell: bash
+        run: |
+          set -euo pipefail
+          rpc() {
+            curl --noproxy '*' --resolve rpc.kriptoaman.com:443:206.189.36.15 -fsS --connect-timeout 6 --max-time 15               -H 'content-type: application/json' --data "$1" https://rpc.kriptoaman.com/
+          }
+          chain="$(rpc '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' | jq -er .result)"
+          test "$chain" = 0x560c
+          h1="$(rpc '{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}' | jq -er .result)"
+          sleep 12
+          h2="$(rpc '{"jsonrpc":"2.0","id":3,"method":"eth_blockNumber","params":[]}' | jq -er .result)"
+          (( h2 > h1 ))
+          echo "direct_sni_chain=$chain blocks=$h1->$h2"
+          timeout 12 openssl s_client -connect 206.189.36.15:443 -servername rpc.kriptoaman.com </dev/null 2>/dev/null |
+            openssl x509 -noout -subject -issuer -dates -ext subjectAltName
+          echo 'canonical_rpc_final_gate=PASS'
