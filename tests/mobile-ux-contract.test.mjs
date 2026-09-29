@@ -51,3 +51,19 @@ test('empty and sparse pages provide useful next actions', async () => {
   assert.match(profile, /Peran sistem/);
   assert.match(profile, /Sesi perangkat/);
 });
+
+
+test('final visual polish hides unfinished controls and zero-value pseudo-performance', async () => {
+  const [security, performance, wallet, marketIntel] = await Promise.all([
+    read('src/pages/SecurityHub.jsx'),
+    read('src/components/home/HomePortfolioPerformance.jsx'),
+    read('src/pages/Wallet.jsx'),
+    read('src/components/market/GlobalMarketIntelligencePanel.jsx'),
+  ]);
+  assert.doesNotMatch(security, /label="Passkey" pending/);
+  assert.match(security, /showEndedSessions/);
+  assert.match(performance, /Belum ada portfolio terpantau/);
+  assert.doesNotMatch(wallet, /Coming later/);
+  assert.doesNotMatch(wallet, /Market price unavailable/);
+  assert.doesNotMatch(marketIntel, /provider Twelve Data dikonfigurasi|Twelve Data is configured/);
+});
