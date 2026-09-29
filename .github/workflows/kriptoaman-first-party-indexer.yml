@@ -71,6 +71,6 @@ jobs:
           code="$(curl -sS -o /dev/null -w '%{http_code}' -H 'content-type: application/json'             --data '{"jsonrpc":"2.0","id":4,"method":"eth_sendRawTransaction","params":["0x01"]}' "$endpoint")"
           test "$code" = 403
       - name: Roll back this run if deployment gate fails
-        if: failure() && steps.apply.outcome == 'success'
+        if: failure() && steps.apply.outcome != 'skipped'
         run: |
           ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new             root@206.189.36.15             "GITHUB_RUN_ID=$GITHUB_RUN_ID SOURCE=/tmp/zvq-listener.mjs bash /tmp/deploy-kriptoaman-zvq-indexer.sh rollback"
