@@ -61,3 +61,19 @@ test('legacy swap surfaces never fabricate quotes or destination addresses', asy
   assert.doesNotMatch(thor, /bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh/);
   assert.match(thor, /Alamat tujuan asli wajib diisi/);
 });
+
+
+test('ZEVARYQ swap catalog exposes native and planned first-party assets without impersonating issuers', async () => {
+  const ui = await read('src/components/zevaryq-wallet/ZevaryqSwap.jsx');
+
+  assert.match(ui, /ZEVARYQ Asset Universe/);
+  assert.match(ui, /symbol: 'ZVQ'/);
+  assert.match(ui, /symbol: 'ZUSD'/);
+  assert.match(ui, /symbol: 'zBTC'/);
+  assert.match(ui, /symbol: 'zETH'/);
+  assert.match(ui, /not USDT or USDC/);
+  assert.match(ui, /USDT\/USDC issuer assets are not created or imitated by ZEVARYQ/);
+  assert.match(ui, /Additional ERC-20 assets appear automatically only from the verified swap registry/);
+  assert.doesNotMatch(ui, /symbol: 'zUSDT'/);
+  assert.doesNotMatch(ui, /symbol: 'zUSDC'/);
+});
