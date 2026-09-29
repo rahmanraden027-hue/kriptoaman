@@ -46,8 +46,8 @@ function NetworkVisual() {
 
 export default function GLandingHero({ stats }) {
   const assetCount = stats?.loading || !(Number(stats?.assetCount) > 0) ? '—' : Number(stats.assetCount).toLocaleString('id-ID');
-  const networkCount = stats?.loading || !(Number(stats?.networkActiveCount) > 0) ? '—' : String(Number(stats.networkActiveCount));
-  const blockNumber = Number(stats?.zvqBlockNumber) > 0 ? Number(stats.zvqBlockNumber).toLocaleString('id-ID') : '—';
+  const networkCount = stats?.loading ? '—' : Number.isFinite(Number(stats?.networkActiveCount)) ? String(Number(stats.networkActiveCount)) : '—';
+  const blockNumber = stats?.zvqBlockNumber != null && Number.isFinite(Number(stats.zvqBlockNumber)) ? Number(stats.zvqBlockNumber).toLocaleString('id-ID') : '—';
   const isOperational = Boolean(stats?.marketAvailable);
 
   return (
