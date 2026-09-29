@@ -28,18 +28,19 @@ jobs:
           echo "probe_mode=read_only"
           hostname
           nginx -t
-          upstream=$(python3 - <<'PY'
-import re
-p='/etc/nginx/sites-enabled/zevaryq-rpc'
-text=open(p,encoding='utf-8').read()
-m=re.findall(r'^\s*proxy_pass\s+(http://10(?:\.\d{1,3}){3}/rpc);\s*$',text,re.M)
-if len(m)!=1: raise SystemExit(1)
-print(m[0])
-PY
-)
-          chain=$(curl -fsS --connect-timeout 4 --max-time 10             -H 'Content-Type: application/json'             --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' "$upstream" | jq -er '.result')
-          block=$(curl -fsS --connect-timeout 4 --max-time 10             -H 'Content-Type: application/json'             --data '{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}' "$upstream" | jq -er '.result')
+          mapfile -t upstreams < <(
+            sed -nE 's|^[[:space:]]*proxy_pass[[:space:]]+(http://10(\.[0-9]{1,3}){3}/rpc);[[:space:]]*$|\1|p' /etc/nginx/sites-enabled/zevaryq-rpc
+          )
+          test "${#upstreams[@]}" -eq 1
+          upstream="${upstreams[0]}"
+          chain=$(curl -fsS --connect-timeout 4 --max-time 10 \
+            -H 'Content-Type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' "$upstream" | jq -er '.result')
+          block=$(curl -fsS --connect-timeout 4 --max-time 10 \
+            -H 'Content-Type: application/json' \
+            --data '{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}' "$upstream" | jq -er '.result')
           test "$chain" = 0x560c
+          [[ "$block" =~ ^0x[0-9a-fA-F]+$ ]]
           echo "chain_id=$chain block=$block"
           echo "explorer_runner_probe=pass"
           REMOTE
