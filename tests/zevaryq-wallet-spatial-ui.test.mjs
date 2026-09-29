@@ -34,5 +34,14 @@ test('network telemetry exposes live state and Android release is bumped', async
   ]);
   assert.match(network, /data-network-live/);
   assert.match(network, /zv-telemetry-tile/);
-  assert.match(gradle, /wallet\s*\{[\s\S]*versionCode 8[\s\S]*versionName "1\.0\.7"/);
+  assert.match(gradle, /wallet\s*\{[\s\S]*versionCode 9[\s\S]*versionName "1\.0\.8"/);
+});
+
+
+test('wallet home is not blocked behind a JavaScript splash timer', async () => {
+  const wallet = await read('src/pages/Wallet.jsx');
+  assert.doesNotMatch(wallet, /setBooting/);
+  assert.doesNotMatch(wallet, /if\s*\(booting\)/);
+  assert.doesNotMatch(wallet, /Loading ZEVARYQ Wallet/);
+  assert.match(wallet, /return <main className="zv-wallet-shell"/);
 });
