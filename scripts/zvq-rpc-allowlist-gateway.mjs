@@ -8,6 +8,10 @@ const APPROVED_ORIGINS = new Set([
   'https://kriptoaman.com',
   'https://explorer.kriptoaman.com',
 ]);
+const APPROVED_UPSTREAM_URLS = new Set([
+  'https://rpc.kriptoaman.com/',
+  'http://10.104.0.8/rpc',
+]);
 const METHODS = new Set([
   'eth_chainId', 'eth_blockNumber', 'eth_syncing', 'eth_gasPrice',
   'eth_maxPriorityFeePerGas', 'eth_feeHistory', 'eth_getBalance',
@@ -33,9 +37,10 @@ export function validateRpcPayload(value) {
 export function createRpcGateway({ upstreamPort, upstreamUrl, fetchImpl = fetch } = {}) {
   const loopback = Number.isInteger(upstreamPort) && upstreamPort >= 1 && upstreamPort <= 65535
     ? `http://127.0.0.1:${upstreamPort}/` : null;
-  const remote = upstreamUrl === 'https://rpc.kriptoaman.com/' ? upstreamUrl : null;
+  const remote = typeof upstreamUrl === 'string' && APPROVED_UPSTREAM_URLS.has(upstreamUrl)
+    ? upstreamUrl : null;
   if ((loopback ? 1 : 0) + (remote ? 1 : 0) !== 1) {
-    throw new Error('Exactly one verified loopback port or canonical ZVQ RPC URL is required');
+    throw new Error('Exactly one verified loopback port or approved ZVQ RPC upstream URL is required');
   }
   const target = loopback ?? remote;
   const server = http.createServer(async (req, res) => {
