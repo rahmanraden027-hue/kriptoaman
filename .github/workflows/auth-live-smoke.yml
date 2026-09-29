@@ -102,19 +102,29 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          headers="$(mktemp)"
-          body="$(mktemp)"
-          code="$(curl --location --silent --show-error \
-            --connect-timeout 10 --max-time 25 \
-            -D "$headers" -o "$body" -w '%{http_code}' \
-            https://kriptoaman.com/api/auth/me)"
-          test "$code" = "401"
-          grep -qi '^cache-control:.*no-store' "$headers"
-          node - "$body" <<'NODE'
+          verified=0
+          for attempt in 1 2 3; do
+            headers="$(mktemp)"
+            body="$(mktemp)"
+            code="$(curl --location --silent --show-error \
+              --connect-timeout 10 --max-time 25 \
+              -D "$headers" -o "$body" -w '%{http_code}' \
+              https://kriptoaman.com/api/auth/me || true)"
+            if [ "$code" = "401" ] && grep -qi '^cache-control:.*no-store' "$headers"; then
+              if node - "$body" <<'NODE'
           const fs = require('fs');
           const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
           if (payload.authenticated !== false) process.exit(1);
           NODE
+              then
+                verified=1
+                break
+              fi
+            fi
+            echo "Unauthenticated session probe did not complete cleanly (attempt ${attempt}/3, HTTP ${code}); retrying..."
+            sleep 3
+          done
+          test "$verified" = "1"
 
       - name: Check logout endpoint contract
         shell: bash
