@@ -1,4 +1,5 @@
-import { ExternalLink, PlugZap, WalletCards } from 'lucide-react';
+import { Clipboard, ExternalLink, PlugZap, WalletCards } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { compactAddress, StatusBadge } from './WalletUI';
 import { ZEVARYQ } from '@/theme/zevaryqWallet';
 
@@ -51,13 +52,48 @@ export default function ZevaryqWalletConnector({ web3 }) {
 
           <button
             type="button"
-            onClick={() => web3?.connectWalletConnect?.()}
+            onClick={() => web3?.connectWalletConnect?.({ mobileWallet: 'metamask' })}
             disabled={web3?.connecting || !web3?.walletConnectConfigured}
             className="zv-button-primary mt-4 w-full"
           >
             <PlugZap className="h-4 w-4" />
-            {web3?.connecting ? 'Connecting…' : 'All compatible wallets via WalletConnect'}
+            {web3?.connecting ? 'Preparing WalletConnect…' : 'Open MetaMask via WalletConnect'}
           </button>
+
+          <button
+            type="button"
+            onClick={() => web3?.connectWalletConnect?.()}
+            disabled={web3?.connecting || !web3?.walletConnectConfigured}
+            className="zv-button-secondary mt-3 w-full"
+          >
+            <WalletCards className="h-4 w-4" />
+            Pair another compatible wallet
+          </button>
+
+          {web3?.walletConnectUri && (
+            <div className="mt-4 rounded-2xl border border-[#2D8CFF]/35 bg-[#071522]/75 p-4">
+              <p className="zv-label">WalletConnect Pairing Ready</p>
+              <p className="mt-2 text-xs leading-5 text-[#9FB3C8]">
+                If the wallet did not open automatically, scan this QR from another wallet device or open MetaMask manually.
+              </p>
+              <div className="mx-auto mt-4 w-fit rounded-2xl bg-white p-3">
+                <QRCodeSVG value={web3.walletConnectUri} size={180} level="M" />
+              </div>
+              <div className="mt-4 grid gap-2">
+                <button type="button" onClick={web3.openMetaMaskPairing} className="zv-button-primary w-full">
+                  Open MetaMask
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigator.clipboard?.writeText(web3.walletConnectUri)}
+                  className="zv-button-secondary w-full"
+                >
+                  <Clipboard className="h-4 w-4" />
+                  Copy pairing URI
+                </button>
+              </div>
+            </div>
+          )}
 
           <p className="mt-4 text-xs leading-5 text-[#6F859B]">
             A wallet must support EVM custom networks and approve ZEVARYQ Mainnet before it can sign Chain 22028 transactions.
