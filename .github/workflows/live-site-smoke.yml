@@ -186,6 +186,22 @@ jobs:
           test "$code" = "200"
           grep -qi 'KriptoAman' "$body"
 
+      - name: Check ZEVARYQ Wallet public route
+        if: github.event_name != 'pull_request' || (github.head_ref != 'feature/zevaryq-explorer-production' && github.head_ref != 'codex/zevaryq-premium-logo' && github.head_ref != 'fix/zevaryq-explorer-absolute-assets' && github.head_ref != 'fix/explorer-ui-local-gate' && github.head_ref != 'fix/zevaryq-inline-emblem')
+        shell: bash
+        run: |
+          set -euo pipefail
+          headers="$(mktemp)"
+          body="$(mktemp)"
+          code="$(curl --fail-with-body --location --silent --show-error \
+            --connect-timeout 10 --max-time 25 \
+            -H 'Cache-Control: no-cache' \
+            -D "$headers" -o "$body" -w '%{http_code}' \
+            "https://kriptoaman.com/wallet-app?smoke=${GITHUB_RUN_ID}")"
+          test "$code" = "200"
+          grep -qi '^content-type:.*text/html' "$headers"
+          grep -q 'id="root"' "$body"
+          grep -Eq '<script[^>]+src="/assets/[^"]+\.js"' "$body"
       - name: Check public system status route
         if: github.event_name != 'pull_request' || (github.head_ref != 'feature/zevaryq-explorer-production' && github.head_ref != 'codex/zevaryq-premium-logo' && github.head_ref != 'fix/zevaryq-explorer-absolute-assets' && github.head_ref != 'fix/explorer-ui-local-gate' && github.head_ref != 'fix/zevaryq-inline-emblem')
         shell: bash
