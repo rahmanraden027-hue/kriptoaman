@@ -1,4 +1,5 @@
 name: ZVQ RPC Explorer Runner Probe
+# Triggered after the workflow exists on main; read-only only.
 
 on:
   pull_request:
