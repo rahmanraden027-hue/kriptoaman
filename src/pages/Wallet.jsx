@@ -138,27 +138,86 @@ function ExplorerScreen({account,transactions,txPhase,onSelect}) { return <><sec
 function TransactionDetails({tx,onBack}) { const rows=[['Transaction Hash',tx.hash],['Status',tx.status],['Type',tx.method||'Transfer'],['Amount',tx.value?`${Number(tx.value)/1e18} ZVQ`:'0 ZVQ'],['From',tx.from?.hash],['To',tx.to?.hash],['Block',tx.block_number],['Timestamp',tx.timestamp],['Network',ZEVARYQ.network],['Fee',tx.fee?.value?`${Number(tx.fee.value)/1e18} ZVQ`:'Unavailable']]; return <><Header back onBack={onBack} title="Transaction Details"/><section className="zv-card p-5"><StatusBadge state={tx.status==='ok'?'success':'offline'}>{tx.status||'Unknown'}</StatusBadge><dl className="mt-4 divide-y divide-[#1A3A59]">{rows.map(([k,v])=><div key={k} className="grid grid-cols-[110px_1fr] gap-3 py-3 text-sm"><dt className="text-[#6F859B]">{k}</dt><dd className="break-all text-right font-semibold">{v??'Unavailable'}</dd></div>)}</dl><a href={`${EXPLORER}/tx/${tx.hash}`} target="_blank" rel="noreferrer" className="zv-button-primary mt-5 w-full"><ExternalLink/>View on Explorer</a></section></>; }
 
 function Assets({ account, balance, balancePhase, tokenAssets, assetPhase }) {
-  if (!account) return <section className="zv-card p-5"><p className="zv-label">Assets</p><h2 className="mt-2 text-2xl font-black">My Wallet Assets</h2><div className="mt-5"><EmptyState title="Wallet not connected" body="Connect a wallet to load real ZVQ and token balances for its authorized address." /></div></section>;
+  const ecosystemAssets = [
+    {
+      symbol: 'ZUSD',
+      name: 'ZEVARYQ USD',
+      icon: '/assets/zevaryq/tokens/zusd.svg',
+      detail: 'Reserve-backed ecosystem asset candidate · not USDT or USDC · not deployed',
+    },
+    {
+      symbol: 'zBTC',
+      name: 'ZEVARYQ Bitcoin',
+      icon: '/assets/zevaryq/tokens/zbtc.svg',
+      detail: 'BTC-backed representation candidate · bridge/backing authorization pending',
+    },
+    {
+      symbol: 'zETH',
+      name: 'ZEVARYQ Ethereum',
+      icon: '/assets/zevaryq/tokens/zeth.svg',
+      detail: 'ETH-backed representation candidate · bridge/backing authorization pending',
+    },
+  ];
 
   return <section className="zv-card p-5">
     <p className="zv-label">Assets</p>
     <h2 className="mt-2 text-2xl font-black">My Wallet Assets</h2>
-    <p className="mt-2 break-all font-mono text-xs text-[#9FB3C8]">{account}</p>
+    {account
+      ? <p className="mt-2 break-all font-mono text-xs text-[#9FB3C8]">{account}</p>
+      : <p className="mt-2 text-sm leading-6 text-[#9FB3C8]">Connect a wallet to load verified balances. ZEVARYQ ecosystem asset identities remain visible without creating estimated holdings.</p>}
     <p className="mt-2 text-sm leading-6 text-[#9FB3C8]">Only balances returned by ZEVARYQ RPC and Explorer indexing are shown. No estimated holdings are created.</p>
 
     <div className="mt-5 rounded-2xl border border-[#1A3A59] bg-[#071522]/65 p-4">
       <div className="zv-asset-row">
         <ZevaryqMark className="h-12 w-12"/>
         <div className="min-w-0 flex-1"><p className="font-black">ZEVARYQ</p><p className="text-xs text-[#9FB3C8]">ZVQ · Chain 22028 · Native</p></div>
-        <div className="text-right"><p className="font-black">{balancePhase === 'success' ? Number(balance || 0).toLocaleString('en-US',{maximumFractionDigits:8}) : '—'}</p><p className="text-xs text-[#6F859B]">ZVQ</p></div>
+        <div className="text-right"><p className="font-black">{account && balancePhase === 'success' ? Number(balance || 0).toLocaleString('en-US',{maximumFractionDigits:8}) : '—'}</p><p className="text-xs text-[#6F859B]">{account ? 'ZVQ' : 'CONNECT WALLET'}</p></div>
       </div>
     </div>
 
-    {assetPhase === 'loading' && <div className="mt-4"><StatePanel phase="loading" title="Loading token holdings" /></div>}
-    {assetPhase === 'error' && <div className="mt-4"><EmptyState title="Token holdings unavailable" body="Explorer did not return a verified token-balance response. No values are estimated." /></div>}
-    {assetPhase === 'success' && tokenAssets.length === 0 && <div className="mt-4"><EmptyState title="No indexed token holdings" body="The connected address currently has no non-zero token balances indexed by ZEVARYQ Explorer." /></div>}
+    <div className="mt-6 flex items-center justify-between gap-3">
+      <div>
+        <p className="zv-label">ZEVARYQ Ecosystem Assets</p>
+        <h3 className="mt-1 text-lg font-black">Official asset identities</h3>
+      </div>
+      <span className="rounded-full border border-[#2D8CFF]/30 bg-[#2D8CFF]/10 px-2 py-1 text-[9px] font-black text-[#7CC7FF]">CHAIN 22028</span>
+    </div>
 
-    {tokenAssets.map((asset) => (
+    <div className="mt-3 grid gap-3" data-zvq-production-token-icons="ZUSD,zBTC,zETH">
+      {ecosystemAssets.map((asset) => (
+        <div key={asset.symbol} className="rounded-2xl border border-[#1A3A59] bg-[#071522]/65 p-4">
+          <div className="flex items-start gap-3">
+            <span className="relative grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full border border-[#2D8CFF]/35 bg-[#102235]">
+              <span className="text-[10px] font-black text-[#F2C86B]">{asset.symbol}</span>
+              <img
+                src={asset.icon}
+                alt={`${asset.symbol} token icon`}
+                className="absolute inset-0 h-full w-full object-contain"
+                loading="eager"
+                decoding="async"
+                onError={(event) => event.currentTarget.remove()}
+              />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="font-black text-white">{asset.symbol}</p>
+                <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-1 text-[9px] font-black text-amber-200">PLANNED</span>
+              </div>
+              <p className="mt-1 text-sm font-semibold text-[#C6D5E3]">{asset.name}</p>
+              <p className="mt-1 break-words text-xs leading-5 text-[#6F859B]">{asset.detail}</p>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <p className="mt-4 text-xs leading-5 text-[#6F859B]">These icons identify ZEVARYQ ecosystem candidates only. Their PLANNED status does not imply deployment, backing, liquidity, or issuer affiliation.</p>
+
+    {account && assetPhase === 'loading' && <div className="mt-4"><StatePanel phase="loading" title="Loading token holdings" /></div>}
+    {account && assetPhase === 'error' && <div className="mt-4"><EmptyState title="Token holdings unavailable" body="Explorer did not return a verified token-balance response. No values are estimated." /></div>}
+    {account && assetPhase === 'success' && tokenAssets.length === 0 && <div className="mt-4"><EmptyState title="No indexed token holdings" body="The connected address currently has no non-zero token balances indexed by ZEVARYQ Explorer." /></div>}
+
+    {account && tokenAssets.map((asset) => (
       <div key={asset.contractAddress} className="mt-3 rounded-2xl border border-[#1A3A59] bg-[#071522]/65 p-4">
         <div className="zv-asset-row">
           <span className="grid h-12 w-12 place-items-center rounded-2xl border border-[#1A3A59] bg-[#071522] font-black text-[#F2C86B]">
