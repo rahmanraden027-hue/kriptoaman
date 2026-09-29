@@ -25,7 +25,7 @@ const FIRST_PARTY_ASSET_CATALOG = Object.freeze([
     state: 'planned',
     badge: 'PLANNED',
     detail: 'Reserve-backed ecosystem asset candidate · not USDT or USDC · not deployed',
-    icon: '/assets/zevaryq/tokens/zusd.svg?v=2',
+    icon: '/assets/zevaryq/tokens/zusd-v2.svg',
   },
   {
     symbol: 'zBTC',
@@ -33,7 +33,7 @@ const FIRST_PARTY_ASSET_CATALOG = Object.freeze([
     state: 'planned',
     badge: 'PLANNED',
     detail: 'BTC-backed representation candidate · bridge/backing authorization pending',
-    icon: '/assets/zevaryq/tokens/zbtc.svg?v=2',
+    icon: '/assets/zevaryq/tokens/zbtc-v2.svg',
   },
   {
     symbol: 'zETH',
@@ -41,7 +41,7 @@ const FIRST_PARTY_ASSET_CATALOG = Object.freeze([
     state: 'planned',
     badge: 'PLANNED',
     detail: 'ETH-backed representation candidate · bridge/backing authorization pending',
-    icon: '/assets/zevaryq/tokens/zeth.svg?v=2',
+    icon: '/assets/zevaryq/tokens/zeth-v2.svg',
   },
 ]);
 

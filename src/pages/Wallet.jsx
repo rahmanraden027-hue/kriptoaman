@@ -142,19 +142,19 @@ function Assets({ account, balance, balancePhase, tokenAssets, assetPhase }) {
     {
       symbol: 'ZUSD',
       name: 'ZEVARYQ USD',
-      icon: '/assets/zevaryq/tokens/zusd.svg',
+      icon: '/assets/zevaryq/tokens/zusd-v2.svg',
       detail: 'Reserve-backed ecosystem asset candidate · not USDT or USDC · not deployed',
     },
     {
       symbol: 'zBTC',
       name: 'ZEVARYQ Bitcoin',
-      icon: '/assets/zevaryq/tokens/zbtc.svg',
+      icon: '/assets/zevaryq/tokens/zbtc-v2.svg',
       detail: 'BTC-backed representation candidate · bridge/backing authorization pending',
     },
     {
       symbol: 'zETH',
       name: 'ZEVARYQ Ethereum',
-      icon: '/assets/zevaryq/tokens/zeth.svg',
+      icon: '/assets/zevaryq/tokens/zeth-v2.svg',
       detail: 'ETH-backed representation candidate · bridge/backing authorization pending',
     },
   ];
@@ -183,11 +183,11 @@ function Assets({ account, balance, balancePhase, tokenAssets, assetPhase }) {
       <span className="rounded-full border border-[#2D8CFF]/30 bg-[#2D8CFF]/10 px-2 py-1 text-[9px] font-black text-[#7CC7FF]">CHAIN 22028</span>
     </div>
 
-    <div className="mt-3 grid gap-3" data-zvq-production-token-icons="ZUSD,zBTC,zETH">
+    <div className="mt-3 grid gap-3" data-zvq-production-token-icons="ZUSD,zBTC,zETH" data-token-identity-version="2">
       {ecosystemAssets.map((asset) => (
         <div key={asset.symbol} className="rounded-2xl border border-[#1A3A59] bg-[#071522]/65 p-4">
           <div className="flex items-start gap-3">
-            <span className="relative grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full border border-[#2D8CFF]/35 bg-[#102235]">
+            <span className="relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full border border-[#2D8CFF]/35 bg-[#102235] shadow-[0_0_18px_rgba(45,140,255,.22)]">
               <span className="text-[10px] font-black text-[#F2C86B]">{asset.symbol}</span>
               <img
                 src={asset.icon}
