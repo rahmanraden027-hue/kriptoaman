@@ -4,6 +4,7 @@ import { ZEVARYQ } from '@/theme/zevaryqWallet';
 
 export default function ZevaryqWalletConnector({ web3 }) {
   const installed = Array.isArray(web3?.availableWallets) ? web3.availableWallets : [];
+  const accounts = Array.isArray(web3?.accounts) ? web3.accounts : web3?.account ? [web3.account] : [];
   const onZevaryq = web3?.isConnected && web3?.chainId === ZEVARYQ.chainId;
 
   return (
@@ -69,6 +70,36 @@ export default function ZevaryqWalletConnector({ web3 }) {
             <div className="flex justify-between gap-3"><dt className="text-[#9FB3C8]">Address</dt><dd className="font-mono">{compactAddress(web3.account)}</dd></div>
             <div className="flex justify-between gap-3"><dt className="text-[#9FB3C8]">Current chain</dt><dd className="font-bold">{web3.chainId ?? 'Unknown'}</dd></div>
           </dl>
+
+          {accounts.length > 0 && (
+            <div className="rounded-2xl border border-[#1A3A59] bg-[#071522]/45 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="zv-label">Authorized Addresses</p>
+                <span className="text-xs font-bold text-[#9FB3C8]">{accounts.length} available</span>
+              </div>
+              <div className="mt-3 space-y-2">
+                {accounts.map((address) => {
+                  const active = address.toLowerCase() === String(web3.account || '').toLowerCase();
+                  return (
+                    <button
+                      type="button"
+                      key={address}
+                      onClick={() => web3?.selectAccount?.(address)}
+                      className={`w-full rounded-xl border p-3 text-left transition ${active ? 'border-emerald-400/45 bg-emerald-400/8' : 'border-[#1A3A59] bg-[#071522]/70'}`}
+                      aria-pressed={active}
+                    >
+                      <span className="flex items-center justify-between gap-3">
+                        <span className="min-w-0 break-all font-mono text-xs text-[#D8E6F3]">{address}</span>
+                        <span className={`shrink-0 text-[10px] font-black uppercase ${active ? 'text-emerald-300' : 'text-[#6F859B]'}`}>
+                          {active ? 'Active' : 'Use'}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {!onZevaryq && (
             <button type="button" onClick={() => web3.addZevaryqNetwork()} className="zv-button-primary w-full">
