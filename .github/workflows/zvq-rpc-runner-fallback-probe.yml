@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   probe:
-    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
     timeout-minutes: 6
     steps:
       - name: Read-only SSH probe to RPC sentry
