@@ -79,9 +79,10 @@ export async function onRequestGet({ request }) {
     // Chain identity and current block are probed concurrently and independently.
     // The public RPC remains fail-closed, but the probe budget allows realistic
     // Internet/edge latency so a healthy chain is not misclassified as degraded.
-    const [chainIdHex, blockHex] = await Promise.all([
+    const [chainIdHex, blockHex, syncing] = await Promise.all([
       rpcWithTimeout('eth_chainId'),
       rpcWithTimeout('eth_blockNumber'),
+      rpcWithTimeout('eth_syncing'),
     ]);
     const verified = chainIdHex.toLowerCase() === EXPECTED_CHAIN_ID_HEX;
     if (!verified) throw new Error('RPC chain ID mismatch');
@@ -101,6 +102,7 @@ export async function onRequestGet({ request }) {
       verified: true,
       status: 'mainnet-candidate-rpc-verified',
       blockNumber,
+      syncStatus: syncing === false ? 'synced' : 'syncing',
       wallet: address ? { address, balanceZVQ: formatKam(walletBalance), balanceKAM: formatKam(walletBalance) } : null,
       checkedAt: new Date().toISOString(),
       probeDurationMs: Date.now() - probeStartedAt,
