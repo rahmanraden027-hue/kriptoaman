@@ -17,6 +17,7 @@ export const config = Object.freeze({
   pollIntervalMs: int(process.env.POLL_INTERVAL_MS, 1000),
   rpcTimeoutMs: int(process.env.RPC_TIMEOUT_MS, 8000),
   finalityDepth: int(process.env.FINALITY_DEPTH, 2),
+  startupLookbackBlocks: int(process.env.STARTUP_LOOKBACK_BLOCKS, 64),
   host: process.env.LISTEN_HOST || '127.0.0.1',
   port: int(process.env.LISTEN_PORT, 8790),
   dbPath: process.env.DB_PATH || '/var/lib/kriptoaman-intelligence/zvq-indexer.sqlite',
