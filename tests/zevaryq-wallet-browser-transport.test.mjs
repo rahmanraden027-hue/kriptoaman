@@ -23,7 +23,7 @@ function loadService(mockFetch) {
 }
 
 const goodStatus = (wallet = undefined) => ({
-  live: true, verified: true, chainIdHex: '0x560c', blockNumber: 147343, wallet,
+  live: true, verified: true, chainIdHex: '0x560c', blockNumber: 147343, syncStatus: 'synced', wallet,
 });
 
 const json = (payload, status = 200) => Response.json(payload, { status });
@@ -40,7 +40,7 @@ test('Wallet uses verified same-origin status when browser RPC preflight is bloc
   assert.equal(state.rpc, 'connected');
   assert.equal(state.explorer, 'connected');
   assert.equal(state.blockNumber, 147343);
-  assert.equal(state.sync, 'unknown'); // Do not invent sync status.
+  assert.equal(state.sync, 'synced');
   assert.equal(requests.some(([url]) => url === 'https://rpc.kriptoaman.com'), false);
 });
 
@@ -110,7 +110,9 @@ test('Balance uses verified address-specific same-origin status; failed probes r
 
 test('Failed wallet balance probe cannot display stale previous wallet assets', () => {
   assert.match(wallet, /setBalance\('0'\);setBalancePhase\('loading'\)/);
-  assert.match(wallet, /balancePhase === 'error'\) \? '—' :/);
+  assert.match(wallet, /const balanceReady = Boolean\(web3\?\.isConnected && onNetwork && balancePhase === 'success'\)/);
+  assert.match(wallet, /balanceReady \? .* : '—'/);
+  assert.match(wallet, /Connect wallet to view verified on-chain balance/);
 });
 
 
@@ -151,4 +153,16 @@ test('Verified fallback RPC uses 18-decimal native balance and rejects malformed
     throw new Error('Unexpected URL');
   });
   await assert.rejects(() => malformed.fetchZvqBalance(address), /malformed RPC balance/);
+});
+
+
+test('Wallet separates network availability from wallet connection and keeps read-only send preview available', () => {
+  assert.match(wallet, /Network Online/);
+  assert.match(wallet, /Wallet disconnected/);
+  assert.match(wallet, /No wallet address connected/);
+  assert.match(wallet, /Connect wallet to view verified on-chain balance/);
+  assert.match(wallet, />Preview Send</);
+  assert.match(wallet, /Transaction preview/);
+  assert.match(wallet, /Broadcast Locked/);
+  assert.doesNotMatch(wallet, /disabled=\{web3\?\.readOnlyRelease\} className="zv-button-primary w-full disabled:opacity-45">Send ZVQ/);
 });
