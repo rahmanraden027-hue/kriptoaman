@@ -42,7 +42,9 @@
   max-width:100%;
   box-sizing:border-box;
 }
-.zv-header{overflow:hidden}
+.zv-header{overflow:visible}
+.zv-header>div:first-child{flex:1 1 auto;min-width:0}
+.zv-header-title,.zv-header-subtitle{white-space:normal;overflow-wrap:anywhere}
 .zv-header-actions{flex:0 0 auto;min-width:0}
 .zv-button-primary,
 .zv-button-secondary{
@@ -87,6 +89,8 @@
 }
 @media(max-width:420px){
   .zv-network-actions{grid-template-columns:1fr}
+  .zv-header-title{font-size:15px}
+  .zv-header-subtitle{font-size:10px}
   .zv-header-actions{gap:2px}
   .zv-icon-button{width:38px;height:38px;border-radius:12px}
   .zv-app-badge{padding:9px 10px;column-gap:8px}
