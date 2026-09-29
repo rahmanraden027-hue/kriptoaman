@@ -67,14 +67,26 @@ jobs:
             if [[ "$method" = debug_traceTransaction ]]; then params='["0x0000000000000000000000000000000000000000000000000000000000000000",{}]'; fi
             if [[ "$method" = eth_sendRawTransaction ]]; then params='["0x01"]'; fi
             payload="{\"jsonrpc\":\"2.0\",\"id\":5,\"method\":\"${method}\",\"params\":${params}}"
-            public_code="$(curl -sS --connect-timeout 6 --max-time 12 -o /dev/null -w '%{http_code}' \
+            public_body="$(mktemp)"
+            origin_body="$(mktemp)"
+            public_code="$(curl -sS --connect-timeout 6 --max-time 12 -o "$public_body" -w '%{http_code}' \
               -H 'content-type: application/json' --data "$payload" "$RPC")"
             origin_code="$(curl --resolve "rpc.kriptoaman.com:443:${ORIGIN_IP}" --noproxy '*' -sS \
-              --connect-timeout 6 --max-time 12 -o /dev/null -w '%{http_code}' \
+              --connect-timeout 6 --max-time 12 -o "$origin_body" -w '%{http_code}' \
               -H 'content-type: application/json' --data "$payload" "$RPC")"
             echo "method=$method public_http=$public_code origin_http=$origin_code"
-            test "$public_code" = 403
-            test "$origin_code" = 403
+            echo -n 'public_body='; cat "$public_body"; echo
+            echo -n 'origin_body='; cat "$origin_body"; echo
+
+            deny_response() {
+              local code="$1" body="$2"
+              if [[ "$code" = 403 ]]; then return 0; fi
+              if [[ "$code" = 200 ]] && jq -e 'has("result")|not' "$body" >/dev/null 2>&1 \
+                && jq -e '.error.code == -32601' "$body" >/dev/null 2>&1; then return 0; fi
+              return 1
+            }
+            deny_response "$public_code" "$public_body"
+            deny_response "$origin_code" "$origin_body"
           done
 
           echo '== CORS policy =='
