@@ -84,6 +84,12 @@ jobs:
             [[ -n "$pub" ]] || continue
             printf '%s\n' "$pub" | ssh-keygen -lf - || true
           done
+          if ssh-add -L >/tmp/ka-agent-keys 2>/dev/null; then
+            while IFS= read -r pub; do
+              [[ -n "$pub" ]] && printf '%s\n' "$pub" | ssh-keygen -lf - || true
+            done </tmp/ka-agent-keys
+            rm -f /tmp/ka-agent-keys
+          fi
           echo 'RUNNER_SSH_KEY_FINGERPRINTS_END'
           target=10.104.0.5
           ssh_opts=(-o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new)
