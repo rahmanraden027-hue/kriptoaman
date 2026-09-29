@@ -1,0 +1,30 @@
+name: ZVQ External Live Readiness Probe 2026-09-29
+on:
+  push:
+    branches: ['ops/zvq-rpc-recovery-20260929']
+    paths: ['.github/workflows/zvq-external-live-probe.yml']
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Independent public read-only probe
+        shell: bash
+        run: |
+          set -uo pipefail
+          for url in             https://explorer.kriptoaman.com/             https://explorer.kriptoaman.com/blocks             https://explorer.kriptoaman.com/txs             https://explorer.kriptoaman.com/api/v2/blocks             https://explorer.kriptoaman.com/api/v2/transactions; do
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -o /tmp/body -w '%{http_code}' "$url" || true)"
+            size="$(wc -c </tmp/body 2>/dev/null || echo 0)"
+            echo "url=$url code=$code bytes=$size"
+            if [[ "$url" == *'/api/v2/blocks' && "$code" == 200 ]]; then
+              jq -r 'if (.items|type)=="array" and (.items|length)>0 then "explorer_head=" + ((.items[0].height // .items[0].number // "unknown")|tostring) else "explorer_head=unavailable" end' /tmp/body 2>/dev/null || true
+            fi
+          done
+          payload='{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}'
+          for url in https://rpc.kriptoaman.com/ https://206.189.36.15/; do
+            code="$(curl --noproxy '*' -sS --connect-timeout 5 --max-time 12 -H 'content-type: application/json' --data "$payload" -o /tmp/rpc -w '%{http_code}' "$url" || true)"
+            result="$(jq -r '.result // empty' /tmp/rpc 2>/dev/null || true)"
+            echo "rpc=$url code=$code chain=$result"
+          done
