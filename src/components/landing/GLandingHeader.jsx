@@ -40,7 +40,7 @@ export default function GLandingHeader({ dark, onToggleTheme, active = 'Platform
           </span>
         </a>
 
-        <nav className="hidden lg:flex items-center gap-6 text-sm">
+        <nav className="hidden xl:flex items-center gap-6 text-sm">
           {LINKS.map((l) => (
             <a key={l.href} href={l.href}
                className={`ka-nav-link ${active === l.label ? 'active' : ''}`}>{l.label}</a>
@@ -66,7 +66,7 @@ export default function GLandingHeader({ dark, onToggleTheme, active = 'Platform
             className="ka-btn-primary inline-flex items-center justify-center px-3 sm:px-4 h-9 text-xs sm:text-sm">
             Sign In
           </Link>
-          <button className="lg:hidden w-9 h-9 rounded-lg flex items-center justify-center ka-card2"
+          <button className="xl:hidden w-9 h-9 rounded-lg flex items-center justify-center ka-card2"
             onClick={() => setOpen((o) => !o)} aria-label="Menu">
             {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -74,7 +74,7 @@ export default function GLandingHeader({ dark, onToggleTheme, active = 'Platform
       </div>
 
       {open && (
-        <div className="lg:hidden ka-card2 border-t mx-3 sm:mx-4 mb-3 rounded-xl p-3 flex flex-col gap-1">
+        <div className="xl:hidden ka-card2 border-t mx-3 sm:mx-4 mb-3 rounded-xl p-3 flex flex-col gap-1">
           {LINKS.map((l) => (
             <a key={l.href} href={l.href} onClick={() => setOpen(false)}
               className={`ka-nav-link px-3 py-2 rounded-lg text-sm ${active === l.label ? 'active' : ''}`}>{l.label}</a>
