@@ -53,6 +53,23 @@ export class ChainIndexer {
 
   async syncTo(head) {
     let last = this.store.lastBlock();
+
+    if (last && head <= last.block_number) {
+      const canonical = await this.rpc.blockByNumber(head, false);
+      const stored = this.store.block(head);
+      if (canonical?.hash && stored && String(canonical.hash).toLowerCase() !== String(stored.block_hash).toLowerCase()) {
+        this.store.rewindFrom(head);
+        const event = this.store.recordEvent('chain.reorg', {
+          blockNumber: head,
+          payload: { rewindFrom: head, observedHash: canonical.hash, previousHash: stored.block_hash, reason: 'same-height-head-replacement' },
+        });
+        this.broadcast(event);
+        last = this.store.lastBlock();
+      } else {
+        return;
+      }
+    }
+
     let next = last ? last.block_number + 1 : head;
 
     while (!this.stopped && next <= head) {
