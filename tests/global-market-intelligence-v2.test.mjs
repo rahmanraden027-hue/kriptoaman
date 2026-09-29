@@ -65,8 +65,8 @@ test('Market V2 composes professional intelligence without removing KAM and cryp
 test('professional provider status is presented as user-facing copy', async () => {
   const panel = await read('src/components/market/GlobalMarketIntelligencePanel.jsx');
 
-  assert.match(panel, /Menunggu data profesional/);
-  assert.match(panel, /Awaiting professional data/);
+  assert.match(panel, /Data referensi aktif/);
+  assert.match(panel, /Reference data active/);
   assert.match(panel, /const intelligenceStatus/);
   assert.doesNotMatch(panel, />\{availability\?\.intelligence \|\| '—'\}<\/p>/);
 });
