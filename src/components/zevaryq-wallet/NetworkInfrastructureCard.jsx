@@ -2,7 +2,7 @@ import { ExternalLink, RotateCw } from 'lucide-react';
 import { ZEVARYQ } from '@/theme/zevaryqWallet';
 import { StatePanel, StatusBadge } from './WalletUI';
 
-const valueTone = (value) => value === 'connected' || value === 'synced' ? 'text-emerald-300' : value === 'error' ? 'text-red-300' : 'text-amber-300';
+const valueTone = (value) => value === 'connected' || value === 'synced' || value === 'verified' ? 'text-emerald-300' : value === 'error' ? 'text-red-300' : 'text-amber-300';
 
 export default function NetworkInfrastructureCard({ network, compact = false }) {
   const { phase, data, error, refresh } = network;
