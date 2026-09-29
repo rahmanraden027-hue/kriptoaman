@@ -51,7 +51,11 @@ jobs:
           node --check services/kriptoaman-chain-listener/src/index.mjs
 
   first-party-rpc-capability:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/codex/kriptoaman-first-party-chain-listener-v1'
+    if: >
+      (github.event_name == 'push' && github.ref == 'refs/heads/codex/kriptoaman-first-party-chain-listener-v1') ||
+      (github.event_name == 'pull_request' &&
+       github.head_ref == 'codex/kriptoaman-first-party-chain-listener-v1' &&
+       github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
     timeout-minutes: 6
     steps:
