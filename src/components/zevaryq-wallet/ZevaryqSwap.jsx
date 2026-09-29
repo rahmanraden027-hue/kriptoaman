@@ -25,7 +25,7 @@ const FIRST_PARTY_ASSET_CATALOG = Object.freeze([
     state: 'planned',
     badge: 'PLANNED',
     detail: 'Reserve-backed ecosystem asset candidate · not USDT or USDC · not deployed',
-    icon: '/assets/zevaryq/tokens/zusd.svg',
+    icon: '/assets/zevaryq/tokens/zusd-v2.svg',
   },
   {
     symbol: 'zBTC',
@@ -33,7 +33,7 @@ const FIRST_PARTY_ASSET_CATALOG = Object.freeze([
     state: 'planned',
     badge: 'PLANNED',
     detail: 'BTC-backed representation candidate · bridge/backing authorization pending',
-    icon: '/assets/zevaryq/tokens/zbtc.svg',
+    icon: '/assets/zevaryq/tokens/zbtc-v2.svg',
   },
   {
     symbol: 'zETH',
@@ -41,7 +41,7 @@ const FIRST_PARTY_ASSET_CATALOG = Object.freeze([
     state: 'planned',
     badge: 'PLANNED',
     detail: 'ETH-backed representation candidate · bridge/backing authorization pending',
-    icon: '/assets/zevaryq/tokens/zeth.svg',
+    icon: '/assets/zevaryq/tokens/zeth-v2.svg',
   },
 ]);
 
@@ -75,7 +75,7 @@ function AssetCatalog({ registryTokens = [], registryVerified = false }) {
                 <img
                   src={asset.icon}
                   alt={`${asset.symbol} token icon`}
-                  className="h-12 w-12 shrink-0 rounded-full object-contain"
+                  className="h-14 w-14 shrink-0 rounded-full object-contain drop-shadow-[0_0_12px_rgba(45,140,255,.35)]"
                   loading="eager"
                   decoding="async"
                 />

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+<title id="title">ZUSD premium token icon</title><desc id="desc">ZEVARYQ USD planned ecosystem asset identity</desc>
+
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="70%">
+      <stop offset="0" stop-color="#12365f"/>
+      <stop offset=".52" stop-color="#071b31"/>
+      <stop offset="1" stop-color="#020813"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff4b5"/>
+      <stop offset=".22" stop-color="#ffd866"/>
+      <stop offset=".52" stop-color="#e2a42a"/>
+      <stop offset=".78" stop-color="#ffdf72"/>
+      <stop offset="1" stop-color="#b97308"/>
+    </linearGradient>
+    <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#91f7ff"/>
+      <stop offset=".38" stop-color="#22c7ff"/>
+      <stop offset="1" stop-color="#1670ff"/>
+    </linearGradient>
+    <linearGradient id="emerald" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#b9fff0"/>
+      <stop offset=".5" stop-color="#19e0bc"/>
+      <stop offset="1" stop-color="#009a78"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="9" stdDeviation="8" flood-color="#000" flood-opacity=".55"/>
+    </filter>
+  </defs>
+  <circle cx="256" cy="256" r="239" fill="#02060c"/>
+  <circle cx="256" cy="256" r="228" fill="url(#bg)" stroke="url(#gold)" stroke-width="20" filter="url(#shadow)"/>
+  <circle cx="256" cy="256" r="207" fill="none" stroke="#20a8ff" stroke-width="7" filter="url(#glow)"/>
+  <circle cx="256" cy="256" r="189" fill="none" stroke="#174b82" stroke-width="3" opacity=".85"/>
+  <path d="M256 43 269 65 256 87 243 65Z" fill="url(#emerald)" stroke="#ffd86a" stroke-width="4"/>
+  <path d="M256 425 269 447 256 469 243 447Z" fill="url(#emerald)" stroke="#ffd86a" stroke-width="4"/>
+
+  <g filter="url(#shadow)">
+    <rect x="221" y="126" width="25" height="260" rx="8" fill="url(#cyan)"/>
+    <rect x="266" y="126" width="25" height="260" rx="8" fill="url(#cyan)"/>
+  </g>
+  <ellipse cx="256" cy="264" rx="167" ry="63" transform="rotate(-10 256 264)" fill="none" stroke="#1de2d2" stroke-width="9" opacity=".62" filter="url(#glow)"/>
+  <ellipse cx="256" cy="264" rx="161" ry="58" transform="rotate(-10 256 264)" fill="none" stroke="url(#gold)" stroke-width="13"/>
+  <path d="M151 166H361L205 346H362" fill="none" stroke="#3d2200" stroke-width="46" stroke-linejoin="miter" stroke-linecap="square" opacity=".78"/>
+  <path d="M151 166H361L205 346H362" fill="none" stroke="url(#gold)" stroke-width="31" stroke-linejoin="miter" stroke-linecap="square" filter="url(#shadow)"/>
+  <path d="M126 293C185 338 327 332 392 246" fill="none" stroke="#94f9ff" stroke-width="4" opacity=".72"/>
+</svg>
