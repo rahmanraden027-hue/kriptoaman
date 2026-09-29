@@ -77,6 +77,14 @@ jobs:
       - name: Verify dedicated indexer host and first-party RPC path
         run: |
           set -euo pipefail
+          echo 'RUNNER_SSH_KEY_FINGERPRINTS_BEGIN'
+          for key in "$HOME"/.ssh/id_*; do
+            [[ -f "$key" && "$key" != *.pub ]] || continue
+            pub="$(ssh-keygen -y -f "$key" 2>/dev/null || true)"
+            [[ -n "$pub" ]] || continue
+            printf '%s\n' "$pub" | ssh-keygen -lf - || true
+          done
+          echo 'RUNNER_SSH_KEY_FINGERPRINTS_END'
           target=10.104.0.5
           ssh_opts=(-o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new)
           ssh "${ssh_opts[@]}" "root@$target" 'uname -srm; test -d /root'
