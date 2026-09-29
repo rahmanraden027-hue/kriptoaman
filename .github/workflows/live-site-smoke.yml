@@ -202,6 +202,39 @@ jobs:
           grep -qi '^content-type:.*text/html' "$headers"
           grep -q 'id="root"' "$body"
           grep -Eq '<script[^>]+src="/assets/[^"]+\.js"' "$body"
+      - name: Check ZEVARYQ Wallet production token icons
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          for asset in zusd zbtc zeth; do
+            verified=0
+            for attempt in 1 2 3 4 5 6; do
+              headers="$(mktemp)"
+              body="$(mktemp)"
+              code="$(curl --location --silent --show-error \
+                --connect-timeout 10 --max-time 25 \
+                -H 'Cache-Control: no-cache' \
+                -D "$headers" -o "$body" -w '%{http_code}' \
+                "https://kriptoaman.com/assets/zevaryq/tokens/${asset}.svg?wallet-icons=${GITHUB_RUN_ID}-${attempt}")"
+              content_type=0
+              svg_root=0
+              grep -qi '^content-type:.*image/svg' "$headers" && content_type=1 || true
+              grep -q '<svg' "$body" && svg_root=1 || true
+              if [ "$code" = "200" ] && [ "$content_type" = "1" ] && [ "$svg_root" = "1" ]; then
+                echo "Verified production token icon: ${asset}.svg"
+                verified=1
+                break
+              fi
+              echo "Token icon ${asset}.svg attempt ${attempt} incomplete: http=${code}; content_type=${content_type}; svg=${svg_root}."
+              if [ "$attempt" -lt 6 ]; then sleep 15; fi
+            done
+            if [ "$verified" != "1" ]; then
+              echo "Production token icon did not converge: ${asset}.svg"
+              exit 1
+            fi
+          done
+
       - name: Check public system status route
         if: github.event_name != 'pull_request' || (github.head_ref != 'feature/zevaryq-explorer-production' && github.head_ref != 'codex/zevaryq-premium-logo' && github.head_ref != 'fix/zevaryq-explorer-absolute-assets' && github.head_ref != 'fix/explorer-ui-local-gate' && github.head_ref != 'fix/zevaryq-inline-emblem')
         shell: bash
