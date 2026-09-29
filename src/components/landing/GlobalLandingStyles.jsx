@@ -4,12 +4,12 @@ export default function GlobalLandingStyles() {
   return (
     <style>{`
       .ka-landing{
-        --ka-bg1:#05070a; --ka-bg2:#0b1016; --ka-card:#111821; --ka-card2:#0b1016;
-        --ka-border:#1f2a38; --ka-text:#ffffff; --ka-text2:#94a3b8;
+        --ka-bg1:#020713; --ka-bg2:#07111f; --ka-card:#0a1624; --ka-card2:#06101c;
+        --ka-border:#17314c; --ka-text:#F8FBFF; --ka-text2:#8EA6BE;
         --ka-blue:#3b82f6; --ka-cyan:#3b82f6; --ka-gold:#F5B72E; --ka-green:#22C55E;
         --ka-btn-primary-bg:#2563eb; --ka-btn-primary-bg-hover:#1d4ed8;
         --ka-radius:20px;
-        color:var(--ka-text); background:linear-gradient(180deg,var(--ka-bg1),var(--ka-bg2));
+        color:var(--ka-text); background:radial-gradient(circle at 78% 8%,rgba(37,99,235,.10),transparent 28%),radial-gradient(circle at 16% 36%,rgba(14,165,233,.06),transparent 24%),linear-gradient(180deg,var(--ka-bg1),var(--ka-bg2));
         font-family:Inter,system-ui,-apple-system,sans-serif;
         padding-bottom:max(24px,env(safe-area-inset-bottom));
       }
@@ -19,7 +19,7 @@ export default function GlobalLandingStyles() {
         --ka-blue:#2563eb; --ka-cyan:#0EA5E9; --ka-gold:#D97706; --ka-green:#16A34A;
         --ka-btn-primary-bg:#2563eb; --ka-btn-primary-bg-hover:#1d4ed8;
       }
-      .ka-card{background:linear-gradient(145deg,color-mix(in srgb,var(--ka-card) 96%,var(--ka-blue) 4%),var(--ka-card));border:1px solid var(--ka-border);border-radius:var(--ka-radius);}
+      .ka-card{background:linear-gradient(145deg,color-mix(in srgb,var(--ka-card) 94%,var(--ka-blue) 6%),var(--ka-card));border:1px solid var(--ka-border);border-radius:var(--ka-radius);box-shadow:0 18px 48px rgba(0,0,0,.16);}
       .ka-card2{background:var(--ka-card2);border:1px solid var(--ka-border);border-radius:12px;}
       .ka-text{color:var(--ka-text);} .ka-text2{color:var(--ka-text2);}
       .ka-blue{color:var(--ka-blue);} .ka-cyan{color:var(--ka-cyan);}
@@ -31,6 +31,19 @@ export default function GlobalLandingStyles() {
       .ka-btn-primary:hover{background:var(--ka-btn-primary-bg-hover);filter:none;box-shadow:0 8px 24px rgba(29,78,216,0.35);}
       .ka-btn-outline{background:transparent;color:var(--ka-text);border:1px solid var(--ka-border);border-radius:12px;font-weight:700;min-height:44px;transition:all .2s;text-decoration:none;}
       .ka-btn-outline:hover{border-color:var(--ka-blue);color:var(--ka-blue);}
+      .ka-wallet-cta{border:1px solid rgba(245,183,46,.34);background:rgba(245,183,46,.08);color:var(--ka-gold);text-decoration:none;transition:all .2s;}
+      .ka-wallet-cta:hover{background:rgba(245,183,46,.14);box-shadow:0 8px 26px rgba(245,183,46,.10);}
+      .ka-zvq-outline{border-color:rgba(245,183,46,.34);color:var(--ka-gold);}
+      .ka-zvq-outline:hover{border-color:var(--ka-gold);color:var(--ka-gold);box-shadow:0 8px 28px rgba(245,183,46,.10);}
+      .ka-v2-intelligence-card{position:relative;overflow:hidden;transition:transform .2s,border-color .2s;}
+      .ka-v2-intelligence-card::after{content:"";position:absolute;inset:auto -15% -58% 35%;height:150px;background:radial-gradient(circle,rgba(37,99,235,.13),transparent 66%);pointer-events:none;}
+      .ka-v2-intelligence-card:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--ka-blue) 45%,var(--ka-border));}
+      .ka-v2-livebar{background:linear-gradient(110deg,rgba(37,99,235,.08),rgba(6,16,28,.95) 48%,rgba(245,183,46,.05));}
+      .ka-product-card{position:relative;overflow:hidden;text-decoration:none;transition:transform .2s,border-color .2s;}
+      .ka-product-card:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--ka-blue) 52%,var(--ka-border));}
+      .ka-product-card-gold{background:linear-gradient(145deg,rgba(245,183,46,.07),var(--ka-card) 40%);}
+      .ka-product-card-gold:hover{border-color:rgba(245,183,46,.42);}
+  
       .ka-divider{background:var(--ka-border);}
       .ka-nav-link{color:var(--ka-text2);font-weight:600;position:relative;text-decoration:none;}
       .ka-nav-link:hover{color:var(--ka-text);}
@@ -50,7 +63,7 @@ export default function GlobalLandingStyles() {
       .ka-console-kicker{font-size:10px;letter-spacing:.16em;font-weight:800;color:var(--ka-blue)}
       .ka-live-state{display:inline-flex;align-items:center;gap:7px;color:var(--ka-gold);font-size:11px;font-weight:800}.ka-live-state i{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 12px currentColor}.ka-live-state.is-online{color:var(--ka-green)}
       .ka-console-stage{padding:10px 22px 0;background:radial-gradient(circle at 50% 45%,rgba(37,99,235,.12),transparent 54%)}
-      .ka-console-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--ka-border);background:rgba(2,6,11,.55)}
+      .ka-console-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--ka-border);background:rgba(2,6,11,.62)}
       .ka-console-metrics>div,.ka-console-metrics>a{display:flex;align-items:center;gap:10px;padding:16px;border-right:1px solid var(--ka-border);text-decoration:none;min-width:0}.ka-console-metrics>*:last-child{border-right:0}.ka-console-metrics svg{width:17px;height:17px;color:var(--ka-blue);flex:none}.ka-console-metrics span{display:flex;flex-direction:column;color:var(--ka-text2);font-size:10px;min-width:0}.ka-console-metrics b{font-size:15px;color:var(--ka-text);line-height:1.2;white-space:nowrap}
 
       /* Responsive safety net for stale/partial utility CSS. */

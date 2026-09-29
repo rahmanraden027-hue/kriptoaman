@@ -67,7 +67,7 @@ export default function CompanyFacts() {
         <section className="py-12 border-b border-black/10"><p className="text-xs uppercase tracking-[0.22em] text-slate-500">Corporate Architecture</p><div className="mt-6 grid md:grid-cols-3 gap-4">
           <Link to="/founder" className="rounded-2xl border border-black/10 bg-white/50 p-6 hover:bg-white"><UserRound className="w-5 h-5"/><h3 className="mt-5 font-semibold">Executive Leadership</h3><p className="mt-2 text-sm leading-6 text-slate-500">Raden Abdul Rahman sebagai Founder & CEO, dengan profil profesional yang terpisah dari komunikasi produk.</p></Link>
           <Link to="/" className="rounded-2xl border border-black/10 bg-white/50 p-6 hover:bg-white"><Building2 className="w-5 h-5"/><h3 className="mt-5 font-semibold">KriptoAman</h3><p className="mt-2 text-sm leading-6 text-slate-500">Lapisan produk: market intelligence, monitoring, edukasi, risk intelligence, dan pengalaman pengguna.</p></Link>
-          <Link to="/research" className="rounded-2xl border border-black/10 bg-white/50 p-6 hover:bg-white"><ShieldCheck className="w-5 h-5"/><h3 className="mt-5 font-semibold">Technology & Research</h3><p className="mt-2 text-sm leading-6 text-slate-500">KAM Network, explorer, developer documentation, dan research ditampilkan sesuai status dan evidence yang dapat diverifikasi.</p></Link>
+          <Link to="/research" className="rounded-2xl border border-black/10 bg-white/50 p-6 hover:bg-white"><ShieldCheck className="w-5 h-5"/><h3 className="mt-5 font-semibold">Technology & Research</h3><p className="mt-2 text-sm leading-6 text-slate-500">ZEVARYQ Network, ZEVARYQ Explorer, developer documentation, dan research ditampilkan sesuai status dan evidence yang dapat diverifikasi.</p></Link>
         </div></section>
 
         <section className="grid md:grid-cols-2 gap-4 py-12">
@@ -75,7 +75,7 @@ export default function CompanyFacts() {
           <article className="rounded-2xl border border-black/10 bg-white/50 p-6"><Mail className="w-5 h-5"/><h2 className="mt-5 font-semibold">Official & Verification Channels</h2><p className="mt-3 text-sm leading-7 text-slate-500">Gunakan kanal resmi untuk informasi perusahaan, legal, dan verifikasi publik. Status regulasi, jaringan, listing, atau layanan pihak ketiga hanya dinyatakan setelah dapat diverifikasi.</p><div className="mt-5 flex flex-wrap gap-4 text-sm font-semibold"><Link to="/LegalCorporateInformation" className="inline-flex items-center gap-1 hover:underline">Legal & Corporate <ArrowUpRight className="w-4 h-4"/></Link><a href="mailto:hello@kriptoaman.com" className="hover:underline">hello@kriptoaman.com</a></div></article>
         </section>
 
-        <p className="text-xs leading-6 text-slate-500">Corporate profile · diperbarui 1 September 2026. KriptoAman berfokus pada informasi, monitoring, edukasi, verifikasi berbasis sumber publik, dan analisis risiko indikatif; halaman ini tidak menyatakan jaminan harga, keuntungan, likuiditas, listing, atau persetujuan regulator.</p>
+        <p className="text-xs leading-6 text-slate-500">Corporate profile · Production V2 · diperbarui 30 September 2026. KriptoAman berfokus pada informasi, monitoring, edukasi, verifikasi berbasis sumber publik, dan analisis risiko indikatif; halaman ini tidak menyatakan jaminan harga, keuntungan, likuiditas, listing, atau persetujuan regulator.</p>
       </div>
     </main>
   );

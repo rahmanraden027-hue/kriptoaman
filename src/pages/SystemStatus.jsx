@@ -7,7 +7,7 @@ const FALLBACK_SERVICES = [
   { id: 'database', name: 'Database & Account Sessions', critical: true, state: 'unknown' },
   { id: 'market', name: 'Market Data', critical: true, state: 'unknown' },
   { id: 'networks', name: 'Verified Public Networks', critical: false, state: 'unknown' },
-  { id: 'kam', name: 'KAM Mainnet RPC', critical: true, state: 'unknown' },
+  { id: 'kam', name: 'ZEVARYQ Mainnet RPC', critical: true, state: 'unknown' },
 ];
 
 const COPY = {
@@ -23,7 +23,7 @@ const COPY = {
     allOk: 'Semua layanan utama operasional',
     degraded: 'Layanan tersedia, sebagian komponen sedang terbatas',
     attention: 'Salah satu layanan utama membutuhkan perhatian',
-    providerNote: 'Status aplikasi, data pasar, jaringan publik, dan KAM ditampilkan dari endpoint server yang terukur.',
+    providerNote: 'Status aplikasi, data pasar, jaringan publik, dan ZEVARYQ ditampilkan dari endpoint server yang terukur.',
     loadError: 'Pemeriksaan server belum dapat dimuat. Status tidak akan ditebak dari browser.',
     lastChecked: 'Pemeriksaan terakhir',
     core: 'Layanan utama',
@@ -42,7 +42,7 @@ const COPY = {
     allOk: 'All core services are operational',
     degraded: 'Services are available; some components are degraded',
     attention: 'A core service requires attention',
-    providerNote: 'Application, market, public-network, and KAM status are reported from measured server endpoints.',
+    providerNote: 'Application, market, public-network, and ZEVARYQ status are reported from measured server endpoints.',
     loadError: 'Server checks could not be loaded. Browser-side failures are not guessed as service outages.',
     lastChecked: 'Last checked',
     core: 'Core service',
@@ -129,7 +129,7 @@ export default function SystemStatus() {
         },
         {
           id: 'platform-kam',
-          name: components.kam?.blockNumber != null ? `KAM Mainnet RPC · block ${Number(components.kam.blockNumber).toLocaleString(locale)}` : 'KAM Mainnet RPC',
+          name: components.kam?.blockNumber != null ? `ZEVARYQ Mainnet RPC · block ${Number(components.kam.blockNumber).toLocaleString(locale)}` : 'ZEVARYQ Mainnet RPC',
           critical: true,
           state: componentState(components.kam?.status),
         },

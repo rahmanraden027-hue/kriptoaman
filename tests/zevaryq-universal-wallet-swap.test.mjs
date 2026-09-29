@@ -91,7 +91,8 @@ test('ZEVARYQ Assets page renders production ecosystem token icons even before b
   assert.match(wallet, /\/assets\/zevaryq\/tokens\/zusd-v2\.svg/);
   assert.match(wallet, /\/assets\/zevaryq\/tokens\/zbtc-v2\.svg/);
   assert.match(wallet, /\/assets\/zevaryq\/tokens\/zeth-v2\.svg/);
-  assert.match(wallet, /Official asset identities/);
+  assert.match(wallet, /Planned ecosystem identities/);
+  assert.match(wallet, /PLANNED · NOT HOLDINGS/);
   assert.match(wallet, /PLANNED/);
   assert.match(wallet, /does not imply deployment, backing, liquidity, or issuer affiliation/);
 });
