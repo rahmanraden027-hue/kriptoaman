@@ -20,7 +20,7 @@ jobs:
           node chain/kam-mainnet/scripts/verify-public-endpoints.mjs > artifacts/public-audit.json || legacy_rc=$?
           node scripts/assess-zevaryq-public-proof.mjs artifacts/public-audit.json | tee artifacts/public-proof.json
           echo "legacy_strict_verifier_rc=$legacy_rc"
-          jq -e '.chainId == "0x560c" and .blockProgress == true and .sensitiveMethodsBlocked == true and .explorer == true and .explorerHeight == true' artifacts/public-proof.json >/dev/null
+          jq -e '.ok == true and .checks.chainId == true and .checks.blockProgress == true and .checks.sensitiveMethodsBlocked == true and .checks.explorer == true and .checks.explorerHeight == true' artifacts/public-proof.json >/dev/null
       - name: Verify canonical and direct-SNI blocked policy from reviewed method list
         shell: bash
         run: |
