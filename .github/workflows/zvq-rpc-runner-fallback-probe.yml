@@ -4,6 +4,10 @@ on:
   pull_request:
     paths:
       - '.github/workflows/zvq-rpc-runner-fallback-probe.yml'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/zvq-rpc-runner-fallback-probe.yml'
 
 permissions:
   contents: read
