@@ -79,6 +79,10 @@ test('Base health check has an independent third provider for rate-limit recover
 
 test('remaining public chains have resilient provider coverage', async () => {
   const health = await read('functions/api/network-health.js');
+  assert.ok(health.includes("'https://api.mainnet.solana.com'"));
+  assert.ok(health.includes("'https://api.mainnet-beta.solana.com'"));
+  assert.ok(health.includes("'https://solana-rpc.publicnode.com'"));
+  assert.ok(health.includes("'https://rpc.ankr.com/solana'"));
   assert.ok(health.includes("'https://tron-evm-rpc.publicnode.com'"));
   assert.ok(health.includes("'https://honeycluster.io/'"));
   assert.ok(health.includes("'https://s2.ripple.com:51234/'"));
