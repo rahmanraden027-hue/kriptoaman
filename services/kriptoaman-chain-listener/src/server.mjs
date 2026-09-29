@@ -96,7 +96,7 @@ export function createApiServer({ config, store, state }) {
   const broadcast = (event) => {
     const payload = JSON.stringify(event);
     for (const client of wss.clients) {
-      if (client.readyState === client.OPEN) client.send(payload);
+      if (client.readyState === 1) client.send(payload);
     }
   };
 
