@@ -80,3 +80,17 @@ test('ZEVARYQ swap catalog exposes native and planned first-party assets without
   assert.doesNotMatch(ui, /symbol: 'zUSDT'/);
   assert.doesNotMatch(ui, /symbol: 'zUSDC'/);
 });
+
+
+test('ZEVARYQ Assets page renders production ecosystem token icons even before balances are available', async () => {
+  const wallet = await read('src/pages/Wallet.jsx');
+
+  assert.match(wallet, /ZEVARYQ Ecosystem Assets/);
+  assert.match(wallet, /data-zvq-production-token-icons="ZUSD,zBTC,zETH"/);
+  assert.match(wallet, /\/assets\/zevaryq\/tokens\/zusd\.svg/);
+  assert.match(wallet, /\/assets\/zevaryq\/tokens\/zbtc\.svg/);
+  assert.match(wallet, /\/assets\/zevaryq\/tokens\/zeth\.svg/);
+  assert.match(wallet, /Official asset identities/);
+  assert.match(wallet, /PLANNED/);
+  assert.match(wallet, /does not imply deployment, backing, liquidity, or issuer affiliation/);
+});
