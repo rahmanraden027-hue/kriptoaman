@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { ArrowDownToLine, ArrowLeft, ArrowLeftRight, ArrowUpRight, Bell, Check, ChevronRight, Clipboard, ExternalLink, Fingerprint, Globe2, HelpCircle, Languages, LockKeyhole, Maximize, QrCode, ScanLine, Settings as SettingsIcon, Share2, ShieldCheck, Smartphone, UserRoundCog, WalletCards } from 'lucide-react';
+import { ArrowDownToLine, ArrowLeft, ArrowLeftRight, ArrowUpRight, Check, ChevronRight, Clipboard, ExternalLink, Fingerprint, Globe2, HelpCircle, Languages, LockKeyhole, Maximize, QrCode, Settings as SettingsIcon, Share2, ShieldCheck, Smartphone, UserRoundCog, WalletCards } from 'lucide-react';
 import { useWeb3 } from '@/components/web3/Web3Provider';
 import ZevaryqMark from '@/components/zevaryq-wallet/ZevaryqMark';
 import NetworkInfrastructureCard from '@/components/zevaryq-wallet/NetworkInfrastructureCard';
@@ -20,7 +20,16 @@ const EXPLORER = ZEVARYQ.explorer;
 const VALID_ADDRESS = /^0x[a-fA-F0-9]{40}$/;
 
 function Header({ title, subtitle = '', back = false, onBack = null, onSettings = null }) {
-  return <header className="zv-header"><div className="flex min-w-0 items-center gap-3">{back ? <button type="button" onClick={onBack} className="zv-icon-button" aria-label="Go back"><ArrowLeft /></button> : <ZevaryqMark className="h-12 w-12 shrink-0" />}<div className="min-w-0 flex-1"><h1 className="zv-header-title text-base font-black leading-tight text-white sm:text-xl">{title}</h1>{subtitle && <p className="zv-header-subtitle mt-1 text-[11px] leading-tight text-[#9FB3C8] sm:text-xs">{subtitle}</p>}</div></div>{!back && <div className="zv-header-actions flex gap-1"><button className="zv-icon-button" aria-label="Notifications"><Bell /></button><button className="zv-icon-button" aria-label="QR scanner" title="Camera scanner is not configured"><ScanLine /></button><button className="zv-icon-button" onClick={onSettings} aria-label="Settings"><SettingsIcon /></button></div>}</header>;
+  return <header className="zv-header">
+    <div className="zv-header-main flex min-w-0 items-center gap-3">
+      {back ? <button type="button" onClick={onBack} className="zv-icon-button shrink-0" aria-label="Go back"><ArrowLeft /></button> : <ZevaryqMark className="h-12 w-12 shrink-0" />}
+      <div className="zv-header-copy min-w-0 flex-1">
+        <h1 className="zv-header-title text-base font-black leading-tight text-white sm:text-xl">{title}</h1>
+        {subtitle && <p className="zv-header-subtitle mt-1 text-[11px] leading-tight text-[#9FB3C8] sm:text-xs">{subtitle}</p>}
+      </div>
+    </div>
+    {!back && <div className="zv-header-actions"><button type="button" className="zv-icon-button" onClick={onSettings} aria-label="Settings"><SettingsIcon /></button></div>}
+  </header>;
 }
 
 function SplashScreen() { return <main className="zv-splash" aria-label="Loading ZEVARYQ Wallet"><div className="zv-orbit" aria-hidden="true" /><ZevaryqMark className="relative z-10 h-32 w-32" /><div className="relative z-10 text-center"><p className="text-3xl font-black tracking-[.12em] text-[#F2C86B]">ZEVARYQ</p><p className="mt-1 text-xs font-bold tracking-[.35em] text-[#9FB3C8]">NETWORK</p><h1 className="mt-8 text-2xl font-black">ZEVARYQ Wallet</h1><p className="mt-2 text-xs font-semibold tracking-wide text-[#9FB3C8]">ZVQ Mainnet Wallet · Secure · Multi-Chain Ready</p><p className="mt-3 text-[11px] text-[#6F859B]">Part of the KriptoAman ecosystem</p><span className="mx-auto mt-6 block h-1 w-36 overflow-hidden rounded-full bg-[#102235]"><span className="zv-loading-bar block h-full rounded-full bg-gradient-to-r from-[#D9A441] to-[#2D8CFF]" /></span></div></main>; }
@@ -68,7 +77,7 @@ function Home({ web3, network, balance, balancePhase, tokenAssets, assetPhase, s
         <p className="mt-5 text-5xl font-black tracking-[-.05em] text-white sm:text-[56px]">{balanceText} <span className="text-xl tracking-normal text-[#F2C86B]">ZVQ</span></p>
         <p className="mt-1 text-[#9FB3C8]">{balanceCaption}</p>
         <div className="mt-5 flex items-center gap-2 text-sm text-[#9FB3C8]">
-          <span className="min-w-0 truncate">{web3?.account ? compactAddress(web3.account) : 'No wallet address connected'}</span>
+          <span className="min-w-0 break-words">{web3?.account ? compactAddress(web3.account) : 'No wallet address connected'}</span>
           {web3?.account && <>
             <button onClick={() => navigator.clipboard?.writeText(web3.account)} className="zv-mini-button" aria-label="Copy address"><Clipboard /></button>
             <button onClick={() => setScreen('receive')} className="zv-mini-button" aria-label="Show QR"><QrCode /></button>
@@ -106,8 +115,8 @@ function Home({ web3, network, balance, balancePhase, tokenAssets, assetPhase, s
             {asset.iconUrl ? <img src={asset.iconUrl} alt="" className="h-9 w-9 rounded-xl object-contain" /> : asset.symbol.slice(0, 3)}
           </span>
           <div className="min-w-0 flex-1">
-            <h3 className="truncate font-black">{asset.name}</h3>
-            <p className="truncate text-xs text-[#9FB3C8]">{asset.symbol} · {asset.type} · {compactAddress(asset.contractAddress)}</p>
+            <h3 className="break-words font-black">{asset.name}</h3>
+            <p className="break-words text-xs leading-5 text-[#9FB3C8]">{asset.symbol} · {asset.type} · {compactAddress(asset.contractAddress)}</p>
           </div>
           <div className="text-right"><p className="max-w-[140px] break-all font-black">{asset.balance}</p><p className="text-xs text-[#6F859B]">{asset.symbol}</p></div>
         </div>
@@ -158,9 +167,9 @@ function Assets({ account, balance, balancePhase, tokenAssets, assetPhase }) {
             {asset.iconUrl ? <img src={asset.iconUrl} alt="" className="h-9 w-9 rounded-xl object-contain" /> : asset.symbol.slice(0, 3)}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="truncate font-black">{asset.name}</p>
-            <p className="truncate text-xs text-[#9FB3C8]">{asset.symbol} · {asset.type}</p>
-            <a href={`${EXPLORER}/token/${asset.contractAddress}`} target="_blank" rel="noreferrer" className="mt-1 block truncate font-mono text-[10px] text-[#53D8FB]">{asset.contractAddress}</a>
+            <p className="break-words font-black">{asset.name}</p>
+            <p className="break-words text-xs leading-5 text-[#9FB3C8]">{asset.symbol} · {asset.type}</p>
+            <a href={`${EXPLORER}/token/${asset.contractAddress}`} target="_blank" rel="noreferrer" className="mt-1 block break-all font-mono text-[10px] leading-4 text-[#53D8FB]">{asset.contractAddress}</a>
           </div>
           <div className="text-right"><p className="max-w-[160px] break-all font-black">{asset.balance}</p><p className="text-xs text-[#6F859B]">{asset.symbol}</p></div>
         </div>
@@ -170,7 +179,7 @@ function Assets({ account, balance, balancePhase, tokenAssets, assetPhase }) {
 }
 
 function Security(){const items=[{label:'Wallet Backup',status:'Not configured',Icon:LockKeyhole},{label:'Biometric Login',status:'Coming later',Icon:Fingerprint},{label:'App Lock',status:'Coming later',Icon:ShieldCheck},{label:'Connected Devices',status:'Provider-managed',Icon:Smartphone},{label:'Security Status',status:'External wallet',Icon:ShieldCheck}];return <section className="zv-card p-5"><div className="text-center"><ShieldCheck className="mx-auto h-12 w-12 text-[#F2C86B]"/><h2 className="mt-3 text-2xl font-black">Security Center</h2><p className="text-sm text-[#9FB3C8]">Capabilities reflect the current release.</p></div><div className="mt-6 divide-y divide-[#1A3A59]">{items.map(({label,status,Icon})=><div key={label} className="flex items-center gap-3 py-4"><Icon className="h-5 w-5 text-[#D9A441]"/><span className="flex-1 font-semibold">{label}</span><span className="text-xs text-[#9FB3C8]">{status}</span></div>)}</div></section>;}
-function SettingsScreen({web3,currentUser,adminBalances,adminError}){const items=[{label:'Wallet Management',status:web3?.isConnected?compactAddress(web3.account):'Not connected',Icon:WalletCards},{label:'Network Settings',status:ZEVARYQ.network,Icon:Globe2},{label:'Security & Privacy',status:'External wallet',Icon:ShieldCheck},{label:'Appearance',status:'Midnight Navy',Icon:Maximize},{label:'Language',status:'System default',Icon:Languages},{label:'Help & Support',status:'Open support',Icon:HelpCircle},{label:'About',status:'ZEVARYQ Wallet',Icon:UserRoundCog}];return <><section className="zv-card p-5"><div className="flex items-center gap-3"><ZevaryqMark className="h-14 w-14"/><div><h2 className="text-lg font-black">ZEVARYQ Wallet</h2><p className="text-xs text-[#9FB3C8]">ZVQ Mainnet · KriptoAman Ecosystem</p></div></div><div className="mt-6 divide-y divide-[#1A3A59]">{items.map(({label,status,Icon})=><div key={label} className="flex items-center gap-3 py-4"><Icon className="h-5 w-5 text-[#D9A441]"/><span className="flex-1 font-semibold">{label}</span><span className="max-w-[42%] truncate text-xs text-[#9FB3C8]">{status}</span><ChevronRight className="h-4 w-4"/></div>)}</div><p className="mt-5 text-xs text-[#6F859B]">No custody or transaction execution without explicit wallet confirmation.</p>{web3?.isConnected&&<button onClick={web3.disconnectWallet} className="mt-6 min-h-12 w-full rounded-2xl border border-red-500/40 bg-red-500/10 font-bold text-red-300">Disconnect Wallet</button>}</section>{currentUser?.role === 'admin'&&<section className="zv-card p-5"><div className="flex items-center justify-between gap-3"><h2 className="font-black">Saldo administrasi internal KriptoAman</h2><span className="rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] font-black text-emerald-300">KHUSUS ADMIN</span></div>{adminError?<p className="mt-4 text-sm text-red-300">{adminError}</p>:<div className="mt-4 grid grid-cols-2 gap-2">{['BTC','ETH','SOL','USDT'].map(coin=><div key={coin} className="rounded-xl bg-[#071522] p-3"><p className="text-xs text-[#6F859B]">{coin}</p><p className="font-black">{adminBalances?Number(adminBalances[coin]||0).toLocaleString():'—'}</p></div>)}</div>}</section>}</>;}
+function SettingsScreen({web3,currentUser,adminBalances,adminError}){const items=[{label:'Wallet Management',status:web3?.isConnected?compactAddress(web3.account):'Not connected',Icon:WalletCards},{label:'Network Settings',status:ZEVARYQ.network,Icon:Globe2},{label:'Security & Privacy',status:'External wallet',Icon:ShieldCheck},{label:'Appearance',status:'Midnight Navy',Icon:Maximize},{label:'Language',status:'System default',Icon:Languages},{label:'Help & Support',status:'Open support',Icon:HelpCircle},{label:'About',status:'ZEVARYQ Wallet',Icon:UserRoundCog}];return <><section className="zv-card p-5"><div className="flex items-center gap-3"><ZevaryqMark className="h-14 w-14"/><div><h2 className="text-lg font-black">ZEVARYQ Wallet</h2><p className="text-xs text-[#9FB3C8]">ZVQ Mainnet · KriptoAman Ecosystem</p></div></div><div className="mt-6 divide-y divide-[#1A3A59]">{items.map(({label,status,Icon})=><div key={label} className="flex items-center gap-3 py-4"><Icon className="h-5 w-5 text-[#D9A441]"/><span className="flex-1 font-semibold">{label}</span><span className="zv-settings-status text-xs leading-5 text-[#9FB3C8]">{status}</span><ChevronRight className="h-4 w-4"/></div>)}</div><p className="mt-5 text-xs text-[#6F859B]">No custody or transaction execution without explicit wallet confirmation.</p>{web3?.isConnected&&<button onClick={web3.disconnectWallet} className="mt-6 min-h-12 w-full rounded-2xl border border-red-500/40 bg-red-500/10 font-bold text-red-300">Disconnect Wallet</button>}</section>{currentUser?.role === 'admin'&&<section className="zv-card p-5"><div className="flex items-center justify-between gap-3"><h2 className="font-black">Saldo administrasi internal KriptoAman</h2><span className="rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] font-black text-emerald-300">KHUSUS ADMIN</span></div>{adminError?<p className="mt-4 text-sm text-red-300">{adminError}</p>:<div className="mt-4 grid grid-cols-2 gap-2">{['BTC','ETH','SOL','USDT'].map(coin=><div key={coin} className="rounded-xl bg-[#071522] p-3"><p className="text-xs text-[#6F859B]">{coin}</p><p className="font-black">{adminBalances?Number(adminBalances[coin]||0).toLocaleString():'—'}</p></div>)}</div>}</section>}</>;}
 
 export default function Wallet(){const web3=useWeb3();const network=useZevaryqNetworkStatus();const connectedAddressCount=Array.isArray(web3?.accounts)?web3.accounts.length:Number(Boolean(web3?.account));const [booting,setBooting]=useState(true);const [screen,setScreen]=useState('wallet');const [balance,setBalance]=useState('0');const [balancePhase,setBalancePhase]=useState('empty');const [tokenAssets,setTokenAssets]=useState([]);const [assetPhase,setAssetPhase]=useState('empty');const [transactions,setTransactions]=useState([]);const [txPhase,setTxPhase]=useState('empty');const [selectedTx,setSelectedTx]=useState(null);const [currentUser,setCurrentUser]=useState(null);const [adminBalances,setAdminBalances]=useState(null);const [adminError,setAdminError]=useState('');
   useEffect(()=>{const timer=setTimeout(()=>setBooting(false),650);return()=>clearTimeout(timer);},[]);
