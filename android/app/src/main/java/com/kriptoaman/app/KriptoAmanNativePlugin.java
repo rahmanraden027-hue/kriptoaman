@@ -1,8 +1,10 @@
 package com.kriptoaman.app;
 
+import android.app.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
+import android.net.Uri;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.os.BatteryManager;
@@ -96,6 +98,58 @@ public class KriptoAmanNativePlugin extends Plugin {
             vibrator.vibrate(VibrationEffect.createOneShot(28, VibrationEffect.DEFAULT_AMPLITUDE));
         } else {
             vibrator.vibrate(28);
+        }
+    }
+
+    @PluginMethod
+    public void openExternalWallet(PluginCall call) {
+        String uri = call.getString("uri");
+        String packageName = call.getString("packageName");
+        String fallbackUrl = call.getString("fallbackUrl");
+
+        if (uri == null || uri.trim().isEmpty()) {
+            call.reject("Wallet URI is required");
+            return;
+        }
+
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            if (packageName != null && !packageName.trim().isEmpty()) {
+                intent.setPackage(packageName.trim());
+            }
+            getContext().startActivity(intent);
+
+            JSObject result = new JSObject();
+            result.put("opened", true);
+            result.put("fallback", false);
+            call.resolve(result);
+            return;
+        } catch (ActivityNotFoundException notInstalled) {
+            // Continue to the universal link fallback below.
+        } catch (Exception directError) {
+            if (fallbackUrl == null || fallbackUrl.trim().isEmpty()) {
+                call.reject("External wallet handoff unavailable", directError);
+                return;
+            }
+        }
+
+        if (fallbackUrl == null || fallbackUrl.trim().isEmpty()) {
+            call.reject("Target wallet is not installed and no fallback URL was provided");
+            return;
+        }
+
+        try {
+            Intent fallback = new Intent(Intent.ACTION_VIEW, Uri.parse(fallbackUrl));
+            fallback.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(fallback);
+
+            JSObject result = new JSObject();
+            result.put("opened", true);
+            result.put("fallback", true);
+            call.resolve(result);
+        } catch (Exception fallbackError) {
+            call.reject("Unable to open wallet or fallback URL", fallbackError);
         }
     }
 
