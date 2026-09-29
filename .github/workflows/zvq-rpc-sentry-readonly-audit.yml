@@ -114,6 +114,17 @@ jobs:
 
           echo 'zvq_external_production_proof=pass'
 
+  explorer-ssh-probe:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 3
+    steps:
+      - name: Probe authorized read-only SSH path to RPC sentry
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15 \
+            'echo ssh_path=ok; hostname; ss -H -ltnp | awk '"'"'$4 ~ /:(80|443|8545|8546|8547|9545|18445)$/ {print}'"'"'; if command -v ufw >/dev/null 2>&1; then ufw status numbered || true; fi'
+
   audit:
     runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
     timeout-minutes: 8
