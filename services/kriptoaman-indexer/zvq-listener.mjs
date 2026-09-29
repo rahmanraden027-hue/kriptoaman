@@ -22,8 +22,10 @@ let lastHeadAt = 0;
 let lastHead = null;
 let events = [];
 let latencies = [];
-let requestId = 1;
+let requestId = 10;
 let catchupTruncated = false;
+let wsSubscribed = false;
+let wsSubscriptionId = null;
 
 const now = () => Date.now();
 
@@ -182,26 +184,41 @@ async function connect() {
 
   ws.addEventListener('open', () => {
     reconnectAttempt = 0;
+    wsSubscribed = false;
+    wsSubscriptionId = null;
     ws.send(JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_subscribe', params: ['newHeads'] }));
   });
   ws.addEventListener('message', event => {
     try {
       const payload = JSON.parse(String(event.data));
-      if (payload?.method === 'eth_subscription' && payload?.params?.result?.number) {
+      if (payload?.id === 1 && typeof payload?.result === 'string') {
+        wsSubscriptionId = payload.result;
+        wsSubscribed = true;
+        return;
+      }
+      if (payload?.method === 'eth_subscription'
+        && payload?.params?.subscription === wsSubscriptionId
+        && payload?.params?.result?.number) {
         processHead(payload.params.result).catch(error => console.error('head processing failed', error.message));
       }
     } catch (error) {
       console.error('websocket message parse failed', error.message);
     }
   });
-  ws.addEventListener('close', scheduleReconnect);
+  ws.addEventListener('close', () => {
+    wsSubscribed = false;
+    wsSubscriptionId = null;
+    scheduleReconnect();
+  });
   ws.addEventListener('error', () => {
+    wsSubscribed = false;
     try { ws.close(); } catch {}
   });
 }
 
 function publicState() {
-  const fresh = lastHeadAt > 0 && now() - lastHeadAt < 30000;
+  const headFresh = lastHeadAt > 0 && now() - lastHeadAt < 30000;
+  const fresh = wsSubscribed && headFresh;
   return {
     status: fresh ? 'live' : 'unavailable',
     version: 1,
@@ -212,6 +229,7 @@ function publicState() {
     head: lastHead,
     lastHeadAt: lastHeadAt || null,
     streamFresh: fresh,
+    websocketSubscribed: wsSubscribed,
     catchupTruncated,
     events,
     latency: {
@@ -231,7 +249,7 @@ const server = http.createServer((req, res) => {
   }
   const state = publicState();
   const body = req.url === '/health'
-    ? { status: state.status, chainId: state.chainId, lastHeadAt: state.lastHeadAt, head: state.head, catchupTruncated }
+    ? { status: state.status, chainId: state.chainId, websocketSubscribed: state.websocketSubscribed, lastHeadAt: state.lastHeadAt, head: state.head, catchupTruncated }
     : state;
   res.writeHead(state.status === 'live' ? 200 : 503, {
     'content-type': 'application/json; charset=utf-8',
