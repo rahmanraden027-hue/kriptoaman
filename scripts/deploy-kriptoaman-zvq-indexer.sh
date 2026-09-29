@@ -92,5 +92,6 @@ sleep 15
 systemctl is-active --quiet kriptoaman-zvq-indexer.service || fail "indexer service not active"
 health="$(curl -fsS --max-time 5 http://127.0.0.1:8765/health)" || fail "indexer health unavailable"
 [[ "$(jq -r '.status' <<<"$health")" == live ]] || fail "WebSocket stream is not live"
+[[ "$(jq -r '.websocketSubscribed' <<<"$health")" == true ]] || fail "WebSocket subscription not confirmed"
 [[ "$(jq -r '.chainId' <<<"$health")" == 22028 ]] || fail "unexpected indexer chain"
 echo "first_party_websocket_indexer=pass"
