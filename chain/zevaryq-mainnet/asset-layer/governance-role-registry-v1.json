@@ -1,0 +1,44 @@
+{
+  "version": "1.0",
+  "chainId": 22028,
+  "status": "unset",
+  "roles": {
+    "governanceSafe": {
+      "address": null,
+      "policy": "4-of-5",
+      "timelockSeconds": 86400
+    },
+    "zusdReserveAttestor": {
+      "address": null,
+      "policy": "3-of-5"
+    },
+    "zusdMintOperator": {
+      "address": null,
+      "policy": "3-of-5"
+    },
+    "zusdSettlementOperator": {
+      "address": null,
+      "policy": "3-of-5"
+    },
+    "bridgeAttestor": {
+      "address": null,
+      "policy": "3-of-5"
+    },
+    "bridgeReleaseOperator": {
+      "address": null,
+      "policy": "3-of-5"
+    },
+    "emergencyGuardian": {
+      "address": null,
+      "policy": "4-of-5",
+      "maxPauseSeconds": 86400
+    },
+    "treasurySafe": {
+      "address": null,
+      "policy": "TBD",
+      "mintAuthority": false
+    }
+  },
+  "verified": false,
+  "deploymentAuthorized": false
+}
