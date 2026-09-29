@@ -14,6 +14,94 @@ permissions:
   contents: read
 
 jobs:
+  external:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Strict external ZVQ production proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          RPC='https://rpc.kriptoaman.com/'
+          ORIGIN_IP='206.189.36.15'
+          EXPLORER='https://explorer.kriptoaman.com'
+
+          rpc_json() {
+            local url="$1" method="$2" params="$3"
+            curl --fail-with-body -sS --connect-timeout 6 --max-time 15 \
+              -H 'content-type: application/json' \
+              --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"${method}\",\"params\":${params}}" "$url"
+          }
+
+          echo '== public RPC identity and advancing head =='
+          chain="$(rpc_json "$RPC" eth_chainId '[]' | jq -er '.result')"
+          test "$chain" = '0x560c'
+          b1="$(rpc_json "$RPC" eth_blockNumber '[]' | jq -er '.result')"
+          sleep 12
+          b2="$(rpc_json "$RPC" eth_blockNumber '[]' | jq -er '.result')"
+          n1=$((16#${b1#0x}))
+          n2=$((16#${b2#0x}))
+          echo "public_chain_id=$chain public_block_1=$b1 public_block_2=$b2"
+          test "$n2" -gt "$n1"
+
+          echo '== direct origin with production SNI =='
+          origin_chain="$(curl --resolve "rpc.kriptoaman.com:443:${ORIGIN_IP}" --noproxy '*' --fail-with-body -sS \
+            --connect-timeout 6 --max-time 15 -H 'content-type: application/json' \
+            --data '{"jsonrpc":"2.0","id":2,"method":"eth_chainId","params":[]}' "$RPC" | jq -er '.result')"
+          test "$origin_chain" = '0x560c'
+          o1="$(curl --resolve "rpc.kriptoaman.com:443:${ORIGIN_IP}" --noproxy '*' --fail-with-body -sS \
+            --connect-timeout 6 --max-time 15 -H 'content-type: application/json' \
+            --data '{"jsonrpc":"2.0","id":3,"method":"eth_blockNumber","params":[]}' "$RPC" | jq -er '.result')"
+          sleep 12
+          o2="$(curl --resolve "rpc.kriptoaman.com:443:${ORIGIN_IP}" --noproxy '*' --fail-with-body -sS \
+            --connect-timeout 6 --max-time 15 -H 'content-type: application/json' \
+            --data '{"jsonrpc":"2.0","id":4,"method":"eth_blockNumber","params":[]}' "$RPC" | jq -er '.result')"
+          on1=$((16#${o1#0x}))
+          on2=$((16#${o2#0x}))
+          echo "origin_chain_id=$origin_chain origin_block_1=$o1 origin_block_2=$o2"
+          test "$on2" -gt "$on1"
+
+          echo '== deny privileged/write methods =='
+          for method in admin_peers debug_traceTransaction eth_sendRawTransaction; do
+            params='[]'
+            if [[ "$method" = debug_traceTransaction ]]; then params='["0x0000000000000000000000000000000000000000000000000000000000000000",{}]'; fi
+            if [[ "$method" = eth_sendRawTransaction ]]; then params='["0x01"]'; fi
+            payload="{\"jsonrpc\":\"2.0\",\"id\":5,\"method\":\"${method}\",\"params\":${params}}"
+            public_code="$(curl -sS --connect-timeout 6 --max-time 12 -o /dev/null -w '%{http_code}' \
+              -H 'content-type: application/json' --data "$payload" "$RPC")"
+            origin_code="$(curl --resolve "rpc.kriptoaman.com:443:${ORIGIN_IP}" --noproxy '*' -sS \
+              --connect-timeout 6 --max-time 12 -o /dev/null -w '%{http_code}' \
+              -H 'content-type: application/json' --data "$payload" "$RPC")"
+            echo "method=$method public_http=$public_code origin_http=$origin_code"
+            test "$public_code" = 403
+            test "$origin_code" = 403
+          done
+
+          echo '== CORS policy =='
+          trusted="$(curl -sS -X OPTIONS --connect-timeout 6 --max-time 12 -o /dev/null -w '%{http_code}' \
+            -H 'Origin: https://explorer.kriptoaman.com' "$RPC")"
+          untrusted="$(curl -sS -X OPTIONS --connect-timeout 6 --max-time 12 -o /dev/null -w '%{http_code}' \
+            -H 'Origin: https://untrusted.invalid' "$RPC")"
+          echo "cors_trusted=$trusted cors_untrusted=$untrusted"
+          test "$trusted" = 204
+          test "$untrusted" = 403
+
+          echo '== Explorer and Blockscout API =='
+          for path in / /blocks /txs /validators /api-docs; do
+            code="$(curl --fail-with-body -sS --connect-timeout 6 --max-time 15 -o /dev/null -w '%{http_code}' "${EXPLORER}${path}")"
+            echo "explorer_path=$path http=$code"
+            test "$code" = 200
+          done
+          for path in /api/v2/blocks /api/v2/transactions; do
+            tmp="$(mktemp)"
+            code="$(curl --fail-with-body -sS --connect-timeout 6 --max-time 20 -o "$tmp" -w '%{http_code}' "${EXPLORER}${path}")"
+            echo "explorer_api=$path http=$code"
+            test "$code" = 200
+            jq -e 'type=="object" or type=="array"' "$tmp" >/dev/null
+          done
+
+          echo 'zvq_external_production_proof=pass'
+
   audit:
     runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
     timeout-minutes: 8
