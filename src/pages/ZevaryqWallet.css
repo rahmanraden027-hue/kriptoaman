@@ -101,3 +101,10 @@
   .zv-wallet-shell{padding-bottom:112px}
   .zv-bottom-nav{padding-bottom:0}
 }
+
+.zv-header>div:first-child{flex:1 1 auto;min-width:0}
+.zv-header-title{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+@media(max-width:420px){
+  .zv-header-title{font-size:16px}
+  .zv-header{align-items:flex-start}
+}
