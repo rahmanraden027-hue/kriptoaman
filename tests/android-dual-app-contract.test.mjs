@@ -25,6 +25,7 @@ test('Android builds KriptoAman Platform and ZEVARYQ Wallet as separate applicat
   assert.equal(walletConfig.server.url, 'https://kriptoaman.com/wallet-app');
   assert.match(app, /path="\/wallet-app"/);
   assert.match(app, /WalletStandalonePage/);
+  assert.match(app, /<Web3Provider><WalletStandalonePage \/><\/Web3Provider>/);
 });
 
 test('wallet flavor stays non-custodial at the application split boundary', async () => {
@@ -36,4 +37,14 @@ test('wallet flavor stays non-custodial at the application split boundary', asyn
   assert.doesNotMatch(wallet + walletConfig, /private.?key|mnemonic|seed phrase storage|eth_sign/i);
   assert.match(manifest, /android:allowBackup="false"/);
   assert.doesNotMatch(manifest, /READ_SMS|READ_CONTACTS|ACCESS_FINE_LOCATION|RECORD_AUDIO/);
+});
+
+
+test('standalone ZEVARYQ wallet route has a live Web3 provider', async () => {
+  const app = await read('src/App.jsx');
+  const provider = await read('src/components/web3/Web3Provider.jsx');
+  assert.match(app, /import \{ Web3Provider \} from '@\/components\/web3\/Web3Provider';/);
+  assert.match(app, /path="\/wallet-app"[\s\S]*<Web3Provider><WalletStandalonePage \/><\/Web3Provider>/);
+  assert.match(provider, /connectWalletConnect/);
+  assert.match(provider, /walletConnectConfigured/);
 });
