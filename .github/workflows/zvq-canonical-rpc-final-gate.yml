@@ -50,13 +50,17 @@ jobs:
               err_code="$(jq -r '.error.code // "none"' "$file" 2>/dev/null || echo malformed)"
               err_msg="$(jq -r '.error.message // "none"' "$file" 2>/dev/null || echo malformed)"
               echo "policy_method=$method target=$label http=$code rpc_error=$err_code message=$err_msg"
-              node --input-type=module - "$code" "$file" <<'NODE'
-              import fs from 'node:fs';
-              import { isAdminRpcBlocked } from './chain/kam-mainnet/scripts/rpc-security.mjs';
-              const status=Number(process.argv[2]);
-              const payload=JSON.parse(fs.readFileSync(process.argv[3],'utf8'));
-              if(!isAdminRpcBlocked(status,payload)) process.exit(1);
-NODE
+              blocked=false
+              case "$code" in
+                401|403|404) blocked=true ;;
+                2??)
+                  msg_lc="$(printf '%s' "$err_msg" | tr '[:upper:]' '[:lower:]')"
+                  if [[ "$err_code" = -32601 || "$msg_lc" == *"method not found"* || "$msg_lc" == *"method not enabled"* || "$msg_lc" == *"method is not enabled"* || "$msg_lc" == *"unsupported method"* ]]; then
+                    blocked=true
+                  fi
+                  ;;
+              esac
+              test "$blocked" = true
             done
             rm -f "$public_body" "$direct_body"
           done
