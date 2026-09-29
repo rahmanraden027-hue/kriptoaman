@@ -1,0 +1,60 @@
+name: KriptoAman First-Party Chain Listener V1
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'services/kriptoaman-chain-listener/**'
+      - 'scripts/probe-zvq-listener-capability.mjs'
+      - 'tests/kriptoaman-chain-listener-v1.test.mjs'
+      - 'docs/KRIPTOAMAN_FIRST_PARTY_INTELLIGENCE_V1.md'
+      - '.github/workflows/kriptoaman-chain-listener-v1.yml'
+  push:
+    branches:
+      - codex/kriptoaman-first-party-chain-listener-v1
+    paths:
+      - 'services/kriptoaman-chain-listener/**'
+      - 'scripts/probe-zvq-listener-capability.mjs'
+      - 'tests/kriptoaman-chain-listener-v1.test.mjs'
+      - 'docs/KRIPTOAMAN_FIRST_PARTY_INTELLIGENCE_V1.md'
+      - '.github/workflows/kriptoaman-chain-listener-v1.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - name: Root architecture contract
+        run: node --test tests/kriptoaman-chain-listener-v1.test.mjs
+      - name: Install isolated listener dependencies
+        working-directory: services/kriptoaman-chain-listener
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Listener unit tests
+        working-directory: services/kriptoaman-chain-listener
+        run: npm test
+      - name: Syntax check production modules
+        run: |
+          node --check services/kriptoaman-chain-listener/src/config.mjs
+          node --check services/kriptoaman-chain-listener/src/rpc.mjs
+          node --check services/kriptoaman-chain-listener/src/store.mjs
+          node --check services/kriptoaman-chain-listener/src/server.mjs
+          node --check services/kriptoaman-chain-listener/src/indexer.mjs
+          node --check services/kriptoaman-chain-listener/src/index.mjs
+
+  first-party-rpc-capability:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/codex/kriptoaman-first-party-chain-listener-v1'
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v7
+      - name: Read-only ZEVARYQ RPC and WebSocket capability probe
+        run: node scripts/probe-zvq-listener-capability.mjs
