@@ -69,10 +69,10 @@ jobs:
           set -euo pipefail
           grep -q 'applicationId "com.kriptoaman.app"' android/app/build.gradle
           grep -q 'applicationId "com.kriptoaman.wallet"' android/app/build.gradle
-          grep -q 'versionCode 9' android/app/build.gradle
-          grep -q 'versionName "1.5.3"' android/app/build.gradle
-          grep -q 'versionCode 7' android/app/build.gradle
-          grep -q 'versionName "1.0.6"' android/app/build.gradle
+          grep -q 'versionCode 10' android/app/build.gradle
+          grep -q 'versionName "1.5.4"' android/app/build.gradle
+          grep -q 'versionCode 8' android/app/build.gradle
+          grep -q 'versionName "1.0.7"' android/app/build.gradle
           grep -q '"appId": "com.kriptoaman.app"' android/app/src/platform/assets/capacitor.config.json
           grep -q '"appId": "com.kriptoaman.wallet"' android/app/src/wallet/assets/capacitor.config.json
           grep -q 'https://kriptoaman.com/wallet-app' android/app/src/wallet/assets/capacitor.config.json

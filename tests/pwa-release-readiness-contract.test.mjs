@@ -66,8 +66,8 @@ test('Android dual release identities and target SDK remain Play-ready', () => {
   assert.equal(walletCapacitorConfig.appName, 'ZEVARYQ Wallet');
   assert.equal(walletCapacitorConfig.server.url, 'https://kriptoaman.com/wallet-app');
 
-  assert.match(androidBuild, /platform\s*\{[\s\S]*applicationId\s+"com\.kriptoaman\.app"[\s\S]*versionCode\s+9[\s\S]*versionName\s+"1\.5\.3"/);
-  assert.match(androidBuild, /wallet\s*\{[\s\S]*applicationId\s+"com\.kriptoaman\.wallet"[\s\S]*versionCode\s+7[\s\S]*versionName\s+"1\.0\.6"/);
+  assert.match(androidBuild, /platform\s*\{[\s\S]*applicationId\s+"com\.kriptoaman\.app"[\s\S]*versionCode\s+10[\s\S]*versionName\s+"1\.5\.4"/);
+  assert.match(androidBuild, /wallet\s*\{[\s\S]*applicationId\s+"com\.kriptoaman\.wallet"[\s\S]*versionCode\s+8[\s\S]*versionName\s+"1\.0\.7"/);
   assert.match(androidVariables, /compileSdkVersion\s*=\s*36/);
   assert.match(androidVariables, /targetSdkVersion\s*=\s*36/);
 });

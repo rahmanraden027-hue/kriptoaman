@@ -13,7 +13,8 @@ const styles = await readFile(new URL('../android/app/src/main/res/values/styles
 const iconBackground = await readFile(new URL('../android/app/src/main/res/values/ic_launcher_background.xml', import.meta.url), 'utf8');
 const platformAlias = await readFile(new URL('../android/app/src/platform/res/values/aliases.xml', import.meta.url), 'utf8');
 const walletAlias = await readFile(new URL('../android/app/src/wallet/res/values/aliases.xml', import.meta.url), 'utf8');
-const platformLauncher = await readFile(new URL('../android/app/src/platform/res/drawable/kriptoaman_platform_launcher.xml', import.meta.url), 'utf8');
+const platformLauncher = await readFile(new URL('../android/app/src/platform/res/drawable/kriptoaman_premium_launcher.xml', import.meta.url), 'utf8');
+const walletLauncher = await readFile(new URL('../android/app/src/wallet/res/drawable/zevaryq_premium_launcher.xml', import.meta.url), 'utf8');
 
 test('Android registers the KriptoAman native utility plugin', () => {
   assert.match(plugin, /@CapacitorPlugin\(name = "KriptoAmanNative"\)/);
@@ -58,9 +59,10 @@ test('Android splash and adaptive icon follow the KriptoAman dark identity', () 
   assert.match(styles, /windowSplashScreenBackground/);
   assert.match(styles, /windowSplashScreenAnimatedIcon/);
   assert.match(styles, /app_launch_emblem/);
-  assert.match(platformAlias, /kriptoaman_platform_launcher/);
-  assert.match(walletAlias, /zevaryq_wallet_launcher/);
-  assert.match(platformLauncher, /#E7B438/i);
+  assert.match(platformAlias, /kriptoaman_premium_launcher/);
+  assert.match(walletAlias, /zevaryq_premium_launcher/);
+  assert.match(platformLauncher, /kriptoaman_premium_art/);
+  assert.match(walletLauncher, /zevaryq_premium_art/);
   assert.match(styles, /postSplashScreenTheme/);
   assert.match(iconBackground, /#071525/i);
   assert.match(manifest, /android:icon="@mipmap\/ic_launcher"/);
