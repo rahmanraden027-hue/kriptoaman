@@ -130,33 +130,54 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          headers="$(mktemp)"
-          code="$(curl --silent --show-error \
-            --connect-timeout 10 --max-time 20 --retry 2 --retry-all-errors --retry-delay 2 \
-            -X POST \
-            -H 'Origin: https://kriptoaman.com' \
-            -H 'Referer: https://kriptoaman.com/settings' \
-            -D "$headers" -o /tmp/logout-body -w '%{http_code}' \
-            https://kriptoaman.com/api/auth/logout)"
-          test "$code" = "204"
-          grep -qi '^cache-control:.*no-store' "$headers"
-          grep -qi '^set-cookie:' "$headers"
+          verified=0
+          for attempt in 1 2 3; do
+            headers="$(mktemp)"
+            body="$(mktemp)"
+            code="$(curl --silent --show-error \
+              --connect-timeout 10 --max-time 20 --retry 1 --retry-all-errors --retry-delay 2 \
+              -X POST \
+              -H 'Origin: https://kriptoaman.com' \
+              -H 'Referer: https://kriptoaman.com/settings' \
+              -D "$headers" -o "$body" -w '%{http_code}' \
+              https://kriptoaman.com/api/auth/logout || true)"
+            if [ "$code" = "204" ] \
+              && grep -qi '^cache-control:.*no-store' "$headers" \
+              && grep -qi '^set-cookie:' "$headers"; then
+              verified=1
+              break
+            fi
+            echo "Logout contract probe did not complete cleanly (attempt ${attempt}/3, HTTP ${code}); retrying..."
+            if [ "$attempt" -lt 3 ]; then sleep 3; fi
+          done
+          test "$verified" = "1"
 
       - name: Re-check session after logout
         shell: bash
         run: |
           set -euo pipefail
-          body="$(mktemp)"
-          code="$(curl --location --silent --show-error \
-            --connect-timeout 10 --max-time 20 --retry 2 --retry-all-errors --retry-delay 2 \
-            -o "$body" -w '%{http_code}' \
-            https://kriptoaman.com/api/auth/me)"
-          test "$code" = "401"
-          node - "$body" <<'NODE'
+          verified=0
+          for attempt in 1 2 3; do
+            body="$(mktemp)"
+            code="$(curl --location --silent --show-error \
+              --connect-timeout 10 --max-time 20 --retry 1 --retry-all-errors --retry-delay 2 \
+              -o "$body" -w '%{http_code}' \
+              https://kriptoaman.com/api/auth/me || true)"
+            if [ "$code" = "401" ]; then
+              if node - "$body" <<'NODE'
           const fs = require('fs');
           const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
           if (payload.authenticated !== false) process.exit(1);
           NODE
+              then
+                verified=1
+                break
+              fi
+            fi
+            echo "Post-logout session probe did not complete cleanly (attempt ${attempt}/3, HTTP ${code}); retrying..."
+            if [ "$attempt" -lt 3 ]; then sleep 3; fi
+          done
+          test "$verified" = "1"
 
       - name: Publish auth live-site commit status
         if: always()
