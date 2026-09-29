@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { before, after, test } from 'node:test';
 import { readFileSync } from 'node:fs';
-import { createRpcGateway, validateRpcPayload, MAX_BODY_BYTES } from '../scripts/zvq-rpc-allowlist-gateway.mjs';
+import { createRpcGateway, validateRpcPayload, validateUpstreamUrl, MAX_BODY_BYTES } from '../scripts/zvq-rpc-allowlist-gateway.mjs';
 
 const allowed = { jsonrpc: '2.0', id: 1, method: 'eth_chainId', params: [] };
 test('allowlist accepts chain identity and rejects privileged and write methods', () => {
@@ -12,6 +12,20 @@ test('allowlist accepts chain identity and rejects privileged and write methods'
   assert.equal(validateRpcPayload([allowed]), false, 'batch requests cannot bypass allowlist');
   assert.equal(validateRpcPayload({ ...allowed, params: null }), false);
 });
+
+test('upstream validation accepts only canonical HTTPS or private IPv4 /rpc', () => {
+  assert.equal(validateUpstreamUrl('https://rpc.kriptoaman.com/'), 'https://rpc.kriptoaman.com/');
+  assert.equal(validateUpstreamUrl('http://10.1.2.3/rpc'), 'http://10.1.2.3/rpc');
+  assert.equal(validateUpstreamUrl('http://172.16.4.5/rpc'), 'http://172.16.4.5/rpc');
+  assert.equal(validateUpstreamUrl('http://192.168.1.7/rpc'), 'http://192.168.1.7/rpc');
+  for (const bad of [
+    'http://127.0.0.1/rpc', 'http://169.254.169.254/rpc',
+    'http://8.8.8.8/rpc', 'https://attacker.example/',
+    'http://10.1.2.3/admin', 'http://10.1.2.3:8545/rpc',
+    'http://user:pass@10.1.2.3/rpc'
+  ]) assert.equal(validateUpstreamUrl(bad), null, bad);
+});
+
 let server, base, calls = 0;
 before(async () => {
   server = createRpcGateway({
@@ -116,18 +130,20 @@ test('preflight and rollback only touch per-run temporary resources and new RPC 
   assert.doesNotMatch(rollback, /genesis\.json|rm -rf .*postgres|reset-chain/i);
 });
 
-test('Explorer gateway accepts only the exact canonical HTTPS upstream', async () => {
+test('private upstream still passes through strict method allowlist', async () => {
+  const upstreamUrl = 'http://10.9.8.7/rpc';
   const gateway = createRpcGateway({
-    upstreamUrl: 'https://rpc.kriptoaman.com/',
+    upstreamUrl,
     fetchImpl: async (url) => {
-      assert.equal(url, 'https://rpc.kriptoaman.com/');
+      assert.equal(url, upstreamUrl);
       return new Response(JSON.stringify({ jsonrpc: '2.0', id: 1, result: '0x560c' }));
     },
   });
   await new Promise(resolve => gateway.listen(0, '127.0.0.1', resolve));
   const url = `http://127.0.0.1:${gateway.address().port}/`;
-  const response = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(allowed) });
-  assert.equal(response.status, 200);
+  const ok = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(allowed) });
+  assert.equal(ok.status, 200);
+  const blocked = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...allowed, method: 'eth_sendRawTransaction' }) });
+  assert.equal(blocked.status, 403);
   await new Promise(resolve => gateway.close(resolve));
-  assert.throws(() => createRpcGateway({ upstreamUrl: 'https://attacker.example/' }));
 });
