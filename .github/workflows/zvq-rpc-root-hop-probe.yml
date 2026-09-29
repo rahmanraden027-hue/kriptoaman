@@ -1,0 +1,35 @@
+name: ZVQ RPC Root Hop Probe 2026-09-29
+
+on:
+  push:
+    branches: ['ops/zvq-rpc-recovery-20260929']
+    paths: ['.github/workflows/zvq-rpc-root-hop-probe.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 5
+    steps:
+      - name: Read-only root SSH path probe to sentry
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n true
+          echo 'explorer_runner_sudo=PASS'
+          sudo -n ssh -o BatchMode=yes -o ConnectTimeout=6 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@10.104.0.2 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          echo "remote_host=$(hostname); uid=$(id -u)"
+          healthy=
+          for p in 8545 8546 8547 9545; do
+            if ss -H -ltn "( sport = :$p )" | grep -q .; then
+              result="$(curl -sS --max-time 4 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' "http://127.0.0.1:$p" | jq -r '.result // empty' || true)"
+              echo "loopback_rpc_port=$p chain_id=$result"
+              if [[ "$result" = 0x560c ]]; then healthy="$p"; break; fi
+            fi
+          done
+          test -n "$healthy"
+          echo 'root_private_ssh_audit=PASS'
+          REMOTE
