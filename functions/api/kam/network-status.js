@@ -91,9 +91,11 @@ export async function onRequestGet({ request }) {
       throw new Error('RPC block number is invalid');
     }
 
-    const walletBalance = address
-      ? await rpcWithTimeout('eth_getBalance', [address, 'latest'], WALLET_PROBE_TIMEOUT_MS)
-      : null;
+    const [walletBalance, syncing] = await Promise.all([
+      address ? rpcWithTimeout('eth_getBalance', [address, 'latest'], WALLET_PROBE_TIMEOUT_MS) : Promise.resolve(null),
+      rpcWithTimeout('eth_syncing').catch(() => null),
+    ]);
+    const syncStatus = syncing === false ? 'synced' : syncing && typeof syncing === 'object' ? 'syncing' : 'verified';
 
     return json({
       ...base,
@@ -101,6 +103,7 @@ export async function onRequestGet({ request }) {
       verified: true,
       status: 'mainnet-candidate-rpc-verified',
       blockNumber,
+      syncStatus,
       wallet: address ? { address, balanceZVQ: formatKam(walletBalance), balanceKAM: formatKam(walletBalance) } : null,
       checkedAt: new Date().toISOString(),
       probeDurationMs: Date.now() - probeStartedAt,
@@ -115,6 +118,7 @@ export async function onRequestGet({ request }) {
       live: false,
       verified: false,
       blockNumber: null,
+      syncStatus: 'unknown',
       wallet: address ? { address, balanceZVQ: null, balanceKAM: null } : null,
       reason: error?.name === 'AbortError' ? 'rpc-timeout' : 'rpc-unavailable-or-unverified',
       checkedAt: new Date().toISOString(),
