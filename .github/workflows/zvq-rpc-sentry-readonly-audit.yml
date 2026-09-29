@@ -4,6 +4,10 @@ on:
   pull_request:
     paths:
       - '.github/workflows/zvq-rpc-sentry-readonly-audit.yml'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/zvq-rpc-sentry-readonly-audit.yml'
   workflow_dispatch:
 
 permissions:
