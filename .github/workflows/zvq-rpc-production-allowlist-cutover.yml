@@ -41,7 +41,7 @@ jobs:
   deploy:
     if: github.event_name == 'push' && startsWith(github.event.head_commit.message, 'ZVQ RPC CUTOVER 20260929')
     needs: validate
-    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
@@ -97,7 +97,7 @@ jobs:
   settle:
     if: always() && needs.deploy.result == 'success'
     needs: [deploy, external-verify]
-    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
     timeout-minutes: 8
     steps:
       - name: Commit or rollback cutover
