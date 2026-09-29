@@ -24,7 +24,7 @@ jobs:
           set -euo pipefail
           for path in login register forgot-password; do
             code="$(curl --fail-with-body --location --silent --show-error \
-              --connect-timeout 10 --max-time 25 \
+              --connect-timeout 10 --max-time 20 --retry 2 --retry-all-errors --retry-delay 2 \
               -o "/tmp/${path}.html" -w '%{http_code}' \
               "https://kriptoaman.com/${path}")"
             test "$code" = "200"
@@ -40,7 +40,7 @@ jobs:
             headers="$(mktemp)"
             body="$(mktemp)"
             code="$(curl --location --silent --show-error \
-              --connect-timeout 10 --max-time 25 \
+              --connect-timeout 10 --max-time 20 --retry 2 --retry-all-errors --retry-delay 2 \
               -D "$headers" -o "$body" -w '%{http_code}' \
               https://kriptoaman.com/api/auth/readiness || true)"
 
@@ -107,7 +107,7 @@ jobs:
             headers="$(mktemp)"
             body="$(mktemp)"
             code="$(curl --location --silent --show-error \
-              --connect-timeout 10 --max-time 25 \
+              --connect-timeout 10 --max-time 20 --retry 2 --retry-all-errors --retry-delay 2 \
               -D "$headers" -o "$body" -w '%{http_code}' \
               https://kriptoaman.com/api/auth/me || true)"
             if [ "$code" = "401" ] && grep -qi '^cache-control:.*no-store' "$headers"; then
@@ -132,7 +132,7 @@ jobs:
           set -euo pipefail
           headers="$(mktemp)"
           code="$(curl --silent --show-error \
-            --connect-timeout 10 --max-time 25 \
+            --connect-timeout 10 --max-time 20 --retry 2 --retry-all-errors --retry-delay 2 \
             -X POST \
             -H 'Origin: https://kriptoaman.com' \
             -H 'Referer: https://kriptoaman.com/settings' \
@@ -148,7 +148,7 @@ jobs:
           set -euo pipefail
           body="$(mktemp)"
           code="$(curl --location --silent --show-error \
-            --connect-timeout 10 --max-time 25 \
+            --connect-timeout 10 --max-time 20 --retry 2 --retry-all-errors --retry-delay 2 \
             -o "$body" -w '%{http_code}' \
             https://kriptoaman.com/api/auth/me)"
           test "$code" = "401"
