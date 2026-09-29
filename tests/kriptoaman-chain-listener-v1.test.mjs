@@ -20,6 +20,8 @@ test('listener exposes read-only REST and downstream websocket stream', async ()
   assert.match(server, /\/v1\/events/);
   assert.match(server, /\/stream/);
   assert.match(server, /lastEventId/);
+  assert.match(server, /config\.healthMaxAgeMs/);
+  assert.match(server, /ok \? 200 : 503/);
   assert.match(server, /eventsAfter\(since, 1000\)/);
   assert.match(server, /read_only_service/);
   assert.doesNotMatch(server, /POST.*send|eth_send|personal_|admin_/i);
