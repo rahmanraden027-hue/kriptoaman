@@ -34,5 +34,5 @@ test('network telemetry exposes live state and Android release is bumped', async
   ]);
   assert.match(network, /data-network-live/);
   assert.match(network, /zv-telemetry-tile/);
-  assert.match(gradle, /wallet\s*\{[\s\S]*versionCode 4[\s\S]*versionName "1\.0\.3"/);
+  assert.match(gradle, /wallet\s*\{[\s\S]*versionCode 5[\s\S]*versionName "1\.0\.4"/);
 });

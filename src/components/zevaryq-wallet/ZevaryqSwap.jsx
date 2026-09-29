@@ -179,7 +179,7 @@ export default function ZevaryqSwap({ web3, onConnect }) {
           <select value={toSymbol} onChange={(event) => { setToSymbol(event.target.value); setQuote(null); }} className="rounded-xl border border-[#1A3A59] bg-[#102235] px-3 py-2 font-black">
             {tokens.filter((symbol) => symbol !== fromSymbol).map((symbol) => <option key={symbol}>{symbol}</option>)}
           </select>
-          <p className="min-w-0 flex-1 truncate text-right text-2xl font-black">{quote ? quote.amountOutFormatted : '—'}</p>
+          <p className="min-w-0 flex-1 break-all text-right text-2xl font-black leading-tight">{quote ? quote.amountOutFormatted : '—'}</p>
         </div>
       </div>
 
