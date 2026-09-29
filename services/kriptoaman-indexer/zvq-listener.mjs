@@ -9,8 +9,11 @@ const WS_RPC = process.env.ZVQ_INDEXER_WS_RPC || 'ws://127.0.0.1:8546';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.ZVQ_INDEXER_PORT || 8765);
 const STATE_DIR = process.env.ZVQ_INDEXER_STATE_DIR || '/var/lib/kriptoaman-indexer';
-const STATE_FILE = path.join(STATE_DIR, 'zvq-discovery.json');
+const CURSOR_FILE = path.join(STATE_DIR, 'zvq-cursor.bin');
 const MAX_EVENTS = 250;
+const MAX_CATCHUP_BLOCKS = 256;
+const HASH_RE = /^0x[0-9a-fA-F]{64}$/;
+const ADDRESS_RE = /^0x[0-9a-fA-F]{40}$/;
 
 let ws;
 let reconnectTimer;
@@ -20,14 +23,29 @@ let lastHead = null;
 let events = [];
 let latencies = [];
 let requestId = 1;
+let catchupTruncated = false;
 
 const now = () => Date.now();
-const hex = value => Number.parseInt(String(value || '0x0'), 16);
-const percentile = (values, p) => {
+
+function parseHexInt(value) {
+  if (typeof value !== 'string' || !/^0x[0-9a-fA-F]+$/.test(value)) return null;
+  const parsed = Number.parseInt(value, 16);
+  return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : null;
+}
+
+function safeHash(value) {
+  return typeof value === 'string' && HASH_RE.test(value) ? value.toLowerCase() : null;
+}
+
+function safeAddress(value) {
+  return typeof value === 'string' && ADDRESS_RE.test(value) ? value.toLowerCase() : null;
+}
+
+function percentile(values, p) {
   if (!values.length) return null;
-  const sorted = [...values].sort((a,b)=>a-b);
+  const sorted = [...values].sort((a, b) => a - b);
   return sorted[Math.min(sorted.length - 1, Math.floor((sorted.length - 1) * p))];
-};
+}
 
 async function rpc(method, params = []) {
   const response = await fetch(HTTP_RPC, {
@@ -41,72 +59,99 @@ async function rpc(method, params = []) {
   return payload.result;
 }
 
-async function persist() {
+// Persist only a validated numeric cursor as a fixed-width binary value.
+// Raw network strings, hashes, addresses, transactions and logs never touch disk.
+async function persistCursor(blockNumber) {
+  if (!Number.isSafeInteger(blockNumber) || blockNumber < 0) throw new Error('invalid cursor block');
   await fs.mkdir(STATE_DIR, { recursive: true, mode: 0o750 });
-  const payload = {
-    version: 1,
-    network: 'ZEVARYQ Mainnet',
-    chainId: 22028,
-    chainIdHex: EXPECTED_CHAIN,
-    source: { ownership: 'first-party', transport: 'WebSocket+JSON-RPC', ws: 'local-node', http: 'local-node' },
-    head: lastHead,
-    lastHeadAt,
-    streamFresh: lastHeadAt > 0 && now() - lastHeadAt < 30000,
-    events,
-    latency: {
-      samples: latencies.length,
-      p50Ms: percentile(latencies, .50),
-      p95Ms: percentile(latencies, .95),
-      p99Ms: percentile(latencies, .99),
-    },
-    publishedAt: now(),
-  };
-  const temp = `${STATE_FILE}.tmp`;
-  await fs.writeFile(temp, JSON.stringify(payload), { mode: 0o640 });
-  await fs.rename(temp, STATE_FILE);
+  const buffer = Buffer.alloc(8);
+  buffer.writeBigUInt64BE(BigInt(blockNumber), 0);
+  const temp = `${CURSOR_FILE}.tmp`;
+  await fs.writeFile(temp, buffer, { mode: 0o640 });
+  await fs.rename(temp, CURSOR_FILE);
 }
 
-async function processHead(header) {
-  const receivedAt = now();
-  const number = hex(header?.number);
-  if (!Number.isFinite(number)) return;
-  const block = await rpc('eth_getBlockByNumber', [header.number, true]);
-  if (!block?.hash) return;
+async function readCursor() {
+  try {
+    const buffer = await fs.readFile(CURSOR_FILE);
+    if (buffer.length !== 8) return null;
+    const value = buffer.readBigUInt64BE(0);
+    if (value > BigInt(Number.MAX_SAFE_INTEGER)) return null;
+    const number = Number(value);
+    return Number.isSafeInteger(number) && number >= 0 ? number : null;
+  } catch {
+    return null;
+  }
+}
 
-  const blockTimestamp = hex(block.timestamp) * 1000;
+async function processBlock(block, receivedAt = now()) {
+  const number = parseHexInt(block?.number);
+  const hash = safeHash(block?.hash);
+  const parentHash = safeHash(block?.parentHash);
+  const blockTimestampSeconds = parseHexInt(block?.timestamp);
+  if (number == null || !hash || !parentHash || blockTimestampSeconds == null) return false;
+
+  const blockTimestamp = blockTimestampSeconds * 1000;
   const latency = Math.max(0, receivedAt - blockTimestamp);
   latencies = [...latencies, latency].slice(-500);
-  lastHead = { number, hash: block.hash, parentHash: block.parentHash, timestamp: blockTimestamp };
+
+  if (lastHead?.number === number && lastHead.hash !== hash) {
+    events = events.map(event => event.blockNumber === number && event.blockHash !== hash
+      ? { ...event, confirmationState: 'reorged', reorgDetectedAt: receivedAt }
+      : event);
+  }
 
   const next = [];
   for (const tx of Array.isArray(block.transactions) ? block.transactions : []) {
-    if (tx?.to != null || !tx?.hash) continue;
+    if (tx?.to != null) continue;
+    const txHash = safeHash(tx?.hash);
+    const from = safeAddress(tx?.from);
+    if (!txHash || !from) continue;
+
     let receipt = null;
-    try { receipt = await rpc('eth_getTransactionReceipt', [tx.hash]); } catch {}
+    try { receipt = await rpc('eth_getTransactionReceipt', [txHash]); } catch {}
+    const contractAddress = safeAddress(receipt?.contractAddress);
+
     next.push({
       type: 'CONTRACT_CREATION',
       chainId: 22028,
       blockNumber: number,
-      blockHash: block.hash,
-      txHash: tx.hash,
-      from: tx.from || null,
-      contractAddress: receipt?.contractAddress || null,
+      blockHash: hash,
+      txHash,
+      from,
+      contractAddress,
       observedAt: receivedAt,
       confirmationState: 'observed',
     });
   }
 
-  // Same-height replacement means a reorg candidate. Keep the replacement and
-  // mark prior events from the displaced block rather than presenting them as final.
-  if (events.some(event => event.blockNumber === number && event.blockHash !== block.hash)) {
-    events = events.map(event => event.blockNumber === number && event.blockHash !== block.hash
-      ? { ...event, confirmationState: 'reorged', reorgDetectedAt: receivedAt }
-      : event);
-  }
-
   events = [...next, ...events].slice(0, MAX_EVENTS);
+  lastHead = { number, hash, parentHash, timestamp: blockTimestamp };
   lastHeadAt = receivedAt;
-  await persist();
+  await persistCursor(number);
+  return true;
+}
+
+async function processHead(header) {
+  const number = parseHexInt(header?.number);
+  if (number == null) return;
+  const block = await rpc('eth_getBlockByNumber', [`0x${number.toString(16)}`, true]);
+  await processBlock(block, now());
+}
+
+async function catchUp() {
+  const currentHex = await rpc('eth_blockNumber');
+  const current = parseHexInt(currentHex);
+  if (current == null) throw new Error('invalid current block');
+  const cursor = await readCursor();
+  const desiredStart = cursor == null ? current : cursor + 1;
+  const boundedStart = Math.max(desiredStart, current - MAX_CATCHUP_BLOCKS + 1);
+  catchupTruncated = desiredStart < boundedStart;
+
+  for (let number = boundedStart; number <= current; number += 1) {
+    const block = await rpc('eth_getBlockByNumber', [`0x${number.toString(16)}`, true]);
+    await processBlock(block, now());
+  }
 }
 
 function scheduleReconnect() {
@@ -120,8 +165,9 @@ async function connect() {
   try {
     const chain = await rpc('eth_chainId');
     if (chain !== EXPECTED_CHAIN) throw new Error(`Unexpected chain ${chain}`);
+    await catchUp();
   } catch (error) {
-    console.error('chain preflight failed', error.message);
+    console.error('chain preflight/catch-up failed', error.message);
     scheduleReconnect();
     return;
   }
@@ -154,18 +200,40 @@ async function connect() {
   });
 }
 
-const server = http.createServer(async (req, res) => {
+function publicState() {
+  const fresh = lastHeadAt > 0 && now() - lastHeadAt < 30000;
+  return {
+    status: fresh ? 'live' : 'unavailable',
+    version: 1,
+    network: 'ZEVARYQ Mainnet',
+    chainId: 22028,
+    chainIdHex: EXPECTED_CHAIN,
+    source: { ownership: 'first-party', transport: 'WebSocket+JSON-RPC', ws: 'local-node', http: 'local-node' },
+    head: lastHead,
+    lastHeadAt: lastHeadAt || null,
+    streamFresh: fresh,
+    catchupTruncated,
+    events,
+    latency: {
+      samples: latencies.length,
+      p50Ms: percentile(latencies, .50),
+      p95Ms: percentile(latencies, .95),
+      p99Ms: percentile(latencies, .99),
+    },
+    publishedAt: now(),
+  };
+}
+
+const server = http.createServer((req, res) => {
   if (req.method !== 'GET' || !['/health', '/v1/discovery'].includes(req.url)) {
     res.writeHead(404).end();
     return;
   }
-  let state = null;
-  try { state = JSON.parse(await fs.readFile(STATE_FILE, 'utf8')); } catch {}
-  const fresh = state?.lastHeadAt && now() - state.lastHeadAt < 30000;
+  const state = publicState();
   const body = req.url === '/health'
-    ? { status: fresh ? 'live' : 'unavailable', chainId: 22028, lastHeadAt: state?.lastHeadAt || null, head: state?.head || null }
-    : { ...(state || {}), status: fresh ? 'live' : 'unavailable' };
-  res.writeHead(fresh ? 200 : 503, {
+    ? { status: state.status, chainId: state.chainId, lastHeadAt: state.lastHeadAt, head: state.head, catchupTruncated }
+    : state;
+  res.writeHead(state.status === 'live' ? 200 : 503, {
     'content-type': 'application/json; charset=utf-8',
     'cache-control': 'no-store',
     'x-content-type-options': 'nosniff',
