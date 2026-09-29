@@ -148,8 +148,6 @@ export default function GlobalLandingStyles() {
       }
 
       @media (min-width:1024px){
-        .ka-landing header nav{display:flex;align-items:center;gap:28px;font-size:14px;}
-        .ka-landing header button[aria-label="Menu"]{display:none;}
         #beranda .ka-hero-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;}
         #beranda .ka-hero-copy{text-align:left;}
         #beranda .ka-sec-title{font-size:54px;}
@@ -159,8 +157,14 @@ export default function GlobalLandingStyles() {
         .ka-landing #fitur + section>div{padding:28px!important;}
       }
 
-      @media (max-width:1023px){
+      @media (min-width:1280px){
+        .ka-landing header nav{display:flex;align-items:center;gap:28px;font-size:14px;}
+        .ka-landing header button[aria-label="Menu"]{display:none!important;}
+      }
+
+      @media (max-width:1279px){
         .ka-landing header nav{display:none!important;}
+        .ka-landing header button[aria-label="Menu"]{display:flex!important;}
       }
 
       @media (prefers-reduced-motion:reduce){

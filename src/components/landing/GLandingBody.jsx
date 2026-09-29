@@ -76,7 +76,7 @@ export default function GLandingBody({ stats }) {
       : '—';
   const blockValue = stats?.loading
     ? '…'
-    : Number.isFinite(Number(stats?.zvqBlockNumber))
+    : stats?.zvqBlockNumber != null && Number.isFinite(Number(stats.zvqBlockNumber))
       ? Number(stats.zvqBlockNumber).toLocaleString('id-ID')
       : '—';
   const liveStateLabel = stats.loading ? 'Memeriksa' : systemOk ? 'Operasional' : 'Terbatas';

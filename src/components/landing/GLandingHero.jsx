@@ -45,9 +45,9 @@ function NetworkVisual() {
 }
 
 export default function GLandingHero({ stats }) {
-  const assetCount = stats?.loading ? '—' : Number(stats?.assetCount || 0).toLocaleString('id-ID');
-  const networkCount = stats?.loading ? '—' : String(stats?.networkActiveCount ?? '—');
-  const blockNumber = Number.isFinite(Number(stats?.zvqBlockNumber)) ? Number(stats.zvqBlockNumber).toLocaleString('id-ID') : '—';
+  const assetCount = stats?.loading || !(Number(stats?.assetCount) > 0) ? '—' : Number(stats.assetCount).toLocaleString('id-ID');
+  const networkCount = stats?.loading ? '—' : Number.isFinite(Number(stats?.networkActiveCount)) ? String(Number(stats.networkActiveCount)) : '—';
+  const blockNumber = stats?.zvqBlockNumber != null && Number.isFinite(Number(stats.zvqBlockNumber)) ? Number(stats.zvqBlockNumber).toLocaleString('id-ID') : '—';
   const isOperational = Boolean(stats?.marketAvailable);
 
   return (
@@ -97,7 +97,7 @@ export default function GLandingHero({ stats }) {
               <NetworkVisual />
               <div className="ka-hero-center absolute inset-0 flex items-center justify-center ka-glow-cyan rounded-full">
                 <div className="ka-hero-logo ka-glow-gold rounded-full">
-                  <KriptoAmanLogo size={150} showText={false} animate={true} />
+                  <KriptoAmanLogo size={150} showText={false} animate={false} />
                 </div>
               </div>
               {COINS.map((c) => (
