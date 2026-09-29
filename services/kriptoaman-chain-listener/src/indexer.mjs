@@ -101,16 +101,25 @@ export class ChainIndexer {
     const timestamp = hexBlock(block.timestamp);
     const detectedAt = new Date(timestamp * 1000).toISOString();
     const txs = Array.isArray(block.transactions) ? block.transactions : [];
+    let receipts = [];
+    try {
+      receipts = await this.rpc.receipts(txs.map((tx) => tx.hash));
+    } catch {
+      receipts = await Promise.all(txs.map((tx) => this.rpc.receipt(tx.hash).catch(() => null)));
+    }
 
-    for (const tx of txs) {
-      const receipt = await this.rpc.receipt(tx.hash);
+    const contractTasks = [];
+    for (let i = 0; i < txs.length; i += 1) {
+      const tx = txs[i];
+      const receipt = receipts[i];
       if (!receipt) continue;
 
       if (!tx.to && receipt.contractAddress) {
-        await this.detectContract(tx, receipt, blockNumber, detectedAt);
+        contractTasks.push(this.detectContract(tx, receipt, blockNumber, detectedAt));
       }
       this.detectPools(receipt, blockNumber, detectedAt);
     }
+    if (contractTasks.length) await Promise.all(contractTasks);
 
     const indexedAt = iso();
     this.store.upsertBlock({
