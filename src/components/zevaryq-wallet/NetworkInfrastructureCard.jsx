@@ -6,7 +6,8 @@ const valueTone = (value) => value === 'connected' || value === 'synced' ? 'text
 
 export default function NetworkInfrastructureCard({ network, compact = false }) {
   const { phase, data, error, refresh } = network;
-  return <section className="zv-card p-5" aria-labelledby="network-infrastructure-title">
+  const live = phase === 'success' && data?.rpc === 'connected';
+  return <section className="zv-card zv-network-card p-5" data-network-live={live ? 'true' : 'false'} aria-labelledby="network-infrastructure-title">
     <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="zv-label">Network Infrastructure</p><h2 id="network-infrastructure-title" className="mt-1 text-xl font-black text-white">{ZEVARYQ.network}</h2></div><StatusBadge state={phase === 'success' ? 'success' : phase}>{phase}</StatusBadge></div>
     {phase === 'loading' && !data ? <div className="mt-5"><StatePanel phase="loading" /></div> : !data ? <div className="mt-5"><StatePanel phase={phase} message={error} onRetry={refresh} /></div> : <>
       <dl className={`zv-network-grid mt-5 grid ${compact ? '' : 'sm:grid-cols-3'} gap-2`}>
@@ -15,7 +16,7 @@ export default function NetworkInfrastructureCard({ network, compact = false }) 
           ['Latest Block', data.blockNumber?.toLocaleString() ?? 'Unavailable', 'text-white'],
           ['Explorer API', data.explorer, valueTone(data.explorer)], ['Sync Status', data.sync, valueTone(data.sync)],
           ['Network Latency', data.latency != null ? `${data.latency} ms` : 'Unavailable', 'text-white'],
-        ].map(([label, value, tone]) => <div key={label} className="min-w-0 rounded-2xl border border-[#1A3A59]/80 bg-[#071522]/60 p-3"><dt className="text-[10px] uppercase tracking-wider text-[#6F859B]">{label}</dt><dd className={`mt-1 break-words text-sm font-extrabold capitalize ${tone}`}>{value}</dd></div>)}
+        ].map(([label, value, tone]) => <div key={label} className="zv-telemetry-tile min-w-0 rounded-2xl border border-[#1A3A59]/80 bg-[#071522]/60 p-3"><dt className="text-[10px] uppercase tracking-wider text-[#6F859B]">{label}</dt><dd className={`mt-1 break-words text-sm font-extrabold capitalize ${tone}`}>{value}</dd></div>)}
       </dl>
       <p className="mt-3 text-[11px] text-[#6F859B]">Last refresh: {data.checkedAt?.toLocaleTimeString?.() || 'Unavailable'}</p>
     </>}

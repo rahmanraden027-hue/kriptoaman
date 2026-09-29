@@ -25,7 +25,7 @@ function Header({ title, subtitle = '', back = false, onBack = null, onSettings 
 
 function SplashScreen() { return <main className="zv-splash" aria-label="Loading ZEVARYQ Wallet"><div className="zv-orbit" aria-hidden="true" /><ZevaryqMark className="relative z-10 h-32 w-32" /><div className="relative z-10 text-center"><p className="text-3xl font-black tracking-[.12em] text-[#F2C86B]">ZEVARYQ</p><p className="mt-1 text-xs font-bold tracking-[.35em] text-[#9FB3C8]">NETWORK</p><h1 className="mt-8 text-2xl font-black">ZEVARYQ Wallet</h1><p className="mt-2 text-xs font-semibold tracking-wide text-[#9FB3C8]">ZVQ Mainnet Wallet · Secure · Multi-Chain Ready</p><p className="mt-3 text-[11px] text-[#6F859B]">Part of the KriptoAman ecosystem</p><span className="mx-auto mt-6 block h-1 w-36 overflow-hidden rounded-full bg-[#102235]"><span className="zv-loading-bar block h-full rounded-full bg-gradient-to-r from-[#D9A441] to-[#2D8CFF]" /></span></div></main>; }
 
-function Action({ icon: Icon, label, onClick }) { return <button type="button" onClick={onClick} className="zv-action-item group flex flex-col items-center gap-2 text-xs font-bold"><span className="grid h-14 w-14 place-items-center rounded-full border border-[#2D8CFF]/55 bg-gradient-to-br from-[#1A4F8B] to-[#071522] shadow-[0_0_24px_rgba(45,140,255,.22)] group-active:scale-95"><Icon className="h-6 w-6 text-[#F2C86B]" /></span>{label}</button>; }
+function Action({ icon: Icon, label, onClick }) { return <button type="button" onClick={onClick} className="zv-action-item group flex flex-col items-center gap-2 text-xs font-bold"><span className="zv-action-orb grid h-14 w-14 place-items-center rounded-full border border-[#2D8CFF]/55 bg-gradient-to-br from-[#1A4F8B] to-[#071522] shadow-[0_0_24px_rgba(45,140,255,.22)] group-active:scale-95"><Icon className="relative z-10 h-6 w-6 text-[#F2C86B]" /></span>{label}</button>; }
 
 function Home({ web3, network, balance, balancePhase, tokenAssets, assetPhase, setScreen }) {
   const onNetwork = web3?.isConnected && web3.chainId === ZEVARYQ.chainId;
@@ -47,8 +47,19 @@ function Home({ web3, network, balance, balancePhase, tokenAssets, assetPhase, s
   const previewAssets = Array.isArray(tokenAssets) ? tokenAssets.slice(0, 4) : [];
 
   return <>
-    <section className="zv-hero">
-      <div className="relative z-10">
+    <section className="zv-hero" data-network-state={networkState}>
+      <div className="zv-hero-visual" aria-hidden="true">
+        <div className="zv-orbit-stage">
+          <span className="zv-orbit-ring zv-orbit-ring-a" />
+          <span className="zv-orbit-ring zv-orbit-ring-b" />
+          <span className="zv-orbit-ring zv-orbit-ring-c" />
+          <span className="zv-orbit-node zv-orbit-node-a" />
+          <span className="zv-orbit-node zv-orbit-node-b" />
+          <span className="zv-orbit-node zv-orbit-node-c" />
+          <ZevaryqMark className="zv-hero-mark h-24 w-24" />
+        </div>
+      </div>
+      <div className="relative z-10 zv-hero-copy">
         <div className="flex items-start justify-between gap-3">
           <p className="zv-label">ZEVARYQ Wallet · ZVQ Mainnet</p>
           <StatusBadge state={networkState}>{networkLabel}</StatusBadge>
@@ -174,5 +185,5 @@ export default function Wallet(){const web3=useWeb3();const network=useZevaryqNe
   if(screen==='receive')return <main className="zv-wallet-shell"><div className="zv-wallet-content"><ReceiveScreen account={web3?.account} onBack={()=>setScreen('wallet')}/></div></main>;
   if(screen==='connect')return <main className="zv-wallet-shell"><div className="zv-wallet-content"><Header back onBack={()=>setScreen('wallet')} title="Connect Wallet" subtitle="EIP-6963 · WalletConnect · Chain 22028"/><ZevaryqWalletConnector web3={web3}/></div></main>;
   if(screen==='swap')return <main className="zv-wallet-shell"><div className="zv-wallet-content"><Header back onBack={()=>setScreen('wallet')} title="Swap ZVQ" subtitle="Verified on-chain routes only"/><ZevaryqSwap web3={web3} onConnect={()=>setScreen('connect')}/></div></main>;
-  return <main className="zv-wallet-shell" data-connected-addresses={connectedAddressCount}><span className="sr-only">Status pemantauan · Aktivitas pemantauan terbaru</span><div className="zv-wallet-content"><div className="zv-app-badge"><span>APP 2 OF 2</span><strong>ZEVARYQ Wallet</strong><small>KriptoAman Ecosystem</small></div><Header title="ZEVARYQ Wallet" subtitle={`${ZEVARYQ.network} · Chain ${ZEVARYQ.chainId}`} onSettings={()=>setScreen('settings')}/>{screen==='wallet'&&<Home web3={web3} network={network} balance={balance} balancePhase={balancePhase} tokenAssets={tokenAssets} assetPhase={assetPhase} setScreen={setScreen}/>} {screen==='explorer'&&<ExplorerScreen account={web3?.account} transactions={transactions} txPhase={txPhase} onSelect={setSelectedTx}/>} {screen==='assets'&&<Assets account={web3?.account} balance={balance} balancePhase={balancePhase} tokenAssets={tokenAssets} assetPhase={assetPhase}/>}{screen==='security'&&<Security/>}{screen==='settings'&&<SettingsScreen web3={web3} currentUser={currentUser} adminBalances={adminBalances} adminError={adminError}/>}</div><WalletBottomNavigation active={screen} onChange={setScreen}/></main>;
+  return <main className="zv-wallet-shell" data-connected-addresses={connectedAddressCount}><span className="sr-only">Status pemantauan · Aktivitas pemantauan terbaru</span><div className="zv-wallet-content"><div className="zv-app-badge"><span>OFFICIAL WALLET</span><strong>ZEVARYQ Wallet</strong><small>KriptoAman Ecosystem · Chain 22028</small></div><Header title="ZEVARYQ Wallet" subtitle={`${ZEVARYQ.network} · Chain ${ZEVARYQ.chainId}`} onSettings={()=>setScreen('settings')}/>{screen==='wallet'&&<Home web3={web3} network={network} balance={balance} balancePhase={balancePhase} tokenAssets={tokenAssets} assetPhase={assetPhase} setScreen={setScreen}/>} {screen==='explorer'&&<ExplorerScreen account={web3?.account} transactions={transactions} txPhase={txPhase} onSelect={setSelectedTx}/>} {screen==='assets'&&<Assets account={web3?.account} balance={balance} balancePhase={balancePhase} tokenAssets={tokenAssets} assetPhase={assetPhase}/>}{screen==='security'&&<Security/>}{screen==='settings'&&<SettingsScreen web3={web3} currentUser={currentUser} adminBalances={adminBalances} adminError={adminError}/>}</div><WalletBottomNavigation active={screen} onChange={setScreen}/></main>;
 }
