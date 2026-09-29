@@ -151,6 +151,15 @@ export class IntelligenceStore {
       .map((row) => ({ ...row, payload: JSON.parse(row.payload) }));
   }
 
+  eventsAfter(id = 0, limit = 500) {
+    return this.db.prepare('SELECT * FROM events WHERE id>? ORDER BY id ASC LIMIT ?').all(id, limit)
+      .map((row) => ({ ...row, payload: JSON.parse(row.payload) }));
+  }
+
+  lastEventId() {
+    return Number(this.db.prepare('SELECT COALESCE(MAX(id),0) AS id FROM events').get().id);
+  }
+
   counts() {
     const one = (table) => Number(this.db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get().n);
     return { blocks: one('blocks'), contracts: one('contracts'), tokens: one('tokens'), pools: one('pools'), events: one('events') };
