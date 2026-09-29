@@ -28,6 +28,7 @@ import NativeConnectivityBanner from '@/components/mobile/NativeConnectivityBann
 import { LanguageProvider } from '@/lib/LanguageContext';
 import WorkspaceExperience from '@/components/workspace/WorkspaceExperience';
 import WorkspaceState from '@/components/workspace/WorkspaceState';
+import { Web3Provider } from '@/components/web3/Web3Provider';
 
 const FeatureUpdateBroadcast = lazy(() => import('./pages/FeatureUpdateBroadcast'));
 const AMLAssistant = lazy(() => import('./pages/AMLAssistant'));
@@ -110,7 +111,7 @@ const AuthenticatedApp = () => {
         <Route path="/research" element={<Research />} />
         <Route path="/research/kam-mainnet-architecture" element={<KAMResearchPaper />} />
         <Route path="/SystemStatus" element={<SystemStatus />} />
-        <Route path="/wallet-app" element={WalletStandalonePage ? <WalletStandalonePage /> : <PageNotFound />} />
+        <Route path="/wallet-app" element={WalletStandalonePage ? <Web3Provider><WalletStandalonePage /></Web3Provider> : <PageNotFound />} />
 
         {Object.entries(Pages).map(([path, Page]) => {
           if (!PUBLIC_PAGE_KEYS.has(path)) return null;
