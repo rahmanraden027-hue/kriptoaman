@@ -48,6 +48,7 @@ export function Web3Provider({ children }) {
   const [walletClient, setWalletClient] = useState(null);
   const [availableWallets, setAvailableWallets] = useState([]);
   const [connectionError, setConnectionError] = useState('');
+  const [walletConnectUri, setWalletConnectUri] = useState('');
   const providerRef = useRef(null);
   const viemRef = useRef(null);
   const walletConnectRef = useRef(null);
@@ -148,10 +149,27 @@ export function Web3Provider({ children }) {
   const connectWalletConnect = useCallback(async (options = {}) => {
     setConnecting(true);
     setConnectionError('');
+    if (!options.silent) setWalletConnectUri('');
     try {
       const provider = await getWalletConnectProvider();
       if (options.silent && !provider.session) return;
-      if (!provider.session) await provider.connect();
+      if (!provider.session) {
+        const handleUri = (uri) => {
+          const normalized = String(uri || '').trim();
+          if (!normalized) return;
+          setWalletConnectUri(normalized);
+          if (options.mobileWallet === 'metamask') {
+            const deepLink = `https://metamask.app.link/wc?uri=${encodeURIComponent(normalized)}`;
+            window.location.assign(deepLink);
+          }
+        };
+        provider.on?.('display_uri', handleUri);
+        try {
+          await provider.connect();
+        } finally {
+          provider.removeListener?.('display_uri', handleUri);
+        }
+      }
       const requestedAccounts = provider.accounts?.length
         ? provider.accounts
         : await provider.request({ method: 'eth_accounts' });
@@ -168,6 +186,7 @@ export function Web3Provider({ children }) {
       setWalletType('WalletConnect');
       providerRef.current = provider;
       localStorage.setItem('web3_connected', 'walletconnect');
+      setWalletConnectUri('');
       await refreshBalance(accounts[0], cId);
     } catch (error) {
       if (!options.silent) setConnectionError(error?.message || 'Koneksi WalletConnect gagal atau dibatalkan.');
@@ -185,6 +204,7 @@ export function Web3Provider({ children }) {
     setWalletType(null);
     setWalletClient(null);
     setConnectionError('');
+    setWalletConnectUri('');
     providerRef.current = null;
     localStorage.removeItem('web3_connected');
     try {
@@ -337,10 +357,11 @@ export function Web3Provider({ children }) {
 
   return (
     <Web3Context.Provider value={{
-      account, accounts, chainId, balance, connecting, connectionError, walletType, walletClient, availableWallets,
+      account, accounts, chainId, balance, connecting, connectionError, walletType, walletClient, availableWallets, walletConnectUri,
       provider: walletClient, // backward compat alias
       signer: walletClient,   // backward compat alias
       connectWallet, connectWalletConnect, disconnectWallet, selectAccount, switchChain, addZevaryqNetwork: () => switchChain(22028), sendTransaction, signMessage,
+      openMetaMaskPairing: () => walletConnectUri && window.location.assign(`https://metamask.app.link/wc?uri=${encodeURIComponent(walletConnectUri)}`),
       refreshBalance: () => refreshBalance(account, chainId),
       isConnected: !!account,
       walletConnectConfigured: !!WALLETCONNECT_PROJECT_ID,
