@@ -294,3 +294,25 @@
     padding-bottom:max(132px,calc(112px + env(safe-area-inset-bottom,0px)));
   }
 }
+
+
+/* Production V2 embedded wallet polish: the KriptoAman Platform owns its own navigation. */
+.zv-wallet-shell.zv-wallet-embedded{
+  min-height:auto;
+  padding-bottom:24px;
+  background:transparent;
+  perspective:none;
+}
+.zv-wallet-shell.zv-wallet-embedded:before,
+.zv-wallet-shell.zv-wallet-embedded:after{display:none}
+.zv-wallet-shell.zv-wallet-embedded .zv-wallet-content{
+  max-width:760px;
+  padding-top:16px;
+  padding-bottom:24px;
+}
+@media(max-width:1023px){
+  .zv-wallet-shell.zv-wallet-embedded{padding-bottom:24px}
+  .zv-wallet-shell.zv-wallet-embedded .zv-wallet-content{
+    padding-bottom:24px;
+  }
+}
