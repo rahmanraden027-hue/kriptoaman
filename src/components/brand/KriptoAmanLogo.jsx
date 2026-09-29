@@ -27,7 +27,7 @@ export default function KriptoAmanLogo({ size = 32, showText = true, textSize = 
           width={size}
           height={size}
           className="h-full w-full object-contain"
-          decoding="async"
+          decoding="sync"\n          loading="eager"\n          fetchPriority="high"
         />
       </div>
 
