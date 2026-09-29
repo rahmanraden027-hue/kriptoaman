@@ -43,5 +43,6 @@ test('wallet home is not blocked behind a JavaScript splash timer', async () => 
   assert.doesNotMatch(wallet, /setBooting/);
   assert.doesNotMatch(wallet, /if\s*\(booting\)/);
   assert.doesNotMatch(wallet, /Loading ZEVARYQ Wallet/);
-  assert.match(wallet, /return <main className="zv-wallet-shell"/);
+  assert.match(wallet, /const shellClass=standalone\?'zv-wallet-shell':'zv-wallet-shell zv-wallet-embedded'/);
+  assert.match(wallet, /return <main className=\{shellClass\}/);
 });

@@ -21,9 +21,10 @@ test('wallet header preserves the full ZEVARYQ Wallet product name on narrow scr
 });
 
 test('important wallet content wraps instead of ellipsizing', async () => {
-  const [wallet, swap] = await Promise.all([
+  const [wallet, swap, css] = await Promise.all([
     read('src/pages/Wallet.jsx'),
     read('src/components/zevaryq-wallet/ZevaryqSwap.jsx'),
+    read('src/pages/ZevaryqWallet.css'),
   ]);
   assert.doesNotMatch(wallet, /truncate font-black">\{asset\.name\}/);
   assert.doesNotMatch(wallet, /max-w-\[42%\] truncate/);
@@ -31,6 +32,9 @@ test('important wallet content wraps instead of ellipsizing', async () => {
   assert.match(wallet, /zv-settings-status/);
   assert.doesNotMatch(swap, /truncate text-right text-2xl/);
   assert.match(swap, /break-all text-right text-2xl/);
+  assert.match(wallet, /standalone\?\'zv-wallet-shell\':\'zv-wallet-shell zv-wallet-embedded\'/);
+  assert.match(wallet, /standalone&&<WalletBottomNavigation/);
+  assert.match(css, /\.zv-wallet-shell\.zv-wallet-embedded/);
 });
 
 test('narrow asset rows move balances below names instead of squeezing copy', async () => {

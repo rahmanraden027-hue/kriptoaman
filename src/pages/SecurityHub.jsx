@@ -8,7 +8,7 @@ import { TOTPSetup } from '../components/security/TOTP2FA';
 import SecurityScoreGauge from '../components/security/SecurityScoreGauge';
 import { useLanguage } from '../lib/LanguageContext';
 import {
-  Shield, ShieldCheck, Key, Fingerprint, Mail, Phone, BadgeCheck, Info,
+  Shield, ShieldCheck, Key, Mail, Phone, BadgeCheck, Info,
   CheckCircle2, Circle, MonitorSmartphone, LogOut, LockKeyhole, Radar,
   Activity, Server, Sparkles
 } from 'lucide-react';
@@ -20,9 +20,9 @@ const K_PHONE = 'ka_phone_verified';
 const COPY = {
   id: {
     center: 'Pusat Keamanan',
-    subtitle: 'Satu pusat untuk autentikasi, identitas, sesi perangkat, dan posture keamanan akun KriptoAman.',
+    subtitle: 'Satu pusat untuk autentikasi, identitas, sesi perangkat, dan postur keamanan akun KriptoAman.',
     score: 'Skor keamanan', activeSessions: 'Sesi aktif', active: 'Aktif', ready: 'Siap', checking: 'Memeriksa…',
-    posture: 'Posture keamanan', postureHigh: 'Pengaturan hampir lengkap', postureMid: 'Beberapa lapisan dapat ditingkatkan', postureLow: 'Aktifkan perlindungan utama',
+    posture: 'Postur keamanan', postureHigh: 'Pengaturan hampir lengkap', postureMid: 'Beberapa lapisan dapat ditingkatkan', postureLow: 'Aktifkan perlindungan utama',
     scoreNote: 'Skor menunjukkan kelengkapan konfigurasi, bukan jaminan keamanan absolut.',
     developing: 'Dalam pengembangan', readyEnable: 'Siap diaktifkan', accountEmail: 'Email akun', phone: 'Telepon', identity: 'Identitas', appPin: 'PIN App',
     twoFactor: 'Autentikasi Dua Faktor (2FA)', twoFactorSub: 'TOTP yang diverifikasi server KriptoAman', activeServer: 'Aktif di server', enable: 'Aktifkan',
@@ -31,7 +31,7 @@ const COPY = {
     noDevices: 'Belum ada data perangkat terverifikasi', deviceCount: '0 perangkat', realSessionsOnly: 'Hanya sesi login nyata yang dibuat server KriptoAman yang muncul di sini.',
     verifiedActiveSessions: 'sesi aktif terverifikasi', signOutOthers: 'Keluar dari perangkat lain', ipNote: 'Alamat IP disamarkan. Lokasi hanya ditampilkan bila tersedia dari infrastruktur server dan bersifat perkiraan.',
     improve: 'Langkah Peningkatan', improveSub: 'Prioritas yang dapat dilengkapi secara bertahap', allComplete: 'Semua pengaturan yang tersedia telah dilengkapi.',
-    thisDevice: 'Perangkat ini', ended: 'Sesi berakhir', lastActive: 'Terakhir aktif', revoke: 'Cabut', unavailable: 'Tidak tersedia',
+    thisDevice: 'Perangkat ini', ended: 'Sesi berakhir', lastActive: 'Terakhir aktif', revoke: 'Cabut', unavailable: 'Tidak tersedia', sessionHistory: 'Riwayat sesi berakhir', showHistory: 'Tampilkan riwayat', hideHistory: 'Sembunyikan riwayat',
     sessionLoadError: 'Riwayat sesi belum dapat dimuat.', revokeError: 'Sesi tersebut belum dapat dicabut. Silakan coba lagi.', revokeOthersError: 'Sesi perangkat lain belum dapat dicabut. Silakan coba lagi.',
     rec2fa: 'Aktifkan autentikasi dua faktor (2FA)', recPin: 'Tambahkan PIN aplikasi', recIdentity: 'Lengkapi proses verifikasi identitas', recEmail: 'Verifikasi email akun', recAnti: 'Tambahkan kode anti-phishing', recWithdrawal: 'Aktifkan perlindungan penarikan', recPhone: 'Tambahkan verifikasi nomor telepon',
   },
@@ -48,7 +48,7 @@ const COPY = {
     noDevices: 'No verified device data yet', deviceCount: '0 devices', realSessionsOnly: 'Only real login sessions created by the KriptoAman server are shown here.',
     verifiedActiveSessions: 'verified active sessions', signOutOthers: 'Sign out other devices', ipNote: 'IP addresses are masked. Location is shown only when available from server infrastructure and may be approximate.',
     improve: 'Security Improvements', improveSub: 'Priorities you can complete progressively', allComplete: 'All currently available settings have been completed.',
-    thisDevice: 'This device', ended: 'Session ended', lastActive: 'Last active', revoke: 'Revoke', unavailable: 'Unavailable',
+    thisDevice: 'This device', ended: 'Session ended', lastActive: 'Last active', revoke: 'Revoke', unavailable: 'Unavailable', sessionHistory: 'Ended session history', showHistory: 'Show history', hideHistory: 'Hide history',
     sessionLoadError: 'Session history could not be loaded.', revokeError: 'That session could not be revoked. Please try again.', revokeOthersError: 'Other device sessions could not be revoked. Please try again.',
     rec2fa: 'Enable two-factor authentication (2FA)', recPin: 'Add an app PIN', recIdentity: 'Complete identity verification', recEmail: 'Verify the account email', recAnti: 'Add an anti-phishing code', recWithdrawal: 'Enable withdrawal protection', recPhone: 'Add phone verification',
   },
@@ -123,6 +123,7 @@ export default function SecurityHub() {
   const [loadingSessions, setLoadingSessions] = useState(true);
   const [sessionBusy, setSessionBusy] = useState(false);
   const [sessionError, setSessionError] = useState('');
+  const [showEndedSessions, setShowEndedSessions] = useState(false);
 
   const anti = !!localStorage.getItem(K_ANTI);
   const wprot = localStorage.getItem(K_WPROT) === 'true';
@@ -167,8 +168,10 @@ export default function SecurityHub() {
   const recs = [
     [tfa, text.rec2fa], [pin, text.recPin], [kycVerified, text.recIdentity], [emailVerified, text.recEmail], [anti, text.recAnti], [wprot, text.recWithdrawal], [phone, text.recPhone],
   ].filter(([ok]) => !ok);
-  const activeOtherSessions = sessions.filter((session) => session.active && !session.current).length;
-  const activeCount = sessions.filter((session) => session.active).length;
+  const activeSessions = sessions.filter((session) => session.active);
+  const endedSessions = sessions.filter((session) => !session.active);
+  const activeOtherSessions = activeSessions.filter((session) => !session.current).length;
+  const activeCount = activeSessions.length;
 
   if (setupPin) return <PinSetup onDone={() => { localStorage.setItem(PIN_ENABLED_KEY, 'true'); setPin(true); setSetupPin(false); }} onCancel={() => setSetupPin(false)} />;
 
@@ -198,9 +201,8 @@ export default function SecurityHub() {
           </div>
         </section>
 
-        <section className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6" aria-label={text.posture}>
+        <section className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5" aria-label={text.posture}>
           <MiniStat text={text} icon={ShieldCheck} label="2FA" ok={tfa} loading={loadingTfa} onClick={() => !tfa && !loadingTfa && setSetupTfa(true)} />
-          <MiniStat text={text} icon={Fingerprint} label="Passkey" pending />
           <MiniStat text={text} icon={Mail} label={text.accountEmail} ok={emailVerified} />
           <MiniStat text={text} icon={Phone} label={text.phone} ok={phone} />
           <MiniStat text={text} icon={BadgeCheck} label={text.identity} ok={kycVerified} loading={loadingKyc} link="KYCVerificationPage" />
@@ -223,7 +225,20 @@ export default function SecurityHub() {
           {loadingSessions ? <div role="status" className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3"><p className="text-xs text-blue-200">{text.loadingSessions}</p></div> : sessions.length === 0 ? (
             <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4"><div className="flex items-center justify-between gap-3"><p className="text-xs font-bold text-white">{text.noDevices}</p><span className="rounded-full border border-slate-600 px-2 py-0.5 text-[10px] text-slate-300">{text.deviceCount}</span></div><p className="mt-1.5 text-xs leading-relaxed text-blue-200">{text.realSessionsOnly}</p></div>
           ) : (
-            <div className="space-y-2.5"><div className="flex flex-wrap items-center justify-between gap-3"><p className="text-[10px] text-slate-400">{activeCount} {text.verifiedActiveSessions}</p>{activeOtherSessions > 0 && <button type="button" disabled={sessionBusy} onClick={revokeOthers} className="tap-reset inline-flex min-h-10 items-center gap-1 rounded-xl border border-red-500/25 bg-red-500/10 px-3 text-[10px] font-bold text-red-300 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/60"><LogOut className="h-3 w-3" /> {text.signOutOthers}</button>}</div><div className="grid gap-2.5 md:grid-cols-2">{sessions.map((session) => <SessionRow key={session.id} session={session} onRevoke={revokeOne} busy={sessionBusy} language={language} text={text} />)}</div></div>
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-[10px] text-slate-400">{activeCount} {text.verifiedActiveSessions}</p>
+                {activeOtherSessions > 0 && <button type="button" disabled={sessionBusy} onClick={revokeOthers} className="tap-reset inline-flex min-h-10 items-center gap-1 rounded-xl border border-red-500/25 bg-red-500/10 px-3 text-[10px] font-bold text-red-300 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/60"><LogOut className="h-3 w-3" /> {text.signOutOthers}</button>}
+              </div>
+              {activeSessions.length > 0 && <div className="grid gap-2.5 md:grid-cols-2">{activeSessions.map((session) => <SessionRow key={session.id} session={session} onRevoke={revokeOne} busy={sessionBusy} language={language} text={text} />)}</div>}
+              {endedSessions.length > 0 && <div className="border-t border-slate-700/45 pt-3">
+                <button type="button" onClick={() => setShowEndedSessions((value) => !value)} className="tap-reset flex min-h-10 w-full items-center justify-between rounded-xl border border-slate-700/55 bg-slate-950/30 px-3 text-left text-[10px] font-bold text-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60">
+                  <span>{text.sessionHistory} · {endedSessions.length}</span>
+                  <span className="text-cyan-300">{showEndedSessions ? text.hideHistory : text.showHistory}</span>
+                </button>
+                {showEndedSessions && <div className="mt-2.5 grid gap-2.5 md:grid-cols-2">{endedSessions.map((session) => <SessionRow key={session.id} session={session} onRevoke={revokeOne} busy={sessionBusy} language={language} text={text} />)}</div>}
+              </div>}
+            </div>
           )}
           {sessionError && <p role="alert" className="mt-2 text-[10px] text-amber-300">{sessionError}</p>}
           <p className="mt-3 text-[9px] leading-relaxed text-slate-500">{text.ipNote}</p>

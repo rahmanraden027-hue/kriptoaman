@@ -112,7 +112,7 @@ test('Failed wallet balance probe cannot display stale previous wallet assets', 
   assert.match(wallet, /setBalance\('0'\);setBalancePhase\('loading'\)/);
   assert.match(wallet, /const balanceReady = Boolean\(web3\?\.isConnected && onNetwork && balancePhase === 'success'\)/);
   assert.match(wallet, /balanceReady \? .* : '—'/);
-  assert.match(wallet, /Connect wallet to view verified on-chain balance/);
+  assert.match(wallet, /Connect wallet to verify on-chain balance/);
 });
 
 
@@ -160,7 +160,7 @@ test('Wallet separates network availability from wallet connection and keeps rea
   assert.match(wallet, /Network Online/);
   assert.match(wallet, /Wallet disconnected/);
   assert.match(wallet, /No wallet address connected/);
-  assert.match(wallet, /Connect wallet to view verified on-chain balance/);
+  assert.match(wallet, /Connect wallet to verify on-chain balance/);
   assert.match(wallet, />Preview Send</);
   assert.match(wallet, /Transaction preview/);
   assert.match(wallet, /Broadcast Locked/);

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { AreaChart, Area, ResponsiveContainer, YAxis, Tooltip } from 'recharts';
-import { LineChart as LineChartIcon } from 'lucide-react';
+import { LineChart as LineChartIcon, WalletCards } from 'lucide-react';
 
 const PERIODS = [
   { key: '1D', days: 1 },
@@ -39,14 +39,21 @@ export default function HomePortfolioPerformance({ user, prices }) {
   const [ratios, setRatios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
+  const [portfolioLoading, setPortfolioLoading] = useState(true);
   const [freshness, setFreshness] = useState('live');
   const [capturedAt, setCapturedAt] = useState(null);
 
   useEffect(() => {
-    if (!user?.email) { setLoading(false); return; }
+    if (!user?.email) { setPortfolioLoading(false); return; }
+    let active = true;
+    setPortfolioLoading(true);
     base44.entities.UserBalance.filter({ userEmail: user.email })
-      .then(b => setTotal(b.reduce((s, x) => s + (x.amount || 0) * (prices[x.coin]?.price || 0), 0)))
-      .catch(() => {});
+      .then(b => {
+        if (active) setTotal(b.reduce((s, x) => s + (x.amount || 0) * (prices[x.coin]?.price || 0), 0));
+      })
+      .catch(() => {})
+      .finally(() => { if (active) setPortfolioLoading(false); });
+    return () => { active = false; };
   }, [user?.email, prices]);
 
   useEffect(() => {
@@ -98,6 +105,25 @@ export default function HomePortfolioPerformance({ user, prices }) {
   const up = chgPct >= 0;
   const color = up ? '#2ecc71' : '#e74c3c';
   const isArchived = freshness === 'archived' || freshness === 'cache' || freshness === 'stale';
+
+  if (!portfolioLoading && total <= 0) {
+    return (
+      <div className="ka-surface p-4 ka-fade-up" style={{ animationDelay: '120ms' }}>
+        <h3 className="flex items-center gap-1.5 text-sm font-bold text-white">
+          <LineChartIcon className="h-4 w-4 text-ka-emerald" /> Performa Portfolio
+        </h3>
+        <div className="mt-3 flex items-center gap-3 rounded-2xl border border-sky-400/10 bg-sky-400/[0.035] p-3.5">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-400/15 bg-sky-400/[0.06]">
+            <WalletCards className="h-4.5 w-4.5 text-sky-300" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-extrabold text-white">Belum ada portfolio terpantau</p>
+            <p className="mt-1 text-[10px] leading-4 text-slate-400">Tambahkan wallet publik untuk mulai melihat performa berbasis data nyata.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="ka-surface p-4 ka-fade-up" style={{ animationDelay: '120ms' }}>
