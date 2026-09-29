@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 
 const Web3Context = createContext(null);
+const NativeUtility = registerPlugin('KriptoAmanNative');
 
 const WALLETCONNECT_PROJECT_ID = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID?.trim()
   || '90e4a891a15a75dadc1cd3a8d1f3f814';
@@ -23,6 +25,37 @@ async function loadViem() {
     import('viem/chains'),
   ]);
   return { ...viemCore, chains: viemChains };
+}
+
+function walletConnectNativeRedirect() {
+  if (typeof window === 'undefined') return 'com.kriptoaman.wallet://wc';
+  return window.location.pathname.startsWith('/wallet-app')
+    ? 'com.kriptoaman.wallet://wc'
+    : 'com.kriptoaman.app://wc';
+}
+
+async function openMetaMaskWallet(pairingUri) {
+  const normalized = String(pairingUri || '').trim();
+  if (!normalized) return false;
+  const encoded = encodeURIComponent(normalized);
+  const nativeUri = `metamask://wc?uri=${encoded}`;
+  const universalUrl = `https://metamask.app.link/wc?uri=${encoded}`;
+
+  if (Capacitor.isNativePlatform()) {
+    try {
+      await NativeUtility.openExternalWallet({
+        uri: nativeUri,
+        packageName: 'io.metamask',
+        fallbackUrl: universalUrl,
+      });
+      return true;
+    } catch {
+      // Native handoff can fail if MetaMask is absent; universal link remains a safe fallback.
+    }
+  }
+
+  window.location.assign(universalUrl);
+  return true;
 }
 
 function chainParams(chainId) {
@@ -137,10 +170,14 @@ export function Web3Provider({ children }) {
         description: 'ZEVARYQ Mainnet wallet connection for the KriptoAman ecosystem',
         url: 'https://kriptoaman.com/wallet-app',
         icons: ['https://kriptoaman.com/brand/zevaryq-wallet-premium-icon.webp'],
+        redirect: {
+          native: walletConnectNativeRedirect(),
+          universal: 'https://kriptoaman.com/wallet-app',
+        },
       },
       chains: [1],
       optionalChains: [22028, ...Object.keys(SUPPORTED_CHAINS).map(Number).filter((id) => id !== 22028 && id !== 1)],
-      showQrModal: true,
+      showQrModal: !Capacitor.isNativePlatform(),
       rpcMap: Object.fromEntries(Object.entries(SUPPORTED_CHAINS).map(([id, chain]) => [id, chain.rpc])),
     });
     return walletConnectRef.current;
@@ -159,8 +196,9 @@ export function Web3Provider({ children }) {
           if (!normalized) return;
           setWalletConnectUri(normalized);
           if (options.mobileWallet === 'metamask') {
-            const deepLink = `https://metamask.app.link/wc?uri=${encodeURIComponent(normalized)}`;
-            window.location.assign(deepLink);
+            void openMetaMaskWallet(normalized).catch((error) => {
+              setConnectionError(error?.message || 'MetaMask tidak dapat dibuka. Gunakan QR atau salin pairing URI.');
+            });
           }
         };
         provider.on?.('display_uri', handleUri);
@@ -361,7 +399,7 @@ export function Web3Provider({ children }) {
       provider: walletClient, // backward compat alias
       signer: walletClient,   // backward compat alias
       connectWallet, connectWalletConnect, disconnectWallet, selectAccount, switchChain, addZevaryqNetwork: () => switchChain(22028), sendTransaction, signMessage,
-      openMetaMaskPairing: () => walletConnectUri && window.location.assign(`https://metamask.app.link/wc?uri=${encodeURIComponent(walletConnectUri)}`),
+      openMetaMaskPairing: () => walletConnectUri ? openMetaMaskWallet(walletConnectUri) : Promise.resolve(false),
       refreshBalance: () => refreshBalance(account, chainId),
       isConnected: !!account,
       walletConnectConfigured: !!WALLETCONNECT_PROJECT_ID,
