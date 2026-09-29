@@ -1,0 +1,227 @@
+name: ZVQ One-Time RPC Origin Recovery 2026-09-29
+
+on:
+  push:
+    branches:
+      - 'ops/zvq-rpc-recovery-20260929'
+    paths:
+      - '.github/workflows/zvq-rpc-recovery-once.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zvq-rpc-recovery-once-20260929
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate official guarded scripts and read-only gateway
+        run: |
+          set -euo pipefail
+          for s in scripts/finalize-zvq-rpc-origin-https.sh scripts/stage-zvq-rpc-acme-proof.sh scripts/renew-zvq-rpc-origin-cert.sh scripts/rollback-zvq-rpc-origin-https.sh scripts/complete-zvq-rpc-origin-https.sh; do
+            bash -n "$s"
+          done
+          node --test tests/zvq-rpc-allowlist-gateway.test.mjs
+
+  audit:
+    needs: validate
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 10
+    outputs:
+      mode: ${{ steps.host.outputs.mode }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Read-only audit of listener firewall TLS and local RPC
+        id: host
+        shell: bash
+        run: |
+          set -euo pipefail
+          mode="$(
+            ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          command -v ss >/dev/null
+          command -v curl >/dev/null
+          command -v jq >/dev/null
+          command -v docker >/dev/null
+          echo "audit_host=$(hostname); kernel=$(uname -srm); uptime=$(uptime -p)" >&2
+          echo '--- audited listeners ---' >&2
+          ss -H -ltnp | awk '$4 ~ /:(80|443|8545|8546|8547|9545|18445)$/ {print}' >&2 || true
+          echo '--- audited containers ---' >&2
+          docker ps --format '{{.Names}}|{{.Status}}|{{.Ports}}' >&2
+          if command -v ufw >/dev/null; then
+            echo '--- ufw ---' >&2
+            ufw status verbose >&2 || true
+          fi
+          if command -v iptables >/dev/null; then
+            echo '--- iptables input policy ---' >&2
+            iptables -S INPUT >&2 || true
+          fi
+          if command -v nginx >/dev/null; then
+            echo '--- host nginx listener summary ---' >&2
+            nginx -T 2>&1 | grep -E 'listen[[:space:]].*(80|443)|server_name|ssl_certificate[[:space:]]' | head -80 >&2 || true
+          fi
+          CERT=/etc/letsencrypt/live/zvq-rpc-origin/fullchain.pem
+          if [[ -r "$CERT" ]]; then
+            echo '--- existing certificate metadata ---' >&2
+            openssl x509 -in "$CERT" -noout -subject -issuer -dates -ext subjectAltName >&2 || true
+          fi
+          healthy_port=
+          for p in 8545 8546 8547 9545; do
+            if ss -H -ltn "( sport = :$p )" | grep -q .; then
+              result="$(curl -sS --max-time 4 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' "http://127.0.0.1:$p" | jq -r '.result // empty' || true)"
+              echo "loopback_rpc_port=$p; chain_id=$result" >&2
+              if [[ "$result" = 0x560c ]]; then healthy_port="$p"; break; fi
+            fi
+          done
+          test -n "$healthy_port" || { echo 'audit_gate=FAIL_no_local_zvq_upstream' >&2; exit 1; }
+          if ss -H -ltn '( sport = :443 )' | grep -q .; then
+            if docker inspect zvq-rpc-origin-tls >/dev/null 2>&1; then
+              chain="$(curl --noproxy '*' -fsS --connect-timeout 5 --max-time 12 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' 'https://206.189.36.15/' | jq -er '.result')"
+              test "$chain" = 0x560c
+              echo already_healthy
+            else
+              echo 'audit_gate=FAIL_unreviewed_443_listener' >&2
+              exit 1
+            fi
+          else
+            if ss -H -ltn '( sport = :80 )' | grep -q .; then
+              echo 'audit_gate=FAIL_port80_occupied' >&2
+              exit 1
+            fi
+            echo needs_recovery
+          fi
+          REMOTE
+          )"
+          case "$mode" in
+            needs_recovery|already_healthy) ;;
+            *) echo "unexpected_audit_mode=$mode" >&2; exit 1 ;;
+          esac
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "audit_gate=PASS; mode=$mode"
+
+  stage-acme:
+    if: ${{ needs.audit.outputs.mode == 'needs_recovery' }}
+    needs: audit
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - name: Stage isolated temporary HTTP-01 proof
+        run: |
+          set -euo pipefail
+          scp -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new scripts/stage-zvq-rpc-acme-proof.sh root@206.189.36.15:/tmp/
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15 "bash /tmp/stage-zvq-rpc-acme-proof.sh start $GITHUB_RUN_ID"
+
+  independent-acme-proof:
+    if: ${{ needs.stage-acme.result == 'success' }}
+    needs: stage-acme
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Verify exact HTTP-01 bytes from independent Internet runner
+        run: |
+          set -euo pipefail
+          actual="$(curl --noproxy '*' -fsS --connect-timeout 5 --max-time 15 "http://206.189.36.15/.well-known/acme-challenge/zvq-rpc-$GITHUB_RUN_ID")"
+          test "$actual" = "zvq-rpc-acme-proof-$GITHUB_RUN_ID"
+          echo 'network_gate=PASS_external_port80_reachable'
+
+  stage-rpc:
+    if: ${{ needs.independent-acme-proof.result == 'success' }}
+    needs: independent-acme-proof
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v7
+      - name: Stop temporary proof and stage official guarded RPC origin TLS
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15 "bash /tmp/stage-zvq-rpc-acme-proof.sh stop $GITHUB_RUN_ID"
+          scp -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new             scripts/finalize-zvq-rpc-origin-https.sh             scripts/zvq-rpc-allowlist-gateway.mjs             scripts/renew-zvq-rpc-origin-cert.sh             scripts/rollback-zvq-rpc-origin-https.sh             scripts/complete-zvq-rpc-origin-https.sh             root@206.189.36.15:/tmp/
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15             "env ZVQ_RPC_TLS_RUN_ID=$GITHUB_RUN_ID ZVQ_RPC_ACME_PROOF=verified_external bash /tmp/finalize-zvq-rpc-origin-https.sh"
+
+  external:
+    if: ${{ always() && needs.audit.result == 'success' && (needs.audit.outputs.mode == 'already_healthy' || needs.stage-rpc.result == 'success') }}
+    needs: [audit, stage-rpc]
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Verify direct origin public RPC advancing blocks Explorer and denied privileged methods
+        shell: bash
+        run: |
+          set -euo pipefail
+          direct='https://206.189.36.15/'
+          public='https://rpc.kriptoaman.com/'
+          rpc() {
+            local url="$1" payload="$2"
+            curl --noproxy '*' -fsS --connect-timeout 6 --max-time 18 -H 'content-type: application/json' --data "$payload" "$url"
+          }
+          for url in "$direct" "$public"; do
+            chain="$(rpc "$url" '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' | jq -er '.result')"
+            test "$chain" = 0x560c
+            head1="$(rpc "$url" '{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}' | jq -er '.result')"
+            sleep 12
+            head2="$(rpc "$url" '{"jsonrpc":"2.0","id":3,"method":"eth_blockNumber","params":[]}' | jq -er '.result')"
+            [[ "$head1" =~ ^0x[0-9a-fA-F]+$ && "$head2" =~ ^0x[0-9a-fA-F]+$ ]]
+            (( head2 > head1 ))
+            echo "rpc=$url chain=$chain block1=$head1 block2=$head2 advancing=yes"
+            for method in admin_peers debug_traceTransaction eth_sendRawTransaction; do
+              case "$method" in
+                admin_peers) payload='{"jsonrpc":"2.0","id":4,"method":"admin_peers","params":[]}' ;;
+                debug_traceTransaction) payload='{"jsonrpc":"2.0","id":5,"method":"debug_traceTransaction","params":["0x01"]}' ;;
+                eth_sendRawTransaction) payload='{"jsonrpc":"2.0","id":6,"method":"eth_sendRawTransaction","params":["0x01"]}' ;;
+              esac
+              status="$(curl --noproxy '*' -sS --connect-timeout 6 --max-time 12 -H 'content-type: application/json' --data "$payload" -o /dev/null -w '%{http_code}' "$url")"
+              test "$status" = 403
+              echo "rpc=$url method=$method denied=$status"
+            done
+            test "$(curl --noproxy '*' -sS -X OPTIONS -H 'Origin: https://explorer.kriptoaman.com' -o /dev/null -w '%{http_code}' "$url")" = 204
+            test "$(curl --noproxy '*' -sS -X OPTIONS -H 'Origin: https://untrusted.invalid' -o /dev/null -w '%{http_code}' "$url")" = 403
+          done
+          for page in             'https://explorer.kriptoaman.com/'             'https://explorer.kriptoaman.com/blocks'             'https://explorer.kriptoaman.com/txs'             'https://explorer.kriptoaman.com/validators'             'https://explorer.kriptoaman.com/api-docs'             'https://explorer.kriptoaman.com/api/v2/blocks'             'https://explorer.kriptoaman.com/api/v2/transactions'; do
+            code="$(curl --noproxy '*' -sS --connect-timeout 6 --max-time 18 -o /dev/null -w '%{http_code}' "$page")"
+            test "$code" = 200
+            echo "explorer=$page status=$code"
+          done
+          echo 'external_gate=PASS; chain=0x560c; blocks=advancing; public_rpc=healthy; explorer=healthy; privileged_write_debug=denied'
+
+  finalize:
+    if: ${{ always() && needs.audit.outputs.mode == 'needs_recovery' && needs.external.result == 'success' }}
+    needs: [audit, external]
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 15
+    steps:
+      - name: Finalize trusted origin TLS and guarded renewal
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15             "bash /tmp/complete-zvq-rpc-origin-https.sh $GITHUB_RUN_ID success"
+
+  cleanup:
+    if: ${{ always() }}
+    needs: [audit, stage-acme, independent-acme-proof, stage-rpc, external, finalize]
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 6
+    steps:
+      - name: Cleanup temporary proof and rollback only this run on failed verification
+        env:
+          AUDIT_RESULT: ${{ needs.audit.result }}
+          STAGE_RESULT: ${{ needs.stage-rpc.result }}
+          EXTERNAL_RESULT: ${{ needs.external.result }}
+          FINAL_RESULT: ${{ needs.finalize.result }}
+        run: |
+          set -euo pipefail
+          if [[ "$AUDIT_RESULT" != success ]]; then
+            echo 'cleanup=no_host_mutation_after_failed_audit'
+            exit 0
+          fi
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15             "test ! -f /tmp/stage-zvq-rpc-acme-proof.sh || bash /tmp/stage-zvq-rpc-acme-proof.sh stop $GITHUB_RUN_ID"             || echo '::warning::temporary ACME proof cleanup needs inspection'
+          if [[ "$STAGE_RESULT" == success && ( "$EXTERNAL_RESULT" != success || "$FINAL_RESULT" != success ) ]]; then
+            ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15               "bash /tmp/rollback-zvq-rpc-origin-https.sh $GITHUB_RUN_ID"
+            echo 'rollback=completed_for_this_run'
+          else
+            echo "cleanup=complete; stage=$STAGE_RESULT external=$EXTERNAL_RESULT final=$FINAL_RESULT"
+          fi
