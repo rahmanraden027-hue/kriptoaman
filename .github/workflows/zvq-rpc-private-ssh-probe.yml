@@ -1,0 +1,42 @@
+name: ZVQ RPC Private SSH Probe 2026-09-29
+
+on:
+  push:
+    branches: ['ops/zvq-rpc-recovery-20260929']
+    paths: ['.github/workflows/zvq-rpc-private-ssh-probe.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 5
+    steps:
+      - name: Read-only SSH audit inside RPC sentry
+        shell: bash
+        run: |
+          set -euo pipefail
+          opts=(-o BatchMode=yes -o ConnectTimeout=6 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null)
+          timeout 4 bash -c 'cat < /dev/null > /dev/tcp/10.104.0.2/22'
+          echo 'rpc_private_ssh_tcp=reachable'
+          ssh "${opts[@]}" root@10.104.0.2 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          echo "remote_host=$(hostname); uid=$(id -u)"
+          echo '--- listener audit ---'
+          ss -H -ltnp | awk '$4 ~ /:(80|443|8545|8546|8547|9545|18445)$/ {print}' || true
+          healthy=
+          for p in 8545 8546 8547 9545; do
+            if ss -H -ltn "( sport = :$p )" | grep -q .; then
+              result="$(curl -sS --max-time 4 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' "http://127.0.0.1:$p" | jq -r '.result // empty' || true)"
+              echo "loopback_rpc_port=$p chain_id=$result"
+              if [[ "$result" = 0x560c ]]; then healthy="$p"; break; fi
+            fi
+          done
+          test -n "$healthy"
+          if command -v ufw >/dev/null; then ufw status verbose || true; fi
+          if [[ -r /etc/letsencrypt/live/zvq-rpc-origin/fullchain.pem ]]; then
+            openssl x509 -in /etc/letsencrypt/live/zvq-rpc-origin/fullchain.pem -noout -dates -ext subjectAltName || true
+          fi
+          echo 'rpc_private_ssh_audit=PASS'
+          REMOTE
