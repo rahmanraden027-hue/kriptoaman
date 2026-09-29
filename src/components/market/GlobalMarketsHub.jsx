@@ -12,13 +12,13 @@ const COPY = {
     forex: 'Forex',
     metals: 'Metals',
     reference: 'Referensi pasar',
-    hourly: 'Pembaruan referensi berkala',
+    hourly: 'Referensi diperbarui berkala',
     unavailable: 'Data referensi global sementara belum tersedia',
     cached: 'Snapshot terakhir',
     live: 'Data tersedia',
     source: 'Sumber',
     focus: 'Instrumen utama',
-    infoOnly: 'Informasi pasar saja · bukan harga eksekusi broker',
+    infoOnly: 'Data referensi · bukan harga eksekusi',
     noAdvice: 'Bukan rekomendasi investasi atau sinyal beli/jual.',
     changeUnavailable: 'Perubahan 24 jam belum tersedia dari sumber ini',
     goldBadge: 'METALS FOCUS',
@@ -39,7 +39,7 @@ const COPY = {
     live: 'Data available',
     source: 'Source',
     focus: 'Primary instruments',
-    infoOnly: 'Market information only · not broker execution prices',
+    infoOnly: 'Reference data · not execution prices',
     noAdvice: 'Not investment advice or a buy/sell signal.',
     changeUnavailable: '24h change is unavailable from this source',
     goldBadge: 'METALS FOCUS',
@@ -150,14 +150,16 @@ export default function GlobalMarketsHub() {
           <p className="mt-2 text-xs leading-5 text-slate-400">{text.goldBody}</p>
         </div>
 
-        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
-          <p className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-500">{text.source}</p>
-          <p className="mt-1 text-sm font-black text-white">{data?.provider || '—'}</p>
-          <p className="mt-1 text-[10px] text-slate-500">{text.hourly}</p>
-          <div className="mt-3 space-y-1 text-[10px] leading-4 text-slate-500">
-            <p>{text.infoOnly}</p>
-            <p>{text.noAdvice}</p>
+        <div className="self-start rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3.5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-500">{text.source}</p>
+              <p className="mt-1 truncate text-sm font-black text-white">{data?.provider || '—'}</p>
+            </div>
+            <span className="shrink-0 rounded-full border border-sky-400/15 bg-sky-400/[0.06] px-2 py-1 text-[9px] font-bold text-sky-200">{text.reference}</span>
           </div>
+          <p className="mt-2 text-[10px] leading-4 text-slate-500">{text.hourly} · {text.infoOnly}</p>
+          <p className="mt-1 text-[9px] leading-4 text-slate-600">{text.noAdvice}</p>
         </div>
       </div>
     </section>
