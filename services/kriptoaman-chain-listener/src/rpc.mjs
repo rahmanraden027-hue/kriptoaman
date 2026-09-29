@@ -71,6 +71,48 @@ export class JsonRpcClient {
     }
   }
 
+  async callBatch(calls) {
+    if (!Array.isArray(calls) || calls.length === 0) return [];
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+    const requests = calls.map(({ method, params = [] }) => ({
+      jsonrpc: '2.0',
+      id: ++this.id,
+      method,
+      params,
+    }));
+    try {
+      const response = await fetch(this.url, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify(requests),
+        signal: controller.signal,
+      });
+      if (!response.ok) throw new Error(`RPC batch HTTP ${response.status}`);
+      const payload = await response.json();
+      if (!Array.isArray(payload)) throw new Error('RPC batch response is not an array');
+      const byId = new Map(payload.map((item) => [item?.id, item]));
+      return requests.map((request) => {
+        const item = byId.get(request.id);
+        if (!item) return { ok: false, error: 'missing_response', result: null };
+        if (item.error) return { ok: false, error: item.error.message || 'rpc_error', result: null };
+        return { ok: true, error: null, result: item.result };
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async receipts(hashes, batchSize = 100) {
+    const results = [];
+    for (let i = 0; i < hashes.length; i += batchSize) {
+      const chunk = hashes.slice(i, i + batchSize);
+      const batch = await this.callBatch(chunk.map((hash) => ({ method: 'eth_getTransactionReceipt', params: [hash] })));
+      results.push(...batch.map((item) => item.ok ? item.result : null));
+    }
+    return results;
+  }
+
   chainId() { return this.call('eth_chainId'); }
   blockNumber() { return this.call('eth_blockNumber').then(hexToNumber); }
   blockByNumber(number, full = true) {
