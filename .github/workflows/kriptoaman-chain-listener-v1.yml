@@ -9,6 +9,8 @@ on:
       - 'tests/kriptoaman-chain-listener-v1.test.mjs'
       - 'docs/KRIPTOAMAN_FIRST_PARTY_INTELLIGENCE_V1.md'
       - '.github/workflows/kriptoaman-chain-listener-v1.yml'
+      - 'scripts/deploy-kriptoaman-chain-listener.sh'
+      - 'scripts/deploy-kriptoaman-chain-listener.sh'
   push:
     branches:
       - codex/kriptoaman-first-party-chain-listener-v1
@@ -62,3 +64,61 @@ jobs:
       - uses: actions/checkout@v7
       - name: Read-only ZEVARYQ RPC and WebSocket capability probe
         run: node scripts/probe-zvq-listener-capability.mjs
+
+
+  indexer-host-connectivity:
+    if: >
+      github.event_name == 'pull_request' &&
+      github.head_ref == 'codex/kriptoaman-first-party-chain-listener-v1' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 6
+    steps:
+      - name: Verify dedicated indexer host and first-party RPC path
+        run: |
+          set -euo pipefail
+          target=10.104.0.5
+          ssh_opts=(-o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new)
+          ssh "${ssh_opts[@]}" "root@$target" 'uname -srm; test -d /root'
+          chain="$(ssh "${ssh_opts[@]}" "root@$target" "curl --noproxy '*' -fsS --connect-timeout 6 --max-time 15 -H 'content-type: application/json' --data '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"eth_chainId\",\"params\":[]}' 'https://206.189.36.15/' | python3 -c 'import json,sys; print(json.load(sys.stdin).get(\"result\",\"\"))'")"
+          test "$chain" = 0x560c
+          echo "INDEXER_HOST_CONNECTIVITY=verified target=$target first_party_chain=$chain"
+
+  stage-indexer:
+    if: >
+      github.event_name == 'pull_request' &&
+      github.head_ref == 'codex/kriptoaman-first-party-chain-listener-v1' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    needs: [validate, indexer-host-connectivity]
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - name: Package reviewed listener
+        run: |
+          set -euo pipefail
+          tar -czf /tmp/kriptoaman-chain-listener.tgz -C services kriptoaman-chain-listener
+          bash -n scripts/deploy-kriptoaman-chain-listener.sh
+      - name: Stage listener on dedicated host
+        run: |
+          set -euo pipefail
+          target=10.104.0.5
+          ssh_opts=(-o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new)
+          scp "${ssh_opts[@]}" /tmp/kriptoaman-chain-listener.tgz scripts/deploy-kriptoaman-chain-listener.sh "root@$target:/tmp/"
+          ssh "${ssh_opts[@]}" "root@$target" "bash /tmp/deploy-kriptoaman-chain-listener.sh '$GITHUB_RUN_ID' /tmp/kriptoaman-chain-listener.tgz"
+      - name: Verify private real-time indexer state
+        run: |
+          set -euo pipefail
+          target=10.104.0.5
+          ssh_opts=(-o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new)
+          first="$(ssh "${ssh_opts[@]}" "root@$target" "curl -fsS http://127.0.0.1:8790/v1/status")"
+          echo "$first" | jq -e '.chainId == 22028 and .source == "kriptoaman-first-party-zvq"'
+          h1="$(jq -r '.lastBlock' <<<"$first")"
+          sleep 8
+          second="$(ssh "${ssh_opts[@]}" "root@$target" "curl -fsS http://127.0.0.1:8790/v1/status")"
+          h2="$(jq -r '.lastBlock' <<<"$second")"
+          test "$h1" != null
+          test "$h2" != null
+          (( h2 >= h1 ))
+          ssh "${ssh_opts[@]}" "root@$target" "ss -ltn | grep -Eq '127\\.0\\.0\\.1:8790'"
+          echo "INDEXER_PRIVATE_REALTIME=verified block_before=$h1 block_after=$h2"
