@@ -39,14 +39,20 @@ export function createApiServer({ config, store, state }) {
 
     if (req.method !== 'GET') return json(res, 405, { error: 'read_only_service' }, origin);
     if (url.pathname === '/health') {
-      return json(res, 200, {
-        ok: state.ready,
+      const ageMs = state.lastIndexedAt ? Math.max(0, Date.now() - Date.parse(state.lastIndexedAt)) : null;
+      const fresh = ageMs != null && ageMs <= config.healthMaxAgeMs;
+      const ok = Boolean(state.ready && fresh && !state.lastError);
+      return json(res, ok ? 200 : 503, {
+        ok,
+        fresh,
+        ageMs,
         chain: config.chainName,
         chainId: config.chainId,
         source: config.sourceLabel,
         upstreamWs: state.upstreamWs,
         lastBlock: state.lastBlock,
         lastIndexedAt: state.lastIndexedAt,
+        error: state.lastError || null,
       }, origin);
     }
     if (url.pathname === '/v1/status') {
