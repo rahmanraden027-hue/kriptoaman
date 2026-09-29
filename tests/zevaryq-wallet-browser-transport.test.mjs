@@ -110,7 +110,9 @@ test('Balance uses verified address-specific same-origin status; failed probes r
 
 test('Failed wallet balance probe cannot display stale previous wallet assets', () => {
   assert.match(wallet, /setBalance\('0'\);setBalancePhase\('loading'\)/);
-  assert.match(wallet, /balancePhase === 'error'\) \? '—' :/);
+  assert.match(wallet, /const balanceReady = Boolean\(web3\?\.isConnected && onNetwork && balancePhase === 'success'\)/);
+  assert.match(wallet, /balanceReady \? .* : '—'/);
+  assert.match(wallet, /Connect wallet to view verified on-chain balance/);
 });
 
 
