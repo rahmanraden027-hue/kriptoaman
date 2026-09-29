@@ -25,6 +25,7 @@ const FIRST_PARTY_ASSET_CATALOG = Object.freeze([
     state: 'planned',
     badge: 'PLANNED',
     detail: 'Reserve-backed ecosystem asset candidate · not USDT or USDC · not deployed',
+    icon: '/assets/zevaryq/tokens/zusd.svg',
   },
   {
     symbol: 'zBTC',
@@ -32,6 +33,7 @@ const FIRST_PARTY_ASSET_CATALOG = Object.freeze([
     state: 'planned',
     badge: 'PLANNED',
     detail: 'BTC-backed representation candidate · bridge/backing authorization pending',
+    icon: '/assets/zevaryq/tokens/zbtc.svg',
   },
   {
     symbol: 'zETH',
@@ -39,6 +41,7 @@ const FIRST_PARTY_ASSET_CATALOG = Object.freeze([
     state: 'planned',
     badge: 'PLANNED',
     detail: 'ETH-backed representation candidate · bridge/backing authorization pending',
+    icon: '/assets/zevaryq/tokens/zeth.svg',
   },
 ]);
 
@@ -68,7 +71,17 @@ function AssetCatalog({ registryTokens = [], registryVerified = false }) {
         {rows.map((asset) => (
           <div key={asset.symbol + asset.detail} className="rounded-2xl border border-[#1A3A59] bg-[#071522]/65 p-4">
             <div className="flex items-start gap-3">
-              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-[#2D8CFF]/35 bg-[#102235] text-sm font-black text-[#F2C86B]">{asset.symbol.slice(0, 4)}</span>
+              {asset.icon ? (
+                <img
+                  src={asset.icon}
+                  alt={`${asset.symbol} token icon`}
+                  className="h-12 w-12 shrink-0 rounded-full object-contain"
+                  loading="eager"
+                  decoding="async"
+                />
+              ) : (
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-[#2D8CFF]/35 bg-[#102235] text-sm font-black text-[#F2C86B]">{asset.symbol.slice(0, 4)}</span>
+              )}
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-black text-white">{asset.symbol}</h3>
