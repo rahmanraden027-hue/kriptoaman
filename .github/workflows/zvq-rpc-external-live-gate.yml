@@ -1,0 +1,57 @@
+name: ZVQ RPC External Live Gate
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/zvq-rpc-external-live-gate.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Verify ZVQ RPC and Explorer from external runner
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          rpc() {
+            local endpoint="$1" method="$2" params="$3" extra="$4"
+            curl $extra -sS --retry 2 --retry-all-errors --connect-timeout 8 --max-time 20               -o /tmp/zvq-rpc.json -w '%{http_code}'               -H 'Origin: https://explorer.kriptoaman.com'               -H 'Content-Type: application/json'               --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"$method\",\"params\":$params}"               "$endpoint"
+          }
+
+          direct_extra='--resolve rpc.kriptoaman.com:443:206.189.36.15'
+          test "$(rpc https://rpc.kriptoaman.com/ eth_chainId '[]' "$direct_extra")" = 200
+          test "$(jq -r '.result // empty' /tmp/zvq-rpc.json)" = 0x560c
+
+          test "$(rpc https://rpc.kriptoaman.com/ eth_chainId '[]' '')" = 200
+          test "$(jq -r '.result // empty' /tmp/zvq-rpc.json)" = 0x560c
+
+          test "$(rpc https://rpc.kriptoaman.com/ eth_blockNumber '[]' '')" = 200
+          a="$(jq -r '.result' /tmp/zvq-rpc.json)"
+          sleep 12
+          test "$(rpc https://rpc.kriptoaman.com/ eth_blockNumber '[]' '')" = 200
+          b="$(jq -r '.result' /tmp/zvq-rpc.json)"
+          test $((16#${b#0x})) -gt $((16#${a#0x}))
+          echo "public_blocks=$a->$b"
+
+          for method in admin_peers debug_traceTransaction eth_sendRawTransaction; do
+            params='[]'
+            test "$method" = eth_sendRawTransaction && params='["0x00"]'
+            code="$(rpc https://rpc.kriptoaman.com/ "$method" "$params" '')"
+            echo "blocked_method=$method http_code=$code"
+            test "$code" = 403
+          done
+
+          trusted="$(curl -sS --connect-timeout 8 --max-time 15 -o /dev/null -w '%{http_code}'             -X OPTIONS             -H 'Origin: https://explorer.kriptoaman.com'             -H 'Access-Control-Request-Method: POST'             -H 'Access-Control-Request-Headers: content-type'             https://rpc.kriptoaman.com/)"
+          untrusted="$(curl -sS --connect-timeout 8 --max-time 15 -o /dev/null -w '%{http_code}'             -X OPTIONS             -H 'Origin: https://attacker.example'             -H 'Access-Control-Request-Method: POST'             https://rpc.kriptoaman.com/)"
+          echo "trusted_cors=$trusted untrusted_cors=$untrusted"
+          test "$trusted" = 204
+          test "$untrusted" = 403
+
+          test "$(curl -sS --connect-timeout 8 --max-time 15 -o /dev/null -w '%{http_code}' https://explorer.kriptoaman.com/)" = 200
+          curl -fsS --connect-timeout 8 --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks             | jq -e '.items | type == "array"' >/dev/null
+          curl -fsS --connect-timeout 8 --max-time 15 https://explorer.kriptoaman.com/api/v2/transactions             | jq -e '.items | type == "array"' >/dev/null
+          echo 'zvq_external_live_gate=pass'
