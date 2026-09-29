@@ -35,3 +35,16 @@ test('architecture requires provenance, reorg handling and explicit unavailable 
   assert.match(doc, /block-to-index latency/);
   assert.match(doc, /No UI may claim first-party coverage/);
 });
+
+
+test('first-party WebSocket live state requires a confirmed subscription and rollback covers partial apply failures', async () => {
+  const [listener, deploy, workflow] = await Promise.all([
+    read('services/kriptoaman-indexer/zvq-listener.mjs'),
+    read('scripts/deploy-kriptoaman-zvq-indexer.sh'),
+    read('.github/workflows/kriptoaman-first-party-indexer.yml'),
+  ]);
+  assert.match(listener, /const fresh = wsSubscribed && headFresh/);
+  assert.match(listener, /websocketSubscribed: wsSubscribed/);
+  assert.match(deploy, /WebSocket subscription not confirmed/);
+  assert.match(workflow, /failure\(\) && steps\.apply\.outcome != 'skipped'/);
+});
