@@ -82,7 +82,7 @@ jobs:
               local code="$1" body="$2"
               if [[ "$code" = 403 ]]; then return 0; fi
               if [[ "$code" = 200 ]] && jq -e 'has("result")|not' "$body" >/dev/null 2>&1 \
-                && jq -e '.error.code == -32601' "$body" >/dev/null 2>&1; then return 0; fi
+                && jq -e '(.error.code == -32601 or .error.code == -32604) and (.error.message | test("not enabled|not found"; "i"))' "$body" >/dev/null 2>&1; then return 0; fi
               return 1
             }
             deny_response "$public_code" "$public_body"
