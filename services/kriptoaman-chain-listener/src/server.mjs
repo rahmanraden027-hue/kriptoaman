@@ -68,7 +68,13 @@ export function createApiServer({ config, store, state }) {
       return item ? json(res, 200, item, origin) : json(res, 404, { error: 'token_not_indexed' }, origin);
     }
     if (url.pathname === '/v1/pools') return json(res, 200, { items: store.listPools(limitOf(url, 50, 500)) }, origin);
-    if (url.pathname === '/v1/events') return json(res, 200, { items: store.listEvents(limitOf(url, 100, 1000)) }, origin);
+    if (url.pathname === '/v1/events') {
+      const after = Number.parseInt(url.searchParams.get('after') || '0', 10);
+      if (Number.isFinite(after) && after > 0) {
+        return json(res, 200, { items: store.eventsAfter(after, limitOf(url, 100, 1000)), after }, origin);
+      }
+      return json(res, 200, { items: store.listEvents(limitOf(url, 100, 1000)) }, origin);
+    }
     return json(res, 404, { error: 'not_found' }, origin);
   });
 
@@ -82,15 +88,25 @@ export function createApiServer({ config, store, state }) {
     wss.handleUpgrade(req, socket, head, (ws) => wss.emit('connection', ws, req));
   });
 
-  wss.on('connection', (ws) => {
+  wss.on('connection', (ws, req) => {
+    const url = new URL(req.url || '/stream', `http://${req.headers.host || 'localhost'}`);
+    const since = Number.parseInt(url.searchParams.get('since') || '0', 10);
+    const lastEventId = store.lastEventId();
     ws.send(JSON.stringify({
       type: 'hello',
       chain: config.chainName,
       chainId: config.chainId,
       source: config.sourceLabel,
       lastBlock: state.lastBlock,
+      lastEventId,
       serverTime: new Date().toISOString(),
     }));
+
+    if (Number.isFinite(since) && since > 0 && since < lastEventId) {
+      for (const event of store.eventsAfter(since, 1000)) {
+        ws.send(JSON.stringify({ type: 'replay', event }));
+      }
+    }
   });
 
   const broadcast = (event) => {
@@ -109,5 +125,6 @@ export function createApiServer({ config, store, state }) {
       return new Promise((resolve) => server.close(resolve));
     },
     broadcast,
+    websocketClients: () => wss.clients.size,
   };
 }
