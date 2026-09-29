@@ -26,7 +26,7 @@ const NETWORKS = [
   { name: 'Scroll', type: 'evm', urls: ['https://rpc.scroll.io', 'https://scroll-rpc.publicnode.com'] },
   { name: 'Mantle', type: 'evm', urls: ['https://rpc.mantle.xyz', 'https://mantle-rpc.publicnode.com'] },
   { name: 'Fantom', type: 'evm', urls: ['https://rpcapi.fantom.network', 'https://fantom.publicnode.com'] },
-  { name: 'Solana', type: 'solana', timeoutMs: SLOW_PROVIDER_TIMEOUT_MS, urls: ['https://api.mainnet-beta.solana.com', 'https://solana-rpc.publicnode.com'] },
+  { name: 'Solana', type: 'solana', timeoutMs: SLOW_PROVIDER_TIMEOUT_MS, urls: ['https://api.mainnet.solana.com', 'https://api.mainnet-beta.solana.com', 'https://solana-rpc.publicnode.com', 'https://rpc.ankr.com/solana'] },
   { name: 'TRON', type: 'tron', timeoutMs: EXTENDED_PROVIDER_TIMEOUT_MS, urls: ['https://api.trongrid.io/wallet/getnowblock', 'https://tron-evm-rpc.publicnode.com'] },
   { name: 'XRP Ledger', type: 'xrp', timeoutMs: EXTENDED_PROVIDER_TIMEOUT_MS, urls: ['https://honeycluster.io/', 'https://xrplcluster.com', 'https://s1.ripple.com:51234/', 'https://s2.ripple.com:51234/'] },
   { name: 'Polkadot', type: 'polkadot', timeoutMs: SLOW_PROVIDER_TIMEOUT_MS, urls: ['https://rpc.polkadot.io', 'https://polkadot-rpc.publicnode.com'] },
