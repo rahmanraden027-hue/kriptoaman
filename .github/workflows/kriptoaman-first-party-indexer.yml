@@ -1,0 +1,76 @@
+name: KriptoAman First-Party ZEVARYQ Indexer
+
+on:
+  pull_request:
+    paths:
+      - 'services/kriptoaman-indexer/**'
+      - 'scripts/deploy-kriptoaman-zvq-indexer.sh'
+      - 'tests/crypto-intelligence-first-party.test.mjs'
+      - '.github/workflows/kriptoaman-first-party-indexer.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'services/kriptoaman-indexer/**'
+      - 'scripts/deploy-kriptoaman-zvq-indexer.sh'
+      - '.github/workflows/kriptoaman-first-party-indexer.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kriptoaman-first-party-zvq-indexer
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Validate listener and deployment guard
+        run: |
+          set -euo pipefail
+          node --check services/kriptoaman-indexer/zvq-listener.mjs
+          bash -n scripts/deploy-kriptoaman-zvq-indexer.sh
+          node --test tests/crypto-intelligence-first-party.test.mjs
+          ! grep -REn 'eth_sendRawTransaction|personal_|admin_|debug_' services/kriptoaman-indexer
+          ! grep -REn 'PRIVATE_KEY|MNEMONIC|SEED_PHRASE' services/kriptoaman-indexer scripts/deploy-kriptoaman-zvq-indexer.sh
+
+  deploy:
+    if: github.event_name == 'push'
+    needs: validate
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v7
+      - name: Stage listener on existing RPC sentry
+        run: |
+          set -euo pipefail
+          scp -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new             services/kriptoaman-indexer/zvq-listener.mjs             root@206.189.36.15:/tmp/zvq-listener.mjs
+          scp -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new             scripts/deploy-kriptoaman-zvq-indexer.sh             root@206.189.36.15:/tmp/deploy-kriptoaman-zvq-indexer.sh
+      - name: Preflight without mutation
+        run: |
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new             root@206.189.36.15             "GITHUB_RUN_ID=$GITHUB_RUN_ID SOURCE=/tmp/zvq-listener.mjs bash /tmp/deploy-kriptoaman-zvq-indexer.sh preview"
+      - name: Apply isolated loopback-only indexer
+        id: apply
+        run: |
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new             root@206.189.36.15             "GITHUB_RUN_ID=$GITHUB_RUN_ID SOURCE=/tmp/zvq-listener.mjs bash /tmp/deploy-kriptoaman-zvq-indexer.sh apply"
+      - name: Verify existing public RPC policy unchanged
+        run: |
+          set -euo pipefail
+          endpoint=https://rpc.kriptoaman.com/
+          rpc() { curl -fsS --connect-timeout 6 --max-time 15 -H 'content-type: application/json' --data "$1" "$endpoint"; }
+          test "$(rpc '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' | jq -r '.result')" = 0x560c
+          a="$(rpc '{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}' | jq -r '.result')"
+          sleep 12
+          b="$(rpc '{"jsonrpc":"2.0","id":3,"method":"eth_blockNumber","params":[]}' | jq -r '.result')"
+          test $((16#${b#0x})) -gt $((16#${a#0x}))
+          code="$(curl -sS -o /dev/null -w '%{http_code}' -H 'content-type: application/json'             --data '{"jsonrpc":"2.0","id":4,"method":"eth_sendRawTransaction","params":["0x01"]}' "$endpoint")"
+          test "$code" = 403
+      - name: Roll back this run if deployment gate fails
+        if: failure() && steps.apply.outcome == 'success'
+        run: |
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new             root@206.189.36.15             "GITHUB_RUN_ID=$GITHUB_RUN_ID SOURCE=/tmp/zvq-listener.mjs bash /tmp/deploy-kriptoaman-zvq-indexer.sh rollback"
