@@ -62,7 +62,7 @@ export default function KriptoAmanGlobalLanding() {
             next.marketSource = market.source || null;
             next.networkActiveCount = Number.isFinite(Number(networks.online)) ? Number(networks.online) : undefined;
             next.networkCheckedAt = networks.checkedAt || kam.checkedAt || null;
-            next.zvqBlockNumber = Number(kam.blockNumber) > 0 ? Number(kam.blockNumber) : null;
+            next.zvqBlockNumber = kam.blockNumber != null && Number.isFinite(Number(kam.blockNumber)) ? Number(kam.blockNumber) : null;
             next.zvqCheckedAt = kam.checkedAt || null;
           }
         } catch {
@@ -124,7 +124,7 @@ export default function KriptoAmanGlobalLanding() {
             };
         next.networks = [...next.networks.filter((network) => Number(network?.chainId) !== 22028 && !['KAM Network', 'ZEVARYQ Network'].includes(network?.name)), kamNetworkEntry];
         next.networkCheckedAt = next.networkCheckedAt || kamCheckedAt;
-        next.zvqBlockNumber = Number(kamBlockNumber) > 0 ? Number(kamBlockNumber) : next.zvqBlockNumber;
+        next.zvqBlockNumber = kamBlockNumber != null && Number.isFinite(Number(kamBlockNumber)) ? Number(kamBlockNumber) : next.zvqBlockNumber;
         next.zvqCheckedAt = kamCheckedAt || next.zvqCheckedAt;
         if (!hadKam) {
           next.networkActiveCount = (Number(next.networkActiveCount) || 0) + 1;
