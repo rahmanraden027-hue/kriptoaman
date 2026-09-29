@@ -99,7 +99,7 @@ const COINS = [
 
 const COPY = {
   id: {
-    title: 'Pasar Kripto', identity: 'KRIPTOAMAN MARKET INTELLIGENCE', live: 'Live 24/7',
+    title: 'Pasar Kripto', identity: 'KRIPTOAMAN CRYPTO INTELLIGENCE', live: 'Live 24/7',
     available: 'Data pasar tersedia', connecting: 'Menghubungkan…', assets: 'aset',
     updated: 'diperbarui', sourceUnavailable: 'Sumber belum tersedia', search: 'Cari aset',
     all: 'Semua', gainers: 'Naik', losers: 'Turun', watchlist: 'Watchlist',
@@ -112,7 +112,7 @@ const COPY = {
     emptyWatch: 'Belum ada aset di watchlist. Tekan bintang untuk menambahkan.',
     stale: 'Menampilkan snapshot terakhir yang berhasil disimpan. Pembaruan otomatis akan dilanjutkan saat koneksi pulih.',
     cachedSource: 'Snapshot tersimpan', chartUnavailable: 'Grafik belum tersedia',
-    hero: 'Pusat intelijen pasar multi-aset untuk memantau momentum, tren, dan perubahan harga secara real-time.',
+    hero: 'Pusat intelijen khusus crypto untuk memahami pasar, aset, aktivitas on-chain, provenance, dan risiko sebelum mengambil keputusan.',
     breadth: 'Market breadth', feeds: 'Data feeds', universe: 'Asset universe', mode: 'Intelligence mode',
   },
   en: {
@@ -129,7 +129,7 @@ const COPY = {
     emptyWatch: 'Your watchlist is empty. Press the star to add an asset.',
     stale: 'Showing the last successfully saved snapshot. Automatic updates will resume when connectivity returns.',
     cachedSource: 'Saved snapshot', chartUnavailable: 'Chart unavailable',
-    hero: 'A multi-asset market intelligence center for monitoring momentum, trends, and price changes in real time.',
+    hero: 'A crypto-only intelligence center for understanding markets, assets, on-chain activity, provenance, and risk before making decisions.',
     breadth: 'Market breadth', feeds: 'Data feeds', universe: 'Asset universe', mode: 'Intelligence mode',
   },
 };
