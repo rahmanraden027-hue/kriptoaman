@@ -17,3 +17,12 @@ test('ABI string decoder supports dynamic strings and bytes32-style strings', ()
   const dynamic = '0'.repeat(62) + '20' + '0'.repeat(63) + '3' + text;
   assert.equal(decodeAbiString(`0x${dynamic}`), 'ZVQ');
 });
+
+
+test('RPC client source includes deterministic batch receipt support', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const source = await readFile(new URL('../src/rpc.mjs', import.meta.url), 'utf8');
+  assert.match(source, /async callBatch\(calls\)/);
+  assert.match(source, /async receipts\(hashes, batchSize = 100\)/);
+  assert.match(source, /eth_getTransactionReceipt/);
+});
