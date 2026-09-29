@@ -18,7 +18,9 @@ test('Android builds KriptoAman Platform and ZEVARYQ Wallet as separate applicat
   assert.match(gradle, /platform\s*\{[\s\S]*applicationId\s+"com\.kriptoaman\.app"/);
   assert.match(gradle, /wallet\s*\{[\s\S]*applicationId\s+"com\.kriptoaman\.wallet"/);
   assert.match(platformStrings, /<string name="app_name">KriptoAman<\/string>/);
+  assert.match(platformStrings, /<string name="launcher_name">KriptoAman<\/string>/);
   assert.match(walletStrings, /<string name="app_name">ZEVARYQ Wallet<\/string>/);
+  assert.match(walletStrings, /<string name="launcher_name">ZVQ Wallet<\/string>/);
   assert.equal(platformConfig.server.url, 'https://kriptoaman.com');
   assert.equal(walletConfig.server.url, 'https://kriptoaman.com/wallet-app');
   assert.match(app, /path="\/wallet-app"/);
