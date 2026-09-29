@@ -78,7 +78,9 @@ jobs:
         run: |
           set -euo pipefail
           echo 'RUNNER_SSH_KEY_FINGERPRINTS_BEGIN'
-          for key in "$HOME"/.ssh/id_*; do
+          runner_home="$(getent passwd "$(id -u)" | cut -d: -f6)"
+          [[ -n "$runner_home" ]] || runner_home=/root
+          for key in "$runner_home"/.ssh/id_*; do
             [[ -f "$key" && "$key" != *.pub ]] || continue
             pub="$(ssh-keygen -y -f "$key" 2>/dev/null || true)"
             [[ -n "$pub" ]] || continue
