@@ -1,0 +1,30 @@
+name: ZVQ RPC Private Path Probe 2026-09-29
+
+on:
+  push:
+    branches: ['ops/zvq-rpc-recovery-20260929']
+    paths: ['.github/workflows/zvq-rpc-private-path-probe.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 5
+    steps:
+      - name: Read-only private path probe to RPC sentry
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "runner_host=$(hostname)"
+          if timeout 4 bash -c 'cat < /dev/null > /dev/tcp/10.104.0.2/22' 2>/dev/null; then
+            echo 'rpc_private_ssh_tcp=reachable'
+          else
+            echo 'rpc_private_ssh_tcp=unreachable'
+          fi
+          chain="$(curl -sS --connect-timeout 4 --max-time 8 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' 'http://10.104.0.2:8545' | jq -r '.result // empty' || true)"
+          echo "rpc_private_8545_chain=$chain"
+          test "$chain" = 0x560c
+          ssh -o BatchMode=yes -o ConnectTimeout=6 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@10.104.0.2 'uname -srm; id -u'
+          echo 'rpc_private_ssh_auth=PASS'
