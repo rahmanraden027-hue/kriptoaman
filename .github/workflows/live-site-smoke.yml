@@ -335,7 +335,7 @@ jobs:
               -H 'Accept: application/json' \
               -H 'Cache-Control: no-cache' \
               -o "$body" -w '%{http_code}' \
-              "https://kriptoaman.com/api/platform-status?smoke=${GITHUB_RUN_ID}-${attempt}")"
+              "https://kriptoaman.com/api/platform-status?smoke=${GITHUB_RUN_ID}-${attempt}" || true)"
 
             if [ "$code" = "200" ] && node - "$body" <<'NODE'
           const fs = require('fs');
@@ -358,7 +358,7 @@ jobs:
               -H 'Accept: application/json' \
               -H 'Cache-Control: no-cache' \
               -o "$refresh_body" -w '%{http_code}' \
-              "https://kriptoaman.com/api/market-snapshot?health=1&refresh=1&smoke=${GITHUB_RUN_ID}-${attempt}")"
+              "https://kriptoaman.com/api/market-snapshot?health=1&refresh=1&smoke=${GITHUB_RUN_ID}-${attempt}" || true)"
 
             if [ "$refresh_code" != "200" ] || ! node - "$refresh_body" <<'NODE'
           const fs = require('fs');
