@@ -71,12 +71,12 @@ export default function GLandingBody({ stats }) {
       : '—';
   const networkCountValue = stats?.loading
     ? '…'
-    : Number(stats?.networkActiveCount) > 0
+    : Number.isFinite(Number(stats?.networkActiveCount))
       ? String(Number(stats.networkActiveCount))
       : '—';
   const blockValue = stats?.loading
     ? '…'
-    : Number(stats?.zvqBlockNumber) > 0
+    : stats?.zvqBlockNumber != null && Number.isFinite(Number(stats.zvqBlockNumber))
       ? Number(stats.zvqBlockNumber).toLocaleString('id-ID')
       : '—';
   const liveStateLabel = stats.loading ? 'Memeriksa' : systemOk ? 'Operasional' : 'Terbatas';
