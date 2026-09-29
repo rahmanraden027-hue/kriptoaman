@@ -1,16 +1,13 @@
-// Standalone loopback-only JSON-RPC allowlist for the direct IP TLS recovery endpoint.
+// Strict read-only JSON-RPC allowlist for ZEVARYQ public gateways.
 // No admin, debug, consensus, signing, account, txpool, or transaction submission.
 import http from 'node:http';
+import { isIP } from 'node:net';
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 
 const APPROVED_ORIGINS = new Set([
   'https://kriptoaman.com',
   'https://explorer.kriptoaman.com',
-]);
-const APPROVED_UPSTREAM_URLS = new Set([
-  'https://rpc.kriptoaman.com/',
-  'http://10.104.0.8/rpc',
 ]);
 const METHODS = new Set([
   'eth_chainId', 'eth_blockNumber', 'eth_syncing', 'eth_gasPrice',
@@ -25,6 +22,28 @@ const METHODS = new Set([
 ]);
 export const MAX_BODY_BYTES = 32 * 1024;
 
+function isPrivateIpv4(hostname) {
+  if (isIP(hostname) !== 4) return false;
+  const octets = hostname.split('.').map(Number);
+  return octets[0] === 10 ||
+    (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) ||
+    (octets[0] === 192 && octets[1] === 168);
+}
+
+export function validateUpstreamUrl(value) {
+  if (value === 'https://rpc.kriptoaman.com/') return value;
+  if (typeof value !== 'string') return null;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== 'http:' || url.username || url.password || url.port ||
+        url.pathname !== '/rpc' || url.search || url.hash ||
+        !isPrivateIpv4(url.hostname)) return null;
+    return url.href;
+  } catch {
+    return null;
+  }
+}
+
 export function validateRpcPayload(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   if (value.jsonrpc !== '2.0' || !METHODS.has(value.method)) return false;
@@ -37,8 +56,7 @@ export function validateRpcPayload(value) {
 export function createRpcGateway({ upstreamPort, upstreamUrl, fetchImpl = fetch } = {}) {
   const loopback = Number.isInteger(upstreamPort) && upstreamPort >= 1 && upstreamPort <= 65535
     ? `http://127.0.0.1:${upstreamPort}/` : null;
-  const remote = typeof upstreamUrl === 'string' && APPROVED_UPSTREAM_URLS.has(upstreamUrl)
-    ? upstreamUrl : null;
+  const remote = validateUpstreamUrl(upstreamUrl);
   if ((loopback ? 1 : 0) + (remote ? 1 : 0) !== 1) {
     throw new Error('Exactly one verified loopback port or approved ZVQ RPC upstream URL is required');
   }
