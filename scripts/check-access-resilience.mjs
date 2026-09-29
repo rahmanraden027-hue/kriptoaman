@@ -3,7 +3,9 @@
 const PRIMARY = String(process.env.PRIMARY_ORIGIN || 'https://kriptoaman.com').replace(/\/$/, '');
 const SECONDARY = String(process.env.SECONDARY_ORIGIN || '').replace(/\/$/, '');
 const REQUIRE_SECONDARY = /^(1|true|yes)$/i.test(String(process.env.REQUIRE_SECONDARY || 'false'));
-const TIMEOUT_MS = Number(process.env.ACCESS_CHECK_TIMEOUT_MS || 15000);
+const TIMEOUT_MS = Number(process.env.ACCESS_CHECK_TIMEOUT_MS || 20000);
+const REQUEST_ATTEMPTS = Number(process.env.ACCESS_CHECK_ATTEMPTS || 3);
+const RETRY_DELAY_MS = Number(process.env.ACCESS_CHECK_RETRY_DELAY_MS || 2000);
 const MIN_MARKET_ASSETS = Number(process.env.MIN_MARKET_ASSETS || 4500);
 const CORE_MARKET_SYMBOLS = ['BTC', 'ETH', 'BNB', 'SOL', 'XRP'];
 
@@ -14,17 +16,27 @@ function abortAfter(ms) {
 }
 
 async function request(url, options = {}) {
-  const guard = abortAfter(TIMEOUT_MS);
-  try {
-    return await fetch(url, {
-      redirect: 'follow',
-      cache: 'no-store',
-      ...options,
-      signal: guard.signal,
-    });
-  } finally {
-    guard.clear();
+  let lastError = null;
+  for (let attempt = 1; attempt <= REQUEST_ATTEMPTS; attempt++) {
+    const guard = abortAfter(TIMEOUT_MS);
+    try {
+      return await fetch(url, {
+        redirect: 'follow',
+        cache: 'no-store',
+        ...options,
+        signal: guard.signal,
+      });
+    } catch (error) {
+      lastError = error;
+      console.warn(`ACCESS_RETRY url=${url} attempt=${attempt}/${REQUEST_ATTEMPTS} error=${error?.name || 'Error'}`);
+      if (attempt < REQUEST_ATTEMPTS) {
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+      }
+    } finally {
+      guard.clear();
+    }
   }
+  throw lastError || new Error(`Request failed after ${REQUEST_ATTEMPTS} attempts: ${url}`);
 }
 
 function requireHeader(response, name, pattern, label) {
