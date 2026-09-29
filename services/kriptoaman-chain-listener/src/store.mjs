@@ -90,14 +90,18 @@ export class IntelligenceStore {
   }
 
   rewindFrom(number) {
-    const tx = this.db.transaction(() => {
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
       this.db.prepare('DELETE FROM events WHERE block_number>=?').run(number);
       this.db.prepare('DELETE FROM pools WHERE block_number>=?').run(number);
       this.db.prepare('DELETE FROM tokens WHERE block_number>=?').run(number);
       this.db.prepare('DELETE FROM contracts WHERE block_number>=?').run(number);
       this.db.prepare('DELETE FROM blocks WHERE block_number>=?').run(number);
-    });
-    tx();
+      this.db.exec('COMMIT');
+    } catch (error) {
+      try { this.db.exec('ROLLBACK'); } catch {}
+      throw error;
+    }
   }
 
   recordContract(row) {
