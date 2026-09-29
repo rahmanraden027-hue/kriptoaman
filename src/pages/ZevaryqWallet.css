@@ -190,3 +190,100 @@
   .zv-action-orb,.zv-telemetry-tile{transition:none!important}
   .zv-action-item:hover .zv-action-orb,.zv-telemetry-tile:hover{transform:none!important}
 }
+
+
+/* ZEVARYQ Wallet readability gate — never clip product identity or financial UI copy */
+.zv-header{
+  width:100%;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px;
+  overflow:visible;
+}
+.zv-header-main{min-width:0;width:100%}
+.zv-header-copy{min-width:0;overflow:visible}
+.zv-header-title{
+  display:block;
+  width:100%;
+  max-width:none;
+  white-space:nowrap;
+  overflow:visible;
+  text-overflow:clip;
+  overflow-wrap:normal;
+  word-break:normal;
+  hyphens:none;
+}
+.zv-header-subtitle{
+  display:block;
+  max-width:100%;
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
+  overflow-wrap:normal;
+  word-break:normal;
+  hyphens:none;
+}
+.zv-header-actions{display:flex;flex:0 0 auto;align-items:center;justify-content:flex-end}
+.zv-app-badge strong,.zv-app-badge small{
+  min-width:0;
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
+  overflow-wrap:normal;
+  word-break:normal;
+}
+.zv-settings-status{
+  max-width:46%;
+  min-width:0;
+  text-align:right;
+  white-space:normal;
+  overflow:visible;
+  overflow-wrap:break-word;
+}
+.zv-asset-row h2,.zv-asset-row h3,.zv-asset-row p,.zv-card h1,.zv-card h2,.zv-card h3{
+  overflow:visible;
+  text-overflow:clip;
+}
+@media(max-width:480px){
+  .zv-wallet-content{
+    padding-left:max(14px,env(safe-area-inset-left,0px));
+    padding-right:max(14px,env(safe-area-inset-right,0px));
+  }
+  .zv-header{gap:8px}
+  .zv-header-main{gap:10px}
+  .zv-header-main>img{width:44px;height:44px}
+  .zv-header-title{font-size:16px;line-height:1.18}
+  .zv-header-subtitle{font-size:10px;line-height:1.35}
+  .zv-header-actions .zv-icon-button{width:38px;height:38px}
+  .zv-app-badge{grid-template-columns:auto minmax(0,1fr)}
+  .zv-hero>div.zv-hero-copy>div:first-child{
+    flex-wrap:wrap;
+    row-gap:8px;
+  }
+  .zv-hero>div.zv-hero-copy>div:first-child .zv-label{
+    flex:1 1 170px;
+    line-height:1.45;
+  }
+  .zv-asset-row{
+    grid-template-columns:auto minmax(0,1fr);
+    align-items:start;
+  }
+  .zv-asset-row>div:last-child{
+    grid-column:2;
+    max-width:none;
+    width:100%;
+    margin-top:2px;
+    text-align:left;
+  }
+  .zv-settings-status{max-width:50%}
+}
+@media(max-width:340px){
+  .zv-header-main>img{width:40px;height:40px}
+  .zv-header-title{font-size:15px}
+  .zv-header-subtitle{font-size:9.5px}
+  .zv-header-actions .zv-icon-button{width:36px;height:36px}
+  .zv-app-badge{grid-template-columns:1fr;row-gap:5px}
+  .zv-app-badge span{grid-row:auto;width:max-content;max-width:100%;white-space:normal}
+  .zv-settings-status{max-width:46%;font-size:10px}
+}
