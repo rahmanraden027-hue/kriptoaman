@@ -9,6 +9,7 @@ test('first-party listener is ZEVARYQ-pinned and defaults to local RPC', async (
   assert.match(config, /chainId:\s*int\(process\.env\.CHAIN_ID, 22028\)/);
   assert.match(config, /0x560c/);
   assert.match(config, /http:\/\/127\.0\.0\.1:8648/);
+  assert.match(config, /STARTUP_LOOKBACK_BLOCKS, 64/);
   assert.doesNotMatch(config, /coingecko|dexscreener|geckoterminal|alchemy|infura|quicknode/i);
 });
 
