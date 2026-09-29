@@ -27,16 +27,16 @@ jobs:
           node <<'NODE'
           const base = 'https://kriptoaman.com';
           const required = [
-            'KRIPTOAMAN INTELLIGENCE NETWORK',
+            'KRIPTOAMAN DIGITAL ASSET INTELLIGENCE',
             'Pasar kripto bergerak cepat.',
-            'terkendali.',
-            'Demo Interface',
-            'Research & Documentation'
+            'KRIPTOAMAN PRODUCTION V2',
+            'NEXUS INTELLIGENCE CORE',
+            'KriptoAman Platform + ZEVARYQ Wallet'
           ];
 
           const home = await fetch(base + '/', {
             headers: {
-              'User-Agent': 'KriptoAman-Presentation-Provenance/1.1',
+              'User-Agent': 'KriptoAman-Presentation-Provenance/2.0',
               'Cache-Control': 'no-cache'
             }
           });
@@ -50,7 +50,7 @@ jobs:
             const url = src.startsWith('http') ? src : new URL(src, base).toString();
             const response = await fetch(url, {
               headers: {
-                'User-Agent': 'KriptoAman-Presentation-Provenance/1.1',
+                'User-Agent': 'KriptoAman-Presentation-Provenance/2.0',
                 'Cache-Control': 'no-cache'
               }
             });
