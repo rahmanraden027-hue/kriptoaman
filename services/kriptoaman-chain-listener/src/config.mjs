@@ -16,6 +16,7 @@ export const config = Object.freeze({
   rpcWsUrl: process.env.RPC_WS_URL || '',
   pollIntervalMs: int(process.env.POLL_INTERVAL_MS, 1000),
   rpcTimeoutMs: int(process.env.RPC_TIMEOUT_MS, 8000),
+  healthMaxAgeMs: int(process.env.HEALTH_MAX_AGE_MS, 30000),
   finalityDepth: int(process.env.FINALITY_DEPTH, 2),
   startupLookbackBlocks: int(process.env.STARTUP_LOOKBACK_BLOCKS, 64),
   host: process.env.LISTEN_HOST || '127.0.0.1',
