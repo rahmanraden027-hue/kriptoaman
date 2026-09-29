@@ -1,0 +1,75 @@
+name: ZVQ RPC Sentry Read-Only Audit
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/zvq-rpc-sentry-readonly-audit.yml'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/zvq-rpc-sentry-readonly-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 8
+    steps:
+      - name: Read-only RPC sentry audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh_opts=(-o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new)
+          host=root@206.189.36.15
+
+          ssh "${ssh_opts[@]}" "$host" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          echo "audit_mode=read_only"
+          echo "hostname=$(hostname)"
+          echo "== listeners =="
+          ss -H -ltnp | awk '$4 ~ /:(80|443|8545|8546|8547|9545|18445)$/ {print}' || true
+
+          echo "== containers =="
+          docker ps --format 'name={{.Names}} image={{.Image}} status={{.Status}} ports={{.Ports}}' || true
+
+          echo "== firewall =="
+          if command -v ufw >/dev/null 2>&1; then sudo -n ufw status numbered || true; else echo 'ufw=unavailable'; fi
+
+          echo "== certificate =="
+          timeout 8 openssl s_client -connect 127.0.0.1:443 -servername rpc.kriptoaman.com </dev/null 2>/dev/null             | openssl x509 -noout -subject -issuer -dates -ext subjectAltName || true
+
+          echo "== local RPC identity =="
+          rpc_url=
+          for p in 8545 8546 8547 9545; do
+            if ss -H -ltn "( sport = :$p )" | grep -q .; then
+              chain="$(curl -sS --max-time 4 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' "http://127.0.0.1:$p" | jq -r '.result // empty' || true)"
+              if [[ "$chain" = 0x560c ]]; then rpc_url="http://127.0.0.1:$p"; echo "upstream_port=$p"; break; fi
+            fi
+          done
+          test -n "$rpc_url"
+          chain="$(curl -fsS --max-time 5 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":2,"method":"eth_chainId","params":[]}' "$rpc_url" | jq -er '.result')"
+          test "$chain" = 0x560c
+          b1="$(curl -fsS --max-time 5 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":3,"method":"eth_blockNumber","params":[]}' "$rpc_url" | jq -er '.result')"
+          sleep 12
+          b2="$(curl -fsS --max-time 5 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":4,"method":"eth_blockNumber","params":[]}' "$rpc_url" | jq -er '.result')"
+          n1=$((16#${b1#0x}))
+          n2=$((16#${b2#0x}))
+          echo "chain_id=$chain block_1=$b1 block_2=$b2"
+          test "$n2" -gt "$n1"
+
+          echo "== public policy =="
+          endpoint='https://rpc.kriptoaman.com/'
+          pub_chain="$(curl --resolve rpc.kriptoaman.com:443:127.0.0.1 -fsS --max-time 8 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":5,"method":"eth_chainId","params":[]}' "$endpoint" | jq -er '.result')"
+          test "$pub_chain" = 0x560c
+          for method in admin_peers debug_traceTransaction eth_sendRawTransaction; do
+            params='[]'
+            [[ "$method" = eth_sendRawTransaction ]] && params='["0x01"]'
+            code="$(curl --resolve rpc.kriptoaman.com:443:127.0.0.1 -sS --max-time 6 -o /dev/null -w '%{http_code}' -H 'content-type: application/json' --data "{\"jsonrpc\":\"2.0\",\"id\":6,\"method\":\"$method\",\"params\":$params}" "$endpoint")"
+            echo "blocked_method=$method http_code=$code"
+            test "$code" = 403
+          done
+          echo "rpc_sentry_readonly_audit=pass"
+REMOTE
