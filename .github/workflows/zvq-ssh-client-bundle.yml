@@ -1,0 +1,33 @@
+name: ZVQ Ephemeral SSH Client Bundle
+on:
+  push:
+    branches: ['ops/zvq-rpc-recovery-20260929']
+    paths: ['.github/workflows/zvq-ssh-client-bundle.yml']
+permissions:
+  contents: read
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Bundle system OpenSSH client and runtime libraries
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p bundle/bin bundle/lib
+          cp /usr/bin/ssh bundle/bin/
+          ldd /usr/bin/ssh | awk '/=> \/|^\// {for(i=1;i<=NF;i++) if($i ~ /^\//) print $i}' | sort -u > /tmp/libs
+          while read -r lib; do cp -L "$lib" bundle/lib/; done < /tmp/libs
+          cp -L /lib64/ld-linux-x86-64.so.2 bundle/lib/ 2>/dev/null || true
+          printf '#!/usr/bin/env bash\nDIR="$(cd "$(dirname "$0")/.." && pwd)"\nexport LD_LIBRARY_PATH="$DIR/lib"\nexec "$DIR/bin/ssh" "$@"\n' > bundle/ssh
+          chmod 0755 bundle/ssh bundle/bin/ssh
+          tar -C bundle -czf zvq-ssh-client-bundle.tar.gz .
+          sha256sum zvq-ssh-client-bundle.tar.gz > zvq-ssh-client-bundle.sha256
+      - uses: actions/upload-artifact@v6
+        with:
+          name: zvq-ssh-client-bundle
+          path: |
+            zvq-ssh-client-bundle.tar.gz
+            zvq-ssh-client-bundle.sha256
+          if-no-files-found: error
+          retention-days: 1
