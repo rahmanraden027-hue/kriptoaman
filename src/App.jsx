@@ -6,7 +6,7 @@ import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
-import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { AuthProvider } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Login from '@/pages/Login';
@@ -91,10 +91,6 @@ const PUBLIC_PAGE_KEYS = new Set(['AboutUs', 'Edukasi', 'Enterprise', 'Contact',
 const LayoutWrapper = ({ children, currentPageName }) => Layout ? <Layout currentPageName={currentPageName}>{children}</Layout> : <>{children}</>;
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
-  if (isLoadingPublicSettings || isLoadingAuth) return <WorkspaceState mode="loading" title="Menyiapkan KriptoAman" body="Memuat sesi dan workspace secara aman tanpa mengubah data akun." />;
-  if (authError && authError.type === 'user_not_registered') return <UserNotRegisteredError />;
-
   return (
     <Suspense fallback={<WorkspaceState mode="loading" title="Memuat workspace" body="Komponen sedang dimuat. Data tersimpan tidak berubah." />}>
       <Routes>
