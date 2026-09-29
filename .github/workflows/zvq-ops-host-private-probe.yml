@@ -1,0 +1,30 @@
+name: ZVQ Ops Host Private Probe 2026-09-29
+
+on:
+  push:
+    branches: ['ops/zvq-rpc-recovery-20260929']
+    paths: ['.github/workflows/zvq-ops-host-private-probe.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 4
+    steps:
+      - name: Read-only reachability probe to recovery operations host
+        shell: bash
+        run: |
+          set -euo pipefail
+          if timeout 4 bash -c 'cat < /dev/null > /dev/tcp/10.104.0.8/22' 2>/dev/null; then
+            echo 'ops_host_private_ssh_tcp=reachable'
+          else
+            echo 'ops_host_private_ssh_tcp=unreachable'
+            exit 1
+          fi
+          if ssh -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@10.104.0.8 'uname -srm' >/dev/null 2>&1; then
+            echo 'ops_host_existing_key_auth=PASS'
+          else
+            echo 'ops_host_existing_key_auth=unavailable'
+          fi
