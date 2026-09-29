@@ -70,7 +70,7 @@ export class ChainIndexer {
       }
     }
 
-    let next = last ? last.block_number + 1 : head;
+    let next = last ? last.block_number + 1 : Math.max(0, head - this.config.startupLookbackBlocks + 1);
 
     while (!this.stopped && next <= head) {
       const receivedAt = iso();
