@@ -35,7 +35,7 @@ test('Public frontend, status API, wallet and Android agree on network branding'
   assert.match(docs, /ZEVARYQ Network/);
   assert.match(native, /R\.drawable\.app_launch_emblem/);
   assert.match(styles, /@drawable\/app_launch_emblem/);
-  assert.match(walletAlias, /@drawable\/zevaryq_wallet_launcher/);
+  assert.match(walletAlias, /@drawable\/zevaryq_premium_launcher/);
 });
 
 test('Historical economics and reward points are not mislabeled as current ZVQ supply', async () => {
