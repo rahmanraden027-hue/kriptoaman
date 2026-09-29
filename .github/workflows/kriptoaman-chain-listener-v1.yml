@@ -80,12 +80,18 @@ jobs:
           echo 'RUNNER_SSH_KEY_FINGERPRINTS_BEGIN'
           runner_home="$(getent passwd "$(id -u)" | cut -d: -f6)"
           [[ -n "$runner_home" ]] || runner_home=/root
-          for key in "$runner_home"/.ssh/id_*; do
-            [[ -f "$key" && "$key" != *.pub ]] || continue
-            pub="$(ssh-keygen -y -f "$key" 2>/dev/null || true)"
-            [[ -n "$pub" ]] || continue
-            printf '%s\n' "$pub" | ssh-keygen -lf - || true
-          done
+          if [[ -d "$runner_home/.ssh" ]]; then
+            echo 'RUNNER_SSH_FILES'
+            find "$runner_home/.ssh" -maxdepth 1 -type f -printf '%f\n' | sort
+            while IFS= read -r key; do
+              case "$key" in *.pub|*/known_hosts*|*/config|*/authorized_keys) continue ;; esac
+              pub="$(ssh-keygen -y -f "$key" 2>/dev/null || true)"
+              [[ -n "$pub" ]] || continue
+              printf '%s\n' "$pub" | ssh-keygen -lf - || true
+            done < <(find "$runner_home/.ssh" -maxdepth 1 -type f -print)
+          fi
+          echo 'RUNNER_SSH_G_CONFIG'
+          ssh -G root@206.189.36.15 2>/dev/null | grep -E '^identityfile ' || true
           if ssh-add -L >/tmp/ka-agent-keys 2>/dev/null; then
             while IFS= read -r pub; do
               [[ -n "$pub" ]] && printf '%s\n' "$pub" | ssh-keygen -lf - || true
