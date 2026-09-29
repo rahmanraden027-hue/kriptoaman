@@ -17,6 +17,8 @@ test('KAM UI uses verified live data and never invents market values', async () 
   assert.doesNotMatch(card, /\$2\.47|marketPrice:\s*[1-9]/);
   assert.match(endpoint, /eth_chainId/);
   assert.match(endpoint, /eth_blockNumber/);
+  assert.match(endpoint, /eth_syncing/);
+  assert.match(endpoint, /syncStatus: syncing === false \? 'synced' : 'syncing'/);
   assert.match(endpoint, /eth_getBalance/);
   assert.match(endpoint, /RPC chain ID mismatch/);
   const probeTimeout = Number(endpoint.match(/NETWORK_PROBE_TIMEOUT_MS\s*=\s*(\d+)/)?.[1]);

@@ -70,7 +70,9 @@ export async function fetchZevaryqNetworkStatus() {
       ...base,
       rpc: 'connected',
       explorer: explorerStatus,
-      sync: 'unknown', // The server verifies chain identity and block, not eth_syncing.
+      sync: server.value.syncStatus === 'synced' || server.value.syncStatus === 'syncing'
+        ? server.value.syncStatus
+        : 'unknown',
       blockNumber: server.value.blockNumber,
       latency: Math.round(performance.now() - started),
       error: explorerError,
