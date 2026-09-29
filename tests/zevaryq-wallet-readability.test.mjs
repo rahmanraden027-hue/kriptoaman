@@ -21,9 +21,10 @@ test('wallet header preserves the full ZEVARYQ Wallet product name on narrow scr
 });
 
 test('important wallet content wraps instead of ellipsizing', async () => {
-  const [wallet, swap] = await Promise.all([
+  const [wallet, swap, css] = await Promise.all([
     read('src/pages/Wallet.jsx'),
     read('src/components/zevaryq-wallet/ZevaryqSwap.jsx'),
+    read('src/pages/ZevaryqWallet.css'),
   ]);
   assert.doesNotMatch(wallet, /truncate font-black">\{asset\.name\}/);
   assert.doesNotMatch(wallet, /max-w-\[42%\] truncate/);
