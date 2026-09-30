@@ -26,7 +26,9 @@ test('browser market reads remain bounded and do not fall back to external provi
   assert.match(client, /const MARKET_ASSET_LIMIT = 5000;/);
   assert.match(client, /\.slice\(0, MARKET_ASSET_LIMIT\)/);
   assert.match(client, /\/api\/market-snapshot-page\?page=/);
-  assert.doesNotMatch(client, /api\.coinlore\.net|api\.coingecko\.com|min-api\.cryptocompare\.com/);
+  for (const host of ['api.coinlore.net','api.coingecko.com','min-api.cryptocompare.com']) {
+    assert.ok(!client.toLowerCase().includes(host), `browser market path must not contact ${host}`);
+  }
 });
 
 test('server hydration is bounded, snapshot-consistent and non-synthetic', async () => {
