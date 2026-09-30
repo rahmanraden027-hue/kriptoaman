@@ -42,10 +42,18 @@ jobs:
           echo "chain_id=$chain block=$block"
           echo "explorer_runner_probe=pass"
 
-      - name: Prove read-only SSH reachability to RPC sentry
+      - name: Prove private VPC RPC and WebSocket reachability
         shell: bash
         run: |
           set -euo pipefail
-          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new \
-            root@206.189.36.15 \
-            'set -e; test "$(hostname)" != ""; ss -H -ltn "( sport = :443 or sport = :8545 or sport = :8546 or sport = :18445 or sport = :18446 )" | head -20; echo rpc_sentry_ssh_readonly=pass'
+          private_rpc='10.104.0.2'
+          timeout 4 bash -c "cat < /dev/null > /dev/tcp/$private_rpc/8545"
+          timeout 4 bash -c "cat < /dev/null > /dev/tcp/$private_rpc/8546"
+          chain="$(curl --noproxy '*' -fsS --connect-timeout 4 --max-time 8 \
+            -H 'content-type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+            "http://$private_rpc:8545" | jq -er '.result')"
+          test "$chain" = 0x560c
+          echo "private_rpc_chain=$chain"
+          echo "private_rpc_http=reachable"
+          echo "private_rpc_websocket_tcp=reachable"
