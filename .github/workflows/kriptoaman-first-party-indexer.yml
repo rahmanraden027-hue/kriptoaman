@@ -6,6 +6,10 @@ on:
       - 'services/kriptoaman-indexer/**'
       - 'scripts/deploy-kriptoaman-zvq-indexer.sh'
       - 'tests/crypto-intelligence-first-party.test.mjs'
+      - 'tests/qoryvex-discovery-model.test.mjs'
+      - 'docs/QORYVEX_DISCOVERY_V1.md'
+      - 'src/pages/QoryVExDiscovery.jsx'
+      - 'tests/qoryvex-ui-contract.test.mjs'
       - '.github/workflows/kriptoaman-first-party-indexer.yml'
   push:
     branches: [main]
@@ -34,8 +38,9 @@ jobs:
         run: |
           set -euo pipefail
           node --check services/kriptoaman-indexer/zvq-listener.mjs
+          node --check services/kriptoaman-indexer/discovery-model.mjs
           bash -n scripts/deploy-kriptoaman-zvq-indexer.sh
-          node --test tests/crypto-intelligence-first-party.test.mjs
+          node --test tests/crypto-intelligence-first-party.test.mjs tests/qoryvex-discovery-model.test.mjs tests/qoryvex-ui-contract.test.mjs
           ! grep -REn 'eth_sendRawTransaction|personal_|admin_|debug_' services/kriptoaman-indexer
           ! grep -REn 'PRIVATE_KEY|MNEMONIC|SEED_PHRASE' services/kriptoaman-indexer scripts/deploy-kriptoaman-zvq-indexer.sh
 
@@ -50,14 +55,15 @@ jobs:
         run: |
           set -euo pipefail
           scp -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new             services/kriptoaman-indexer/zvq-listener.mjs             root@206.189.36.15:/tmp/zvq-listener.mjs
+          scp -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new             services/kriptoaman-indexer/discovery-model.mjs             root@206.189.36.15:/tmp/discovery-model.mjs
           scp -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new             scripts/deploy-kriptoaman-zvq-indexer.sh             root@206.189.36.15:/tmp/deploy-kriptoaman-zvq-indexer.sh
       - name: Preflight without mutation
         run: |
-          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new             root@206.189.36.15             "GITHUB_RUN_ID=$GITHUB_RUN_ID SOURCE=/tmp/zvq-listener.mjs bash /tmp/deploy-kriptoaman-zvq-indexer.sh preview"
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new             root@206.189.36.15             "GITHUB_RUN_ID=$GITHUB_RUN_ID SOURCE=/tmp/zvq-listener.mjs MODEL_SOURCE=/tmp/discovery-model.mjs bash /tmp/deploy-kriptoaman-zvq-indexer.sh preview"
       - name: Apply isolated loopback-only indexer
         id: apply
         run: |
-          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new             root@206.189.36.15             "GITHUB_RUN_ID=$GITHUB_RUN_ID SOURCE=/tmp/zvq-listener.mjs bash /tmp/deploy-kriptoaman-zvq-indexer.sh apply"
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new             root@206.189.36.15             "GITHUB_RUN_ID=$GITHUB_RUN_ID SOURCE=/tmp/zvq-listener.mjs MODEL_SOURCE=/tmp/discovery-model.mjs bash /tmp/deploy-kriptoaman-zvq-indexer.sh apply"
       - name: Verify existing public RPC policy unchanged
         run: |
           set -euo pipefail
@@ -73,4 +79,4 @@ jobs:
       - name: Roll back this run if deployment gate fails
         if: failure() && steps.apply.outcome != 'skipped'
         run: |
-          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new             root@206.189.36.15             "GITHUB_RUN_ID=$GITHUB_RUN_ID SOURCE=/tmp/zvq-listener.mjs bash /tmp/deploy-kriptoaman-zvq-indexer.sh rollback"
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new             root@206.189.36.15             "GITHUB_RUN_ID=$GITHUB_RUN_ID SOURCE=/tmp/zvq-listener.mjs MODEL_SOURCE=/tmp/discovery-model.mjs bash /tmp/deploy-kriptoaman-zvq-indexer.sh rollback"
