@@ -185,7 +185,9 @@ export async function fetchZevaryqNetworkStatus() {
         ? server.value.syncStatus
         : 'unknown',
       blockNumber: server.value.blockNumber,
-      latency: Math.round(performance.now() - started),
+      latency: Number.isFinite(Number(server.value?.probeDurationMs))
+        ? Math.max(0, Math.round(Number(server.value.probeDurationMs)))
+        : Math.round(performance.now() - started),
       error: errors.join('; '),
     };
   }
