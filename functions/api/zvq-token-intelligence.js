@@ -3,6 +3,7 @@ const EXPECTED_CHAIN = '0x560c';
 const CHAIN_ID = 22028;
 const MAX_BLOCKS = 12;
 const MAX_CONTRACTS = 12;
+const CONFIRMATION_DEPTH = 12;
 const RPC_TIMEOUT_MS = 8000;
 const ADDRESS_RE = /^0x[0-9a-fA-F]{40}$/;
 const HASH_RE = /^0x[0-9a-fA-F]{64}$/;
@@ -85,7 +86,7 @@ async function rpc(method, params = []) {
         Accept: 'application/json',
         'Content-Type': 'application/json',
         Origin: 'https://kriptoaman.com',
-        'User-Agent': 'KriptoAman-QoryVEx-Discovery/1.0',
+        'User-Agent': 'KriptoAman-QoryVEx-Discovery/2.0',
       },
       body: JSON.stringify({ jsonrpc: '2.0', id: requestId++, method, params }),
       signal: controller.signal,
@@ -106,17 +107,22 @@ async function safeRpc(method, params = []) {
 async function inspectContract(candidate, head) {
   const receipt = await safeRpc('eth_getTransactionReceipt', [candidate.txHash]);
   const contractAddress = safeAddress(receipt?.contractAddress);
-  if (!contractAddress || receipt?.status === '0x0') return null;
+  const receiptBlockNumber = hexToNumber(receipt?.blockNumber);
+  const receiptBlockHash = safeHash(receipt?.blockHash);
 
-  const code = await safeRpc('eth_getCode', [contractAddress, 'latest']);
+  if (!contractAddress || receipt?.status === '0x0') return null;
+  if (receiptBlockNumber !== candidate.blockNumber || receiptBlockHash !== candidate.blockHash) return null;
+
+  const blockTag = `0x${candidate.blockNumber.toString(16)}`;
+  const code = await safeRpc('eth_getCode', [contractAddress, blockTag]);
   const bytecodeBytes = codeSizeBytes(code);
   if (!bytecodeBytes) return null;
 
   const [nameRaw, symbolRaw, decimalsRaw, supplyRaw] = await Promise.all([
-    safeRpc('eth_call', [{ to: contractAddress, data: SELECTORS.name }, 'latest']),
-    safeRpc('eth_call', [{ to: contractAddress, data: SELECTORS.symbol }, 'latest']),
-    safeRpc('eth_call', [{ to: contractAddress, data: SELECTORS.decimals }, 'latest']),
-    safeRpc('eth_call', [{ to: contractAddress, data: SELECTORS.totalSupply }, 'latest']),
+    safeRpc('eth_call', [{ to: contractAddress, data: SELECTORS.name }, blockTag]),
+    safeRpc('eth_call', [{ to: contractAddress, data: SELECTORS.symbol }, blockTag]),
+    safeRpc('eth_call', [{ to: contractAddress, data: SELECTORS.decimals }, blockTag]),
+    safeRpc('eth_call', [{ to: contractAddress, data: SELECTORS.totalSupply }, blockTag]),
   ]);
 
   const name = decodeAbiString(nameRaw);
@@ -125,8 +131,9 @@ async function inspectContract(candidate, head) {
   const decimals = Number.isInteger(decimalsNumber) && decimalsNumber >= 0 && decimalsNumber <= 255 ? decimalsNumber : null;
   const totalSupplyRaw = uintString(supplyRaw);
   const metadataFieldsProven = [name, symbol, decimals != null, totalSupplyRaw != null].filter(Boolean).length;
-  const tokenMetadataProven = Boolean(symbol && decimals != null && totalSupplyRaw != null);
+  const tokenMetadataProven = Boolean(name && symbol && decimals != null && totalSupplyRaw != null);
   const ageBlocks = Math.max(0, head - candidate.blockNumber);
+  const confirmationState = ageBlocks >= CONFIRMATION_DEPTH ? 'confirmed' : 'observed-not-finalized';
 
   return {
     type: tokenMetadataProven ? 'ERC20_METADATA_PROVEN' : 'CONTRACT_ONLY',
@@ -137,12 +144,15 @@ async function inspectContract(candidate, head) {
     blockNumber: candidate.blockNumber,
     blockHash: candidate.blockHash,
     observedAt: candidate.observedAt,
-    confirmationState: 'observed-not-finalized',
+    confirmations: ageBlocks,
+    confirmationDepth: CONFIRMATION_DEPTH,
+    confirmationState,
     assetPassport: {
-      name,
-      symbol,
-      decimals,
-      totalSupplyRaw,
+      schema: 'kriptoaman.asset-passport.v1',
+      name: tokenMetadataProven ? name : null,
+      symbol: tokenMetadataProven ? symbol : null,
+      decimals: tokenMetadataProven ? decimals : null,
+      totalSupplyRaw: tokenMetadataProven ? totalSupplyRaw : null,
       bytecodeBytes,
       metadataFieldsProven,
       evidenceState: tokenMetadataProven ? 'FIRST_PARTY_LIVE' : 'PARTIAL_ON_CHAIN_EVIDENCE',
@@ -150,21 +160,33 @@ async function inspectContract(candidate, head) {
         ownership: 'first-party',
         endpoint: 'rpc.kriptoaman.com',
         transport: 'JSON-RPC',
+        blockTag,
+        blockNumber: candidate.blockNumber,
+        blockHash: candidate.blockHash,
+        transactionHash: candidate.txHash,
+        creator: candidate.from,
+        confirmationState,
         externalMarketProviderUsed: false,
       },
     },
     launchDna: {
+      schema: 'kriptoaman.launch-dna.v1',
       ageBlocks,
-      freshnessBand: ageBlocks <= 3 ? 'JUST_LAUNCHED' : ageBlocks <= 12 ? 'NEW' : 'RECENT',
+      confirmations: ageBlocks,
+      confirmationDepth: CONFIRMATION_DEPTH,
+      confirmationState,
+      freshnessBand: ageBlocks <= 3 ? 'JUST_LAUNCHED' : ageBlocks < CONFIRMATION_DEPTH ? 'NEW' : 'CONFIRMED_RECENT',
       bytecodeBytes,
       metadataFieldsProven,
-      declaredDecimals: decimals,
-      declaredSupplyPresent: totalSupplyRaw != null,
-      profileKey: `${CHAIN_ID}:${contractAddress}:${candidate.blockNumber}:${bytecodeBytes}:${decimals ?? 'na'}`,
+      metadataComplete: tokenMetadataProven,
+      declaredDecimals: tokenMetadataProven ? decimals : null,
+      declaredSupplyPresent: tokenMetadataProven,
+      profileKey: `${CHAIN_ID}:${contractAddress}:${candidate.blockNumber}:${bytecodeBytes}:${tokenMetadataProven ? decimals : 'na'}`,
       interpretation: 'Descriptive on-chain launch profile; not a safety score, audit, endorsement, or price prediction.',
     },
     qoryvexDiscovery: {
       state: tokenMetadataProven ? 'DISCOVERED_ON_CHAIN' : 'CONTRACT_OBSERVED',
+      evidenceState: confirmationState,
       poolEvidence: 'UNAVAILABLE',
       liquidityEvidence: 'UNAVAILABLE',
       executionState: 'DISABLED',
@@ -212,10 +234,11 @@ export async function onRequestGet() {
 
     return json({
       status: 'live',
-      schemaVersion: 1,
+      schemaVersion: 2,
       network: 'ZEVARYQ Mainnet',
       chainId: CHAIN_ID,
       chainIdHex: EXPECTED_CHAIN,
+      sourceMode: 'first-party-json-rpc',
       head: {
         number: head,
         hex: headHex,
@@ -224,6 +247,7 @@ export async function onRequestGet() {
       },
       radar: {
         scannedBlocks: blocks.length,
+        confirmationDepth: CONFIRMATION_DEPTH,
         contractCreationsObserved: creations.length,
         contractsInspected: inspected.length,
         tokenMetadataProven: tokens.length,
@@ -232,8 +256,10 @@ export async function onRequestGet() {
       },
       truthPolicy: {
         contractCreationIsTokenListing: false,
+        tokenMetadataRequiredFields: ['name', 'symbol', 'decimals', 'totalSupply'],
         tokenMetadataIsAudit: false,
         tokenMetadataIsEndorsement: false,
+        confirmationDepth: CONFIRMATION_DEPTH,
         poolLiquidityAvailable: false,
         executionEnabled: false,
       },
@@ -242,7 +268,7 @@ export async function onRequestGet() {
         endpoint: 'rpc.kriptoaman.com',
         transport: 'JSON-RPC',
         externalMarketProviderUsed: false,
-        finality: 'observed-not-finalized',
+        finality: 'confirmation-aware-canonical-snapshot',
       },
       latencyMs: Date.now() - startedAt,
       observedAt: Date.now(),
@@ -256,6 +282,7 @@ export async function onRequestGet() {
       provenance: {
         ownership: 'first-party',
         endpoint: 'rpc.kriptoaman.com',
+        transport: 'JSON-RPC',
         externalMarketProviderUsed: false,
       },
       observationId,
