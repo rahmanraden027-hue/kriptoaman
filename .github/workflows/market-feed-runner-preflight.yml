@@ -1,0 +1,46 @@
+name: Market Feed Runner Preflight
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/market-feed-runner-preflight.yml'
+      - '.github/workflows/live-site-smoke.yml'
+      - '.github/workflows/kriptoaman-market-feed.yml'
+      - 'services/kriptoaman-market-feed/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on: [self-hosted, linux, x64, ka-intelligence-indexer]
+    timeout-minutes: 5
+    steps:
+      - name: Verify authorized runner and secret file without disclosure
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "runner_host=$(hostname -s)"
+          sudo -n true
+          sudo test -r /etc/kriptoaman/market-feed.env
+          sudo bash -c '
+            set -a
+            source /etc/kriptoaman/market-feed.env
+            set +a
+            test "$KA_MARKET_INGEST_URL" = "https://kriptoaman.com/api/market-feed-ingest"
+            test -n "$KA_MARKET_INGEST_SECRET"
+            test "${#KA_MARKET_INGEST_SECRET}" -ge 32
+          '
+          echo "market_feed_secret_file=present"
+
+      - name: Verify collector service and local health read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          systemctl is-active --quiet kriptoaman-market-feed.service
+          health="$(curl -fsS --max-time 6 http://127.0.0.1:8780/health)"
+          jq -e '(.status == "live" or .status == "degraded") and .coverage.available >= 5' <<<"$health" >/dev/null
+          echo "$health" | jq '{status,coverage,venues,lastPublish}'
+          echo "market_feed_runner_health=pass"
