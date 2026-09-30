@@ -73,7 +73,6 @@ export default function ZevaryqNodeMining({ network }) {
   const rpcCheckedAt = new Date(network?.data?.checkedAt || 0).getTime();
   const rpcFresh = rpcHead !== null && Number.isFinite(rpcCheckedAt) && rpcCheckedAt > 0 && clock - rpcCheckedAt <= STALE_MS;
   const indexedFresh = indexer.phase === 'success' && indexer.checkedAt && clock - indexer.checkedAt <= STALE_MS;
-  const delta = rpcFresh && indexedFresh ? rpcHead - indexer.height : null;
   const paired = indexedFresh && indexer.rpcBefore !== null && indexer.rpcAfter !== null;
   const sampledWithinRange = paired && indexer.height >= indexer.rpcBefore - MAX_LAG && indexer.height <= indexer.rpcAfter;
   const headsAligned = paired && indexer.rpcAfter >= indexer.rpcBefore && sampledWithinRange && indexer.hashVerified;
