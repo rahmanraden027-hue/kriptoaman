@@ -15,7 +15,7 @@ function parseHeight(value) {
 }
 
 export default function ZevaryqNodeMining({ network }) {
-  const [indexer, setIndexer] = useState({ phase: 'loading', height: null, checkedAt: null, error: '' });
+  const [indexer, setIndexer] = useState({ phase: 'loading', height: null, checkedAt: null, error: '', rpcBefore: null, rpcAfter: null, hashVerified: false, hashStatus: 'unavailable' });
   const [clock, setClock] = useState(() => Date.now());
   useEffect(() => {
     let active = true;
@@ -24,6 +24,15 @@ export default function ZevaryqNodeMining({ network }) {
       controller?.abort();
       controller = new AbortController();
       try {
+        const readHead = async () => {
+          const response = await fetch(STATUS_PATH, { signal: controller.signal, cache: 'no-store', headers: { Accept: 'application/json' } });
+          if (!response.ok) throw new Error('RPC status HTTP ' + response.status);
+          const status = await response.json();
+          const height = parseHeight(status?.blockNumber);
+          if (status?.verified !== true || status?.live !== true || String(status?.chainIdHex).toLowerCase() !== CHAIN_ID_HEX || height === null) throw new Error('RPC status not verified');
+          return height;
+        };
+        const rpcBefore = await readHead();
         const response = await fetch(`${explorerUrl}/api/v2/blocks?type=block&items_count=1`, {
           signal: controller.signal, headers: { Accept: 'application/json' }, cache: 'no-store',
         });
@@ -31,9 +40,28 @@ export default function ZevaryqNodeMining({ network }) {
         const body = await response.json();
         const height = parseHeight(body?.items?.[0]?.height);
         if (height === null) throw new Error('No valid indexed block');
-        if (active) setIndexer({ phase: 'success', height, checkedAt: Date.now(), error: '' });
+        const rpcAfter = await readHead();
+        let hashStatus = 'unavailable';
+        let hashVerified = false;
+        const commonHeight = Math.min(rpcBefore, rpcAfter, height);
+        try {
+          const [indexedBlockResponse, rpcResponse] = await Promise.all([
+            fetch(`${explorerUrl}/api/v2/blocks/${commonHeight}`, { signal: controller.signal, cache: 'no-store' }),
+            fetch(ZEVARYQ.rpc, { method: 'POST', signal: controller.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_getBlockByNumber', params: [`0x${commonHeight.toString(16)}`, false] }) }),
+          ]);
+          if (indexedBlockResponse.ok && rpcResponse.ok) {
+            const [indexedBlock, rpcBlock] = await Promise.all([indexedBlockResponse.json(), rpcResponse.json()]);
+            const indexedHash = indexedBlock?.hash;
+            const rpcHash = rpcBlock?.result?.hash;
+            if (HASH_RE.test(indexedHash) && HASH_RE.test(rpcHash)) {
+              hashVerified = indexedHash.toLowerCase() === rpcHash.toLowerCase();
+              hashStatus = hashVerified ? 'match' : 'mismatch';
+            }
+          }
+        } catch (error) { if (controller.signal.aborted) return; }
+        if (active) setIndexer({ phase: 'success', height, checkedAt: Date.now(), error: '', rpcBefore, rpcAfter, hashVerified, hashStatus });
       } catch (error) {
-        if (active && !controller.signal.aborted) setIndexer({ phase: 'error', height: null, checkedAt: null, error: error?.message || 'Indexer unavailable' });
+        if (active && !controller.signal.aborted) setIndexer({ phase: 'error', height: null, checkedAt: null, error: error?.message || 'Indexer unavailable', rpcBefore: null, rpcAfter: null, hashVerified: false, hashStatus: 'unavailable' });
       }
     }
     refresh();
@@ -46,13 +74,15 @@ export default function ZevaryqNodeMining({ network }) {
   const rpcFresh = rpcHead !== null && Number.isFinite(rpcCheckedAt) && rpcCheckedAt > 0 && clock - rpcCheckedAt <= STALE_MS;
   const indexedFresh = indexer.phase === 'success' && indexer.checkedAt && clock - indexer.checkedAt <= STALE_MS;
   const delta = rpcFresh && indexedFresh ? rpcHead - indexer.height : null;
-  const headsAligned = delta !== null && delta >= 0 && delta <= MAX_LAG;
-  const health = !rpcFresh || !indexedFresh ? 'UNKNOWN' : delta < 0 ? 'CHECK SOURCES' : headsAligned ? 'DATA VERIFIED' : 'INDEXER LAG';
+  const paired = indexedFresh && indexer.rpcBefore !== null && indexer.rpcAfter !== null;
+  const sampledWithinRange = paired && indexer.height >= indexer.rpcBefore - MAX_LAG && indexer.height <= indexer.rpcAfter;
+  const headsAligned = paired && indexer.rpcAfter >= indexer.rpcBefore && sampledWithinRange && indexer.hashVerified;
+  const health = !rpcFresh || !indexedFresh ? 'UNKNOWN' : indexer.hashStatus === 'mismatch' ? 'HASH MISMATCH' : headsAligned ? 'DATA VERIFIED' : !indexer.hashVerified ? 'HASH UNVERIFIED' : 'CHECK SOURCES';
   const healthClass = headsAligned ? 'text-emerald-300 border-emerald-400/30 bg-emerald-400/10' : 'text-amber-200 border-amber-400/30 bg-amber-400/10';
   const metrics = [
     { name: 'RPC head', value: rpcFresh ? rpcHead.toLocaleString('en-US') : UNKNOWN, Icon: Activity },
     { name: 'Indexed block', value: indexedFresh ? indexer.height.toLocaleString('en-US') : UNKNOWN, Icon: Database },
-    { name: 'Indexer lag', value: delta !== null && delta >= 0 ? `${delta} blocks` : UNKNOWN, Icon: RefreshCw },
+    { name: 'Indexer lag', value: paired && indexer.rpcAfter >= indexer.height ? `${indexer.rpcAfter - indexer.height} blocks` : 'Sampling mismatch', Icon: RefreshCw },
     { name: 'My validator', value: 'Not registered', Icon: Server },
   ];
   return <section className="zv-card overflow-hidden p-4 sm:p-5" data-feature="zvq-node-mining" data-mode="read-only">
@@ -71,7 +101,9 @@ export default function ZevaryqNodeMining({ network }) {
       <div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-[#F2C86B]"/><h3 className="text-sm font-bold">Verification evidence</h3></div>
       <p className="mt-2 text-xs leading-5 text-[#9FB3C8]">RPC: {rpcFresh ? 'verified network response' : 'unavailable or stale'} · Indexer: {indexedFresh ? 'valid block response' : 'unavailable or stale'}.</p>
       <p className="mt-1 flex items-start gap-1 text-xs leading-5 text-[#9FB3C8]"><Clock3 className="mt-0.5 h-3.5 w-3.5 shrink-0"/>Last RPC check: {rpcFresh ? new Date(rpcCheckedAt).toLocaleString() : UNKNOWN} · Indexer: {indexedFresh ? new Date(indexer.checkedAt).toLocaleString() : UNKNOWN}</p>
-      {delta !== null && delta < 0 && <p className="mt-2 text-xs text-amber-200">Indexer is ahead of the sampled RPC head. Sources may have different sampling times; verification is withheld.</p>}
+      <p className="mt-2 text-xs text-[#9FB3C8]">Paired RPC sample: {paired ? `${indexer.rpcBefore.toLocaleString('en-US')} → ${indexer.rpcAfter.toLocaleString('en-US')}` : UNKNOWN} · Common block hash: {indexedFresh ? indexer.hashStatus : UNKNOWN}.</p>
+      {paired && !sampledWithinRange && <p className="mt-2 text-xs text-amber-200">Block heights do not align within the paired sampling window; verification is withheld.</p>}
+      {indexer.hashStatus === 'mismatch' && <p className="mt-2 text-xs text-red-300">Critical: RPC and indexer block hashes differ. Do not trust chain data until investigated.</p>}
       {indexer.error && <p className="mt-2 break-words text-xs text-amber-200">{indexer.error}</p>}
       <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold">
         <a href={explorerUrl + '/blocks'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[#53D8FB]">Inspect blocks <ExternalLink className="h-3 w-3"/></a>
