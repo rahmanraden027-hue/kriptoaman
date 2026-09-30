@@ -1,16 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 
 const MARKET_ASSET_LIMIT = 5000;
-const FALLBACK_ASSET_LIMIT = 2500;
-const MIN_ACCEPTED_ASSETS = 2001;
-const PAGE_SIZE = 250;
 const SERVER_PAGE_SIZE = 500;
 const SERVER_PAGE_CONCURRENCY = 2;
-const MARKET_CACHE_KEY = 'ka_market_snapshot_v4';
+const MARKET_CACHE_KEY = 'ka_market_snapshot_v5';
 const MARKET_CACHE_FRESH_AGE = 30 * 60 * 1000;
 const REFRESH_INTERVAL = 15 * 60 * 1000;
 const REQUEST_TIMEOUT = 12 * 1000;
-const CRYPTOCOMPARE_IMAGE_BASE = 'https://www.cryptocompare.com';
 
 const fetchWithTimeout = async (url, options = {}) => {
   const controller = new AbortController();
@@ -34,14 +30,20 @@ const compactSnapshot = (data) => data.map((coin) => ({
   high_24h: coin.high_24h,
   low_24h: coin.low_24h,
   market_cap_rank: coin.market_cap_rank,
-  sparkline_in_7d: { price: [] },
+  sparkline_in_7d: {
+    price: Array.isArray(coin.sparkline_in_7d?.price)
+      ? coin.sparkline_in_7d.price.slice(-168)
+      : [],
+  },
 }));
 
 /**
- * Loads the KriptoAman Market Database in 500-asset pages up to 5,000 assets.
- * The first page is rendered immediately and remaining pages hydrate in bounded
- * background batches. Public provider fallbacks stay capped at 2,500 assets to
- * limit rate-limit pressure, bandwidth and mobile recovery cost.
+ * Browser data boundary:
+ * - reads only KriptoAman-owned API paths;
+ * - may render the last verified local cache if the API is temporarily unavailable;
+ * - never calls CoinGecko/CoinLore/CryptoCompare/exchange endpoints directly.
+ *
+ * Upstream venue/provider access belongs to server-side KriptoAman collectors only.
  */
 export default function useCoinMarkets() {
   const [markets, setMarkets] = useState({});
@@ -62,27 +64,26 @@ export default function useCoinMarkets() {
       const seen = new Set();
       const normalized = data
         .map((coin, index) => {
-          const sym = (coin.symbol || '').toUpperCase();
+          const sym = String(coin?.symbol || '').toUpperCase();
           const entry = {
-            id: coin.id || sym.toLowerCase(),
+            id: coin?.id || sym.toLowerCase(),
             sym,
-            name: coin.name || sym,
-            image: coin.image || '',
+            name: coin?.name || sym,
+            image: coin?.image || '',
             color: '#10b981',
-            price: Number.isFinite(Number(coin.current_price)) ? Number(coin.current_price) : null,
-            change24h: Number.isFinite(Number(coin.price_change_percentage_24h))
+            price: Number.isFinite(Number(coin?.current_price)) ? Number(coin.current_price) : null,
+            change24h: Number.isFinite(Number(coin?.price_change_percentage_24h))
               ? Number(coin.price_change_percentage_24h)
               : null,
-            marketCap: Number(coin.market_cap) || 0,
-            volume: Number(coin.total_volume) || 0,
-            high24h: Number(coin.high_24h) || null,
-            low24h: Number(coin.low_24h) || null,
-            rank: Number(coin.market_cap_rank) || index + 1,
-            sparkline: Array.isArray(coin.sparkline_in_7d?.price)
+            marketCap: Number.isFinite(Number(coin?.market_cap)) ? Number(coin.market_cap) : null,
+            volume: Number.isFinite(Number(coin?.total_volume)) ? Number(coin.total_volume) : null,
+            high24h: Number.isFinite(Number(coin?.high_24h)) ? Number(coin.high_24h) : null,
+            low24h: Number.isFinite(Number(coin?.low_24h)) ? Number(coin.low_24h) : null,
+            rank: Number(coin?.market_cap_rank) || index + 1,
+            sparkline: Array.isArray(coin?.sparkline_in_7d?.price)
               ? coin.sparkline_in_7d.price
               : [],
           };
-
           if (!entry.id || !sym || seen.has(sym)) return null;
           seen.add(sym);
           map[sym] = entry;
@@ -117,14 +118,14 @@ export default function useCoinMarkets() {
           JSON.stringify({ savedAt, source: provider, data: compactSnapshot(data) }),
         );
       } catch {
-        // Quota or privacy-mode failures must not invalidate fresh data.
+        // Quota/privacy-mode failures must not invalidate fresh server data.
       }
     };
 
     try {
       const cached = JSON.parse(localStorage.getItem(MARKET_CACHE_KEY) || 'null');
       if (cached?.savedAt && Array.isArray(cached.data) && cached.data.length > 0) {
-        applyData(cached.data, 'cache', cached.savedAt);
+        applyData(cached.data, 'kriptoaman-cache', cached.savedAt);
       }
     } catch {
       localStorage.removeItem(MARKET_CACHE_KEY);
@@ -135,9 +136,7 @@ export default function useCoinMarkets() {
         `/api/market-snapshot-page?page=${page}&limit=${SERVER_PAGE_SIZE}`,
         { headers: { Accept: 'application/json' } },
       );
-      if (!response.ok) {
-        throw new Error(`KriptoAman market page request failed: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`KriptoAman market page request failed: ${response.status}`);
       const payload = await response.json();
       if (!Array.isArray(payload?.data) || payload.data.length === 0) {
         throw new Error(`KriptoAman market page ${page} returned no assets`);
@@ -164,193 +163,31 @@ export default function useCoinMarkets() {
         for (const result of results) {
           if (result.status !== 'fulfilled') continue;
           const pagePayload = result.value;
-          if (Number(pagePayload.capturedAt) !== Number(firstPayload.capturedAt)) {
-            return;
-          }
+          if (Number(pagePayload.capturedAt) !== Number(firstPayload.capturedAt)) return;
           combined.push(...pagePayload.data);
         }
 
         combined = combined.slice(0, MARKET_ASSET_LIMIT);
         if (!alive || generation !== loadGeneration) return;
-        applyData(combined, 'server', capturedAt);
-        saveCache(combined, capturedAt, 'server');
+        applyData(combined, 'kriptoaman-market-db', capturedAt);
+        saveCache(combined, capturedAt, 'kriptoaman-market-db');
       }
-    };
-
-    const fetchCoinGeckoPage = async (page) => {
-      const params = new URLSearchParams({
-        vs_currency: 'usd',
-        order: 'market_cap_desc',
-        per_page: String(PAGE_SIZE),
-        page: String(page),
-        sparkline: 'true',
-        price_change_percentage: '24h',
-        precision: 'full',
-      });
-      const response = await fetchWithTimeout(
-        `https://api.coingecko.com/api/v3/coins/markets?${params.toString()}`,
-        { headers: { Accept: 'application/json' } },
-      );
-      if (!response.ok) throw new Error(`CoinGecko market request failed: ${response.status}`);
-      const data = await response.json();
-      if (!Array.isArray(data)) throw new Error('CoinGecko returned invalid data');
-      return data;
-    };
-
-    const fetchCoinGecko = async () => {
-      const data = [];
-      for (let page = 1; page <= Math.ceil(FALLBACK_ASSET_LIMIT / PAGE_SIZE); page += 1) {
-        try {
-          const rows = await fetchCoinGeckoPage(page);
-          data.push(...rows);
-          if (rows.length < PAGE_SIZE || data.length >= FALLBACK_ASSET_LIMIT) break;
-        } catch {
-          if (data.length >= MIN_ACCEPTED_ASSETS) break;
-          throw new Error(`CoinGecko stopped at page ${page}`);
-        }
-      }
-      if (data.length < MIN_ACCEPTED_ASSETS) {
-        throw new Error(`CoinGecko returned only ${data.length} assets`);
-      }
-      return data.slice(0, FALLBACK_ASSET_LIMIT);
-    };
-
-    const fetchCryptoComparePage = async (page) => {
-      const params = new URLSearchParams({ limit: '99', page: String(page), tsym: 'USD' });
-      const response = await fetchWithTimeout(
-        `https://min-api.cryptocompare.com/data/top/totalvolfull?${params.toString()}`,
-        { headers: { Accept: 'application/json' } },
-      );
-      if (!response.ok) throw new Error(`CryptoCompare market request failed: ${response.status}`);
-      const payload = await response.json();
-      if (!Array.isArray(payload?.Data)) throw new Error('CryptoCompare returned invalid data');
-      return payload.Data;
-    };
-
-    const fetchCryptoCompare = async () => {
-      const rows = [];
-      const maxPages = Math.ceil(FALLBACK_ASSET_LIMIT / 100) + 2;
-      for (let page = 0; page < maxPages; page += 1) {
-        try {
-          const pageRows = await fetchCryptoComparePage(page);
-          if (pageRows.length === 0) break;
-          rows.push(...pageRows);
-          if (rows.length >= FALLBACK_ASSET_LIMIT + 100) break;
-        } catch {
-          if (rows.length >= MIN_ACCEPTED_ASSETS) break;
-          throw new Error(`CryptoCompare stopped at page ${page}`);
-        }
-      }
-      if (rows.length < MIN_ACCEPTED_ASSETS) {
-        throw new Error(`CryptoCompare returned only ${rows.length} assets`);
-      }
-      return rows.slice(0, FALLBACK_ASSET_LIMIT).map((item, index) => {
-        const info = item.CoinInfo || {};
-        const raw = item.RAW?.USD || {};
-        return {
-          id: (info.Internal || info.Name || '').toLowerCase(),
-          symbol: info.Name || '',
-          name: info.FullName || info.Name || '',
-          image: info.ImageUrl ? `${CRYPTOCOMPARE_IMAGE_BASE}${info.ImageUrl}` : '',
-          current_price: raw.PRICE,
-          price_change_percentage_24h: raw.CHANGEPCT24HOUR,
-          market_cap: raw.MKTCAP,
-          total_volume: raw.TOTALVOLUME24HTO,
-          high_24h: raw.HIGH24HOUR,
-          low_24h: raw.LOW24HOUR,
-          market_cap_rank: index + 1,
-          sparkline_in_7d: { price: [] },
-        };
-      });
-    };
-
-    const fetchCoinLorePage = async (start) => {
-      const params = new URLSearchParams({ start: String(start), limit: '100' });
-      const response = await fetchWithTimeout(
-        `https://api.coinlore.net/api/tickers/?${params.toString()}`,
-        { headers: { Accept: 'application/json' } },
-      );
-      if (!response.ok) throw new Error(`CoinLore market request failed: ${response.status}`);
-      const payload = await response.json();
-      if (!Array.isArray(payload?.data)) throw new Error('CoinLore returned invalid data');
-      return payload.data;
-    };
-
-    const fetchCoinLore = async () => {
-      const rows = [];
-      const batchSize = 5;
-      for (let batchStart = 0; batchStart < FALLBACK_ASSET_LIMIT; batchStart += batchSize * 100) {
-        const starts = Array.from(
-          { length: batchSize },
-          (_, index) => batchStart + index * 100,
-        ).filter((start) => start < FALLBACK_ASSET_LIMIT);
-        const results = await Promise.allSettled(starts.map((start) => fetchCoinLorePage(start)));
-        const batchRows = results
-          .filter((result) => result.status === 'fulfilled')
-          .flatMap((result) => result.value);
-        rows.push(...batchRows);
-        if (batchRows.length === 0 || rows.length >= FALLBACK_ASSET_LIMIT) break;
-      }
-      if (rows.length < MIN_ACCEPTED_ASSETS) {
-        throw new Error(`CoinLore returned only ${rows.length} assets`);
-      }
-      return rows.slice(0, FALLBACK_ASSET_LIMIT).map((item, index) => ({
-        id: `coinlore-${item.id || item.symbol || index}`,
-        symbol: item.symbol || '',
-        name: item.name || item.nameid || item.symbol || '',
-        image: '',
-        current_price: Number(item.price_usd),
-        price_change_percentage_24h: Number(item.percent_change_24h),
-        market_cap: Number(item.market_cap_usd),
-        total_volume: Number(item.volume24),
-        high_24h: null,
-        low_24h: null,
-        market_cap_rank: Number(item.rank) || index + 1,
-        sparkline_in_7d: { price: [] },
-      }));
     };
 
     const load = async () => {
       const generation = ++loadGeneration;
-
       try {
         const firstPayload = await fetchServerPage(0);
         if (!alive || generation !== loadGeneration) return;
         const savedAt = Number(firstPayload.capturedAt) || Date.now();
-        applyData(firstPayload.data, 'server', savedAt);
-        saveCache(firstPayload.data, savedAt, 'server');
+        applyData(firstPayload.data, 'kriptoaman-market-db', savedAt);
+        saveCache(firstPayload.data, savedAt, 'kriptoaman-market-db');
         void hydrateServerPages(firstPayload, generation);
-        return;
       } catch {
-        // Fall through to bounded public-provider recovery.
-      }
-
-      const providers = [
-        ['coinlore', fetchCoinLore],
-        ['coingecko', fetchCoinGecko],
-        ['cryptocompare', fetchCryptoCompare],
-      ];
-
-      for (const [provider, fetchProvider] of providers) {
-        try {
-          const data = await fetchProvider();
-          if (!alive || generation !== loadGeneration || !Array.isArray(data) || data.length === 0) return;
-          const { normalized } = normalize(data);
-          if (normalized.length < MIN_ACCEPTED_ASSETS) {
-            throw new Error(`${provider} returned only ${normalized.length} unique assets after deduplication`);
-          }
-          const savedAt = Date.now();
-          applyData(data, provider, savedAt);
-          saveCache(data, savedAt, provider);
-          return;
-        } catch {
-          // Continue to the next provider and preserve the last good cache.
+        if (alive && generation === loadGeneration) {
+          setLoading(false);
+          setIsStale(true);
         }
-      }
-
-      if (alive && generation === loadGeneration) {
-        setLoading(false);
-        setIsStale(true);
       }
     };
 
