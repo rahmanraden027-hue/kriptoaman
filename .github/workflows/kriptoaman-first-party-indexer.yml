@@ -44,7 +44,7 @@ jobs:
   deploy:
     if: github.event_name == 'push' && startsWith(github.event.head_commit.message, 'QORYVEX STREAMING CUTOVER 20260930')
     needs: validate
-    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v7
