@@ -387,6 +387,70 @@ jobs:
           echo "Public market status remained non-operational after verified refresh attempts."
           exit 1
 
+      - name: Check market-feed ingest configuration without mutation
+        if: github.event_name != 'pull_request' || (github.head_ref != 'feature/zevaryq-explorer-production' && github.head_ref != 'codex/zevaryq-premium-logo' && github.head_ref != 'fix/zevaryq-explorer-absolute-assets' && github.head_ref != 'fix/explorer-ui-local-gate' && github.head_ref != 'fix/zevaryq-inline-emblem')
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          timestamp="$(date +%s%3N)"
+          code="$(curl --location --silent --show-error \
+            --connect-timeout 10 --max-time 25 \
+            -X POST \
+            -H 'Content-Type: application/json' \
+            -H "x-ka-timestamp: $timestamp" \
+            -H 'x-ka-signature: 0000000000000000000000000000000000000000000000000000000000000000' \
+            --data '{}' \
+            -o "$body" -w '%{http_code}' \
+            https://kriptoaman.com/api/market-feed-ingest || true)"
+          cat "$body"
+          test "$code" = "401"
+          node - "$body" <<'NODE'
+          const fs=require('fs');
+          const payload=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+          if(payload?.code!=='MARKET_FEED_SIGNATURE_INVALID') process.exit(1);
+          NODE
+          echo "market_feed_ingest_config=present signature_rejection=pass"
+
+      - name: Check KriptoAman server-owned market feed
+        if: github.event_name != 'pull_request' || (github.head_ref != 'feature/zevaryq-explorer-production' && github.head_ref != 'codex/zevaryq-premium-logo' && github.head_ref != 'fix/zevaryq-explorer-absolute-assets' && github.head_ref != 'fix/explorer-ui-local-gate' && github.head_ref != 'fix/zevaryq-inline-emblem')
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          for attempt in 1 2 3 4 5 6; do
+            code="$(curl --location --silent --show-error \
+              --connect-timeout 10 --max-time 25 \
+              -H 'Accept: application/json' \
+              -H 'Cache-Control: no-cache' \
+              -o "$body" -w '%{http_code}' \
+              "https://kriptoaman.com/api/market-feed-hot?smoke=${GITHUB_RUN_ID}-${attempt}" || true)"
+            if [ "$code" = "200" ] && node - "$body" <<'NODE'
+          const fs = require('fs');
+          const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          if (!['live','degraded'].includes(payload?.status)) process.exit(1);
+          if (payload?.collector?.ownership !== 'KriptoAman') process.exit(1);
+          if (payload?.collector?.mode !== 'server-side-websocket') process.exit(1);
+          if (payload?.collector?.syntheticValues !== false) process.exit(1);
+          if (payload?.provenance?.marketPriceOrigin !== 'external-trading-venues') process.exit(1);
+          if (payload?.provenance?.browserDirectVenueAccess !== false) process.exit(1);
+          if (!Number.isFinite(Number(payload?.coverage?.available)) || Number(payload.coverage.available) < 5) process.exit(1);
+          if (!Array.isArray(payload?.assets) || payload.assets.length < 5) process.exit(1);
+          if (payload?.delivery?.apiOwnership !== 'KriptoAman') process.exit(1);
+          if (!Number.isFinite(Number(payload?.delivery?.ageMs)) || Number(payload.delivery.ageMs) > 60000) process.exit(1);
+          console.log(`Market feed live: status=${payload.status}; coverage=${payload.coverage.available}/${payload.coverage.expected}; ageMs=${payload.delivery.ageMs}; venues=${(payload.provenance.venues || []).join(',')}.`);
+          NODE
+            then
+              echo "KriptoAman server-owned market feed verified on production at attempt ${attempt}."
+              exit 0
+            fi
+            echo "Market feed attempt ${attempt} not ready: HTTP ${code}."
+            cat "$body" || true
+            if [ "$attempt" -lt 6 ]; then sleep 10; fi
+          done
+          echo "KriptoAman server-owned market feed did not become healthy after retries."
+          exit 1
+
       - name: Check KriptoAman Market Database paging contract
         if: github.event_name != 'pull_request' || (github.head_ref != 'feature/zevaryq-explorer-production' && github.head_ref != 'codex/zevaryq-premium-logo' && github.head_ref != 'fix/zevaryq-explorer-absolute-assets' && github.head_ref != 'fix/explorer-ui-local-gate' && github.head_ref != 'fix/zevaryq-inline-emblem')
         shell: bash
