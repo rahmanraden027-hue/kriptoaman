@@ -141,12 +141,6 @@ function TransactionDetails({tx,onBack}) { const rows=[['Transaction Hash',tx.ha
 function Assets({ account, balance, balancePhase, tokenAssets, assetPhase }) {
   const ecosystemAssets = [
     {
-      symbol: 'ZUSD',
-      name: 'ZEVARYQ USD',
-      icon: '/assets/zevaryq/tokens/zusd-v2.svg',
-      detail: 'Reserve-backed ecosystem asset candidate · not USDT or USDC · not deployed',
-    },
-    {
       symbol: 'zBTC',
       name: 'ZEVARYQ Bitcoin',
       icon: '/assets/zevaryq/tokens/zbtc-v2.svg',
@@ -186,7 +180,7 @@ function Assets({ account, balance, balancePhase, tokenAssets, assetPhase }) {
       <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-[9px] font-black text-amber-200">PLANNED</span>
     </div>
 
-    <div className="mt-3 grid gap-3" data-zvq-production-token-icons="ZUSD,zBTC,zETH,zUSDT,zUSDC" data-token-identity-version="2">
+    <div className="mt-3 grid gap-3" data-zvq-production-token-icons="zBTC,zETH,zUSDT,zUSDC" data-token-identity-version="2">
       {ecosystemAssets.map((asset) => (
         <div key={asset.symbol} className="rounded-2xl border border-[#1A3A59] bg-[#071522]/65 p-4">
           <div className="flex items-start gap-3">
