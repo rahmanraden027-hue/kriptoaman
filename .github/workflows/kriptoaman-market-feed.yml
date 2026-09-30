@@ -7,8 +7,17 @@ on:
       - 'functions/api/market-feed-ingest.js'
       - 'functions/api/market-feed-hot.js'
       - 'functions/api/market-price.js'
+      - 'functions/api/market-overview.js'
+      - 'functions/api/display-usd-idr.js'
+      - 'functions/api/token-price.js'
+      - 'src/components/market/**'
+      - 'src/components/wallet/**'
+      - 'src/components/home/**'
+      - 'src/pages/PriceTracker.jsx'
+      - 'src/pages/DEXSavings.jsx'
       - 'scripts/deploy-kriptoaman-market-feed.sh'
       - 'tests/market-feed-collector.test.mjs'
+      - 'tests/market-browser-boundary.test.mjs'
       - '.github/workflows/kriptoaman-market-feed.yml'
   push:
     branches: [main]
@@ -17,8 +26,17 @@ on:
       - 'functions/api/market-feed-ingest.js'
       - 'functions/api/market-feed-hot.js'
       - 'functions/api/market-price.js'
+      - 'functions/api/market-overview.js'
+      - 'functions/api/display-usd-idr.js'
+      - 'functions/api/token-price.js'
+      - 'src/components/market/**'
+      - 'src/components/wallet/**'
+      - 'src/components/home/**'
+      - 'src/pages/PriceTracker.jsx'
+      - 'src/pages/DEXSavings.jsx'
       - 'scripts/deploy-kriptoaman-market-feed.sh'
       - 'tests/market-feed-collector.test.mjs'
+      - 'tests/market-browser-boundary.test.mjs'
   workflow_dispatch:
 
 permissions:
@@ -41,8 +59,11 @@ jobs:
           node --check functions/api/market-feed-ingest.js
           node --check functions/api/market-feed-hot.js
           node --check functions/api/market-price.js
+          node --check functions/api/market-overview.js
+          node --check functions/api/display-usd-idr.js
+          node --check functions/api/token-price.js
           bash -n scripts/deploy-kriptoaman-market-feed.sh
-          node --test tests/market-feed-collector.test.mjs
+          node --test tests/market-feed-collector.test.mjs tests/market-browser-boundary.test.mjs
           ! grep -REn 'PRIVATE_KEY|MNEMONIC|SEED_PHRASE|eth_sendRawTransaction|personal_|admin_' services/kriptoaman-market-feed scripts/deploy-kriptoaman-market-feed.sh
           ! grep -REn 'Math\.random|synthetic.*price|fake.*price' services/kriptoaman-market-feed
 
