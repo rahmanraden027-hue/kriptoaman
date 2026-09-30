@@ -86,7 +86,7 @@ const PublicKAMWithDocument = ({ Page }) => (
   </div>
 );
 
-const PUBLIC_PAGE_KEYS = new Set(['AboutUs', 'Edukasi', 'Enterprise', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'RPCPrivacyPolicy', 'TermsOfService', 'AccountDeletion', 'Market', 'KAM', 'ZEVARYQ', 'KAMCampaignNews', 'KAMDeveloper', 'KAMGlobalRoadmap', 'KAMLaunchReadiness', 'KAMNetwork', 'KAMNetworkDocs', 'KAMTokenomics', 'KAMTransactionLab']);
+const PUBLIC_PAGE_KEYS = new Set(['AboutUs', 'Edukasi', 'Enterprise', 'Contact', 'Disclaimer', 'PrivacyPolicy', 'RPCPrivacyPolicy', 'TermsOfService', 'AccountDeletion', 'Market', 'KAM', 'ZEVARYQ', 'KAMCampaignNews', 'KAMDeveloper', 'KAMGlobalRoadmap', 'KAMLaunchReadiness', 'KAMNetwork', 'KAMNetworkDocs', 'KAMTokenomics', 'KAMTransactionLab', 'QoryVExDiscovery']);
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ? <Layout currentPageName={currentPageName}>{children}</Layout> : <>{children}</>;
 
@@ -112,7 +112,11 @@ const AuthenticatedApp = () => {
         {Object.entries(Pages).map(([path, Page]) => {
           if (!PUBLIC_PAGE_KEYS.has(path)) return null;
           const element = path === 'Market' ? <PublicMarketWithNav Page={Page} /> : path === 'KAM' ? <PublicKAMWithDocument Page={Page} /> : <Page />;
-          const routePath = path === 'KAMCampaignNews' ? '/news/kam-campaign-2026' : `/${path}`;
+          const routePath = path === 'KAMCampaignNews'
+            ? '/news/kam-campaign-2026'
+            : path === 'QoryVExDiscovery'
+              ? '/qoryvex/discovery'
+              : `/${path}`;
           return <Route key={path} path={routePath} element={element} />;
         })}
 
