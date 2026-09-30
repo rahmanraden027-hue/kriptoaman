@@ -10,7 +10,7 @@ export default function ZevaryqNodeMining({ network }) {
     let active = true;
     async function refresh() {
       try {
-        const rpcHeight = network?.data?.blockNumber ?? network?.data?.blockHeight ?? null;
+        const rpcHeight = network?.data?.blockNumber ?? null;
         const response = await fetch(`${ZEVARYQ.explorer}/api/v2/blocks?type=block&items_count=1`, {
           signal: controller.signal, headers: { Accept: 'application/json' }
         });
@@ -26,7 +26,7 @@ export default function ZevaryqNodeMining({ network }) {
     refresh();
     return () => { active = false; controller.abort(); };
   }, [network?.data?.checkedAt]);
-  const chainVerified = network?.data?.rpc === 'connected';
+  const chainVerified = network?.data?.rpc === 'connected' && Number.isSafeInteger(network?.data?.blockNumber);
   return <section className="zv-card p-5" data-feature="zvq-node-mining" data-mode="read-only">
     <div className="flex items-center gap-3"><Server className="h-9 w-9 text-[#F2C86B]"/><div><p className="zv-label">ZEVARYQ MAINNET · CHAIN 22028</p><h2 className="text-2xl font-black">Hybrid Node Mining</h2></div></div>
     <p className="mt-3 text-sm leading-6 text-[#9FB3C8]">Read-only network dashboard. A mobile wallet does not mine blocks or run a validator. Rewards, staking and node enrollment remain disabled pending consensus and security audits.</p>
