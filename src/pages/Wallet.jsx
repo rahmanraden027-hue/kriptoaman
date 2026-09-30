@@ -187,6 +187,15 @@ function Assets({ account, balance, balancePhase, tokenAssets, assetPhase }) {
       <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-[9px] font-black text-amber-200">PLANNED</span>
     </div>
 
+    <div className="mt-3 flex items-center gap-3 rounded-2xl border border-[#2D8CFF]/35 bg-[#071522]/65 p-4" data-zvq-network-identity="ZEVARYQ_NETWORK">
+      <ZevaryqTokenIcon symbol="ZEVARYQ_NETWORK" className="h-14 w-14" />
+      <div className="min-w-0 flex-1">
+        <p className="font-black text-white">ZEVARYQ Network</p>
+        <p className="text-xs text-[#9FB3C8]">Official network identity · Chain 22028</p>
+      </div>
+      <span className="rounded-full border border-sky-400/30 bg-sky-400/10 px-2 py-1 text-[9px] font-black text-sky-300">NETWORK</span>
+    </div>
+
     <div className="mt-3 grid gap-3" data-zvq-production-token-icons="zBTC,zETH,zUSDT,zUSDC,zBNB,zSOL,zTRX,zXRP,zADA,zDOGE" data-token-identity-version="2">
       {ecosystemAssets.map((asset) => (
         <div key={asset.symbol} className="rounded-2xl border border-[#1A3A59] bg-[#071522]/65 p-4">
