@@ -17,6 +17,9 @@ const FILES=[
   'src/components/wallet/PortfolioChart.jsx',
   'src/components/market/CandlestickModal.jsx',
   'src/pages/DEXSavings.jsx',
+  'src/components/home/HomeMarketOverview.jsx',
+  'src/components/admin/ServerMonitorPanel.jsx',
+  'src/components/admin/APIControlPanel.jsx',
 ];
 
 const forbidden=/api\.coingecko\.com|api\.coinlore\.net|min-api\.cryptocompare\.com|stream\.binance\.com|api\.binance\.com|exchangerate-api\.com\/v4\/latest\/USD/i;
