@@ -7,6 +7,7 @@ import NetworkInfrastructureCard from '@/components/zevaryq-wallet/NetworkInfras
 import WalletBottomNavigation from '@/components/zevaryq-wallet/WalletBottomNavigation';
 import ZevaryqWalletConnector from '@/components/zevaryq-wallet/ZevaryqWalletConnector';
 import ZevaryqSwap from '@/components/zevaryq-wallet/ZevaryqSwap';
+import ZevaryqNodeMining from '@/components/zevaryq-wallet/ZevaryqNodeMining';
 import { EmptyState, StatePanel, StatusBadge, compactAddress } from '@/components/zevaryq-wallet/WalletUI';
 import useZevaryqNetworkStatus from '@/hooks/useZevaryqNetworkStatus';
 import { fetchZvqBalance } from '@/services/zevaryqNetwork';
@@ -157,6 +158,8 @@ function Assets({ account, balance, balancePhase, tokenAssets, assetPhase }) {
       icon: '/assets/zevaryq/tokens/zeth-v2.svg',
       detail: 'ETH-backed representation candidate · bridge/backing authorization pending',
     },
+    { symbol: 'zUSDT', name: 'ZEVARYQ bridged USDT candidate', icon: '/assets/zevaryq/tokens/zusdt-v2.svg', detail: 'PLANNED · not Tether-issued USDT · issuer/bridge provenance and backing pending' },
+    { symbol: 'zUSDC', name: 'ZEVARYQ bridged USDC candidate', icon: '/assets/zevaryq/tokens/zusdc-v2.svg', detail: 'PLANNED · not Circle-issued USDC · issuer/bridge provenance and backing pending' },
   ];
 
   return <section className="zv-card p-5">
@@ -183,7 +186,7 @@ function Assets({ account, balance, balancePhase, tokenAssets, assetPhase }) {
       <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-[9px] font-black text-amber-200">PLANNED</span>
     </div>
 
-    <div className="mt-3 grid gap-3" data-zvq-production-token-icons="ZUSD,zBTC,zETH" data-token-identity-version="2">
+    <div className="mt-3 grid gap-3" data-zvq-production-token-icons="ZUSD,zBTC,zETH,zUSDT,zUSDC" data-token-identity-version="2">
       {ecosystemAssets.map((asset) => (
         <div key={asset.symbol} className="rounded-2xl border border-[#1A3A59] bg-[#071522]/65 p-4">
           <div className="flex items-start gap-3">
@@ -249,5 +252,5 @@ export default function Wallet(){const web3=useWeb3();const network=useZevaryqNe
   if(screen==='receive')return <main className={shellClass}><div className="zv-wallet-content"><ReceiveScreen account={web3?.account} onBack={()=>setScreen('wallet')}/></div></main>;
   if(screen==='connect')return <main className={shellClass}><div className="zv-wallet-content"><Header back onBack={()=>setScreen('wallet')} title="Connect Wallet" subtitle="EIP-6963 · WalletConnect · Chain 22028"/><ZevaryqWalletConnector web3={web3}/></div></main>;
   if(screen==='swap')return <main className={shellClass}><div className="zv-wallet-content"><Header back onBack={()=>setScreen('wallet')} title="Swap ZVQ" subtitle="Verified on-chain routes only"/><ZevaryqSwap web3={web3} onConnect={()=>setScreen('connect')}/></div></main>;
-  return <main className={shellClass} data-connected-addresses={connectedAddressCount}><span className="sr-only">Status pemantauan · Aktivitas pemantauan terbaru</span><div className="zv-wallet-content">{standalone&&<div className="zv-app-badge"><span>OFFICIAL WALLET</span><strong>ZEVARYQ Wallet</strong><small>KriptoAman Ecosystem · Chain 22028</small></div>}<Header title="ZEVARYQ Wallet" subtitle={`${ZEVARYQ.network} · Chain ${ZEVARYQ.chainId}`} onSettings={()=>setScreen('settings')}/>{screen==='wallet'&&<Home web3={web3} network={network} balance={balance} balancePhase={balancePhase} tokenAssets={tokenAssets} assetPhase={assetPhase} setScreen={setScreen}/>} {screen==='explorer'&&<ExplorerScreen account={web3?.account} transactions={transactions} txPhase={txPhase} onSelect={setSelectedTx}/>} {screen==='assets'&&<Assets account={web3?.account} balance={balance} balancePhase={balancePhase} tokenAssets={tokenAssets} assetPhase={assetPhase}/>}{screen==='security'&&<Security/>}{screen==='settings'&&<SettingsScreen web3={web3} network={network} currentUser={currentUser} adminBalances={adminBalances} adminError={adminError}/>}</div>{standalone&&<WalletBottomNavigation active={screen} onChange={setScreen}/>}</main>;
+  return <main className={shellClass} data-connected-addresses={connectedAddressCount}><span className="sr-only">Status pemantauan · Aktivitas pemantauan terbaru</span><div className="zv-wallet-content">{standalone&&<div className="zv-app-badge"><span>OFFICIAL WALLET</span><strong>ZEVARYQ Wallet</strong><small>KriptoAman Ecosystem · Chain 22028</small></div>}<Header title="ZEVARYQ Wallet" subtitle={`${ZEVARYQ.network} · Chain ${ZEVARYQ.chainId}`} onSettings={()=>setScreen('settings')}/>{screen==='wallet'&&<Home web3={web3} network={network} balance={balance} balancePhase={balancePhase} tokenAssets={tokenAssets} assetPhase={assetPhase} setScreen={setScreen}/>} {screen==='explorer'&&<ExplorerScreen account={web3?.account} transactions={transactions} txPhase={txPhase} onSelect={setSelectedTx}/>} {screen==='assets'&&<Assets account={web3?.account} balance={balance} balancePhase={balancePhase} tokenAssets={tokenAssets} assetPhase={assetPhase}/>}{screen==='node'&&<ZevaryqNodeMining network={network}/>} {screen==='security'&&<Security/>}{screen==='settings'&&<SettingsScreen web3={web3} network={network} currentUser={currentUser} adminBalances={adminBalances} adminError={adminError}/>}</div>{standalone&&<WalletBottomNavigation active={screen} onChange={setScreen}/>}</main>;
 }
