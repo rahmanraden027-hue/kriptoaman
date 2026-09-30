@@ -5,6 +5,12 @@ export const ZVQ_TOKEN_ICONS = Object.freeze({
   zETH: '/assets/zevaryq/tokens/zeth-v2.svg',
   zUSDT: '/assets/zevaryq/tokens/zusdt-v2.svg',
   zUSDC: '/assets/zevaryq/tokens/zusdc-v2.svg',
+  zBNB: '/assets/zevaryq/tokens/zbnb-v2.svg',
+  zSOL: '/assets/zevaryq/tokens/zsol-v2.svg',
+  zTRX: '/assets/zevaryq/tokens/ztrx-v2.svg',
+  zXRP: '/assets/zevaryq/tokens/zxrp-v2.svg',
+  zADA: '/assets/zevaryq/tokens/zada-v2.svg',
+  zDOGE: '/assets/zevaryq/tokens/zdoge-v2.svg',
 });
 
 export default function ZevaryqTokenIcon({ symbol, className = 'h-12 w-12' }) {
