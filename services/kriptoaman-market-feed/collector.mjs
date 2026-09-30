@@ -163,7 +163,8 @@ async function publish() {
       error: response.ok ? null : `HTTP ${response.status}`,
     };
   } catch (error) {
-    lastPublish = { ok: false, at: Date.now(), status: null, error: error?.message || String(error) };
+    console.error('Market feed publish failed', error?.name || 'Error');
+    lastPublish = { ok: false, at: Date.now(), status: null, error: 'publish_failed' };
   }
 }
 
