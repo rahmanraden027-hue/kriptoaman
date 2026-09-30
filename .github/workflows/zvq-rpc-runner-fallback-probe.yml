@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - '.github/workflows/zvq-rpc-runner-fallback-probe.yml'
+      - 'services/kriptoaman-indexer/**'
+      - 'scripts/zvq-rpc-allowlist-gateway.mjs'
   push:
     branches: [main]
     paths:
@@ -39,3 +41,11 @@ jobs:
           echo "probe_mode=read_only_direct_https"
           echo "chain_id=$chain block=$block"
           echo "explorer_runner_probe=pass"
+
+      - name: Prove read-only SSH reachability to RPC sentry
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new \
+            root@206.189.36.15 \
+            'set -e; test "$(hostname)" != ""; ss -H -ltn "( sport = :443 or sport = :8545 or sport = :8546 or sport = :18445 or sport = :18446 )" | head -20; echo rpc_sentry_ssh_readonly=pass'
