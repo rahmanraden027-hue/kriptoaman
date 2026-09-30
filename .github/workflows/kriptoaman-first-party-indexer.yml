@@ -6,6 +6,8 @@ on:
       - 'services/kriptoaman-indexer/**'
       - 'scripts/deploy-kriptoaman-zvq-indexer.sh'
       - 'tests/crypto-intelligence-first-party.test.mjs'
+      - 'tests/qoryvex-discovery-model.test.mjs'
+      - 'docs/QORYVEX_DISCOVERY_V1.md'
       - '.github/workflows/kriptoaman-first-party-indexer.yml'
   push:
     branches: [main]
@@ -35,7 +37,7 @@ jobs:
           set -euo pipefail
           node --check services/kriptoaman-indexer/zvq-listener.mjs
           bash -n scripts/deploy-kriptoaman-zvq-indexer.sh
-          node --test tests/crypto-intelligence-first-party.test.mjs
+          node --test tests/crypto-intelligence-first-party.test.mjs tests/qoryvex-discovery-model.test.mjs
           ! grep -REn 'eth_sendRawTransaction|personal_|admin_|debug_' services/kriptoaman-indexer
           ! grep -REn 'PRIVATE_KEY|MNEMONIC|SEED_PHRASE' services/kriptoaman-indexer scripts/deploy-kriptoaman-zvq-indexer.sh
 
