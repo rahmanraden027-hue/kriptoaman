@@ -22,12 +22,19 @@ const FILES=[
   'src/components/admin/APIControlPanel.jsx',
 ];
 
-const forbidden=/api\.coingecko\.com|api\.coinlore\.net|min-api\.cryptocompare\.com|stream\.binance\.com|api\.binance\.com|exchangerate-api\.com\/v4\/latest\/USD/i;
+const FORBIDDEN_HOSTS=[
+  'api.coingecko.com',
+  'api.coinlore.net',
+  'min-api.cryptocompare.com',
+  'stream.binance.com',
+  'api.binance.com',
+  'exchangerate-api.com/v4/latest/USD',
+];
 
 test('primary customer market paths do not contact external price providers directly',async()=>{
   for(const path of FILES){
     const source=await readFile(new URL('../'+path,import.meta.url),'utf8');
-    assert.doesNotMatch(source,forbidden,path);
+    for(const host of FORBIDDEN_HOSTS) assert.ok(!source.toLowerCase().includes(host.toLowerCase()), `${path} must not contact ${host}`);
   }
 });
 
