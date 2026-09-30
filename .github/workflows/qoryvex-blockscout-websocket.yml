@@ -49,8 +49,14 @@ jobs:
           sudo -n docker compose config --services
           echo '== running containers =='
           sudo -n docker compose ps --format json | head -80
+          echo '== proxy template header =='
+          sudo -n sed -n '1,90p' proxy/default.conf.template
           echo '== socket/api routing excerpts =='
           sudo -n grep -En 'socket|websocket|proxy_pass|upstream|api/v2' proxy/default.conf.template | head -120 || true
+          echo '== backend network =='
+          backend_id="$(sudo -n docker compose ps -q backend)"
+          test -n "$backend_id"
+          sudo -n docker inspect -f 'exposed={{json .Config.ExposedPorts}} network={{range .NetworkSettings.Networks}}{{.IPAddress}} {{end}}' "$backend_id"
           echo '== backend candidates =='
           sudo -n docker ps --format 'name={{.Names}} ports={{.Ports}}' | grep -Ei 'backend|blockscout|proxy' | head -80
           echo 'qoryvex_blockscout_origin_preflight=pass'
