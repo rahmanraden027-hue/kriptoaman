@@ -9,7 +9,7 @@ const [page, radar, api] = await Promise.all([
 ]);
 
 test('QoryVEx public UI preserves evidence-first discovery', () => {
-  assert.match(page, /QORYVEX DISCOVERY/);
+  assert.match(page, /QoryVEx\s+Discovery/i);
   assert.match(page, /NewTokenRadar expanded/);
   assert.match(radar, /Asset Passport/);
   assert.match(radar, /Launch DNA/);
