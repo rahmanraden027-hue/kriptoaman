@@ -21,7 +21,9 @@ let reconnectAttempt = 0;
 let lastHeadAt = 0;
 let lastHead = null;
 let events = [];
-let latencies = [];
+let indexLatencies = [];
+let chainAges = [];
+let lastIndexedAt = 0;
 let requestId = 10;
 let catchupTruncated = false;
 let wsSubscribed = false;
@@ -86,7 +88,7 @@ async function readCursor() {
   }
 }
 
-async function processBlock(block, receivedAt = now()) {
+async function processBlock(block, receivedAt = now(), observation = 'catchup') {
   const number = parseHexInt(block?.number);
   const hash = safeHash(block?.hash);
   const parentHash = safeHash(block?.parentHash);
@@ -94,8 +96,11 @@ async function processBlock(block, receivedAt = now()) {
   if (number == null || !hash || !parentHash || blockTimestampSeconds == null) return false;
 
   const blockTimestamp = blockTimestampSeconds * 1000;
-  const latency = Math.max(0, receivedAt - blockTimestamp);
-  latencies = [...latencies, latency].slice(-500);
+  const indexedAt = now();
+  const chainAgeMs = Math.max(0, receivedAt - blockTimestamp);
+  const indexLatencyMs = Math.max(0, indexedAt - receivedAt);
+  chainAges = [...chainAges, chainAgeMs].slice(-500);
+  if (observation === 'websocket') indexLatencies = [...indexLatencies, indexLatencyMs].slice(-500);
 
   if (lastHead?.number === number && lastHead.hash !== hash) {
     events = events.map(event => event.blockNumber === number && event.blockHash !== hash
@@ -123,6 +128,9 @@ async function processBlock(block, receivedAt = now()) {
       from,
       contractAddress,
       observedAt: receivedAt,
+      indexedAt,
+      indexLatencyMs,
+      observation,
       confirmationState: 'observed',
     });
   }
@@ -130,15 +138,17 @@ async function processBlock(block, receivedAt = now()) {
   events = [...next, ...events].slice(0, MAX_EVENTS);
   lastHead = { number, hash, parentHash, timestamp: blockTimestamp };
   lastHeadAt = receivedAt;
+  lastIndexedAt = indexedAt;
   await persistCursor(number);
   return true;
 }
 
 async function processHead(header) {
+  const receivedAt = now();
   const number = parseHexInt(header?.number);
   if (number == null) return;
   const block = await rpc('eth_getBlockByNumber', [`0x${number.toString(16)}`, true]);
-  await processBlock(block, now());
+  await processBlock(block, receivedAt, 'websocket');
 }
 
 async function catchUp() {
@@ -152,7 +162,7 @@ async function catchUp() {
 
   for (let number = boundedStart; number <= current; number += 1) {
     const block = await rpc('eth_getBlockByNumber', [`0x${number.toString(16)}`, true]);
-    await processBlock(block, now());
+    await processBlock(block, now(), 'catchup');
   }
 }
 
@@ -228,29 +238,78 @@ function publicState() {
     source: { ownership: 'first-party', transport: 'WebSocket+JSON-RPC', ws: 'local-node', http: 'local-node' },
     head: lastHead,
     lastHeadAt: lastHeadAt || null,
+    lastIndexedAt: lastIndexedAt || null,
     streamFresh: fresh,
     websocketSubscribed: wsSubscribed,
     catchupTruncated,
     events,
     latency: {
-      samples: latencies.length,
-      p50Ms: percentile(latencies, .50),
-      p95Ms: percentile(latencies, .95),
-      p99Ms: percentile(latencies, .99),
+      metric: 'websocket-received-to-indexed',
+      samples: indexLatencies.length,
+      p50Ms: percentile(indexLatencies, .50),
+      p95Ms: percentile(indexLatencies, .95),
+      p99Ms: percentile(indexLatencies, .99),
+      chainAgeMetric: 'block-timestamp-to-websocket-received',
+      chainAgeSamples: chainAges.length,
+      chainAgeP50Ms: percentile(chainAges, .50),
+      chainAgeP95Ms: percentile(chainAges, .95),
+      chainAgeP99Ms: percentile(chainAges, .99),
     },
     publishedAt: now(),
   };
 }
 
+function radarState(state) {
+  const candidates = state.events
+    .filter(event => event.type === 'CONTRACT_CREATION' && event.contractAddress)
+    .slice(0, 100)
+    .map(event => ({
+      classification: 'UNVERIFIED_CONTRACT_CREATION',
+      chainId: event.chainId,
+      contractAddress: event.contractAddress,
+      txHash: event.txHash,
+      from: event.from,
+      blockNumber: event.blockNumber,
+      blockHash: event.blockHash,
+      observedAt: event.observedAt,
+      indexedAt: event.indexedAt,
+      indexLatencyMs: event.indexLatencyMs,
+      confirmationState: event.confirmationState,
+    }));
+  return {
+    status: state.status,
+    version: 1,
+    product: 'QoryVEx New Contract Radar',
+    network: state.network,
+    chainId: state.chainId,
+    head: state.head,
+    streamFresh: state.streamFresh,
+    websocketSubscribed: state.websocketSubscribed,
+    latency: state.latency,
+    candidates,
+    candidateCount: candidates.length,
+    provenance: {
+      ownership: 'first-party',
+      transport: 'ZEVARYQ local WebSocket + JSON-RPC',
+      source: 'KriptoAman-operated node/indexer',
+      externalMarketProviderUsed: false,
+    },
+    warning: 'Contract creation is not proof of token standard, liquidity, listing, safety, or endorsement.',
+    publishedAt: state.publishedAt,
+  };
+}
+
 const server = http.createServer((req, res) => {
-  if (req.method !== 'GET' || !['/health', '/v1/discovery'].includes(req.url)) {
+  if (req.method !== 'GET' || !['/health', '/v1/discovery', '/v1/radar'].includes(req.url)) {
     res.writeHead(404).end();
     return;
   }
   const state = publicState();
   const body = req.url === '/health'
-    ? { status: state.status, chainId: state.chainId, websocketSubscribed: state.websocketSubscribed, lastHeadAt: state.lastHeadAt, head: state.head, catchupTruncated }
-    : state;
+    ? { status: state.status, chainId: state.chainId, websocketSubscribed: state.websocketSubscribed, lastHeadAt: state.lastHeadAt, lastIndexedAt: state.lastIndexedAt, head: state.head, catchupTruncated, latency: state.latency }
+    : req.url === '/v1/radar'
+      ? radarState(state)
+      : state;
   res.writeHead(state.status === 'live' ? 200 : 503, {
     'content-type': 'application/json; charset=utf-8',
     'cache-control': 'no-store',
