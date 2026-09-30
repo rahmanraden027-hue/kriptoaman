@@ -5,6 +5,8 @@ import vm from 'node:vm';
 
 const original = await readFile(new URL('../src/services/zevaryqNetwork.js', import.meta.url), 'utf8');
 const wallet = await readFile(new URL('../src/pages/Wallet.jsx', import.meta.url), 'utf8');
+const infrastructure = await readFile(new URL('../src/components/zevaryq-wallet/NetworkInfrastructureCard.jsx', import.meta.url), 'utf8');
+const networkHook = await readFile(new URL('../src/hooks/useZevaryqNetworkStatus.js', import.meta.url), 'utf8');
 
 function loadService(mockFetch) {
   const source = original
@@ -23,7 +25,7 @@ function loadService(mockFetch) {
 }
 
 const goodStatus = (wallet = undefined) => ({
-  live: true, verified: true, chainIdHex: '0x560c', blockNumber: 147343, syncStatus: 'synced', wallet,
+  live: true, verified: true, chainIdHex: '0x560c', blockNumber: 147343, syncStatus: 'synced', probeDurationMs: 91, wallet,
 });
 
 const json = (payload, status = 200) => Response.json(payload, { status });
@@ -165,4 +167,64 @@ test('Wallet separates network availability from wallet connection and keeps rea
   assert.match(wallet, /Transaction preview/);
   assert.match(wallet, /Broadcast Locked/);
   assert.doesNotMatch(wallet, /disabled=\{web3\?\.readOnlyRelease\} className="zv-button-primary w-full disabled:opacity-45">Send ZVQ/);
+});
+
+
+test('Wallet aggregates verified first-party server telemetry without overstating the stream', async () => {
+  const api = loadService(async (url) => {
+    if (url === '/api/kam/network-status') return json(goodStatus());
+    if (url === 'https://explorer.kriptoaman.com/api/v2/blocks') return json({ items: [{ height: 147343 }] });
+    if (url === '/api/zvq-first-party-discovery') return json({
+      status: 'live',
+      chainId: 22028,
+      head: { number: 147343 },
+      provenance: { transport: 'JSON-RPC' },
+      latencyMs: 82,
+    });
+    if (url === '/api/zvq-token-intelligence') return json({
+      status: 'live',
+      chainId: 22028,
+      sourceMode: 'first-party-json-rpc',
+      head: { number: 147343 },
+      radar: { scannedBlocks: 12, tokenMetadataProven: 0 },
+      latencyMs: 127,
+    });
+    if (url === '/api/platform-status') return json({
+      overall: 'operational',
+      generatedAt: '2026-09-30T06:00:00.000Z',
+      components: {
+        kam: { chainId: 22028 },
+        networks: { online: 21, total: 21 },
+      },
+    });
+    throw new Error('Unexpected URL: ' + url);
+  });
+
+  const state = await api.fetchZevaryqNetworkStatus();
+  assert.equal(state.rpc, 'connected');
+  assert.equal(state.explorer, 'connected');
+  assert.equal(state.latency, 91);
+  assert.equal(state.sources.discovery.state, 'connected');
+  assert.equal(state.sources.discovery.transport, 'JSON-RPC');
+  assert.equal(state.sources.tokenIntelligence.state, 'connected');
+  assert.equal(state.sources.tokenIntelligence.sourceMode, 'first-party-json-rpc');
+  assert.equal(state.sources.tokenIntelligence.streamState, 'fallback');
+  assert.equal(state.sources.tokenIntelligence.scannedBlocks, 12);
+  assert.equal(state.sources.platform.state, 'operational');
+  assert.equal(state.sources.platform.networksOnline, 21);
+  assert.equal(state.sources.platform.networksTotal, 21);
+  assert.equal(state.error, '');
+});
+
+test('Wallet infrastructure UI labels live and fallback sources truthfully', () => {
+  assert.match(infrastructure, /First-party Discovery/);
+  assert.match(infrastructure, /Token Intelligence/);
+  assert.match(infrastructure, /Data Stream/);
+  assert.match(infrastructure, /JSON-RPC polling/);
+  assert.match(infrastructure, /Validator admin, signer, private-key and write-RPC interfaces are intentionally not connected/);
+});
+
+test('Wallet telemetry auto-refresh is bounded to one minute', () => {
+  assert.match(networkHook, /const AUTO_REFRESH_MS = 60_000/);
+  assert.match(networkHook, /window\.setInterval\(\(\) => load\(\{ silent: true \}\), AUTO_REFRESH_MS\)/);
 });
