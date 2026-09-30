@@ -54,63 +54,21 @@ jobs:
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
     timeout-minutes: 8
     steps:
-      - name: Read-only RPC sentry and private WebSocket preflight
+      - name: Read-only Explorer host and private WebSocket preflight
         shell: bash
         run: |
           set -euo pipefail
-          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15 'bash -s' <<'REMOTE'
-          set -euo pipefail
-          command -v node >/dev/null
-          command -v jq >/dev/null
-          command -v curl >/dev/null
-          nginx -t >/dev/null
-          conf="$(readlink -f /etc/nginx/sites-enabled/zevaryq-rpc)"
-          test -r "$conf"
-
-          target="$(python3 - "$conf" <<'PY'
-          import re,sys
-          text=open(sys.argv[1],encoding='utf-8').read()
-          hits=re.findall(r'^\s*proxy_pass\s+(http://[^;]+);\s*$',text,flags=re.M)
-          eligible=[u for u in hits if re.fullmatch(r'http://10(?:\.\d{1,3}){3}/rpc',u) or re.fullmatch(r'http://127\.0\.0\.1:1844[56]',u)]
-          if len(eligible)!=1: raise SystemExit(1)
-          print(eligible[0])
-          PY
-          )"
-
-          if [[ "$target" =~ ^http://127[.]0[.]0[.]1:(18445|18446)$ ]]; then
-            port="${BASH_REMATCH[1]}"
-            upstream=
-            while read -r id; do
-              env="$(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$id" 2>/dev/null || true)"
-              test "$(awk -F= '$1=="ZVQ_GATEWAY_PORT"{print $2}' <<<"$env" | tail -1)" = "$port" || continue
-              upstream="$(awk -F= '$1=="ZVQ_UPSTREAM_URL"{sub(/^[^=]*=/,"");print}' <<<"$env" | tail -1)"
-              break
-            done < <(docker ps -q)
-          else
-            upstream="$target"
-          fi
-
-          python3 - "$upstream" <<'PY' >/dev/null
-          import ipaddress,sys
-          from urllib.parse import urlparse
-          p=urlparse(sys.argv[1])
-          if p.scheme!="http" or p.port or p.path!="/rpc": raise SystemExit(1)
-          ip=ipaddress.ip_address(p.hostname or "")
-          if not ip.is_private or ip.is_loopback or ip.is_link_local: raise SystemExit(1)
-          PY
-
-          chain="$(curl --noproxy '*' -fsS --connect-timeout 4 --max-time 8 -H 'content-type: application/json'             --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' "$upstream" | jq -er '.result')"
+          test "$(hostname -s)" = "kam-explorer-blockscout-01"
+          sudo -n true
+          test -d /opt/blockscout/docker-compose
+          private_rpc='10.104.0.2'
+          chain="$(curl --noproxy '*' -fsS --connect-timeout 4 --max-time 8 \
+            -H 'content-type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+            "http://$private_rpc:8545" | jq -er '.result')"
           test "$chain" = 0x560c
-          host="$(python3 - "$upstream" <<'PY'
-          import sys
-          from urllib.parse import urlparse
-          print(urlparse(sys.argv[1]).hostname)
-          PY
-          )"
 
-          ok=0
-          for p in 8546 8547 9546; do
-            if node - "ws://$host:$p" <<'NODE'
+          node - "ws://$private_rpc:8546" <<'NODE'
           const url=process.argv[2];
           let ws,doneFlag=false;
           const finish=(code)=>{ if(doneFlag)return; doneFlag=true; clearTimeout(timer); try{ws.close()}catch{}; setTimeout(()=>process.exit(code),10); };
@@ -127,11 +85,14 @@ jobs:
           ws.addEventListener('error',()=>finish(1));
           ws.addEventListener('close',()=>{if(!doneFlag)finish(1)});
           NODE
-            then ok=1; break; fi
-          done
-          test "$ok" = 1
-          echo "qoryvex_streaming_readonly_preflight=pass chain_id=0x560c websocket_subscription=pass"
-          REMOTE
+
+          cd /opt/blockscout/docker-compose
+          proxy_id="$(docker compose ps -q proxy)"
+          test -n "$proxy_id"
+          network_mode="$(docker inspect -f '{{.HostConfig.NetworkMode}}' "$proxy_id")"
+          echo "explorer_proxy_network_mode=$network_mode"
+          echo "indexer_port_8765_listeners=$(ss -H -ltn '( sport = :8765 )' | wc -l)"
+          echo "qoryvex_explorer_readonly_preflight=pass chain_id=0x560c websocket_subscription=pass"
 
   deploy:
     if: github.event_name == 'push' && startsWith(github.event.head_commit.message, 'QORYVEX STREAMING CUTOVER 20260930')
