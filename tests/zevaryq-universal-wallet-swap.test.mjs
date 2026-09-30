@@ -65,6 +65,7 @@ test('legacy swap surfaces never fabricate quotes or destination addresses', asy
 
 test('ZEVARYQ swap catalog exposes native and planned first-party assets without impersonating issuers', async () => {
   const ui = await read('src/components/zevaryq-wallet/ZevaryqSwap.jsx');
+  const icons = await read('src/components/zevaryq-wallet/ZevaryqTokenIcon.jsx');
 
   assert.match(ui, /ZEVARYQ Asset Universe/);
   assert.match(ui, /symbol: 'ZVQ'/);
@@ -72,8 +73,10 @@ test('ZEVARYQ swap catalog exposes native and planned first-party assets without
   assert.match(ui, /symbol: 'zBTC'/);
   assert.match(ui, /symbol: 'zETH'/);
   assert.doesNotMatch(ui, /\/assets\/zevaryq\/tokens\/zusd-v2\.svg/);
-  assert.match(ui, /\/assets\/zevaryq\/tokens\/zbtc-v2\.svg/);
-  assert.match(ui, /\/assets\/zevaryq\/tokens\/zeth-v2\.svg/);
+  assert.match(ui, /<ZevaryqTokenIcon symbol=\{asset\.symbol\}/);
+  assert.match(icons, /zBTC: '\/assets\/zevaryq\/tokens\/zbtc-v2\.svg'/);
+  assert.match(icons, /zETH: '\/assets\/zevaryq\/tokens\/zeth-v2\.svg'/);
+  assert.match(icons, /\`\/assets\/zevaryq\/tokens\/\$\{symbol\}\.png\`/);
   assert.match(ui, /not issuer-issued stablecoins or tradable assets/);
   assert.match(ui, /USDT\/USDC issuer assets are not created or imitated by ZEVARYQ/);
   assert.match(ui, /Additional ERC-20 assets appear automatically only from the verified swap registry/);
@@ -89,10 +92,7 @@ test('ZEVARYQ Assets page renders production ecosystem token icons even before b
   assert.match(wallet, /data-zvq-production-token-icons="zBTC,zETH,zUSDT,zUSDC"/);
   assert.match(wallet, /data-token-identity-version="2"/);
   assert.doesNotMatch(wallet, /\/assets\/zevaryq\/tokens\/zusd-v2\.svg/);
-  assert.match(wallet, /\/assets\/zevaryq\/tokens\/zbtc-v2\.svg/);
-  assert.match(wallet, /\/assets\/zevaryq\/tokens\/zeth-v2\.svg/);
-  assert.match(wallet, /\/assets\/zevaryq\/tokens\/zusdt-v2\.svg/);
-  assert.match(wallet, /\/assets\/zevaryq\/tokens\/zusdc-v2\.svg/);
+  assert.match(wallet, /<ZevaryqTokenIcon symbol=\{asset\.symbol\}/);
   assert.match(wallet, /Planned ecosystem assets/);
   assert.match(wallet, /Identity preview only · not wallet holdings/);
   assert.match(wallet, /PLANNED/);
