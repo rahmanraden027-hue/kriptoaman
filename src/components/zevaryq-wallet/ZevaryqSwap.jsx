@@ -10,6 +10,7 @@ import {
 } from '@/services/zevaryqSwap';
 import { ZEVARYQ } from '@/theme/zevaryqWallet';
 import { StatePanel } from './WalletUI';
+import ZevaryqTokenIcon from './ZevaryqTokenIcon';
 
 const FIRST_PARTY_ASSET_CATALOG = Object.freeze([
   {
@@ -74,7 +75,7 @@ function AssetCatalog({ registryTokens = [], registryVerified = false }) {
                   decoding="async"
                 />
               ) : (
-                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-[#2D8CFF]/35 bg-[#102235] text-sm font-black text-[#F2C86B]">{asset.symbol.slice(0, 4)}</span>
+                <ZevaryqTokenIcon symbol={asset.symbol} className="h-14 w-14" />
               )}
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
@@ -261,7 +262,7 @@ export default function ZevaryqSwap({ web3, onConnect }) {
 
       <div className="rounded-2xl border border-[#1A3A59] bg-[#071522]/65 p-4">
         <div className="flex items-center gap-3">
-          <select value={fromSymbol} onChange={(event) => { setFromSymbol(event.target.value); setQuote(null); }} className="rounded-xl border border-[#1A3A59] bg-[#102235] px-3 py-2 font-black">
+          <ZevaryqTokenIcon symbol={fromSymbol} className="h-10 w-10" /><select value={fromSymbol} onChange={(event) => { setFromSymbol(event.target.value); setQuote(null); }} className="rounded-xl border border-[#1A3A59] bg-[#102235] px-3 py-2 font-black">
             {tokens.filter((symbol) => symbol !== toSymbol).map((symbol) => <option key={symbol}>{symbol}</option>)}
           </select>
           <input value={amount} onChange={(event) => { setAmount(event.target.value); setQuote(null); }} inputMode="decimal" placeholder="0.0" className="min-w-0 flex-1 bg-transparent text-right text-2xl font-black outline-none" />
@@ -274,7 +275,7 @@ export default function ZevaryqSwap({ web3, onConnect }) {
 
       <div className="rounded-2xl border border-[#1A3A59] bg-[#071522]/65 p-4">
         <div className="flex items-center gap-3">
-          <select value={toSymbol} onChange={(event) => { setToSymbol(event.target.value); setQuote(null); }} className="rounded-xl border border-[#1A3A59] bg-[#102235] px-3 py-2 font-black">
+          <ZevaryqTokenIcon symbol={toSymbol} className="h-10 w-10" /><select value={toSymbol} onChange={(event) => { setToSymbol(event.target.value); setQuote(null); }} className="rounded-xl border border-[#1A3A59] bg-[#102235] px-3 py-2 font-black">
             {tokens.filter((symbol) => symbol !== fromSymbol).map((symbol) => <option key={symbol}>{symbol}</option>)}
           </select>
           <p className="min-w-0 flex-1 break-all text-right text-2xl font-black leading-tight">{quote ? quote.amountOutFormatted : '—'}</p>
