@@ -23,7 +23,7 @@ function Gauge({ value, label }) {
         <p className="text-2xl font-extrabold ka-num leading-none" style={{ color }}>{Math.round(v)}</p>
         <p className="text-[10px] font-semibold mt-0.5" style={{ color }}>{label || '—'}</p>
       </div>
-      <p className="mt-3 text-[11px] leading-relaxed text-slate-500">Sumber: CoinGecko Global dan Alternative.me · Diperbarui otomatis setiap 60 detik · Data informatif, bukan harga eksekusi.</p>
+      <p className="mt-3 text-[11px] leading-relaxed text-slate-500">Sumber upstream dicatat oleh API KriptoAman · Diperbarui otomatis setiap 60 detik · Data informatif, bukan harga eksekusi.</p>
     </div>
   );
 }
@@ -32,26 +32,32 @@ export default function HomeMarketOverview() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const load = () => {
+  const load = async () => {
     setLoading(true);
-    Promise.all([
-      fetch('https://api.coingecko.com/api/v3/global').then(r => r.json()).catch(() => null),
-      fetch('https://api.alternative.me/fng/?limit=1').then(r => r.json()).catch(() => null),
-    ]).then(([g, fng]) => {
-      setData({
-        mc: g?.data?.total_market_cap?.usd ?? null,
-        mcChange: g?.data?.market_cap_change_percentage_24h_usd ?? null,
-        vol: g?.data?.total_volume?.usd ?? null,
-        btc: g?.data?.market_cap_percentage?.btc ?? null,
-        eth: g?.data?.market_cap_percentage?.eth ?? null,
-        active: g?.data?.active_cryptocurrencies ?? null,
-        markets: g?.data?.markets ?? null,
-        fear: fng?.data?.[0]?.value ?? null,
-        fearLabel: fng?.data?.[0]?.value_classification ?? null,
-        fearUpdated: fng?.data?.[0]?.timestamp ?? null,
+    try {
+      const response = await fetch('/api/market-overview', {
+        headers: { Accept: 'application/json' },
+        cache: 'no-store',
       });
+      if (!response.ok) throw new Error(`Market overview HTTP ${response.status}`);
+      const payload = await response.json();
+      setData({
+        mc: payload?.marketCap ?? null,
+        mcChange: payload?.marketCapChange24h ?? null,
+        vol: payload?.volume24h ?? null,
+        btc: payload?.btcDominance ?? null,
+        eth: payload?.ethDominance ?? null,
+        active: payload?.activeCryptocurrencies ?? null,
+        markets: payload?.markets ?? null,
+        fear: payload?.fearGreed ?? null,
+        fearLabel: payload?.fearGreedLabel ?? null,
+        fearUpdated: payload?.fearGreedTimestamp ?? null,
+      });
+    } catch {
+      // Preserve the last verified KriptoAman overview rather than fabricating replacements.
+    } finally {
       setLoading(false);
-    });
+    }
   };
 
   useEffect(() => {
