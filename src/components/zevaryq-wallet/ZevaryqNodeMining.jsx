@@ -5,6 +5,9 @@ import { ZEVARYQ } from '@/theme/zevaryqWallet';
 const POLL_MS = 30_000;
 const STALE_MS = 90_000;
 const MAX_LAG = 12;
+const STATUS_PATH = '/api/kam/network-status';
+const CHAIN_ID_HEX = ZEVARYQ.chainIdHex;
+const HASH_RE = /^0x[a-fA-F0-9]{64}$/;
 const UNKNOWN = 'Unavailable';
 const explorerUrl = ZEVARYQ.explorer.replace(/\/$/, '');
 
