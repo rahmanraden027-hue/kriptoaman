@@ -155,6 +155,12 @@ function Assets({ account, balance, balancePhase, tokenAssets, assetPhase }) {
     },
     { symbol: 'zUSDT', name: 'ZEVARYQ bridged USDT candidate', icon: '/assets/zevaryq/tokens/zusdt-v2.svg', detail: 'PLANNED · not Tether-issued USDT · issuer/bridge provenance and backing pending' },
     { symbol: 'zUSDC', name: 'ZEVARYQ bridged USDC candidate', icon: '/assets/zevaryq/tokens/zusdc-v2.svg', detail: 'PLANNED · not Circle-issued USDC · issuer/bridge provenance and backing pending' },
+    { symbol: 'zBNB', name: 'ZEVARYQ BNB candidate', icon: '/assets/zevaryq/tokens/zbnb-v2.svg', detail: 'PLANNED · proposed bridged representation · backing, contract and bridge verification pending' },
+    { symbol: 'zSOL', name: 'ZEVARYQ Solana candidate', icon: '/assets/zevaryq/tokens/zsol-v2.svg', detail: 'PLANNED · proposed bridged representation · backing, contract and bridge verification pending' },
+    { symbol: 'zTRX', name: 'ZEVARYQ TRON candidate', icon: '/assets/zevaryq/tokens/ztrx-v2.svg', detail: 'PLANNED · proposed bridged representation · backing, contract and bridge verification pending' },
+    { symbol: 'zXRP', name: 'ZEVARYQ XRP candidate', icon: '/assets/zevaryq/tokens/zxrp-v2.svg', detail: 'PLANNED · proposed bridged representation · backing, contract and bridge verification pending' },
+    { symbol: 'zADA', name: 'ZEVARYQ Cardano candidate', icon: '/assets/zevaryq/tokens/zada-v2.svg', detail: 'PLANNED · proposed bridged representation · backing, contract and bridge verification pending' },
+    { symbol: 'zDOGE', name: 'ZEVARYQ Dogecoin candidate', icon: '/assets/zevaryq/tokens/zdoge-v2.svg', detail: 'PLANNED · proposed bridged representation · backing, contract and bridge verification pending' },
   ];
 
   return <section className="zv-card p-5">
@@ -181,7 +187,7 @@ function Assets({ account, balance, balancePhase, tokenAssets, assetPhase }) {
       <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-[9px] font-black text-amber-200">PLANNED</span>
     </div>
 
-    <div className="mt-3 grid gap-3" data-zvq-production-token-icons="zBTC,zETH,zUSDT,zUSDC" data-token-identity-version="2">
+    <div className="mt-3 grid gap-3" data-zvq-production-token-icons="zBTC,zETH,zUSDT,zUSDC,zBNB,zSOL,zTRX,zXRP,zADA,zDOGE" data-token-identity-version="2">
       {ecosystemAssets.map((asset) => (
         <div key={asset.symbol} className="rounded-2xl border border-[#1A3A59] bg-[#071522]/65 p-4">
           <div className="flex items-start gap-3">
