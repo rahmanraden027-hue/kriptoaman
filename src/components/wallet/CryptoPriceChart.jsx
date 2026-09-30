@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { TrendingUp, TrendingDown, RefreshCw, Wallet } from 'lucide-react';
 import { COINS, getPrices, getBalance, formatAmount } from './multiCoinApi';
+import { getMarketChart } from '../market/marketDataService';
 
 const COIN_LIST = ['BTC', 'ETH', 'BNB', 'SOL', 'DOGE', 'MATIC', 'LTC'];
 const COIN_ICONS = { BTC: '₿', ETH: 'Ξ', LTC: 'Ł', BNB: 'B', SOL: '◎', DOGE: 'Ð', MATIC: 'M' };
@@ -19,16 +20,12 @@ function savePrefs(p) {
   localStorage.setItem(PREF_KEY, JSON.stringify(p));
 }
 
-async function fetchHistory(coingeckoId, days = 7) {
-  const res = await fetch(
-    `https://api.coingecko.com/api/v3/coins/${coingeckoId}/market_chart?vs_currency=usd&days=${days}&interval=daily`
-  );
-  if (!res.ok) return [];
-  const data = await res.json();
-  return (data.prices || []).map(([ts, price]) => ({
-    date: new Date(ts).toLocaleDateString('id-ID', { month: 'short', day: 'numeric' }),
-    price: parseFloat(price.toFixed(2)),
-  }));
+async function fetchHistory(coinId, days = 7) {
+  const rows = await getMarketChart(coinId, days, '1d');
+  return rows.map(row => ({
+    date: new Date(row.timestamp).toLocaleDateString('id-ID', { month: 'short', day: 'numeric' }),
+    price: Number(row.price),
+  })).filter(row => Number.isFinite(row.price));
 }
 
 function formatPrice(p) {
@@ -57,7 +54,7 @@ function CoinChart({ coinId, globalRange, addresses }) {
   const load = useCallback(async () => {
     setLoading(true);
     const [hist, prices] = await Promise.all([
-      fetchHistory(coin.coingeckoId, globalRange).catch(() => []),
+      fetchHistory(coinId, globalRange).catch(() => []),
       getPrices(),
     ]);
     setHistory(hist);
