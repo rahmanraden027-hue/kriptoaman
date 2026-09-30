@@ -1,0 +1,84 @@
+name: KriptoAman Market Feed Collector
+
+on:
+  pull_request:
+    paths:
+      - 'services/kriptoaman-market-feed/**'
+      - 'functions/api/market-feed-ingest.js'
+      - 'functions/api/market-feed-hot.js'
+      - 'functions/api/market-price.js'
+      - 'scripts/deploy-kriptoaman-market-feed.sh'
+      - 'tests/market-feed-collector.test.mjs'
+      - '.github/workflows/kriptoaman-market-feed.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'services/kriptoaman-market-feed/**'
+      - 'functions/api/market-feed-ingest.js'
+      - 'functions/api/market-feed-hot.js'
+      - 'functions/api/market-price.js'
+      - 'scripts/deploy-kriptoaman-market-feed.sh'
+      - 'tests/market-feed-collector.test.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Validate market feed collector
+        run: |
+          set -euo pipefail
+          node --check services/kriptoaman-market-feed/model.mjs
+          node --check services/kriptoaman-market-feed/collector.mjs
+          node --check functions/api/market-feed-ingest.js
+          node --check functions/api/market-feed-hot.js
+          node --check functions/api/market-price.js
+          bash -n scripts/deploy-kriptoaman-market-feed.sh
+          node --test tests/market-feed-collector.test.mjs
+          ! grep -REn 'PRIVATE_KEY|MNEMONIC|SEED_PHRASE|eth_sendRawTransaction|personal_|admin_' services/kriptoaman-market-feed scripts/deploy-kriptoaman-market-feed.sh
+          ! grep -REn 'Math\.random|synthetic.*price|fake.*price' services/kriptoaman-market-feed
+
+  deploy:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: [self-hosted, linux, x64, ka-intelligence-indexer]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - name: Stage local collector sources
+        run: |
+          set -euo pipefail
+          install -d -m 0750 /tmp/kriptoaman-market-feed
+          install -m 0750 services/kriptoaman-market-feed/collector.mjs /tmp/kriptoaman-market-feed/collector.mjs
+          install -m 0640 services/kriptoaman-market-feed/model.mjs /tmp/kriptoaman-market-feed/model.mjs
+      - name: Preflight
+        run: sudo -n env GITHUB_RUN_ID="$GITHUB_RUN_ID" SOURCE_DIR=/tmp/kriptoaman-market-feed bash scripts/deploy-kriptoaman-market-feed.sh preview
+      - name: Apply guarded collector
+        id: apply
+        run: sudo -n env GITHUB_RUN_ID="$GITHUB_RUN_ID" SOURCE_DIR=/tmp/kriptoaman-market-feed bash scripts/deploy-kriptoaman-market-feed.sh apply
+      - name: Verify local health and public ingest read path
+        run: |
+          set -euo pipefail
+          local_health="$(curl -fsS --max-time 6 http://127.0.0.1:8780/health)"
+          jq -e '(.status == "live" or .status == "degraded") and .coverage.available >= 5' <<<"$local_health" >/dev/null
+          for attempt in 1 2 3 4 5 6; do
+            code="$(curl -sS --max-time 10 -o /tmp/ka-feed.json -w '%{http_code}' https://kriptoaman.com/api/market-feed-hot || true)"
+            if [[ "$code" == 200 ]] && jq -e '(.status == "live" or .status == "degraded") and .collector.ownership == "KriptoAman" and .provenance.browserDirectVenueAccess == false' /tmp/ka-feed.json >/dev/null; then
+              echo "market_feed_public_gate=pass"
+              exit 0
+            fi
+            sleep 5
+          done
+          cat /tmp/ka-feed.json 2>/dev/null || true
+          exit 1
+      - name: Roll back if production gate fails
+        if: failure() && steps.apply.outcome != 'skipped'
+        run: sudo -n env GITHUB_RUN_ID="$GITHUB_RUN_ID" SOURCE_DIR=/tmp/kriptoaman-market-feed bash scripts/deploy-kriptoaman-market-feed.sh rollback
