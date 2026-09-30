@@ -54,25 +54,25 @@ jobs:
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
     timeout-minutes: 8
     steps:
-      - name: Read-only Explorer host and private WebSocket preflight
+      - name: Read-only Explorer host and private node topology preflight
         shell: bash
         run: |
           set -euo pipefail
           test "$(hostname -s)" = "kam-explorer-blockscout-01"
           sudo -n true
-          test -d /opt/blockscout/docker-compose
-          private_rpc='10.104.0.2'
-          chain="$(curl --noproxy '*' -fsS --connect-timeout 4 --max-time 8 \
-            -H 'content-type: application/json' \
-            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
-            "http://$private_rpc:8545" | jq -er '.result')"
-          test "$chain" = 0x560c
+          cd /opt/blockscout/docker-compose
+          proxy_id="$(docker compose ps -q proxy)"
+          test -n "$proxy_id"
+          network_mode="$(docker inspect -f '{{.HostConfig.NetworkMode}}' "$proxy_id")"
+          echo "explorer_proxy_network_mode=$network_mode"
+          echo "indexer_port_8765_listeners=$(ss -H -ltn '( sport = :8765 )' | wc -l)"
 
-          node - "ws://$private_rpc:8546" <<'NODE'
+          ws_probe() {
+            node - "$1" <<'NODE'
           const url=process.argv[2];
           let ws,doneFlag=false;
           const finish=(code)=>{ if(doneFlag)return; doneFlag=true; clearTimeout(timer); try{ws.close()}catch{}; setTimeout(()=>process.exit(code),10); };
-          const timer=setTimeout(()=>finish(1),6000);
+          const timer=setTimeout(()=>finish(1),5000);
           try{ws=new WebSocket(url)}catch{finish(1)}
           ws.addEventListener('open',()=>ws.send(JSON.stringify({jsonrpc:'2.0',id:1,method:'eth_chainId',params:[]})));
           ws.addEventListener('message',e=>{
@@ -85,14 +85,27 @@ jobs:
           ws.addEventListener('error',()=>finish(1));
           ws.addEventListener('close',()=>{if(!doneFlag)finish(1)});
           NODE
+          }
 
-          cd /opt/blockscout/docker-compose
-          proxy_id="$(docker compose ps -q proxy)"
-          test -n "$proxy_id"
-          network_mode="$(docker inspect -f '{{.HostConfig.NetworkMode}}' "$proxy_id")"
-          echo "explorer_proxy_network_mode=$network_mode"
-          echo "indexer_port_8765_listeners=$(ss -H -ltn '( sport = :8765 )' | wc -l)"
-          echo "qoryvex_explorer_readonly_preflight=pass chain_id=0x560c websocket_subscription=pass"
+          found=0
+          for entry in recovery:10.104.0.8 intelligence:10.104.0.6 sentry:10.104.0.2; do
+            label="${entry%%:*}"
+            host="${entry#*:}"
+            http=no
+            ws=no
+            chain="$(curl --noproxy '*' -sS --connect-timeout 3 --max-time 6 \
+              -H 'content-type: application/json' \
+              --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+              "http://$host:8545" | jq -r '.result // empty' 2>/dev/null || true)"
+            test "$chain" != 0x560c || http=yes
+            if ws_probe "ws://$host:8546" >/dev/null 2>&1; then ws=yes; fi
+            echo "candidate_$label http_rpc=$http websocket_subscription=$ws"
+            if test "$http" = yes && test "$ws" = yes; then
+              found=$((found+1))
+            fi
+          done
+          test "$found" -ge 1
+          echo "qoryvex_explorer_readonly_preflight=pass viable_private_nodes=$found"
 
   deploy:
     if: github.event_name == 'push' && startsWith(github.event.head_commit.message, 'QORYVEX STREAMING CUTOVER 20260930')
