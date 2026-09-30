@@ -8,7 +8,12 @@ test('node screen is accessible and read-only',()=>{
   assert.match(wallet,/screen==='node'&&<ZevaryqNodeMining/);
   assert.match(nav,/id:'node',label:'Node'/);
   assert.match(node,/data-mode="read-only"/);
-  assert.match(node,/Node rewards',value:'Not enabled'/);
+  assert.match(node,/Validator enrollment, staking and rewards: disabled/);
+  assert.match(node,/const POLL_MS = 30_000/);
+  assert.match(node,/const STALE_MS = 90_000/);
+  assert.match(node,/const MAX_LAG = 12/);
+  assert.match(node,/delta < 0 \? 'CHECK SOURCES'/);
+  assert.match(node,/Indexed block evidence/);
   assert.doesNotMatch(node,/sendTransaction|privateKey|eth_sendTransaction|mint\(/);
 });
 test('planned token identities are not presented as holdings',()=>{
