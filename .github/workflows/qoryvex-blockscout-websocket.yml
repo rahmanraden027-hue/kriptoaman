@@ -53,10 +53,50 @@ jobs:
           sudo -n sed -n '1,90p' proxy/default.conf.template
           echo '== socket/api routing excerpts =='
           sudo -n grep -En 'socket|websocket|proxy_pass|upstream|api/v2' proxy/default.conf.template | head -120 || true
+          echo '== rendered nginx route =='
+          sudo -n docker exec proxy nginx -T 2>&1 | sed -n '1,90p'
           echo '== backend network =='
           backend_id="$(sudo -n docker compose ps -q backend)"
           test -n "$backend_id"
+          backend_ip="$(sudo -n docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$backend_id")"
+          test -n "$backend_ip"
           sudo -n docker inspect -f 'exposed={{json .Config.ExposedPorts}} network={{range .NetworkSettings.Networks}}{{.IPAddress}} {{end}}' "$backend_id"
+          echo '== backend HTTP candidates =='
+          backend_port=
+          for p in 4000 4001 3000; do
+            code="$(curl -sS --connect-timeout 2 --max-time 4 -o /dev/null -w '%{http_code}' "http://$backend_ip:$p/api/v2/stats" || true)"
+            echo "backend_port=$p http=$code"
+            if [[ "$code" =~ ^(200|401|403|404)$ ]]; then backend_port="$p"; break; fi
+          done
+          test -n "$backend_port"
+          echo "backend_selected=$backend_ip:$backend_port"
+          node - "$backend_ip" "$backend_port" <<'NODE'
+          const [host,port]=process.argv.slice(2);
+          const urls=[
+            `ws://${host}:${port}/socket/v2/websocket?locale=en&vsn=2.0.0`,
+            `ws://${host}:${port}/socket/websocket?locale=en&vsn=2.0.0`,
+          ];
+          async function probe(url){
+            return await new Promise(resolve=>{
+              let ws,joined=false,done=false;
+              const finish=(ok,reason)=>{if(done)return;done=true;clearTimeout(timer);try{ws.close()}catch{};resolve({ok,reason,joined,url})};
+              const timer=setTimeout(()=>finish(false,joined?'joined-no-block-event':'timeout'),25000);
+              try{ws=new WebSocket(url)}catch(e){return finish(false,e.message)}
+              ws.addEventListener('open',()=>ws.send(JSON.stringify(['1','1','blocks:new_block','phx_join',{}])));
+              ws.addEventListener('message',e=>{
+                let x;try{x=JSON.parse(String(e.data))}catch{return}
+                if(Array.isArray(x)&&x[2]==='blocks:new_block'&&x[3]==='phx_reply'&&x[4]?.status==='ok'){joined=true;return}
+                if(Array.isArray(x)&&x[2]==='blocks:new_block'&&x[3]==='new_block')return finish(true,'new-block-event');
+              });
+              ws.addEventListener('error',()=>finish(false,'websocket-error'));
+              ws.addEventListener('close',e=>{if(!done)finish(false,'closed-'+e.code)});
+            })
+          }
+          let ok=false;
+          for(const url of urls){const r=await probe(url);console.log(JSON.stringify(r));if(r.ok){ok=true;break}}
+          if(!ok) process.exit(1);
+          console.log('blockscout_internal_websocket=pass');
+          NODE
           echo '== backend candidates =='
           sudo -n docker ps --format 'name={{.Names}} ports={{.Ports}}' | grep -Ei 'backend|blockscout|proxy' | head -80
           echo 'qoryvex_blockscout_origin_preflight=pass'
