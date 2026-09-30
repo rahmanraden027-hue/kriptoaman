@@ -20,7 +20,7 @@ permissions:
   contents: read
 
 jobs:
-  prove:
+  public-observation:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -28,23 +28,30 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
-      - name: Prove first-party Explorer new-block WebSocket
+      - name: Observe optional public Explorer new-block WebSocket
         run: |
           set -euo pipefail
           node --check scripts/probe-qoryvex-blockscout-websocket.mjs
-          node scripts/probe-qoryvex-blockscout-websocket.mjs
+          if node scripts/probe-qoryvex-blockscout-websocket.mjs; then
+            echo 'public_blockscout_websocket=available'
+          else
+            echo '::warning::Public Blockscout WebSocket is unavailable. QoryVEx production does not depend on this public route; the protected origin and first-party ZEVARYQ indexer gates remain mandatory.'
+            echo 'public_blockscout_websocket=unavailable_not_a_production_dependency'
+          fi
 
   origin-preflight:
     if: github.event_name == 'pull_request'
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
     timeout-minutes: 5
     steps:
-      - name: Inspect existing Blockscout socket routing without mutation
+      - uses: actions/checkout@v7
+      - name: Prove existing Blockscout origin WebSocket without mutation
         shell: bash
         run: |
           set -euo pipefail
           base=/opt/blockscout/docker-compose
           test -d "$base"
+          test -f "$GITHUB_WORKSPACE/scripts/probe-phoenix-blocks.py"
           cd "$base"
           echo '== compose services =='
           sudo -n docker compose config --services
@@ -71,7 +78,7 @@ jobs:
           done
           test -n "$backend_port"
           echo "backend_selected=$backend_ip:$backend_port"
-          python3 scripts/probe-phoenix-blocks.py --timeout 35 \
+          python3 "$GITHUB_WORKSPACE/scripts/probe-phoenix-blocks.py" --timeout 35 \
             "ws://$backend_ip:$backend_port/socket/v2/websocket?locale=en&vsn=2.0.0" \
             "ws://$backend_ip:$backend_port/socket/websocket?locale=en&vsn=2.0.0"
           echo "blockscout_internal_websocket=pass"
