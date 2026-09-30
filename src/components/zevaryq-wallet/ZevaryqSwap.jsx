@@ -20,14 +20,6 @@ const FIRST_PARTY_ASSET_CATALOG = Object.freeze([
     detail: 'Native asset of ZEVARYQ Mainnet · Chain 22028',
   },
   {
-    symbol: 'ZUSD',
-    name: 'ZEVARYQ USD',
-    state: 'planned',
-    badge: 'PLANNED',
-    detail: 'Reserve-backed ecosystem asset candidate · not USDT or USDC · not deployed',
-    icon: '/assets/zevaryq/tokens/zusd-v2.svg',
-  },
-  {
     symbol: 'zBTC',
     name: 'ZEVARYQ Bitcoin',
     state: 'planned',
@@ -43,6 +35,8 @@ const FIRST_PARTY_ASSET_CATALOG = Object.freeze([
     detail: 'ETH-backed representation candidate · bridge/backing authorization pending',
     icon: '/assets/zevaryq/tokens/zeth-v2.svg',
   },
+  { symbol: 'zUSDT', name: 'ZEVARYQ bridged USDT candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Not Tether-issued USDT · issuer or bridge authorization and backing not verified', icon: '/assets/zevaryq/tokens/zusdt-v2.svg' },
+  { symbol: 'zUSDC', name: 'ZEVARYQ bridged USDC candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Not Circle-issued USDC · issuer or bridge authorization and backing not verified', icon: '/assets/zevaryq/tokens/zusdc-v2.svg' },
 ]);
 
 function AssetCatalog({ registryTokens = [], registryVerified = false }) {
@@ -65,7 +59,7 @@ function AssetCatalog({ registryTokens = [], registryVerified = false }) {
         <span className="rounded-full border border-[#2D8CFF]/30 bg-[#2D8CFF]/10 px-3 py-1 text-[10px] font-black text-[#7CC7FF]">CHAIN 22028</span>
       </div>
       <p className="mt-3 text-sm leading-6 text-[#9FB3C8]">
-        ZVQ is the native asset. ZUSD, zBTC and zETH are first-party ZEVARYQ asset-layer candidates and remain locked until their backing, deployment and trading gates are independently satisfied. Additional ERC-20 assets appear automatically only from the verified swap registry.
+        ZVQ is the native asset. zBTC and zETH are planned asset representations. zUSDT and zUSDC are proposed identity previews only, not issuer-issued stablecoins or tradable assets. No asset becomes available for trading without independently verified contracts, provenance, backing and authorization. Additional ERC-20 assets appear automatically only from the verified swap registry.
       </p>
       <div className="mt-5 grid gap-3">
         {rows.map((asset) => (
