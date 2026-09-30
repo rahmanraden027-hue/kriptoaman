@@ -10,9 +10,11 @@ test('user-facing market history never fabricates prices or volume', async () =>
   assert.doesNotMatch(source, /generateSynthetic/);
   assert.doesNotMatch(source, /FALLBACK_PRICES/);
   assert.doesNotMatch(source, /Math\.random/);
-  assert.match(source, /volume:\s*null/);
-  assert.match(source, /source:\s*'coingecko'/);
-  assert.match(source, /if \(!geckoId\) return \[\]/);
+  assert.match(source, /volume:c\.volume==null\?null:Number\(c\.volume\)/);
+  assert.match(source, /source:'kriptoaman-market-history'/);
+  assert.match(source, /\/api\/market-history/);
+  assert.match(source, /SUPPORTED_HISTORY_ASSETS\.has\(asset\)/);
+  assert.doesNotMatch(source, /api\.coingecko\.com|api\.coinlore\.net|min-api\.cryptocompare\.com|stream\.binance\.com/i);
 });
 
 test('market history coverage includes a broad global asset set', async () => {
@@ -32,7 +34,7 @@ test('market history coverage includes a broad global asset set', async () => {
 test('unverified forex and commodity data fail closed', async () => {
   const source = await read('src/components/market/marketDataService.jsx');
 
-  assert.match(source, /export function getForexRates\(\) \{\s*return \{\};/s);
-  assert.match(source, /export function getForexHistory\(\) \{\s*return \[\];/s);
-  assert.match(source, /export function getCommodityRates\(\) \{\s*return \{\};/s);
+  assert.match(source, /export function getForexRates\(\)\{return \{\};\}/);
+  assert.match(source, /export function getForexHistory\(\)\{return \[\];\}/);
+  assert.match(source, /export function getCommodityRates\(\)\{return \{\};\}/);
 });
