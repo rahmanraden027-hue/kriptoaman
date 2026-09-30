@@ -86,11 +86,13 @@ test('ZEVARYQ Assets page renders production ecosystem token icons even before b
   const wallet = await read('src/pages/Wallet.jsx');
 
   assert.match(wallet, /ZEVARYQ Ecosystem Assets/);
-  assert.match(wallet, /data-zvq-production-token-icons="ZUSD,zBTC,zETH"/);
+  assert.match(wallet, /data-zvq-production-token-icons="ZUSD,zBTC,zETH,zUSDT,zUSDC"/);
   assert.match(wallet, /data-token-identity-version="2"/);
   assert.match(wallet, /\/assets\/zevaryq\/tokens\/zusd-v2\.svg/);
   assert.match(wallet, /\/assets\/zevaryq\/tokens\/zbtc-v2\.svg/);
   assert.match(wallet, /\/assets\/zevaryq\/tokens\/zeth-v2\.svg/);
+  assert.match(wallet, /\/assets\/zevaryq\/tokens\/zusdt-v2\.svg/);
+  assert.match(wallet, /\/assets\/zevaryq\/tokens\/zusdc-v2\.svg/);
   assert.match(wallet, /Planned ecosystem assets/);
   assert.match(wallet, /Identity preview only · not wallet holdings/);
   assert.match(wallet, /PLANNED/);
