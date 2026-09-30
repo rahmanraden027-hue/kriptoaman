@@ -149,7 +149,10 @@ export function Web3Provider({ children }) {
       providerRef.current = selectedProvider;
       setWalletType(selectedWallet?.info?.name || (selectedProvider.isMetaMask ? 'MetaMask' : 'Injected Wallet'));
       localStorage.setItem('web3_connected', '1');
-      await refreshBalance(accounts[0], cId);
+      // Connection is complete once the provider, account and chain are established.
+      // Balance refresh is independent and must never keep the wallet UI stuck in "connecting".
+      setConnecting(false);
+      void refreshBalance(accounts[0], cId);
     } catch (e) {
       if (!options.silent) setConnectionError(e?.message || 'Koneksi wallet gagal atau dibatalkan.');
     } finally {
@@ -225,7 +228,9 @@ export function Web3Provider({ children }) {
       providerRef.current = provider;
       localStorage.setItem('web3_connected', 'walletconnect');
       setWalletConnectUri('');
-      await refreshBalance(accounts[0], cId);
+      // Do not couple WalletConnect completion to a potentially slower RPC balance read.
+      setConnecting(false);
+      void refreshBalance(accounts[0], cId);
     } catch (error) {
       if (!options.silent) setConnectionError(error?.message || 'Koneksi WalletConnect gagal atau dibatalkan.');
     } finally {
