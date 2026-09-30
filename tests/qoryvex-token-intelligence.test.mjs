@@ -68,3 +68,13 @@ test('production smoke proves QoryVEx route and first-party token intelligence c
   assert.match(smoke, /contractCreationIsTokenListing !== false/);
   assert.match(smoke, /executionEnabled !== false/);
 });
+
+test('QoryVEx final production page preserves the five-stage evidence architecture', async () => {
+  const page = await read('src/pages/QoryVExDiscovery.jsx');
+  for (const label of ['ZEVARYQ Mainnet', 'New Token Radar', 'Asset Passport', 'Launch DNA', 'QoryVEx Discovery']) {
+    assert.equal(page.includes(label), true, label);
+  }
+  assert.match(page, /No sample token, fabricated address, or synthetic liquidity/);
+  assert.match(page, /Execution remains gated/);
+  assert.doesNotMatch(page, /eth_sendRawTransaction|privateKey|mnemonic|seed phrase/i);
+});
