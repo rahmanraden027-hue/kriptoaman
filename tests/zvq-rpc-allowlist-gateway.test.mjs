@@ -73,6 +73,41 @@ test('browser CORS permits only approved origins and no private verbs', async ()
   assert.equal(bad.headers.get('access-control-allow-origin'), null);
   assert.equal(calls, 1);
 });
+test('QoryVEx discovery is a GET-only first-party read path with origin-scoped CORS', async () => {
+  let discoveryCalls = 0;
+  const gateway = createRpcGateway({
+    upstreamPort: 8545,
+    fetchImpl: async () => new Response(JSON.stringify({ jsonrpc: '2.0', id: 1, result: '0x560c' })),
+    discoveryFetchImpl: async (url, request) => {
+      discoveryCalls++;
+      assert.equal(url, 'http://127.0.0.1:8765/v1/discovery');
+      assert.equal(request.method, 'GET');
+      return new Response(JSON.stringify({ status: 'live', version: 2, chainId: 22028, events: [] }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    },
+  });
+  await new Promise(resolve => gateway.listen(0, '127.0.0.1', resolve));
+  const root = `http://127.0.0.1:${gateway.address().port}`;
+  const ok = await fetch(root + '/qoryvex/v1/discovery', { headers: { origin: 'https://kriptoaman.com' } });
+  assert.equal(ok.status, 200);
+  assert.equal(ok.headers.get('access-control-allow-origin'), 'https://kriptoaman.com');
+  assert.equal(ok.headers.get('x-kriptoaman-source'), 'first-party-zvq-indexer');
+  assert.equal((await ok.json()).chainId, 22028);
+  assert.equal(discoveryCalls, 1);
+
+  const wrongVerb = await fetch(root + '/qoryvex/v1/discovery', { method: 'POST' });
+  assert.equal(wrongVerb.status, 405);
+  assert.equal(discoveryCalls, 1);
+
+  const blockedPreflight = await fetch(root + '/qoryvex/v1/discovery', {
+    method: 'OPTIONS', headers: { origin: 'https://attacker.example' },
+  });
+  assert.equal(blockedPreflight.status, 403);
+  await new Promise(resolve => gateway.close(resolve));
+});
+
 test('deployment cannot run automatically when new code reaches main', () => {
   const workflow = readFileSync(new URL('../.github/workflows/kam-new-host-connectivity.yml', import.meta.url), 'utf8');
   assert.match(workflow, /confirm_rpc_tls:/);
