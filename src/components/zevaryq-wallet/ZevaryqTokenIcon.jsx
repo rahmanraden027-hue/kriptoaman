@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import ZevaryqMark from './ZevaryqMark';
 
-// The premium PNG files must be published under public/assets/zevaryq/tokens/.
-// Until they are published, existing SVG icons remain available as a fallback.
+// Optimized WebP assets are the primary runtime identity; legacy SVGs are the fallback.
 const LEGACY_ICONS = Object.freeze({
   zBTC: '/assets/zevaryq/tokens/zbtc-v2.svg',
   zETH: '/assets/zevaryq/tokens/zeth-v2.svg',
@@ -17,9 +16,9 @@ const LEGACY_ICONS = Object.freeze({
 });
 
 export const ZVQ_TOKEN_ICONS = Object.freeze({
-  ZVQ: '/assets/zevaryq/tokens/ZVQ.png',
-  ZEVARYQ_NETWORK: '/assets/zevaryq/tokens/ZEVARYQ_NETWORK.png',
-  ...Object.fromEntries(Object.keys(LEGACY_ICONS).map((symbol) => [symbol, `/assets/zevaryq/tokens/${symbol}.png`])),
+  ZVQ: '/assets/zevaryq/tokens/ZVQ.webp',
+  ZEVARYQ_NETWORK: '/assets/zevaryq/tokens/ZEVARYQ_NETWORK.webp',
+  ...Object.fromEntries(Object.keys(LEGACY_ICONS).map((symbol) => [symbol, `/assets/zevaryq/tokens/${symbol}.webp`])),
 });
 
 export default function ZevaryqTokenIcon({ symbol, className = 'h-12 w-12' }) {
@@ -31,9 +30,9 @@ export default function ZevaryqTokenIcon({ symbol, className = 'h-12 w-12' }) {
       <span className={`${className} grid shrink-0 place-items-center rounded-full border border-[#1A3A59] bg-[#071522] text-xs font-black text-[#F2C86B]`}>{symbol || '?'}</span>;
   }
   return <img
-    src={failed === 'png' ? legacy : src}
+    src={failed === 'webp' ? legacy : src}
     alt={`${symbol} token logo`}
     className={`${className} shrink-0 rounded-full object-contain`}
-    onError={() => setFailed(failed === 'png' || !legacy ? 'all' : 'png')}
+    onError={() => setFailed(failed === 'webp' || !legacy ? 'all' : 'png')}
   />;
 }
