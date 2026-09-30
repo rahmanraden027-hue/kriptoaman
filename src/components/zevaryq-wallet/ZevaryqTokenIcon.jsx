@@ -33,6 +33,6 @@ export default function ZevaryqTokenIcon({ symbol, className = 'h-12 w-12' }) {
     src={failed === 'webp' ? legacy : src}
     alt={`${symbol} token logo`}
     className={`${className} shrink-0 rounded-full object-contain`}
-    onError={() => setFailed(failed === 'webp' || !legacy ? 'all' : 'png')}
+    onError={() => setFailed(failed === 'webp' || !legacy ? 'all' : 'webp')}
   />;
 }
