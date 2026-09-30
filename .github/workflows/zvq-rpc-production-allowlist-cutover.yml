@@ -39,7 +39,7 @@ jobs:
           ! grep -Eq '10\.[0-9]+\.[0-9]+\.[0-9]+' scripts/zvq-rpc-allowlist-gateway.mjs scripts/deploy-zvq-rpc-sentry-allowlist.sh
 
   deploy:
-    if: github.event_name == 'push' && startsWith(github.event.head_commit.message, 'ZVQ RPC CUTOVER 20260929')
+    if: github.event_name == 'push' && (startsWith(github.event.head_commit.message, 'ZVQ RPC CUTOVER 20260929') || startsWith(github.event.head_commit.message, 'QORYVEX DISCOVERY CUTOVER 20260930'))
     needs: validate
     runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
     timeout-minutes: 15
@@ -57,7 +57,7 @@ jobs:
           ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new             root@206.189.36.15             "ZVQ_RPC_CUTOVER_RUN_ID=$GITHUB_RUN_ID bash /tmp/deploy-zvq-rpc-sentry-allowlist.sh apply"
 
   external-verify:
-    if: github.event_name == 'push' && startsWith(github.event.head_commit.message, 'ZVQ RPC CUTOVER 20260929')
+    if: github.event_name == 'push' && (startsWith(github.event.head_commit.message, 'ZVQ RPC CUTOVER 20260929') || startsWith(github.event.head_commit.message, 'QORYVEX DISCOVERY CUTOVER 20260930'))
     needs: deploy
     runs-on: ubuntu-latest
     timeout-minutes: 8
@@ -92,6 +92,41 @@ jobs:
           test "$(curl -sS --max-time 15 -o /dev/null -w '%{http_code}' https://explorer.kriptoaman.com/)" = 200
           curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks | jq -e '.items | type == "array"' >/dev/null
           curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/transactions | jq -e '.items | type == "array"' >/dev/null
+          discovery_code=000
+          for attempt in 1 2 3 4 5 6; do
+            discovery_code="$(curl -sS --connect-timeout 8 --max-time 20 -o /tmp/qoryvex.json -w '%{http_code}' \
+              -H 'Origin: https://kriptoaman.com' \
+              -H 'Accept: application/json' \
+              https://rpc.kriptoaman.com/qoryvex/v1/discovery || true)"
+            if test "$discovery_code" = 200 && jq -e '
+              .status == "live" and
+              .version >= 2 and
+              .chainId == 22028 and
+              .chainIdHex == "0x560c" and
+              .websocketSubscribed == true and
+              .source.ownership == "first-party" and
+              (.events | type == "array") and
+              (all(.events[]?;
+                (.discovery.kind != "NEW_TOKEN") or
+                (
+                  .discovery.passport.classification == "verified-token" and
+                  .discovery.passport.tokenStandard == "ERC-20" and
+                  .discovery.launchDNA.fingerprint.metadataProven == true
+                )
+              ))
+            ' /tmp/qoryvex.json >/dev/null; then
+              break
+            fi
+            sleep 10
+          done
+          test "$discovery_code" = 200
+          jq -e '.status == "live" and .version >= 2 and .websocketSubscribed == true' /tmp/qoryvex.json >/dev/null
+          health_code="$(curl -sS --connect-timeout 8 --max-time 20 -o /tmp/qoryvex-health.json -w '%{http_code}' \
+            -H 'Origin: https://kriptoaman.com' \
+            https://rpc.kriptoaman.com/qoryvex/health)"
+          test "$health_code" = 200
+          jq -e '.status == "live" and .version >= 2 and .chainId == 22028 and .websocketSubscribed == true' /tmp/qoryvex-health.json >/dev/null
+          echo "qoryvex_first_party_discovery=pass"
           echo "zvq_external_production_gate=pass"
 
   settle:
