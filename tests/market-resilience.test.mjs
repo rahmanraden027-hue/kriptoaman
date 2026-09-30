@@ -22,7 +22,9 @@ test('market providers use bounded requests and automatic recovery events', asyn
   assert.match(source, /addEventListener\('online'/);
   assert.match(source, /visibilitychange/);
   assert.match(source, /\/api\/market-snapshot-page\?page=/);
-  assert.doesNotMatch(source, /api\.coinlore\.net|api\.coingecko\.com|min-api\.cryptocompare\.com/);
+  for (const host of ['api.coinlore.net','api.coingecko.com','min-api.cryptocompare.com']) {
+    assert.ok(!source.toLowerCase().includes(host), `browser market path must not contact ${host}`);
+  }
 });
 
 test('service worker cannot become a stale market or internal API layer', async () => {
