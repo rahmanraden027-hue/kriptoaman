@@ -38,6 +38,12 @@ const FIRST_PARTY_ASSET_CATALOG = Object.freeze([
   },
   { symbol: 'zUSDT', name: 'ZEVARYQ bridged USDT candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Not Tether-issued USDT · issuer or bridge authorization and backing not verified', icon: '/assets/zevaryq/tokens/zusdt-v2.svg' },
   { symbol: 'zUSDC', name: 'ZEVARYQ bridged USDC candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Not Circle-issued USDC · issuer or bridge authorization and backing not verified', icon: '/assets/zevaryq/tokens/zusdc-v2.svg' },
+  { symbol: 'zBNB', name: 'ZEVARYQ BNB candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified', icon: '/assets/zevaryq/tokens/zbnb-v2.svg' },
+  { symbol: 'zSOL', name: 'ZEVARYQ Solana candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified', icon: '/assets/zevaryq/tokens/zsol-v2.svg' },
+  { symbol: 'zTRX', name: 'ZEVARYQ TRON candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified', icon: '/assets/zevaryq/tokens/ztrx-v2.svg' },
+  { symbol: 'zXRP', name: 'ZEVARYQ XRP candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified', icon: '/assets/zevaryq/tokens/zxrp-v2.svg' },
+  { symbol: 'zADA', name: 'ZEVARYQ Cardano candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified', icon: '/assets/zevaryq/tokens/zada-v2.svg' },
+  { symbol: 'zDOGE', name: 'ZEVARYQ Dogecoin candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified', icon: '/assets/zevaryq/tokens/zdoge-v2.svg' },
 ]);
 
 function AssetCatalog({ registryTokens = [], registryVerified = false }) {
