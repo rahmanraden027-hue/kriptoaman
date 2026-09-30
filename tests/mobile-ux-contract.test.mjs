@@ -33,7 +33,9 @@ test('market trust widgets disclose source time and asset quality', async () => 
   assert.match(volume, /ambang volume minimum/);
   assert.match(volume, /bukan verifikasi legitimasi aset/);
   assert.match(volume, /bukan .*rekomendasi investasi/);
-  assert.match(overview, /CoinGecko Global dan Alternative\.me/);
+  assert.match(overview, /Sumber upstream dicatat oleh API KriptoAman/);
+  assert.match(overview, /Data informatif, bukan harga eksekusi/);
+  assert.match(overview, /Preserve the last verified KriptoAman overview/);
 });
 
 test('empty and sparse pages provide useful next actions', async () => {
