@@ -96,3 +96,23 @@ test('ZEVARYQ Assets page renders production ecosystem token icons even before b
   assert.match(wallet, /PLANNED/);
   assert.match(wallet, /does not imply deployment, backing, liquidity, or issuer affiliation/);
 });
+
+
+test('ZEVARYQ device connection state completes before asynchronous balance refresh', async () => {
+  const [provider, wallet] = await Promise.all([
+    read('src/components/web3/Web3Provider.jsx'),
+    read('src/pages/Wallet.jsx'),
+  ]);
+
+  assert.match(provider, /setConnecting\(false\);\s*void refreshBalance\(accounts\[0\], cId\);/);
+  assert.match(wallet, /const walletLabel = web3\?\.isConnected[\s\S]*Wallet connected[\s\S]*web3\?\.connecting \? 'Wallet connecting…'/);
+});
+
+test('ZEVARYQ Send screen keeps the full source address readable on small devices', async () => {
+  const wallet = await read('src/pages/Wallet.jsx');
+
+  assert.match(wallet, /<span>From account<\/span>/);
+  assert.match(wallet, /break-all font-mono text-xs leading-5/);
+  assert.match(wallet, /aria-label="Copy from account"/);
+  assert.doesNotMatch(wallet, /<input readOnly value=\{web3\?\.account\|\|'Wallet not connected'\}/);
+});
