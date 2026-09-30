@@ -22,7 +22,7 @@ test('ERC-20-like discovery requires metadata evidence and does not turn contrac
   assert.match(api, /symbol: '0x95d89b41'/);
   assert.match(api, /decimals: '0x313ce567'/);
   assert.match(api, /totalSupply: '0x18160ddd'/);
-  assert.match(api, /tokenMetadataProven = Boolean\(symbol && decimals != null && totalSupplyRaw != null\)/);
+  assert.match(api, /tokenMetadataProven = Boolean\(name && symbol && decimals != null && totalSupplyRaw != null\)/);
   assert.match(api, /contractCreationIsTokenListing: false/);
   assert.match(api, /tokenMetadataIsAudit: false/);
   assert.match(api, /tokenMetadataIsEndorsement: false/);
@@ -57,6 +57,22 @@ test('QoryVEx Discovery is public and New Token Radar is surfaced on the crypto 
   assert.match(page, /NewTokenRadar expanded/);
 });
 
+
+
+test('QoryVEx prefers the first-party WebSocket indexer and labels JSON-RPC polling as fallback', async () => {
+  const [api, ui] = await Promise.all([
+    read('functions/api/zvq-token-intelligence.js'),
+    read('src/components/market/NewTokenRadar.jsx'),
+  ]);
+  assert.match(api, /qoryvex\/v1\/discovery/);
+  assert.match(api, /first-party-websocket-indexer/);
+  assert.match(api, /first-party-json-rpc-fallback/);
+  assert.match(api, /WebSocket\+JSON-RPC indexer/);
+  assert.match(api, /confirmation-aware-reorg-tracked/);
+  assert.match(ui, /Stream P95/);
+  assert.match(ui, /Confirmation-aware · reorg-tracked/);
+  assert.doesNotMatch(api, /eth_sendRawTransaction|personal_|admin_|debug_/);
+});
 
 test('production smoke proves QoryVEx route and first-party token intelligence contract', async () => {
   const smoke = await read('.github/workflows/live-site-smoke.yml');
