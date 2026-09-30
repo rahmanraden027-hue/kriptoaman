@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getReadOnlyMarketPrices } from '@/lib/readOnlyMarketPrices';
 
-const COINGECKO_API = 'https://api.coingecko.com/api/v3';
-
 // In-memory cache for optional contract-token display data.
 const marketDataCache = {};
 const cacheExpiry = 60000; // 1 minute freshness; persisted fallback has no hard expiry.
@@ -40,29 +38,28 @@ export async function fetchTokenMarketData(contractAddress, chainId = 1) {
   const persisted = readPersistedContractCache(contractAddress, chainId);
 
   try {
-    // Existing contract-token lookup remains optional and display-only.
-    const res = await fetch(
-      `${COINGECKO_API}/simple/token_price/ethereum?...`,
-      {
-        method: 'GET',
-        headers: {
-          'x-cg-pro-api-key': import.meta.env.COINGECKO_API_KEY,
-        },
-      },
-    );
+    const params = new URLSearchParams({
+      address: String(contractAddress).toLowerCase(),
+      chainId: String(chainId),
+    });
+    const res = await fetch(`/api/token-price?${params.toString()}`, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+    });
 
     if (!res.ok) return persisted?.data || null;
 
-    const data = await res.json();
-    const tokenData = data[contractAddress.toLowerCase()];
+    const payload = await res.json();
+    const tokenData = payload?.data;
 
-    if (tokenData) {
+    if (tokenData && Number.isFinite(Number(tokenData.price))) {
       const result = {
-        price: tokenData.usd || 0,
-        change24h: tokenData.usd_24h_change || 0,
-        marketCap: tokenData.usd_market_cap || null,
-        volume24h: tokenData.usd_24h_vol || null,
-        lastUpdated: tokenData.last_updated_at || null,
+        price: Number(tokenData.price),
+        change24h: Number.isFinite(Number(tokenData.change24h)) ? Number(tokenData.change24h) : null,
+        marketCap: Number.isFinite(Number(tokenData.marketCap)) ? Number(tokenData.marketCap) : null,
+        volume24h: Number.isFinite(Number(tokenData.volume24h)) ? Number(tokenData.volume24h) : null,
+        lastUpdated: tokenData.lastUpdated || null,
       };
 
       marketDataCache[cacheKey] = { data: result, timestamp: Date.now() };

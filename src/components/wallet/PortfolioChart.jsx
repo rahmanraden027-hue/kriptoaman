@@ -10,6 +10,7 @@ import {
 import { COINS, getBalance, formatAmount } from './multiCoinApi';
 import useRealtimePrices from './useRealtimePrices';
 import CEXPanel from './CEXPanel';
+import { getMarketChart } from '../market/marketDataService';
 
 const WALLET_COINS = ['BTC', 'ETH', 'BNB', 'SOL', 'DOGE', 'MATIC', 'LTC'];
 const COIN_ICONS   = { BTC: '₿', ETH: 'Ξ', LTC: 'Ł', BNB: 'B', SOL: '◎', DOGE: 'Ð', MATIC: 'M' };
@@ -21,16 +22,13 @@ const RANGE_OPTIONS = [
 
 
 
-async function fetchCoinHistory(coingeckoId, days) {
-  const res = await fetch(
-    `https://api.coingecko.com/api/v3/coins/${coingeckoId}/market_chart?vs_currency=usd&days=${days}&interval=daily`
-  );
-  if (!res.ok) return [];
-  const data = await res.json();
-  return (data.prices || []).map(([ts, price]) => ({
-    date: new Date(ts).toLocaleDateString('id-ID', { month: 'short', day: 'numeric' }),
-    ts, price: parseFloat(price.toFixed(4)),
-  }));
+async function fetchCoinHistory(coinId, days) {
+  const rows = await getMarketChart(coinId, days, '1d');
+  return rows.map(row => ({
+    date: new Date(row.timestamp).toLocaleDateString('id-ID', { month: 'short', day: 'numeric' }),
+    ts: row.timestamp,
+    price: Number(row.price),
+  })).filter(row => Number.isFinite(row.price));
 }
 
 function formatUSD(val) {
@@ -86,7 +84,7 @@ export default function PortfolioChart({ addresses = {} }) {
   const [cexTotal, setCexTotal] = useState(0);
   const [cexConnCount, setCexConnCount] = useState(0);
   const grandTotal = (totalWallet || 0) + cexTotal;
-  const realtimePrices = useRealtimePrices();
+  const { prices: realtimePrices } = useRealtimePrices();
 
   // Update coinValues whenever realtime prices change (without re-fetching balances)
   const balancesRef = React.useRef({});
@@ -127,7 +125,7 @@ export default function PortfolioChart({ addresses = {} }) {
       balancesRef.current = amtMap;
 
       const histories = await Promise.all(
-        WALLET_COINS.map(coinId => fetchCoinHistory(COINS[coinId].coingeckoId, range).catch(() => []))
+        WALLET_COINS.map(coinId => fetchCoinHistory(coinId, range).catch(() => []))
       );
 
       const dateMap = {};

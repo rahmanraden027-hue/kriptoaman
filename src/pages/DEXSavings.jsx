@@ -340,16 +340,15 @@ const SAVINGS_PROTOCOLS = [
   },
 ];
 
-// CoinGecko IDs for native gas tokens per chain (for price display)
-const CHAIN_PRICE_IDS = {
-  ethereum: 'ethereum',
-  bnb: 'binancecoin',
-  solana: 'solana',
-  polygon: 'matic-network',
-  arbitrum: 'arbitrum',
-  avalanche: 'avalanche-2',
-  optimism: 'optimism',
-  base: 'ethereum', // Base uses ETH
+const CHAIN_PRICE_SYMBOLS = {
+  ethereum: 'ETH',
+  bnb: 'BNB',
+  solana: 'SOL',
+  polygon: 'MATIC',
+  arbitrum: 'ARB',
+  avalanche: 'AVAX',
+  optimism: 'OP',
+  base: 'ETH',
 };
 
 const RISK_BG = { low: 'bg-green-500/10 border-green-500/20', medium: 'bg-yellow-500/10 border-yellow-500/20', high: 'bg-red-500/10 border-red-500/20' };
@@ -531,7 +530,7 @@ function NetworkSelector({ selected, onChange, chainPrices }) {
   return (
     <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
       {NETWORKS.map(net => {
-        const price = net.cgId && chainPrices[net.cgId];
+        const price = chainPrices[net.id];
         return (
           <button key={net.id} onClick={() => onChange(net.id)}
             className={`shrink-0 flex flex-col items-center px-3 py-2 rounded-xl text-xs font-semibold transition-all border ${
@@ -541,7 +540,7 @@ function NetworkSelector({ selected, onChange, chainPrices }) {
             }`}
             style={selected === net.id ? { background: (net.color + '30'), borderColor: net.color + '80' } : {}}>
             <span>{net.label}</span>
-            {price && <span className="text-[9px] text-slate-400 mt-0.5">${price.usd?.toFixed(0)}</span>}
+            {Number.isFinite(price) && <span className="text-[9px] text-slate-400 mt-0.5">${price.toFixed(0)}</span>}
           </button>
         );
       })}
@@ -592,12 +591,21 @@ export default function DEXSavings() {
   // Fetch native gas token prices for chain selector
   const fetchChainPrices = useCallback(async () => {
     try {
-      const ids = Object.values(CHAIN_PRICE_IDS).filter(Boolean).join(',');
-      const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`);
+      const symbols = [...new Set(Object.values(CHAIN_PRICE_SYMBOLS))];
+      const res = await fetch(`/api/market-price?symbols=${encodeURIComponent(symbols.join(','))}`, {
+        headers: { Accept: 'application/json' },
+        cache: 'no-store',
+      });
       if (!res.ok) return;
-      const data = await res.json();
-      setChainPrices(data);
-    } catch { /* silent */ }
+      const payload = await res.json();
+      const bySymbol = new Map((Array.isArray(payload?.data) ? payload.data : []).map(row => [String(row?.symbol || '').toUpperCase(), Number(row?.price)]));
+      const next = {};
+      Object.entries(CHAIN_PRICE_SYMBOLS).forEach(([network, symbol]) => {
+        const price = bySymbol.get(symbol);
+        if (Number.isFinite(price)) next[network] = price;
+      });
+      setChainPrices(next);
+    } catch {}
   }, []);
 
   useEffect(() => {

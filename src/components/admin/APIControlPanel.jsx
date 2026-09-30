@@ -13,9 +13,8 @@ const API_REGISTRY = [
     group: 'Market / Price',
     color: 'yellow',
     apis: [
-      { key: 'binance', label: 'Binance API', docs: 'https://www.binance.com/en/my/settings/api-management', desc: 'Harga kripto real-time & trading', freePublic: true },
-      { key: 'coingecko', label: 'CoinGecko API', docs: 'https://www.coingecko.com/en/api/pricing', desc: 'Market data, chart & coin info', freePublic: true },
-      { key: 'twelvedata', label: 'Twelve Data', env: 'TWELVE_DATA_API_KEY', docs: 'https://twelvedata.com/account/api-keys', desc: 'Forex, stocks & crypto OHLCV' },
+      { key: 'market-feed', label: 'KriptoAman Market Feed', desc: 'Server-side multi-venue crypto feed · browser tidak terhubung langsung ke venue' },
+      { key: 'market-quality', label: 'KriptoAman Market Quality', desc: 'Snapshot quality, freshness, dan provenance internal' },
     ],
   },
   {
@@ -61,13 +60,28 @@ function APICard({ api, color }) {
     setTesting(true);
     setTestResult(null);
     try {
-      if (api.key === 'binance') {
-        const r = await fetch('https://api.binance.com/api/v3/ping');
-        setTestResult(r.ok ? { ok: true, msg: 'Binance API OK ✅' } : { ok: false, msg: 'Binance unreachable' });
-      } else if (api.key === 'coingecko') {
-        const r = await fetch('https://api.coingecko.com/api/v3/ping');
-        const d = await r.json();
-        setTestResult(d.gecko_says ? { ok: true, msg: `CoinGecko: ${d.gecko_says}` } : { ok: false, msg: 'CoinGecko error' });
+      if (api.key === 'market-feed') {
+        const r = await fetch('/api/market-feed-hot', {
+          headers: { Accept: 'application/json' },
+          cache: 'no-store',
+        });
+        const d = await r.json().catch(() => null);
+        setTestResult(
+          r.ok && ['live', 'degraded'].includes(d?.status)
+            ? { ok: true, msg: `Market Feed ${d.status.toUpperCase()} ✅` }
+            : { ok: false, msg: 'Market Feed belum aktif atau unavailable' },
+        );
+      } else if (api.key === 'market-quality') {
+        const r = await fetch('/api/market-quality', {
+          headers: { Accept: 'application/json' },
+          cache: 'no-store',
+        });
+        const d = await r.json().catch(() => null);
+        setTestResult(
+          r.ok && d?.healthy
+            ? { ok: true, msg: `Market Quality ${d.status || 'healthy'} ✅` }
+            : { ok: false, msg: `Market Quality ${d?.status || 'degraded'}` },
+        );
       } else if (api.key === 'stripe') {
         setTestResult({ ok: true, msg: 'Stripe keys terset di Secrets. Cek Dashboard Stripe untuk verifikasi.' });
       } else {
@@ -90,9 +104,11 @@ function APICard({ api, color }) {
           </div>
           <p className="text-slate-500 text-[11px] mt-0.5">{api.desc}</p>
         </div>
-        <a href={api.docs} target="_blank" rel="noreferrer" className={`${c.text} hover:opacity-70 transition-opacity`}>
-          <ExternalLink className="w-3.5 h-3.5" />
-        </a>
+        {api.docs && (
+          <a href={api.docs} target="_blank" rel="noreferrer" className={`${c.text} hover:opacity-70 transition-opacity`}>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        )}
       </div>
 
       {api.env && (

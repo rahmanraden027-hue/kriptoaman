@@ -1,61 +1,34 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createChart, CrosshairMode } from 'lightweight-charts';
 import { RefreshCw, CandlestickChart, LineChart, TrendingUp, TrendingDown, X } from 'lucide-react';
+import { getCurrentMarketPrice, getHistoricalData, getMarketChart } from '../market/marketDataService';
 
 const TIMEFRAMES = [
-  { label: '1H', days: 1, interval: 'hourly', cgDays: 2 },
-  { label: '24H', days: 1, interval: 'hourly', cgDays: 1 },
-  { label: '7D', days: 7, interval: 'daily', cgDays: 7 },
-  { label: '1M', days: 30, interval: 'daily', cgDays: 30 },
-  { label: '1Y', days: 365, interval: 'daily', cgDays: 365 },
+  { label: '1H', days: 1, storageInterval: '1h' },
+  { label: '24H', days: 1, storageInterval: '1h' },
+  { label: '7D', days: 7, storageInterval: '1h' },
+  { label: '1M', days: 30, storageInterval: '4h' },
+  { label: '1Y', days: 365, storageInterval: '1d' },
 ];
 
-const COIN_GECKO_IDS = {
-  BTC: 'bitcoin', ETH: 'ethereum', BNB: 'binancecoin',
-  SOL: 'solana', DOGE: 'dogecoin', MATIC: 'matic-network',
-  LTC: 'litecoin', USDT: 'tether', USDC: 'usd-coin',
-  XRP: 'ripple', ADA: 'cardano', DOT: 'polkadot',
-};
-
-async function fetchOHLC(coinId, cgDays) {
-  const geckoId = COIN_GECKO_IDS[coinId?.toUpperCase()] || coinId?.toLowerCase();
-  // Use OHLC endpoint for candlestick
-  const ohlcRes = await fetch(
-    `https://api.coingecko.com/api/v3/coins/${geckoId}/ohlc?vs_currency=usd&days=${cgDays}`
-  );
-  if (!ohlcRes.ok) throw new Error('Failed to fetch OHLC');
-  const ohlc = await ohlcRes.json();
-  return ohlc.map(([time, open, high, low, close]) => ({
-    time: Math.floor(time / 1000),
-    open, high, low, close,
+async function fetchOHLC(coinId, timeframe) {
+  const rows = await getHistoricalData(coinId, timeframe.days, timeframe.storageInterval);
+  return rows.map(row => ({
+    time: Math.floor(row.timestamp / 1000),
+    open: row.open,
+    high: row.high,
+    low: row.low,
+    close: row.close,
   }));
 }
 
-async function fetchLine(coinId, cgDays) {
-  const geckoId = COIN_GECKO_IDS[coinId?.toUpperCase()] || coinId?.toLowerCase();
-  const res = await fetch(
-    `https://api.coingecko.com/api/v3/coins/${geckoId}/market_chart?vs_currency=usd&days=${cgDays}`
-  );
-  if (!res.ok) throw new Error('Failed to fetch line data');
-  const data = await res.json();
-  const prices = data.prices || [];
-  // Deduplicate by time
-  const seen = new Set();
-  return prices.reduce((acc, [ts, price]) => {
-    const t = Math.floor(ts / 1000);
-    if (!seen.has(t)) { seen.add(t); acc.push({ time: t, value: price }); }
-    return acc;
-  }, []);
+async function fetchLine(coinId, timeframe) {
+  const rows = await getMarketChart(coinId, timeframe.days, timeframe.storageInterval);
+  return rows.map(row => ({ time: Math.floor(row.timestamp / 1000), value: row.price }));
 }
 
 async function fetchCurrentPrice(coinId) {
-  const geckoId = COIN_GECKO_IDS[coinId?.toUpperCase()] || coinId?.toLowerCase();
-  const res = await fetch(
-    `https://api.coingecko.com/api/v3/simple/price?ids=${geckoId}&vs_currencies=usd&include_24hr_change=true`
-  );
-  const data = await res.json();
-  const info = data[geckoId];
-  return { price: info?.usd, change24h: info?.usd_24h_change };
+  return getCurrentMarketPrice(coinId);
 }
 
 export default function AdvancedPriceChart({ coinId = 'BTC', coinName = 'Bitcoin', onClose }) {
@@ -142,7 +115,7 @@ export default function AdvancedPriceChart({ coinId = 'BTC', coinName = 'Bitcoin
       setPriceInfo(priceData);
 
       if (chartType === 'candlestick') {
-        const ohlcData = await fetchOHLC(coinId, timeframe.cgDays);
+        const ohlcData = await fetchOHLC(coinId, timeframe);
         const series = chartRef.current.addCandlestickSeries({
           upColor: '#22c55e',
           downColor: '#ef4444',
@@ -154,7 +127,7 @@ export default function AdvancedPriceChart({ coinId = 'BTC', coinName = 'Bitcoin
         series.setData(ohlcData);
         seriesRef.current = series;
       } else {
-        const lineData = await fetchLine(coinId, timeframe.cgDays);
+        const lineData = await fetchLine(coinId, timeframe);
         const isUp = (priceData.change24h || 0) >= 0;
         const series = chartRef.current.addAreaSeries({
           lineColor: isUp ? '#22c55e' : '#ef4444',
@@ -273,7 +246,7 @@ export default function AdvancedPriceChart({ coinId = 'BTC', coinName = 'Bitcoin
       {/* Footer hint */}
       <div className="px-4 py-2 border-t border-slate-800 flex items-center justify-between">
         <span className="text-slate-600 text-[10px]">Scroll/pinch untuk zoom · Drag untuk pan</span>
-        <span className="text-slate-600 text-[10px]">Data: CoinGecko</span>
+        <span className="text-slate-600 text-[10px]">Data: KriptoAman persisted history</span>
       </div>
     </div>
   );

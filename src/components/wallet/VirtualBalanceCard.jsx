@@ -11,13 +11,7 @@ const COIN_INFO = {
   IDR:  { label: 'Saldo IDR', color: '#22C55E', icon: 'Rp' },
 };
 
-// CoinGecko IDs for price lookup
-const COINGECKO_IDS = {
-  SOL: 'solana',
-  ETH: 'ethereum',
-  BTC: 'bitcoin',
-  USDT: 'tether',
-};
+const PRICE_SYMBOLS = ['SOL', 'ETH', 'BTC', 'USDT'];
 
 export default function VirtualBalanceCard({ userEmail, onDeposit, onWithdraw }) {
   const [balances, setBalances] = useState([]);
@@ -28,15 +22,20 @@ export default function VirtualBalanceCard({ userEmail, onDeposit, onWithdraw })
 
   const loadPrices = async () => {
     try {
-      const ids = Object.values(COINGECKO_IDS).join(',');
-      const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`);
-      const data = await res.json();
-      const p = {};
-      Object.entries(COINGECKO_IDS).forEach(([coin, id]) => {
-        if (data[id]) p[coin] = data[id].usd;
+      const res = await fetch(`/api/market-price?symbols=${encodeURIComponent(PRICE_SYMBOLS.join(','))}`, {
+        headers: { Accept: 'application/json' },
+        cache: 'no-store',
       });
+      if (!res.ok) return;
+      const payload = await res.json();
+      const p = {};
+      for (const row of Array.isArray(payload?.data) ? payload.data : []) {
+        const symbol = String(row?.symbol || '').toUpperCase();
+        const price = Number(row?.price);
+        if (symbol && Number.isFinite(price) && price > 0) p[symbol] = price;
+      }
       setPrices(p);
-    } catch (_) {}
+    } catch {}
   };
 
   const load = async () => {

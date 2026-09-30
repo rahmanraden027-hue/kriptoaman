@@ -21,11 +21,14 @@ test('backend and client support a 5000-asset market universe through paging', a
   assert.match(pageEndpoint, /const MAX_PAGE_SIZE = 500;/);
 });
 
-test('public fallback providers remain bounded at 2500 assets', async () => {
+test('browser market reads remain bounded and do not fall back to external providers', async () => {
   const client = await read('src/components/home/useCoinMarkets.js');
-  assert.match(client, /const FALLBACK_ASSET_LIMIT = 2500;/);
-  assert.match(client, /data\.slice\(0, FALLBACK_ASSET_LIMIT\)/);
-  assert.match(client, /rows\.slice\(0, FALLBACK_ASSET_LIMIT\)/);
+  assert.match(client, /const MARKET_ASSET_LIMIT = 5000;/);
+  assert.match(client, /\.slice\(0, MARKET_ASSET_LIMIT\)/);
+  assert.match(client, /\/api\/market-snapshot-page\?page=/);
+  for (const host of ['api.coinlore.net','api.coingecko.com','min-api.cryptocompare.com']) {
+    assert.ok(!client.toLowerCase().includes(host), `browser market path must not contact ${host}`);
+  }
 });
 
 test('server hydration is bounded, snapshot-consistent and non-synthetic', async () => {

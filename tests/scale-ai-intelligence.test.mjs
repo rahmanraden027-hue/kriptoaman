@@ -37,10 +37,12 @@ test('paged market reads terminate at edge cache before repeated D1 work', async
 
 test('live price fallback is centralized and does not expose CoinGecko keys in the client', async () => {
   const source = await read('src/components/market/useLivePrices.jsx');
-  assert.match(source, /HOT_MARKET_ENDPOINT = '\/api\/market-hot'/);
-  assert.match(source, /HOT_POLL_INTERVAL_MS = 15_000/);
-  assert.match(source, /fetchHotSnapshot/);
-  assert.match(source, /new WebSocket\(WS_URL\)/);
+  assert.match(source, /HOT_FEED_ENDPOINT='\/api\/market-feed-hot'/);
+  assert.match(source, /SNAPSHOT_ENDPOINT='\/api\/market-hot'/);
+  assert.match(source, /HOT_POLL_INTERVAL_MS=5000/);
+  assert.match(source, /SNAPSHOT_POLL_INTERVAL_MS=15000/);
+  assert.match(source, /async function fetchJson/);
+  assert.doesNotMatch(source, /new\s+WebSocket\s*\(/);
   assert.doesNotMatch(source, /COINGECKO_API_KEY/);
   assert.doesNotMatch(source, /x-cg-pro-api-key/);
 });

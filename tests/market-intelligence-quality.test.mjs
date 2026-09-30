@@ -62,7 +62,9 @@ test('live-price hook does not synthesize USDT or USDC at a fixed one-dollar peg
   assert.doesNotMatch(source, /if\s*\(!prices\.USDT\)/);
   assert.doesNotMatch(source, /if\s*\(!prices\.USDC\)/);
   assert.doesNotMatch(source, /price:\s*1,\s*\n\s*change24h:\s*0/);
-  assert.match(source, /never synthesize a market price/i);
+  assert.match(source, /normalizeCollector/);
+  assert.match(source, /\/api\/market-feed-hot/);
+  assert.doesNotMatch(source, /new\s+WebSocket\s*\(/);
 });
 
 test('server hot feed can carry observed USDT and USDC values', async () => {

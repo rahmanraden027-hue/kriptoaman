@@ -4,8 +4,8 @@ import AdminAuditLogPanel from './AdminAuditLogPanel';
 
 const ENDPOINTS = [
   { label: 'App (Base44)', url: 'https://kriptoaman.base44.app', key: 'app' },
-  { label: 'Binance API', url: 'https://api.binance.com/api/v3/ping', key: 'binance' },
-  { label: 'CoinGecko API', url: 'https://api.coingecko.com/api/v3/ping', key: 'coingecko' },
+  { label: 'KriptoAman Market Feed', url: '/api/market-feed-hot', key: 'market-feed', internal: true, accepted: [200, 503] },
+  { label: 'KriptoAman Market Quality', url: '/api/market-quality', key: 'market-quality', internal: true, accepted: [200, 503] },
   { label: 'Stripe API', url: 'https://api.stripe.com', key: 'stripe' },
   { label: 'Cloudflare DNS', url: 'https://1.1.1.1', key: 'cloudflare' },
 ];
@@ -30,8 +30,13 @@ export default function ServerMonitorPanel() {
   const checkEndpoint = async (ep) => {
     const start = Date.now();
     try {
-      const res = await fetch(ep.url, { method: 'GET', signal: AbortSignal.timeout(5000), mode: 'no-cors' });
+      const res = await fetch(ep.url, {
+        method: 'GET',
+        signal: AbortSignal.timeout(5000),
+        ...(ep.internal ? { headers: { Accept: 'application/json' }, cache: 'no-store' } : { mode: 'no-cors' }),
+      });
       const latency = Date.now() - start;
+      if (ep.internal && !(ep.accepted || [200]).includes(res.status)) return { status: 'down', latency };
       return { status: 'up', latency };
     } catch {
       return { status: 'down', latency: null };
