@@ -150,7 +150,7 @@ for host in "${ws_hosts[@]}"; do
     if probe_ws_subscription "$candidate" >/dev/null 2>&1; then WS_RPC="$candidate"; break 2; fi
   done
 done
-[[ -n "$WS_RPC" ]] || fail "ZEVARYQ WebSocket eth_subscribe(newHeads) unavailable"
+[[ -n "$WS_RPC" ]] || fail "WebSocket subscription not confirmed"
 
 echo "preflight_chain=0x560c rpc_scope=$([[ "$HTTP_RPC" == http://127.* ]] && echo loopback || echo private_vpc) websocket_subscription=pass mode=$MODE"
 [[ "$MODE" == preview ]] && exit 0
