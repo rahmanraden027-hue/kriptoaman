@@ -1,4 +1,5 @@
 // Strict read-only JSON-RPC allowlist for ZEVARYQ public gateways.
+// QoryVEx exposes only two read-only GET paths backed by the loopback first-party indexer.
 // No admin, debug, consensus, signing, account, txpool, or transaction submission.
 import http from 'node:http';
 import { isIP } from 'node:net';
@@ -7,6 +8,7 @@ import { resolve } from 'node:path';
 
 const APPROVED_ORIGINS = new Set([
   'https://kriptoaman.com',
+  'https://www.kriptoaman.com',
   'https://explorer.kriptoaman.com',
 ]);
 const METHODS = new Set([
@@ -20,7 +22,12 @@ const METHODS = new Set([
   'eth_getTransactionByBlockNumberAndIndex', 'eth_call', 'eth_estimateGas',
   'net_version',
 ]);
+const DISCOVERY_ROUTES = new Map([
+  ['/qoryvex/v1/discovery', 'http://127.0.0.1:8765/v1/discovery'],
+  ['/qoryvex/health', 'http://127.0.0.1:8765/health'],
+]);
 export const MAX_BODY_BYTES = 32 * 1024;
+export const MAX_DISCOVERY_BYTES = 2_000_000;
 
 function isPrivateIpv4(hostname) {
   if (isIP(hostname) !== 4) return false;
@@ -53,7 +60,7 @@ export function validateRpcPayload(value) {
   return true;
 }
 
-export function createRpcGateway({ upstreamPort, upstreamUrl, fetchImpl = fetch } = {}) {
+export function createRpcGateway({ upstreamPort, upstreamUrl, fetchImpl = fetch, discoveryFetchImpl = fetch } = {}) {
   const loopback = Number.isInteger(upstreamPort) && upstreamPort >= 1 && upstreamPort <= 65535
     ? `http://127.0.0.1:${upstreamPort}/` : null;
   const remote = validateUpstreamUrl(upstreamUrl);
@@ -63,21 +70,53 @@ export function createRpcGateway({ upstreamPort, upstreamUrl, fetchImpl = fetch 
   const target = loopback ?? remote;
   const server = http.createServer(async (req, res) => {
     const origin = req.headers.origin;
+    const discoveryTarget = DISCOVERY_ROUTES.get(req.url);
+    const isKnownPath = req.url === '/' || Boolean(discoveryTarget);
     if (origin && APPROVED_ORIGINS.has(origin)) {
       res.setHeader('Access-Control-Allow-Origin', origin);
       res.setHeader('Vary', 'Origin');
-      res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Methods', discoveryTarget ? 'GET, OPTIONS' : 'POST, OPTIONS');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     }
     const finish = (status, body = '') => {
-      if (!res.headersSent) res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+      if (!res.headersSent) res.writeHead(status, {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store',
+        'X-Content-Type-Options': 'nosniff',
+      });
       res.end(body);
     };
-    if (req.url !== '/') return finish(404);
+
     if (req.method === 'OPTIONS') {
-      if (!origin || !APPROVED_ORIGINS.has(origin)) return finish(403);
+      if (!isKnownPath || !origin || !APPROVED_ORIGINS.has(origin)) return finish(403);
       return finish(204);
     }
+
+    if (discoveryTarget) {
+      if (req.method !== 'GET') return finish(405);
+      try {
+        const upstream = await discoveryFetchImpl(discoveryTarget, {
+          method: 'GET',
+          headers: { accept: 'application/json' },
+          signal: AbortSignal.timeout(8_000),
+        });
+        const upstreamBody = await upstream.text();
+        if (upstreamBody.length > MAX_DISCOVERY_BYTES) return finish(502);
+        if (![200, 503].includes(upstream.status)) return finish(502);
+        res.writeHead(upstream.status, {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Cache-Control': 'no-store',
+          'X-Content-Type-Options': 'nosniff',
+          'X-KriptoAman-Source': 'first-party-zvq-indexer',
+          ...(origin && APPROVED_ORIGINS.has(origin) ? { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } : {}),
+        });
+        return res.end(upstreamBody);
+      } catch {
+        return finish(502);
+      }
+    }
+
+    if (req.url !== '/') return finish(404);
     if (req.method !== 'POST') return finish(405);
     if (!/^application\/json(?:\s*;|\s*$)/i.test(String(req.headers['content-type'] ?? ''))) return finish(415);
     const chunks = [];
