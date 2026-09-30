@@ -1,0 +1,47 @@
+name: ZVQ Indexer Runner Read-Only Probe
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/zvq-indexer-runner-readonly-probe.yml'
+      - '.github/workflows/kriptoaman-first-party-indexer.yml'
+      - 'services/kriptoaman-indexer/**'
+      - 'scripts/deploy-kriptoaman-zvq-indexer.sh'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/zvq-indexer-runner-readonly-probe.yml'
+      - '.github/workflows/kriptoaman-first-party-indexer.yml'
+      - 'services/kriptoaman-indexer/**'
+      - 'scripts/deploy-kriptoaman-zvq-indexer.sh'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 6
+    steps:
+      - name: Prove read-only SSH path to RPC sentry
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh_opts=(-o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new)
+          host=root@206.189.36.15
+          ssh "${ssh_opts[@]}" "$host" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          echo "probe_mode=read_only"
+          echo "hostname=$(hostname)"
+          chain="$(curl -fsS --max-time 6 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' http://127.0.0.1:8545 | jq -er '.result')"
+          block1="$(curl -fsS --max-time 6 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}' http://127.0.0.1:8545 | jq -er '.result')"
+          sleep 4
+          block2="$(curl -fsS --max-time 6 -H 'content-type: application/json' --data '{"jsonrpc":"2.0","id":3,"method":"eth_blockNumber","params":[]}' http://127.0.0.1:8545 | jq -er '.result')"
+          test "$chain" = 0x560c
+          test $((16#${block2#0x})) -gt $((16#${block1#0x}))
+          ws_listener="$(ss -H -ltn '( sport = :8546 )' | wc -l)"
+          indexer_state="$(systemctl is-active kriptoaman-zvq-indexer.service 2>/dev/null || true)"
+          echo "chain_id=$chain block_1=$block1 block_2=$block2 ws_listener_8546=$ws_listener indexer_service=$indexer_state"
+          echo "zvq_indexer_runner_readonly_probe=pass"
+          REMOTE
