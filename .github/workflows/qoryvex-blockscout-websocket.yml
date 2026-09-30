@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'scripts/probe-qoryvex-blockscout-websocket.mjs'
+      - 'scripts/probe-phoenix-blocks.py'
       - 'src/components/market/NewTokenRadar.jsx'
       - 'functions/api/zvq-token-intelligence.js'
       - '.github/workflows/qoryvex-blockscout-websocket.yml'
@@ -70,33 +71,10 @@ jobs:
           done
           test -n "$backend_port"
           echo "backend_selected=$backend_ip:$backend_port"
-          node - "$backend_ip" "$backend_port" <<'NODE'
-          const [host,port]=process.argv.slice(2);
-          const urls=[
-            `ws://${host}:${port}/socket/v2/websocket?locale=en&vsn=2.0.0`,
-            `ws://${host}:${port}/socket/websocket?locale=en&vsn=2.0.0`,
-          ];
-          async function probe(url){
-            return await new Promise(resolve=>{
-              let ws,joined=false,done=false;
-              const finish=(ok,reason)=>{if(done)return;done=true;clearTimeout(timer);try{ws.close()}catch{};resolve({ok,reason,joined,url})};
-              const timer=setTimeout(()=>finish(false,joined?'joined-no-block-event':'timeout'),25000);
-              try{ws=new WebSocket(url)}catch(e){return finish(false,e.message)}
-              ws.addEventListener('open',()=>ws.send(JSON.stringify(['1','1','blocks:new_block','phx_join',{}])));
-              ws.addEventListener('message',e=>{
-                let x;try{x=JSON.parse(String(e.data))}catch{return}
-                if(Array.isArray(x)&&x[2]==='blocks:new_block'&&x[3]==='phx_reply'&&x[4]?.status==='ok'){joined=true;return}
-                if(Array.isArray(x)&&x[2]==='blocks:new_block'&&x[3]==='new_block')return finish(true,'new-block-event');
-              });
-              ws.addEventListener('error',()=>finish(false,'websocket-error'));
-              ws.addEventListener('close',e=>{if(!done)finish(false,'closed-'+e.code)});
-            })
-          }
-          let ok=false;
-          for(const url of urls){const r=await probe(url);console.log(JSON.stringify(r));if(r.ok){ok=true;break}}
-          if(!ok) process.exit(1);
-          console.log('blockscout_internal_websocket=pass');
-          NODE
+          python3 scripts/probe-phoenix-blocks.py --timeout 35 \
+            "ws://$backend_ip:$backend_port/socket/v2/websocket?locale=en&vsn=2.0.0" \
+            "ws://$backend_ip:$backend_port/socket/websocket?locale=en&vsn=2.0.0"
+          echo "blockscout_internal_websocket=pass"
           echo '== backend candidates =='
           sudo -n docker ps --format 'name={{.Names}} ports={{.Ports}}' | grep -Ei 'backend|blockscout|proxy' | head -80
           echo 'qoryvex_blockscout_origin_preflight=pass'
