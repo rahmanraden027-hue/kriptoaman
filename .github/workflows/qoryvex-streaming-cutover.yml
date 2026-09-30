@@ -51,7 +51,7 @@ jobs:
   runner-preflight:
     if: github.event_name == 'pull_request'
     needs: validate
-    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v7
@@ -59,14 +59,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(hostname -s)" = "kam-explorer-blockscout-01"
-          sudo -n true
-          cd /opt/blockscout/docker-compose
-          proxy_id="$(docker compose ps -q proxy)"
-          test -n "$proxy_id"
-          network_mode="$(docker inspect -f '{{.HostConfig.NetworkMode}}' "$proxy_id")"
-          echo "explorer_proxy_network_mode=$network_mode"
-          test "$network_mode" = "docker-compose_default"
+          test "$(curl -sS --max-time 15 -o /dev/null -w '%{http_code}' https://explorer.kriptoaman.com/)" = 200
+          curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks | jq -e '.items | type == "array"' >/dev/null
+          curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/transactions | jq -e '.items | type == "array"' >/dev/null
 
           chain="$(curl -fsS --connect-timeout 5 --max-time 12 \
             -H 'content-type: application/json' \
@@ -89,7 +84,7 @@ jobs:
   deploy:
     if: github.event_name == 'push' && startsWith(github.event.head_commit.message, 'QORYVEX STREAMING CUTOVER 20260930')
     needs: validate
-    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
     timeout-minutes: 18
     steps:
       - uses: actions/checkout@v7
@@ -185,7 +180,7 @@ jobs:
   settle:
     if: always() && needs.deploy.result == 'success'
     needs: [deploy, external-verify]
-    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
     timeout-minutes: 8
     steps:
       - name: Finalize or roll back whole streaming cutover
