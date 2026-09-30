@@ -5,6 +5,7 @@ on:
     paths:
       - 'services/kriptoaman-indexer/**'
       - 'scripts/deploy-kriptoaman-zvq-indexer.sh'
+      - 'scripts/verify-zvq-indexer-live.sh'
       - 'tests/crypto-intelligence-first-party.test.mjs'
       - '.github/workflows/kriptoaman-first-party-indexer.yml'
   push:
@@ -12,6 +13,7 @@ on:
     paths:
       - 'services/kriptoaman-indexer/**'
       - 'scripts/deploy-kriptoaman-zvq-indexer.sh'
+      - 'scripts/verify-zvq-indexer-live.sh'
       - '.github/workflows/kriptoaman-first-party-indexer.yml'
 
 permissions:
@@ -35,6 +37,7 @@ jobs:
           set -euo pipefail
           node --check services/kriptoaman-indexer/zvq-listener.mjs
           bash -n scripts/deploy-kriptoaman-zvq-indexer.sh
+          bash -n scripts/verify-zvq-indexer-live.sh
           node --test tests/crypto-intelligence-first-party.test.mjs
           ! grep -REn 'eth_sendRawTransaction|personal_|admin_|debug_' services/kriptoaman-indexer
           ! grep -REn 'PRIVATE_KEY|MNEMONIC|SEED_PHRASE' services/kriptoaman-indexer scripts/deploy-kriptoaman-zvq-indexer.sh
@@ -73,30 +76,8 @@ jobs:
       - name: Prove first-party WebSocket block-to-index latency
         run: |
           set -euo pipefail
-          evidence="$(ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15 'bash -s' <<'REMOTE'
-          set -euo pipefail
-          first="$(curl -fsS --max-time 5 http://127.0.0.1:8765/v1/discovery)"
-          test "$(jq -r '.status' <<<"$first")" = live
-          test "$(jq -r '.websocketSubscribed' <<<"$first")" = true
-          first_head="$(jq -r '.head.number // -1' <<<"$first")"
-          latest="$first"
-          for _ in 1 2 3 4 5 6; do
-            sleep 5
-            latest="$(curl -fsS --max-time 5 http://127.0.0.1:8765/v1/discovery)"
-            latest_head="$(jq -r '.head.number // -1' <<<"$latest")"
-            if (( latest_head > first_head )); then break; fi
-          done
-          latest_head="$(jq -r '.head.number // -1' <<<"$latest")"
-          (( latest_head > first_head ))
-          samples="$(jq -r '.latency.samples // 0' <<<"$latest")"
-          p95="$(jq -r '.latency.p95Ms // empty' <<<"$latest")"
-          test "$samples" -ge 1
-          test -n "$p95"
-          radar="$(curl -fsS --max-time 5 http://127.0.0.1:8765/v1/radar)"
-          test "$(jq -r '.provenance.externalMarketProviderUsed' <<<"$radar")" = false
-          jq -cn --argjson first "$first_head" --argjson latest "$latest_head" --argjson samples "$samples" --argjson p95 "$p95" '{gate:"PASS",firstHead:$first,latestHead:$latest,indexLatencySamples:$samples,indexP95Ms:$p95,source:"first-party ZEVARYQ WebSocket"}'
-REMOTE
-          )"
+          scp -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new scripts/verify-zvq-indexer-live.sh root@206.189.36.15:/tmp/verify-zvq-indexer-live.sh
+          evidence="$(ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15 'bash /tmp/verify-zvq-indexer-live.sh')"
           echo "$evidence"
           echo "### ZEVARYQ first-party WebSocket evidence" >> "$GITHUB_STEP_SUMMARY"
           echo "$evidence" >> "$GITHUB_STEP_SUMMARY"
