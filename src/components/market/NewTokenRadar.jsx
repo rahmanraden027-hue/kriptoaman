@@ -26,8 +26,11 @@ function TokenCard({ token }) {
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="truncate text-base font-black text-white">{passport.symbol || 'Contract'}</h3>
             {token?.type === 'ERC20_METADATA_PROVEN'
-              ? <TruthBadge tone="emerald">metadata proven</TruthBadge>
+              ? <TruthBadge tone="emerald">4/4 metadata proven</TruthBadge>
               : <TruthBadge tone="amber">contract only</TruthBadge>}
+            <TruthBadge tone={token?.confirmationState === 'confirmed' ? 'emerald' : 'amber'}>
+              {token?.confirmationState === 'confirmed' ? '12+ block confirmed' : 'early confirmation'}
+            </TruthBadge>
           </div>
           <p className="mt-1 truncate text-xs font-semibold text-slate-300">{passport.name || 'Unnamed on-chain contract'}</p>
           <p className="mt-1 font-mono text-[10px] text-slate-500" title={token?.address}>{short(token?.address)}</p>
@@ -40,7 +43,7 @@ function TokenCard({ token }) {
 
       <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {[
-          ['Age', Number.isFinite(Number(dna.ageBlocks)) ? `${dna.ageBlocks} blocks` : '—'],
+          ['Confirmations', Number.isFinite(Number(token?.confirmations)) ? `${token.confirmations}/${token.confirmationDepth ?? 12}` : '—'],
           ['Decimals', passport.decimals ?? '—'],
           ['Bytecode', Number.isFinite(Number(passport.bytecodeBytes)) ? `${passport.bytecodeBytes} B` : '—'],
           ['Evidence', `${passport.metadataFieldsProven ?? 0}/4 fields`],
@@ -61,7 +64,8 @@ function TokenCard({ token }) {
             <p>Creator <span className="font-mono text-slate-300">{short(token?.creator)}</span></p>
             <p>Tx <span className="font-mono text-slate-300">{short(token?.creationTxHash)}</span></p>
             <p>Supply <span className="break-all text-slate-300">{passport.totalSupplyRaw ?? 'unavailable'}</span></p>
-            <p>Source <span className="text-slate-300">KriptoAman RPC</span></p>
+            <p>Block hash <span className="font-mono text-slate-300">{short(passport?.provenance?.blockHash)}</span></p>
+            <p>Source <span className="text-slate-300">KriptoAman first-party RPC</span></p>
           </div>
         </section>
 
@@ -71,6 +75,7 @@ function TokenCard({ token }) {
           </div>
           <div className="mt-2 space-y-1 text-[10px] leading-5 text-slate-400">
             <p>Freshness <span className="text-slate-300">{dna.freshnessBand || '—'}</span></p>
+            <p>Finality <span className="text-slate-300">{dna.confirmationState || token?.confirmationState || '—'}</span></p>
             <p>Metadata proof <span className="text-slate-300">{dna.metadataFieldsProven ?? 0}/4</span></p>
             <p>Supply declared <span className="text-slate-300">{dna.declaredSupplyPresent ? 'yes' : 'not proven'}</span></p>
             <p className="text-slate-500">Descriptive profile only — not a safety score.</p>
@@ -136,7 +141,7 @@ export default function NewTokenRadar({ expanded = false }) {
           </p>
           <h2 className="mt-1 text-xl font-black text-white sm:text-2xl">Asset Passport → Launch DNA → QoryVEx Discovery</h2>
           <p className="mt-2 max-w-3xl text-[11px] leading-5 text-slate-400">
-            Contract creation is detected from ZEVARYQ chain data, then independently enriched with bytecode and ERC-20 metadata calls through KriptoAman RPC. A discovered contract is never treated as a listing, audit, liquidity proof, or endorsement.
+            Contract creation is detected from ZEVARYQ chain data, then verified against its receipt, canonical block hash, deployed bytecode, and all four ERC-20 metadata fields at the creation block. A discovered contract is never treated as a listing, audit, liquidity proof, or endorsement.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -144,6 +149,7 @@ export default function NewTokenRadar({ expanded = false }) {
             {loading ? 'connecting' : live ? 'first-party live' : data ? 'last verified' : 'unavailable'}
           </TruthBadge>
           <TruthBadge>{data?.provenance?.transport || 'JSON-RPC'}</TruthBadge>
+          <TruthBadge>{data?.provenance?.finality || 'confirmation-aware'}</TruthBadge>
         </div>
       </div>
 
