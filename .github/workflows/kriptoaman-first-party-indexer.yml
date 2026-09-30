@@ -8,6 +8,8 @@ on:
       - 'tests/crypto-intelligence-first-party.test.mjs'
       - 'tests/qoryvex-discovery-model.test.mjs'
       - 'docs/QORYVEX_DISCOVERY_V1.md'
+      - 'src/pages/QoryVExDiscovery.jsx'
+      - 'tests/qoryvex-ui-contract.test.mjs'
       - '.github/workflows/kriptoaman-first-party-indexer.yml'
   push:
     branches: [main]
@@ -38,7 +40,7 @@ jobs:
           node --check services/kriptoaman-indexer/zvq-listener.mjs
           node --check services/kriptoaman-indexer/discovery-model.mjs
           bash -n scripts/deploy-kriptoaman-zvq-indexer.sh
-          node --test tests/crypto-intelligence-first-party.test.mjs tests/qoryvex-discovery-model.test.mjs
+          node --test tests/crypto-intelligence-first-party.test.mjs tests/qoryvex-discovery-model.test.mjs tests/qoryvex-ui-contract.test.mjs
           ! grep -REn 'eth_sendRawTransaction|personal_|admin_|debug_' services/kriptoaman-indexer
           ! grep -REn 'PRIVATE_KEY|MNEMONIC|SEED_PHRASE' services/kriptoaman-indexer scripts/deploy-kriptoaman-zvq-indexer.sh
 
