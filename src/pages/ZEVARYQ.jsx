@@ -41,7 +41,7 @@ export default function ZEVARYQ() {
     candidate: 'Mainnet candidate — promotion subject to independent operational evidence',
     migration: 'Legacy KAM was renamed in place. Chain ID, genesis, wallet addresses, balances, and historical blocks are preserved by design.',
     exploration: 'Open ZEVARYQ Explorer', wallet: 'Open KriptoAman Wallet',
-    docs: 'Network documentation', roadmap: '12 support systems and 25-country expansion are roadmap targets. Live operational claims require independently verifiable evidence.',
+    docs: 'Network documentation', discovery: 'Open QoryVEx Discovery', roadmap: '12 support systems and 25-country expansion are roadmap targets. Live operational claims require independently verifiable evidence.',
   } : {
     eyebrow: 'IDENTITAS JARINGAN TERVERIFIKASI', title: 'ZEVARYQ Network',
     intro: 'Jaringan native ZVQ dalam ekosistem KriptoAman. Data teknis hanya ditampilkan ketika RPC resmi mengonfirmasi Chain ID 22028.',
@@ -50,7 +50,7 @@ export default function ZEVARYQ() {
     candidate: 'Kandidat mainnet — promosi menunggu bukti operasional independen',
     migration: 'KAM lama mengalami rebranding pada jaringan yang sama. Chain ID, genesis, alamat dompet, saldo, dan riwayat blok dipertahankan.',
     exploration: 'Buka ZEVARYQ Explorer', wallet: 'Buka KriptoAman Wallet',
-    docs: 'Dokumentasi jaringan', roadmap: 'Dua belas sistem pendukung dan ekspansi 25 negara merupakan target roadmap. Status operasional memerlukan bukti independen.',
+    docs: 'Dokumentasi jaringan', discovery: 'Buka QoryVEx Discovery', roadmap: 'Dua belas sistem pendukung dan ekspansi 25 negara merupakan target roadmap. Status operasional memerlukan bukti independen.',
   };
   const stateLabel = probe.phase === 'verified-rpc' ? copy.verified : probe.phase === 'unavailable' ? copy.unavailable : copy.pending;
 
@@ -85,10 +85,11 @@ export default function ZEVARYQ() {
           <p className="mt-3 text-sm leading-7 text-slate-300">{copy.migration}</p>
         </div>
       </section>
-      <nav className="grid gap-3 sm:grid-cols-3" aria-label="ZEVARYQ navigation">
+      <nav className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="ZEVARYQ navigation">
         <a href={IDENTITY.explorer} target="_blank" rel="noreferrer" className="flex min-h-12 items-center justify-between rounded-xl border border-[#E7B95F]/30 bg-[#E7B95F]/10 px-5 py-4 text-sm font-bold text-[#E7B95F]">{copy.exploration}<ExternalLink size={18}/></a>
         <Link to="/Wallet" className="flex min-h-12 items-center justify-between rounded-xl border border-[#168BFA]/30 bg-[#168BFA]/10 px-5 py-4 text-sm font-bold text-sky-200"><span className="flex items-center gap-2"><WalletCards size={18}/>{copy.wallet}</span><ArrowRight size={18}/></Link>
         <Link to="/KAMNetworkDocs" className="flex min-h-12 items-center justify-between rounded-xl border border-[#168BFA]/30 bg-[#168BFA]/10 px-5 py-4 text-sm font-bold text-sky-200"><span className="flex items-center gap-2"><Globe2 size={18}/>{copy.docs}</span><ArrowRight size={18}/></Link>
+      <Link to="/qoryvex" className="flex min-h-12 items-center justify-between rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-5 py-4 text-sm font-bold text-cyan-200"><span className="flex items-center gap-2"><Activity size={18}/>{copy.discovery}</span><ArrowRight size={18}/></Link>
       </nav>
       <p className="rounded-2xl border border-[#E7B95F]/20 p-5 text-xs leading-6 text-slate-400">{copy.roadmap}</p>
     </div>
