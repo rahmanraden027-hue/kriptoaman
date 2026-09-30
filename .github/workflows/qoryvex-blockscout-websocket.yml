@@ -1,0 +1,80 @@
+name: QoryVEx Blockscout WebSocket Proof
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/probe-qoryvex-blockscout-websocket.mjs'
+      - 'scripts/probe-phoenix-blocks.py'
+      - 'src/components/market/NewTokenRadar.jsx'
+      - 'functions/api/zvq-token-intelligence.js'
+      - '.github/workflows/qoryvex-blockscout-websocket.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/probe-qoryvex-blockscout-websocket.mjs'
+      - 'src/components/market/NewTokenRadar.jsx'
+      - 'functions/api/zvq-token-intelligence.js'
+      - '.github/workflows/qoryvex-blockscout-websocket.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  prove:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Prove first-party Explorer new-block WebSocket
+        run: |
+          set -euo pipefail
+          node --check scripts/probe-qoryvex-blockscout-websocket.mjs
+          node scripts/probe-qoryvex-blockscout-websocket.mjs
+
+  origin-preflight:
+    if: github.event_name == 'pull_request'
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 5
+    steps:
+      - name: Inspect existing Blockscout socket routing without mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          base=/opt/blockscout/docker-compose
+          test -d "$base"
+          cd "$base"
+          echo '== compose services =='
+          sudo -n docker compose config --services
+          echo '== running containers =='
+          sudo -n docker compose ps --format json | head -80
+          echo '== proxy template header =='
+          sudo -n sed -n '1,90p' proxy/default.conf.template
+          echo '== socket/api routing excerpts =='
+          sudo -n grep -En 'socket|websocket|proxy_pass|upstream|api/v2' proxy/default.conf.template | head -120 || true
+          echo '== rendered nginx route =='
+          sudo -n docker exec proxy nginx -T 2>&1 | sed -n '1,90p'
+          echo '== backend network =='
+          backend_id="$(sudo -n docker compose ps -q backend)"
+          test -n "$backend_id"
+          backend_ip="$(sudo -n docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$backend_id")"
+          test -n "$backend_ip"
+          sudo -n docker inspect -f 'exposed={{json .Config.ExposedPorts}} network={{range .NetworkSettings.Networks}}{{.IPAddress}} {{end}}' "$backend_id"
+          echo '== backend HTTP candidates =='
+          backend_port=
+          for p in 4000 4001 3000; do
+            code="$(curl -sS --connect-timeout 2 --max-time 4 -o /dev/null -w '%{http_code}' "http://$backend_ip:$p/api/v2/stats" || true)"
+            echo "backend_port=$p http=$code"
+            if [[ "$code" =~ ^(200|401|403|404)$ ]]; then backend_port="$p"; break; fi
+          done
+          test -n "$backend_port"
+          echo "backend_selected=$backend_ip:$backend_port"
+          python3 scripts/probe-phoenix-blocks.py --timeout 35 \
+            "ws://$backend_ip:$backend_port/socket/v2/websocket?locale=en&vsn=2.0.0" \
+            "ws://$backend_ip:$backend_port/socket/websocket?locale=en&vsn=2.0.0"
+          echo "blockscout_internal_websocket=pass"
+          echo '== backend candidates =='
+          sudo -n docker ps --format 'name={{.Names}} ports={{.Ports}}' | grep -Ei 'backend|blockscout|proxy' | head -80
+          echo 'qoryvex_blockscout_origin_preflight=pass'

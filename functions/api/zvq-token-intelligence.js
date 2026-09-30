@@ -1,4 +1,5 @@
 const RPC_URL = 'https://rpc.kriptoaman.com/';
+const INDEXER_DISCOVERY_URL = 'https://rpc.kriptoaman.com/qoryvex/v1/discovery';
 const EXPECTED_CHAIN = '0x560c';
 const CHAIN_ID = 22028;
 const MAX_BLOCKS = 12;
@@ -125,7 +126,7 @@ async function inspectContract(candidate, head) {
   const decimals = Number.isInteger(decimalsNumber) && decimalsNumber >= 0 && decimalsNumber <= 255 ? decimalsNumber : null;
   const totalSupplyRaw = uintString(supplyRaw);
   const metadataFieldsProven = [name, symbol, decimals != null, totalSupplyRaw != null].filter(Boolean).length;
-  const tokenMetadataProven = Boolean(symbol && decimals != null && totalSupplyRaw != null);
+  const tokenMetadataProven = Boolean(name && symbol && decimals != null && totalSupplyRaw != null);
   const ageBlocks = Math.max(0, head - candidate.blockNumber);
 
   return {
@@ -149,7 +150,7 @@ async function inspectContract(candidate, head) {
       provenance: {
         ownership: 'first-party',
         endpoint: 'rpc.kriptoaman.com',
-        transport: 'JSON-RPC',
+        transport: 'JSON-RPC polling fallback',
         externalMarketProviderUsed: false,
       },
     },
@@ -173,11 +174,161 @@ async function inspectContract(candidate, head) {
   };
 }
 
+function streamCandidate(event, head) {
+  const passport = event?.discovery?.passport;
+  const dna = event?.discovery?.launchDNA;
+  const address = safeAddress(passport?.address || event?.contractAddress);
+  const creator = safeAddress(passport?.provenance?.creator || event?.from);
+  const txHash = safeHash(passport?.provenance?.txHash || event?.txHash);
+  const blockHash = safeHash(passport?.provenance?.blockHash || event?.blockHash);
+  const blockNumber = Number(passport?.provenance?.blockNumber ?? event?.blockNumber);
+  if (!address || !creator || !txHash || !blockHash || !Number.isSafeInteger(blockNumber) || blockNumber < 0) return null;
+
+  const proven = passport?.classification === 'verified-token' &&
+    passport?.tokenStandard === 'ERC-20' &&
+    typeof passport?.name === 'string' && passport.name.trim() &&
+    typeof passport?.symbol === 'string' && passport.symbol.trim() &&
+    Number.isInteger(passport?.decimals) && passport.decimals >= 0 && passport.decimals <= 255 &&
+    typeof passport?.totalSupplyRaw === 'string' && /^0x[0-9a-f]+$/i.test(passport.totalSupplyRaw) &&
+    dna?.fingerprint?.metadataProven === true;
+
+  const totalSupplyRaw = proven ? uintString(passport.totalSupplyRaw) : null;
+  const confirmations = Number.isInteger(dna?.fingerprint?.confirmations)
+    ? dna.fingerprint.confirmations
+    : Math.max(0, head - blockNumber);
+  const metadataFieldsProven = proven ? 4 : 0;
+  const bytecodeBytes = Number.isInteger(dna?.fingerprint?.bytecodeBytes)
+    ? dna.fingerprint.bytecodeBytes
+    : Number.isInteger(event?.contractEvidence?.bytecodeBytes) ? event.contractEvidence.bytecodeBytes : null;
+
+  return {
+    type: proven ? 'ERC20_METADATA_PROVEN' : 'CONTRACT_ONLY',
+    chainId: CHAIN_ID,
+    address,
+    creator,
+    creationTxHash: txHash,
+    blockNumber,
+    blockHash,
+    observedAt: Number(event?.observedAt) || null,
+    confirmationState: String(passport?.provenance?.confirmationState || event?.confirmationState || 'observed'),
+    assetPassport: {
+      name: proven ? passport.name : null,
+      symbol: proven ? passport.symbol : null,
+      decimals: proven ? passport.decimals : null,
+      totalSupplyRaw,
+      bytecodeBytes,
+      metadataFieldsProven,
+      evidenceState: proven ? 'FIRST_PARTY_STREAM_PROVEN' : 'CONTRACT_ONLY',
+      provenance: {
+        ownership: 'first-party',
+        endpoint: 'rpc.kriptoaman.com/qoryvex/v1/discovery',
+        transport: 'WebSocket+JSON-RPC indexer',
+        externalMarketProviderUsed: false,
+      },
+    },
+    launchDna: {
+      ageBlocks: Math.max(0, head - blockNumber),
+      confirmations,
+      freshnessBand: confirmations <= 3 ? 'JUST_LAUNCHED' : confirmations <= 12 ? 'NEW' : 'RECENT',
+      bytecodeBytes,
+      metadataFieldsProven,
+      declaredDecimals: proven ? passport.decimals : null,
+      declaredSupplyPresent: proven,
+      labels: Array.isArray(dna?.labels) ? dna.labels : [],
+      profileKey: `${CHAIN_ID}:${address}:${blockNumber}:${bytecodeBytes ?? 'na'}:${proven ? passport.decimals : 'na'}`,
+      interpretation: 'Descriptive on-chain launch profile; not a safety score, audit, endorsement, or price prediction.',
+    },
+    qoryvexDiscovery: {
+      state: event?.confirmationState === 'reorged' ? 'REORGED' : proven ? 'DISCOVERED_ON_CHAIN' : 'CONTRACT_OBSERVED',
+      poolEvidence: 'UNAVAILABLE',
+      liquidityEvidence: 'UNAVAILABLE',
+      executionState: 'DISABLED',
+      reason: 'Pool/liquidity execution stays gated until a verified factory/router registry is proven from first-party chain evidence.',
+    },
+  };
+}
+
+async function liveIndexerSnapshot(observationId, startedAt) {
+  try {
+    const response = await fetch(INDEXER_DISCOVERY_URL, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        Origin: 'https://kriptoaman.com',
+        'User-Agent': 'KriptoAman-QoryVEx-Discovery/2.0',
+      },
+      signal: AbortSignal.timeout(RPC_TIMEOUT_MS),
+    });
+    if (!response.ok) return null;
+    const payload = await response.json();
+    if (payload?.status !== 'live' || Number(payload?.version) < 2 ||
+        Number(payload?.chainId) !== CHAIN_ID || payload?.chainIdHex !== EXPECTED_CHAIN ||
+        payload?.websocketSubscribed !== true || payload?.source?.ownership !== 'first-party' ||
+        !Array.isArray(payload?.events) || !Number.isSafeInteger(payload?.head?.number)) return null;
+
+    const head = payload.head.number;
+    const candidates = payload.events.map(event => streamCandidate(event, head)).filter(Boolean);
+    const tokens = candidates.filter(item => item.type === 'ERC20_METADATA_PROVEN' && item.confirmationState !== 'reorged');
+    return {
+      status: 'live',
+      schemaVersion: 2,
+      network: 'ZEVARYQ Mainnet',
+      chainId: CHAIN_ID,
+      chainIdHex: EXPECTED_CHAIN,
+      sourceMode: 'first-party-websocket-indexer',
+      head: {
+        number: head,
+        hex: `0x${head.toString(16)}`,
+        hash: safeHash(payload?.head?.hash),
+        timestamp: Number(payload?.head?.timestamp) || null,
+      },
+      radar: {
+        scannedBlocks: null,
+        contractCreationsObserved: candidates.length,
+        contractsInspected: candidates.length,
+        tokenMetadataProven: tokens.length,
+        candidates,
+        tokens,
+      },
+      stream: {
+        websocketSubscribed: true,
+        streamFresh: payload?.streamFresh === true,
+        confirmationDepth: Number(payload?.confirmationDepth) || null,
+        catchupTruncated: payload?.catchupTruncated === true,
+        latency: payload?.latency || null,
+        lastHeadAt: Number(payload?.lastHeadAt) || null,
+      },
+      truthPolicy: {
+        contractCreationIsTokenListing: false,
+        tokenMetadataIsAudit: false,
+        tokenMetadataIsEndorsement: false,
+        poolLiquidityAvailable: false,
+        executionEnabled: false,
+      },
+      provenance: {
+        ownership: 'first-party',
+        endpoint: 'rpc.kriptoaman.com/qoryvex/v1/discovery',
+        transport: 'WebSocket+JSON-RPC indexer',
+        externalMarketProviderUsed: false,
+        finality: 'confirmation-aware-reorg-tracked',
+      },
+      latencyMs: Date.now() - startedAt,
+      observedAt: Number(payload?.publishedAt) || Date.now(),
+      observationId,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function onRequestGet() {
   const startedAt = Date.now();
   const observationId = crypto.randomUUID();
 
   try {
+    const streamed = await liveIndexerSnapshot(observationId, startedAt);
+    if (streamed) return json(streamed);
+
     const [chainIdHex, headHex] = await Promise.all([rpc('eth_chainId'), rpc('eth_blockNumber')]);
     if (chainIdHex !== EXPECTED_CHAIN) {
       return json({ status: 'unavailable', code: 'CHAIN_ID_MISMATCH', expected: EXPECTED_CHAIN, actual: chainIdHex, observationId }, 503);
@@ -212,7 +363,8 @@ export async function onRequestGet() {
 
     return json({
       status: 'live',
-      schemaVersion: 1,
+      schemaVersion: 2,
+      sourceMode: 'first-party-json-rpc-fallback',
       network: 'ZEVARYQ Mainnet',
       chainId: CHAIN_ID,
       chainIdHex: EXPECTED_CHAIN,

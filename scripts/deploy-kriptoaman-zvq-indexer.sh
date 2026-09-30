@@ -6,13 +6,16 @@ APP_DIR=/opt/kriptoaman-indexer
 STATE_DIR=/var/lib/kriptoaman-indexer
 SERVICE=/etc/systemd/system/kriptoaman-zvq-indexer.service
 SOURCE="${SOURCE:-/tmp/zvq-listener.mjs}"
+MODEL_SOURCE="${MODEL_SOURCE:-/tmp/discovery-model.mjs}"
 BACKUP_DIR="/var/backups/kriptoaman-indexer/${GITHUB_RUN_ID:-manual}"
 
 fail(){ echo "ERROR: $*" >&2; exit 1; }
 [[ "$EUID" == 0 ]] || fail "root required"
 [[ -f "$SOURCE" ]] || fail "listener source missing"
+[[ -f "$MODEL_SOURCE" ]] || fail "discovery model source missing"
 command -v node >/dev/null || fail "node runtime missing"
 node --check "$SOURCE"
+node --check "$MODEL_SOURCE"
 
 http_port=
 for p in 8545 8547 9545; do
@@ -37,6 +40,7 @@ if [[ "$MODE" == rollback ]]; then
   [[ -d "$BACKUP_DIR" ]] || fail "backup directory unavailable"
   if [[ -f "$BACKUP_DIR/zvq-listener.mjs" ]]; then
     install -D -m 0750 "$BACKUP_DIR/zvq-listener.mjs" "$APP_DIR/zvq-listener.mjs"
+    [[ ! -f "$BACKUP_DIR/discovery-model.mjs" ]] || install -m 0640 "$BACKUP_DIR/discovery-model.mjs" "$APP_DIR/discovery-model.mjs"
   else
     systemctl disable --now kriptoaman-zvq-indexer.service 2>/dev/null || true
     rm -f "$SERVICE"
@@ -52,8 +56,10 @@ fi
 mkdir -p "$BACKUP_DIR" "$APP_DIR" "$STATE_DIR"
 chmod 0750 "$APP_DIR" "$STATE_DIR"
 [[ ! -f "$APP_DIR/zvq-listener.mjs" ]] || cp -a "$APP_DIR/zvq-listener.mjs" "$BACKUP_DIR/zvq-listener.mjs"
+[[ ! -f "$APP_DIR/discovery-model.mjs" ]] || cp -a "$APP_DIR/discovery-model.mjs" "$BACKUP_DIR/discovery-model.mjs"
 [[ ! -f "$SERVICE" ]] || cp -a "$SERVICE" "$BACKUP_DIR/service"
 install -m 0750 "$SOURCE" "$APP_DIR/zvq-listener.mjs"
+install -m 0640 "$MODEL_SOURCE" "$APP_DIR/discovery-model.mjs"
 
 cat >"$SERVICE" <<UNIT
 [Unit]
