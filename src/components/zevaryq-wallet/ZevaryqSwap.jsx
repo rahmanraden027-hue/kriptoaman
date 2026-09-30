@@ -26,7 +26,6 @@ const FIRST_PARTY_ASSET_CATALOG = Object.freeze([
     state: 'planned',
     badge: 'PLANNED',
     detail: 'BTC-backed representation candidate · bridge/backing authorization pending',
-    icon: '/assets/zevaryq/tokens/zbtc-v2.svg',
   },
   {
     symbol: 'zETH',
@@ -34,16 +33,15 @@ const FIRST_PARTY_ASSET_CATALOG = Object.freeze([
     state: 'planned',
     badge: 'PLANNED',
     detail: 'ETH-backed representation candidate · bridge/backing authorization pending',
-    icon: '/assets/zevaryq/tokens/zeth-v2.svg',
   },
-  { symbol: 'zUSDT', name: 'ZEVARYQ bridged USDT candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Not Tether-issued USDT · issuer or bridge authorization and backing not verified', icon: '/assets/zevaryq/tokens/zusdt-v2.svg' },
-  { symbol: 'zUSDC', name: 'ZEVARYQ bridged USDC candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Not Circle-issued USDC · issuer or bridge authorization and backing not verified', icon: '/assets/zevaryq/tokens/zusdc-v2.svg' },
-  { symbol: 'zBNB', name: 'ZEVARYQ BNB candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified', icon: '/assets/zevaryq/tokens/zbnb-v2.svg' },
-  { symbol: 'zSOL', name: 'ZEVARYQ Solana candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified', icon: '/assets/zevaryq/tokens/zsol-v2.svg' },
-  { symbol: 'zTRX', name: 'ZEVARYQ TRON candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified', icon: '/assets/zevaryq/tokens/ztrx-v2.svg' },
-  { symbol: 'zXRP', name: 'ZEVARYQ XRP candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified', icon: '/assets/zevaryq/tokens/zxrp-v2.svg' },
-  { symbol: 'zADA', name: 'ZEVARYQ Cardano candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified', icon: '/assets/zevaryq/tokens/zada-v2.svg' },
-  { symbol: 'zDOGE', name: 'ZEVARYQ Dogecoin candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified', icon: '/assets/zevaryq/tokens/zdoge-v2.svg' },
+  { symbol: 'zUSDT', name: 'ZEVARYQ bridged USDT candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Not Tether-issued USDT · issuer or bridge authorization and backing not verified' },
+  { symbol: 'zUSDC', name: 'ZEVARYQ bridged USDC candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Not Circle-issued USDC · issuer or bridge authorization and backing not verified' },
+  { symbol: 'zBNB', name: 'ZEVARYQ BNB candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified' },
+  { symbol: 'zSOL', name: 'ZEVARYQ Solana candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified' },
+  { symbol: 'zTRX', name: 'ZEVARYQ TRON candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified' },
+  { symbol: 'zXRP', name: 'ZEVARYQ XRP candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified' },
+  { symbol: 'zADA', name: 'ZEVARYQ Cardano candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified' },
+  { symbol: 'zDOGE', name: 'ZEVARYQ Dogecoin candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified' },
 ]);
 
 function AssetCatalog({ registryTokens = [], registryVerified = false }) {
@@ -72,17 +70,7 @@ function AssetCatalog({ registryTokens = [], registryVerified = false }) {
         {rows.map((asset) => (
           <div key={asset.symbol + asset.detail} className="rounded-2xl border border-[#1A3A59] bg-[#071522]/65 p-4">
             <div className="flex items-start gap-3">
-              {asset.icon ? (
-                <img
-                  src={asset.icon}
-                  alt={`${asset.symbol} token icon`}
-                  className="h-14 w-14 shrink-0 rounded-full object-contain drop-shadow-[0_0_12px_rgba(45,140,255,.35)]"
-                  loading="eager"
-                  decoding="async"
-                />
-              ) : (
-                <ZevaryqTokenIcon symbol={asset.symbol} className="h-14 w-14" />
-              )}
+              <ZevaryqTokenIcon symbol={asset.symbol} className="h-14 w-14" />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-black text-white">{asset.symbol}</h3>
