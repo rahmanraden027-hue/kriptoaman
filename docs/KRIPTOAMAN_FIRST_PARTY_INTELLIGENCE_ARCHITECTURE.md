@@ -117,3 +117,20 @@ They may remain temporarily during migration as isolated parity/reference inputs
 4. Additional chains only after the same provenance and reliability gates pass.
 
 No UI may claim first-party coverage for a chain before its node/listener gate is proven.
+
+
+## QoryVEx discovery phase
+
+The first QoryVEx discovery surface is intentionally evidence-gated:
+
+1. **New Token Radar** scans recent ZEVARYQ blocks for contract-creation transactions.
+2. **Contract proof** resolves the deployed address from the transaction receipt and verifies deployed bytecode.
+3. **Asset Passport** reads `name()`, `symbol()`, `decimals()`, and `totalSupply()` directly through KriptoAman RPC. A contract is labelled `ERC20_METADATA_PROVEN` only when symbol, decimals, and total-supply calls are readable; this label is metadata evidence, not a security audit or standards certification.
+4. **Launch DNA** records descriptive launch facts such as age in blocks, bytecode size, metadata completeness, declared decimals, and whether supply is readable. It is not a risk score or price prediction.
+5. **QoryVEx Discovery** keeps pool evidence, liquidity evidence, and execution unavailable until a verified factory/router registry and first-party pool-event detector are configured.
+
+Public route: `/qoryvex/discovery`
+
+API route: `GET /api/zvq-token-intelligence`
+
+The API must never infer a listing from contract creation and must never synthesize pool, liquidity, or execution availability.

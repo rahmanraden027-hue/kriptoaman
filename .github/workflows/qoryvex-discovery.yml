@@ -1,0 +1,49 @@
+name: QoryVEx First-Party Discovery Gate
+
+on:
+  pull_request:
+    paths:
+      - 'functions/api/zvq-token-intelligence.js'
+      - 'src/components/market/NewTokenRadar.jsx'
+      - 'src/pages/QoryVExDiscovery.jsx'
+      - 'src/pages/MarketGlobal.jsx'
+      - 'src/pages.config.js'
+      - 'src/App.jsx'
+      - 'tests/qoryvex-token-intelligence.test.mjs'
+      - 'docs/KRIPTOAMAN_FIRST_PARTY_INTELLIGENCE_ARCHITECTURE.md'
+      - '.github/workflows/qoryvex-discovery.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'functions/api/zvq-token-intelligence.js'
+      - 'src/components/market/NewTokenRadar.jsx'
+      - 'src/pages/QoryVExDiscovery.jsx'
+      - 'src/pages/MarketGlobal.jsx'
+      - 'src/pages.config.js'
+      - 'src/App.jsx'
+      - 'tests/qoryvex-token-intelligence.test.mjs'
+      - '.github/workflows/qoryvex-discovery.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qoryvex-first-party-discovery-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Validate API syntax and truth-policy tests
+        run: |
+          set -euo pipefail
+          node --check functions/api/zvq-token-intelligence.js
+          node --test tests/qoryvex-token-intelligence.test.mjs
+          ! grep -REn 'eth_sendRawTransaction|personal_|admin_|debug_' functions/api/zvq-token-intelligence.js
+          ! grep -REn 'PRIVATE_KEY|MNEMONIC|SEED_PHRASE' functions/api/zvq-token-intelligence.js src/components/market/NewTokenRadar.jsx

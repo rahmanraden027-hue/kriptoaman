@@ -8,7 +8,7 @@ const PAGE_NAMES = [
   'AdminProfitAnalytics', 'AdminUserBalances', 'Alerts', 'AppBuildAnalytics',
   'AssetManager', 'AutoTrading', 'Contact', 'DEXSavings', 'Disclaimer', 'Edukasi', 'Enterprise',
   'Founder', 'Home', 'IntelligenceHub', 'KAM', 'ZEVARYQ', 'KAMCampaignNews', 'KAMDeveloper', 'KAMDEX', 'KAMGlobalRoadmap', 'KAMIncidentResponse', 'KAMLaunchReadiness', 'KAMNetwork', 'KAMNetworkDocs', 'KAMTokenomics', 'KAMTransactionLab', 'KYC', 'KYCVerificationPage', 'LandingPage', 'Market', 'MarketResearch',
-  'P2PLending', 'PWAValidation', 'PaperTrading', 'PlatformDocs', 'PortfolioOverview', 'Premium',
+  'P2PLending', 'PWAValidation', 'PaperTrading', 'PlatformDocs', 'PortfolioOverview', 'Premium', 'QoryVExDiscovery',
   'PriceTracker', 'PrivacyPolicy', 'RPCPrivacyPolicy', 'Profile', 'Referral', 'RegulatoryDocs',
   'SEOLanding', 'SecureVault', 'SecurityCenter', 'ServerControl', 'Settings', 'SystemStatus',
   'StoreDeploymentGuide', 'Support', 'TermsOfService', 'TradingAnalytics',
