@@ -17,20 +17,14 @@ test('user-facing market history never fabricates prices or volume', async () =>
   assert.doesNotMatch(source, /api\.coingecko\.com|api\.coinlore\.net|min-api\.cryptocompare\.com|stream\.binance\.com/i);
 });
 
-test('market history coverage includes a broad global asset set', async () => {
+test('market history uses a bounded server-owned asset allowlist', async () => {
   const source = await read('src/components/market/marketDataService.jsx');
 
-  for (const symbol of [
-    'BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'ADA', 'DOGE', 'TRX', 'AVAX', 'DOT',
-    'LINK', 'LTC', 'UNI', 'ATOM', 'NEAR', 'APT', 'SUI', 'ARB', 'OP', 'AAVE',
-    'SHIB', 'USDT', 'USDC', 'PEPE', 'BCH', 'XLM', 'TON', 'HBAR', 'ICP', 'ETC',
-    'FIL', 'LDO', 'DAI', 'CRO', 'MKR', 'ALGO', 'VET', 'TIA', 'IMX', 'GRT',
-    'STX', 'RUNE', 'KAS',
-  ]) {
-    assert.match(source, new RegExp(`\\b${symbol}:`));
-  }
+  assert.match(source, /SUPPORTED_HISTORY_ASSETS=new Set\(\['BTC','ETH','BNB','SOL','XRP','USDT','USDC'\]\)/);
+  assert.match(source, /if\(!SUPPORTED_HISTORY_ASSETS\.has\(asset\)\)return \[\]/);
+  assert.match(source, /\/api\/market-history/);
+  assert.doesNotMatch(source, /generateSynthetic|Math\.random/);
 });
-
 test('unverified forex and commodity data fail closed', async () => {
   const source = await read('src/components/market/marketDataService.jsx');
 
