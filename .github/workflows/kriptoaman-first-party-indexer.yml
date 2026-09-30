@@ -70,6 +70,36 @@ jobs:
           test $((16#${b#0x})) -gt $((16#${a#0x}))
           code="$(curl -sS -o /dev/null -w '%{http_code}' -H 'content-type: application/json'             --data '{"jsonrpc":"2.0","id":4,"method":"eth_sendRawTransaction","params":["0x01"]}' "$endpoint")"
           test "$code" = 403
+      - name: Prove first-party WebSocket block-to-index latency
+        run: |
+          set -euo pipefail
+          evidence="$(ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          first="$(curl -fsS --max-time 5 http://127.0.0.1:8765/v1/discovery)"
+          test "$(jq -r '.status' <<<"$first")" = live
+          test "$(jq -r '.websocketSubscribed' <<<"$first")" = true
+          first_head="$(jq -r '.head.number // -1' <<<"$first")"
+          latest="$first"
+          for _ in 1 2 3 4 5 6; do
+            sleep 5
+            latest="$(curl -fsS --max-time 5 http://127.0.0.1:8765/v1/discovery)"
+            latest_head="$(jq -r '.head.number // -1' <<<"$latest")"
+            if (( latest_head > first_head )); then break; fi
+          done
+          latest_head="$(jq -r '.head.number // -1' <<<"$latest")"
+          (( latest_head > first_head ))
+          samples="$(jq -r '.latency.samples // 0' <<<"$latest")"
+          p95="$(jq -r '.latency.p95Ms // empty' <<<"$latest")"
+          test "$samples" -ge 1
+          test -n "$p95"
+          radar="$(curl -fsS --max-time 5 http://127.0.0.1:8765/v1/radar)"
+          test "$(jq -r '.provenance.externalMarketProviderUsed' <<<"$radar")" = false
+          jq -cn --argjson first "$first_head" --argjson latest "$latest_head" --argjson samples "$samples" --argjson p95 "$p95" '{gate:"PASS",firstHead:$first,latestHead:$latest,indexLatencySamples:$samples,indexP95Ms:$p95,source:"first-party ZEVARYQ WebSocket"}'
+REMOTE
+          )"
+          echo "$evidence"
+          echo "### ZEVARYQ first-party WebSocket evidence" >> "$GITHUB_STEP_SUMMARY"
+          echo "$evidence" >> "$GITHUB_STEP_SUMMARY"
       - name: Roll back this run if deployment gate fails
         if: failure() && steps.apply.outcome != 'skipped'
         run: |
