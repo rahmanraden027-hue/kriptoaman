@@ -76,7 +76,7 @@ test('ZEVARYQ swap catalog exposes native and planned first-party assets without
   assert.match(ui, /<ZevaryqTokenIcon symbol=\{asset\.symbol\}/);
   assert.match(icons, /zBTC: '\/assets\/zevaryq\/tokens\/zbtc-v2\.svg'/);
   assert.match(icons, /zETH: '\/assets\/zevaryq\/tokens\/zeth-v2\.svg'/);
-  assert.match(icons, /\`\/assets\/zevaryq\/tokens\/\$\{symbol\}\.png\`/);
+  assert.match(icons, /\`\/assets\/zevaryq\/tokens\/\$\{symbol\}\.webp\`/);
   assert.match(ui, /not issuer-issued stablecoins or tradable assets/);
   assert.match(ui, /USDT\/USDC issuer assets are not created or imitated by ZEVARYQ/);
   assert.match(ui, /Additional ERC-20 assets appear automatically only from the verified swap registry/);
