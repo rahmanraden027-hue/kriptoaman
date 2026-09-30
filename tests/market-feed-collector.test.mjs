@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
+import { readFile } from 'node:fs/promises';
 import { buildConsensus, buildFeedPayload, normalizeObservation, normalizeVenueSymbol } from '../services/kriptoaman-market-feed/model.mjs';
 import { coinbaseRows, krakenRows } from '../services/kriptoaman-market-feed/collector.mjs';
 import { validatePayload, verifySignature } from '../functions/api/market-feed-ingest.js';
@@ -83,4 +84,13 @@ test('HMAC ingest verification accepts exact body and rejects tampering',async()
   const sig=crypto.createHmac('sha256',secret).update(timestamp+'.'+body).digest('hex');
   assert.equal(await verifySignature(secret,timestamp,body,sig),true);
   assert.equal(await verifySignature(secret,timestamp,body+'x',sig),false);
+});
+
+
+test('production collector deployment requires an explicit main authorization', async()=>{
+  const workflow=await readFile(new URL('../.github/workflows/kriptoaman-market-feed.yml',import.meta.url),'utf8');
+  assert.match(workflow,/github\.event_name == 'workflow_dispatch' && github\.ref == 'refs\/heads\/main'/);
+  assert.match(workflow,/github\.event_name == 'push' && github\.ref == 'refs\/heads\/main' && startsWith\(github\.event\.head_commit\.message, 'MARKET FEED CUTOVER 20260930'\)/);
+  assert.match(workflow,/runs-on: \[self-hosted, linux, x64, ka-intelligence-indexer\]/);
+  assert.match(workflow,/Roll back if production gate fails/);
 });
