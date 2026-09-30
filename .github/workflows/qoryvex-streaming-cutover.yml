@@ -74,6 +74,7 @@ jobs:
             https://rpc.kriptoaman.com/ | jq -er '.result')"
           test "$chain" = 0x560c
 
+          cd "$GITHUB_WORKSPACE"
           scp -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new \
             services/kriptoaman-indexer/zvq-listener.mjs \
             services/kriptoaman-indexer/discovery-model.mjs \
