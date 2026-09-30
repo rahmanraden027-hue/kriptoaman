@@ -1,0 +1,34 @@
+name: QoryVEx Blockscout WebSocket Proof
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/probe-qoryvex-blockscout-websocket.mjs'
+      - 'src/components/market/NewTokenRadar.jsx'
+      - 'functions/api/zvq-token-intelligence.js'
+      - '.github/workflows/qoryvex-blockscout-websocket.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/probe-qoryvex-blockscout-websocket.mjs'
+      - 'src/components/market/NewTokenRadar.jsx'
+      - 'functions/api/zvq-token-intelligence.js'
+      - '.github/workflows/qoryvex-blockscout-websocket.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  prove:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Prove first-party Explorer new-block WebSocket
+        run: |
+          set -euo pipefail
+          node --check scripts/probe-qoryvex-blockscout-websocket.mjs
+          node scripts/probe-qoryvex-blockscout-websocket.mjs
