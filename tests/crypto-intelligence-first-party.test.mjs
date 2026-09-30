@@ -48,3 +48,22 @@ test('first-party WebSocket live state requires a confirmed subscription and rol
   assert.match(deploy, /WebSocket subscription not confirmed/);
   assert.match(workflow, /failure\(\) && steps\.apply\.outcome != 'skipped'/);
 });
+
+
+test('phase 2 exposes evidence-safe contract radar with truthful websocket index latency', async () => {
+  const [listener, workflow, verifier] = await Promise.all([
+    read('services/kriptoaman-indexer/zvq-listener.mjs'),
+    read('.github/workflows/kriptoaman-first-party-indexer.yml'),
+    read('scripts/verify-zvq-indexer-live.sh'),
+  ]);
+  assert.match(listener, /websocket-received-to-indexed/);
+  assert.match(listener, /block-timestamp-to-websocket-received/);
+  assert.match(listener, /\/v1\/radar/);
+  assert.match(listener, /UNVERIFIED_CONTRACT_CREATION/);
+  assert.match(listener, /externalMarketProviderUsed: false/);
+  assert.match(listener, /Contract creation is not proof of token standard, liquidity, listing, safety, or endorsement/);
+  assert.match(workflow, /Prove first-party WebSocket block-to-index latency/);
+  assert.match(workflow, /verify-zvq-indexer-live\.sh/);
+  assert.match(verifier, /latest_head > first_head/);
+  assert.match(verifier, /indexP95Ms/);
+});
