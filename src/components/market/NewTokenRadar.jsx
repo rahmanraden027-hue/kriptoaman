@@ -61,7 +61,7 @@ function TokenCard({ token }) {
             <p>Creator <span className="font-mono text-slate-300">{short(token?.creator)}</span></p>
             <p>Tx <span className="font-mono text-slate-300">{short(token?.creationTxHash)}</span></p>
             <p>Supply <span className="break-all text-slate-300">{passport.totalSupplyRaw ?? 'unavailable'}</span></p>
-            <p>Source <span className="text-slate-300">KriptoAman RPC</span></p>
+            <p>Source <span className="text-slate-300">{passport?.provenance?.transport || "KriptoAman RPC"}</span></p>
           </div>
         </section>
 
@@ -71,6 +71,7 @@ function TokenCard({ token }) {
           </div>
           <div className="mt-2 space-y-1 text-[10px] leading-5 text-slate-400">
             <p>Freshness <span className="text-slate-300">{dna.freshnessBand || '—'}</span></p>
+            <p>Confirmations <span className="text-slate-300">{Number.isInteger(dna.confirmations) ? dna.confirmations : '—'}</span></p>
             <p>Metadata proof <span className="text-slate-300">{dna.metadataFieldsProven ?? 0}/4</span></p>
             <p>Supply declared <span className="text-slate-300">{dna.declaredSupplyPresent ? 'yes' : 'not proven'}</span></p>
             <p className="text-slate-500">Descriptive profile only — not a safety score.</p>
@@ -152,7 +153,7 @@ export default function NewTokenRadar({ expanded = false }) {
           [Boxes, 'Head', Number.isFinite(Number(data?.head?.number)) ? Number(data.head.number).toLocaleString('en-US') : '—'],
           [Activity, 'Creations', data?.radar?.contractCreationsObserved ?? '—'],
           [BadgeCheck, 'Metadata Proven', data?.radar?.tokenMetadataProven ?? '—'],
-          [Database, 'Request Latency', Number.isFinite(Number(data?.latencyMs)) ? `${data.latencyMs} ms` : '—'],
+          [Database, data?.stream?.websocketSubscribed ? 'Stream P95' : 'Request Latency', Number.isFinite(Number(data?.stream?.latency?.p95Ms)) ? `${Math.round(data.stream.latency.p95Ms)} ms` : Number.isFinite(Number(data?.latencyMs)) ? `${data.latencyMs} ms` : '—'],
         ].map(([Icon, label, value]) => (
           <div key={label} className="rounded-2xl border border-white/[0.06] bg-white/[0.025] p-3">
             <Icon className="h-4 w-4 text-cyan-300" />
@@ -178,7 +179,7 @@ export default function NewTokenRadar({ expanded = false }) {
       <div className="mt-4 flex flex-col gap-3 border-t border-white/[0.06] pt-4 text-[9px] leading-4 text-slate-500 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-x-4 gap-y-1">
           <span>Chain ID 22028</span>
-          <span>Observed, not finalized</span>
+          <span>{data?.stream?.websocketSubscribed ? 'Confirmation-aware · reorg-tracked' : 'Polling fallback · observed'}</span>
           <span>External market provider: none</span>
           <span>Pool/liquidity execution gate: closed until verified</span>
         </div>
