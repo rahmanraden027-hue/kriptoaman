@@ -14,7 +14,9 @@ test('user-facing market history never fabricates prices or volume', async () =>
   assert.match(source, /source:'kriptoaman-market-history'/);
   assert.match(source, /\/api\/market-history/);
   assert.match(source, /SUPPORTED_HISTORY_ASSETS\.has\(asset\)/);
-  assert.doesNotMatch(source, /api\.coingecko\.com|api\.coinlore\.net|min-api\.cryptocompare\.com|stream\.binance\.com/i);
+  for (const host of ['api.coingecko.com','api.coinlore.net','min-api.cryptocompare.com','stream.binance.com']) {
+    assert.ok(!source.toLowerCase().includes(host), `history client must not contact ${host}`);
+  }
 });
 
 test('market history uses a bounded server-owned asset allowlist', async () => {
