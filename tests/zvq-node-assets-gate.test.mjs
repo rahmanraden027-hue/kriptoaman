@@ -12,7 +12,11 @@ test('node screen is accessible and read-only',()=>{
   assert.match(node,/const POLL_MS = 30_000/);
   assert.match(node,/const STALE_MS = 90_000/);
   assert.match(node,/const MAX_LAG = 12/);
-  assert.match(node,/delta < 0 \? 'CHECK SOURCES'/);
+  assert.match(node,/indexer\.hashStatus === 'mismatch'/);
+  assert.match(node,/const rpcBefore = await readHead\(\)/);
+  assert.match(node,/const rpcAfter = await readHead\(\)/);
+  assert.match(node,/eth_getBlockByNumber/);
+  assert.match(node,/indexer\.hashVerified/);
   assert.match(node,/Indexed block evidence/);
   assert.doesNotMatch(node,/sendTransaction|privateKey|eth_sendTransaction|mint\(/);
 });
