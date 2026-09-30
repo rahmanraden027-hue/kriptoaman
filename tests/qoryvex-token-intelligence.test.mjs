@@ -56,3 +56,15 @@ test('QoryVEx Discovery is public and New Token Radar is surfaced on the crypto 
   assert.match(app, /'\/qoryvex\/discovery'/);
   assert.match(page, /NewTokenRadar expanded/);
 });
+
+
+test('production smoke proves QoryVEx route and first-party token intelligence contract', async () => {
+  const smoke = await read('.github/workflows/live-site-smoke.yml');
+  assert.match(smoke, /qoryvex\/discovery/);
+  assert.match(smoke, /api\/zvq-token-intelligence/);
+  assert.match(smoke, /payload\?\.chainId !== 22028/);
+  assert.match(smoke, /payload\?\.provenance\?\.ownership !== 'first-party'/);
+  assert.match(smoke, /externalMarketProviderUsed !== false/);
+  assert.match(smoke, /contractCreationIsTokenListing !== false/);
+  assert.match(smoke, /executionEnabled !== false/);
+});
