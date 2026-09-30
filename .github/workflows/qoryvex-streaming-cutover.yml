@@ -54,7 +54,7 @@ jobs:
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
     timeout-minutes: 8
     steps:
-      - name: Read-only Explorer host and private node topology preflight
+      - name: Read-only first-party WSS and Explorer container-network preflight
         shell: bash
         run: |
           set -euo pipefail
@@ -65,14 +65,20 @@ jobs:
           test -n "$proxy_id"
           network_mode="$(docker inspect -f '{{.HostConfig.NetworkMode}}' "$proxy_id")"
           echo "explorer_proxy_network_mode=$network_mode"
-          echo "indexer_port_8765_listeners=$(ss -H -ltn '( sport = :8765 )' | wc -l)"
+          test "$network_mode" = "docker-compose_default"
+
+          chain="$(curl -fsS --connect-timeout 5 --max-time 12 \
+            -H 'content-type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+            https://rpc.kriptoaman.com/ | jq -er '.result')"
+          test "$chain" = 0x560c
 
           ws_probe() {
             node - "$1" <<'NODE'
           const url=process.argv[2];
           let ws,doneFlag=false;
           const finish=(code)=>{ if(doneFlag)return; doneFlag=true; clearTimeout(timer); try{ws.close()}catch{}; setTimeout(()=>process.exit(code),10); };
-          const timer=setTimeout(()=>finish(1),5000);
+          const timer=setTimeout(()=>finish(1),7000);
           try{ws=new WebSocket(url)}catch{finish(1)}
           ws.addEventListener('open',()=>ws.send(JSON.stringify({jsonrpc:'2.0',id:1,method:'eth_chainId',params:[]})));
           ws.addEventListener('message',e=>{
@@ -87,25 +93,25 @@ jobs:
           NODE
           }
 
-          found=0
-          for entry in recovery:10.104.0.8 intelligence:10.104.0.6 sentry:10.104.0.2; do
-            label="${entry%%:*}"
-            host="${entry#*:}"
-            http=no
-            ws=no
-            chain="$(curl --noproxy '*' -sS --connect-timeout 3 --max-time 6 \
-              -H 'content-type: application/json' \
-              --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
-              "http://$host:8545" | jq -r '.result // empty' 2>/dev/null || true)"
-            test "$chain" != 0x560c || http=yes
-            if ws_probe "ws://$host:8546" >/dev/null 2>&1; then ws=yes; fi
-            echo "candidate_$label http_rpc=$http websocket_subscription=$ws"
-            if test "$http" = yes && test "$ws" = yes; then
-              found=$((found+1))
+          found=
+          for url in \
+            wss://rpc.kriptoaman.com/ \
+            wss://rpc.kriptoaman.com/ws \
+            wss://rpc.kriptoaman.com/rpc \
+            wss://explorer.kriptoaman.com/ws \
+            wss://explorer.kriptoaman.com/rpc; do
+            if ws_probe "$url" >/dev/null 2>&1; then
+              found="$url"
+              break
             fi
           done
-          test "$found" -ge 1
-          echo "qoryvex_explorer_readonly_preflight=pass viable_private_nodes=$found"
+          if test -n "$found"; then
+            echo "first_party_wss_subscription=pass endpoint=$found"
+          else
+            echo "first_party_wss_subscription=unavailable"
+            exit 1
+          fi
+          echo "qoryvex_explorer_readonly_preflight=pass chain_id=0x560c"
 
   deploy:
     if: github.event_name == 'push' && startsWith(github.event.head_commit.message, 'QORYVEX STREAMING CUTOVER 20260930')
