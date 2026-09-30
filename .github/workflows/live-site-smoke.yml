@@ -387,6 +387,31 @@ jobs:
           echo "Public market status remained non-operational after verified refresh attempts."
           exit 1
 
+      - name: Check market-feed ingest configuration without mutation
+        if: github.event_name != 'pull_request' || (github.head_ref != 'feature/zevaryq-explorer-production' && github.head_ref != 'codex/zevaryq-premium-logo' && github.head_ref != 'fix/zevaryq-explorer-absolute-assets' && github.head_ref != 'fix/explorer-ui-local-gate' && github.head_ref != 'fix/zevaryq-inline-emblem')
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          timestamp="$(date +%s%3N)"
+          code="$(curl --location --silent --show-error \
+            --connect-timeout 10 --max-time 25 \
+            -X POST \
+            -H 'Content-Type: application/json' \
+            -H "x-ka-timestamp: $timestamp" \
+            -H 'x-ka-signature: 0000000000000000000000000000000000000000000000000000000000000000' \
+            --data '{}' \
+            -o "$body" -w '%{http_code}' \
+            https://kriptoaman.com/api/market-feed-ingest || true)"
+          cat "$body"
+          test "$code" = "401"
+          node - "$body" <<'NODE'
+          const fs=require('fs');
+          const payload=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+          if(payload?.code!=='MARKET_FEED_SIGNATURE_INVALID') process.exit(1);
+          NODE
+          echo "market_feed_ingest_config=present signature_rejection=pass"
+
       - name: Check KriptoAman server-owned market feed
         if: github.event_name != 'pull_request' || (github.head_ref != 'feature/zevaryq-explorer-production' && github.head_ref != 'codex/zevaryq-premium-logo' && github.head_ref != 'fix/zevaryq-explorer-absolute-assets' && github.head_ref != 'fix/explorer-ui-local-gate' && github.head_ref != 'fix/zevaryq-inline-emblem')
         shell: bash
