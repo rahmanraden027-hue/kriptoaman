@@ -5,7 +5,7 @@ import { buildConsensus, buildFeedPayload, normalizeObservation, normalizeVenueS
 import { coinbaseRows, krakenRows } from '../services/kriptoaman-market-feed/collector.mjs';
 import { validatePayload, verifySignature } from '../functions/api/market-feed-ingest.js';
 
-const NOW=1_800_000_000_000;
+const NOW=Date.now();
 
 test('venue symbols normalize to canonical USD assets',()=>{
   assert.equal(normalizeVenueSymbol('BTC-USD'),'BTC');
@@ -32,10 +32,8 @@ test('consensus uses fresh multi-venue observations and drops stale/outlier valu
   assert.equal(btc.venueCount,2);
   assert.equal(btc.quality,'multi-venue');
   assert.ok(btc.price>100&&btc.price<100.5);
-  const eth=data.find(x=>x.symbol==='ETH');
-  assert.equal(eth.venueCount,1);
-  assert.equal(eth.price,50);
-  assert.equal(data.some(x=>x.symbol==='SOL'),false);
+  assert.equal(data.some(x=>x.symbol==='ETH'),false, 'two venues with a >2% disagreement must not produce consensus');
+  assert.equal(data.some(x=>x.symbol==='SOL'),false, 'stale observations must be dropped');
 });
 
 test('collector parsers normalize Coinbase and Kraken ticker messages',()=>{
