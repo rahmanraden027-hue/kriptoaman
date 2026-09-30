@@ -68,7 +68,7 @@ jobs:
           ! grep -REn 'Math\.random|synthetic.*price|fake.*price' services/kriptoaman-market-feed
 
   deploy:
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'MARKET FEED CUTOVER 20260930'))
     needs: validate
     runs-on: [self-hosted, linux, x64, ka-intelligence-indexer]
     timeout-minutes: 15
