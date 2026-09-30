@@ -42,7 +42,7 @@ jobs:
           ! grep -REn 'PRIVATE_KEY|MNEMONIC|SEED_PHRASE' services/kriptoaman-indexer scripts/deploy-kriptoaman-zvq-indexer.sh
 
   deploy:
-    if: github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'QORYVEX STREAMING CUTOVER 20260930')
+    if: github.event_name == 'push' && startsWith(github.event.head_commit.message, 'QORYVEX STREAMING CUTOVER 20260930')
     needs: validate
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
     timeout-minutes: 12
