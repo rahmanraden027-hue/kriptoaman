@@ -32,3 +32,25 @@ jobs:
           set -euo pipefail
           node --check scripts/probe-qoryvex-blockscout-websocket.mjs
           node scripts/probe-qoryvex-blockscout-websocket.mjs
+
+  origin-preflight:
+    if: github.event_name == 'pull_request'
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 5
+    steps:
+      - name: Inspect existing Blockscout socket routing without mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          base=/opt/blockscout/docker-compose
+          test -d "$base"
+          cd "$base"
+          echo '== compose services =='
+          sudo -n docker compose config --services
+          echo '== running containers =='
+          sudo -n docker compose ps --format json | head -80
+          echo '== socket/api routing excerpts =='
+          sudo -n grep -En 'socket|websocket|proxy_pass|upstream|api/v2' proxy/default.conf.template | head -120 || true
+          echo '== backend candidates =='
+          sudo -n docker ps --format 'name={{.Names}} ports={{.Ports}}' | grep -Ei 'backend|blockscout|proxy' | head -80
+          echo 'qoryvex_blockscout_origin_preflight=pass'
