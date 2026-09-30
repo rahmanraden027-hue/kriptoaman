@@ -198,36 +198,31 @@ export const COINS = {
   },
 };
 
-// ─── Price API (CoinGecko) ─────────────────────────────────
-const COINGECKO_IDS = 'bitcoin,ethereum,binancecoin,solana,dogecoin,matic-network,litecoin,avalanche-2,fantom,ripple,cardano,polkadot,tron,cosmos,chainlink,uniswap,near,aptos,sui,optimism,arbitrum';
-const COIN_ID_MAP = {
-  bitcoin: 'BTC', ethereum: 'ETH', binancecoin: 'BNB',
-  solana: 'SOL', dogecoin: 'DOGE', 'matic-network': 'MATIC', litecoin: 'LTC',
-  'avalanche-2': 'AVAX', fantom: 'FTM',
-  ripple: 'XRP', cardano: 'ADA', polkadot: 'DOT', tron: 'TRX',
-  cosmos: 'ATOM', chainlink: 'LINK', uniswap: 'UNI', near: 'NEAR',
-  aptos: 'APT', sui: 'SUI', optimism: 'OP_TOKEN', arbitrum: 'ARB_TOKEN',
-};
-
-// Coins with separate price tokens (L2s use ETH price)
+// ─── Price API (KriptoAman internal market API) ─────────────
+const PRICE_SYMBOLS = ['BTC','ETH','BNB','SOL','DOGE','MATIC','LTC','AVAX','FTM','XRP','ADA','DOT','TRX','ATOM','LINK','UNI','NEAR','APT','SUI','OP','ARB'];
 const PRICE_ALIASES = { ARB: 'ETH', OP: 'ETH', BASE: 'ETH' };
 
 export async function getPrices() {
   try {
-    const res = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${COINGECKO_IDS}&vs_currencies=usd&include_24hr_change=true`
-    );
-    if (!res.ok) return {};
-    const data = await res.json();
-    const result = {};
-    Object.entries(COIN_ID_MAP).forEach(([geckoId, coinId]) => {
-      if (data[geckoId]) {
-        result[coinId] = { price: data[geckoId].usd, change24h: data[geckoId].usd_24h_change };
-      }
+    const res = await fetch(`/api/market-price?symbols=${encodeURIComponent(PRICE_SYMBOLS.join(','))}`, {
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
     });
-    // Propagate prices to L2 aliases
+    if (!res.ok) return {};
+    const payload = await res.json();
+    const result = {};
+    for (const row of Array.isArray(payload?.data) ? payload.data : []) {
+      const symbol = String(row?.symbol || '').toUpperCase();
+      const price = Number(row?.price);
+      if (!symbol || !Number.isFinite(price) || price <= 0) continue;
+      const coinId = symbol === 'ARB' ? 'ARB_TOKEN' : symbol === 'OP' ? 'OP_TOKEN' : symbol;
+      result[coinId] = {
+        price,
+        change24h: Number.isFinite(Number(row?.change24h)) ? Number(row.change24h) : null,
+      };
+    }
     Object.entries(PRICE_ALIASES).forEach(([coinId, sourceId]) => {
-      if (result[sourceId]) result[coinId] = result[sourceId];
+      if (result[sourceId]) result[coinId] = { ...result[sourceId] };
     });
     return result;
   } catch {
