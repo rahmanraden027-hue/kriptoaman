@@ -65,20 +65,23 @@ test('legacy swap surfaces never fabricate quotes or destination addresses', asy
 
 test('ZEVARYQ swap catalog exposes native and planned first-party assets without impersonating issuers', async () => {
   const ui = await read('src/components/zevaryq-wallet/ZevaryqSwap.jsx');
+  const icons = await read('src/components/zevaryq-wallet/ZevaryqTokenIcon.jsx');
 
   assert.match(ui, /ZEVARYQ Asset Universe/);
   assert.match(ui, /symbol: 'ZVQ'/);
-  assert.match(ui, /symbol: 'ZUSD'/);
+  assert.doesNotMatch(ui, /symbol: 'ZUSD'/);
   assert.match(ui, /symbol: 'zBTC'/);
   assert.match(ui, /symbol: 'zETH'/);
-  assert.match(ui, /\/assets\/zevaryq\/tokens\/zusd-v2\.svg/);
-  assert.match(ui, /\/assets\/zevaryq\/tokens\/zbtc-v2\.svg/);
-  assert.match(ui, /\/assets\/zevaryq\/tokens\/zeth-v2\.svg/);
-  assert.match(ui, /not USDT or USDC/);
+  assert.doesNotMatch(ui, /\/assets\/zevaryq\/tokens\/zusd-v2\.svg/);
+  assert.match(ui, /<ZevaryqTokenIcon symbol=\{asset\.symbol\}/);
+  assert.match(icons, /zBTC: '\/assets\/zevaryq\/tokens\/zbtc-v2\.svg'/);
+  assert.match(icons, /zETH: '\/assets\/zevaryq\/tokens\/zeth-v2\.svg'/);
+  assert.match(icons, /\`\/assets\/zevaryq\/tokens\/\$\{symbol\}\.webp\`/);
+  assert.match(ui, /not issuer-issued stablecoins or tradable assets/);
   assert.match(ui, /USDT\/USDC issuer assets are not created or imitated by ZEVARYQ/);
   assert.match(ui, /Additional ERC-20 assets appear automatically only from the verified swap registry/);
-  assert.doesNotMatch(ui, /symbol: 'zUSDT'/);
-  assert.doesNotMatch(ui, /symbol: 'zUSDC'/);
+  assert.match(ui, /symbol: 'zUSDT'/);
+  assert.match(ui, /symbol: 'zUSDC'/);
 });
 
 
@@ -86,11 +89,10 @@ test('ZEVARYQ Assets page renders production ecosystem token icons even before b
   const wallet = await read('src/pages/Wallet.jsx');
 
   assert.match(wallet, /ZEVARYQ Ecosystem Assets/);
-  assert.match(wallet, /data-zvq-production-token-icons="ZUSD,zBTC,zETH"/);
+  assert.match(wallet, /data-zvq-production-token-icons="zBTC,zETH,zUSDT,zUSDC,zBNB,zSOL,zTRX,zXRP,zADA,zDOGE"/);
   assert.match(wallet, /data-token-identity-version="2"/);
-  assert.match(wallet, /\/assets\/zevaryq\/tokens\/zusd-v2\.svg/);
-  assert.match(wallet, /\/assets\/zevaryq\/tokens\/zbtc-v2\.svg/);
-  assert.match(wallet, /\/assets\/zevaryq\/tokens\/zeth-v2\.svg/);
+  assert.doesNotMatch(wallet, /\/assets\/zevaryq\/tokens\/zusd-v2\.svg/);
+  assert.match(wallet, /<ZevaryqTokenIcon symbol=\{asset\.symbol\}/);
   assert.match(wallet, /Planned ecosystem assets/);
   assert.match(wallet, /Identity preview only · not wallet holdings/);
   assert.match(wallet, /PLANNED/);

@@ -10,6 +10,7 @@ import {
 } from '@/services/zevaryqSwap';
 import { ZEVARYQ } from '@/theme/zevaryqWallet';
 import { StatePanel } from './WalletUI';
+import ZevaryqTokenIcon from './ZevaryqTokenIcon';
 
 const FIRST_PARTY_ASSET_CATALOG = Object.freeze([
   {
@@ -20,20 +21,11 @@ const FIRST_PARTY_ASSET_CATALOG = Object.freeze([
     detail: 'Native asset of ZEVARYQ Mainnet · Chain 22028',
   },
   {
-    symbol: 'ZUSD',
-    name: 'ZEVARYQ USD',
-    state: 'planned',
-    badge: 'PLANNED',
-    detail: 'Reserve-backed ecosystem asset candidate · not USDT or USDC · not deployed',
-    icon: '/assets/zevaryq/tokens/zusd-v2.svg',
-  },
-  {
     symbol: 'zBTC',
     name: 'ZEVARYQ Bitcoin',
     state: 'planned',
     badge: 'PLANNED',
     detail: 'BTC-backed representation candidate · bridge/backing authorization pending',
-    icon: '/assets/zevaryq/tokens/zbtc-v2.svg',
   },
   {
     symbol: 'zETH',
@@ -41,8 +33,15 @@ const FIRST_PARTY_ASSET_CATALOG = Object.freeze([
     state: 'planned',
     badge: 'PLANNED',
     detail: 'ETH-backed representation candidate · bridge/backing authorization pending',
-    icon: '/assets/zevaryq/tokens/zeth-v2.svg',
   },
+  { symbol: 'zUSDT', name: 'ZEVARYQ bridged USDT candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Not Tether-issued USDT · issuer or bridge authorization and backing not verified' },
+  { symbol: 'zUSDC', name: 'ZEVARYQ bridged USDC candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Not Circle-issued USDC · issuer or bridge authorization and backing not verified' },
+  { symbol: 'zBNB', name: 'ZEVARYQ BNB candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified' },
+  { symbol: 'zSOL', name: 'ZEVARYQ Solana candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified' },
+  { symbol: 'zTRX', name: 'ZEVARYQ TRON candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified' },
+  { symbol: 'zXRP', name: 'ZEVARYQ XRP candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified' },
+  { symbol: 'zADA', name: 'ZEVARYQ Cardano candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified' },
+  { symbol: 'zDOGE', name: 'ZEVARYQ Dogecoin candidate', state: 'planned', badge: 'PLANNED · NOT TRADABLE', detail: 'Proposed bridged representation · contract, backing and bridge not verified' },
 ]);
 
 function AssetCatalog({ registryTokens = [], registryVerified = false }) {
@@ -65,23 +64,13 @@ function AssetCatalog({ registryTokens = [], registryVerified = false }) {
         <span className="rounded-full border border-[#2D8CFF]/30 bg-[#2D8CFF]/10 px-3 py-1 text-[10px] font-black text-[#7CC7FF]">CHAIN 22028</span>
       </div>
       <p className="mt-3 text-sm leading-6 text-[#9FB3C8]">
-        ZVQ is the native asset. ZUSD, zBTC and zETH are first-party ZEVARYQ asset-layer candidates and remain locked until their backing, deployment and trading gates are independently satisfied. Additional ERC-20 assets appear automatically only from the verified swap registry.
+        ZVQ is the native asset. zBTC and zETH are planned asset representations. zUSDT and zUSDC are proposed identity previews only, not issuer-issued stablecoins or tradable assets. No asset becomes available for trading without independently verified contracts, provenance, backing and authorization. Additional ERC-20 assets appear automatically only from the verified swap registry.
       </p>
       <div className="mt-5 grid gap-3">
         {rows.map((asset) => (
           <div key={asset.symbol + asset.detail} className="rounded-2xl border border-[#1A3A59] bg-[#071522]/65 p-4">
             <div className="flex items-start gap-3">
-              {asset.icon ? (
-                <img
-                  src={asset.icon}
-                  alt={`${asset.symbol} token icon`}
-                  className="h-14 w-14 shrink-0 rounded-full object-contain drop-shadow-[0_0_12px_rgba(45,140,255,.35)]"
-                  loading="eager"
-                  decoding="async"
-                />
-              ) : (
-                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-[#2D8CFF]/35 bg-[#102235] text-sm font-black text-[#F2C86B]">{asset.symbol.slice(0, 4)}</span>
-              )}
+              <ZevaryqTokenIcon symbol={asset.symbol} className="h-14 w-14" />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-black text-white">{asset.symbol}</h3>
@@ -267,7 +256,7 @@ export default function ZevaryqSwap({ web3, onConnect }) {
 
       <div className="rounded-2xl border border-[#1A3A59] bg-[#071522]/65 p-4">
         <div className="flex items-center gap-3">
-          <select value={fromSymbol} onChange={(event) => { setFromSymbol(event.target.value); setQuote(null); }} className="rounded-xl border border-[#1A3A59] bg-[#102235] px-3 py-2 font-black">
+          <ZevaryqTokenIcon symbol={fromSymbol} className="h-10 w-10" /><select value={fromSymbol} onChange={(event) => { setFromSymbol(event.target.value); setQuote(null); }} className="rounded-xl border border-[#1A3A59] bg-[#102235] px-3 py-2 font-black">
             {tokens.filter((symbol) => symbol !== toSymbol).map((symbol) => <option key={symbol}>{symbol}</option>)}
           </select>
           <input value={amount} onChange={(event) => { setAmount(event.target.value); setQuote(null); }} inputMode="decimal" placeholder="0.0" className="min-w-0 flex-1 bg-transparent text-right text-2xl font-black outline-none" />
@@ -280,7 +269,7 @@ export default function ZevaryqSwap({ web3, onConnect }) {
 
       <div className="rounded-2xl border border-[#1A3A59] bg-[#071522]/65 p-4">
         <div className="flex items-center gap-3">
-          <select value={toSymbol} onChange={(event) => { setToSymbol(event.target.value); setQuote(null); }} className="rounded-xl border border-[#1A3A59] bg-[#102235] px-3 py-2 font-black">
+          <ZevaryqTokenIcon symbol={toSymbol} className="h-10 w-10" /><select value={toSymbol} onChange={(event) => { setToSymbol(event.target.value); setQuote(null); }} className="rounded-xl border border-[#1A3A59] bg-[#102235] px-3 py-2 font-black">
             {tokens.filter((symbol) => symbol !== fromSymbol).map((symbol) => <option key={symbol}>{symbol}</option>)}
           </select>
           <p className="min-w-0 flex-1 break-all text-right text-2xl font-black leading-tight">{quote ? quote.amountOutFormatted : '—'}</p>
