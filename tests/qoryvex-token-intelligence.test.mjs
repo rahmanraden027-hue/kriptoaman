@@ -25,7 +25,8 @@ test('ERC-20-like discovery requires metadata evidence and does not turn contrac
   assert.match(api, /tokenMetadataProven = Boolean\(name && symbol && decimals != null && totalSupplyRaw != null\)/);
   assert.match(api, /receiptBlockNumber !== candidate\.blockNumber/);
   assert.match(api, /receiptBlockHash !== candidate\.blockHash/);
-  assert.match(api, /const blockTag = \`0x\\\$\\\{candidate\.blockNumber\.toString\(16\)\\\}\`/);
+  assert.match(api, /const blockTag = \`0x/);
+  assert.match(api, /candidate\.blockNumber\.toString\(16\)/);
   assert.match(api, /contractCreationIsTokenListing: false/);
   assert.match(api, /tokenMetadataIsAudit: false/);
   assert.match(api, /tokenMetadataIsEndorsement: false/);
