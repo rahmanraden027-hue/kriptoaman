@@ -36,12 +36,12 @@ Publishing requires a root-owned environment file containing KA_MARKET_INGEST_UR
 
 ## Deployment gate
 
-Deployment is deliberately manual-only. Before activation:
+Deployment requires an explicit production authorization. It may run from a manual workflow dispatch on `main`, or from a reviewed `main` merge whose commit message begins exactly `MARKET FEED CUTOVER 20260930`. Ordinary pushes and pull requests cannot deploy. Before activation:
 
 1. Register an authorized self-hosted runner with labels self-hosted, linux, x64, ka-intelligence-indexer on the intended indexer host.
 2. Create /etc/kriptoaman/market-feed.env as root, mode 0600, with the ingest URL and secret.
 3. Confirm outbound HTTPS and WebSocket connectivity only; no inbound public collector port is required.
-4. Dispatch KriptoAman Market Feed Collector from main.
+4. Dispatch KriptoAman Market Feed Collector from `main`, or merge the reviewed cutover PR using the exact guarded prefix `MARKET FEED CUTOVER 20260930`.
 5. The deploy script performs preflight, backup, systemd install, local health validation, public API verification, and automatic rollback on gate failure.
 6. Production may be called live only after /api/market-feed-hot returns live or degraded, reports KriptoAman collector ownership, and reports browserDirectVenueAccess=false.
 
