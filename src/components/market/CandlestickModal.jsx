@@ -2,21 +2,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import { X, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
 
 const INTERVALS = [
-  { label: '1m', value: '1m' },
-  { label: '5m', value: '5m' },
-  { label: '15m', value: '15m' },
-  { label: '1h', value: '1h' },
-  { label: '4h', value: '4h' },
-  { label: '1d', value: '1d' },
+  { label: '1h', value: '1h', spanMs: 80 * 60 * 60 * 1000 },
+  { label: '4h', value: '4h', spanMs: 80 * 4 * 60 * 60 * 1000 },
+  { label: '1d', value: '1d', spanMs: 80 * 24 * 60 * 60 * 1000 },
 ];
 
-// Map CoinGecko id -> Binance symbol
-const BINANCE_SYM = {
-  bitcoin: 'BTCUSDT', ethereum: 'ETHUSDT', binancecoin: 'BNBUSDT',
-  solana: 'SOLUSDT', ripple: 'XRPUSDT', cardano: 'ADAUSDT',
-  dogecoin: 'DOGEUSDT', tron: 'TRXUSDT', 'avalanche-2': 'AVAXUSDT',
-  polkadot: 'DOTUSDT', chainlink: 'LINKUSDT', 'matic-network': 'MATICUSDT',
-  litecoin: 'LTCUSDT', uniswap: 'UNIUSDT',
+const ASSET_SYMBOL = {
+  bitcoin: 'BTC', ethereum: 'ETH', binancecoin: 'BNB',
+  solana: 'SOL', ripple: 'XRP', tether: 'USDT', 'usd-coin': 'USDC',
 };
 
 function drawChart(canvas, candles, width, height) {
@@ -93,48 +86,31 @@ export default function CandlestickModal({ coin, currentPrice, change24h, onClos
   const [candles, setCandles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dims, setDims] = useState({ w: 360, h: 220 });
-  const wsRef = useRef(null);
-
-  const sym = BINANCE_SYM[coin?.id];
+  const symbol = ASSET_SYMBOL[coin?.id] || String(coin?.sym || '').toUpperCase();
+  const supported = ['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'USDT', 'USDC'].includes(symbol);
   const isUp = (change24h ?? 0) >= 0;
 
   const fetchCandles = async (iv) => {
-    if (!sym) return;
+    if (!supported) { setCandles([]); setLoading(false); return; }
+    const spec = INTERVALS.find(item => item.value === iv) || INTERVALS[0];
+    const to = Date.now();
+    const from = to - spec.spanMs;
     setLoading(true);
-    const r = await fetch(`https://api.binance.com/api/v3/klines?symbol=${sym}&interval=${iv}&limit=80`);
-    const raw = await r.json();
-    if (Array.isArray(raw)) {
-      setCandles(raw.map(k => ({
-        time: k[0], open: +k[1], high: +k[2], low: +k[3], close: +k[4],
-      })));
-    }
-    setLoading(false);
+    try {
+      const params = new URLSearchParams({ asset: symbol, interval: iv, from: String(from), to: String(to), limit: '80' });
+      const r = await fetch('/api/market-history?' + params.toString(), { headers: { Accept: 'application/json' }, cache: 'no-store' });
+      if (!r.ok) throw new Error('Market history unavailable');
+      const payload = await r.json();
+      const rows = Array.isArray(payload?.candles) ? payload.candles : [];
+      setCandles(rows.map(k => ({ time: Number(k.openTime), open: Number(k.open), high: Number(k.high), low: Number(k.low), close: Number(k.close) }))
+        .filter(k => [k.time, k.open, k.high, k.low, k.close].every(Number.isFinite)));
+    } catch { setCandles([]); }
+    finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchCandles(interval); }, [interval, sym]);
+  useEffect(() => { fetchCandles(interval); }, [interval, symbol, supported]);
 
-  // WebSocket live last candle update
-  useEffect(() => {
-    if (!sym) return;
-    if (wsRef.current) wsRef.current.close();
-    const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${sym.toLowerCase()}@kline_${interval}`);
-    wsRef.current = ws;
-    ws.onmessage = (e) => {
-      const msg = JSON.parse(e.data);
-      const k = msg.k;
-      if (!k) return;
-      const newCandle = { time: k.t, open: +k.o, high: +k.h, low: +k.l, close: +k.c };
-      setCandles(prev => {
-        if (!prev.length) return prev;
-        const last = prev[prev.length - 1];
-        if (last.time === newCandle.time) {
-          return [...prev.slice(0, -1), newCandle];
-        }
-        return [...prev.slice(1), newCandle];
-      });
-    };
-    return () => ws.close();
-  }, [sym, interval]);
+
 
   // Resize
   useEffect(() => {
@@ -154,7 +130,7 @@ export default function CandlestickModal({ coin, currentPrice, change24h, onClos
     }
   }, [candles, loading, dims]);
 
-  if (!sym) return null;
+  if (!symbol) return null;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/85 flex items-end justify-center md:items-center" onClick={onClose}>
@@ -164,8 +140,8 @@ export default function CandlestickModal({ coin, currentPrice, change24h, onClos
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-800">
           <div>
-            <p className="text-white font-bold text-base">{coin?.sym}/USDT</p>
-            <p className="text-slate-400 text-xs">{coin?.name} · Live Binance</p>
+            <p className="text-white font-bold text-base">{symbol}/USD</p>
+            <p className="text-slate-400 text-xs">{coin?.name} · KriptoAman persisted history</p>
           </div>
           <div className="flex items-center gap-3">
             <div className="text-right">
@@ -202,10 +178,14 @@ export default function CandlestickModal({ coin, currentPrice, change24h, onClos
             <div className="flex items-center justify-center bg-slate-800/50 rounded-2xl" style={{ height: dims.h }}>
               <div className="text-slate-400 text-sm animate-pulse">Memuat chart...</div>
             </div>
-          ) : (
+          ) : candles.length ? (
             <canvas ref={canvasRef} width={dims.w} height={dims.h}
               className="rounded-2xl bg-slate-800/40 w-full"
               style={{ display: 'block' }} />
+          ) : (
+            <div className="flex items-center justify-center bg-slate-800/40 rounded-2xl text-slate-500 text-sm text-center px-6" style={{ height: dims.h }}>
+              {supported ? 'Historical candle belum tersedia pada storage KriptoAman untuk rentang ini.' : 'Historical candle untuk aset ini belum tersedia pada storage KriptoAman.'}
+            </div>
           )}
         </div>
       </div>
