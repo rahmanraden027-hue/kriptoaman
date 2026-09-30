@@ -6,9 +6,9 @@ const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('market preserves the last known-good snapshot without a hard expiry', async () => {
   const source = await read('src/components/home/useCoinMarkets.js');
-  assert.match(source, /const MARKET_CACHE_KEY = 'ka_market_snapshot_v4';/);
+  assert.match(source, /const MARKET_CACHE_KEY = 'ka_market_snapshot_v5';/);
   assert.match(source, /localStorage\.getItem\(MARKET_CACHE_KEY\)/);
-  assert.match(source, /applyData\(cached\.data, 'cache', cached\.savedAt\)/);
+  assert.match(source, /applyData\(cached\.data, 'kriptoaman-cache', cached\.savedAt\)/);
   assert.doesNotMatch(source, /MARKET_CACHE_MAX_AGE/);
   assert.match(source, /compactSnapshot/);
   assert.match(source, /isStale/);
@@ -21,9 +21,8 @@ test('market providers use bounded requests and automatic recovery events', asyn
   assert.match(source, /REQUEST_TIMEOUT/);
   assert.match(source, /addEventListener\('online'/);
   assert.match(source, /visibilitychange/);
-  for (const provider of ['coinlore', 'coingecko', 'cryptocompare']) {
-    assert.ok(source.includes(provider), `expected market provider ${provider}`);
-  }
+  assert.match(source, /\/api\/market-snapshot-page\?page=/);
+  assert.doesNotMatch(source, /api\.coinlore\.net|api\.coingecko\.com|min-api\.cryptocompare\.com/);
 });
 
 test('service worker cannot become a stale market or internal API layer', async () => {
@@ -47,8 +46,10 @@ test('live prices and market UI expose persistent fallback state', async () => {
     read('src/components/market/useLivePrices.jsx'),
     read('src/pages/Market.jsx'),
   ]);
-  assert.match(live, /ka_live_prices_v1/);
-  assert.match(live, /loadLiveCache/);
+  assert.match(live, /ka_live_prices_v2/);
+  assert.match(live, /const loadCache=/);
+  assert.match(live, /feedSource/);
+  assert.match(live, /lastLiveUpdate/);
   assert.match(market, /Showing the last successfully saved snapshot/);
   assert.match(market, /Menampilkan snapshot terakhir/);
   assert.match(market, /role="status"/);
