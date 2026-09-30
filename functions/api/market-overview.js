@@ -24,10 +24,15 @@ export async function onRequestGet(){
  return json({
    status:'available',
    marketCap:Number.isFinite(marketCap)?marketCap:null,
+   marketCapChange24h:Number.isFinite(Number(global?.data?.market_cap_change_percentage_24h_usd))?Number(global.data.market_cap_change_percentage_24h_usd):null,
    volume24h:Number.isFinite(volume24h)?volume24h:null,
    btcDominance:Number.isFinite(btcDominance)?btcDominance:null,
+   ethDominance:Number.isFinite(Number(global?.data?.market_cap_percentage?.eth))?Number(global.data.market_cap_percentage.eth):null,
+   activeCryptocurrencies:Number.isFinite(Number(global?.data?.active_cryptocurrencies))?Number(global.data.active_cryptocurrencies):null,
+   markets:Number.isFinite(Number(global?.data?.markets))?Number(global.data.markets):null,
    fearGreed:Number.isFinite(fearGreed)?fearGreed:null,
    fearGreedLabel:fng?.data?.[0]?.value_classification||null,
+   fearGreedTimestamp:Number(fng?.data?.[0]?.timestamp)||null,
    provenance:{apiOwnership:'KriptoAman',marketDataOrigin:['CoinGecko Global','Alternative.me'],browserDirectProviderAccess:false},
    generatedAt:Date.now(),
  });
