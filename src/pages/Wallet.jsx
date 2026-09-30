@@ -192,15 +192,7 @@ function Assets({ account, balance, balancePhase, tokenAssets, assetPhase }) {
         <div key={asset.symbol} className="rounded-2xl border border-[#1A3A59] bg-[#071522]/65 p-4">
           <div className="flex items-start gap-3">
             <span className="relative grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full border border-[#2D8CFF]/35 bg-[#102235] shadow-[0_0_18px_rgba(45,140,255,.22)]">
-              <span className="text-[10px] font-black text-[#F2C86B]">{asset.symbol}</span>
-              <img
-                src={asset.icon}
-                alt={`${asset.symbol} token icon`}
-                className="absolute inset-0 h-full w-full object-contain"
-                loading="eager"
-                decoding="async"
-                onError={(event) => event.currentTarget.remove()}
-              />
+              <ZevaryqTokenIcon symbol={asset.symbol} className="h-full w-full" />
             </span>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
