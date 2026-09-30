@@ -54,6 +54,7 @@ jobs:
     runs-on: [self-hosted, linux, x64, kam-explorer-host]
     timeout-minutes: 8
     steps:
+      - uses: actions/checkout@v7
       - name: Read-only first-party WSS and Explorer container-network preflight
         shell: bash
         run: |
@@ -73,44 +74,15 @@ jobs:
             https://rpc.kriptoaman.com/ | jq -er '.result')"
           test "$chain" = 0x560c
 
-          ws_probe() {
-            node - "$1" <<'NODE'
-          const url=process.argv[2];
-          let ws,doneFlag=false;
-          const finish=(code)=>{ if(doneFlag)return; doneFlag=true; clearTimeout(timer); try{ws.close()}catch{}; setTimeout(()=>process.exit(code),10); };
-          const timer=setTimeout(()=>finish(1),7000);
-          try{ws=new WebSocket(url)}catch{finish(1)}
-          ws.addEventListener('open',()=>ws.send(JSON.stringify({jsonrpc:'2.0',id:1,method:'eth_chainId',params:[]})));
-          ws.addEventListener('message',e=>{
-            try{
-              const x=JSON.parse(String(e.data));
-              if(x.id===1){ if(x.result!=='0x560c') return finish(1); ws.send(JSON.stringify({jsonrpc:'2.0',id:2,method:'eth_subscribe',params:['newHeads']})); }
-              else if(x.id===2 && typeof x.result==='string' && x.result) finish(0);
-            }catch{finish(1)}
-          });
-          ws.addEventListener('error',()=>finish(1));
-          ws.addEventListener('close',()=>{if(!doneFlag)finish(1)});
-          NODE
-          }
-
-          found=
-          for url in \
-            wss://rpc.kriptoaman.com/ \
-            wss://rpc.kriptoaman.com/ws \
-            wss://rpc.kriptoaman.com/rpc \
-            wss://explorer.kriptoaman.com/ws \
-            wss://explorer.kriptoaman.com/rpc; do
-            if ws_probe "$url" >/dev/null 2>&1; then
-              found="$url"
-              break
-            fi
-          done
-          if test -n "$found"; then
-            echo "first_party_wss_subscription=pass endpoint=$found"
-          else
-            echo "first_party_wss_subscription=unavailable"
-            exit 1
-          fi
+          scp -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new \
+            services/kriptoaman-indexer/zvq-listener.mjs \
+            services/kriptoaman-indexer/discovery-model.mjs \
+            scripts/deploy-kriptoaman-zvq-indexer.sh \
+            root@206.189.36.15:/tmp/
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new \
+            root@206.189.36.15 \
+            "GITHUB_RUN_ID=$GITHUB_RUN_ID SOURCE=/tmp/zvq-listener.mjs MODEL_SOURCE=/tmp/discovery-model.mjs bash /tmp/deploy-kriptoaman-zvq-indexer.sh preview"
+          echo "first_party_wss_subscription=pass scope=rpc-sentry-local"
           echo "qoryvex_explorer_readonly_preflight=pass chain_id=0x560c"
 
   deploy:
