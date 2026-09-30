@@ -35,10 +35,12 @@ export default function TradeModal({ wallet, onClose, onTradeComplete, balanceSa
   useEffect(() => {
     const fetchPrice = async () => {
       try {
-        const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true');
-        const data = await res.json();
-        setPrice(data.bitcoin?.usd || null);
-        setPriceChange(data.bitcoin?.usd_24h_change || null);
+        const res = await fetch('/api/market-price?symbols=BTC', { headers: { Accept: 'application/json' }, cache: 'no-store' });
+        if (!res.ok) throw new Error('BTC market price unavailable');
+        const payload = await res.json();
+        const data = Array.isArray(payload?.data) ? payload.data.find(item => item?.symbol === 'BTC') : null;
+        setPrice(Number.isFinite(Number(data?.price)) ? Number(data.price) : null);
+        setPriceChange(Number.isFinite(Number(data?.change24h)) ? Number(data.change24h) : null);
       } catch {}
     };
     fetchPrice();
