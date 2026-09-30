@@ -37,6 +37,7 @@ const ALL_COINS = [
 const CATEGORIES = ['Semua', 'L1', 'L2', 'DeFi', 'Meme', 'Oracle'];
 const STARRED_KEY = 'pt_starred_coins';
 const REFRESH_MS = 60_000;
+const HOT_REFRESH_MS = 5_000;
 
 function formatPrice(price) {
   if (!Number.isFinite(Number(price))) return '—';
@@ -187,6 +188,7 @@ export default function PriceTracker() {
   const [showCompare, setShowCompare] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [hotFeed, setHotFeed] = useState({ status: 'unavailable', capturedAt: null, venues: [] });
 
   useEffect(() => {
     let alive = true;
@@ -233,6 +235,61 @@ export default function PriceTracker() {
     return () => { alive = false; window.clearTimeout(timer); };
   }, [autoRefresh, refreshKey]);
 
+  useEffect(() => {
+    let alive = true;
+    let timer;
+
+    const loadHotFeed = async () => {
+      try {
+        const response = await fetch('/api/market-feed-hot', {
+          headers: { Accept: 'application/json' },
+          cache: 'no-store',
+        });
+        if (!response.ok) throw new Error(`KriptoAman hot feed HTTP ${response.status}`);
+        const payload = await response.json();
+        if (!Array.isArray(payload?.assets) || !['live', 'degraded'].includes(payload?.status)) {
+          throw new Error('Invalid KriptoAman hot feed');
+        }
+
+        if (!alive) return;
+        setLivePrices(previous => {
+          const next = { ...previous };
+          for (const asset of payload.assets) {
+            const symbol = String(asset?.symbol || '').toUpperCase();
+            if (!symbol) continue;
+            const old = next[symbol] || {};
+            next[symbol] = {
+              ...old,
+              price: Number.isFinite(Number(asset?.price)) ? Number(asset.price) : old.price ?? null,
+              change24h: Number.isFinite(Number(asset?.change24h)) ? Number(asset.change24h) : old.change24h ?? null,
+              high24h: Number.isFinite(Number(asset?.high24h)) ? Number(asset.high24h) : old.high24h ?? null,
+              low24h: Number.isFinite(Number(asset?.low24h)) ? Number(asset.low24h) : old.low24h ?? null,
+              hotFeed: {
+                quality: asset?.quality || null,
+                venues: Array.isArray(asset?.venues) ? asset.venues : [],
+                observedAt: Number(asset?.observedAt) || null,
+                spreadBps: Number.isFinite(Number(asset?.spreadBps)) ? Number(asset.spreadBps) : null,
+              },
+            };
+          }
+          return next;
+        });
+        setHotFeed({
+          status: payload.status,
+          capturedAt: Number(payload?.generatedAt) || null,
+          venues: Array.isArray(payload?.provenance?.venues) ? payload.provenance.venues : [],
+        });
+      } catch {
+        if (alive) setHotFeed(previous => ({ ...previous, status: 'unavailable' }));
+      } finally {
+        if (alive) timer = window.setTimeout(loadHotFeed, HOT_REFRESH_MS);
+      }
+    };
+
+    loadHotFeed();
+    return () => { alive = false; window.clearTimeout(timer); };
+  }, []);
+
   const toggleStar = useCallback((id) => {
     setStarred(prev => {
       const next = prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id];
@@ -268,7 +325,7 @@ export default function PriceTracker() {
               <h1 className="font-bold text-white">Crypto Price Tracker</h1>
               <div className="flex items-center gap-1 text-[10px] text-slate-500">
                 <span className={`h-1.5 w-1.5 rounded-full ${fresh ? 'animate-pulse bg-green-400' : status === 'unavailable' ? 'bg-red-400' : 'bg-amber-400'}`} />
-                {fresh ? 'KriptoAman snapshot live' : status === 'loading' ? 'Connecting' : status === 'stale' ? 'Last verified snapshot' : 'Data unavailable'}
+                {hotFeed.status === 'live' ? 'KriptoAman hot feed live' : fresh ? 'KriptoAman snapshot live' : status === 'loading' ? 'Connecting' : status === 'stale' ? 'Last verified snapshot' : 'Data unavailable'}
               </div>
             </div>
           </div>
@@ -336,7 +393,7 @@ export default function PriceTracker() {
         </div>
 
         <p className="text-center text-xs leading-5 text-slate-600">
-          Crypto-only · data UI melalui KriptoAman Market Database{source ? ` · source snapshot: ${source}` : ''}{capturedAt ? ` · ${new Date(capturedAt).toLocaleString('id-ID')}` : ''}. Tidak ada harga, perubahan, atau grafik sintetis.
+          Crypto-only · browser hanya membaca API KriptoAman. {hotFeed.status !== 'unavailable' ? `Hot feed: ${hotFeed.status} · venue: ${hotFeed.venues.join(' + ') || 'reported by collector'}${hotFeed.capturedAt ? ` · ${new Date(hotFeed.capturedAt).toLocaleTimeString('id-ID')}` : ''}. ` : ''}Snapshot: {source || 'KriptoAman Market Database'}{capturedAt ? ` · ${new Date(capturedAt).toLocaleString('id-ID')}` : ''}. Tidak ada harga, perubahan, atau grafik sintetis.
         </p>
       </div>
 
