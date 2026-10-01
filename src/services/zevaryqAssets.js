@@ -1,4 +1,5 @@
 import { ZEVARYQ } from '@/theme/zevaryqWallet';
+import { resolveZevaryqTokenIcon } from '@/services/zevaryqTokenIcons';
 
 const EVM_ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 
@@ -44,7 +45,7 @@ function normalizeTokenBalance(entry) {
     decimals,
     balanceRaw: raw,
     balance,
-    iconUrl: typeof token.icon_url === 'string' && /^https:\/\//i.test(token.icon_url) ? token.icon_url : null,
+    iconUrl: resolveZevaryqTokenIcon(contractAddress, token.icon_url),
   };
 }
 

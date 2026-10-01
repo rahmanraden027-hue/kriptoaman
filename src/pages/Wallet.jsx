@@ -157,6 +157,12 @@ function Assets({ account, balance, balancePhase, tokenAssets, assetPhase }) {
       icon: '/assets/zevaryq/tokens/zeth-v2.svg',
       detail: 'ETH-backed representation candidate · bridge/backing authorization pending',
     },
+    { symbol: 'zBNB', name: 'ZEVARYQ BNB', icon: null, detail: 'Visual ecosystem candidate · contract/bridge/backing not verified' },
+    { symbol: 'zSOL', name: 'ZEVARYQ Solana', icon: null, detail: 'Visual ecosystem candidate · contract/bridge/backing not verified' },
+    { symbol: 'zTRX', name: 'ZEVARYQ TRON', icon: null, detail: 'Visual ecosystem candidate · contract/bridge/backing not verified' },
+    { symbol: 'zXRP', name: 'ZEVARYQ XRP', icon: null, detail: 'Visual ecosystem candidate · contract/bridge/backing not verified' },
+    { symbol: 'zDOGE', name: 'ZEVARYQ Dogecoin', icon: null, detail: 'Visual ecosystem candidate · contract/bridge/backing not verified' },
+    { symbol: 'zADA', name: 'ZEVARYQ Cardano', icon: null, detail: 'Visual ecosystem candidate · contract/bridge/backing not verified' },
   ];
 
   return <section className="zv-card p-5">
@@ -183,20 +189,20 @@ function Assets({ account, balance, balancePhase, tokenAssets, assetPhase }) {
       <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-[9px] font-black text-amber-200">PLANNED</span>
     </div>
 
-    <div className="mt-3 grid gap-3" data-zvq-production-token-icons="ZUSD,zBTC,zETH" data-token-identity-version="2">
+    <div className="mt-3 grid gap-3" data-zvq-production-token-icons="ZUSD,zBTC,zETH,zBNB,zSOL,zTRX,zXRP,zDOGE,zADA" data-token-identity-version="3">
       {ecosystemAssets.map((asset) => (
         <div key={asset.symbol} className="rounded-2xl border border-[#1A3A59] bg-[#071522]/65 p-4">
           <div className="flex items-start gap-3">
             <span className="relative grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full border border-[#2D8CFF]/35 bg-[#102235] shadow-[0_0_18px_rgba(45,140,255,.22)]">
               <span className="text-[10px] font-black text-[#F2C86B]">{asset.symbol}</span>
-              <img
+              {asset.icon && <img
                 src={asset.icon}
                 alt={`${asset.symbol} token icon`}
                 className="absolute inset-0 h-full w-full object-contain"
                 loading="eager"
                 decoding="async"
                 onError={(event) => event.currentTarget.remove()}
-              />
+              />}
             </span>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
