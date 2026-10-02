@@ -22,7 +22,8 @@ test('Graph nodes and relationships remain evidence-bound and fail closed', asyn
   assert.match(api, /evidenceState === 'FIRST_PARTY_LIVE'/);
   assert.match(api, /inferredRelationshipsAllowed: false/);
   assert.match(api, /unavailableRelationships:/);
-  assert.match(api, /poolDexRelationshipsEnabled: poolDexProven/);\n  assert.match(api, /tradeRelationshipsEnabled: false/);
+  assert.match(api, /poolDexRelationshipsEnabled: poolDexProven/);
+  assert.match(api, /tradeRelationshipsEnabled: false/);
 });
 
 test('Phase 1 graph is read-only and contains no signer or transaction submission path', async () => {
