@@ -2,7 +2,7 @@
 // backing, balances, liquidity, custody, issuer approval, or swap executability.
 // On-chain/runtime asset status remains authoritative in zevaryqAssetRegistry.js.
 
-export const ZEVARYQ_VISUAL_ASSET_CATALOG_VERSION = 2;
+export const ZEVARYQ_VISUAL_ASSET_CATALOG_VERSION = 3;
 
 export const ZEVARYQ_VISUAL_IDENTITY_SLOT_STATUS = Object.freeze({
   APPROVED: 'APPROVED',
@@ -56,3 +56,20 @@ export const ZEVARYQ_VISUAL_MISSING_COUNT =
 export const ZEVARYQ_VISUAL_RESERVED_COUNT = ZEVARYQ_VISUAL_IDENTITY_SLOTS.filter(
   (slot) => slot.status === ZEVARYQ_VISUAL_IDENTITY_SLOT_STATUS.RESERVED,
 ).length;
+
+// Governance helpers are fail-closed: only fully assigned APPROVED slots are publishable.
+export const ZEVARYQ_PUBLISHABLE_VISUAL_IDENTITIES = Object.freeze(
+  ZEVARYQ_VISUAL_IDENTITY_SLOTS.filter(
+    (slot) => slot.status === ZEVARYQ_VISUAL_IDENTITY_SLOT_STATUS.APPROVED && Boolean(slot.symbol),
+  ),
+);
+
+export const isZevaryqVisualSlotPublishable = (slot) =>
+  slot?.status === ZEVARYQ_VISUAL_IDENTITY_SLOT_STATUS.APPROVED && Boolean(slot?.symbol);
+
+export const ZEVARYQ_VISUAL_GOVERNANCE = Object.freeze({
+  approvalRequires: Object.freeze(['canonical-symbol', 'canonical-name', 'committed-artwork']),
+  reservedSlotsPublishable: false,
+  activatesWalletAsset: false,
+  activatesSwapAsset: false,
+});
