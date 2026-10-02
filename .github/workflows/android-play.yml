@@ -335,7 +335,12 @@ jobs:
           set -euo pipefail
           tag="android-v1.5.6"
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "::error::Release $tag already exists. Bump Android version before publishing another binary."
-            exit 1
+            echo "Release $tag already exists; preserving immutable published release."
+            gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json tagName,name,isDraft,isPrerelease --jq '.'
+            test "$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json tagName --jq '.tagName')" = "$tag"
+            test "$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isDraft --jq '.isDraft')" = "false"
+            test "$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isPrerelease --jq '.isPrerelease')" = "false"
+            echo "Existing immutable release verified; no overwrite or republish attempted."
+            exit 0
           fi
           gh release create "$tag"             KriptoAman-1.5.6.apk             KriptoAman-1.5.6.apk.sha256             --repo "$GITHUB_REPOSITORY"             --target "$GITHUB_SHA"             --title "KriptoAman Android 1.5.6"             --notes "Signed KriptoAman Platform Android release. Package: com.kriptoaman.app. versionCode: 13. Verify the accompanying SHA-256 file before installation."
