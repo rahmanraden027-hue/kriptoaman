@@ -25,7 +25,25 @@ export default function PublicChainIntelligence() {
         try { const p = await d.value.json(); if (d.value.ok && p?.status === 'live' && Number(p?.chainId) === 22028) setDiscovery(p); } catch {}
       }
     })();
-    return (
+    return () => { active = false; };
+  }, []);
+
+  const nodes = Array.isArray(graph?.graph?.nodes) ? graph.graph.nodes : [];
+  const edges = Array.isArray(graph?.graph?.edges) ? graph.graph.edges : [];
+  const recent = Array.isArray(discovery?.observation?.contractCreations) ? discovery.observation.contractCreations.slice(0, 3) : [];
+  const head = graph?.head?.number ?? discovery?.head?.number ?? null;
+  const blockHash = graph?.head?.hash ?? discovery?.head?.hash ?? null;
+  const provenTypes = useMemo(() => new Set(nodes.map(n => n?.type).filter(Boolean)), [nodes]);
+  const graphDots = useMemo(() => [...provenTypes].map(type => ({ type, pos: typePos[type] })).filter(item => item.pos), [provenTypes]);
+  const route = () => {
+    const value = query.trim();
+    if (!value) return;
+    if (/^0x[a-fA-F0-9]{64}$/.test(value)) window.location.assign(`https://explorer.kriptoaman.com/tx/${value}`);
+    else if (/^0x[a-fA-F0-9]{40}$/.test(value)) window.location.assign(`/asset-passport/${value}`);
+    else if (/^\\d+$/.test(value)) window.location.assign(`https://explorer.kriptoaman.com/block/${value}`);
+  };
+
+  return (
     <section className="ka-intel-shell px-4 sm:px-6 py-10" aria-label="Public Chain Intelligence">
       <div className="max-w-[1440px] mx-auto">
         <div className="ka-intel-command p-5 sm:p-7">
