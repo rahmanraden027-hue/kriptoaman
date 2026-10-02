@@ -12,6 +12,7 @@ import useZevaryqNetworkStatus from '@/hooks/useZevaryqNetworkStatus';
 import { fetchZvqBalance } from '@/services/zevaryqNetwork';
 import { fetchZevaryqTokenAssets } from '@/services/zevaryqAssets';
 import { ZEVARYQ } from '@/theme/zevaryqWallet';
+import { ZEVARYQ_ASSET_REGISTRY_VERSION, ZEVARYQ_PLANNED_ASSETS } from '@/data/zevaryqAssetRegistry';
 import { base44 } from '@/api/base44Client';
 import { kriptoAuth } from '@/lib/kriptoAuth';
 import './ZevaryqWallet.css';
@@ -138,20 +139,7 @@ function ExplorerScreen({account,transactions,txPhase,onSelect}) { return <><sec
 function TransactionDetails({tx,onBack}) { const rows=[['Transaction Hash',tx.hash],['Status',tx.status],['Type',tx.method||'Transfer'],['Amount',tx.value?`${Number(tx.value)/1e18} ZVQ`:'0 ZVQ'],['From',tx.from?.hash],['To',tx.to?.hash],['Block',tx.block_number],['Timestamp',tx.timestamp],['Network',ZEVARYQ.network],['Fee',tx.fee?.value?`${Number(tx.fee.value)/1e18} ZVQ`:'Unavailable']]; return <><Header back onBack={onBack} title="Transaction Details"/><section className="zv-card p-5"><StatusBadge state={tx.status==='ok'?'success':'offline'}>{tx.status||'Unknown'}</StatusBadge><dl className="mt-4 divide-y divide-[#1A3A59]">{rows.map(([k,v])=><div key={k} className="grid grid-cols-[110px_1fr] gap-3 py-3 text-sm"><dt className="text-[#6F859B]">{k}</dt><dd className="break-all text-right font-semibold">{v??'Unavailable'}</dd></div>)}</dl><a href={`${EXPLORER}/tx/${tx.hash}`} target="_blank" rel="noreferrer" className="zv-button-primary mt-5 w-full"><ExternalLink/>View on Explorer</a></section></>; }
 
 function Assets({ account, balance, balancePhase, tokenAssets, assetPhase }) {
-  const ecosystemAssets = [
-    {
-      symbol: 'zBTC',
-      name: 'ZEVARYQ Bitcoin',
-      icon: '/assets/zevaryq/tokens/zbtc-v2.svg',
-      detail: 'BTC-backed representation candidate · bridge/backing authorization pending',
-    },
-    {
-      symbol: 'zETH',
-      name: 'ZEVARYQ Ethereum',
-      icon: '/assets/zevaryq/tokens/zeth-v2.svg',
-      detail: 'ETH-backed representation candidate · bridge/backing authorization pending',
-    },
-  ];
+  const ecosystemAssets = ZEVARYQ_PLANNED_ASSETS;
 
   return <section className="zv-card p-5">
     <p className="zv-label">Assets</p>
@@ -177,7 +165,7 @@ function Assets({ account, balance, balancePhase, tokenAssets, assetPhase }) {
       <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-[9px] font-black text-amber-200">PLANNED</span>
     </div>
 
-    <div className="mt-3 grid gap-3" data-zvq-production-token-icons="zBTC,zETH" data-token-identity-version="2">
+    <div className="mt-3 grid gap-3" data-zvq-production-token-icons={ecosystemAssets.map((asset) => asset.symbol).join(',')} data-token-identity-version={ZEVARYQ_ASSET_REGISTRY_VERSION}>
       {ecosystemAssets.map((asset) => (
         <div key={asset.symbol} className="rounded-2xl border border-[#1A3A59] bg-[#071522]/65 p-4">
           <div className="flex items-start gap-3">
@@ -198,7 +186,7 @@ function Assets({ account, balance, balancePhase, tokenAssets, assetPhase }) {
                 <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-1 text-[9px] font-black text-amber-200">PLANNED</span>
               </div>
               <p className="mt-1 text-sm font-semibold text-[#C6D5E3]">{asset.name}</p>
-              <p className="mt-1 break-words text-xs leading-5 text-[#6F859B]">{asset.detail}</p>
+              <p className="mt-1 break-words text-xs leading-5 text-[#6F859B]">{asset.provenance}</p>
             </div>
           </div>
         </div>

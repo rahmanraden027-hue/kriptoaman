@@ -9,33 +9,17 @@ import {
   ZEVARYQ_SWAP_TOKENS,
 } from '@/services/zevaryqSwap';
 import { ZEVARYQ } from '@/theme/zevaryqWallet';
+import { ZEVARYQ_FIRST_PARTY_ASSETS } from '@/data/zevaryqAssetRegistry';
 import { StatePanel } from './WalletUI';
 
-const FIRST_PARTY_ASSET_CATALOG = Object.freeze([
-  {
-    symbol: 'ZVQ',
-    name: 'ZEVARYQ',
-    state: 'active',
-    badge: 'NATIVE ACTIVE',
-    detail: 'Native asset of ZEVARYQ Mainnet · Chain 22028',
-  },
-  {
-    symbol: 'zBTC',
-    name: 'ZEVARYQ Bitcoin',
-    state: 'planned',
-    badge: 'PLANNED',
-    detail: 'BTC-backed representation candidate · bridge/backing authorization pending',
-    icon: '/assets/zevaryq/tokens/zbtc-v2.svg',
-  },
-  {
-    symbol: 'zETH',
-    name: 'ZEVARYQ Ethereum',
-    state: 'planned',
-    badge: 'PLANNED',
-    detail: 'ETH-backed representation candidate · bridge/backing authorization pending',
-    icon: '/assets/zevaryq/tokens/zeth-v2.svg',
-  },
-]);
+const FIRST_PARTY_ASSET_CATALOG = ZEVARYQ_FIRST_PARTY_ASSETS.map((asset) => ({
+  symbol: asset.symbol,
+  name: asset.name,
+  state: asset.status,
+  badge: asset.badge === 'NATIVE' ? 'NATIVE ACTIVE' : asset.badge,
+  detail: asset.provenance,
+  icon: asset.icon,
+}));
 
 function AssetCatalog({ registryTokens = [], registryVerified = false }) {
   const registryRows = registryTokens.map((token) => ({
