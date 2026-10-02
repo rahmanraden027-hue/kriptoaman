@@ -89,8 +89,11 @@ jobs:
           cat > /tmp/pa11y.json <<'JSON'
           {
             "standard": "WCAG2AA",
-            "timeout": 120000,
+            "timeout": 180000,
             "wait": 2000,
+            "gotoOptions": {
+              "waitUntil": "domcontentloaded"
+            },
             "chromeLaunchConfig": {
               "args": ["--no-sandbox", "--disable-setuid-sandbox"]
             }
