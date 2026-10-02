@@ -58,10 +58,12 @@ export default function HomePortfolioSummary({ user, prices, idrRate }) {
           </div>
           {loading ? (
             <div className="h-9 w-40 ka-shimmer rounded-lg mt-2" />
-          ) : (
+          ) : holdings.length > 0 ? (
             <h2 className="text-3xl font-extrabold ka-num mt-1 tracking-tight">{fmtUSD(total)}</h2>
+          ) : (
+            <h2 className="text-lg font-extrabold mt-2 tracking-tight">Belum ada wallet dipantau</h2>
           )}
-          <p className="ka-muted text-[11px] mt-0.5 ka-num">{fmtIDR(total)}</p>
+          {!loading && holdings.length > 0 && <p className="ka-muted text-[11px] mt-0.5 ka-num">{fmtIDR(total)}</p>}
         </div>
 
         {/* Interactive donut */}
