@@ -25,6 +25,8 @@ export default function HomeNews() {
     return () => { alive = false; };
   }, []);
 
+  if (!loading && news.length === 0) return null;
+
   return (
     <div className="ka-surface p-4 ka-fade-up" style={{ animationDelay: '300ms' }}>
       <h3 className="text-white font-bold text-sm mb-3 flex items-center gap-1.5">
