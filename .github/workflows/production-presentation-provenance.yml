@@ -27,8 +27,9 @@ jobs:
           node <<'NODE'
           const base = 'https://kriptoaman.com';
           const required = [
-            'KRIPTOAMAN DIGITAL ASSET INTELLIGENCE',
-            'Pasar kripto bergerak cepat.',
+            'KRIPTOAMAN · GLOBAL CHAIN INTELLIGENCE',
+            'Blockchain bergerak setiap detik.',
+            'Lihat. Pahami. Verifikasi.',
             'KRIPTOAMAN PRODUCTION V2',
             'NEXUS INTELLIGENCE CORE',
             'KriptoAman Platform + ZEVARYQ Wallet'
