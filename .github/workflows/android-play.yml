@@ -244,7 +244,7 @@ jobs:
           test -x "$APKANALYZER"
           test -x "$APKSIGNER"
           test "$("$APKANALYZER" manifest application-id "$platform_apk")" = "com.kriptoaman.app"
-          test "$("$APKANALYZER" manifest version-code "$platform_apk")" = "12"
+          test "$("$APKANALYZER" manifest version-code "$platform_apk")" = "13"
           "$APKSIGNER" verify --verbose --print-certs "$platform_apk"
           test -s "$platform_apk.sha256"
           sha256sum -c "$platform_apk.sha256"
