@@ -1,4 +1,5 @@
 const SOURCE_PATH = '/api/zvq-token-intelligence';
+const LIQUIDITY_SOURCE_PATH = '/api/zvq-liquidity-evidence';
 const CHAIN_ID = 22028;
 const headers = {
   'Content-Type': 'application/json; charset=utf-8',
@@ -63,21 +64,67 @@ export async function onRequestGet({ request }) {
       }
     }
 
+    // Phase 2: enrich only when the independent first-party liquidity endpoint proves the registry and pair.
+    // Failure or NO_PAIR never degrades the Phase 1 graph and never becomes synthetic liquidity.
+    let poolDexProven = false;
+    let liquidityState = 'UNAVAILABLE';
+    try {
+      const liquidityUrl = new URL(LIQUIDITY_SOURCE_PATH, request.url);
+      const liquidityResponse = await fetch(liquidityUrl, { headers: { Accept: 'application/json' }, cf: { cacheTtl: 0 } });
+      const liquidity = await liquidityResponse.json();
+      const router = address(liquidity?.router);
+      const factory = address(liquidity?.factory);
+      const pair = address(liquidity?.pair);
+      const token0 = address(liquidity?.token0);
+      const token1 = address(liquidity?.token1);
+      const configuredToken = address(liquidity?.token);
+      const wrappedNative = address(liquidity?.wrappedNative);
+      const provenanceOk = liquidity?.provenance?.ownership === 'first-party' && liquidity?.provenance?.externalMarketProviderUsed === false;
+      const identityOk = token0 && token1 && configuredToken && wrappedNative &&
+        new Set([token0, token1]).has(configuredToken) && new Set([token0, token1]).has(wrappedNative) && token0 !== token1;
+      if (liquidityResponse.ok && liquidity?.status === 'live' && liquidity?.chainId === CHAIN_ID &&
+          liquidity?.poolEvidence === 'FIRST_PARTY_ON_CHAIN' && router && factory && pair && identityOk && provenanceOk) {
+        const dexId = `dex:${CHAIN_ID}:${factory}`;
+        const poolId = `pool:${CHAIN_ID}:${pair}`;
+        const poolEvidence = {
+          chainId: CHAIN_ID, source: 'first-party', transport: 'JSON-RPC',
+          router, factory, pair, token0, token1,
+          reserve0: liquidity?.reserve0 ?? null, reserve1: liquidity?.reserve1 ?? null,
+          observedAt: liquidity?.observedAt ?? null, observationId: liquidity?.observationId ?? null,
+        };
+        addNode(node(dexId, 'DEX', 'QoryVEx', poolEvidence));
+        addNode(node(poolId, 'POOL', pair, poolEvidence));
+        addEdge(edge(chainId, dexId, 'HOSTS_VERIFIED_DEX_REGISTRY', poolEvidence));
+        addEdge(edge(dexId, poolId, 'FACTORY_PROVES_POOL', poolEvidence));
+        for (const tokenAddress of [token0, token1]) {
+          const tokenId = `token:${CHAIN_ID}:${tokenAddress}`;
+          addNode(node(tokenId, 'TOKEN', tokenAddress, poolEvidence));
+          addEdge(edge(tokenId, poolId, 'MEMBER_OF_VERIFIED_POOL', poolEvidence));
+        }
+        poolDexProven = true;
+        liquidityState = liquidity?.liquidityEvidence === 'RESERVES_PRESENT' ? 'RESERVES_PRESENT' : 'ZERO_RESERVES';
+      }
+    } catch {
+      // Fail closed: Phase 1 evidence remains usable while Phase 2 relationships stay unavailable.
+    }
+
     return json({
       status: 'live',
-      schema: 'kriptoaman.intelligence-graph.v1',
+      schema: 'kriptoaman.intelligence-graph.v2',
       chainId: CHAIN_ID,
       sourceMode: 'derived-from-first-party-evidence',
       head: { number: headNumber, hash: headHash },
       graph: { nodes, edges },
-      unavailableRelationships: ['POOL', 'DEX', 'LIQUIDITY', 'TRADE'],
+      unavailableRelationships: [...(poolDexProven ? [] : ['POOL', 'DEX']), ...(liquidityState === 'RESERVES_PRESENT' ? [] : ['LIQUIDITY']), 'TRADE'],
       truthPolicy: {
         unavailableIsZero: false,
         inferredRelationshipsAllowed: false,
-        poolDexRelationshipsEnabled: false,
+        poolDexRelationshipsEnabled: poolDexProven,
+        liquidityEvidenceState: liquidityState,
+        tradeRelationshipsEnabled: false,
         transactionSubmissionEnabled: false,
       },
-      provenance: { ownership: 'first-party', upstream: SOURCE_PATH, externalMarketProviderUsed: false },
+      provenance: { ownership: 'first-party', upstream: [SOURCE_PATH, LIQUIDITY_SOURCE_PATH], externalMarketProviderUsed: false },
       observedAt: Date.now(),
       observationId,
     });
