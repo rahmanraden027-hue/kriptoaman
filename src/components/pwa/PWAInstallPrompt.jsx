@@ -119,10 +119,10 @@ export default function PWAInstallPrompt() {
               Pilih aplikasi Android signed atau Web App. APK native menggunakan package resmi com.kriptoaman.app.
             </p>
             <a
-              href="https://github.com/rahmanraden027-hue/kriptoaman/releases/download/android-v1.5.5/KriptoAman-1.5.5.apk"
+              href="https://github.com/rahmanraden027-hue/kriptoaman/releases/download/android-v1.5.6/KriptoAman-1.5.6.apk"
               className="mt-4 flex min-h-12 items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 py-3 text-sm font-bold hover:bg-sky-500"
             >
-              <Download className="h-4 w-4" /> Download APK Signed · v1.5.5
+              <Download className="h-4 w-4" /> Download APK Signed · v1.5.6
             </a>
             {installEvent?.prompt && (
               <button
