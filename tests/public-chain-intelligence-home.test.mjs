@@ -23,6 +23,10 @@ test('public intelligence uses only first-party evidence-gated endpoints and fai
   assert.match(surface, /Number\(p\?\.chainId\) === 22028/);
   assert.match(surface, /UNAVAILABLE/);
   assert.match(surface, /Only proven nodes light up/);
+  assert.match(surface, /graph\?\.graph\?\.nodes/);
+  assert.match(surface, /graph\?\.graph\?\.edges/);
+  assert.match(surface, /discovery\?\.observation\?\.contractCreations/);
+  assert.match(surface, /\/asset-passport\/\$\{value\}/);
   assert.doesNotMatch(surface, /coingecko|coinmarketcap|dexscreener|birdeye/i);
   assert.doesNotMatch(surface, /eth_sendTransaction|eth_sendRawTransaction|privateKey|mnemonic|seed phrase/i);
 });
