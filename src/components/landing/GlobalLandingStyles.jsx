@@ -201,7 +201,24 @@ export default function GlobalLandingStyles() {
       @keyframes ka-evidence-flow{to{stroke-dashoffset:-20}}@keyframes ka-node-pulse{0%,100%{box-shadow:0 0 10px rgba(59,130,246,.2)}50%{box-shadow:0 0 22px rgba(59,130,246,.48)}}@keyframes ka-orbit-breathe{0%,100%{opacity:.5}50%{opacity:1}}
       @media(max-width:900px){.ka-intel-orbit-stage{grid-template-columns:1fr 1.15fr}.ka-orbit-telemetry{grid-column:1/-1;grid-template-columns:repeat(4,minmax(0,1fr))}}
       @media(max-width:620px){.ka-intel-orbit-stage{grid-template-columns:1fr;padding:16px;gap:14px}.ka-orbit-copy{text-align:center}.ka-network-globe{width:min(82vw,250px)}.ka-orbit-telemetry{grid-template-columns:1fr 1fr}.ka-orbit-telemetry>div{padding:9px 10px}.ka-orbit-copy h3{font-size:19px}}
-      @media(max-width:420px){.ka-intel-command{border-radius:20px;padding:16px!important}.ka-intel-engine{min-height:230px}.ka-intel-shell{padding-left:14px!important;padding-right:14px!important}.ka-intel-proof>div.grid{grid-template-columns:1fr 1fr}}
+      /* Mobile command-center density polish: preserve evidence semantics while increasing visual depth. */
+      @media(max-width:620px){
+        .ka-intel-shell{padding-top:28px!important;padding-bottom:28px!important}
+        .ka-intel-command{box-shadow:0 22px 64px rgba(0,0,0,.38),inset 0 0 72px rgba(37,99,235,.045)}
+        .ka-intel-orbit-stage{min-height:0;background:radial-gradient(circle at 50% 43%,rgba(37,99,235,.24),transparent 31%),linear-gradient(150deg,rgba(5,20,38,.98),rgba(2,8,17,.99))}
+        .ka-network-globe{width:min(88vw,292px);filter:drop-shadow(0 24px 34px rgba(0,0,0,.34)) drop-shadow(0 0 18px rgba(37,99,235,.16))}
+        .ka-globe-shell{width:68%;height:68%;border-color:rgba(56,189,248,.68);box-shadow:inset -20px -15px 42px rgba(0,0,0,.52),inset 10px 8px 30px rgba(56,189,248,.13),0 0 48px rgba(37,99,235,.34)}
+        .ka-globe-lat{border-color:rgba(56,189,248,.38)}.ka-globe-lon{border-color:rgba(56,189,248,.34)}
+        .ka-globe-orbit{border-color:rgba(245,183,46,.52);box-shadow:0 0 24px rgba(245,183,46,.10)}.ka-globe-orbit.orbit-b{border-color:rgba(59,130,246,.52)}
+        .ka-globe-core{width:54px;height:54px;box-shadow:0 0 34px rgba(37,99,235,.46),0 0 20px rgba(245,183,46,.18)}
+        .ka-network-globe>span{width:29px;height:29px;border-color:rgba(56,189,248,.82);background:rgba(4,20,38,.96);box-shadow:0 0 20px rgba(56,189,248,.36)}
+        .ka-orbit-telemetry{gap:6px}.ka-orbit-telemetry>div{min-height:58px;border:1px solid rgba(59,130,246,.12);border-left:2px solid rgba(59,130,246,.5);border-radius:8px;background:linear-gradient(135deg,rgba(37,99,235,.10),rgba(2,10,20,.42))}
+        .ka-intel-engine{min-height:0!important;padding:15px}.ka-pulse-bars{height:62px;margin-top:10px!important}.ka-radar,.ka-graph-map{height:128px!important}
+        .ka-graph-map{transform:perspective(520px) rotateX(7deg);transform-origin:center 60%;border-radius:14px;background:radial-gradient(circle at 50% 52%,rgba(37,99,235,.12),transparent 46%)}
+        .ka-graph-map svg{filter:drop-shadow(0 0 8px rgba(59,130,246,.34))}.ka-graph-map line{stroke-width:1.15;stroke-opacity:.9;animation-duration:2.8s}
+        .ka-graph-map span{transform:translate(-50%,-50%) translateZ(18px);box-shadow:0 0 18px rgba(59,130,246,.46)}
+      }
+      @media(max-width:420px){.ka-intel-command{border-radius:20px;padding:14px!important}.ka-intel-engine{min-height:0}.ka-intel-shell{padding-left:10px!important;padding-right:10px!important}.ka-intel-proof>div.grid{grid-template-columns:1fr 1fr}.ka-network-globe{width:min(86vw,276px)}.ka-orbit-copy h3{font-size:20px}.ka-orbit-copy span{font-size:10px}.ka-pulse-bars{height:54px}.ka-radar,.ka-graph-map{height:118px!important}}
 
       @media (prefers-reduced-motion:reduce){
         .ka-landing *, .ka-landing *::before, .ka-landing *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;}
