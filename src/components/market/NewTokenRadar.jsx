@@ -140,11 +140,11 @@ export default function NewTokenRadar({ expanded = false }) {
   const visible = expanded ? candidates.slice(0, 12) : candidates.slice(0, 4);
 
   return (
-    <section className="rounded-[28px] border border-cyan-400/15 bg-[#06101b]/90 p-4 shadow-[0_24px_70px_-50px_rgba(34,211,238,.5)] sm:p-5" aria-label="New Token Radar and QoryVEx Discovery">
+    <section className="rounded-[28px] border border-cyan-400/15 bg-[#06101b]/90 p-4 shadow-[0_24px_70px_-50px_rgba(34,211,238,.5)] sm:p-5" aria-label="Genesis Radar and QoryVEx Discovery">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.18em] text-cyan-300">
-            <Radio className="h-3.5 w-3.5" /> NEW TOKEN RADAR · FIRST-PARTY
+            <Radio className="h-3.5 w-3.5" /> GENESIS RADAR · FIRST-PARTY
           </p>
           <h2 className="mt-1 text-xl font-black text-white sm:text-2xl">Asset Passport → Launch DNA → QoryVEx Discovery</h2>
           <p className="mt-2 max-w-3xl text-[11px] leading-5 text-slate-400">
