@@ -47,7 +47,7 @@ jobs:
           const fs=require('fs'),p=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
           if(p?.status!=='live'||p?.chainId!==22028)process.exit(1);
           if(!Number.isInteger(Number(p?.head?.number))||Number(p.head.number)<0||!/^0x[0-9a-fA-F]{64}$/.test(String(p?.head?.hash||'')))process.exit(1);
-          if(!Array.isArray(p?.observation?.scannedBlocks)||!Array.isArray(p?.observation?.contractCreations))process.exit(1);
+          if(!Number.isInteger(Number(p?.observation?.scannedBlocks))||Number(p.observation.scannedBlocks)<1||!Array.isArray(p?.observation?.contractCreations))process.exit(1);
           if(Number(p?.observation?.contractCreationCount)!==p.observation.contractCreations.length)process.exit(1);
           for(const x of p.observation.contractCreations){if(!/^0x[0-9a-fA-F]{64}$/.test(String(x?.txHash||''))||!/^0x[0-9a-fA-F]{64}$/.test(String(x?.blockHash||'')))process.exit(1);}
           if(p?.provenance?.ownership!=='first-party'||p?.provenance?.transport!=='JSON-RPC'||p?.provenance?.externalMarketProviderUsed!==false)process.exit(1);
