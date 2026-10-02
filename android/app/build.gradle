@@ -19,8 +19,8 @@ android {
         platform {
             dimension "product"
             applicationId "com.kriptoaman.app"
-            versionCode 10
-            versionName "1.5.4"
+            versionCode 12
+            versionName "1.5.5"
         }
         wallet {
             dimension "product"
