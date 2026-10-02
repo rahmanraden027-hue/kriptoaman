@@ -34,8 +34,8 @@ test('public intelligence uses only first-party evidence-gated endpoints and fai
 });
 
 
-test('final public hero presents the evidence-first intelligence identity', () => {
-  const hero = readFileSync(join(root, 'src/components/landing/GLandingHero.jsx'), 'utf8');
+test('final public hero presents the evidence-first intelligence identity', async () => {
+  const hero = await read('src/components/landing/GLandingHero.jsx');
   assert.match(hero, /GLOBAL CHAIN INTELLIGENCE/);
   assert.match(hero, /Lihat\. Pahami\. Verifikasi\./);
   assert.match(hero, /Global Intelligence Core/);
