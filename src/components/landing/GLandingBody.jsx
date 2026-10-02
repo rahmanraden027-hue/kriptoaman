@@ -119,18 +119,6 @@ export default function GLandingBody({ stats }) {
             })}
           </div>
 
-          <div className="ka-card ka-v2-livebar mt-6 p-4 sm:p-5">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <div className="ka-card2 p-4"><Database className="h-4 w-4 ka-blue" /><p className="mt-3 text-2xl font-black ka-text">{assetCountValue}</p><p className="mt-1 text-[11px] ka-text2">Cakupan Aset Pasar</p></div>
-              <div className="ka-card2 p-4"><Network className="h-4 w-4 ka-blue" /><p className="mt-3 text-2xl font-black ka-text">{networkCountValue}</p><p className="mt-1 text-[11px] ka-text2">Jaringan Terverifikasi</p></div>
-              <div className="ka-card2 p-4"><Activity className="h-4 w-4 ka-gold" /><p className="mt-3 text-2xl font-black ka-text">{blockValue}</p><p className="mt-1 text-[11px] ka-text2">ZEVARYQ Block</p></div>
-              <div className="ka-card2 p-4"><ShieldCheck className="h-4 w-4 ka-green" /><p className="mt-3 text-lg font-black ka-text">{liveStateLabel}</p><p className="mt-1 text-[11px] ka-text2">Platform Data Status</p></div>
-            </div>
-            <p className="mt-3 text-[10px] leading-5 ka-text2 opacity-75">
-              Live metrics berasal dari health contract dan sumber publik yang terhubung. Tidak ada angka sintetis ketika sumber tidak tersedia.
-            </p>
-          </div>
-
           <div className="ka-card mt-6 overflow-hidden">
             <div className="flex flex-col gap-3 border-b p-5 sm:flex-row sm:items-center sm:justify-between" style={{ borderColor: 'var(--ka-border)' }}>
               <div>
