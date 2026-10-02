@@ -52,6 +52,10 @@ test('Android install surface separates signed native APK from PWA', async () =>
   assert.match(source, /com\.kriptoaman\.app/);
   assert.match(workflow, /Publish immutable versioned GitHub Release/);
   assert.match(workflow, /KriptoAman-1\.5\.6\.apk\.sha256/);
-  assert.match(workflow, /Release \$tag already exists\. Bump Android version/);
+  assert.match(workflow, /Release \$tag already exists; preserving immutable published release/);
+  assert.match(workflow, /Existing immutable release verified; no overwrite or republish attempted/);
+  assert.match(workflow, /--json tagName,name,isDraft,isPrerelease/);
+  assert.match(workflow, /isDraft.*false/);
+  assert.match(workflow, /isPrerelease.*false/);
   assert.match(workflow, /contents: write/);
 });
