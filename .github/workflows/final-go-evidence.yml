@@ -91,7 +91,7 @@ jobs:
             "standard": "WCAG2AA",
             "timeout": 180000,
             "wait": 2000,
-            "browser": {
+            "gotoOptions": {
               "waitUntil": "domcontentloaded"
             },
             "chromeLaunchConfig": {
