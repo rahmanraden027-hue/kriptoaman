@@ -21,6 +21,8 @@ export default function KriptoAmanGlobalLanding() {
     networkCheckedAt: null,
     zvqBlockNumber: null,
     zvqCheckedAt: null,
+    zvqSyncStatus: null,
+    zvqProbeDurationMs: null,
   });
 
   useEffect(() => {
@@ -37,6 +39,8 @@ export default function KriptoAmanGlobalLanding() {
         networkCheckedAt: null,
         zvqBlockNumber: null,
         zvqCheckedAt: null,
+        zvqSyncStatus: null,
+        zvqProbeDurationMs: null,
       };
       let platformPayload = null;
       let kamPayload = null;
@@ -126,6 +130,8 @@ export default function KriptoAmanGlobalLanding() {
         next.networkCheckedAt = next.networkCheckedAt || kamCheckedAt;
         next.zvqBlockNumber = kamBlockNumber != null && Number.isFinite(Number(kamBlockNumber)) ? Number(kamBlockNumber) : next.zvqBlockNumber;
         next.zvqCheckedAt = kamCheckedAt || next.zvqCheckedAt;
+        next.zvqSyncStatus = kamPayload?.verified === true ? (kamPayload.syncStatus || null) : null;
+        next.zvqProbeDurationMs = kamPayload?.verified === true && Number.isFinite(Number(kamPayload.probeDurationMs)) ? Number(kamPayload.probeDurationMs) : null;
         if (!hadKam) {
           next.networkActiveCount = (Number(next.networkActiveCount) || 0) + 1;
         }
