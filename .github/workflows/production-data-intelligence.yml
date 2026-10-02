@@ -28,7 +28,7 @@ jobs:
           if(p?.status!=='live'||p?.schema!=='kriptoaman.intelligence-graph.v2'||p?.chainId!==22028)process.exit(1);
           if(!Number.isInteger(Number(p?.head?.number))||Number(p.head.number)<0||!/^0x[0-9a-fA-F]{64}$/.test(String(p?.head?.hash||'')))process.exit(1);
           if(!Array.isArray(p?.graph?.nodes)||!Array.isArray(p?.graph?.edges)||!Array.isArray(p?.unavailableRelationships))process.exit(1);
-          if(p?.truthPolicy?.unavailableIsZero!==false||p?.truthPolicy?.inferredRelationships!==false||p?.truthPolicy?.transactionSubmissionEnabled!==false)process.exit(1);
+          if(p?.truthPolicy?.unavailableIsZero!==false||p?.truthPolicy?.inferredRelationshipsAllowed!==false||p?.truthPolicy?.transactionSubmissionEnabled!==false)process.exit(1);
           if(p?.provenance?.ownership!=='first-party')process.exit(1);
           NODE
             then exit 0; fi
