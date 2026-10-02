@@ -58,6 +58,27 @@ export default function PublicChainIntelligence() {
             <span className={graph ? 'ka-intel-live' : 'ka-intel-unavailable'}><i />{graph ? 'FIRST-PARTY LIVE' : unavailable}</span>
           </div>
           <div className="relative z-[1] mt-6 flex gap-2"><div className="ka-intel-search flex min-w-0 flex-1 items-center gap-2 px-4"><Search className="h-4 w-4 ka-blue" /><input value={query} onChange={e => setQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && route()} placeholder="Search wallet, contract, tx hash, or block…" className="w-full bg-transparent py-3 text-sm ka-text outline-none" aria-label="Universal Intelligence Search" /></div><button type="button" onClick={route} className="ka-intel-verify px-4 text-sm font-black">Verify</button></div>
+          <div className="relative z-[1] mt-5 ka-intel-orbit-stage" aria-label="Live evidence network visualization">
+            <div className="ka-orbit-copy">
+              <p>GLOBAL EVIDENCE NETWORK</p>
+              <h3>Live signals. Proven relationships.</h3>
+              <span>Visual depth is driven only by evidence returned from the production intelligence APIs.</span>
+            </div>
+            <div className="ka-network-globe" aria-hidden="true">
+              <i className="ka-globe-shell" />
+              <i className="ka-globe-lat lat-a" /><i className="ka-globe-lat lat-b" />
+              <i className="ka-globe-lon lon-a" /><i className="ka-globe-lon lon-b" />
+              <i className="ka-globe-orbit orbit-a" /><i className="ka-globe-orbit orbit-b" />
+              <b className="ka-globe-core">KA</b>
+              {graphDots.map((item) => <span key={`orb-${item.type}`} style={{ left: item.pos[0] + '%', top: item.pos[1] + '%' }} title={item.type}>{item.type.slice(0, 2)}</span>)}
+            </div>
+            <div className="ka-orbit-telemetry">
+              <div><span>VERIFIED HEAD</span><b>{Number.isFinite(Number(head)) ? Number(head).toLocaleString('id-ID') : '—'}</b></div>
+              <div><span>PROVEN NODES</span><b>{nodes.length || '—'}</b></div>
+              <div><span>PROVEN EDGES</span><b>{edges.length || '—'}</b></div>
+              <div><span>RECENT CREATIONS</span><b>{recent.length || '—'}</b></div>
+            </div>
+          </div>
           <div className="relative z-[1] mt-5 grid gap-3 lg:grid-cols-3">
             <article className="ka-intel-engine"><div className="flex items-center justify-between"><Activity className="h-5 w-5 ka-blue" /><span className={head ? 'ka-intel-mini-live' : 'ka-intel-mini-idle'}>{head ? 'LIVE' : unavailable}</span></div><p className="mt-4 text-[10px] font-black tracking-[.16em] ka-text2">CHAIN PULSE</p><p className="mt-2 text-3xl font-black ka-text">{Number.isFinite(Number(head)) ? Number(head).toLocaleString('id-ID') : '—'}</p><div className="ka-pulse-bars mt-4" aria-hidden="true">{Array.from({ length: 12 }, (_, i) => <i key={i} />)}</div><p className="mt-3 text-[11px] ka-text2">Latest verified ZEVARYQ block · Chain 22028 · signal visualization</p></article>
             <article className="ka-intel-engine"><div className="flex items-center justify-between"><Radar className="h-5 w-5 ka-blue" /><span className={discovery ? 'ka-intel-mini-scan' : 'ka-intel-mini-idle'}>{discovery ? 'SCANNING' : unavailable}</span></div><p className="mt-4 text-[10px] font-black tracking-[.16em] ka-text2">GENESIS RADAR</p><div className="ka-radar mt-3" aria-label="Observed contract creation radar"><i className="r1"/><i className="r2"/><i className="r3"/><b />{recent.map((item,i)=><span key={item?.txHash||i} style={{transform:`rotate(${i*117+35}deg) translateX(${34+i*12}px)`}} />)}</div><p className="mt-3 text-[11px] ka-text2">{recent.length ? `${recent.length} recent contract creation observation${recent.length===1?'':'s'}` : 'No recent contract creation evidence in the scanned window'}</p></article>
