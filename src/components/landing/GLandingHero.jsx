@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, ArrowRight, CheckCircle, Activity, Database, ExternalLink, Blocks, Sparkles } from 'lucide-react';
+import { Shield, ArrowRight, CheckCircle, Activity, Database, ExternalLink, Blocks } from 'lucide-react';
 import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
 
 const INDICATORS = [
@@ -114,7 +114,7 @@ export default function GLandingHero({ stats }) {
               ))}
               <div className="absolute left-1/2 top-1/2 z-[2] -translate-x-1/2 translate-y-[86px] text-center">
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-400/20 bg-blue-500/10 px-3 py-1 text-[9px] font-black tracking-[0.14em] text-blue-200">
-                  <Sparkles className="h-3 w-3" /> NEXUS INTELLIGENCE CORE
+                  KRIPTOAMAN INTELLIGENCE CORE
                 </span>
               </div>
             </div>
