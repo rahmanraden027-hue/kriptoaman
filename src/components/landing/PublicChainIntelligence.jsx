@@ -27,9 +27,9 @@ export default function PublicChainIntelligence() {
     return () => { active = false; };
   }, []);
 
-  const nodes = Array.isArray(graph?.nodes) ? graph.nodes : [];
-  const edges = Array.isArray(graph?.edges) ? graph.edges : [];
-  const recent = Array.isArray(discovery?.candidates) ? discovery.candidates.slice(0, 3) : [];
+  const nodes = Array.isArray(graph?.graph?.nodes) ? graph.graph.nodes : [];
+  const edges = Array.isArray(graph?.graph?.edges) ? graph.graph.edges : [];
+  const recent = Array.isArray(discovery?.observation?.contractCreations) ? discovery.observation.contractCreations.slice(0, 3) : [];
   const head = graph?.head?.number ?? discovery?.head?.number ?? null;
   const blockHash = graph?.head?.hash ?? discovery?.head?.hash ?? null;
   const provenTypes = useMemo(() => new Set(nodes.map(n => n?.type).filter(Boolean)), [nodes]);
@@ -37,7 +37,7 @@ export default function PublicChainIntelligence() {
     const value = query.trim();
     if (!value) return;
     if (/^0x[a-fA-F0-9]{64}$/.test(value)) window.location.assign(`https://explorer.kriptoaman.com/tx/${value}`);
-    else if (/^0x[a-fA-F0-9]{40}$/.test(value)) window.location.assign(`https://explorer.kriptoaman.com/address/${value}`);
+    else if (/^0x[a-fA-F0-9]{40}$/.test(value)) window.location.assign(`/asset-passport/${value}`);
     else if (/^\\d+$/.test(value)) window.location.assign(`https://explorer.kriptoaman.com/block/${value}`);
   };
 
@@ -88,7 +88,7 @@ export default function PublicChainIntelligence() {
             </div>
           </div>
 
-          {recent.length > 0 && <div className="mt-3 ka-card2 p-4"><p className="text-xs font-black ka-text">Genesis Radar · latest observed candidates</p><div className="mt-3 grid gap-2 sm:grid-cols-3">{recent.map((item, index) => <div key={item?.transactionHash || item?.address || index} className="rounded-xl border p-3 text-[10px] ka-text2" style={{borderColor:'var(--ka-border)'}}><b className="ka-text">{item?.type || 'OBSERVED'}</b><p className="mt-1">{short(item?.address || item?.contractAddress || item?.transactionHash)}</p><p className="mt-1">Block {item?.blockNumber ?? '—'}</p></div>)}</div></div>}
+          {recent.length > 0 && <div className="mt-3 ka-card2 p-4"><p className="text-xs font-black ka-text">Genesis Radar · latest observed candidates</p><div className="mt-3 grid gap-2 sm:grid-cols-3">{recent.map((item, index) => <div key={item?.txHash || item?.address || index} className="rounded-xl border p-3 text-[10px] ka-text2" style={{borderColor:'var(--ka-border)'}}><b className="ka-text">{item?.type || 'OBSERVED'}</b><p className="mt-1">{short(item?.address || item?.contractAddress || item?.txHash)}</p><p className="mt-1">Block {item?.blockNumber ?? '—'}</p></div>)}</div></div>}
         </div>
       </div>
     </section>
