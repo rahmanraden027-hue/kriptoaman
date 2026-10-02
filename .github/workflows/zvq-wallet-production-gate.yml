@@ -1,0 +1,101 @@
+name: ZEVARYQ Wallet Production Gate
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  wallet-production-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Verify wallet read-only production contract
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFile } from 'node:fs/promises';
+          const wallet = await readFile('src/pages/Wallet.jsx','utf8');
+          const provider = await readFile('src/components/web3/Web3Provider.jsx','utf8');
+          const network = await readFile('src/services/zevaryqNetwork.js','utf8');
+          const pair = await readFile('src/pages/PairPassport.jsx','utf8');
+          const app = await readFile('src/App.jsx','utf8');
+          assert.match(app, /path="\/wallet-app"/);
+          assert.match(app, /<Web3Provider><WalletStandalonePage/);
+          assert.match(provider, /VITE_ZEVARYQ_TRANSACTIONS_ENABLED !== 'true'/);
+          assert.match(provider, /READ_ONLY_RELEASE\) throw new Error\('Transaksi dinonaktifkan/);
+          assert.match(provider, /READ_ONLY_RELEASE\) throw new Error\('Penandatanganan dinonaktifkan/);
+          assert.match(wallet, /Connect Wallet/);
+          assert.match(wallet, /Preview Send/);
+          assert.match(wallet, /Review-only release · signing and broadcast disabled/);
+          assert.match(wallet, /Broadcast Locked/);
+          assert.match(wallet, /Receive ZVQ/);
+          assert.match(wallet, /My Wallet Assets/);
+          assert.match(wallet, /ZEVARYQ \(ZVQ\)/);
+          assert.match(network, /eth_getBalance/);
+          assert.match(network, /RPC chain ID mismatch/);
+          assert.match(pair, /\/api\/zvq-swap-preview/);
+          assert.doesNotMatch(pair, /eth_sendRawTransaction|eth_sendTransaction/);
+          NODE
+
+      - name: Verify live ZEVARYQ network and wallet read path
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5 6; do
+            code="$(curl -sS --max-time 35 -H 'Accept: application/json' -H 'Cache-Control: no-cache' -o /tmp/network.json -w '%{http_code}' "https://kriptoaman.com/api/kam/network-status?walletGate=${GITHUB_RUN_ID}-${attempt}" || true)"
+            if [[ "$code" == "200" ]] && node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFile } from 'node:fs/promises';
+          const p=JSON.parse(await readFile('/tmp/network.json','utf8'));
+          assert.equal(Number(p.chainId ?? p.network?.chainId),22028);
+          const block=Number(p.blockNumber ?? p.network?.blockNumber ?? p.latestBlock ?? p.network?.latestBlock);
+          assert.ok(Number.isInteger(block) && block > 0);
+          const rpc=String(p.rpc ?? p.network?.rpc ?? p.status ?? '').toLowerCase();
+          assert.ok(rpc.includes('connected') || rpc.includes('live') || rpc.includes('online') || p.verified === true);
+          NODE
+            then exit 0; fi
+            sleep 5
+          done
+          cat /tmp/network.json || true
+          exit 1
+
+      - name: Verify swap preview remains non-broadcasting
+        shell: bash
+        run: |
+          set -euo pipefail
+          code="$(curl -sS --max-time 35 -H 'Accept: application/json' -H 'Cache-Control: no-cache' -o /tmp/swap.json -w '%{http_code}' 'https://kriptoaman.com/api/zvq-swap-preview?amount=1&direction=token0-to-token1&slippageBps=50' || true)"
+          [[ "$code" == "200" || "$code" == "409" || "$code" == "422" || "$code" == "503" ]]
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFile } from 'node:fs/promises';
+          const p=JSON.parse(await readFile('/tmp/swap.json','utf8'));
+          const raw=JSON.stringify(p);
+          assert.doesNotMatch(raw,/private.?key|mnemonic|seed phrase|eth_sendRawTransaction|eth_sendTransaction/i);
+          assert.notEqual(p?.submitted,true);
+          assert.notEqual(p?.broadcast,true);
+          assert.equal(p?.executionEnabled,false);
+          if ('approvalEnabled' in p) assert.equal(p.approvalEnabled,false);
+          if ('signingEnabled' in p) assert.equal(p.signingEnabled,false);
+          NODE
+
+      - name: Publish wallet production status
+        if: always()
+        uses: myrotvorets/set-commit-status-action@master
+        with:
+          sha: ${{ github.event.pull_request.head.sha || github.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: ${{ job.status }}
+          context: kriptoaman/zvq-wallet-production
