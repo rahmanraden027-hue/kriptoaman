@@ -33,11 +33,13 @@ test('public intelligence uses only first-party evidence-gated endpoints and fai
   assert.doesNotMatch(surface, /eth_sendTransaction|eth_sendRawTransaction|privateKey|mnemonic|seed phrase/i);
 });
 
-
 test('final public hero presents the evidence-first intelligence identity', async () => {
   const hero = await read('src/components/landing/GLandingHero.jsx');
   assert.match(hero, /GLOBAL CHAIN INTELLIGENCE/);
-  assert.match(hero, /ka-command-hero/);\n  assert.match(hero, /Lihat/);\n  assert.match(hero, /Pahami/);\n  assert.match(hero, /Verifikasi/);
+  assert.match(hero, /ka-command-hero/);
+  assert.match(hero, /Lihat/);
+  assert.match(hero, /Pahami/);
+  assert.match(hero, /Verifikasi/);
   assert.match(hero, /Global Intelligence Core/);
   assert.match(hero, /PROOF OF FRESHNESS/);
   assert.match(hero, /assetCount/);
