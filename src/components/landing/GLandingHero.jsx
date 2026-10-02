@@ -66,8 +66,8 @@ export default function GLandingHero({ stats }) {
             <Shield className="w-3.5 h-3.5" /> KRIPTOAMAN · GLOBAL CHAIN INTELLIGENCE
           </span>
           <h1 className="ka-sec-title mt-5 text-[34px] sm:text-5xl lg:text-[54px]">
-            Pasar kripto bergerak cepat.<br />
-            Anda tetap <span className="ka-blue">terkendali.</span>
+            Blockchain bergerak setiap detik.<br />
+            <span className="ka-blue">Lihat. Pahami. Verifikasi.</span>
           </h1>
           <p className="ka-text2 mt-5 max-w-xl mx-auto lg:mx-0 text-sm sm:text-base leading-relaxed">
             Chain intelligence, on-chain verification, multi-chain monitoring, dan risk intelligence dalam satu command center dengan sumber data yang dapat ditelusuri.
