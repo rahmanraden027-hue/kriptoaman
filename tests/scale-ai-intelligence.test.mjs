@@ -81,3 +81,15 @@ test('isolated staging gate exposes progressive 1k through 10k profiles', async 
   assert.match(workflow, /Refusing company\/production hostname/);
   assert.match(workflow, /KA_INCLUDE_HOT_MARKET=YES/);
 });
+
+
+test('paged market coalesces concurrent cache misses without weakening freshness or SLO', async () => {
+  const source = await read('functions/api/market-snapshot-page.js');
+  const load = await read('load/k6-production-readonly.js');
+  assert.match(source, /const pageBuildsInFlight = new Map\(\)/);
+  assert.match(source, /buildPageSingleFlight/);
+  assert.match(source, /pageBuildsInFlight\.get\(key\)/);
+  assert.match(source, /pageBuildsInFlight\.delete\(key\)/);
+  assert.match(source, /Cache-Control': 'public, max-age=60, s-maxage=60/);
+  assert.match(load, /http_req_duration\{endpoint:market-page\}.*p\(95\)<1000/);
+});

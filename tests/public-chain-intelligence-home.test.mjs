@@ -49,3 +49,17 @@ test('final public hero presents the evidence-first intelligence identity', asyn
   assert.match(hero, /assetCount/);
   assert.match(hero, /zvqBlockNumber/);
 });
+
+
+test('Intelligence Graph 2.0 exposes only selectable proven nodes and edges through Evidence Drawer', async () => {
+  const surface = await read('src/components/landing/PublicChainIntelligence.jsx');
+  assert.match(surface, /BLOCK:\[50,14\]/);
+  assert.match(surface, /Evidence Drawer/);
+  assert.match(surface, /selectNode/);
+  assert.match(surface, /selectEdge/);
+  assert.match(surface, /Only API-proven evidence is shown/);
+  assert.match(surface, /Missing fields remain UNAVAILABLE/);
+  assert.match(surface, /line\.edge/);
+  assert.match(surface, /graphLines\.map\(line/);
+  assert.doesNotMatch(surface, /graphDots\.slice\(i\+1\)/);
+});

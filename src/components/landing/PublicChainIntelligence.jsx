@@ -1,14 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Activity, Database, GitBranch, Radar, Search, ShieldCheck } from 'lucide-react';
+import { Activity, Database, ExternalLink, GitBranch, Radar, Search, ShieldCheck, X } from 'lucide-react';
 
 const unavailable = 'UNAVAILABLE';
 const short = value => typeof value === 'string' && value.length > 16 ? `${value.slice(0, 8)}…${value.slice(-6)}` : value || '—';
-const typePos = { CHAIN:[50,50], WALLET:[15,28], TRANSACTION:[34,18], CONTRACT:[72,20], TOKEN:[86,48], POOL:[68,80], DEX:[28,82] };
+const typePos = { CHAIN:[50,52], BLOCK:[50,14], WALLET:[13,32], TRANSACTION:[31,16], CONTRACT:[72,18], TOKEN:[88,48], POOL:[70,82], DEX:[28,84] };
 
 export default function PublicChainIntelligence() {
   const [graph, setGraph] = useState(null);
   const [discovery, setDiscovery] = useState(null);
   const [query, setQuery] = useState('');
+  const [selectedEvidence, setSelectedEvidence] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -38,8 +39,20 @@ export default function PublicChainIntelligence() {
   const graphLines = useMemo(() => edges.map((edge, index) => {
     const from = graphDots.find(dot => dot.ids.includes(edge?.from));
     const to = graphDots.find(dot => dot.ids.includes(edge?.to));
-    return from && to ? { key: `${edge.from}:${edge.to}:${edge.type || index}`, from, to } : null;
+    return from && to ? { key: `${edge.from}:${edge.to}:${edge.type || index}`, from, to, edge } : null;
   }).filter(Boolean), [edges, graphDots]);
+  const selectNode = item => {
+    const nodeEvidence = nodes.find(n => item.ids.includes(n?.id));
+    if (nodeEvidence) setSelectedEvidence({ kind: 'NODE', ...nodeEvidence });
+  };
+  const selectEdge = line => setSelectedEvidence({ kind: 'RELATIONSHIP', ...line.edge });
+  const evidenceLink = selectedEvidence?.type === 'TRANSACTION' && selectedEvidence?.label ? `https://explorer.kriptoaman.com/tx/${selectedEvidence.label}`
+    : selectedEvidence?.type === 'BLOCK' && selectedEvidence?.evidence?.blockNumber != null ? `https://explorer.kriptoaman.com/block/${selectedEvidence.evidence.blockNumber}`
+    : selectedEvidence?.type === 'CONTRACT' && selectedEvidence?.label ? `/asset-passport/${selectedEvidence.label}`
+    : null;
+  const evidence = selectedEvidence?.evidence || {};
+  const evidenceObservedAt = evidence?.observedAt ?? graph?.observedAt ?? discovery?.observedAt ?? null;
+
   const route = () => {
     const value = query.trim();
     if (!value) return;
@@ -82,8 +95,22 @@ export default function PublicChainIntelligence() {
           <div className="relative z-[1] mt-5 grid gap-3 lg:grid-cols-3">
             <article className="ka-intel-engine"><div className="flex items-center justify-between"><Activity className="h-5 w-5 ka-blue" /><span className={head ? 'ka-intel-mini-live' : 'ka-intel-mini-idle'}>{head ? 'LIVE' : unavailable}</span></div><p className="mt-4 text-[10px] font-black tracking-[.16em] ka-text2">CHAIN PULSE</p><p className="mt-2 text-3xl font-black ka-text">{Number.isFinite(Number(head)) ? Number(head).toLocaleString('id-ID') : '—'}</p><div className="ka-pulse-bars mt-4" aria-hidden="true">{Array.from({ length: 12 }, (_, i) => <i key={i} />)}</div><p className="mt-3 text-[11px] ka-text2">Latest verified ZEVARYQ block · Chain 22028 · signal visualization</p></article>
             <article className="ka-intel-engine"><div className="flex items-center justify-between"><Radar className="h-5 w-5 ka-blue" /><span className={discovery ? 'ka-intel-mini-scan' : 'ka-intel-mini-idle'}>{discovery ? 'SCANNING' : unavailable}</span></div><p className="mt-4 text-[10px] font-black tracking-[.16em] ka-text2">GENESIS RADAR</p><div className="ka-radar mt-3" aria-label="Observed contract creation radar"><i className="r1"/><i className="r2"/><i className="r3"/><b />{recent.map((item,i)=><span key={item?.txHash||i} style={{transform:`rotate(${i*117+35}deg) translateX(${34+i*12}px)`}} />)}</div><p className="mt-3 text-[11px] ka-text2">{recent.length ? `${recent.length} recent contract creation observation${recent.length===1?'':'s'}` : 'No recent contract creation evidence in the scanned window'}</p></article>
-            <article className="ka-intel-engine"><div className="flex items-center justify-between"><GitBranch className="h-5 w-5 ka-gold" /><span className={nodes.length ? 'ka-intel-mini-live' : 'ka-intel-mini-idle'}>{nodes.length ? 'EVIDENCE' : unavailable}</span></div><p className="mt-4 text-[10px] font-black tracking-[.16em] ka-text2">INTELLIGENCE GRAPH</p><div className="ka-graph-map mt-3" aria-label="Evidence-bound graph preview"><svg viewBox="0 0 100 100" role="img" aria-label="Verified relationship map">{graphLines.map(line=><line key={line.key} x1={line.from.pos[0]} y1={line.from.pos[1]} x2={line.to.pos[0]} y2={line.to.pos[1]} />)}</svg>{graphDots.map(item=><span key={item.type} style={{left:item.pos[0]+'%',top:item.pos[1]+'%'}} title={item.type}>{item.type.slice(0,2)}</span>)}</div><p className="mt-3 text-[11px] ka-text2">{nodes.length || '—'} proven nodes · {edges.length || '—'} proven relationships</p></article>
+            <article className="ka-intel-engine"><div className="flex items-center justify-between"><GitBranch className="h-5 w-5 ka-gold" /><span className={nodes.length ? 'ka-intel-mini-live' : 'ka-intel-mini-idle'}>{nodes.length ? 'EVIDENCE' : unavailable}</span></div><p className="mt-4 text-[10px] font-black tracking-[.16em] ka-text2">INTELLIGENCE GRAPH</p><div className="ka-graph-map mt-3" aria-label="Evidence-bound graph preview"><svg viewBox="0 0 100 100" role="img" aria-label="Verified relationship map">{graphLines.map(line=><line key={line.key} x1={line.from.pos[0]} y1={line.from.pos[1]} x2={line.to.pos[0]} y2={line.to.pos[1]} role="button" tabIndex="0" aria-label={`Inspect ${line.edge?.type || 'verified relationship'} evidence`} onClick={()=>selectEdge(line)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectEdge(line)}}} />)}</svg>{graphDots.map(item=><button type="button" className="ka-graph-node" key={item.type} style={{left:item.pos[0]+'%',top:item.pos[1]+'%'}} title={item.type} aria-label={`Inspect ${item.type} evidence`} onClick={()=>selectNode(item)}><b>{item.type.slice(0,2)}</b><small>{item.type}</small></button>)}</div><p className="mt-3 text-[11px] ka-text2">{nodes.length || '—'} proven nodes · {edges.length || '—'} proven relationships</p></article>
           </div>
+          {selectedEvidence && <div className="ka-evidence-drawer relative z-[2] mt-3" role="dialog" aria-modal="false" aria-label="Evidence Drawer">
+            <div className="ka-evidence-drawer-head"><div><p>INTELLIGENCE GRAPH 2.0</p><h3>Evidence Drawer · {selectedEvidence.kind}</h3></div><button type="button" onClick={()=>setSelectedEvidence(null)} aria-label="Close Evidence Drawer"><X className="h-4 w-4"/></button></div>
+            <div className="ka-evidence-drawer-grid">
+              <div><span>TYPE</span><b>{selectedEvidence.type || '—'}</b></div>
+              <div><span>IDENTITY</span><b>{short(selectedEvidence.label || selectedEvidence.from)}</b></div>
+              <div><span>{selectedEvidence.kind === 'RELATIONSHIP' ? 'TO' : 'BLOCK'}</span><b>{selectedEvidence.kind === 'RELATIONSHIP' ? short(selectedEvidence.to) : (evidence.blockNumber ?? head ?? '—')}</b></div>
+              <div><span>SOURCE</span><b>{evidence.source === 'first-party' || graph?.provenance?.ownership === 'first-party' ? 'FIRST-PARTY' : unavailable}</b></div>
+              <div><span>BLOCK HASH</span><b>{short(evidence.blockHash || blockHash)}</b></div>
+              <div><span>TX HASH</span><b>{short(evidence.transactionHash)}</b></div>
+              <div><span>OBSERVED</span><b>{evidenceObservedAt ? new Date(evidenceObservedAt).toLocaleString('id-ID') : '—'}</b></div>
+              <div><span>OBSERVATION ID</span><b>{short(evidence.observationId || graph?.observationId)}</b></div>
+            </div>
+            <div className="ka-evidence-drawer-foot"><span>Only API-proven evidence is shown. Missing fields remain UNAVAILABLE.</span>{evidenceLink && <a href={evidenceLink}>Verify evidence <ExternalLink className="h-3.5 w-3.5"/></a>}</div>
+          </div>}
           <div className="relative z-[1] mt-3 grid gap-3 lg:grid-cols-[1.4fr_.6fr]"><div className="ka-intel-proof p-4"><div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 ka-green"/><b className="text-xs ka-text">PROOF ENGINE</b></div><div className="mt-3 grid gap-2 sm:grid-cols-4 text-[10px]"><div><span>BLOCK HASH</span><b>{short(blockHash)}</b></div><div><span>CONTEXT</span><b>ZEVARYQ · 22028</b></div><div><span>INTERPRETATION</span><b>EVIDENCE-GATED</b></div><div><span>SOURCE</span><b>{graph?.provenance?.ownership === 'first-party' || discovery?.provenance?.ownership === 'first-party' ? 'FIRST-PARTY' : unavailable}</b></div></div></div><div className="ka-intel-proof p-4"><div className="flex items-center gap-2"><Database className="h-4 w-4 ka-blue"/><b className="text-xs ka-text">TRUTH POLICY</b></div><p className="mt-3 text-[10px] leading-5 ka-text2">Unavailable is never converted to zero. Unproven relationships remain dark. Transaction submission is disabled.</p></div></div>
           {recent.length > 0 && <div className="relative z-[1] mt-3 ka-intel-proof p-4"><p className="text-xs font-black ka-text">Genesis Radar · latest observed evidence</p><div className="mt-3 grid gap-2 sm:grid-cols-3">{recent.map((item,index)=><a key={item?.txHash||index} href={item?.txHash ? `https://explorer.kriptoaman.com/tx/${item.txHash}` : undefined} className="ka-evidence-chip"><b>CONTRACT CREATION</b><span>{short(item?.txHash)}</span><small>Block {item?.blockNumber ?? '—'}</small></a>)}</div></div>}
         </div>
