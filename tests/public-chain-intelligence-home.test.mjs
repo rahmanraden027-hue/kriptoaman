@@ -27,6 +27,11 @@ test('public intelligence uses only first-party evidence-gated endpoints and fai
   assert.match(surface, /Unavailable is never converted to zero/);
   assert.match(surface, /graph\?\.graph\?\.nodes/);
   assert.match(surface, /graph\?\.graph\?\.edges/);
+  assert.match(surface, /const provenTypeEdges = useMemo/);
+  assert.match(surface, /nodeTypes\.get\(item\?\.from\)/);
+  assert.match(surface, /nodeTypes\.get\(item\?\.to\)/);
+  assert.match(surface, /provenTypeEdges\.map/);
+  assert.doesNotMatch(surface, /graphDots\.slice\(i\+1\)/);
   assert.match(surface, /discovery\?\.observation\?\.contractCreations/);
   assert.match(surface, /\/asset-passport\/\$\{value\}/);
   assert.doesNotMatch(surface, /coingecko|coinmarketcap|dexscreener|birdeye/i);
