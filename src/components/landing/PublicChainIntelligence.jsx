@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Activity, ArrowRight, Boxes, Database, GitBranch, Radar, Search, ShieldCheck } from 'lucide-react';
+import { Activity, ArrowRight, Database, GitBranch, Radar, Search, ShieldCheck } from 'lucide-react';
 
 const unavailable = 'UNAVAILABLE';
 const short = value => typeof value === 'string' && value.length > 16 ? `${value.slice(0, 8)}…${value.slice(-6)}` : value || '—';
