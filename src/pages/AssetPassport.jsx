@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Activity, ArrowLeft, BadgeCheck, Blocks, Code2, ExternalLink, Fingerprint, ShieldAlert, UserRound } from 'lucide-react';
+import { Activity, ArrowLeft, BadgeCheck, Blocks, ExternalLink, Fingerprint, ShieldAlert } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 
 const ADDRESS_RE = /^0x[0-9a-fA-F]{40}$/;
