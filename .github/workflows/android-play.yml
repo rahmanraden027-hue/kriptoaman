@@ -322,7 +322,8 @@ jobs:
           checksum="$(find dist -type f -name '*.sha256' -print -quit)"
           test -n "$apk"
           test -n "$checksum"
-          (cd "$(dirname "$checksum")" && sha256sum -c "$(basename "$checksum")")
+          expected="$(awk '{print $1}' "$checksum")"
+          test "$expected" = "$(sha256sum "$apk" | awk '{print $1}')"
           cp "$apk" KriptoAman-1.5.5.apk
           sha256sum KriptoAman-1.5.5.apk > KriptoAman-1.5.5.apk.sha256
 
