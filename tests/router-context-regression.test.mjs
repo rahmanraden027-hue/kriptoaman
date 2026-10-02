@@ -41,3 +41,17 @@ test('normal public landing exposes a browser-smoke readiness marker', async () 
   assert.match(source, /data-ka-public-landing="ready"/);
   assert.doesNotMatch(source, /data-ka-safe-public/);
 });
+
+
+test('Android install surface separates signed native APK from PWA', async () => {
+  const source = await read('src/components/pwa/PWAInstallPrompt.jsx');
+  const workflow = await read('.github/workflows/android-play.yml');
+  assert.match(source, /Download APK Signed · v1\.5\.5/);
+  assert.match(source, /android-v1\.5\.5\/KriptoAman-1\.5\.5\.apk/);
+  assert.match(source, /Install Web App \(PWA\)/);
+  assert.match(source, /com\.kriptoaman\.app/);
+  assert.match(workflow, /Publish immutable versioned GitHub Release/);
+  assert.match(workflow, /KriptoAman-1\.5\.5\.apk\.sha256/);
+  assert.match(workflow, /Release \$tag already exists\. Bump Android version/);
+  assert.match(workflow, /contents: write/);
+});

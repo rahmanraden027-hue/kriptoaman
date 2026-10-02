@@ -17,13 +17,17 @@ export default function PWAInstallPrompt() {
   const [installEvent, setInstallEvent] = useState(null);
   const [installed, setInstalled] = useState(() => isStandalone());
   const [showIosHelp, setShowIosHelp] = useState(false);
+  const [showAndroidChoices, setShowAndroidChoices] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const { pathname } = useLocation();
   let isIos = false;
+  let isAndroid = false;
   try {
     isIos = /iphone|ipad|ipod/i.test(window.navigator?.userAgent || '');
+    isAndroid = /android/i.test(window.navigator?.userAgent || '');
   } catch {
     isIos = false;
+    isAndroid = false;
   }
   const isPublicKamDocument = pathname.startsWith('/KAM') || pathname.startsWith('/news/');
 
@@ -57,7 +61,7 @@ export default function PWAInstallPrompt() {
     setDismissed(false);
   }, [pathname]);
 
-  if (installed || dismissed || (!installEvent && !isIos)) return null;
+  if (installed || dismissed || (!installEvent && !isIos && !isAndroid)) return null;
 
   const install = async () => {
     if (isIos && !installEvent) {
@@ -82,7 +86,7 @@ export default function PWAInstallPrompt() {
         <div className="flex items-center overflow-hidden rounded-full border border-sky-300/30 bg-sky-700/95 text-white shadow-xl shadow-sky-950/50 backdrop-blur-md sm:rounded-2xl">
           <button
             type="button"
-            onClick={install}
+            onClick={() => isAndroid ? setShowAndroidChoices(true) : install()}
             className="flex min-h-11 items-center gap-2 px-3 py-2.5 text-xs font-bold hover:bg-sky-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 sm:min-h-12 sm:px-4 sm:py-3 sm:text-sm"
             aria-label="Pasang aplikasi KriptoAman"
           >
@@ -100,6 +104,41 @@ export default function PWAInstallPrompt() {
           </button>
         </div>
       </div>
+
+      {showAndroidChoices && (
+        <div className="fixed inset-0 z-[80] flex items-end bg-black/70 p-4 sm:items-center sm:justify-center">
+          <div className="w-full max-w-md rounded-3xl border border-sky-500/25 bg-slate-950 p-5 text-white shadow-2xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-sky-400">Android · Production</p>
+                <h2 className="mt-1 font-bold">Pasang KriptoAman</h2>
+              </div>
+              <button onClick={() => setShowAndroidChoices(false)} aria-label="Tutup"><X className="h-5 w-5" /></button>
+            </div>
+            <p className="mt-3 text-sm text-slate-300">
+              Pilih aplikasi Android signed atau Web App. APK native menggunakan package resmi com.kriptoaman.app.
+            </p>
+            <a
+              href="https://github.com/rahmanraden027-hue/kriptoaman/releases/download/android-v1.5.5/KriptoAman-1.5.5.apk"
+              className="mt-4 flex min-h-12 items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 py-3 text-sm font-bold hover:bg-sky-500"
+            >
+              <Download className="h-4 w-4" /> Download APK Signed · v1.5.5
+            </a>
+            {installEvent?.prompt && (
+              <button
+                type="button"
+                onClick={() => { setShowAndroidChoices(false); install(); }}
+                className="mt-2 flex min-h-12 w-full items-center justify-center rounded-xl border border-slate-700 px-4 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-900"
+              >
+                Install Web App (PWA)
+              </button>
+            )}
+            <p className="mt-3 text-[11px] leading-relaxed text-slate-500">
+              Native APK dan PWA adalah dua jalur instalasi berbeda. APK hanya dipublikasikan setelah signing, package identity, version dan SHA-256 lolos release gate.
+            </p>
+          </div>
+        </div>
+      )}
 
       {showIosHelp && (
         <div className="fixed inset-0 z-[80] flex items-end bg-black/70 p-4">

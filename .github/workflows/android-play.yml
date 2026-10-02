@@ -298,3 +298,43 @@ jobs:
                 : (signed ? 'Dual-app signed Android release failed; inspect Actions' : 'Dual-app Android preflight failed; inspect Actions'),
               target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
             });
+
+
+  publish-android-release:
+    name: Publish stable Android APK
+    needs: build-android
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download verified signed KriptoAman APK
+        uses: actions/download-artifact@v8
+        with:
+          name: kriptoaman-direct-apk
+          path: dist
+
+      - name: Verify and normalize release files
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="$(find dist -type f -name '*.apk' -print -quit)"
+          checksum="$(find dist -type f -name '*.sha256' -print -quit)"
+          test -n "$apk"
+          test -n "$checksum"
+          (cd "$(dirname "$checksum")" && sha256sum -c "$(basename "$checksum")")
+          cp "$apk" KriptoAman-1.5.5.apk
+          sha256sum KriptoAman-1.5.5.apk > KriptoAman-1.5.5.apk.sha256
+
+      - name: Publish immutable versioned GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="android-v1.5.5"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::Release $tag already exists. Bump Android version before publishing another binary."
+            exit 1
+          fi
+          gh release create "$tag"             KriptoAman-1.5.5.apk             KriptoAman-1.5.5.apk.sha256             --repo "$GITHUB_REPOSITORY"             --target "$GITHUB_SHA"             --title "KriptoAman Android 1.5.5"             --notes "Signed KriptoAman Platform Android release. Package: com.kriptoaman.app. versionCode: 12. Verify the accompanying SHA-256 file before installation."
