@@ -18,6 +18,7 @@ const headers = {
 let memoryMetadata = null;
 let memoryMetadataAt = 0;
 let metadataLoadInFlight = null;
+const pageBuildsInFlight = new Map();
 
 const json = (body, status = 200, extraHeaders = {}) => new Response(JSON.stringify(body), {
   status,
@@ -226,6 +227,22 @@ function buildCacheKeys(request) {
   return { cacheKey, rescueCacheKey };
 }
 
+async function buildPageSingleFlight(env, request, requestId, cacheKey) {
+  const key = cacheKey.url;
+  const existing = pageBuildsInFlight.get(key);
+  if (existing) {
+    const response = await existing;
+    return response.clone();
+  }
+
+  const task = buildPage(env, request, requestId).finally(() => {
+    pageBuildsInFlight.delete(key);
+  });
+  pageBuildsInFlight.set(key, task);
+  const response = await task;
+  return response.clone();
+}
+
 function buildRescueSeed(response) {
   const rescueHeaders = new Headers(response.headers);
   rescueHeaders.set('Cache-Control', `public, max-age=0, s-maxage=${RESCUE_CACHE_TTL_SECONDS}`);
@@ -266,7 +283,7 @@ export async function onRequestGet({ env, request, waitUntil }) {
     }
   }
 
-  const response = await buildPage(env, request, requestId);
+  const response = await buildPageSingleFlight(env, request, requestId, cacheKey);
   if (edgeCache && response.status === 200) {
     const tasks = [
       edgeCache.put(cacheKey, response.clone()),
