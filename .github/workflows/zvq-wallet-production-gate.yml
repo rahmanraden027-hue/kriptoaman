@@ -76,7 +76,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          code="$(curl -sS --max-time 35 -H 'Accept: application/json' -H 'Cache-Control: no-cache' -o /tmp/swap.json -w '%{http_code}' 'https://kriptoaman.com/api/zvq-swap-preview?amount=1&direction=0to1&slippageBps=50' || true)"
+          code="$(curl -sS --max-time 35 -H 'Accept: application/json' -H 'Cache-Control: no-cache' -o /tmp/swap.json -w '%{http_code}' 'https://kriptoaman.com/api/zvq-swap-preview?amount=1&direction=token0-to-token1&slippageBps=50' || true)"
           [[ "$code" == "200" || "$code" == "409" || "$code" == "422" || "$code" == "503" ]]
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
@@ -86,6 +86,9 @@ jobs:
           assert.doesNotMatch(raw,/private.?key|mnemonic|seed phrase|eth_sendRawTransaction|eth_sendTransaction/i);
           assert.notEqual(p?.submitted,true);
           assert.notEqual(p?.broadcast,true);
+          assert.equal(p?.executionEnabled,false);
+          if ('approvalEnabled' in p) assert.equal(p.approvalEnabled,false);
+          if ('signingEnabled' in p) assert.equal(p.signingEnabled,false);
           NODE
 
       - name: Publish wallet production status
