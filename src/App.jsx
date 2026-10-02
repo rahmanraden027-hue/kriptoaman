@@ -20,6 +20,7 @@ import Founder from './pages/Founder';
 import CompanyFacts from './pages/CompanyFacts';
 import Research from './pages/Research';
 import AssetPassport from './pages/AssetPassport';
+import PairPassport from './pages/PairPassport';
 import KAMResearchPaper from './pages/KAMResearchPaper';
 import AdminRoute from '@/components/security/AdminRoute';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
@@ -107,6 +108,7 @@ const AuthenticatedApp = () => {
         <Route path="/company" element={<CompanyFacts />} />
         <Route path="/research" element={<Research />} />
         <Route path="/asset-passport/:address" element={<AssetPassport />} />
+        <Route path="/qoryvex/pair-passport" element={<PairPassport />} />
         <Route path="/research/kam-mainnet-architecture" element={<KAMResearchPaper />} />
         <Route path="/SystemStatus" element={<SystemStatus />} />
         <Route path="/wallet-app" element={WalletStandalonePage ? <Web3Provider><WalletStandalonePage /></Web3Provider> : <PageNotFound />} />

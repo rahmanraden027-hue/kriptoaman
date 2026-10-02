@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import {
   Activity, ArrowRight, Binary, Database, Fingerprint, Globe2,
   Radio, Radar, ShieldCheck, Sparkles, Waves,
@@ -126,6 +127,8 @@ export default function QoryVExDiscovery() {
         </section>
 
         <NewTokenRadar expanded />
+
+        <div className="mt-4 flex justify-center"><Link to="/qoryvex/pair-passport" className="inline-flex items-center gap-2 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-5 py-3 text-xs font-black text-cyan-200">Open Pair Passport <ArrowRight className="h-4 w-4" /></Link></div>
 
         <section className="mt-4 grid gap-3 md:grid-cols-3">
           <div className="rounded-[24px] border border-emerald-400/15 bg-emerald-400/[0.035] p-4">
