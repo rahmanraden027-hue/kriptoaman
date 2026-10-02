@@ -8,7 +8,9 @@ test('primary navigation is bilingual and meets mobile touch sizing', async () =
   const layout = await read('src/Layout.jsx');
   assert.match(layout, /NAV_LABELS/);
   assert.match(layout, /Beranda/);
-  assert.match(layout, /Peringatan/);
+  assert.match(layout, /Temukan/);
+  assert.match(layout, /Intelijen/);
+  assert.match(layout, /Lainnya/);
   assert.match(layout, /min-h-\[62px\]/);
 });
 

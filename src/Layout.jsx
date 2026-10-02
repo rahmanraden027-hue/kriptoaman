@@ -7,14 +7,15 @@ import PageTransition from './components/mobile/PageTransition';
 import {
   AlertTriangle,
   BarChart3,
-  Bell,
   BookOpen,
+  BrainCircuit,
+  Compass,
   Home,
   LayoutGrid,
   Lock,
+  MoreHorizontal,
   Search,
   ShieldCheck,
-  TrendingUp,
   User,
   Wallet,
 } from 'lucide-react';
@@ -33,31 +34,28 @@ import { useLanguage } from './lib/LanguageContext';
 
 const BOTTOM_NAV = [
   { id: 'home', page: 'Home', icon: Home },
-  { id: 'markets', page: 'Market', icon: TrendingUp },
+  { id: 'discover', page: 'Market', icon: Compass },
+  { id: 'intelligence', page: 'IntelligenceHub', icon: BrainCircuit },
   { id: 'portfolio', page: 'PortfolioOverview', icon: BarChart3 },
-  { id: 'wallet', page: 'Wallet', icon: Wallet },
-  { id: 'security', page: 'SecurityHub', icon: ShieldCheck },
+  { id: 'more', page: 'Services', icon: MoreHorizontal },
 ];
 
 const NAV_LABELS = {
-  id: { home: 'Beranda', markets: 'Pasar', portfolio: 'Portofolio', wallet: 'Pantau', security: 'Keamanan' },
-  en: { home: 'Home', markets: 'Markets', portfolio: 'Portfolio', wallet: 'Watch', security: 'Security' },
+  id: { home: 'Beranda', discover: 'Temukan', intelligence: 'Intelijen', portfolio: 'Portofolio', more: 'Lainnya' },
+  en: { home: 'Home', discover: 'Discover', intelligence: 'Intelligence', portfolio: 'Portfolio', more: 'More' },
 };
 
 const DESKTOP_NAV = [
   { id: 'home', page: 'Home', icon: Home, to: '/dashboard' },
-  { id: 'markets', page: 'Market', icon: TrendingUp },
+  { id: 'discover', page: 'Market', icon: Compass },
+  { id: 'intelligence', page: 'IntelligenceHub', icon: BrainCircuit },
   { id: 'portfolio', page: 'PortfolioOverview', icon: BarChart3 },
-  { id: 'wallet', page: 'Wallet', icon: Wallet },
-  { id: 'security', page: 'SecurityHub', icon: ShieldCheck },
-  { id: 'kyc', page: 'KYC', icon: ShieldCheck },
-  { id: 'education', page: 'Edukasi', icon: BookOpen },
-  { id: 'alerts', page: 'Alerts', icon: Bell },
+  { id: 'more', page: 'Services', icon: MoreHorizontal },
 ];
 
 const DESKTOP_LABELS = {
-  id: { home: 'Dasbor', markets: 'Pasar', portfolio: 'Portofolio', wallet: 'Pantau Wallet', security: 'Keamanan', kyc: 'KYC', education: 'Edukasi', alerts: 'Peringatan' },
-  en: { home: 'Dashboard', markets: 'Markets', portfolio: 'Portfolio', wallet: 'Watch Wallet', security: 'Security', kyc: 'KYC', education: 'Education', alerts: 'Alerts' },
+  id: { home: 'Beranda', discover: 'Temukan', intelligence: 'Intelijen', portfolio: 'Portofolio', more: 'Lainnya' },
+  en: { home: 'Home', discover: 'Discover', intelligence: 'Intelligence', portfolio: 'Portfolio', more: 'More' },
 };
 
 const ADMIN_PRIMARY_NAV = [
