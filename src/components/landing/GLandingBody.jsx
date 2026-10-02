@@ -10,8 +10,8 @@ const INTELLIGENCE_PILLARS = [
     icon: BarChart3,
     eyebrow: 'MARKET INTELLIGENCE',
     title: 'Baca pasar dengan konteks',
-    desc: 'Pantau aset kripto, data pasar, Forex dan XAU/USD dari sumber yang terhubung, dengan status dan waktu pembaruan yang jelas.',
-    points: ['Multi-asset market data', 'Watchlist & market pulse', 'Data freshness & provenance'],
+    desc: 'Pantau aset kripto, momentum pasar, likuiditas, dominasi dan discovery dari sumber yang terhubung, dengan status serta waktu pembaruan yang jelas.',
+    points: ['Crypto market data', 'Watchlist & market pulse', 'Data freshness & provenance'],
   },
   {
     icon: Search,
