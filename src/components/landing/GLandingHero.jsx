@@ -50,6 +50,11 @@ export default function GLandingHero({ stats }) {
   const blockNumber = stats?.zvqBlockNumber != null && Number.isFinite(Number(stats.zvqBlockNumber)) ? Number(stats.zvqBlockNumber).toLocaleString('id-ID') : '—';
   const isOperational = Boolean(stats?.marketAvailable);
   const zvqTelemetry = blockNumber !== '—' ? [stats?.zvqSyncStatus ? String(stats.zvqSyncStatus).toUpperCase() : null, Number.isFinite(Number(stats?.zvqProbeDurationMs)) ? `RPC ${Number(stats.zvqProbeDurationMs).toLocaleString('id-ID')} ms` : null].filter(Boolean).join(' · ') : '';
+  const verifiedAtRaw = stats?.zvqCheckedAt || stats?.networkCheckedAt || stats?.lastUpdated || null;
+  const verifiedAtMs = verifiedAtRaw ? Date.parse(verifiedAtRaw) : NaN;
+  const verifiedAgeMs = Number.isFinite(verifiedAtMs) ? Math.max(0, Date.now() - verifiedAtMs) : NaN;
+  const freshness = Number.isFinite(verifiedAgeMs) ? (verifiedAgeMs <= 5 * 60 * 1000 ? 'LIVE' : verifiedAgeMs <= 30 * 60 * 1000 ? 'RECENT' : 'STALE') : 'UNVERIFIED';
+  const verifiedAtLabel = Number.isFinite(verifiedAtMs) ? new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date(verifiedAtMs)) : null;
 
   return (
     <section id="beranda" className="relative pt-28 pb-10 px-4 sm:px-6 overflow-hidden">
@@ -119,6 +124,9 @@ export default function GLandingHero({ stats }) {
             <div><Activity /><span><b>{networkCount}</b>Jaringan aktif</span></div>
             <div><Blocks /><span><b>{blockNumber}</b>ZEVARYQ block{zvqTelemetry ? <small className="block text-[9px] font-medium opacity-70">{zvqTelemetry}</small> : null}</span></div>
             <a href="https://explorer.kriptoaman.com" target="_blank" rel="noreferrer"><Shield /><span><b>22028</b>ZEVARYQ Mainnet</span></a>
+          </div>
+          <div className="border-t border-blue-400/10 px-4 py-2.5 text-center text-[9px] font-semibold tracking-[0.08em] ka-text2">
+            PROOF OF FRESHNESS · {freshness}{verifiedAtLabel ? ` · LAST VERIFIED ${verifiedAtLabel}` : ''}
           </div>
         </div>
       </div>
