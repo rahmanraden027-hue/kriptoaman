@@ -153,7 +153,12 @@ export default function GLandingBody({ stats }) {
               <div className="p-5">
                 <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 ka-gold" /><span className="text-xs font-black ka-text">Proof of Intelligence</span></div>
                 <p className="mt-4 text-sm font-black ka-text">Source · Verified At · Status</p>
-                <p className="mt-2 text-xs leading-5 ka-text2">Setiap metrik penting menggunakan provenance dan status eksplisit agar data yang belum tersedia tidak tampak sebagai fakta.</p>
+                <div className="mt-3 space-y-2 text-[11px] ka-text2">
+                  <div className="flex items-center justify-between gap-3"><span>Market · {stats?.marketSource || 'unverified'}</span><b className={stats?.marketAvailable ? 'ka-green' : 'ka-gold'}>{stats?.marketAvailable ? 'VERIFIED' : 'UNVERIFIED'}</b></div>
+                  <div className="flex items-center justify-between gap-3"><span>Network probes</span><b className={networkChecked ? 'ka-green' : 'ka-gold'}>{networkChecked ? 'VERIFIED' : 'UNVERIFIED'}</b></div>
+                  <div className="flex items-center justify-between gap-3"><span>ZEVARYQ RPC · Chain 22028</span><b className={zvqChecked && blockValue !== '—' ? 'ka-green' : 'ka-gold'}>{zvqChecked && blockValue !== '—' ? 'VERIFIED' : 'UNVERIFIED'}</b></div>
+                </div>
+                <p className="mt-3 text-[10px] leading-5 ka-text2 opacity-75">{zvqChecked ? `ZEVARYQ verified ${zvqChecked}.` : statusTimestampLabel}</p>
               </div>
             </div>
           </div>
