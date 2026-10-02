@@ -232,6 +232,26 @@ jobs:
           path: android/app/build/outputs/bundle/platformRelease/*.aab
           if-no-files-found: error
 
+      - name: Verify KriptoAman web-distribution release contract
+        if: env.SIGNED_RELEASE == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          platform_apk="$(find android/app/build/outputs/apk/platform/release -name '*.apk' -print -quit)"
+          test -n "$platform_apk"
+          APKANALYZER="$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer"
+          APKSIGNER="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner"
+          test -x "$APKANALYZER"
+          test -x "$APKSIGNER"
+          test "$("$APKANALYZER" manifest application-id "$platform_apk")" = "com.kriptoaman.app"
+          test "$("$APKANALYZER" manifest version-code "$platform_apk")" = "10"
+          "$APKSIGNER" verify --verbose --print-certs "$platform_apk"
+          test -s "$platform_apk.sha256"
+          sha256sum -c "$platform_apk.sha256"
+          grep -q 'android:icon="@mipmap/ic_launcher"' android/app/src/main/AndroidManifest.xml
+          test -s android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          test -s android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
+
       - name: Upload signed KriptoAman Platform direct APK
         if: env.SIGNED_RELEASE == 'true'
         uses: actions/upload-artifact@v7
