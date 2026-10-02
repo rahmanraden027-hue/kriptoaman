@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, ArrowLeft, CheckCircle2, Copy, ExternalLink, Loader2, Network, Send, ShieldCheck, WalletCards } from 'lucide-react';
+import { useWeb3 } from '@/components/web3/Web3Provider';
 
 const NETWORK = {
   chainId: '0x560c',
@@ -33,9 +34,8 @@ function short(value) {
 }
 
 export default function KAMTransactionLab() {
-  const [account, setAccount] = useState('');
-  const [chainId, setChainId] = useState('');
-  const [balance, setBalance] = useState(null);
+  const { account = '', chainId: connectedChainId, balance, connecting, connectionError, connectWallet, connectWalletConnect, switchChain, walletConnectConfigured, refreshBalance } = useWeb3();
+  const chainId = connectedChainId ? `0x${Number(connectedChainId).toString(16)}` : '';
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('0.01');
   const [acknowledged, setAcknowledged] = useState(false);
@@ -44,6 +44,7 @@ export default function KAMTransactionLab() {
   const [txHash, setTxHash] = useState('');
 
   const walletAvailable = typeof window !== 'undefined' && Boolean(window.ethereum?.request);
+  const canConnect = walletAvailable || walletConnectConfigured;
   const chainReady = chainId.toLowerCase() === NETWORK.chainId;
   const validRecipient = ADDRESS_RE.test(recipient.trim());
   const amountWei = useMemo(() => {
@@ -51,37 +52,11 @@ export default function KAMTransactionLab() {
   }, [amount]);
   const amountReady = amountWei > 0n && amountWei <= parseZvq(MAX_TRIAL_ZVQ);
   const canPreview = walletAvailable && account && chainReady && validRecipient && amountReady && recipient.toLowerCase() !== account.toLowerCase();
-  const busy = stage === 'connecting' || stage === 'switching' || stage === 'sending';
+  const busy = connecting || stage === 'connecting' || stage === 'switching' || stage === 'sending';
 
   const refreshWallet = async () => {
-    if (!window.ethereum?.request) return;
-    const [accounts, currentChain] = await Promise.all([
-      window.ethereum.request({ method: 'eth_accounts' }),
-      window.ethereum.request({ method: 'eth_chainId' }),
-    ]);
-    const nextAccount = accounts?.[0] || '';
-    setAccount(nextAccount);
-    setChainId(String(currentChain || ''));
-    if (nextAccount && String(currentChain || '').toLowerCase() === NETWORK.chainId) {
-      const nextBalance = await window.ethereum.request({ method: 'eth_getBalance', params: [nextAccount, 'latest'] });
-      setBalance(formatZvq(nextBalance));
-    } else {
-      setBalance(null);
-    }
+    if (account) await refreshBalance();
   };
-
-  useEffect(() => {
-    refreshWallet().catch(() => {});
-    const provider = window.ethereum;
-    if (!provider?.on) return undefined;
-    const sync = () => refreshWallet().catch(() => {});
-    provider.on('accountsChanged', sync);
-    provider.on('chainChanged', sync);
-    return () => {
-      provider.removeListener?.('accountsChanged', sync);
-      provider.removeListener?.('chainChanged', sync);
-    };
-  }, []);
 
   const openMetaMask = () => {
     setMessage('Membuka ZVQ Transaction Lab di MetaMask…');
@@ -92,13 +67,18 @@ export default function KAMTransactionLab() {
     setStage('connecting');
     setMessage('');
     try {
-      if (!window.ethereum?.request) throw new Error('Wallet EVM tidak terdeteksi. Buka halaman ini melalui browser MetaMask atau wallet EVM kompatibel.');
-      await window.ethereum.request({ method: 'eth_requestAccounts' });
-      await refreshWallet();
+      if (walletAvailable) {
+        await connectWallet();
+      } else if (walletConnectConfigured) {
+        await connectWalletConnect({ mobileWallet: 'metamask' });
+      } else {
+        openMetaMask();
+        return;
+      }
       setMessage('Wallet terhubung. Pastikan alamat dan jaringan benar sebelum melanjutkan.');
       setStage('idle');
     } catch (error) {
-      setMessage(error?.code === 4001 ? 'Permintaan koneksi dibatalkan di wallet.' : error?.message || 'Wallet belum dapat dihubungkan.');
+      setMessage(error?.message || 'Wallet belum dapat dihubungkan.');
       setStage('error');
     }
   };
@@ -107,18 +87,12 @@ export default function KAMTransactionLab() {
     setStage('switching');
     setMessage('');
     try {
-      if (!window.ethereum?.request) throw new Error('Wallet EVM tidak terdeteksi.');
-      try {
-        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: NETWORK.chainId }] });
-      } catch (error) {
-        if (error?.code !== 4902) throw error;
-        await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [NETWORK] });
-      }
-      await refreshWallet();
+      const ok = await switchChain(NETWORK.chainIdDecimal);
+      if (!ok) throw new Error('Jaringan belum dapat dipilih.');
       setMessage('ZEVARYQ Network telah dipilih di wallet.');
       setStage('idle');
     } catch (error) {
-      setMessage(error?.code === 4001 ? 'Perubahan jaringan dibatalkan di wallet.' : error?.message || 'Jaringan belum dapat dipilih.');
+      setMessage(error?.message || 'Jaringan belum dapat dipilih.');
       setStage('error');
     }
   };
@@ -175,7 +149,7 @@ export default function KAMTransactionLab() {
         </section>
 
         <section className="grid gap-4 md:grid-cols-3">
-          <div className="ka-command-panel p-5"><p className="text-sm font-bold text-slate-400">Wallet</p><p className="mt-3 text-lg font-black">{account ? short(account) : 'Belum terhubung'}</p><button onClick={account ? refreshWallet : walletAvailable ? connect : openMetaMask} disabled={busy} className="mt-4 min-h-11 w-full rounded-xl bg-sky-600 px-4 text-sm font-black hover:bg-sky-500 disabled:opacity-50">{stage === 'connecting' ? 'Menghubungkan…' : account ? 'Perbarui Wallet' : walletAvailable ? 'Hubungkan Wallet' : 'Buka di MetaMask'}</button>{!walletAvailable && <p className="mt-3 text-sm leading-6 text-slate-400">Browser ini belum menyediakan koneksi wallet. Buka halaman ini di MetaMask untuk melanjutkan dengan aman.</p>}</div>
+          <div className="ka-command-panel p-5"><p className="text-sm font-bold text-slate-400">Wallet</p><p className="mt-3 text-lg font-black">{account ? short(account) : 'Belum terhubung'}</p><button onClick={account ? refreshWallet : canConnect ? connect : openMetaMask} disabled={busy} className="mt-4 min-h-11 w-full rounded-xl bg-sky-600 px-4 text-sm font-black hover:bg-sky-500 disabled:opacity-50">{stage === 'connecting' ? 'Menghubungkan…' : account ? 'Perbarui Wallet' : canConnect ? 'Hubungkan Wallet' : 'Buka di MetaMask'}</button>{!walletAvailable && walletConnectConfigured && <p className="mt-3 text-sm leading-6 text-slate-400">MetaMask mobile akan dibuka melalui koneksi WalletConnect yang aman.</p>}</div>
           <div className="ka-command-panel p-5"><p className="text-sm font-bold text-slate-400">Jaringan</p><p className={`mt-3 text-lg font-black ${chainReady ? 'text-emerald-300' : 'text-amber-300'}`}>{chainReady ? 'ZEVARYQ Network' : chainId ? `Chain ${parseInt(chainId, 16)}` : 'Belum terdeteksi'}</p><button onClick={switchNetwork} disabled={busy || chainReady} className="mt-4 min-h-11 w-full rounded-xl border border-sky-400/25 bg-sky-500/10 px-4 text-sm font-black text-sky-200 disabled:opacity-50">{chainReady ? 'Jaringan Sesuai' : 'Pilih ZEVARYQ Network'}</button></div>
           <div className="ka-command-panel p-5"><p className="text-sm font-bold text-slate-400">Saldo tersedia</p><p className="mt-3 text-lg font-black">{balance == null ? '—' : `${balance} ZVQ`}</p><p className="mt-4 text-sm leading-6 text-slate-500">Dibaca langsung dari wallet pada blok terbaru.</p></div>
         </section>
@@ -211,6 +185,7 @@ export default function KAMTransactionLab() {
           </section>
         )}
 
+        {connectionError && <div aria-live="polite" className="rounded-2xl border border-amber-400/20 bg-amber-500/10 p-4 text-sm leading-6 text-amber-100">{connectionError}</div>}
         {message && <div aria-live="polite" className="rounded-2xl border border-sky-400/20 bg-sky-500/10 p-4 text-sm leading-6 text-sky-100">{message}</div>}
         {txHash && HASH_RE.test(txHash) && <a href={`${NETWORK.blockExplorerUrls[0]}/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-emerald-400/25 bg-emerald-500/10 px-5 text-sm font-black text-emerald-200">Verifikasi transaksi di ZEVARYQ Explorer <ExternalLink className="h-5 w-5" /></a>}
 

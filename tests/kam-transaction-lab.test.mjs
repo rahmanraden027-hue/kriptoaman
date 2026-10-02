@@ -18,10 +18,12 @@ test('KAM Transaction Lab is registered as a public discoverable page', async ()
 });
 
 test('transaction flow remains wallet-approved and constrained', async () => {
-  const page = await read('src/pages/KAMTransactionLab.jsx');
-  assert.match(page, /eth_requestAccounts/);
-  assert.match(page, /wallet_switchEthereumChain/);
-  assert.match(page, /wallet_addEthereumChain/);
+  const [page, provider] = await Promise.all([read('src/pages/KAMTransactionLab.jsx'), read('src/components/web3/Web3Provider.jsx')]);
+  assert.match(page, /useWeb3/);
+  assert.match(page, /connectWalletConnect\(\{ mobileWallet: 'metamask' \}\)/);
+  assert.match(provider, /eth_requestAccounts/);
+  assert.match(provider, /wallet_switchEthereumChain/);
+  assert.match(provider, /wallet_addEthereumChain/);
   assert.match(page, /eth_sendTransaction/);
   assert.match(page, /MAX_TRIAL_ZVQ = '1'/);
   assert.match(page, /stage !== 'preview'/);
