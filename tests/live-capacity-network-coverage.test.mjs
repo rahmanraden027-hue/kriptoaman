@@ -136,7 +136,7 @@ test('public landing uses the stable platform health contract for asset and netw
   assert.match(platform, /\/api\/network-health/);
   assert.match(platform, /\/api\/kam\/network-status/);
   assert.match(platform, /fabricatedMetrics: false/);
-  assert.match(body, /Cakupan Aset Pasar/);
+  assert.match(body, /Market Pulse/);
   assert.match(body, /assetCountValue/);
   assert.match(body, /Jaringan Terverifikasi Live/);
   assert.match(body, /Aktif · Live/);
