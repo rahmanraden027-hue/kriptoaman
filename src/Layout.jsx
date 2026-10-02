@@ -7,7 +7,6 @@ import PageTransition from './components/mobile/PageTransition';
 import {
   AlertTriangle,
   BarChart3,
-  Bell,
   BookOpen,
   BrainCircuit,
   Compass,
@@ -17,7 +16,6 @@ import {
   MoreHorizontal,
   Search,
   ShieldCheck,
-  TrendingUp,
   User,
   Wallet,
 } from 'lucide-react';
