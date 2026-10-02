@@ -322,9 +322,13 @@ jobs:
           checksum="$(find dist -type f -name '*.sha256' -print -quit)"
           test -n "$apk"
           test -n "$checksum"
-          (cd "$(dirname "$checksum")" && sha256sum -c "$(basename "$checksum")")
+          expected_hash="$(awk '{print $1}' "$checksum")"
+          actual_hash="$(sha256sum "$apk" | awk '{print $1}')"
+          test -n "$expected_hash"
+          test "$actual_hash" = "$expected_hash"
           cp "$apk" KriptoAman-1.5.5.apk
-          sha256sum KriptoAman-1.5.5.apk > KriptoAman-1.5.5.apk.sha256
+          printf '%s  %s\n' "$actual_hash" "KriptoAman-1.5.5.apk" > KriptoAman-1.5.5.apk.sha256
+          sha256sum -c KriptoAman-1.5.5.apk.sha256
 
       - name: Publish immutable versioned GitHub Release
         env:
