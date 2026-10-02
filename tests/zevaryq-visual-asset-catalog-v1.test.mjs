@@ -4,10 +4,14 @@ import { readFile } from 'node:fs/promises';
 
 const read = (path) => readFile(new URL('../' + path, import.meta.url), 'utf8');
 
-test('visual catalog is branding-only and does not synthesize the 12-logo target', async () => {
+test('visual catalog v2 reserves 12 identity slots without synthesizing missing assets', async () => {
   const source = await read('src/data/zevaryqVisualAssetCatalog.js');
-  assert.match(source, /ZEVARYQ_VISUAL_ASSET_CATALOG_VERSION = 1/);
+  assert.match(source, /ZEVARYQ_VISUAL_ASSET_CATALOG_VERSION = 2/);
   assert.match(source, /ZEVARYQ_VISUAL_TARGET_COUNT = 12/);
+  assert.match(source, /ZEVARYQ_VISUAL_IDENTITY_SLOTS/);
+  assert.match(source, /RESERVED_UNASSIGNED/);
+  assert.match(source, /length: 9/);
+  assert.match(source, /symbol: null/);
   assert.match(source, /symbol: 'ZVQ'/);
   assert.match(source, /symbol: 'zBTC'/);
   assert.match(source, /symbol: 'zETH'/);
