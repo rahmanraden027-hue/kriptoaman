@@ -32,3 +32,14 @@ test('public intelligence uses only first-party evidence-gated endpoints and fai
   assert.doesNotMatch(surface, /coingecko|coinmarketcap|dexscreener|birdeye/i);
   assert.doesNotMatch(surface, /eth_sendTransaction|eth_sendRawTransaction|privateKey|mnemonic|seed phrase/i);
 });
+
+
+test('final public hero presents the evidence-first intelligence identity', () => {
+  const hero = readFileSync(join(root, 'src/components/landing/GLandingHero.jsx'), 'utf8');
+  assert.match(hero, /GLOBAL CHAIN INTELLIGENCE/);
+  assert.match(hero, /Lihat\. Pahami\. Verifikasi\./);
+  assert.match(hero, /Global Intelligence Core/);
+  assert.match(hero, /PROOF OF FRESHNESS/);
+  assert.match(hero, /assetCount/);
+  assert.match(hero, /zvqBlockNumber/);
+});
