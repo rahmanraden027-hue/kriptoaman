@@ -102,7 +102,7 @@ export async function onRequestGet({ request }) {
           addEdge(edge(tokenId, poolId, 'MEMBER_OF_VERIFIED_POOL', poolEvidence));
         }
         poolDexProven = true;
-        liquidityState = liquidity?.liquidityEvidence === 'RESERVES_PRESENT' ? 'RESERVES_PRESENT' : 'ZERO_RESERVES';
+        liquidityState = liquidity?.liquidityEvidence === 'RESERVES_PRESENT' ? 'RESERVES_PRESENT' : liquidity?.liquidityEvidence === 'ZERO_RESERVES' ? 'ZERO_RESERVES' : 'UNAVAILABLE';
       }
     } catch {
       // Fail closed: Phase 1 evidence remains usable while Phase 2 relationships stay unavailable.
