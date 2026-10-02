@@ -57,24 +57,24 @@ export default function GLandingHero({ stats }) {
   const verifiedAtLabel = Number.isFinite(verifiedAtMs) ? new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date(verifiedAtMs)) : null;
 
   return (
-    <section id="beranda" className="relative pt-28 pb-10 px-4 sm:px-6 overflow-hidden">
+    <section id="beranda" className="ka-command-hero relative pt-28 pb-10 px-4 sm:px-6 overflow-hidden">
       <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[760px] h-[760px] rounded-full blur-3xl pointer-events-none"
         style={{ background: 'radial-gradient(circle, rgba(37,99,235,0.14), transparent 62%)' }} />
       <div className="ka-hero-grid max-w-[1440px] mx-auto grid lg:grid-cols-[1.08fr_.92fr] gap-10 lg:gap-8 items-center">
         <div className="ka-hero-copy text-center lg:text-left">
           <span className="ka-chip inline-flex items-center gap-2 px-3.5 py-1.5 text-[11px] font-bold tracking-wide">
-            <Shield className="w-3.5 h-3.5" /> KRIPTOAMAN DIGITAL ASSET INTELLIGENCE
+            <Shield className="w-3.5 h-3.5" /> KRIPTOAMAN · GLOBAL CHAIN INTELLIGENCE
           </span>
           <h1 className="ka-sec-title mt-5 text-[34px] sm:text-5xl lg:text-[54px]">
             Pasar kripto bergerak cepat.<br />
             Anda tetap <span className="ka-blue">terkendali.</span>
           </h1>
           <p className="ka-text2 mt-5 max-w-xl mx-auto lg:mx-0 text-sm sm:text-base leading-relaxed">
-            Market intelligence, on-chain verification, multi-chain monitoring, dan risk intelligence dalam satu platform terpadu dengan sumber data yang dapat ditelusuri.
+            Chain intelligence, on-chain verification, multi-chain monitoring, dan risk intelligence dalam satu command center dengan sumber data yang dapat ditelusuri.
           </p>
           <div className="ka-hero-actions mt-7 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
             <Link to="/login" className="ka-btn-primary inline-flex items-center justify-center gap-2 px-6 text-sm sm:text-base">
-              Open Intelligence Hub <ArrowRight className="w-4 h-4" />
+              Enter Global Intelligence Core <ArrowRight className="w-4 h-4" />
             </Link>
             <a href="https://explorer.kriptoaman.com" target="_blank" rel="noreferrer" className="ka-btn-outline ka-zvq-outline inline-flex items-center justify-center gap-2 px-6 text-sm sm:text-base">
               Explore ZEVARYQ <ExternalLink className="w-4 h-4" />
@@ -93,14 +93,14 @@ export default function GLandingHero({ stats }) {
         <div className="ka-hero-console relative mx-auto w-full max-w-[560px]" aria-label="KriptoAman Intelligence Core live status">
           <div className="ka-console-head">
             <div>
-              <span className="ka-console-kicker">KRIPTOAMAN PRODUCTION V2</span>
+              <span className="ka-console-kicker">KRIPTOAMAN · EVIDENCE NETWORK</span>
               <strong>Intelligence Core</strong>
             </div>
             <span className={`ka-live-state ${isOperational ? 'is-online' : ''}`}><i />{stats?.loading ? 'Memeriksa' : isOperational ? 'Operasional' : 'Terbatas'}</span>
           </div>
-          <div className="ka-console-stage">
+          <div className="ka-console-stage ka-core-stage">
             <div className="ka-hero-visual relative mx-auto w-full max-w-[360px] aspect-square">
-              <NetworkVisual />
+              <NetworkVisual />\n              <div className="ka-core-horizon" aria-hidden="true" /><div className="ka-core-ring ring-a" aria-hidden="true" /><div className="ka-core-ring ring-b" aria-hidden="true" /><div className="ka-core-ring ring-c" aria-hidden="true" />
               <div className="ka-hero-center absolute inset-0 flex items-center justify-center ka-glow-cyan rounded-full">
                 <div className="ka-hero-logo ka-glow-gold rounded-full">
                   <KriptoAmanLogo size={150} showText={false} animate={false} />
