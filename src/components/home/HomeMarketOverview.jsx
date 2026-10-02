@@ -75,6 +75,10 @@ export default function HomeMarketOverview() {
   };
   const fmtNum = (v) => (v == null ? '--' : v.toLocaleString('en-US'));
 
+  const hasGlobalStats = [data?.mc, data?.vol, data?.btc, data?.eth, data?.active].some(v => v != null && Number.isFinite(Number(v)) && Number(v) > 0);
+  const hasFear = data?.fear != null && Number.isFinite(Number(data.fear));
+  if (!loading && !hasGlobalStats && !hasFear) return null;
+
   const updatedText = data?.fearUpdated
     ? new Date(data.fearUpdated * 1000).toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })
     : '--';
@@ -105,7 +109,7 @@ export default function HomeMarketOverview() {
           <div className="grid grid-cols-2 gap-2.5">{[0, 1].map(i => <div key={i} className="h-16 ka-shimmer rounded-2xl" />)}</div>
           <div className="grid grid-cols-3 gap-2.5">{[0, 1, 2].map(i => <div key={i} className="h-16 ka-shimmer rounded-2xl" />)}</div>
         </div>
-      ) : (
+      ) : hasGlobalStats ? (
         <>
           <div className="grid grid-cols-2 gap-2.5 mb-2.5">
             <Stat
@@ -122,9 +126,9 @@ export default function HomeMarketOverview() {
             <Stat label="Kripto Aktif" value={fmtNum(data?.active)} sub={data?.markets != null ? `${fmtNum(data.markets)} pasar` : '--'} />
           </div>
         </>
-      )}
+      ) : null}
 
-      <div className="rounded-2xl bg-[#0b1410]/60 border border-ka-card-border p-3">
+      {hasFear && <div className="rounded-2xl bg-[#0b1410]/60 border border-ka-card-border p-3">
         <div className="flex items-center justify-between mb-1">
           <p className="ka-muted text-[10px] font-semibold uppercase tracking-wide">Fear &amp; Greed Index</p>
           <span className="text-[10px] ka-muted flex items-center gap-1">
@@ -141,7 +145,7 @@ export default function HomeMarketOverview() {
         <p className="text-center text-[10px] ka-muted mt-1 flex items-center justify-center gap-1">
           <Layers className="w-3 h-3" /> Diperbarui: {updatedText}
         </p>
-      </div>
+      </div>}
     </div>
   );
 }
