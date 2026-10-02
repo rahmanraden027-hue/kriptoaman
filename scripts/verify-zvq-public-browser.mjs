@@ -41,6 +41,7 @@ try{
     const source=document.querySelector('#liveText')?.textContent||'';
     return (trust==='INDEXED'||trust==='LIVE')&&rows>=1&&/indexed|live/i.test(source);
    },null,{timeout:40000,polling:500});
+   await page.waitForFunction(()=>[...document.querySelectorAll('.official-emblem')].length===3&&[...document.querySelectorAll('.official-emblem')].every(img=>img.complete&&img.naturalWidth>0&&img.naturalHeight>0),null,{timeout:15000,polling:250});
    snapshot=await page.evaluate(()=>{
     const root=document.documentElement;
     const imgs=[...document.querySelectorAll('.official-emblem')];
