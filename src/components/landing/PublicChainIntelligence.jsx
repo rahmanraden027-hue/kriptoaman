@@ -3,6 +3,7 @@ import { Activity, ArrowRight, Database, GitBranch, Radar, Search, ShieldCheck }
 
 const unavailable = 'UNAVAILABLE';
 const short = value => typeof value === 'string' && value.length > 16 ? `${value.slice(0, 8)}…${value.slice(-6)}` : value || '—';
+const typePos = { CHAIN:[50,50], WALLET:[15,28], TRANSACTION:[34,18], CONTRACT:[72,20], TOKEN:[86,48], POOL:[68,80], DEX:[28,82] };
 
 export default function PublicChainIntelligence() {
   const [graph, setGraph] = useState(null);
@@ -24,71 +25,23 @@ export default function PublicChainIntelligence() {
         try { const p = await d.value.json(); if (d.value.ok && p?.status === 'live' && Number(p?.chainId) === 22028) setDiscovery(p); } catch {}
       }
     })();
-    return () => { active = false; };
-  }, []);
-
-  const nodes = Array.isArray(graph?.graph?.nodes) ? graph.graph.nodes : [];
-  const edges = Array.isArray(graph?.graph?.edges) ? graph.graph.edges : [];
-  const recent = Array.isArray(discovery?.observation?.contractCreations) ? discovery.observation.contractCreations.slice(0, 3) : [];
-  const head = graph?.head?.number ?? discovery?.head?.number ?? null;
-  const blockHash = graph?.head?.hash ?? discovery?.head?.hash ?? null;
-  const provenTypes = useMemo(() => new Set(nodes.map(n => n?.type).filter(Boolean)), [nodes]);
-  const route = () => {
-    const value = query.trim();
-    if (!value) return;
-    if (/^0x[a-fA-F0-9]{64}$/.test(value)) window.location.assign(`https://explorer.kriptoaman.com/tx/${value}`);
-    else if (/^0x[a-fA-F0-9]{40}$/.test(value)) window.location.assign(`/asset-passport/${value}`);
-    else if (/^\\d+$/.test(value)) window.location.assign(`https://explorer.kriptoaman.com/block/${value}`);
-  };
-
-  return (
-    <section className="px-4 sm:px-6 py-10" aria-label="Public Chain Intelligence">
+    return (
+    <section className="ka-intel-shell px-4 sm:px-6 py-10" aria-label="Public Chain Intelligence">
       <div className="max-w-[1440px] mx-auto">
-        <div className="ka-card p-5 sm:p-7">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <p className="text-[10px] font-black tracking-[0.18em] ka-cyan">KRIPTOAMAN · CHAIN INTELLIGENCE OS</p>
-              <h2 className="ka-sec-title mt-2 text-2xl sm:text-3xl">See what happened. Understand what it means. Verify it on-chain.</h2>
-              <p className="ka-text2 mt-2 max-w-3xl text-sm">Live intelligence is public. Sign in or connect a wallet only when you need personalized or wallet actions.</p>
-            </div>
-            <span className={graph ? 'ka-green text-xs font-black' : 'ka-gold text-xs font-black'}>{graph ? 'FIRST-PARTY LIVE' : unavailable}</span>
+        <div className="ka-intel-command p-5 sm:p-7">
+          <div className="ka-intel-grid-bg" aria-hidden="true" />
+          <div className="relative z-[1] flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <div><p className="text-[10px] font-black tracking-[0.18em] ka-cyan">KRIPTOAMAN · CHAIN INTELLIGENCE OS</p><h2 className="ka-sec-title mt-2 text-2xl sm:text-3xl">See what happened. Understand what it means. Verify it on-chain.</h2><p className="ka-text2 mt-2 max-w-3xl text-sm">Public first-party intelligence. Every illuminated signal below is bound to production evidence.</p></div>
+            <span className={graph ? 'ka-intel-live' : 'ka-intel-unavailable'}><i />{graph ? 'FIRST-PARTY LIVE' : unavailable}</span>
           </div>
-
-          <div className="mt-6 flex gap-2">
-            <div className="ka-card2 flex min-w-0 flex-1 items-center gap-2 px-4">
-              <Search className="h-4 w-4 ka-blue" />
-              <input value={query} onChange={e => setQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && route()} placeholder="Search wallet, contract, tx hash, or block…" className="w-full bg-transparent py-3 text-sm ka-text outline-none" aria-label="Universal Intelligence Search" />
-            </div>
-            <button type="button" onClick={route} className="ka-card2 px-4 text-sm font-black ka-blue">Verify</button>
+          <div className="relative z-[1] mt-6 flex gap-2"><div className="ka-intel-search flex min-w-0 flex-1 items-center gap-2 px-4"><Search className="h-4 w-4 ka-blue" /><input value={query} onChange={e => setQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && route()} placeholder="Search wallet, contract, tx hash, or block…" className="w-full bg-transparent py-3 text-sm ka-text outline-none" aria-label="Universal Intelligence Search" /></div><button type="button" onClick={route} className="ka-intel-verify px-4 text-sm font-black">Verify</button></div>
+          <div className="relative z-[1] mt-5 grid gap-3 lg:grid-cols-3">
+            <article className="ka-intel-engine"><div className="flex items-center justify-between"><Activity className="h-5 w-5 ka-blue" /><span className={head ? 'ka-intel-mini-live' : 'ka-intel-mini-idle'}>{head ? 'LIVE' : unavailable}</span></div><p className="mt-4 text-[10px] font-black tracking-[.16em] ka-text2">CHAIN PULSE</p><p className="mt-2 text-3xl font-black ka-text">{Number.isFinite(Number(head)) ? Number(head).toLocaleString('id-ID') : '—'}</p><div className="ka-pulse-bars mt-4" aria-hidden="true">{[28,42,34,62,48,76,55,88,64,72,94,58].map((h,i)=><i key={i} style={{height:h+'%'}} />)}</div><p className="mt-3 text-[11px] ka-text2">Latest verified ZEVARYQ block · Chain 22028</p></article>
+            <article className="ka-intel-engine"><div className="flex items-center justify-between"><Radar className="h-5 w-5 ka-blue" /><span className={discovery ? 'ka-intel-mini-scan' : 'ka-intel-mini-idle'}>{discovery ? 'SCANNING' : unavailable}</span></div><p className="mt-4 text-[10px] font-black tracking-[.16em] ka-text2">GENESIS RADAR</p><div className="ka-radar mt-3" aria-label="Observed contract creation radar"><i className="r1"/><i className="r2"/><i className="r3"/><b />{recent.map((item,i)=><span key={item?.txHash||i} style={{transform:`rotate(${i*117+35}deg) translateX(${34+i*12}px)`}} />)}</div><p className="mt-3 text-[11px] ka-text2">{recent.length ? `${recent.length} recent contract creation observation${recent.length===1?'':'s'}` : 'No recent contract creation evidence in the scanned window'}</p></article>
+            <article className="ka-intel-engine"><div className="flex items-center justify-between"><GitBranch className="h-5 w-5 ka-gold" /><span className={nodes.length ? 'ka-intel-mini-live' : 'ka-intel-mini-idle'}>{nodes.length ? 'EVIDENCE' : unavailable}</span></div><p className="mt-4 text-[10px] font-black tracking-[.16em] ka-text2">INTELLIGENCE GRAPH</p><div className="ka-graph-map mt-3" aria-label="Evidence-bound graph preview"><svg viewBox="0 0 100 100" role="img" aria-label="Verified relationship map">{graphDots.map((a,i)=>graphDots.slice(i+1).map((b,j)=><line key={a.type+b.type+j} x1={a.pos[0]} y1={a.pos[1]} x2={b.pos[0]} y2={b.pos[1]} />))}</svg>{graphDots.map(item=><span key={item.type} style={{left:item.pos[0]+'%',top:item.pos[1]+'%'}} title={item.type}>{item.type.slice(0,2)}</span>)}</div><p className="mt-3 text-[11px] ka-text2">{nodes.length || '—'} proven nodes · {edges.length || '—'} proven relationships</p></article>
           </div>
-
-          <div className="mt-5 grid gap-3 lg:grid-cols-4">
-            <article className="ka-card2 p-4"><Activity className="h-4 w-4 ka-blue" /><p className="mt-3 text-[10px] font-black tracking-[.14em] ka-text2">CHAIN PULSE</p><p className="mt-2 text-xl font-black ka-text">{Number.isFinite(Number(head)) ? Number(head).toLocaleString('id-ID') : '—'}</p><p className="mt-1 text-[11px] ka-text2">Latest verified ZEVARYQ block · Chain 22028</p></article>
-            <article className="ka-card2 p-4"><Radar className="h-4 w-4 ka-blue" /><p className="mt-3 text-[10px] font-black tracking-[.14em] ka-text2">GENESIS RADAR</p><p className="mt-2 text-xl font-black ka-text">{recent.length || '—'}</p><p className="mt-1 text-[11px] ka-text2">Recent evidence candidates, not endorsements</p></article>
-            <article className="ka-card2 p-4"><GitBranch className="h-4 w-4 ka-gold" /><p className="mt-3 text-[10px] font-black tracking-[.14em] ka-text2">INTELLIGENCE GRAPH</p><p className="mt-2 text-xl font-black ka-text">{nodes.length || '—'} / {edges.length || '—'}</p><p className="mt-1 text-[11px] ka-text2">Evidence-bound nodes / relationships</p></article>
-            <article className="ka-card2 p-4"><ShieldCheck className="h-4 w-4 ka-green" /><p className="mt-3 text-[10px] font-black tracking-[.14em] ka-text2">PROOF ENGINE</p><p className="mt-2 text-sm font-black ka-text">{short(blockHash)}</p><p className="mt-1 text-[11px] ka-text2">Block hash · first-party evidence</p></article>
-          </div>
-
-          <div className="mt-3 grid gap-3 lg:grid-cols-2">
-            <div className="ka-card2 p-4">
-              <div className="flex items-center justify-between"><b className="text-xs ka-text">Live graph preview</b><span className="text-[10px] ka-text2">{edges.length ? `${edges.length} proven edges` : unavailable}</span></div>
-              <div className="mt-4 flex flex-wrap items-center gap-2 text-[10px] font-black">
-                {['CHAIN','WALLET','TRANSACTION','CONTRACT','TOKEN','POOL','DEX'].map((type, i) => <React.Fragment key={type}>{i > 0 && <ArrowRight className="h-3 w-3 ka-text2" />}<span className={provenTypes.has(type) ? 'ka-green' : 'ka-text2 opacity-45'}>{type}</span></React.Fragment>)}
-              </div>
-              <p className="mt-3 text-[10px] leading-5 ka-text2">Only proven nodes light up. Pool/DEX remain unavailable unless first-party registry and pair evidence passes. Trade relationships remain disabled.</p>
-            </div>
-            <div className="ka-card2 p-4">
-              <div className="flex items-center gap-2"><Database className="h-4 w-4 ka-blue" /><b className="text-xs ka-text">Proof trail</b></div>
-              <div className="mt-3 grid grid-cols-2 gap-2 text-[10px] ka-text2">
-                <span>Observation</span><b className="ka-text">{graph?.observedAt || discovery?.observedAt || unavailable}</b>
-                <span>Context</span><b className="ka-text">ZEVARYQ · 22028</b>
-                <span>Interpretation</span><b className="ka-text">Evidence-gated</b>
-                <span>Source</span><b className="ka-text">{graph?.provenance?.ownership === 'first-party' || discovery?.provenance?.ownership === 'first-party' ? 'FIRST-PARTY' : unavailable}</b>
-              </div>
-            </div>
-          </div>
-
-          {recent.length > 0 && <div className="mt-3 ka-card2 p-4"><p className="text-xs font-black ka-text">Genesis Radar · latest observed candidates</p><div className="mt-3 grid gap-2 sm:grid-cols-3">{recent.map((item, index) => <div key={item?.txHash || item?.address || index} className="rounded-xl border p-3 text-[10px] ka-text2" style={{borderColor:'var(--ka-border)'}}><b className="ka-text">{item?.type || 'OBSERVED'}</b><p className="mt-1">{short(item?.address || item?.contractAddress || item?.txHash)}</p><p className="mt-1">Block {item?.blockNumber ?? '—'}</p></div>)}</div></div>}
+          <div className="relative z-[1] mt-3 grid gap-3 lg:grid-cols-[1.4fr_.6fr]"><div className="ka-intel-proof p-4"><div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 ka-green"/><b className="text-xs ka-text">PROOF ENGINE</b></div><div className="mt-3 grid gap-2 sm:grid-cols-4 text-[10px]"><div><span>BLOCK HASH</span><b>{short(blockHash)}</b></div><div><span>CONTEXT</span><b>ZEVARYQ · 22028</b></div><div><span>INTERPRETATION</span><b>EVIDENCE-GATED</b></div><div><span>SOURCE</span><b>{graph?.provenance?.ownership === 'first-party' || discovery?.provenance?.ownership === 'first-party' ? 'FIRST-PARTY' : unavailable}</b></div></div></div><div className="ka-intel-proof p-4"><div className="flex items-center gap-2"><Database className="h-4 w-4 ka-blue"/><b className="text-xs ka-text">TRUTH POLICY</b></div><p className="mt-3 text-[10px] leading-5 ka-text2">Unavailable is never converted to zero. Unproven relationships remain dark. Transaction submission is disabled.</p></div></div>
+          {recent.length > 0 && <div className="relative z-[1] mt-3 ka-intel-proof p-4"><p className="text-xs font-black ka-text">Genesis Radar · latest observed evidence</p><div className="mt-3 grid gap-2 sm:grid-cols-3">{recent.map((item,index)=><a key={item?.txHash||index} href={item?.txHash ? `https://explorer.kriptoaman.com/tx/${item.txHash}` : undefined} className="ka-evidence-chip"><b>CONTRACT CREATION</b><span>{short(item?.txHash)}</span><small>Block {item?.blockNumber ?? '—'}</small></a>)}</div></div>}
         </div>
       </div>
     </section>
