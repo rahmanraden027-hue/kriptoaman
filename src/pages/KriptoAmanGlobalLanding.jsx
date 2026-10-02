@@ -3,6 +3,7 @@ import GlobalLandingStyles from '@/components/landing/GlobalLandingStyles';
 import GLandingHeader from '@/components/landing/GLandingHeader';
 import GLandingHero from '@/components/landing/GLandingHero';
 import GLandingBody from '@/components/landing/GLandingBody';
+import PublicChainIntelligence from '@/components/landing/PublicChainIntelligence';
 import GLandingInstitutional from '@/components/landing/GLandingInstitutional';
 import GLandingFooter from '@/components/landing/GLandingFooter';
 
@@ -161,6 +162,7 @@ export default function KriptoAmanGlobalLanding() {
       <GLandingHeader dark={dark} onToggleTheme={() => setDark((d) => !d)} active={active} />
       <main>
         <GLandingHero stats={stats} />
+        <PublicChainIntelligence />
         <GLandingBody stats={stats} />
         <GLandingInstitutional />
       </main>
