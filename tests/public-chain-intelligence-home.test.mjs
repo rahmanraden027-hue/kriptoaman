@@ -22,7 +22,9 @@ test('public intelligence uses only first-party evidence-gated endpoints and fai
   assert.match(surface, /\/api\/zvq-first-party-discovery/);
   assert.match(surface, /Number\(p\?\.chainId\) === 22028/);
   assert.match(surface, /UNAVAILABLE/);
-  assert.match(surface, /Only proven nodes light up/);
+  assert.match(surface, /INTELLIGENCE GRAPH/);
+  assert.match(surface, /TRUTH POLICY/);
+  assert.match(surface, /Unavailable is never converted to zero/);
   assert.match(surface, /graph\?\.graph\?\.nodes/);
   assert.match(surface, /graph\?\.graph\?\.edges/);
   assert.match(surface, /discovery\?\.observation\?\.contractCreations/);
