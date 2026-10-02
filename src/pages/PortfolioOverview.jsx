@@ -7,7 +7,7 @@ import AssetAllocationChart from '../components/portfolio/AssetAllocationChart';
 import StrategyOverviewCard from '../components/portfolio/StrategyOverviewCard';
 import { useLanguage } from '../lib/LanguageContext';
 
-const QUERY_TIMEOUT_MS = 12000;
+const QUERY_TIMEOUT_MS = 8000;
 
 function withTimeout(promise, label) {
   return new Promise((resolve, reject) => {
@@ -37,8 +37,8 @@ const COPY = {
     strategies: 'STRATEGI',
     loadingTitle: 'Memuat data portofolio',
     loadingBody: 'KriptoAman sedang membaca strategi dan simulasi yang tersedia. Proses ini dibatasi waktu agar layar tidak berhenti pada status memuat.',
-    errorTitle: 'Data portofolio belum dapat dimuat',
-    errorBody: 'Koneksi data strategi atau simulasi sedang tidak tersedia. Anda dapat mencoba lagi tanpa kehilangan data yang sudah tersimpan.',
+    errorTitle: 'Data portofolio UNAVAILABLE',
+    errorBody: 'Sumber strategi atau simulasi belum berhasil diverifikasi. Tidak ada angka yang disintesis. Anda dapat mencoba lagi tanpa kehilangan data yang sudah tersimpan.',
     retry: 'Coba lagi',
     emptyTitle: 'Belum ada portofolio yang tersedia',
     emptyBody: 'Workspace berfungsi normal. Metrik, alokasi aset, dan performa akan tampil ketika strategi atau simulasi tersedia.',
@@ -75,8 +75,8 @@ const COPY = {
     strategies: 'STRATEGIES',
     loadingTitle: 'Loading portfolio data',
     loadingBody: 'KriptoAman is reading available strategy and simulation data. The request is time-limited so the screen cannot remain stuck loading.',
-    errorTitle: 'Portfolio data could not be loaded',
-    errorBody: 'Strategy or simulation data is temporarily unavailable. You can retry without losing stored data.',
+    errorTitle: 'Portfolio data UNAVAILABLE',
+    errorBody: 'Strategy or simulation sources could not be verified. No values are synthesized. You can retry without losing stored data.',
     retry: 'Try again',
     emptyTitle: 'No portfolio data available yet',
     emptyBody: 'The workspace is operating normally. Metrics, allocation, and performance appear when strategy or simulation data becomes available.',
