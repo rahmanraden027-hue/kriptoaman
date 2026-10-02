@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Activity, BadgeCheck, Boxes, Database, Fingerprint, Radio, Search, ShieldAlert } from 'lucide-react';
+import { Activity, BadgeCheck, Boxes, Database, ExternalLink, Fingerprint, Radio, Search, ShieldAlert } from 'lucide-react';
 
 const REFRESH_MS = 10000;
 const short = value => value ? `${String(value).slice(0, 8)}…${String(value).slice(-6)}` : '—';
@@ -66,6 +66,11 @@ function TokenCard({ token }) {
             <p>Supply <span className="break-all text-slate-300">{passport.totalSupplyRaw ?? 'unavailable'}</span></p>
             <p>Block hash <span className="font-mono text-slate-300">{short(passport?.provenance?.blockHash)}</span></p>
             <p>Source <span className="text-slate-300">KriptoAman first-party RPC</span></p>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {token?.address && <a href={`https://explorer.kriptoaman.com/address/${token.address}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-cyan-300 hover:text-cyan-200">Contract <ExternalLink className="h-3 w-3" /></a>}
+              {token?.creationTxHash && <a href={`https://explorer.kriptoaman.com/tx/${token.creationTxHash}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-cyan-300 hover:text-cyan-200">Creation tx <ExternalLink className="h-3 w-3" /></a>}
+              {Number.isFinite(Number(token?.blockNumber)) && <a href={`https://explorer.kriptoaman.com/block/${Number(token.blockNumber)}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-cyan-300 hover:text-cyan-200">Block <ExternalLink className="h-3 w-3" /></a>}
+            </div>
           </div>
         </section>
 
