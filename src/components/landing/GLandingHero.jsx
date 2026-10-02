@@ -49,6 +49,7 @@ export default function GLandingHero({ stats }) {
   const networkCount = stats?.loading ? '—' : Number.isFinite(Number(stats?.networkActiveCount)) ? String(Number(stats.networkActiveCount)) : '—';
   const blockNumber = stats?.zvqBlockNumber != null && Number.isFinite(Number(stats.zvqBlockNumber)) ? Number(stats.zvqBlockNumber).toLocaleString('id-ID') : '—';
   const isOperational = Boolean(stats?.marketAvailable);
+  const zvqTelemetry = blockNumber !== '—' ? [stats?.zvqSyncStatus ? String(stats.zvqSyncStatus).toUpperCase() : null, Number.isFinite(Number(stats?.zvqProbeDurationMs)) ? `RPC ${Number(stats.zvqProbeDurationMs).toLocaleString('id-ID')} ms` : null].filter(Boolean).join(' · ') : '';
 
   return (
     <section id="beranda" className="relative pt-28 pb-10 px-4 sm:px-6 overflow-hidden">
@@ -116,7 +117,7 @@ export default function GLandingHero({ stats }) {
           <div className="ka-console-metrics">
             <div><Database /><span><b>{assetCount}</b>Cakupan aset</span></div>
             <div><Activity /><span><b>{networkCount}</b>Jaringan aktif</span></div>
-            <div><Blocks /><span><b>{blockNumber}</b>ZEVARYQ block</span></div>
+            <div><Blocks /><span><b>{blockNumber}</b>ZEVARYQ block{zvqTelemetry ? <small className="block text-[9px] font-medium opacity-70">{zvqTelemetry}</small> : null}</span></div>
             <a href="https://explorer.kriptoaman.com" target="_blank" rel="noreferrer"><Shield /><span><b>22028</b>ZEVARYQ Mainnet</span></a>
           </div>
         </div>
