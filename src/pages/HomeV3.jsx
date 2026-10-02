@@ -1,21 +1,18 @@
 import React from 'react';
+import { Activity, ArrowRight, Database, Globe2, Radar, ShieldCheck, Sparkles, TrendingUp, WalletCards } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import HomeV2 from './HomeV2.jsx';
 import HomeInstitutionalFooter from '@/components/home/HomeInstitutionalFooter';
+import NewTokenRadar from '@/components/market/NewTokenRadar';
 
-export default function HomeV3() {
-  return (
-    <div className="ka-home-v3 ka-bg text-white">
-      <style>{`
-        @media (max-width: 1023px) {
-          body:has(.ka-home-v3) .ka-global-shell > div:last-child {
-            height: calc(5.5rem + env(safe-area-inset-bottom, 0px));
-          }
-        }
-      `}</style>
-      <HomeV2 />
-      <div className="mx-auto max-w-7xl px-4 pb-1 sm:px-6 sm:pb-2 lg:px-8 lg:pb-0">
-        <HomeInstitutionalFooter />
-      </div>
-    </div>
-  );
-}
+const Card=({icon:Icon,label,value='UNAVAILABLE',note})=><div className="rounded-2xl border border-sky-400/15 bg-[#07111f]/80 p-4 backdrop-blur-xl"><div className="flex items-center justify-between"><span className="text-[10px] font-black uppercase tracking-[.14em] text-slate-400">{label}</span><Icon className="h-4 w-4 text-sky-300"/></div><div className="mt-3 text-xl font-black text-white">{value}</div>{note&&<div className="mt-1 text-[10px] text-slate-500">{note}</div>}</div>;
+
+export default function HomeV3(){return <div className="ka-home-v3 ka-bg min-h-screen text-white">
+<style>{`.ka-orb{background:radial-gradient(circle at 38% 34%,rgba(56,189,248,.5),rgba(30,64,175,.16) 35%,rgba(2,6,23,.08) 64%),linear-gradient(135deg,rgba(14,165,233,.18),rgba(245,158,11,.08));box-shadow:inset 0 0 80px rgba(56,189,248,.2),0 0 90px rgba(14,165,233,.16)}.ka-grid3d{background-image:linear-gradient(rgba(56,189,248,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,.08) 1px,transparent 1px);background-size:32px 32px;transform:perspective(600px) rotateX(64deg);transform-origin:center bottom}@media(max-width:1023px){body:has(.ka-home-v3) .ka-global-shell>div:last-child{height:calc(5.5rem + env(safe-area-inset-bottom,0px))}}`}</style>
+<div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
+<section className="relative overflow-hidden rounded-[32px] border border-sky-400/20 bg-[#030914] shadow-[0_34px_100px_-48px_rgba(14,165,233,.8)]"><div className="ka-grid3d pointer-events-none absolute -bottom-24 left-0 right-0 h-80 opacity-70"/><div className="relative grid min-h-[470px] gap-8 p-6 sm:p-9 lg:grid-cols-[.9fr_1.1fr] lg:items-center">
+<div className="z-10"><div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-[10px] font-black tracking-[.14em] text-emerald-300"><Activity className="h-3.5 w-3.5"/> SOURCE-AWARE INTELLIGENCE</div><h1 className="mt-5 text-4xl font-black tracking-[-.055em] sm:text-6xl">Explore. Verify.<br/><span className="text-sky-300">Understand crypto.</span></h1><p className="mt-4 max-w-xl text-sm leading-6 text-slate-300">Market intelligence, on-chain discovery, security context, and ZEVARYQ network visibility in one command center.</p><div className="mt-6 flex flex-wrap gap-3"><Link to="/Market" className="inline-flex min-h-12 items-center gap-2 rounded-2xl bg-blue-600 px-5 text-sm font-extrabold">Explore Markets <ArrowRight className="h-4 w-4"/></Link><Link to="/IntelligenceHub" className="inline-flex min-h-12 items-center gap-2 rounded-2xl border border-sky-400/20 bg-sky-400/10 px-5 text-sm font-bold">Open Intelligence</Link><a href="https://explorer.kriptoaman.com" className="inline-flex min-h-12 items-center gap-2 rounded-2xl border border-amber-400/25 bg-amber-400/10 px-5 text-sm font-bold text-amber-200">ZEVARYQ Explorer</a></div></div>
+<div className="relative flex min-h-[330px] items-center justify-center"><div className="ka-orb absolute h-[310px] w-[310px] rounded-full sm:h-[390px] sm:w-[390px]"/><Globe2 className="relative h-52 w-52 text-sky-300/70 sm:h-72 sm:w-72" strokeWidth={.55}/><div className="absolute right-[10%] top-[16%] rounded-full border border-amber-300/30 bg-amber-400/10 p-4 text-2xl font-black text-amber-200 shadow-[0_0_36px_rgba(245,158,11,.22)]">ZVQ</div><div className="absolute bottom-[12%] left-[8%] rounded-2xl border border-sky-400/20 bg-[#07111f]/90 px-4 py-3 backdrop-blur-xl"><div className="text-[9px] font-black tracking-widest text-sky-300">ZEVARYQ MAINNET</div><div className="mt-1 text-xs text-slate-400">Chain ID <span className="font-bold text-white">22028</span></div><div className="mt-1 text-[10px] text-amber-300">Live metrics require verified RPC</div></div></div></div></section>
+<section className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6"><Card icon={TrendingUp} label="Market Cap" note="Live source required"/><Card icon={Activity} label="24h Volume" note="Live source required"/><Card icon={Database} label="BTC Dominance" note="Live source required"/><Card icon={Sparkles} label="Market Sentiment" note="No fabricated score"/><Card icon={Radar} label="Tracked Assets" note="Registry/API derived"/><Card icon={Globe2} label="Active Chains" note="Verified connectors only"/></section>
+<section className="mt-5 grid gap-4 lg:grid-cols-[1.45fr_.55fr]"><div className="overflow-hidden rounded-[26px] border border-sky-400/15 bg-[#050d17]/88 p-4 sm:p-5"><div className="mb-4 flex items-center justify-between"><div><p className="text-[10px] font-black uppercase tracking-[.16em] text-sky-300">Discovery</p><h2 className="text-xl font-black">New Token Radar</h2></div><Radar className="h-6 w-6 text-sky-300"/></div><NewTokenRadar/></div><div className="space-y-4"><div className="rounded-[26px] border border-violet-400/15 bg-[#050d17]/88 p-5"><WalletCards className="h-6 w-6 text-violet-300"/><h2 className="mt-4 text-xl font-black">Asset Passport</h2><p className="mt-2 text-xs leading-5 text-slate-400">Contract identity, chain, liquidity and holder context, on-chain activity, and risk indicators only when source evidence is available.</p><Link to="/QoryVExDiscovery" className="mt-5 inline-flex items-center gap-2 text-xs font-bold text-violet-300">Inspect assets <ArrowRight className="h-3 w-3"/></Link></div><div className="rounded-[26px] border border-emerald-400/15 bg-[#050d17]/88 p-5"><ShieldCheck className="h-6 w-6 text-emerald-300"/><h2 className="mt-4 text-xl font-black">Trust & Transparency</h2><p className="mt-2 text-xs leading-5 text-slate-400">LIVE, DEGRADED and UNAVAILABLE states reflect evidence. Missing production data is never replaced with invented metrics.</p><Link to="/SystemStatus" className="mt-5 inline-flex items-center gap-2 text-xs font-bold text-emerald-300">System status <ArrowRight className="h-3 w-3"/></Link></div></div></section>
+</div><div className="mt-5 border-t border-sky-400/10"><HomeV2/></div><div className="mx-auto max-w-7xl px-4 pb-1 sm:px-6 sm:pb-2 lg:px-8"><HomeInstitutionalFooter/></div></div>}

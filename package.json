@@ -120,7 +120,8 @@
     "vite": "^6.1.0"
   },
   "overrides": {
-    "axios": "1.18.1",
-    "fflate": "0.8.3"
+    "axios": "1.20.0",
+    "fflate": "0.8.3",
+    "dompurify": "3.4.16"
   }
 }
