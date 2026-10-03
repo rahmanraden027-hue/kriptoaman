@@ -26,7 +26,7 @@ const PUBLIC_ROUTE_SEO = {
     },
     '/enterprise': {
         title: 'KriptoAman Enterprise — Data, Blockchain Infrastructure & Web3 Integration',
-        description: 'KriptoAman Enterprise provides data intelligence, dedicated KAM RPC, managed node infrastructure, security monitoring, Web3 integration, and technical research for organizations.',
+        description: 'KriptoAman Enterprise provides data intelligence, dedicated ZEVARYQ RPC, managed node infrastructure, security monitoring, Web3 integration, and technical research for organizations.',
     },
     '/AboutUs': {
         title: 'Tentang KriptoAman | PT Kripto Aman Indonesia',
@@ -70,7 +70,7 @@ const PUBLIC_ROUTE_SEO = {
     },
     '/KAMLaunchReadiness': {
         title: 'ZEVARYQ Launch Readiness | KriptoAman',
-        description: 'Halaman kesiapan publik KAM yang merangkum indikator teknis dan bukti verifikasi tanpa menyatakan peluncuran final sebelum seluruh syarat terpenuhi.',
+        description: 'Halaman kesiapan publik ZEVARYQ yang merangkum indikator teknis dan bukti verifikasi tanpa menyatakan peluncuran final sebelum seluruh syarat terpenuhi.',
     },
     '/KAMDeveloper': {
         title: 'ZEVARYQ Developer Resources | KriptoAman',
