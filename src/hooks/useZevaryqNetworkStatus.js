@@ -1,34 +1,70 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchZevaryqNetworkStatus } from '@/services/zevaryqNetwork';
-
-const AUTO_REFRESH_MS = 60_000;
+import { getZevaryqRefreshDelay } from '@/services/zevaryqRefreshPolicy';
 
 export default function useZevaryqNetworkStatus() {
   const [state, setState] = useState({ phase: 'loading', data: null, error: '' });
+  const inFlight = useRef(false);
+  const timerRef = useRef(null);
+  const mountedRef = useRef(false);
 
   const load = useCallback(async ({ silent = false } = {}) => {
+    if (inFlight.current) return null;
+    inFlight.current = true;
     if (!silent) setState((current) => ({ ...current, phase: 'loading', error: '' }));
     try {
       const data = await fetchZevaryqNetworkStatus();
-      setState({
-        phase: data.rpc === 'error' ? 'offline' : data.error ? 'degraded' : 'success',
-        data,
-        error: data.error,
-      });
+      if (!mountedRef.current) return data;
+      setState({ phase: data.rpc === 'error' ? 'offline' : data.error ? 'degraded' : 'success', data, error: data.error });
+      return data;
     } catch (error) {
       const message = error?.message || 'Network request failed';
-      setState((current) => silent && current.data
-        ? { ...current, phase: 'degraded', error: message }
-        : { phase: error?.name === 'AbortError' ? 'timeout' : 'offline', data: null, error: message });
+      if (mountedRef.current) {
+        setState((current) => silent && current.data
+          ? { ...current, phase: 'degraded', error: message }
+          : { phase: error?.name === 'AbortError' ? 'timeout' : 'offline', data: null, error: message });
+      }
+      return null;
+    } finally {
+      inFlight.current = false;
     }
   }, []);
 
   const refresh = useCallback(() => load({ silent: false }), [load]);
 
   useEffect(() => {
-    load({ silent: false });
-    const timer = window.setInterval(() => load({ silent: true }), AUTO_REFRESH_MS);
-    return () => window.clearInterval(timer);
+    mountedRef.current = true;
+    let cancelled = false;
+    const clearTimer = () => {
+      if (timerRef.current != null) window.clearTimeout(timerRef.current);
+      timerRef.current = null;
+    };
+    const schedule = (data, phase = 'success') => {
+      clearTimer();
+      if (cancelled || document.visibilityState === 'hidden') return;
+      timerRef.current = window.setTimeout(async () => {
+        const next = await load({ silent: true });
+        if (!cancelled) schedule(next || data, next ? (next.error ? 'degraded' : 'success') : 'degraded');
+      }, getZevaryqRefreshDelay(data, phase));
+    };
+    const start = async () => {
+      const data = await load({ silent: false });
+      if (!cancelled) schedule(data, data?.error ? 'degraded' : data ? 'success' : 'offline');
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') return clearTimer();
+      load({ silent: true }).then((data) => {
+        if (!cancelled) schedule(data, data?.error ? 'degraded' : data ? 'success' : 'offline');
+      });
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    start();
+    return () => {
+      cancelled = true;
+      mountedRef.current = false;
+      clearTimer();
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
   }, [load]);
 
   return { ...state, refresh };

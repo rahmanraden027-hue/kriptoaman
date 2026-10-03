@@ -224,7 +224,13 @@ test('Wallet infrastructure UI labels live and fallback sources truthfully', () 
   assert.match(infrastructure, /Validator admin, signer, private-key and write-RPC interfaces are intentionally not connected/);
 });
 
-test('Wallet telemetry auto-refresh is bounded to one minute', () => {
-  assert.match(networkHook, /const AUTO_REFRESH_MS = 60_000/);
-  assert.match(networkHook, /window\.setInterval\(\(\) => load\(\{ silent: true \}\), AUTO_REFRESH_MS\)/);
+test('Wallet telemetry adaptive refresh remains bounded and avoids interval polling storms', async () => {
+  const policy = await readFile(new URL('../src/services/zevaryqRefreshPolicy.js', import.meta.url), 'utf8');
+  assert.match(policy, /STREAM: 12_000/);
+  assert.match(policy, /FALLBACK: 30_000/);
+  assert.match(policy, /DEGRADED: 60_000/);
+  assert.match(networkHook, /window\.setTimeout/);
+  assert.match(networkHook, /document\.visibilityState === 'hidden'/);
+  assert.match(networkHook, /inFlight\.current/);
+  assert.doesNotMatch(networkHook, /window\.setInterval/);
 });
