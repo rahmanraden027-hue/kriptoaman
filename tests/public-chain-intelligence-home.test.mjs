@@ -87,6 +87,10 @@ test('mobile Chain Intelligence keeps pulse compact and graph legible', async ()
   assert.match(surface, /ka-intel-engine-pulse/);
   assert.match(surface, /ka-intel-engine-graph/);
   assert.match(surface, /max-width: 639px/);
-  assert.match(surface, /ka-pulse-bars/);
+  assert.match(surface, /ka-production-pulse/);
+  assert.match(surface, /headHistory/);
+  assert.match(surface, /pulsePoints/);
+  assert.match(surface, /Verified block head progression/);
+  assert.doesNotMatch(surface, /Math\.random\(/);
   assert.match(surface, /ka-graph-map/);
 });
