@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getZevaryqRefreshDelay, ZEVARYQ_REFRESH_MS } from '../src/hooks/useZevaryqNetworkStatus.js';
+import { getZevaryqRefreshDelay, ZEVARYQ_REFRESH_MS } from '../src/services/zevaryqRefreshPolicy.js';
 
 test('uses fast refresh only when first-party intelligence reports websocket stream connected', () => {
   assert.equal(getZevaryqRefreshDelay({
