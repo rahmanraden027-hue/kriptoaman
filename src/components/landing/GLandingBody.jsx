@@ -79,6 +79,13 @@ export default function GLandingBody({ stats }) {
     : stats?.zvqBlockNumber != null && Number.isFinite(Number(stats.zvqBlockNumber))
       ? Number(stats.zvqBlockNumber).toLocaleString('id-ID')
       : '—';
+  const marketFreshness = stats?.marketAvailable && stats?.lastUpdated
+    ? Math.max(0, Math.round((Date.now() - new Date(stats.lastUpdated).getTime()) / 1000))
+    : null;
+  const networkTelemetry = featuredNetworks.map(network => ({
+    name: network.name,
+    status: 'LIVE',
+  }));
   const liveStateLabel = stats.loading ? 'Memeriksa' : systemOk ? 'Operasional' : 'Terbatas';
   const statusTimestampLabel = stats?.loading
     ? 'Memeriksa data live'
@@ -163,7 +170,25 @@ export default function GLandingBody({ stats }) {
             />
             <a href="https://explorer.kriptoaman.com/developer" target="_blank" rel="noreferrer" className="text-sm font-bold ka-blue inline-flex items-center gap-2">Developer Center <ExternalLink className="h-4 w-4" /></a>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mt-8">
+          <div className="ka-card mt-8 overflow-hidden">
+            <div className="grid sm:grid-cols-3 border-b" style={{ borderColor: 'var(--ka-border)' }}>
+              <div className="p-5"><span className="text-[9px] font-black tracking-[.16em] ka-text2">VERIFIED NETWORKS</span><p className="mt-2 text-3xl font-black ka-text">{networkCountValue}</p><small className="ka-text2">public probes online</small></div>
+              <div className="p-5 border-t sm:border-t-0 sm:border-l" style={{ borderColor: 'var(--ka-border)' }}><span className="text-[9px] font-black tracking-[.16em] ka-text2">ZEVARYQ HEAD</span><p className="mt-2 text-3xl font-black ka-text">{blockValue}</p><small className="ka-text2">Chain 22028 · {zvqChecked ? 'VERIFIED' : 'UNAVAILABLE'}</small></div>
+              <div className="p-5 border-t sm:border-t-0 sm:border-l" style={{ borderColor: 'var(--ka-border)' }}><span className="text-[9px] font-black tracking-[.16em] ka-text2">MARKET COVERAGE</span><p className="mt-2 text-3xl font-black ka-text">{assetCountValue}</p><small className="ka-text2">{stats?.marketAvailable ? (stats?.marketSource || 'VERIFIED SOURCE') : 'UNAVAILABLE'}</small></div>
+            </div>
+            <div className="grid lg:grid-cols-[1.2fr_.8fr]">
+              <div className="p-5">
+                <div className="flex items-center justify-between"><b className="text-xs ka-text">NETWORK HEALTH MATRIX</b><span className="text-[9px] ka-text2">{networkChecked || 'UNAVAILABLE'}</span></div>
+                <div className="mt-4 grid sm:grid-cols-2 gap-2">{networkTelemetry.length ? networkTelemetry.map(item => <div key={item.name} className="ka-card2 px-3 py-3 flex items-center gap-2"><i className="w-1.5 h-1.5 rounded-full bg-[var(--ka-green)]" /><span className="min-w-0 flex-1 truncate text-xs ka-text">{item.name}</span><b className="text-[9px] ka-green">{item.status}</b></div>) : <div className="text-xs ka-text2">UNAVAILABLE · no verified network probes</div>}</div>
+              </div>
+              <div className="p-5 border-t lg:border-t-0 lg:border-l" style={{ borderColor: 'var(--ka-border)' }}>
+                <div className="flex items-center justify-between"><b className="text-xs ka-text">MARKET INTELLIGENCE</b><Activity className="h-4 w-4 ka-blue" /></div>
+                <div className="mt-4 space-y-3 text-xs"><div className="flex justify-between gap-3"><span className="ka-text2">Source</span><b className="ka-text">{stats?.marketAvailable ? stats?.marketSource || 'VERIFIED' : 'UNAVAILABLE'}</b></div><div className="flex justify-between gap-3"><span className="ka-text2">Freshness</span><b className={marketFreshness != null ? 'ka-green' : 'ka-gold'}>{marketFreshness != null ? `${marketFreshness}s` : 'UNAVAILABLE'}</b></div><div className="flex justify-between gap-3"><span className="ka-text2">Coverage</span><b className="ka-text">{assetCountValue}</b></div><div className="flex justify-between gap-3"><span className="ka-text2">Contract</span><b className="ka-text">FAIL-CLOSED</b></div></div>
+                <p className="mt-4 text-[10px] leading-5 ka-text2">No estimated market or network values are generated. Missing production evidence remains UNAVAILABLE.</p>
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mt-4">
             {featuredNetworks.length > 0 ? featuredNetworks.map((network) => (
               <div key={network.name} className="ka-card2 px-4 py-3 text-xs font-semibold ka-text2 flex items-center gap-2">
                 <Network className="w-3.5 h-3.5 ka-blue" />
