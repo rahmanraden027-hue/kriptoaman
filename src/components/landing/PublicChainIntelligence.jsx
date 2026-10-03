@@ -41,6 +41,15 @@ export default function PublicChainIntelligence() {
     const to = graphDots.find(dot => dot.ids.includes(edge?.to));
     return from && to ? { key: `${edge.from}:${edge.to}:${edge.type || index}`, from, to, edge } : null;
   }).filter(Boolean), [edges, graphDots]);
+  const liveEvents = useMemo(() => nodes
+    .filter(node => ['TRANSACTION', 'CONTRACT', 'TOKEN'].includes(node?.type))
+    .filter(node => node?.evidence?.source === 'first-party')
+    .filter(node => Number.isSafeInteger(Number(node?.evidence?.blockNumber)) && /^0x[a-fA-F0-9]{64}$/.test(node?.evidence?.blockHash || '') && /^0x[a-fA-F0-9]{64}$/.test(node?.evidence?.transactionHash || ''))
+    .map(node => ({ ...node, blockNumber: Number(node.evidence.blockNumber) }))
+    .sort((a, b) => b.blockNumber - a.blockNumber)
+    .filter((node, index, list) => list.findIndex(item => `${item.type}:${item.evidence.transactionHash}:${item.id}` === `${node.type}:${node.evidence.transactionHash}:${node.id}`) === index)
+    .slice(0, 6), [nodes]);
+
   const selectNode = item => {
     const nodeEvidence = nodes.find(n => item.ids.includes(n?.id));
     if (nodeEvidence) setSelectedEvidence({ kind: 'NODE', ...nodeEvidence });
@@ -51,7 +60,7 @@ export default function PublicChainIntelligence() {
     : selectedEvidence?.type === 'CONTRACT' && selectedEvidence?.label ? `/asset-passport/${selectedEvidence.label}`
     : null;
   const evidence = selectedEvidence?.evidence || {};
-  const evidenceObservedAt = evidence?.observedAt ?? graph?.observedAt ?? discovery?.observedAt ?? null;
+  const evidenceObservedAt = evidence?.observedAt ?? null;
 
   const route = () => {
     const value = query.trim();
@@ -97,17 +106,21 @@ export default function PublicChainIntelligence() {
             <article className="ka-intel-engine"><div className="flex items-center justify-between"><Radar className="h-5 w-5 ka-blue" /><span className={discovery ? 'ka-intel-mini-scan' : 'ka-intel-mini-idle'}>{discovery ? 'SCANNING' : unavailable}</span></div><p className="mt-4 text-[10px] font-black tracking-[.16em] ka-text2">GENESIS RADAR</p><div className="ka-radar mt-3" aria-label="Observed contract creation radar"><i className="r1"/><i className="r2"/><i className="r3"/><b />{recent.map((item,i)=><span key={item?.txHash||i} style={{transform:`rotate(${i*117+35}deg) translateX(${34+i*12}px)`}} />)}</div><p className="mt-3 text-[11px] ka-text2">{recent.length ? `${recent.length} recent contract creation observation${recent.length===1?'':'s'}` : 'No recent contract creation evidence in the scanned window'}</p></article>
             <article className="ka-intel-engine"><div className="flex items-center justify-between"><GitBranch className="h-5 w-5 ka-gold" /><span className={nodes.length ? 'ka-intel-mini-live' : 'ka-intel-mini-idle'}>{nodes.length ? 'EVIDENCE' : unavailable}</span></div><p className="mt-4 text-[10px] font-black tracking-[.16em] ka-text2">INTELLIGENCE GRAPH</p><div className="ka-graph-map mt-3" aria-label="Evidence-bound graph preview"><svg viewBox="0 0 100 100" role="img" aria-label="Verified relationship map">{graphLines.map(line=><line key={line.key} x1={line.from.pos[0]} y1={line.from.pos[1]} x2={line.to.pos[0]} y2={line.to.pos[1]} role="button" tabIndex="0" aria-label={`Inspect ${line.edge?.type || 'verified relationship'} evidence`} onClick={()=>selectEdge(line)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectEdge(line)}}} />)}</svg>{graphDots.map(item=><button type="button" className="ka-graph-node" key={item.type} style={{left:item.pos[0]+'%',top:item.pos[1]+'%'}} title={item.type} aria-label={`Inspect ${item.type} evidence`} onClick={()=>selectNode(item)}><b>{item.type.slice(0,2)}</b><small>{item.type}</small></button>)}</div><p className="mt-3 text-[11px] ka-text2">{nodes.length || '—'} proven nodes · {edges.length || '—'} proven relationships</p></article>
           </div>
+          <div className="relative z-[1] mt-3 ka-intel-proof p-4" aria-label="Live Intelligence Stream">
+            <div className="flex items-center justify-between gap-3"><div><p className="text-[10px] font-black tracking-[.16em] ka-cyan">LIVE INTELLIGENCE STREAM</p><p className="mt-1 text-[11px] ka-text2">Evidence-backed events derived from the first-party Intelligence Graph.</p></div><span className={liveEvents.length ? 'ka-intel-mini-live' : 'ka-intel-mini-idle'}>{liveEvents.length ? 'EVIDENCE' : unavailable}</span></div>
+            {liveEvents.length ? <div className="mt-3 grid gap-2">{liveEvents.map(item => <button type="button" key={`${item.type}:${item.id}:${item.evidence.transactionHash}`} className="ka-evidence-chip text-left" onClick={()=>setSelectedEvidence({ kind: 'NODE', ...item })}><b>{item.type}</b><span>Block {item.blockNumber} · {short(item.evidence.transactionHash)}</span><small>{item.evidence.observedAt ? new Date(item.evidence.observedAt).toLocaleString('id-ID') : unavailable} · Observation {item.evidence.observationId ? short(item.evidence.observationId) : unavailable}</small></button>)}</div> : <p className="mt-3 text-[11px] ka-text2">No API-proven stream evidence is available. No synthetic activity is generated.</p>}
+          </div>
           {selectedEvidence && <div className="ka-evidence-drawer relative z-[2] mt-3" role="dialog" aria-modal="false" aria-label="Evidence Drawer">
             <div className="ka-evidence-drawer-head"><div><p>INTELLIGENCE GRAPH 2.0</p><h3>Evidence Drawer · {selectedEvidence.kind}</h3></div><button type="button" onClick={()=>setSelectedEvidence(null)} aria-label="Close Evidence Drawer"><X className="h-4 w-4"/></button></div>
             <div className="ka-evidence-drawer-grid">
-              <div><span>TYPE</span><b>{selectedEvidence.type || '—'}</b></div>
-              <div><span>IDENTITY</span><b>{short(selectedEvidence.label || selectedEvidence.from)}</b></div>
-              <div><span>{selectedEvidence.kind === 'RELATIONSHIP' ? 'TO' : 'BLOCK'}</span><b>{selectedEvidence.kind === 'RELATIONSHIP' ? short(selectedEvidence.to) : (evidence.blockNumber ?? head ?? '—')}</b></div>
+              <div><span>TYPE</span><b>{selectedEvidence.type || unavailable}</b></div>
+              <div><span>IDENTITY</span><b>{selectedEvidence.label || selectedEvidence.from ? short(selectedEvidence.label || selectedEvidence.from) : unavailable}</b></div>
+              <div><span>{selectedEvidence.kind === 'RELATIONSHIP' ? 'TO' : 'BLOCK'}</span><b>{selectedEvidence.kind === 'RELATIONSHIP' ? (selectedEvidence.to ? short(selectedEvidence.to) : unavailable) : (evidence.blockNumber ?? unavailable)}</b></div>
               <div><span>SOURCE</span><b>{evidence.source === 'first-party' || graph?.provenance?.ownership === 'first-party' ? 'FIRST-PARTY' : unavailable}</b></div>
-              <div><span>BLOCK HASH</span><b>{short(evidence.blockHash || blockHash)}</b></div>
-              <div><span>TX HASH</span><b>{short(evidence.transactionHash)}</b></div>
-              <div><span>OBSERVED</span><b>{evidenceObservedAt ? new Date(evidenceObservedAt).toLocaleString('id-ID') : '—'}</b></div>
-              <div><span>OBSERVATION ID</span><b>{short(evidence.observationId || graph?.observationId)}</b></div>
+              <div><span>BLOCK HASH</span><b>{evidence.blockHash ? short(evidence.blockHash) : unavailable}</b></div>
+              <div><span>TX HASH</span><b>{evidence.transactionHash ? short(evidence.transactionHash) : unavailable}</b></div>
+              <div><span>OBSERVED</span><b>{evidenceObservedAt ? new Date(evidenceObservedAt).toLocaleString('id-ID') : unavailable}</b></div>
+              <div><span>OBSERVATION ID</span><b>{evidence.observationId ? short(evidence.observationId) : unavailable}</b></div>
             </div>
             <div className="ka-evidence-drawer-foot"><span>Only API-proven evidence is shown. Missing fields remain UNAVAILABLE.</span>{evidenceLink && <a href={evidenceLink}>Verify evidence <ExternalLink className="h-3.5 w-3.5"/></a>}</div>
           </div>}
