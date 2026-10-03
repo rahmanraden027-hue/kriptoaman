@@ -127,7 +127,10 @@ export default function PublicChainIntelligence() {
               .ka-intel-engine-graph .ka-graph-node { transform: translate(-50%, -50%) scale(1.12); }
               .ka-intel-orbit-stage { min-height: 0 !important; }
               .ka-evidence-chip { min-height: 48px; }
-              .ka-install-cta, [data-install-cta="true"] { bottom: calc(12px + env(safe-area-inset-bottom)) !important; }
+              [data-install-cta="true"] { bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important; }
+              .ka-intel-engine-graph .ka-graph-node { min-width: 58px; min-height: 58px; box-shadow: 0 0 28px rgba(55,145,255,.24); }
+              .ka-intel-engine-graph .ka-graph-node small { font-size: 8px; letter-spacing: .08em; }
+              .ka-intel-engine-graph .ka-graph-map svg line { stroke-width: 1.7; filter: drop-shadow(0 0 4px rgba(55,145,255,.55)); }
             }
             .ka-production-pulse { height: 168px; min-height: 168px; border: 1px solid var(--ka-border); border-radius: 14px; overflow: hidden; background: linear-gradient(180deg, rgba(35,118,255,.08), rgba(3,14,28,.16)); }
             .ka-production-pulse svg { width: 100%; height: 100%; display: block; }

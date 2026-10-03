@@ -81,6 +81,7 @@ export default function PWAInstallPrompt() {
   return (
     <>
       <div
+        data-install-cta="true"
         className={`fixed z-[70] max-w-[calc(100vw-1.5rem)] ${isPublicKamDocument ? 'bottom-[calc(.75rem+env(safe-area-inset-bottom,0px))] right-3' : 'bottom-[calc(.75rem+env(safe-area-inset-bottom,0px))] right-3 sm:bottom-4 sm:right-4 lg:bottom-6 lg:right-6'}`}
       >
         <div className="flex items-center overflow-hidden rounded-full border border-sky-300/30 bg-sky-700/95 text-white shadow-xl shadow-sky-950/50 backdrop-blur-md sm:rounded-2xl">
