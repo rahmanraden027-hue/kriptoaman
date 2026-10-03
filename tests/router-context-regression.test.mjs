@@ -32,6 +32,7 @@ test('PWA install prompt stays compact at the mobile safe-area edge', async () =
 
   assert.match(source, /bottom-\[calc\(\.75rem\+env\(safe-area-inset-bottom,0px\)\)\]/);
   assert.match(source, /right-3/);
+  assert.match(source, /data-install-cta="true"/);
   assert.match(source, /sm:hidden[^>]*>Pasang</);
   assert.doesNotMatch(source, /left-1\/2[^\n]*-translate-x-1\/2/);
 });
