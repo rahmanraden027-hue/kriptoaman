@@ -80,3 +80,13 @@ test('Live Intelligence Stream is first-party, complete-proof gated, and never s
   assert.doesNotMatch(surface, /evidence\.observationId \|\| graph\?\.observationId/);
   assert.doesNotMatch(surface, /Math\.random\(/);
 });
+
+
+test('mobile Chain Intelligence keeps pulse compact and graph legible', async () => {
+  const surface = await read('src/components/landing/PublicChainIntelligence.jsx');
+  assert.match(surface, /ka-intel-engine-pulse/);
+  assert.match(surface, /ka-intel-engine-graph/);
+  assert.match(surface, /max-width: 639px/);
+  assert.match(surface, /ka-pulse-bars/);
+  assert.match(surface, /ka-graph-map/);
+});
