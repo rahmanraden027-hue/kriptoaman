@@ -63,3 +63,20 @@ test('Intelligence Graph 2.0 exposes only selectable proven nodes and edges thro
   assert.match(surface, /graphLines\.map\(line/);
   assert.doesNotMatch(surface, /graphDots\.slice\(i\+1\)/);
 });
+
+
+test('Live Intelligence Stream is first-party, complete-proof gated, and never synthetic', async () => {
+  const surface = await read('src/components/landing/PublicChainIntelligence.jsx');
+  assert.match(surface, /LIVE INTELLIGENCE STREAM/);
+  assert.match(surface, /\['TRANSACTION', 'CONTRACT', 'TOKEN'\]\.includes/);
+  assert.match(surface, /node\?\.evidence\?\.source === 'first-party'/);
+  assert.match(surface, /Number\.isSafeInteger\(Number\(node\?\.evidence\?\.blockNumber\)\)/);
+  assert.match(surface, /node\?\.evidence\?\.blockHash/);
+  assert.match(surface, /node\?\.evidence\?\.transactionHash/);
+  assert.match(surface, /No API-proven stream evidence is available\. No synthetic activity is generated\./);
+  assert.match(surface, /const evidenceObservedAt = evidence\?\.observedAt \?\? null/);
+  assert.match(surface, /evidence\.observationId \? short\(evidence\.observationId\) : unavailable/);
+  assert.doesNotMatch(surface, /evidence\?\.observedAt \?\? graph\?\.observedAt/);
+  assert.doesNotMatch(surface, /evidence\.observationId \|\| graph\?\.observationId/);
+  assert.doesNotMatch(surface, /Math\.random\(/);
+});
