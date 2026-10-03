@@ -10,6 +10,7 @@ export default function PublicChainIntelligence() {
   const [discovery, setDiscovery] = useState(null);
   const [query, setQuery] = useState('');
   const [selectedEvidence, setSelectedEvidence] = useState(null);
+  const [headHistory, setHeadHistory] = useState([]);
 
   useEffect(() => {
     let active = true;
@@ -34,6 +35,22 @@ export default function PublicChainIntelligence() {
   const recent = Array.isArray(discovery?.observation?.contractCreations) ? discovery.observation.contractCreations.slice(0, 3) : [];
   const head = graph?.head?.number ?? discovery?.head?.number ?? null;
   const blockHash = graph?.head?.hash ?? discovery?.head?.hash ?? null;
+  useEffect(() => {
+    const numericHead = Number(head);
+    if (!Number.isSafeInteger(numericHead)) return;
+    setHeadHistory(history => {
+      if (history.at(-1)?.head === numericHead) return history;
+      return [...history, { head: numericHead, observedAt: Date.now() }].slice(-24);
+    });
+  }, [head]);
+  const pulsePoints = useMemo(() => {
+    if (headHistory.length < 2) return '';
+    const values = headHistory.map(item => item.head);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const span = Math.max(1, max - min);
+    return headHistory.map((item, index) => `${(index / (headHistory.length - 1)) * 100},${92 - ((item.head - min) / span) * 78}`).join(' ');
+  }, [headHistory]);
   const provenTypes = useMemo(() => new Set(nodes.map(n => n?.type).filter(Boolean)), [nodes]);
   const graphDots = useMemo(() => [...provenTypes].map(type => ({ type, pos: typePos[type], ids: nodes.filter(n => n?.type === type).map(n => n?.id).filter(Boolean) })).filter(item => item.pos), [provenTypes, nodes]);
   const graphLines = useMemo(() => edges.map((edge, index) => {
@@ -104,17 +121,22 @@ export default function PublicChainIntelligence() {
           <style>{`
             @media (max-width: 639px) {
               .ka-intel-command { padding-left: 14px !important; padding-right: 14px !important; }
-              .ka-intel-engine-pulse .ka-pulse-bars { height: 42px !important; min-height: 42px !important; margin-top: 10px !important; }
+              .ka-production-pulse { height: 112px !important; min-height: 112px !important; }
+              .ka-intel-engine-graph .ka-graph-map { min-height: 240px !important; height: 240px !important; }
               .ka-intel-engine-pulse { min-height: 0 !important; }
-              .ka-intel-engine-graph .ka-graph-map { min-height: 190px !important; height: 190px !important; }
               .ka-intel-engine-graph .ka-graph-node { transform: translate(-50%, -50%) scale(1.12); }
               .ka-intel-orbit-stage { min-height: 0 !important; }
               .ka-evidence-chip { min-height: 48px; }
               .ka-install-cta, [data-install-cta="true"] { bottom: calc(12px + env(safe-area-inset-bottom)) !important; }
             }
+            .ka-production-pulse { height: 168px; min-height: 168px; border: 1px solid var(--ka-border); border-radius: 14px; overflow: hidden; background: linear-gradient(180deg, rgba(35,118,255,.08), rgba(3,14,28,.16)); }
+            .ka-production-pulse svg { width: 100%; height: 100%; display: block; }
+            .ka-production-pulse polyline { fill: none; stroke: var(--ka-blue); stroke-width: 2; vector-effect: non-scaling-stroke; filter: drop-shadow(0 0 5px rgba(58,145,255,.55)); }
+            .ka-production-pulse-empty { height: 100%; display: grid; place-items: center; padding: 16px; text-align: center; font-size: 10px; color: var(--ka-text2); }
+            @media (min-width: 1024px) { .ka-intel-engine-graph .ka-graph-map { min-height: 260px; height: 260px; } }
           `}</style>
           <div className="relative z-[1] mt-5 grid gap-3 lg:grid-cols-3">
-            <article className="ka-intel-engine ka-intel-engine-pulse"><div className="flex items-center justify-between"><Activity className="h-5 w-5 ka-blue" /><span className={head ? 'ka-intel-mini-live' : 'ka-intel-mini-idle'}>{head ? 'LIVE' : unavailable}</span></div><p className="mt-4 text-[10px] font-black tracking-[.16em] ka-text2">CHAIN PULSE</p><p className="mt-2 text-3xl font-black ka-text">{Number.isFinite(Number(head)) ? Number(head).toLocaleString('id-ID') : '—'}</p><div className="ka-pulse-bars mt-4" aria-hidden="true">{Array.from({ length: 12 }, (_, i) => <i key={i} />)}</div><p className="mt-3 text-[11px] ka-text2">Latest verified ZEVARYQ block · Chain 22028 · signal visualization</p></article>
+            <article className="ka-intel-engine ka-intel-engine-pulse"><div className="flex items-center justify-between"><Activity className="h-5 w-5 ka-blue" /><span className={head ? 'ka-intel-mini-live' : 'ka-intel-mini-idle'}>{head ? 'LIVE' : unavailable}</span></div><p className="mt-4 text-[10px] font-black tracking-[.16em] ka-text2">CHAIN PULSE</p><p className="mt-2 text-3xl font-black ka-text">{Number.isFinite(Number(head)) ? Number(head).toLocaleString('id-ID') : '—'}</p><div className="ka-production-pulse mt-4" aria-label="Observed block progression">{pulsePoints ? <svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Verified block head progression"><polyline points={pulsePoints} /></svg> : <div className="ka-production-pulse-empty">Collecting verified head observations…</div>}</div><div className="mt-3 flex items-center justify-between gap-3 text-[10px] ka-text2"><span>Chain 22028</span><span>{headHistory.length > 1 ? `${headHistory.length} verified observations` : 'Waiting for progression'}</span></div></article>
             <article className="ka-intel-engine"><div className="flex items-center justify-between"><Radar className="h-5 w-5 ka-blue" /><span className={discovery ? 'ka-intel-mini-scan' : 'ka-intel-mini-idle'}>{discovery ? 'SCANNING' : unavailable}</span></div><p className="mt-4 text-[10px] font-black tracking-[.16em] ka-text2">GENESIS RADAR</p><div className="ka-radar mt-3" aria-label="Observed contract creation radar"><i className="r1"/><i className="r2"/><i className="r3"/><b />{recent.map((item,i)=><span key={item?.txHash||i} style={{transform:`rotate(${i*117+35}deg) translateX(${34+i*12}px)`}} />)}</div><p className="mt-3 text-[11px] ka-text2">{recent.length ? `${recent.length} recent contract creation observation${recent.length===1?'':'s'}` : 'No recent contract creation evidence in the scanned window'}</p></article>
             <article className="ka-intel-engine ka-intel-engine-graph"><div className="flex items-center justify-between"><GitBranch className="h-5 w-5 ka-gold" /><span className={nodes.length ? 'ka-intel-mini-live' : 'ka-intel-mini-idle'}>{nodes.length ? 'EVIDENCE' : unavailable}</span></div><p className="mt-4 text-[10px] font-black tracking-[.16em] ka-text2">INTELLIGENCE GRAPH</p><div className="ka-graph-map mt-3" aria-label="Evidence-bound graph preview"><svg viewBox="0 0 100 100" role="img" aria-label="Verified relationship map">{graphLines.map(line=><line key={line.key} x1={line.from.pos[0]} y1={line.from.pos[1]} x2={line.to.pos[0]} y2={line.to.pos[1]} role="button" tabIndex="0" aria-label={`Inspect ${line.edge?.type || 'verified relationship'} evidence`} onClick={()=>selectEdge(line)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectEdge(line)}}} />)}</svg>{graphDots.map(item=><button type="button" className="ka-graph-node" key={item.type} style={{left:item.pos[0]+'%',top:item.pos[1]+'%'}} title={item.type} aria-label={`Inspect ${item.type} evidence`} onClick={()=>selectNode(item)}><b>{item.type.slice(0,2)}</b><small>{item.type}</small></button>)}</div><p className="mt-3 text-[11px] ka-text2">{nodes.length || '—'} proven nodes · {edges.length || '—'} proven relationships</p></article>
           </div>
