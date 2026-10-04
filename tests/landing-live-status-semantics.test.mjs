@@ -12,7 +12,7 @@ test('public landing distinguishes live verification from degraded data', () => 
 });
 
 test('public landing retains factual degraded wording after verification', () => {
-  assert.match(source, /Layanan data terbatas/);
+  assert.match(source, /Data services limited/);
   assert.match(source, /Belum terverifikasi/);
-  assert.match(source, /Memeriksa jaringan live/);
+  assert.match(source, /NETWORK EVIDENCE/);
 });
