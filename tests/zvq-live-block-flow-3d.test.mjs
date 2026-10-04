@@ -32,3 +32,21 @@ test('production HomeV3 mounts the isolated live block flow', async () => {
   assert.match(source, /LiveBlockFlow3D/);
   assert.match(source, /<LiveBlockFlow3D\/>/);
 });
+
+
+test('NodePropagation3D preserves the evidence boundary', async () => {
+  const source = await read('src/components/home/NodePropagation3D.jsx');
+  assert.match(source, /Node positions and propagation paths are illustrative/);
+  assert.match(source, /peer-to-peer hop timing and physical node location are not claimed or measured/);
+  assert.match(source, /Explorer height has caught up to the observed head/);
+  assert.match(source, /No claim of measured peer propagation/);
+});
+
+test('LiveBlockFlow3D wires verified head data into NodePropagation3D', async () => {
+  const source = await read('src/components/home/LiveBlockFlow3D.jsx');
+  assert.match(source, /import NodePropagation3D from '\.\/NodePropagation3D'/);
+  assert.match(source, /head=\{head\}/);
+  assert.match(source, /advanceKey=\{advanceKey\}/);
+  assert.match(source, /indexerLag=\{indexerLag\}/);
+  assert.match(source, /indexedHead=\{indexedHead\}/);
+});

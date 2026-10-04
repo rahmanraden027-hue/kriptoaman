@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Activity, Box, Clock3, Database, ExternalLink, RefreshCw, ShieldCheck, Zap } from 'lucide-react';
+import NodePropagation3D from './NodePropagation3D';
 
 const ENDPOINT = '/api/zvq-live-blocks';
 const POLL_MS = 4_000;
@@ -213,6 +214,16 @@ export default function LiveBlockFlow3D() {
           <Metric icon={ShieldCheck} label="Last Advance" value={lastAdvanceAt ? new Date(lastAdvanceAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—'} note="Changes only on verified head increase" />
         </div>
       </div>
+
+      <NodePropagation3D
+        head={head}
+        blockHash={payload?.head?.hash}
+        advanceKey={advanceKey}
+        live={live}
+        indexerLag={indexerLag}
+        indexedHead={indexedHead}
+        checkedAt={payload?.checkedAt}
+      />
 
       {error && (
         <div className="mt-3 rounded-xl border border-amber-400/15 bg-amber-400/[.04] px-3 py-2 text-[9px] text-amber-200">
