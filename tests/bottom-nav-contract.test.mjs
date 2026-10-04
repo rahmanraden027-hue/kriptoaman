@@ -26,8 +26,8 @@ test('primary mobile bottom navigation remains fixed to five final tabs', () => 
   assert.match(layout, /BOTTOM_NAV\.map/);
 });
 
-test('public Market keeps the same final five-tab navigation without a back control', () => {
-  const expectedPages = ["page: 'Home'", "page: 'Market'", "page: 'PortfolioOverview'", "page: 'Wallet'", "page: 'SecurityHub'"];
+test('public Market uses the same UI 4.2 five-tab navigation without a back control', () => {
+  const expectedPages = ["page: 'Home'", "page: 'Market'", "page: 'IntelligenceHub'", "page: 'ZEVARYQ'", "page: 'Services'"];
   const positions = expectedPages.map((entry) => {
     const index = primaryNav.indexOf(entry);
     assert.notEqual(index, -1, `Missing public Market bottom-nav entry: ${entry}`);
@@ -35,7 +35,7 @@ test('public Market keeps the same final five-tab navigation without a back cont
   });
 
   assert.deepEqual(positions, [...positions].sort((a, b) => a - b));
-  assert.match(primaryNav, /home: 'Beranda', markets: 'Pasar', portfolio: 'Portofolio', wallet: 'Pantau', security: 'Keamanan'/);
+  assert.match(primaryNav, /home: 'Beranda', markets: 'Market', intelligence: 'Intelijen', onchain: 'On-Chain', ecosystem: 'Ekosistem'/);
   assert.match(app, /PublicMarketWithNav/);
   assert.match(app, /PrimaryBottomNav currentPageName="Market"/);
   assert.doesNotMatch(app, /MarketPageWithBack/);
