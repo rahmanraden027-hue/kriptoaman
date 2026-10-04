@@ -105,6 +105,7 @@ jobs:
               --browser=chromium \
               --viewport-size="${width},${height}" \
               --full-page \
+              --wait-for-timeout 1800 \
               "$target" \
               "viewport-evidence/home-${width}.png"
           done
