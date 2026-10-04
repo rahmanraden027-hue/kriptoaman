@@ -50,9 +50,9 @@ test('mobile critical path does not preload the below-fold premium mark', async 
   ]);
   assert.equal(html.includes('rel="preload" as="image" href="/brand/kriptoaman-mark-premium.webp"'), false);
   assert.equal(html.includes('\\n    <meta name="theme-color"'), false);
-  assert.equal(header.includes('src="/icons/kriptoaman-192.png"'), true);
+  assert.equal(header.includes('src="/icons/kriptoaman-32.png"'), true);
   assert.equal(hero.includes("const GLandingHeroConsole = lazy(() => import('@/components/landing/GLandingHeroConsole'))"), true);
-  assert.equal(console.includes('loading="lazy" fetchPriority="low" decoding="async"'), true);
+  assert.equal(console.includes('src="/icons/kriptoaman-192.png" loading="lazy" fetchPriority="low" decoding="async"'), true);
   assert.equal(styles.includes('#beranda .ka-hero-console{content-visibility:auto'), true);
 });
 
