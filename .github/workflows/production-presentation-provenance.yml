@@ -30,9 +30,9 @@ jobs:
             'KRIPTOAMAN · GLOBAL CHAIN INTELLIGENCE',
             'Blockchain bergerak setiap detik.',
             'Lihat. Pahami. Verifikasi.',
-            'KRIPTOAMAN PRODUCTION V2',
-            'KRIPTOAMAN INTELLIGENCE CORE',
-            'KriptoAman Platform + ZEVARYQ Wallet'
+            'CRYPTO INTELLIGENCE OS',
+            'KRIPTOAMAN · LIVE INTELLIGENCE GLOBE',
+            'Open Intelligence Core'
           ];
 
           const home = await fetch(base + '/', {
