@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Activity, Box, Clock3, Database, ExternalLink, RefreshCw, ShieldCheck, Zap } from 'lucide-react';
 import NodePropagation3D from './NodePropagation3D';
+import NetworkOperationsPanel from './NetworkOperationsPanel';
 
 const ENDPOINT = '/api/zvq-live-blocks';
 const POLL_MS = 4_000;
@@ -52,6 +53,7 @@ export default function LiveBlockFlow3D() {
   const [error, setError] = useState(null);
   const [advanceKey, setAdvanceKey] = useState(0);
   const [lastAdvanceAt, setLastAdvanceAt] = useState(null);
+  const [history,setHistory] = useState([]);
   const latestHeadRef = useRef(null);
 
   useEffect(() => {
@@ -91,6 +93,18 @@ export default function LiveBlockFlow3D() {
         }
         latestHeadRef.current = nextHead;
         setPayload(next);
+        setHistory((current) => {
+          const sample = {
+            head: nextHead,
+            observedAt: next.checkedAt || new Date().toISOString(),
+            rpcLatencyMs: Number(next?.metrics?.rpcIdentityLatencyMs),
+            blockTimeSeconds: Number(next?.metrics?.averageBlockTimeSeconds),
+            indexerLagBlocks: Number(next?.metrics?.indexerLagBlocks),
+          };
+          const sameHead = current[current.length - 1]?.head === sample.head;
+          const nextHistory = sameHead ? [...current.slice(0, -1), sample] : [...current, sample];
+          return nextHistory.slice(-24);
+        });
         setError(null);
       } catch (err) {
         if (!disposed && err?.name !== 'AbortError') {
@@ -223,6 +237,12 @@ export default function LiveBlockFlow3D() {
         indexerLag={indexerLag}
         indexedHead={indexedHead}
         checkedAt={payload?.checkedAt}
+      />
+
+      <NetworkOperationsPanel
+        samples={history}
+        evidence={payload?.networkEvidence}
+        live={live}
       />
 
       {error && (
