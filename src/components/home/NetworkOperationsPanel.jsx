@@ -78,7 +78,7 @@ export default function NetworkOperationsPanel({ samples = [], evidence, live, c
 
   if (compact) {
     return (
-      <section className="mt-4 overflow-hidden rounded-[24px] border border-violet-400/12 bg-[#050b17]/90 p-4 sm:p-5">
+      <section id="network-operations" className="mt-4 overflow-hidden rounded-[24px] border border-violet-400/12 bg-[#050b17]/90 p-4 sm:p-5">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
