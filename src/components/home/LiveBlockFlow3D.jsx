@@ -141,10 +141,18 @@ export default function LiveBlockFlow3D({ betweenBlockAndNode = null, compactLan
   const live = state === 'live';
 
   return (
-    <section className="zvq-live-flow mt-5 overflow-hidden rounded-[30px] border border-cyan-400/15 bg-[#030914] p-4 sm:p-5">
+    <section data-phase7-visual="live-block-flow" className="zvq-live-flow mt-5 overflow-hidden rounded-[30px] border border-cyan-400/15 bg-[#030914] p-4 sm:p-5">
       <style>{`
         .zvq-flow-stage{position:relative;min-height:280px;overflow:hidden;border-radius:24px;border:1px solid rgba(56,189,248,.12);background:radial-gradient(circle at 50% 48%,rgba(34,211,238,.12),transparent 28%),linear-gradient(180deg,rgba(2,6,23,.2),rgba(2,8,18,.96));perspective:900px}
         .zvq-flow-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(56,189,248,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,.05) 1px,transparent 1px);background-size:28px 28px;transform:rotateX(62deg) translateY(45%);transform-origin:center bottom;opacity:.65}
+        .zvq-flow-depth-fog{position:absolute;inset:-10%;pointer-events:none;background:radial-gradient(circle at 72% 46%,rgba(34,211,238,.14),transparent 18%),radial-gradient(circle at 28% 54%,rgba(59,130,246,.08),transparent 26%),linear-gradient(90deg,rgba(2,6,23,.92),transparent 22%,transparent 78%,rgba(2,6,23,.92));mix-blend-mode:screen;opacity:.78}
+        .zvq-flow-rail{position:absolute;left:10%;right:10%;top:50%;height:1px;transform-origin:center;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(56,189,248,.16),transparent)}
+        .zvq-flow-rail.rail-a{transform:translateY(-58px) rotate(-7deg)}.zvq-flow-rail.rail-b{transform:translateY(52px) rotate(7deg)}.zvq-flow-rail.rail-c{transform:translateY(0) scaleX(.86);opacity:.5}
+        .zvq-event-beam{position:absolute;top:0;bottom:0;width:20%;left:-24%;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(103,232,249,.03),rgba(103,232,249,.18),rgba(250,204,21,.08),transparent);filter:blur(1px);opacity:0}
+        .zvq-event-beam.is-live{opacity:.8;animation:zvqEventSweep 7.5s linear infinite}
+        .zvq-flow-head-tag{position:absolute;right:14px;top:14px;z-index:9;display:flex;align-items:center;gap:8px;border:1px solid rgba(56,189,248,.14);border-radius:999px;background:rgba(2,12,20,.66);padding:7px 10px;backdrop-filter:blur(12px);box-shadow:0 0 24px rgba(34,211,238,.08)}
+        .zvq-flow-head-tag i{width:6px;height:6px;border-radius:999px;background:rgb(52 211 153);box-shadow:0 0 14px rgba(52,211,153,.7)}
+        .zvq-flow-head-tag span{font-size:8px;font-weight:900;letter-spacing:.1em;color:rgb(186 230 253)}
         .zvq-flow-orbit{position:absolute;left:50%;top:50%;width:68%;height:38%;transform:translate(-50%,-50%) rotateX(66deg);border:1px solid rgba(56,189,248,.2);border-radius:50%;box-shadow:0 0 28px rgba(34,211,238,.12),inset 0 0 28px rgba(34,211,238,.08)}
         .zvq-flow-orbit::after{content:'';position:absolute;inset:18%;border:1px solid rgba(245,158,11,.18);border-radius:50%}
         .zvq-flow-line{position:absolute;left:9%;right:9%;top:50%;height:1px;background:linear-gradient(90deg,transparent,rgba(56,189,248,.4),rgba(34,211,238,.9),rgba(56,189,248,.4),transparent);box-shadow:0 0 18px rgba(34,211,238,.35)}
@@ -159,8 +167,9 @@ export default function LiveBlockFlow3D({ betweenBlockAndNode = null, compactLan
         .zvq-flow-scan{position:absolute;left:7%;right:7%;top:50%;height:80px;transform:translateY(-50%);background:linear-gradient(90deg,transparent,rgba(14,165,233,.025),rgba(34,211,238,.08),rgba(14,165,233,.025),transparent);filter:blur(10px);pointer-events:none}
         @keyframes zvqCubeIdle{from{transform:rotateX(-16deg) rotateY(0deg)}to{transform:rotateX(-16deg) rotateY(360deg)}}
         @keyframes zvqBlockEnter{0%{opacity:0;filter:blur(8px);transform:translate3d(260px,-52px,80px) scale(1.65)}55%{opacity:1;filter:blur(0)}100%{transform:translate3d(145px,-52px,0) scale(1.32)}}
+        @keyframes zvqEventSweep{0%{transform:translateX(0)}100%{transform:translateX(720%)}}
         @media(max-width:639px){.zvq-flow-stage{min-height:230px}.zvq-flow-cube-wrap{width:58px;height:58px}.zvq-flow-face.front{transform:translateZ(29px)}.zvq-flow-face.back{transform:rotateY(180deg) translateZ(29px)}.zvq-flow-face.right{transform:rotateY(90deg) translateZ(29px)}.zvq-flow-face.left{transform:rotateY(-90deg) translateZ(29px)}.zvq-flow-face.top{transform:rotateX(90deg) translateZ(29px)}.zvq-flow-face.bottom{transform:rotateX(-90deg) translateZ(29px)}.zvq-flow-slot-0{transform:translate3d(76px,-40px,0) scale(1.18)}.zvq-flow-slot-1{transform:translate3d(-8px,-34px,-45px) scale(.82)}.zvq-flow-slot-2{transform:translate3d(-78px,-32px,-90px) scale(.62)}.zvq-flow-slot-3{transform:translate3d(-135px,-30px,-130px) scale(.48)}.zvq-flow-slot-4{display:none}@keyframes zvqBlockEnter{0%{opacity:0;filter:blur(8px);transform:translate3d(150px,-40px,70px) scale(1.5)}100%{opacity:1;filter:blur(0);transform:translate3d(76px,-40px,0) scale(1.18)}}}
-        @media(prefers-reduced-motion:reduce){.zvq-flow-cube,.zvq-flow-cube-wrap.is-advance{animation:none!important}.zvq-flow-cube-wrap{transition:none}}
+        @media(prefers-reduced-motion:reduce){.zvq-flow-cube,.zvq-flow-cube-wrap.is-advance,.zvq-event-beam.is-live{animation:none!important}.zvq-event-beam{display:none}.zvq-flow-cube-wrap{transition:none}}
       `}</style>
 
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
@@ -191,9 +200,20 @@ export default function LiveBlockFlow3D({ betweenBlockAndNode = null, compactLan
       <div className="grid gap-4 xl:grid-cols-[1.45fr_.55fr]">
         <div className="zvq-flow-stage">
           <div className="zvq-flow-grid" />
+          <div className="zvq-flow-depth-fog" />
+          <div className="zvq-flow-rail rail-a" />
+          <div className="zvq-flow-rail rail-b" />
+          <div className="zvq-flow-rail rail-c" />
           <div className="zvq-flow-orbit" />
           <div className="zvq-flow-line" />
           <div className="zvq-flow-scan" />
+          <div className={`zvq-event-beam ${live ? 'is-live' : ''}`} aria-hidden="true" />
+          {Number.isFinite(Number(head)) && (
+            <div className="zvq-flow-head-tag" aria-label={`Verified ZEVARYQ head ${Number(head)}`}>
+              <i aria-hidden="true" />
+              <span>VERIFIED HEAD · #{fmtNumber(head)}</span>
+            </div>
+          )}
           {blocks.map((block, index) => (
             <Cube
               key={block.hash}
