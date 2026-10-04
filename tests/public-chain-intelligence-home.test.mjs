@@ -9,7 +9,7 @@ test('public landing promotes verified Live Block Flow instead of placeholder-he
     read('src/components/landing/GLandingDeferredContent.jsx'),
     read('src/components/landing/PublicChainIntelligence.jsx'),
   ]);
-  assert.match(page, /<GLandingHero stats=\{stats\} \/>/);
+  assert.match(page, /<GLandingHero stats=\{stats\} visualReady=\{heroVisualReady\} \/>/);
   assert.match(page, /<GLandingDeferredContent stats=\{stats\} \/>/);
   assert.match(deferred, /<LiveBlockFlow3D/);
   assert.match(deferred, /compactLanding/);
@@ -44,7 +44,10 @@ test('public intelligence uses only first-party evidence-gated endpoints and fai
 });
 
 test('final public hero presents the evidence-first intelligence identity', async () => {
-  const hero = await read('src/components/landing/GLandingHero.jsx');
+  const [hero, console] = await Promise.all([
+    read('src/components/landing/GLandingHero.jsx'),
+    read('src/components/landing/GLandingHeroConsole.jsx'),
+  ]);
   assert.match(hero, /CRYPTO COMMAND CENTER/);
   assert.match(hero, /ka-command-hero/);
   assert.match(hero, /Market bergerak/);
@@ -56,10 +59,10 @@ test('final public hero presents the evidence-first intelligence identity', asyn
   assert.match(hero, /RISK/);
   assert.match(hero, /EVIDENCE/);
   assert.doesNotMatch(hero, /const PURPOSE/);
-  assert.match(hero, /PRODUCTION COMMAND CENTER/);
-  assert.match(hero, /PROOF OF FRESHNESS/);
-  assert.match(hero, /assetCount/);
-  assert.match(hero, /zvqBlockNumber/);
+  assert.match(console, /PRODUCTION COMMAND CENTER/);
+  assert.match(console, /PROOF OF FRESHNESS/);
+  assert.match(console, /assetCount/);
+  assert.match(console, /zvqBlockNumber/);
 });
 
 test('Intelligence Graph 2.0 exposes only selectable proven nodes and edges through Evidence Drawer', async () => {
