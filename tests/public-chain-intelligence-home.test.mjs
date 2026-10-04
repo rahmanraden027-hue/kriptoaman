@@ -4,14 +4,17 @@ import { readFile } from 'node:fs/promises';
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('public landing promotes verified Live Block Flow instead of placeholder-heavy Chain Intelligence', async () => {
-  const [page, surface] = await Promise.all([
+  const [page, deferred, surface] = await Promise.all([
     read('src/pages/KriptoAmanGlobalLanding.jsx'),
+    read('src/components/landing/GLandingDeferredContent.jsx'),
     read('src/components/landing/PublicChainIntelligence.jsx'),
   ]);
   assert.match(page, /<GLandingHero stats=\{stats\} \/>/);
-  assert.match(page, /<GLandingDeferredContent stats=\\{stats\\} \\/>/);\n  assert.match(deferred, /<LiveBlockFlow3D/);
+  assert.match(page, /<GLandingDeferredContent stats=\{stats\} \/>/);
+  assert.match(deferred, /<LiveBlockFlow3D/);
   assert.match(deferred, /compactLanding/);
-  assert.doesNotMatch(page, /<PublicChainIntelligence \\/>/);\n  assert.doesNotMatch(deferred, /<PublicChainIntelligence \\/>/);
+  assert.doesNotMatch(page, /<PublicChainIntelligence \/>/);
+  assert.doesNotMatch(deferred, /<PublicChainIntelligence \/>/);
   assert.match(surface, /CHAIN INTELLIGENCE OS/);
   assert.match(surface, /Universal Intelligence Search/);
   assert.match(surface, /GENESIS RADAR/);
@@ -59,7 +62,6 @@ test('final public hero presents the evidence-first intelligence identity', asyn
   assert.match(hero, /zvqBlockNumber/);
 });
 
-
 test('Intelligence Graph 2.0 exposes only selectable proven nodes and edges through Evidence Drawer', async () => {
   const surface = await read('src/components/landing/PublicChainIntelligence.jsx');
   assert.match(surface, /BLOCK:\[50,14\]/);
@@ -72,7 +74,6 @@ test('Intelligence Graph 2.0 exposes only selectable proven nodes and edges thro
   assert.match(surface, /graphLines\.map\(line/);
   assert.doesNotMatch(surface, /graphDots\.slice\(i\+1\)/);
 });
-
 
 test('Live Intelligence Stream is first-party, complete-proof gated, and never synthetic', async () => {
   const surface = await read('src/components/landing/PublicChainIntelligence.jsx');
@@ -89,7 +90,6 @@ test('Live Intelligence Stream is first-party, complete-proof gated, and never s
   assert.doesNotMatch(surface, /evidence\.observationId \|\| graph\?\.observationId/);
   assert.doesNotMatch(surface, /Math\.random\(/);
 });
-
 
 test('mobile Chain Intelligence keeps pulse compact and graph legible', async () => {
   const surface = await read('src/components/landing/PublicChainIntelligence.jsx');
