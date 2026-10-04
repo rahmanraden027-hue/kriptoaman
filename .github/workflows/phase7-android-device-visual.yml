@@ -1,0 +1,138 @@
+name: Phase 7 Android Device Visual Gate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'src/components/home/LiveBlockFlow3D.jsx'
+      - 'src/components/home/NodePropagation3D.jsx'
+      - '.github/workflows/phase7-android-device-visual.yml'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'capacitor.config.*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android-device-visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Install dependencies and sync Capacitor
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --legacy-peer-deps
+          npm run android:sync
+          chmod +x android/gradlew
+
+      - name: Verify production ZEVARYQ live-block feed before device run
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --max-time 20             https://kriptoaman.com/api/zvq-live-blocks             -o /tmp/zvq-live-blocks.json
+          node <<'NODE'
+          const p = require('/tmp/zvq-live-blocks.json');
+          if (p?.status !== 'live') throw new Error('ZEVARYQ live-block feed is not live');
+          if (Number(p?.chainId) !== 22028) throw new Error('Unexpected chainId');
+          if (String(p?.chainIdHex).toLowerCase() !== '0x560c') throw new Error('Unexpected chainIdHex');
+          if (!Number.isSafeInteger(Number(p?.head?.number))) throw new Error('Verified head missing');
+          console.log('PHASE7_DEVICE_PREFLIGHT=PASS head=' + p.head.number);
+          NODE
+
+      - name: Build Android platform debug + instrumentation APKs
+        working-directory: android
+        run: ./gradlew :app:assemblePlatformDebug :app:assemblePlatformDebugAndroidTest
+
+      - name: Run Android WebView visual gate at 390dp and 430dp
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: |
+            set -euo pipefail
+            mkdir -p device-evidence
+            app_apk="$(find android/app/build/outputs/apk/platform/debug -name '*.apk' -print -quit)"
+            test_apk="$(find android/app/build/outputs/apk/androidTest/platform/debug -name '*.apk' -print -quit)"
+            test -n "$app_apk"
+            test -n "$test_apk"
+
+            adb install -r "$app_apk"
+            adb install -r "$test_apk"
+            adb shell settings put global window_animation_scale 1
+            adb shell settings put global transition_animation_scale 1
+            adb shell settings put global animator_duration_scale 1
+            adb shell settings put system font_scale 1.0
+
+            run_case() {
+              width="$1"
+              density="$2"
+
+              echo "=== Phase 7 Android device-class "$width"dp ==="
+              adb shell wm size 1080x2400
+              adb shell wm density "$density"
+              adb shell am force-stop com.kriptoaman.app || true
+              adb logcat -c
+
+              set +e
+              adb shell am instrument -w                 -e class com.getcapacitor.myapp.Phase7DeviceVisualTest                 -e expectedWidth "$width"                 com.kriptoaman.app.test/androidx.test.runner.AndroidJUnitRunner                 | tee "device-evidence/instrument-$width.txt"
+              test_status="$PIPESTATUS"
+              set -e
+
+              adb logcat -d > "device-evidence/logcat-$width.txt" || true
+              adb shell dumpsys window windows > "device-evidence/window-$width.txt" || true
+
+              if [ "$test_status" -ne 0 ]; then
+                echo "Instrumentation failed for "$width"dp" >&2
+                exit "$test_status"
+              fi
+              grep -q 'OK (1 test)' "device-evidence/instrument-$width.txt"
+
+              adb pull /sdcard/Android/data/com.kriptoaman.app/files/. device-evidence/ >/dev/null
+            }
+
+            run_case 390 443
+            run_case 430 402
+
+            adb shell wm size reset || true
+            adb shell wm density reset || true
+
+            test -s device-evidence/phase7-flow-390-a.png
+            test -s device-evidence/phase7-flow-390-b.png
+            test -s device-evidence/phase7-node-390-a.png
+            test -s device-evidence/phase7-node-390-b.png
+            test -s device-evidence/phase7-flow-430-a.png
+            test -s device-evidence/phase7-flow-430-b.png
+            test -s device-evidence/phase7-node-430-a.png
+            test -s device-evidence/phase7-node-430-b.png
+
+            echo 'PHASE7_ANDROID_DEVICE_VISUAL=PASS'
+
+      - name: Upload Android device visual evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: phase7-android-device-visual-evidence
+          path: device-evidence
+          retention-days: 30
+          if-no-files-found: warn
