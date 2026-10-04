@@ -59,7 +59,7 @@ export default function NodePropagation3D({
       : 'border-amber-400/20 bg-amber-400/10 text-amber-300';
 
   return (
-    <section className="zvq-node-propagation mt-4 overflow-hidden rounded-[26px] border border-sky-400/12 bg-[#04101b]/86 p-4 sm:p-5">
+    <section data-phase7-visual="node-master" className="zvq-node-propagation mt-4 overflow-hidden rounded-[26px] border border-sky-400/12 bg-[#04101b]/86 p-4 sm:p-5">
       <style>{`
         .zvq-node-stage{position:relative;min-height:330px;overflow:hidden;border-radius:24px;border:1px solid rgba(56,189,248,.1);background:
           radial-gradient(circle at 50% 46%,rgba(14,165,233,.18),transparent 26%),
@@ -78,8 +78,17 @@ export default function NodePropagation3D({
         .zvq-globe-shell::before,.zvq-globe-shell::after{content:'';position:absolute;inset:9%;border-radius:50%;border:1px solid rgba(56,189,248,.15)}
         .zvq-globe-shell::before{transform:rotateX(67deg)}
         .zvq-globe-shell::after{transform:rotateY(67deg)}
-        .zvq-node-orbit{position:absolute;left:50%;top:50%;width:min(78vw,430px);height:min(34vw,160px);transform:translate(-50%,-50%) rotate(-12deg);border:1px solid rgba(245,158,11,.18);border-radius:50%;box-shadow:0 0 24px rgba(245,158,11,.06)}
+        .zvq-node-depth{position:absolute;inset:-8%;pointer-events:none;background:radial-gradient(circle at 50% 48%,rgba(56,189,248,.12),transparent 23%),radial-gradient(circle at 50% 52%,rgba(245,158,11,.06),transparent 38%),linear-gradient(115deg,transparent 26%,rgba(14,165,233,.035) 50%,transparent 74%);opacity:.9}
+        .zvq-node-orbit{position:absolute;left:50%;top:50%;width:min(78vw,430px);height:min(34vw,160px);transform:translate(-50%,-50%) rotate(-12deg);border:1px solid rgba(245,158,11,.18);border-radius:50%;box-shadow:0 0 24px rgba(245,158,11,.06);transform-origin:center}
         .zvq-node-orbit.second{transform:translate(-50%,-50%) rotate(28deg);border-color:rgba(56,189,248,.17)}
+        .zvq-node-orbit.third{width:min(66vw,360px);height:min(48vw,220px);transform:translate(-50%,-50%) rotate(67deg);border-color:rgba(125,211,252,.11)}
+        .zvq-node-orbit.is-live{animation:zvqOrbitDrift 18s linear infinite}
+        .zvq-node-orbit.second.is-live{animation-duration:24s;animation-direction:reverse}
+        .zvq-node-orbit.third.is-live{animation-duration:31s}
+        .zvq-node-axis{position:absolute;left:50%;top:12%;bottom:12%;width:1px;transform:translateX(-50%);background:linear-gradient(transparent,rgba(56,189,248,.18),rgba(250,204,21,.16),transparent);opacity:.7}
+        .zvq-node-head-badge{position:absolute;left:50%;top:7%;z-index:6;transform:translateX(-50%);display:flex;align-items:center;gap:7px;border:1px solid rgba(56,189,248,.14);border-radius:999px;background:rgba(2,12,20,.7);padding:6px 9px;backdrop-filter:blur(10px)}
+        .zvq-node-head-badge i{width:6px;height:6px;border-radius:999px;background:rgb(52 211 153);box-shadow:0 0 12px rgba(52,211,153,.7)}
+        .zvq-node-head-badge span{font-size:7px;font-weight:900;letter-spacing:.1em;color:rgb(186 230 253)}
         .zvq-node-svg{position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 0 7px rgba(56,189,248,.18))}
         .zvq-link{stroke:rgba(56,189,248,.2);stroke-width:.42;vector-effect:non-scaling-stroke}
         .zvq-link.pulse{stroke:rgba(103,232,249,.72);stroke-width:.62;stroke-dasharray:2.4 4.8;animation:zvqLinkPulse 1.75s linear 1}
@@ -94,8 +103,9 @@ export default function NodePropagation3D({
         @keyframes zvqLinkPulse{0%{stroke-dashoffset:18;opacity:.1}35%{opacity:1}100%{stroke-dashoffset:0;opacity:.22}}
         @keyframes zvqNodePulse{0%{r:2;opacity:.25}35%{opacity:1}70%{r:4.4}100%{opacity:.7}}
         @keyframes zvqWave{0%{transform:translate(-50%,-50%) scale(.5);opacity:.9}100%{transform:translate(-50%,-50%) scale(2.9);opacity:0}}
+        @keyframes zvqOrbitDrift{from{rotate:0deg}to{rotate:360deg}}
         @media(max-width:639px){.zvq-node-stage{min-height:290px}.zvq-node-index{right:3%;top:4%;max-width:138px;padding:8px 9px}.zvq-node-rpc{left:3%;bottom:4%;max-width:145px;padding:8px 9px}.zvq-node-core{width:66px;height:66px}.zvq-node-wave{width:86px;height:86px}}
-        @media(prefers-reduced-motion:reduce){.zvq-link.pulse,.zvq-node-dot.pulse,.zvq-node-wave.is-pulse{animation:none!important}}
+        @media(prefers-reduced-motion:reduce){.zvq-link.pulse,.zvq-node-dot.pulse,.zvq-node-wave.is-pulse,.zvq-node-orbit.is-live{animation:none!important}}
       `}</style>
 
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
@@ -113,9 +123,18 @@ export default function NodePropagation3D({
 
       <div className="grid gap-3 lg:grid-cols-[1.35fr_.65fr]">
         <div className="zvq-node-stage">
-          <div className="zvq-node-orbit" />
-          <div className="zvq-node-orbit second" />
+          <div className="zvq-node-depth" />
+          <div className={`zvq-node-orbit ${live ? 'is-live' : ''}`} />
+          <div className={`zvq-node-orbit second ${live ? 'is-live' : ''}`} />
+          <div className={`zvq-node-orbit third ${live ? 'is-live' : ''}`} />
+          <div className="zvq-node-axis" />
           <div className="zvq-globe-shell" />
+          {hasHead && (
+            <div className="zvq-node-head-badge" aria-label={`Verified block event ${Number(head)}`}>
+              <i aria-hidden="true" />
+              <span>VERIFIED EVENT · #{fmtNumber(head)}</span>
+            </div>
+          )}
 
           <svg className="zvq-node-svg" viewBox="0 0 100 100" aria-label="Illustrative ZEVARYQ node propagation visualization">
             {LINKS.map(([fromId, toId], index) => {
