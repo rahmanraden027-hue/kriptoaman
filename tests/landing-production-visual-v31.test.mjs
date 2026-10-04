@@ -11,7 +11,7 @@ test('public landing v3.1 follows the compact production structure with market p
   ]);
   assert.match(landing, /data-ka-production-version="3\.1"/);
   assert.match(landing, /<LandingLiveSystemStrip stats=\{stats\} \/>/);
-  assert.match(landing, /<GLandingHero stats=\\{stats\\} visualReady=\\{heroVisualReady\\} \\/>/);
+  assert.match(landing, /<GLandingHero stats=\{stats\} visualReady=\{heroVisualReady\} \/>/);
   assert.match(landing, /<GLandingDeferredContent stats=\{stats\} \/>/);
   assert.match(deferred, /<LiveBlockFlow3D/);
   assert.match(deferred, /compactLanding/);
