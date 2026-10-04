@@ -251,7 +251,6 @@ export default function GlobalLandingStyles() {
       @media(max-width:620px){
         /* Keep below-the-fold command visuals out of the initial mobile render budget. */
         #beranda .ka-hero-console{content-visibility:auto;contain-intrinsic-size:auto 610px}
-        #beranda ~ *{content-visibility:auto;contain-intrinsic-size:auto 900px}
         .ka-console-metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}
         .ka-console-metrics>div,.ka-console-metrics>a{min-height:68px;padding:12px!important;border-right:1px solid var(--ka-border)!important;border-bottom:1px solid var(--ka-border)!important}
         .ka-console-metrics>*:nth-child(2n){border-right:0!important}
