@@ -41,18 +41,38 @@ test('public root retains the lightweight language provider required by landing 
 });
 
 test('mobile critical path does not preload the below-fold premium mark', async () => {
-  const [html, header, hero, styles] = await Promise.all([
+  const [html, header, hero, console, styles] = await Promise.all([
     read('index.html'),
     read('src/components/landing/GLandingHeader.jsx'),
     read('src/components/landing/GLandingHero.jsx'),
+    read('src/components/landing/GLandingHeroConsole.jsx'),
     read('src/components/landing/GlobalLandingStyles.jsx'),
   ]);
   assert.equal(html.includes('rel="preload" as="image" href="/brand/kriptoaman-mark-premium.webp"'), false);
   assert.equal(html.includes('\\n    <meta name="theme-color"'), false);
   assert.equal(header.includes('src="/icons/kriptoaman-192.png"'), true);
-  assert.equal(hero.includes('loading="lazy" fetchPriority="low" decoding="async"'), true);
+  assert.equal(hero.includes("const GLandingHeroConsole = lazy(() => import('@/components/landing/GLandingHeroConsole'))"), true);
+  assert.equal(console.includes('loading="lazy" fetchPriority="low" decoding="async"'), true);
   assert.equal(styles.includes('#beranda .ka-hero-console{content-visibility:auto'), true);
   assert.equal(styles.includes('#beranda ~ *{content-visibility:auto'), true);
+});
+
+test('mobile hero console is deferred until user intent or idle while desktop remains immediate', async () => {
+  const [landing, hero, console] = await Promise.all([
+    read('src/pages/KriptoAmanGlobalLanding.jsx'),
+    read('src/components/landing/GLandingHero.jsx'),
+    read('src/components/landing/GLandingHeroConsole.jsx'),
+  ]);
+  assert.equal(landing.includes("window.matchMedia('(min-width: 768px)').matches"), true);
+  assert.equal(landing.includes('window.setTimeout(activate, 3000)'), true);
+  assert.equal(landing.includes('window.scrollY > 180'), true);
+  assert.equal(landing.includes('<GLandingHero stats={stats} visualReady={heroVisualReady} />'), true);
+  assert.equal(hero.includes("lazy(() => import('@/components/landing/GLandingHeroConsole'))"), true);
+  assert.equal(hero.includes('HeroConsolePlaceholder'), true);
+  assert.equal(hero.includes('COIN_META'), false);
+  assert.equal(hero.includes('KriptoAmanLogo'), false);
+  assert.equal(console.includes('COIN_META'), true);
+  assert.equal(console.includes('KriptoAmanLogo'), true);
 });
 
 test('below-fold production modules are code-split without breaking anchor access', async () => {
