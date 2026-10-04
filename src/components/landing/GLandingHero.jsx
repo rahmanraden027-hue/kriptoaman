@@ -1,12 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, ArrowRight, CheckCircle, Activity, Database, ExternalLink, Blocks } from 'lucide-react';
+import { Shield, ArrowRight, Activity, Database, ExternalLink, Blocks } from 'lucide-react';
 import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
 
-const INDICATORS = [
-  { label: 'Market Intelligence' },
-  { label: 'On-chain Verification' },
-  { label: 'Risk Intelligence' },
+const PURPOSE = [
+  { key: 'APA', title: 'Crypto Intelligence OS', text: 'Mengubah data pasar dan blockchain menjadi intelligence yang dapat ditelusuri.' },
+  { key: 'UNTUK', title: 'Market · On-Chain · Risk', text: 'Memantau perubahan, memeriksa aktivitas, dan membaca risiko sebelum bertindak.' },
+  { key: 'MENGAPA', title: 'Evidence before action', text: 'Sinyal penting harus kembali ke sumber, waktu verifikasi, dan bukti.' },
 ];
 
 const COINS = [
@@ -33,7 +33,7 @@ function NetworkVisual() {
         <ellipse cx="200" cy="200" rx="168" ry="64" transform="rotate(118 200 200)" />
         <circle cx="200" cy="200" r="128" opacity=".35" />
       </g>
-      <g>
+      <g className="ka-network-points">
         <circle cx="80" cy="90" r="5" className="ka-net-dot" />
         <circle cx="320" cy="90" r="5" className="ka-net-dot" />
         <circle cx="70" cy="300" r="5" className="ka-net-dot" />
@@ -41,6 +41,20 @@ function NetworkVisual() {
         <circle cx="200" cy="200" r="6" fill="var(--ka-gold)" opacity="0.95" />
       </g>
     </svg>
+  );
+}
+
+function StreamItems({ items, hidden = false }) {
+  return (
+    <div className="ka-live-stream-set" aria-hidden={hidden || undefined}>
+      {items.map((item) => (
+        <div key={item.label} className="ka-live-stream-item">
+          <span>{item.label}</span>
+          <b>{item.value}</b>
+          <small>{item.meta}</small>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -55,6 +69,12 @@ export default function GLandingHero({ stats }) {
   const verifiedAgeMs = Number.isFinite(verifiedAtMs) ? Math.max(0, Date.now() - verifiedAtMs) : NaN;
   const freshness = Number.isFinite(verifiedAgeMs) ? (verifiedAgeMs <= 5 * 60 * 1000 ? 'LIVE' : verifiedAgeMs <= 30 * 60 * 1000 ? 'RECENT' : 'STALE') : 'UNVERIFIED';
   const verifiedAtLabel = Number.isFinite(verifiedAtMs) ? new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date(verifiedAtMs)) : null;
+  const streamItems = [
+    { label: 'ASSETS', value: assetCount, meta: assetCount === '—' ? 'UNAVAILABLE' : 'MONITORED' },
+    { label: 'NETWORKS', value: networkCount, meta: networkCount === '—' ? 'UNAVAILABLE' : 'RESPONDING' },
+    { label: 'ZVQ HEAD', value: blockNumber, meta: blockNumber === '—' ? 'UNVERIFIED' : 'CHAIN 22028' },
+    { label: 'EVIDENCE', value: freshness, meta: verifiedAtLabel ? `VERIFIED ${verifiedAtLabel}` : 'WAITING FOR SOURCE' },
+  ];
 
   return (
     <section id="beranda" className="ka-command-hero relative pt-28 pb-10 px-4 sm:px-6 overflow-hidden">
@@ -65,54 +85,73 @@ export default function GLandingHero({ stats }) {
           <span className="ka-chip inline-flex items-center gap-2 px-3.5 py-1.5 text-[11px] font-bold tracking-wide">
             <Shield className="w-3.5 h-3.5" /> KRIPTOAMAN · GLOBAL CHAIN INTELLIGENCE
           </span>
-          <h1 className="ka-sec-title mt-5 text-[34px] sm:text-5xl lg:text-[54px]">
+          <p className="ka-hero-role mt-4 text-[11px] font-black tracking-[0.18em] uppercase ka-gold">CRYPTO INTELLIGENCE OS</p>
+          <h1 className="ka-sec-title mt-3 text-[34px] sm:text-5xl lg:text-[54px]">
             Blockchain bergerak setiap detik.<br />
             <span className="ka-blue">Lihat. Pahami. Verifikasi.</span>
           </h1>
           <p className="ka-text2 mt-5 max-w-xl mx-auto lg:mx-0 text-sm sm:text-base leading-relaxed">
-            Chain intelligence, on-chain verification, multi-chain monitoring, dan risk intelligence dalam satu command center dengan sumber data yang dapat ditelusuri.
+            KriptoAman membantu pengguna memahami <b className="ka-text">apa yang sedang terjadi</b> di pasar kripto, <b className="ka-text">mengapa sinyal muncul</b>, dan <b className="ka-text">bukti apa yang mendukungnya</b> melalui market intelligence, on-chain verification, dan risk intelligence.
           </p>
-          <div className="ka-hero-actions mt-7 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-            <Link to="/login" className="ka-btn-primary inline-flex items-center justify-center gap-2 px-6 text-sm sm:text-base">
-              Enter Global Intelligence Core <ArrowRight className="w-4 h-4" />
-            </Link>
-            <a href="https://explorer.kriptoaman.com" target="_blank" rel="noreferrer" className="ka-btn-outline ka-zvq-outline inline-flex items-center justify-center gap-2 px-6 text-sm sm:text-base">
-              Explore ZEVARYQ <ExternalLink className="w-4 h-4" />
-            </a>
-          </div>
-          <div className="ka-hero-indicators mt-8 flex flex-wrap gap-x-6 gap-y-3 justify-center lg:justify-start">
-            {INDICATORS.map(({ label }) => (
-              <div key={label} className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 ka-green" />
-                <span className="text-xs sm:text-sm font-semibold ka-text2">{label}</span>
+
+          <div className="ka-purpose-grid mt-6">
+            {PURPOSE.map((item) => (
+              <div key={item.key} className="ka-purpose-card">
+                <span>{item.key}</span>
+                <b>{item.title}</b>
+                <small>{item.text}</small>
               </div>
             ))}
+          </div>
+
+          <div className="ka-hero-actions mt-7 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+            <Link to="/login" className="ka-btn-primary inline-flex items-center justify-center gap-2 px-6 text-sm sm:text-base">
+              Open Intelligence Core <ArrowRight className="w-4 h-4" />
+            </Link>
+            <a href="https://explorer.kriptoaman.com" target="_blank" rel="noreferrer" className="ka-btn-outline ka-zvq-outline inline-flex items-center justify-center gap-2 px-6 text-sm sm:text-base">
+              Verify on ZEVARYQ <ExternalLink className="w-4 h-4" />
+            </a>
           </div>
         </div>
 
         <div className="ka-hero-console relative mx-auto w-full max-w-[560px]" aria-label="KriptoAman Intelligence Core live status">
           <div className="ka-console-head">
             <div>
-              <span className="ka-console-kicker">KRIPTOAMAN · EVIDENCE NETWORK</span>
-              <strong>Intelligence Core</strong>
+              <span className="ka-console-kicker">KRIPTOAMAN · LIVE INTELLIGENCE GLOBE</span>
+              <strong>Market · On-Chain · Risk · Evidence</strong>
             </div>
             <span className={`ka-live-state ${isOperational ? 'is-online' : ''}`}><i />{stats?.loading ? 'Memeriksa' : isOperational ? 'Operasional' : 'Terbatas'}</span>
           </div>
+
+          <div className="ka-live-stream" aria-label="Live verified telemetry">
+            <div className="ka-live-stream-track">
+              <StreamItems items={streamItems} />
+              <StreamItems items={streamItems} hidden />
+            </div>
+          </div>
+
           <div className="ka-console-stage ka-core-stage">
             <div className="ka-hero-visual relative mx-auto w-full max-w-[360px] aspect-square">
-              <NetworkVisual />\n              <div className="ka-core-horizon" aria-hidden="true" /><div className="ka-core-ring ring-a" aria-hidden="true" /><div className="ka-core-ring ring-b" aria-hidden="true" /><div className="ka-core-ring ring-c" aria-hidden="true" />
+              <NetworkVisual />
+              <div className="ka-core-horizon" aria-hidden="true" />
+              <div className="ka-core-ring ring-a" aria-hidden="true" />
+              <div className="ka-core-ring ring-b" aria-hidden="true" />
+              <div className="ka-core-ring ring-c" aria-hidden="true" />
               <div className="ka-hero-center absolute inset-0 flex items-center justify-center ka-glow-cyan rounded-full">
                 <div className="ka-hero-logo ka-glow-gold rounded-full">
-                  <KriptoAmanLogo size={150} showText={false} animate={false} />
+                  <KriptoAmanLogo size={116} showText={false} animate={false} />
                 </div>
               </div>
-              {COINS.map((c) => (
-                <div key={c.sym} className={`ka-coin-badge ka-glow ${c.className}`}>
-                  <span className="ka-coin-symbol" style={{ color: c.color }}>{c.sym}</span>
-                  <span className="ka-coin-name ka-text2">{c.sub}</span>
+              {COINS.map((coin) => (
+                <div key={coin.sym} className={`ka-coin-badge ka-glow ${coin.className}`}>
+                  <span className="ka-coin-symbol" style={{ color: coin.color }}>{coin.sym}</span>
+                  <span className="ka-coin-name ka-text2">{coin.sub}</span>
                 </div>
               ))}
-              <div className="absolute left-1/2 top-1/2 z-[2] -translate-x-1/2 translate-y-[86px] text-center">
+              <div className="ka-core-purpose">
+                <span>OBSERVATION</span><i>→</i><span>SIGNAL</span><i>→</i><span>EVIDENCE</span>
+              </div>
+              <div className="absolute left-1/2 top-1/2 z-[2] -translate-x-1/2 translate-y-[72px] text-center">
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-400/20 bg-blue-500/10 px-3 py-1 text-[9px] font-black tracking-[0.14em] text-blue-200">
                   KRIPTOAMAN INTELLIGENCE CORE
                 </span>
