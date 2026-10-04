@@ -32,6 +32,7 @@ export default function PWAInstallPrompt() {
     isAndroid = false;
   }
   const isPublicKamDocument = pathname.startsWith('/KAM') || pathname.startsWith('/news/');
+  const isPublicRoot = pathname === '/';
 
   useEffect(() => {
     try {
@@ -91,22 +92,22 @@ export default function PWAInstallPrompt() {
     <>
       <div
         data-install-cta="true"
-        className={`fixed z-[70] max-w-[calc(100vw-1.5rem)] ${isPublicKamDocument ? 'bottom-[calc(.75rem+env(safe-area-inset-bottom,0px))] right-3' : 'bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] right-3 sm:bottom-4 sm:right-4 lg:bottom-6 lg:right-6'}`}
+        className={`fixed z-[70] max-w-[calc(100vw-1.5rem)] ${isPublicKamDocument ? 'bottom-[calc(.75rem+env(safe-area-inset-bottom,0px))] right-3' : isPublicRoot ? 'bottom-[calc(.75rem+env(safe-area-inset-bottom,0px))] right-3' : 'bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] right-3 sm:bottom-4 sm:right-4 lg:bottom-6 lg:right-6'}`}
       >
         <div className="flex items-center overflow-hidden rounded-full border border-sky-300/30 bg-[#08233a]/95 text-white shadow-lg shadow-sky-950/40 backdrop-blur-md sm:rounded-2xl">
           <button
             type="button"
             onClick={() => { setEngaged(true); isAndroid ? setShowAndroidChoices(true) : install(); }}
-            className={`flex h-11 items-center justify-center text-xs font-bold hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 sm:h-auto sm:min-h-12 sm:w-auto sm:gap-2 sm:px-4 sm:py-3 sm:text-sm ${scrolled || engaged ? 'w-11' : 'w-auto gap-2 px-4'}`}
+            className={`flex h-11 items-center justify-center text-xs font-bold hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 sm:h-auto sm:min-h-12 sm:w-auto sm:gap-2 sm:px-4 sm:py-3 sm:text-sm ${scrolled || engaged ? 'w-11 px-0' : 'w-auto gap-2 px-4'} lg:w-auto lg:gap-2 lg:px-4`}
             aria-label="Pasang aplikasi KriptoAman"
           >
             <Download className="h-4 w-4 shrink-0" />
-            <span className={`${scrolled || engaged ? 'sr-only' : 'whitespace-nowrap'} sm:not-sr-only sm:whitespace-nowrap`}>Pasang KriptoAman</span>
+            <span className={`${scrolled || engaged ? 'sr-only' : 'whitespace-nowrap'} lg:not-sr-only lg:whitespace-nowrap`}>Pasang KriptoAman</span>
           </button>
           <button
             type="button"
             onClick={() => setDismissed(true)}
-            className="hidden min-h-12 min-w-11 items-center justify-center border-l border-white/20 px-3 hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/80 sm:flex"
+            className="flex min-h-11 min-w-10 items-center justify-center border-l border-white/20 px-2.5 hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/80 lg:min-h-12 lg:min-w-11 lg:px-3"
             aria-label="Tutup tombol instalasi KriptoAman"
           >
             <X className="h-4 w-4" />
