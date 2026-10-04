@@ -40,10 +40,19 @@ test('public root retains the lightweight language provider required by landing 
   assert.equal(app.includes('</LanguageProvider>'), true);
 });
 
-test('above-the-fold premium mark is preloaded before React hydration', async () => {
-  const html = await read('index.html');
-  assert.match(html, /rel="preload" as="image" href="\/brand\/kriptoaman-mark-premium\.webp" type="image\/webp" fetchpriority="high"/);
+test('mobile critical path does not preload the below-fold premium mark', async () => {
+  const [html, header, hero, styles] = await Promise.all([
+    read('index.html'),
+    read('src/components/landing/GLandingHeader.jsx'),
+    read('src/components/landing/GLandingHero.jsx'),
+    read('src/components/landing/GlobalLandingStyles.jsx'),
+  ]);
+  assert.equal(html.includes('rel="preload" as="image" href="/brand/kriptoaman-mark-premium.webp"'), false);
   assert.equal(html.includes('\\n    <meta name="theme-color"'), false);
+  assert.equal(header.includes('src="/icons/kriptoaman-192.png"'), true);
+  assert.equal(hero.includes('loading="lazy" fetchPriority="low" decoding="async"'), true);
+  assert.equal(styles.includes('#beranda .ka-hero-console{content-visibility:auto'), true);
+  assert.equal(styles.includes('#beranda ~ *{content-visibility:auto'), true);
 });
 
 test('public root avoids external Google Fonts on the critical render path', async () => {
