@@ -71,5 +71,19 @@ jobs:
           probe direct_public_tls --resolve explorer.kriptoaman.com:443:146.190.93.254 https://explorer.kriptoaman.com/
           trusted="$(curl --noproxy '*' -LsS --connect-timeout 3 --max-time 8 --resolve explorer.kriptoaman.com:443:146.190.93.254 -o /dev/null -w '%{http_code}' https://explorer.kriptoaman.com/ 2>/dev/null || true)"
           echo "origin_direct_trusted_tls_http=$trusted"
+      - name: Inspect Blockscout service state without secrets
+        shell: bash
+        run: |
+          set -uo pipefail
+          BASE=/opt/blockscout/docker-compose
+          echo "blockscout_service_observation=read_only"
+          test -d "$BASE" || { echo "blockscout_base=missing"; exit 1; }
+          cd "$BASE"
+          echo "=== compose services ==="
+          docker compose ps --services || true
+          echo "=== compose state ==="
+          docker compose ps -a || true
+          echo "=== container health summary ==="
+          docker ps -a --format '{{.Names}}|{{.Status}}|{{.Ports}}' | grep -E 'blockscout|backend|frontend|proxy|indexer|postgres|db' || true
 
 # diagnostic-probe: 2026-10-05 explorer-origin-readonly
