@@ -1,19 +1,19 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Home, TrendingUp, Wallet, BarChart3, ShieldCheck } from 'lucide-react';
+import { Home, BarChart3, BrainCircuit, ShieldCheck, LayoutGrid } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
 
 const PRIMARY_NAV = [
   { id: 'home', page: 'Home', to: '/dashboard', icon: Home },
-  { id: 'markets', page: 'Market', to: '/Market', icon: TrendingUp },
-  { id: 'portfolio', page: 'PortfolioOverview', to: '/PortfolioOverview', icon: BarChart3 },
-  { id: 'wallet', page: 'Wallet', to: '/Wallet', icon: Wallet },
-  { id: 'security', page: 'SecurityHub', to: '/SecurityHub', icon: ShieldCheck },
+  { id: 'markets', page: 'Market', to: '/Market', icon: BarChart3 },
+  { id: 'intelligence', page: 'IntelligenceHub', to: '/IntelligenceHub', icon: BrainCircuit },
+  { id: 'onchain', page: 'ZEVARYQ', to: '/ZEVARYQ', icon: ShieldCheck },
+  { id: 'ecosystem', page: 'Services', to: '/Services', icon: LayoutGrid },
 ];
 
 const LABELS = {
-  id: { home: 'Beranda', markets: 'Pasar', portfolio: 'Portofolio', wallet: 'Pantau', security: 'Keamanan' },
-  en: { home: 'Home', markets: 'Markets', portfolio: 'Portfolio', wallet: 'Watch', security: 'Security' },
+  id: { home: 'Beranda', markets: 'Market', intelligence: 'Intelijen', onchain: 'On-Chain', ecosystem: 'Ekosistem' },
+  en: { home: 'Home', markets: 'Markets', intelligence: 'Intelligence', onchain: 'On-Chain', ecosystem: 'Ecosystem' },
 };
 
 export default function PrimaryBottomNav({ currentPageName }) {
