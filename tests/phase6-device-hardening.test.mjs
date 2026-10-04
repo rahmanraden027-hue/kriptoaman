@@ -55,6 +55,22 @@ test('mobile critical path does not preload the below-fold premium mark', async 
   assert.equal(styles.includes('#beranda ~ *{content-visibility:auto'), true);
 });
 
+test('below-fold production modules are code-split without breaking anchor access', async () => {
+  const [landing, deferred] = await Promise.all([
+    read('src/pages/KriptoAmanGlobalLanding.jsx'),
+    read('src/components/landing/GLandingDeferredContent.jsx'),
+  ]);
+  assert.equal(landing.includes("const GLandingDeferredContent = lazy(() => import('@/components/landing/GLandingDeferredContent'))"), true);
+  assert.equal(landing.includes("import LiveBlockFlow3D from"), false);
+  assert.equal(landing.includes("window.setTimeout(activate, 1200)"), true);
+  assert.equal(landing.includes("window.addEventListener('hashchange', onHashChange)"), true);
+  assert.equal(landing.includes("scrollIntoView({ block: 'start' })"), true);
+  assert.equal(deferred.includes('LiveBlockFlow3D'), true);
+  assert.equal(deferred.includes('LandingMarketPulse'), true);
+  assert.equal(deferred.includes('GLandingBody'), true);
+  assert.equal(deferred.includes('GLandingInstitutional'), true);
+});
+
 test('public root avoids external Google Fonts on the critical render path', async () => {
   const css = await read('src/index.css');
   assert.equal(css.includes('fonts.googleapis.com'), false);
