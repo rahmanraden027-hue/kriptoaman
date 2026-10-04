@@ -175,7 +175,7 @@ public class Phase7DeviceVisualTest {
 
     private static void scrollIntoView(Instrumentation instrumentation, WebView webView, String selector) throws Exception {
         evaluate(instrumentation, webView,
-                "(()=>{const e=document.querySelector(" + quote(selector) + ");if(!e)return 'missing';e.scrollIntoView({block:'center',behavior:'instant'});return 'ok';})()");
+                "(()=>{const e=document.querySelector(" + quote(selector) + ");if(!e)return 'missing';e.scrollIntoView({block:'center',behavior:'auto'});return 'ok';})()");
         instrumentation.waitForIdleSync();
     }
 
