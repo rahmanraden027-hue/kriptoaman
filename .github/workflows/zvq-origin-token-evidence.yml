@@ -71,3 +71,5 @@ jobs:
           probe direct_public_tls --resolve explorer.kriptoaman.com:443:146.190.93.254 https://explorer.kriptoaman.com/
           trusted="$(curl --noproxy '*' -LsS --connect-timeout 3 --max-time 8 --resolve explorer.kriptoaman.com:443:146.190.93.254 -o /dev/null -w '%{http_code}' https://explorer.kriptoaman.com/ 2>/dev/null || true)"
           echo "origin_direct_trusted_tls_http=$trusted"
+
+# diagnostic-probe: 2026-10-05 explorer-origin-readonly
