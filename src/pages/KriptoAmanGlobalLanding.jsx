@@ -184,7 +184,13 @@ export default function KriptoAmanGlobalLanding() {
   useEffect(() => {
     let observer = null;
     const activate = () => setDeferredReady(true);
+    const onHashChange = () => {
+      if (window.location.hash) activate();
+    };
     const timer = window.setTimeout(activate, 1200);
+
+    if (window.location.hash) activate();
+    window.addEventListener('hashchange', onHashChange);
 
     if ('IntersectionObserver' in window && deferredTriggerRef.current) {
       observer = new window.IntersectionObserver(
@@ -201,9 +207,19 @@ export default function KriptoAmanGlobalLanding() {
 
     return () => {
       window.clearTimeout(timer);
+      window.removeEventListener('hashchange', onHashChange);
       observer?.disconnect();
     };
   }, []);
+
+  useEffect(() => {
+    if (!deferredReady || !window.location.hash) return undefined;
+    const timer = window.setTimeout(() => {
+      const targetId = decodeURIComponent(window.location.hash.slice(1));
+      document.getElementById(targetId)?.scrollIntoView({ block: 'start' });
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [deferredReady]);
 
   return (
     <div data-ka-public-landing="ready" data-ka-production-version="3.1" className={`ka-landing min-h-screen ${dark ? '' : 'light'} overflow-x-hidden`}>
