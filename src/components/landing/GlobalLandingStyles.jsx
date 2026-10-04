@@ -192,7 +192,7 @@ export default function GlobalLandingStyles() {
       @keyframes kaNetworkOrbit{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
       @keyframes kaEvidencePulse{0%,100%{opacity:.45;r:4px}50%{opacity:1;r:6px}}
       @media (prefers-reduced-motion:reduce){.ka-live-stream-track,.ka-command-hero .ka-net-line,.ka-command-hero .ka-network-points .ka-net-dot{animation:none!important}}
-      @media(max-width:640px){.ka-command-hero{padding-top:104px}.ka-command-hero .ka-sec-title{font-size:36px;line-height:1.08}.ka-core-ring.ring-a{width:78%}.ka-core-ring.ring-b{width:88%}}
+      @media(max-width:640px){.ka-command-hero{padding-top:32px}.ka-command-hero .ka-sec-title{font-size:36px;line-height:1.08}.ka-core-ring.ring-a{width:78%}.ka-core-ring.ring-b{width:88%}}
 
       .ka-intel-command{position:relative;overflow:hidden;border:1px solid color-mix(in srgb,var(--ka-blue) 42%,var(--ka-border));border-radius:28px;background:radial-gradient(circle at 78% 0%,rgba(37,99,235,.17),transparent 30%),radial-gradient(circle at 12% 100%,rgba(245,183,46,.07),transparent 28%),linear-gradient(145deg,rgba(5,18,34,.98),rgba(2,8,17,.99));box-shadow:0 30px 90px rgba(0,0,0,.35),inset 0 0 80px rgba(37,99,235,.035)}
       .ka-intel-grid-bg{position:absolute;inset:0;opacity:.13;pointer-events:none;background-image:linear-gradient(rgba(59,130,246,.18) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.18) 1px,transparent 1px);background-size:34px 34px;mask-image:linear-gradient(to bottom,black,transparent 78%)}
