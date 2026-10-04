@@ -32,21 +32,22 @@ test('institutional and footer expose phase 6 mobile hooks and production UI lab
   assert.match(footer, /Production UI 1\.0/);
 });
 
-
 test('public root retains the lightweight language provider required by landing navigation', async () => {
   const app = await read('src/App.jsx');
-  assert.match(app, /import \{ LanguageProvider \} from '@\/lib\/LanguageContext'/);
-  assert.match(app, /<LanguageProvider>[\\s\\S]*<KriptoAmanGlobalLanding \/>[\\s\\S]*<\\/LanguageProvider>/);
+  assert.equal(app.includes("import { LanguageProvider } from '@/lib/LanguageContext';"), true);
+  assert.equal(app.includes('<LanguageProvider>'), true);
+  assert.equal(app.includes('<KriptoAmanGlobalLanding />'), true);
+  assert.equal(app.includes('</LanguageProvider>'), true);
 });
 
 test('above-the-fold premium mark is preloaded before React hydration', async () => {
   const html = await read('index.html');
   assert.match(html, /rel="preload" as="image" href="\/brand\/kriptoaman-mark-premium\.webp" type="image\/webp" fetchpriority="high"/);
+  assert.equal(html.includes('\\n    <meta name="theme-color"'), false);
 });
-
 
 test('public root avoids external Google Fonts on the critical render path', async () => {
   const css = await read('src/index.css');
-  assert.doesNotMatch(css, /fonts\.googleapis\.com/);
+  assert.equal(css.includes('fonts.googleapis.com'), false);
   assert.match(css, /system-ui/);
 });
