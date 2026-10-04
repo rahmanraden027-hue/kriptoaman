@@ -8,6 +8,9 @@ test('physical-device install prompt collapses instead of covering mobile conten
   const source = await read('src/components/pwa/PWAInstallPrompt.jsx');
   assert.match(source, /const isPublicRoot = pathname === '\/'/);
   assert.match(source, /isPublicRoot \? 'bottom-\[calc\(\.75rem\+env\(safe-area-inset-bottom,0px\)\)\] right-3'/);
+  assert.match(source, /Math\.max\(420, Math\.round\(window\.innerHeight \* 0\.58\)\)/);
+  assert.match(source, /isPublicRoot && !rootCtaReady/);
+  assert.match(source, /isPublicRoot \|\| scrolled \|\| engaged \? 'w-11 px-0'/);
   assert.match(source, /lg:not-sr-only/);
   assert.match(source, /lg:w-auto lg:gap-2 lg:px-4/);
   assert.match(source, /className="flex min-h-11 min-w-10/);
@@ -19,6 +22,10 @@ test('physical-device landing forces readable hero metrics and institutional car
   assert.match(styles, /\.ka-console-metrics\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)!important\}/);
   assert.match(styles, /\.ka-footer-grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)!important/);
   assert.match(styles, /\.ka-command-hero \.ka-net-line\{animation-duration:45s\}/);
+  assert.match(styles, /#beranda\{padding-top:88px!important;padding-bottom:34px!important\}/);
+  assert.match(styles, /#beranda \.ka-hero-grid\{gap:26px!important\}/);
+  assert.match(styles, /\.ka-console-metrics span\{font-size:10px!important/);
+  assert.match(styles, /\.ka-console-metrics b\{font-size:16px!important/);
 });
 
 test('institutional and footer expose phase 6 mobile hooks and production UI label', async () => {
@@ -50,6 +57,7 @@ test('mobile critical path does not preload the below-fold premium mark', async 
   ]);
   assert.equal(html.includes('rel="preload" as="image" href="/brand/kriptoaman-mark-premium.webp"'), false);
   assert.equal(html.includes('\\n    <meta name="theme-color"'), false);
+  assert.equal(header.includes('size={32}'), true);
   assert.equal(header.includes('src="/icons/kriptoaman-32.png"'), true);
   assert.equal(hero.includes("const GLandingHeroConsole = lazy(() => import('@/components/landing/GLandingHeroConsole'))"), true);
   assert.equal(console.includes('src="/icons/kriptoaman-192.png" loading="lazy" fetchPriority="low" decoding="async"'), true);
