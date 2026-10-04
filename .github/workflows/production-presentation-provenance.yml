@@ -34,7 +34,11 @@ jobs:
             'KRIPTOAMAN · PRODUCTION COMMAND CENTER',
             'Open Command Center',
             'Live Block Flow 3D',
-            'Network Operations Console'
+            'Network Operations Console',
+            'KRIPTOAMAN INTELLIGENCE MODULES',
+            'Empat fungsi utama. Satu alur verifikasi.',
+            'Four production metrics only.',
+            'No synthetic metrics'
           ];
 
           const home = await fetch(base + '/', {
