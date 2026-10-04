@@ -11,7 +11,7 @@ test('PWA install prompt stays inside the router and error boundary', async () =
 
   assert.match(
     compact,
-    /<Router>.*<AppErrorBoundary>.*<AuthenticatedApp\s*\/>.*<PWAInstallPrompt\s*\/>.*<\/AppErrorBoundary>.*<\/Router>/,
+    /<Router>.*<AppErrorBoundary>.*<AppRouteGate\s*\/>.*<PWAInstallPrompt\s*\/>.*<\/AppErrorBoundary>.*<\/Router>/,
     'PWAInstallPrompt calls useLocation and must render below BrowserRouter',
   );
   assert.doesNotMatch(
