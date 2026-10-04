@@ -10,6 +10,7 @@ const GLandingDeferredContent = lazy(() => import('@/components/landing/GLanding
 export default function KriptoAmanGlobalLanding() {
   const [dark, setDark] = useState(true);
   const [active, setActive] = useState('Platform');
+  const [heroVisualReady, setHeroVisualReady] = useState(() => typeof window === 'undefined' || window.matchMedia('(min-width: 768px)').matches);
   const [deferredReady, setDeferredReady] = useState(false);
   const deferredTriggerRef = useRef(null);
   const [stats, setStats] = useState({
@@ -182,6 +183,29 @@ export default function KriptoAmanGlobalLanding() {
   }, []);
 
   useEffect(() => {
+    if (heroVisualReady) return undefined;
+
+    const activate = () => setHeroVisualReady(true);
+    const onScroll = () => {
+      if (window.scrollY > 180) activate();
+    };
+    const onHashChange = () => {
+      if (window.location.hash) activate();
+    };
+    const timer = window.setTimeout(activate, 3000);
+
+    if (window.location.hash) activate();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('hashchange', onHashChange);
+
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('hashchange', onHashChange);
+    };
+  }, [heroVisualReady]);
+
+  useEffect(() => {
     let observer = null;
     const activate = () => setDeferredReady(true);
     const onHashChange = () => {
@@ -227,7 +251,7 @@ export default function KriptoAmanGlobalLanding() {
       <GLandingHeader dark={dark} onToggleTheme={() => setDark((d) => !d)} active={active} />
       <main>
         <LandingLiveSystemStrip stats={stats} />
-        <GLandingHero stats={stats} />
+        <GLandingHero stats={stats} visualReady={heroVisualReady} />
         <div ref={deferredTriggerRef} className="h-px w-full" aria-hidden="true" />
         {deferredReady ? (
           <Suspense
