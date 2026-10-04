@@ -1,6 +1,5 @@
 import React, { lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ExternalLink, Shield } from 'lucide-react';
 
 const GLandingHeroConsole = lazy(() => import('@/components/landing/GLandingHeroConsole'));
 
@@ -29,7 +28,7 @@ export default function GLandingHero({ stats, visualReady = true }) {
       <div className="ka-hero-grid mx-auto grid max-w-[1440px] items-center gap-10 lg:grid-cols-[1.08fr_.92fr] lg:gap-8">
         <div className="ka-hero-copy text-center lg:text-left">
           <span className="ka-chip inline-flex items-center gap-2 px-3.5 py-1.5 text-[11px] font-bold tracking-wide">
-            <Shield className="h-3.5 w-3.5" /> KRIPTOAMAN · CRYPTO COMMAND CENTER
+            <span aria-hidden="true" className="inline-block h-2 w-2 rounded-full bg-sky-400 shadow-[0_0_12px_rgba(56,189,248,.55)]" /> KRIPTOAMAN · CRYPTO COMMAND CENTER
           </span>
           <p className="ka-hero-role mt-4 text-[11px] font-black uppercase tracking-[0.18em] ka-gold">LIVE PRODUCTION INTELLIGENCE</p>
           <h1 className="ka-sec-title mt-3 text-[34px] sm:text-5xl lg:text-[54px]">
@@ -52,10 +51,10 @@ export default function GLandingHero({ stats, visualReady = true }) {
 
           <div className="ka-hero-actions mt-7 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
             <Link to="/login" className="ka-btn-primary inline-flex items-center justify-center gap-2 px-6 text-sm sm:text-base">
-              Open Command Center <ArrowRight className="h-4 w-4" />
+              Open Command Center <span aria-hidden="true">→</span>
             </Link>
             <a href="https://explorer.kriptoaman.com" target="_blank" rel="noreferrer" className="ka-btn-outline ka-zvq-outline inline-flex items-center justify-center gap-2 px-6 text-sm sm:text-base">
-              Open ZEVARYQ Explorer <ExternalLink className="h-4 w-4" />
+              Open ZEVARYQ Explorer <span aria-hidden="true">↗</span>
             </a>
           </div>
         </div>
