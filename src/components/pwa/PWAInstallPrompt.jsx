@@ -20,6 +20,7 @@ export default function PWAInstallPrompt() {
   const [showAndroidChoices, setShowAndroidChoices] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [engaged, setEngaged] = useState(false);
   const { pathname } = useLocation();
   let isIos = false;
   let isAndroid = false;
@@ -63,7 +64,7 @@ export default function PWAInstallPrompt() {
   }, [pathname]);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 180);
+    const onScroll = () => setScrolled(window.scrollY > 96);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -95,12 +96,12 @@ export default function PWAInstallPrompt() {
         <div className="flex items-center overflow-hidden rounded-full border border-sky-300/30 bg-[#08233a]/95 text-white shadow-lg shadow-sky-950/40 backdrop-blur-md sm:rounded-2xl">
           <button
             type="button"
-            onClick={() => isAndroid ? setShowAndroidChoices(true) : install()}
-            className={`flex h-11 items-center justify-center text-xs font-bold hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 sm:h-auto sm:min-h-12 sm:w-auto sm:gap-2 sm:px-4 sm:py-3 sm:text-sm ${scrolled ? 'w-11' : 'w-auto gap-2 px-4'}`}
+            onClick={() => { setEngaged(true); isAndroid ? setShowAndroidChoices(true) : install(); }}
+            className={`flex h-11 items-center justify-center text-xs font-bold hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 sm:h-auto sm:min-h-12 sm:w-auto sm:gap-2 sm:px-4 sm:py-3 sm:text-sm ${scrolled || engaged ? 'w-11' : 'w-auto gap-2 px-4'}`}
             aria-label="Pasang aplikasi KriptoAman"
           >
             <Download className="h-4 w-4 shrink-0" />
-            <span className={`${scrolled ? 'sr-only' : 'whitespace-nowrap'} sm:not-sr-only sm:whitespace-nowrap`}>Pasang KriptoAman</span>
+            <span className={`${scrolled || engaged ? 'sr-only' : 'whitespace-nowrap'} sm:not-sr-only sm:whitespace-nowrap`}>Pasang KriptoAman</span>
           </button>
           <button
             type="button"
