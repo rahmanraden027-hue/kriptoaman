@@ -9,9 +9,9 @@ test('public landing promotes verified Live Block Flow instead of placeholder-he
     read('src/components/landing/PublicChainIntelligence.jsx'),
   ]);
   assert.match(page, /<GLandingHero stats=\{stats\} \/>/);
-  assert.match(page, /<LiveBlockFlow3D/);
-  assert.match(page, /compactLanding/);
-  assert.doesNotMatch(page, /<PublicChainIntelligence \/>/);
+  assert.match(page, /<GLandingDeferredContent stats=\\{stats\\} \\/>/);\n  assert.match(deferred, /<LiveBlockFlow3D/);
+  assert.match(deferred, /compactLanding/);
+  assert.doesNotMatch(page, /<PublicChainIntelligence \\/>/);\n  assert.doesNotMatch(deferred, /<PublicChainIntelligence \\/>/);
   assert.match(surface, /CHAIN INTELLIGENCE OS/);
   assert.match(surface, /Universal Intelligence Search/);
   assert.match(surface, /GENESIS RADAR/);
