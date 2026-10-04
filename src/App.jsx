@@ -30,7 +30,6 @@ import NativeConnectivityBanner from '@/components/mobile/NativeConnectivityBann
 import { LanguageProvider } from '@/lib/LanguageContext';
 import WorkspaceExperience from '@/components/workspace/WorkspaceExperience';
 import WorkspaceState from '@/components/workspace/WorkspaceState';
-import { Web3Provider } from '@/components/web3/Web3Provider';
 
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
@@ -46,7 +45,7 @@ const PairPassport = lazy(() => import('./pages/PairPassport'));
 const KAMResearchPaper = lazy(() => import('./pages/KAMResearchPaper'));
 const AdminRoute = lazy(() => import('@/components/security/AdminRoute'));
 const ProtectedRoute = lazy(() => import('@/components/ProtectedRoute'));
-const Web3Provider = lazy(() => import('@/components/web3/Web3Provider'));
+const Web3Provider = lazy(() => import('@/components/web3/Web3Provider').then((module) => ({ default: module.Web3Provider })));
 
 const FeatureUpdateBroadcast = lazy(() => import('./pages/FeatureUpdateBroadcast'));
 const AMLAssistant = lazy(() => import('./pages/AMLAssistant'));
