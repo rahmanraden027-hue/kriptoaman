@@ -3,6 +3,7 @@ import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import KriptoAmanGlobalLanding from './pages/KriptoAmanGlobalLanding';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt';
+import { LanguageProvider } from '@/lib/LanguageContext';
 
 const FullAppShell = lazy(() => import('./FullAppShell'));
 
@@ -10,7 +11,11 @@ function AppRouteGate() {
   const { pathname } = useLocation();
 
   if (pathname === '/') {
-    return <KriptoAmanGlobalLanding />;
+    return (
+      <LanguageProvider>
+        <KriptoAmanGlobalLanding />
+      </LanguageProvider>
+    );
   }
 
   return (
