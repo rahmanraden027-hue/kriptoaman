@@ -138,8 +138,8 @@ test('public landing uses the stable platform health contract for asset and netw
   assert.match(platform, /fabricatedMetrics: false/);
   assert.match(body, /Market Pulse/);
   assert.match(body, /assetCountValue/);
-  assert.match(body, /Jaringan Terverifikasi Live/);
-  assert.match(body, /Aktif · Live/);
+  assert.match(body, /NETWORK EVIDENCE/);
+  assert.match(body, /networks responding/);
   assert.doesNotMatch(body, /value: '2\.000\+'/);
 });
 
