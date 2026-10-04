@@ -7,7 +7,7 @@ const read = (path) => fs.readFileSync(path, 'utf8');
 test('login uses first-party email/password endpoint and protected dashboard', () => {
   const login = read('src/pages/Login.jsx');
   const auth = read('src/lib/kriptoAuth.js');
-  const app = read('src/App.jsx');
+  const app = read('src/FullAppShell.jsx');
   assert.match(login, /loginViaEmailPassword\(email, password\)/);
   assert.match(auth, /\/api\/auth\/login/);
   assert.match(app, /path="\/dashboard"/);
