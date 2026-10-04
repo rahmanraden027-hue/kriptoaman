@@ -82,6 +82,9 @@ jobs:
             const text = await response.text();
             bundleText += '\n' + text;
 
+            const remaining = required.filter((marker) => !bundleText.includes(marker));
+            if (remaining.length === 0) break;
+
             const refs = text.matchAll(/["'`]([^"'`\s]+\.js(?:\?[^"'`\s]*)?)["'`]/g);
             for (const match of refs) {
               try {
@@ -99,11 +102,13 @@ jobs:
             }
           }
 
-          if (visited.size >= MAX_CHUNKS && queue.length) {
-            throw new Error(`JavaScript chunk crawl exceeded safety limit of ${MAX_CHUNKS}`);
+          const missing = required.filter((text) => !bundleText.includes(text));
+          if (visited.size >= MAX_CHUNKS && queue.length && missing.length) {
+            throw new Error(
+              `JavaScript chunk crawl reached safety limit of ${MAX_CHUNKS} with missing markers: ${missing.join(' | ')}`
+            );
           }
 
-          const missing = required.filter((text) => !bundleText.includes(text));
           if (missing.length) {
             console.error(`Production presentation is stale. Missing: ${missing.join(' | ')}`);
             console.error(`Scanned same-origin JavaScript chunks: ${visited.size}`);
