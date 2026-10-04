@@ -4,12 +4,6 @@ import { Shield, ArrowRight, Activity, Database, ExternalLink, Blocks } from 'lu
 import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
 import { COIN_META } from '@/components/home/coinMeta';
 
-const PURPOSE = [
-  { key: 'APA', title: 'Crypto Intelligence OS', text: 'Mengubah data pasar dan blockchain menjadi intelligence yang dapat ditelusuri.' },
-  { key: 'UNTUK', title: 'Market · On-Chain · Risk', text: 'Memantau perubahan, memeriksa aktivitas, dan membaca risiko sebelum bertindak.' },
-  { key: 'MENGAPA', title: 'Evidence before action', text: 'Sinyal penting harus kembali ke sumber, waktu verifikasi, dan bukti.' },
-];
-
 const COINS = [
   { sym: 'BTC', sub: 'Bitcoin', logo: COIN_META.BTC?.logo, color: '#F7931A', className: 'ka-coin-btc' },
   { sym: 'ETH', sub: 'Ethereum', logo: COIN_META.ETH?.logo, color: '#627EEA', className: 'ka-coin-eth' },
@@ -45,20 +39,6 @@ function NetworkVisual() {
   );
 }
 
-function StreamItems({ items, hidden = false }) {
-  return (
-    <div className="ka-live-stream-set" aria-hidden={hidden || undefined}>
-      {items.map((item) => (
-        <div key={item.label} className="ka-live-stream-item">
-          <span>{item.label}</span>
-          <b>{item.value}</b>
-          <small>{item.meta}</small>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export default function GLandingHero({ stats }) {
   const assetCount = stats?.loading || !(Number(stats?.assetCount) > 0) ? '—' : Number(stats.assetCount).toLocaleString('id-ID');
   const networkCount = stats?.loading ? '—' : Number.isFinite(Number(stats?.networkActiveCount)) ? String(Number(stats.networkActiveCount)) : '—';
@@ -70,15 +50,8 @@ export default function GLandingHero({ stats }) {
   const verifiedAgeMs = Number.isFinite(verifiedAtMs) ? Math.max(0, Date.now() - verifiedAtMs) : NaN;
   const freshness = Number.isFinite(verifiedAgeMs) ? (verifiedAgeMs <= 5 * 60 * 1000 ? 'LIVE' : verifiedAgeMs <= 30 * 60 * 1000 ? 'RECENT' : 'STALE') : 'UNVERIFIED';
   const verifiedAtLabel = Number.isFinite(verifiedAtMs) ? new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date(verifiedAtMs)) : null;
-  const streamItems = [
-    { label: 'ASSETS', value: assetCount, meta: assetCount === '—' ? 'UNAVAILABLE' : 'MONITORED' },
-    { label: 'NETWORKS', value: networkCount, meta: networkCount === '—' ? 'UNAVAILABLE' : 'RESPONDING' },
-    { label: 'ZVQ HEAD', value: blockNumber, meta: blockNumber === '—' ? 'UNVERIFIED' : 'CHAIN 22028' },
-    { label: 'EVIDENCE', value: freshness, meta: verifiedAtLabel ? `VERIFIED ${verifiedAtLabel}` : 'WAITING FOR SOURCE' },
-  ];
-
   return (
-    <section id="beranda" className="ka-command-hero relative pt-28 pb-10 px-4 sm:px-6 overflow-hidden">
+    <section id="beranda" className="ka-command-hero relative pt-8 sm:pt-10 pb-8 px-4 sm:px-6 overflow-hidden">
       <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[760px] h-[760px] rounded-full blur-3xl pointer-events-none"
         style={{ background: 'radial-gradient(circle, rgba(37,99,235,0.14), transparent 62%)' }} />
       <div className="ka-hero-grid max-w-[1440px] mx-auto grid lg:grid-cols-[1.08fr_.92fr] gap-10 lg:gap-8 items-center">
@@ -95,14 +68,14 @@ export default function GLandingHero({ stats }) {
             Satu pusat kendali untuk market intelligence, ZEVARYQ live blocks, network operations, asset discovery, dan evidence verification. Data yang belum terverifikasi tetap gelap—bukan diisi angka buatan.
           </p>
 
-          <div className="ka-purpose-grid mt-6">
-            {PURPOSE.map((item) => (
-              <div key={item.key} className="ka-purpose-card">
-                <span>{item.key}</span>
-                <b>{item.title}</b>
-                <small>{item.text}</small>
-              </div>
-            ))}
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-[9px] font-black tracking-[.12em] ka-text2 lg:justify-start" aria-label="KriptoAman intelligence flow">
+            <span className="rounded-full border border-blue-400/15 bg-blue-500/[.05] px-3 py-1.5">MARKET</span>
+            <span className="ka-blue">→</span>
+            <span className="rounded-full border border-blue-400/15 bg-blue-500/[.05] px-3 py-1.5">ON-CHAIN</span>
+            <span className="ka-blue">→</span>
+            <span className="rounded-full border border-blue-400/15 bg-blue-500/[.05] px-3 py-1.5">RISK</span>
+            <span className="ka-gold">→</span>
+            <span className="rounded-full border border-amber-400/15 bg-amber-400/[.05] px-3 py-1.5 ka-gold">EVIDENCE</span>
           </div>
 
           <div className="ka-hero-actions mt-7 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
@@ -124,15 +97,8 @@ export default function GLandingHero({ stats }) {
             <span className={`ka-live-state ${isOperational ? 'is-online' : ''}`}><i />{stats?.loading ? 'Memeriksa' : isOperational ? 'Operasional' : 'Terbatas'}</span>
           </div>
 
-          <div className="ka-live-stream" aria-label="Live verified telemetry">
-            <div className="ka-live-stream-track">
-              <StreamItems items={streamItems} />
-              <StreamItems items={streamItems} hidden />
-            </div>
-          </div>
-
           <div className="ka-console-stage ka-core-stage">
-            <div className="ka-hero-visual relative mx-auto w-full max-w-[360px] aspect-square">
+            <div className="ka-hero-visual relative mx-auto w-full max-w-[320px] sm:max-w-[350px] aspect-square">
               <NetworkVisual />
               <div className="ka-core-horizon" aria-hidden="true" />
               <div className="ka-core-ring ring-a" aria-hidden="true" />
@@ -140,7 +106,7 @@ export default function GLandingHero({ stats }) {
               <div className="ka-core-ring ring-c" aria-hidden="true" />
               <div className="ka-hero-center absolute inset-0 flex items-center justify-center ka-glow-cyan rounded-full">
                 <div className="ka-hero-logo ka-glow-gold rounded-full">
-                  <KriptoAmanLogo size={116} showText={false} animate={false} />
+                  <KriptoAmanLogo size={104} showText={false} animate={false} />
                 </div>
               </div>
               {COINS.map((coin) => (
@@ -171,7 +137,7 @@ export default function GLandingHero({ stats }) {
           </div>
         </div>
       </div>
-      <p className="ka-text2 text-xs text-center mt-8 opacity-70">
+      <p className="ka-text2 text-[10px] text-center mt-5 opacity-70">
         Data live ditampilkan hanya ketika sumber berhasil diverifikasi. Informasi ini untuk pemantauan, riset, dan edukasi; bukan rekomendasi investasi.
       </p>
     </section>

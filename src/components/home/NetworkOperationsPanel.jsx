@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { Activity, Boxes, Database, Gauge, Network, Radio, ShieldCheck, TimerReset } from 'lucide-react';
 
 const fmt = (value, digits = 0) => Number.isFinite(Number(value))
@@ -55,7 +56,7 @@ function OpsCard({ icon: Icon, label, value, note, children, tone = 'cyan' }) {
   );
 }
 
-export default function NetworkOperationsPanel({ samples = [], evidence, live }) {
+export default function NetworkOperationsPanel({ samples = [], evidence, live, compact = false }) {
   const rpcHistory = samples.map((sample) => sample.rpcLatencyMs).filter(Number.isFinite);
   const blockTimeHistory = samples.map((sample) => sample.blockTimeSeconds).filter(Number.isFinite);
   const lagHistory = samples.map((sample) => sample.indexerLagBlocks).filter(Number.isFinite);
@@ -74,6 +75,73 @@ export default function NetworkOperationsPanel({ samples = [], evidence, live })
     : proposers?.available
       ? `Authoritative validator set unavailable. ${fmt(proposers.count)} recent proposer(s) observed across ${fmt(proposers.sampleBlocks)} blocks.`
       : 'Neither public QBFT validator-set evidence nor recent proposer evidence is available.';
+
+  if (compact) {
+    return (
+      <section id="network-operations" className="mt-4 overflow-hidden rounded-[24px] border border-violet-400/12 bg-[#050b17]/90 p-4 sm:p-5">
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <p className="text-[9px] font-black uppercase tracking-[.18em] text-violet-300">NETWORK OPERATIONS</p>
+              <span className={`rounded-full border px-2 py-1 text-[8px] font-black uppercase tracking-[.12em] ${live ? 'border-emerald-400/20 bg-emerald-400/10 text-emerald-300' : 'border-amber-400/20 bg-amber-400/10 text-amber-300'}`}>
+                {live ? 'LIVE EVIDENCE' : 'DEGRADED'}
+              </span>
+            </div>
+            <h3 className="mt-1 text-lg font-black sm:text-xl">Network Operations</h3>
+            <p className="mt-1 max-w-2xl text-[10px] leading-5 text-slate-400">Four production metrics only. Detailed validator, proposer and evidence diagnostics stay in System Status.</p>
+          </div>
+          <Link to="/SystemStatus" className="inline-flex min-h-9 items-center rounded-xl border border-violet-400/20 bg-violet-400/10 px-3 text-[9px] font-black uppercase tracking-[.1em] text-violet-200">
+            View Details →
+          </Link>
+        </div>
+
+        <div className="grid gap-2 grid-cols-2 xl:grid-cols-4">
+          <OpsCard
+            icon={Gauge}
+            label="RPC Latency"
+            value={rpcHistory.length ? `${fmt(rpcHistory[rpcHistory.length - 1])} ms` : 'UNAVAILABLE'}
+            note="Verified chain identity + head probe."
+          >
+            <Sparkline values={rpcHistory} suffix=" ms" />
+          </OpsCard>
+
+          <OpsCard
+            icon={TimerReset}
+            label="Block Time"
+            value={blockTimeHistory.length ? `${fmt(blockTimeHistory[blockTimeHistory.length - 1], 2)} s` : 'UNAVAILABLE'}
+            note="Observed recent block timestamps."
+            tone="violet"
+          >
+            <Sparkline values={blockTimeHistory} suffix=" s" tone="violet" />
+          </OpsCard>
+
+          <OpsCard
+            icon={Database}
+            label="Indexer Lag"
+            value={lagHistory.length ? `${fmt(lagHistory[lagHistory.length - 1])} block(s)` : 'UNAVAILABLE'}
+            note="RPC head minus Explorer indexed head."
+            tone={lagHistory.length && lagHistory[lagHistory.length - 1] === 0 ? 'emerald' : 'amber'}
+          >
+            <Sparkline values={lagHistory} tone={lagHistory.length && lagHistory[lagHistory.length - 1] === 0 ? 'emerald' : 'amber'} />
+          </OpsCard>
+
+          <OpsCard
+            icon={Network}
+            label="Peer Count"
+            value={peerCount?.available ? fmt(peerCount.count) : 'UNAVAILABLE'}
+            note={peerCount?.available ? 'Direct public net_peerCount evidence.' : 'Not exposed by public RPC.'}
+            tone={peerCount?.available ? 'emerald' : 'amber'}
+          />
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-white/[.06] pt-3 text-[8px] font-bold uppercase tracking-[.09em] text-slate-400">
+          <span>Sync · {sync?.available ? String(sync.status || 'unavailable').toUpperCase() : 'UNAVAILABLE'}</span>
+          <span>Evidence · FAIL-CLOSED</span>
+          <span>No synthetic metrics</span>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="mt-4 overflow-hidden rounded-[26px] border border-violet-400/12 bg-[#050b17]/90 p-4 sm:p-5">
