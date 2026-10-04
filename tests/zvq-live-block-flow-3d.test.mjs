@@ -50,3 +50,31 @@ test('LiveBlockFlow3D wires verified head data into NodePropagation3D', async ()
   assert.match(source, /indexerLag=\{indexerLag\}/);
   assert.match(source, /indexedHead=\{indexedHead\}/);
 });
+
+
+test('ZEVARYQ live block feed exposes optional network operations evidence fail-closed', async () => {
+  const source = await read('functions/api/zvq-live-blocks.js');
+  assert.match(source, /optionalRpc\('eth_syncing'\)/);
+  assert.match(source, /optionalRpc\('net_peerCount'\)/);
+  assert.match(source, /optionalRpc\('qbft_getValidatorsByBlockNumber'/);
+  assert.match(source, /optionalPeerCountIsNeverInferred: true/);
+  assert.match(source, /validatorSetIsShownOnlyWhenPublicQbftRpcReturnsIt: true/);
+  assert.match(source, /proposerEvidenceIsNotValidatorSetEvidence: true/);
+});
+
+test('NetworkOperationsPanel uses verified samples and never invents unsupported operations data', async () => {
+  const source = await read('src/components/home/NetworkOperationsPanel.jsx');
+  assert.match(source, /Rolling history is built only from successful first-party ZEVARYQ observations/);
+  assert.match(source, /Public net_peerCount is unavailable or intentionally not exposed/);
+  assert.match(source, /Authoritative validator set unavailable/);
+  assert.match(source, /not equivalent to the authoritative validator set/);
+  assert.match(source, /FAIL-CLOSED/);
+});
+
+test('LiveBlockFlow3D stores a bounded verified operations history and mounts NetworkOperationsPanel', async () => {
+  const source = await read('src/components/home/LiveBlockFlow3D.jsx');
+  assert.match(source, /import NetworkOperationsPanel from '\.\/NetworkOperationsPanel'/);
+  assert.match(source, /setHistory\(\(current\)/);
+  assert.match(source, /slice\(-24\)/);
+  assert.match(source, /evidence=\{payload\?\.networkEvidence\}/);
+});
