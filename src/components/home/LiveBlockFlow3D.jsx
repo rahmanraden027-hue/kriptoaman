@@ -48,7 +48,7 @@ function Cube({ block, index, latest, advanceKey }) {
   );
 }
 
-export default function LiveBlockFlow3D() {
+export default function LiveBlockFlow3D({ betweenBlockAndNode = null, compactLanding = false }) {
   const [payload, setPayload] = useState(null);
   const [error, setError] = useState(null);
   const [advanceKey, setAdvanceKey] = useState(0);
@@ -222,12 +222,14 @@ export default function LiveBlockFlow3D() {
         <div className="grid grid-cols-2 gap-2 xl:grid-cols-1">
           <Metric icon={Box} label="Current Block" value={Number.isFinite(Number(head)) ? `#${fmtNumber(head)}` : '—'} note={shortHash(payload?.head?.hash)} />
           <Metric icon={Clock3} label="Block Interval" value={Number.isFinite(blockTime) ? `${blockTime.toFixed(2)} s` : '—'} note="Observed recent block timestamps" />
-          <Metric icon={Zap} label="RPC Latency" value={Number.isFinite(rpcLatency) ? `${fmtNumber(rpcLatency)} ms` : '—'} note="Chain identity + head probe" />
-          <Metric icon={Database} label="Indexer Lag" value={Number.isFinite(Number(indexerLag)) ? `${fmtNumber(indexerLag)} blocks` : '—'} note={Number.isFinite(Number(indexedHead)) ? `Explorer #${fmtNumber(indexedHead)}` : 'Explorer evidence unavailable'} />
+          {!compactLanding && <Metric icon={Zap} label="RPC Latency" value={Number.isFinite(rpcLatency) ? `${fmtNumber(rpcLatency)} ms` : '—'} note="Chain identity + head probe" />}
+          {!compactLanding && <Metric icon={Database} label="Indexer Lag" value={Number.isFinite(Number(indexerLag)) ? `${fmtNumber(indexerLag)} blocks` : '—'} note={Number.isFinite(Number(indexedHead)) ? `Explorer #${fmtNumber(indexedHead)}` : 'Explorer evidence unavailable'} />}
           <Metric icon={Activity} label="Latest Transactions" value={latestBlock ? fmtNumber(latestBlock.txCount) : '—'} note="Transaction count in current block" />
           <Metric icon={ShieldCheck} label="Last Advance" value={lastAdvanceAt ? new Date(lastAdvanceAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—'} note="Changes only on verified head increase" />
         </div>
       </div>
+
+      {betweenBlockAndNode}
 
       <NodePropagation3D
         head={head}
@@ -243,6 +245,7 @@ export default function LiveBlockFlow3D() {
         samples={history}
         evidence={payload?.networkEvidence}
         live={live}
+        compact={compactLanding}
       />
 
       {error && (
