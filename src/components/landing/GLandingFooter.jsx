@@ -28,7 +28,7 @@ export default function GLandingFooter() {
         <div className="ka-footer-grid grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-7">
           <div className="col-span-2 lg:col-span-2">
             <div className="flex items-center gap-2">
-              <KriptoAmanLogo size={32} showText={false} animate={false} />
+              <KriptoAmanLogo size={32} showText={false} animate={false} src="/icons/kriptoaman-32.png" loading="lazy" fetchPriority="low" decoding="async" />
               <span className="font-extrabold tracking-[0.16em] text-sm uppercase"><span className="ka-text">KRIPTO</span><span className="ka-blue">AMAN</span></span>
             </div>
             <p className="text-sm ka-text2 mt-4 max-w-sm leading-6">Digital Asset Intelligence Platform untuk market intelligence, on-chain verification, security intelligence dan multi-chain monitoring.</p>
