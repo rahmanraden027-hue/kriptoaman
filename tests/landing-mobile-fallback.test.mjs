@@ -5,7 +5,7 @@ import test from 'node:test';
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('public landing has a responsive CSS safety net for mobile rendering', async () => {
-  const styles = await read('src/components/landing/GlobalLandingStyles.jsx');
+  const styles = await read('src/components/landing/global-landing.css');
   assert.match(styles, /\.ka-landing header nav\{display:none;/);
   assert.match(styles, /@media \(max-width:1279px\)/);
   assert.match(styles, /grid-template-columns:minmax\(0,1fr\)/);
@@ -16,7 +16,7 @@ test('public landing has a responsive CSS safety net for mobile rendering', asyn
 
 test('hero network, center logo and coin badges remain positioned without utility CSS', async () => {
   const [styles, hero, console] = await Promise.all([
-    read('src/components/landing/GlobalLandingStyles.jsx'),
+    read('src/components/landing/global-landing.css'),
     read('src/components/landing/GLandingHero.jsx'),
     read('src/components/landing/GLandingHeroConsole.jsx'),
   ]);
@@ -36,7 +36,7 @@ test('hero network, center logo and coin badges remain positioned without utilit
 });
 
 test('desktop landing keeps two-column hero while full navigation waits for wide desktop', async () => {
-  const styles = await read('src/components/landing/GlobalLandingStyles.jsx');
+  const styles = await read('src/components/landing/global-landing.css');
   assert.match(styles, /@media \(min-width:1024px\)/);
   assert.match(styles, /grid-template-columns:minmax\(0,1fr\) minmax\(0,1fr\)/);
   assert.match(styles, /@media \(min-width:1280px\)/);
