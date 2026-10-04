@@ -1,0 +1,76 @@
+name: ZVQ Live Block Flow Gate
+
+on:
+  pull_request:
+    paths:
+      - 'functions/api/zvq-live-blocks.js'
+      - 'src/components/home/LiveBlockFlow3D.jsx'
+      - 'src/pages/HomeV3.jsx'
+      - 'tests/zvq-live-block-flow-3d.test.mjs'
+      - '.github/workflows/zvq-live-block-flow-gate.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zvq-live-block-flow-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  live-readonly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify live ZEVARYQ head advances through the new feed
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { onRequestGet } from './functions/api/zvq-live-blocks.js';
+
+          async function snapshot(label) {
+            const response = await onRequestGet();
+            const payload = await response.json();
+            if (!response.ok) throw new Error(`${label}: HTTP ${response.status} ${payload?.code || 'unknown'}`);
+            if (payload?.status !== 'live') throw new Error(`${label}: feed not live`);
+            if (Number(payload?.chainId) !== 22028 || String(payload?.chainIdHex).toLowerCase() !== '0x560c') {
+              throw new Error(`${label}: chain identity mismatch`);
+            }
+            if (!Array.isArray(payload?.blocks) || payload.blocks.length < 2) {
+              throw new Error(`${label}: insufficient verified blocks`);
+            }
+            if (Number(payload.blocks[0]?.number) !== Number(payload.head?.number)) {
+              throw new Error(`${label}: block/head mismatch`);
+            }
+            if (payload?.truthPolicy?.syntheticBlocksAllowed !== false) {
+              throw new Error(`${label}: synthetic block policy invalid`);
+            }
+            if (payload?.truthPolicy?.propagationLatencyMeasured !== false) {
+              throw new Error(`${label}: propagation truth policy invalid`);
+            }
+            console.log(JSON.stringify({
+              label,
+              head: payload.head.number,
+              hash: payload.head.hash,
+              txCount: payload.metrics?.latestTxCount,
+              indexedHead: payload.metrics?.indexedHead,
+              indexerLagBlocks: payload.metrics?.indexerLagBlocks,
+              rpcIdentityLatencyMs: payload.metrics?.rpcIdentityLatencyMs,
+              checkedAt: payload.checkedAt,
+            }));
+            return payload;
+          }
+
+          const first = await snapshot('first');
+          await new Promise((resolve) => setTimeout(resolve, 8000));
+          const second = await snapshot('second');
+
+          if (Number(second.head.number) <= Number(first.head.number)) {
+            throw new Error(`ZEVARYQ head did not advance: ${first.head.number} -> ${second.head.number}`);
+          }
+          console.log(`live_block_flow_gate=PASS head=${first.head.number}->${second.head.number} delta=${second.head.number-first.head.number}`);
+          NODE
