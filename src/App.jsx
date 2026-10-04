@@ -8,21 +8,21 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import Login from '@/pages/Login';
-import Register from '@/pages/Register';
-import ForgotPassword from '@/pages/ForgotPassword';
-import ResetPassword from '@/pages/ResetPassword';
+
+
+
+
+
 import KriptoAmanGlobalLanding from './pages/KriptoAmanGlobalLanding';
-import EnglishLanding from './pages/EnglishLanding';
-import LegalCorporateInformation from './pages/LegalCorporateInformation';
-import Founder from './pages/Founder';
-import CompanyFacts from './pages/CompanyFacts';
-import Research from './pages/Research';
-import AssetPassport from './pages/AssetPassport';
-import PairPassport from './pages/PairPassport';
-import KAMResearchPaper from './pages/KAMResearchPaper';
-import AdminRoute from '@/components/security/AdminRoute';
+
+
+
+
+
+
+
+
+
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt';
 import PrimaryBottomNav from '@/components/mobile/PrimaryBottomNav';
@@ -31,6 +31,22 @@ import { LanguageProvider } from '@/lib/LanguageContext';
 import WorkspaceExperience from '@/components/workspace/WorkspaceExperience';
 import WorkspaceState from '@/components/workspace/WorkspaceState';
 import { Web3Provider } from '@/components/web3/Web3Provider';
+
+const Login = lazy(() => import('@/pages/Login'));
+const Register = lazy(() => import('@/pages/Register'));
+const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
+const EnglishLanding = lazy(() => import('./pages/EnglishLanding'));
+const LegalCorporateInformation = lazy(() => import('./pages/LegalCorporateInformation'));
+const Founder = lazy(() => import('./pages/Founder'));
+const CompanyFacts = lazy(() => import('./pages/CompanyFacts'));
+const Research = lazy(() => import('./pages/Research'));
+const AssetPassport = lazy(() => import('./pages/AssetPassport'));
+const PairPassport = lazy(() => import('./pages/PairPassport'));
+const KAMResearchPaper = lazy(() => import('./pages/KAMResearchPaper'));
+const AdminRoute = lazy(() => import('@/components/security/AdminRoute'));
+const ProtectedRoute = lazy(() => import('@/components/ProtectedRoute'));
+const Web3Provider = lazy(() => import('@/components/web3/Web3Provider'));
 
 const FeatureUpdateBroadcast = lazy(() => import('./pages/FeatureUpdateBroadcast'));
 const AMLAssistant = lazy(() => import('./pages/AMLAssistant'));
