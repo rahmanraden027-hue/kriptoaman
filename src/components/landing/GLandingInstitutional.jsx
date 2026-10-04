@@ -37,7 +37,7 @@ export default function GLandingInstitutional() {
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] ka-blue">Institutional Layer</p>
           <h2 className="ka-sec-title mt-3 text-2xl sm:text-3xl">Perusahaan, riset, dan transparansi dipisahkan dengan jelas.</h2>
           <p className="ka-text2 mt-3 text-sm leading-relaxed">
-            KriptoAman Production V2 menjaga pengalaman produk tetap fokus sambil menyediakan jalur terpisah untuk fakta perusahaan, penelitian, dan bukti operasional.
+            KriptoAman menjaga pengalaman produk tetap fokus sambil menyediakan jalur terpisah untuk fakta perusahaan, penelitian, dan bukti operasional.
           </p>
         </div>
 
