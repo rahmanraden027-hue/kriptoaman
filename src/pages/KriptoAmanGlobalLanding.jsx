@@ -4,6 +4,7 @@ import GLandingHeader from '@/components/landing/GLandingHeader';
 import GLandingHero from '@/components/landing/GLandingHero';
 import GLandingBody from '@/components/landing/GLandingBody';
 import PublicChainIntelligence from '@/components/landing/PublicChainIntelligence';
+import LandingMarketPulse from '@/components/landing/LandingMarketPulse';
 import GLandingInstitutional from '@/components/landing/GLandingInstitutional';
 import GLandingFooter from '@/components/landing/GLandingFooter';
 
@@ -180,11 +181,12 @@ export default function KriptoAmanGlobalLanding() {
   }, []);
 
   return (
-    <div data-ka-public-landing="ready" data-ka-production-version="2" className={`ka-landing min-h-screen ${dark ? '' : 'light'} overflow-x-hidden`}>
+    <div data-ka-public-landing="ready" data-ka-production-version="3.1" className={`ka-landing min-h-screen ${dark ? '' : 'light'} overflow-x-hidden`}>
       <GlobalLandingStyles />
       <GLandingHeader dark={dark} onToggleTheme={() => setDark((d) => !d)} active={active} />
       <main>
         <GLandingHero stats={stats} />
+        <LandingMarketPulse />
         <PublicChainIntelligence />
         <GLandingBody stats={stats} />
         <GLandingInstitutional />
