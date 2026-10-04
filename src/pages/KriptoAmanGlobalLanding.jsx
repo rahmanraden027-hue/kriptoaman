@@ -211,7 +211,8 @@ export default function KriptoAmanGlobalLanding() {
     const onHashChange = () => {
       if (window.location.hash) activate();
     };
-    const timer = window.setTimeout(activate, 1200);
+    const deferredDelayMs = window.matchMedia('(min-width: 768px)').matches ? 1200 : 3500;
+    const timer = window.setTimeout(activate, deferredDelayMs);
 
     if (window.location.hash) activate();
     window.addEventListener('hashchange', onHashChange);
