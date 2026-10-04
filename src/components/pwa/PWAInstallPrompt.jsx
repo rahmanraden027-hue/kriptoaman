@@ -19,6 +19,7 @@ export default function PWAInstallPrompt() {
   const [showIosHelp, setShowIosHelp] = useState(false);
   const [showAndroidChoices, setShowAndroidChoices] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const { pathname } = useLocation();
   let isIos = false;
   let isAndroid = false;
@@ -61,6 +62,13 @@ export default function PWAInstallPrompt() {
     setDismissed(false);
   }, [pathname]);
 
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 180);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   if (installed || dismissed || (!installEvent && !isIos && !isAndroid)) return null;
 
   const install = async () => {
@@ -88,11 +96,11 @@ export default function PWAInstallPrompt() {
           <button
             type="button"
             onClick={() => isAndroid ? setShowAndroidChoices(true) : install()}
-            className="flex h-11 w-11 items-center justify-center text-xs font-bold hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 sm:h-auto sm:min-h-12 sm:w-auto sm:gap-2 sm:px-4 sm:py-3 sm:text-sm"
+            className={`flex h-11 items-center justify-center text-xs font-bold hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 sm:h-auto sm:min-h-12 sm:w-auto sm:gap-2 sm:px-4 sm:py-3 sm:text-sm ${scrolled ? 'w-11' : 'w-auto gap-2 px-4'}`}
             aria-label="Pasang aplikasi KriptoAman"
           >
             <Download className="h-4 w-4 shrink-0" />
-            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Pasang KriptoAman</span>
+            <span className={`${scrolled ? 'sr-only' : 'whitespace-nowrap'} sm:not-sr-only sm:whitespace-nowrap`}>Pasang KriptoAman</span>
           </button>
           <button
             type="button"
