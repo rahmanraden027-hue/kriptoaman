@@ -87,3 +87,32 @@ jobs:
           docker ps -a --format '{{.Names}}|{{.Status}}|{{.Ports}}' | grep -E 'blockscout|backend|frontend|proxy|indexer|postgres|db' || true
 
 # diagnostic-probe: 2026-10-05 explorer-origin-readonly
+
+  recover-stopped-edge-services:
+    if: ${{ github.event_name == 'pull_request' && github.head_ref == 'diagnostic/zvq-public-proof-20261005' }}
+    needs: origin-tls-readonly
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 5
+    steps:
+      - name: Recover only stopped Blockscout edge dependencies
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          BASE=/opt/blockscout/docker-compose
+          cd "$BASE"
+          test "$(docker inspect -f '{{.State.Status}}' proxy 2>/dev/null)" = exited
+          test "$(docker inspect -f '{{.State.Status}}' redis-db 2>/dev/null)" = exited
+          docker compose up -d redis-db proxy
+          for i in $(seq 1 12); do
+            proxy_state="$(docker inspect -f '{{.State.Status}}' proxy 2>/dev/null || true)"
+            redis_state="$(docker inspect -f '{{.State.Status}}' redis-db 2>/dev/null || true)"
+            echo "attempt=$i proxy=$proxy_state redis=$redis_state"
+            if [[ "$proxy_state" == running && "$redis_state" == running ]]; then break; fi
+            sleep 5
+          done
+          test "$(docker inspect -f '{{.State.Status}}' proxy)" = running
+          test "$(docker inspect -f '{{.State.Status}}' redis-db)" = running
+          code="$(curl --noproxy '*' -kLsS --connect-timeout 3 --max-time 10 --resolve explorer.kriptoaman.com:443:127.0.0.1 -o /tmp/zvq-blocks.json -w '%{http_code}' https://explorer.kriptoaman.com/api/v2/blocks || true)"
+          echo "loopback_blocks_http=$code"
+          test "$code" = 200
+          jq -e '(.items|type=="array") and (.items|length>0)' /tmp/zvq-blocks.json >/dev/null
