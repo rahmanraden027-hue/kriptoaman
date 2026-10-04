@@ -31,3 +31,9 @@ test('institutional and footer expose phase 6 mobile hooks and production UI lab
   assert.match(footer, /ka-footer-grid/);
   assert.match(footer, /Production UI 1\.0/);
 });
+
+
+test('above-the-fold premium mark is preloaded before React hydration', async () => {
+  const html = await read('index.html');
+  assert.match(html, /rel="preload" as="image" href="\/brand\/kriptoaman-mark-premium\.webp" type="image\/webp" fetchpriority="high"/);
+});
