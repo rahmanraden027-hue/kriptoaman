@@ -27,13 +27,14 @@ test('PWA install prompt continues to use the router location contract', async (
   assert.match(source, /const \{ pathname \} = useLocation\(\)/);
 });
 
-test('PWA install prompt stays compact at the mobile safe-area edge', async () => {
+test('PWA install prompt stays compact above the mobile navigation safe area', async () => {
   const source = await read('src/components/pwa/PWAInstallPrompt.jsx');
 
   assert.match(source, /bottom-\[calc\(\.75rem\+env\(safe-area-inset-bottom,0px\)\)\]/);
   assert.match(source, /right-3/);
   assert.match(source, /data-install-cta="true"/);
-  assert.match(source, /sm:hidden[^>]*>Pasang</);
+  assert.match(source, /h-11 w-11/);
+  assert.match(source, /sr-only sm:not-sr-only/);
   assert.doesNotMatch(source, /left-1\/2[^\n]*-translate-x-1\/2/);
 });
 
