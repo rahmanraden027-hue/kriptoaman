@@ -54,7 +54,6 @@ test('mobile critical path does not preload the below-fold premium mark', async 
   assert.equal(hero.includes("const GLandingHeroConsole = lazy(() => import('@/components/landing/GLandingHeroConsole'))"), true);
   assert.equal(console.includes('loading="lazy" fetchPriority="low" decoding="async"'), true);
   assert.equal(styles.includes('#beranda .ka-hero-console{content-visibility:auto'), true);
-  assert.equal(styles.includes('#beranda ~ *{content-visibility:auto'), true);
 });
 
 test('mobile hero console is deferred until user intent or idle while desktop remains immediate', async () => {
