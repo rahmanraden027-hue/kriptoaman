@@ -9,10 +9,10 @@ const primaryNav = await readFile(new URL('../src/components/mobile/PrimaryBotto
 test('primary mobile bottom navigation remains fixed to five final tabs', () => {
   const expectedEntries = [
     "{ id: 'home', page: 'Home', icon: Home }",
-    "{ id: 'discover', page: 'Market', icon: Compass }",
+    "{ id: 'markets', page: 'Market', icon: BarChart3 }",
     "{ id: 'intelligence', page: 'IntelligenceHub', icon: BrainCircuit }",
-    "{ id: 'portfolio', page: 'PortfolioOverview', icon: BarChart3 }",
-    "{ id: 'more', page: 'Services', icon: MoreHorizontal }",
+    "{ id: 'onchain', page: 'ZEVARYQ', icon: ShieldCheck }",
+    "{ id: 'ecosystem', page: 'Services', icon: LayoutGrid }",
   ];
 
   const positions = expectedEntries.map((entry) => {
@@ -22,7 +22,7 @@ test('primary mobile bottom navigation remains fixed to five final tabs', () => 
   });
 
   assert.deepEqual(positions, [...positions].sort((a, b) => a - b));
-  assert.match(layout, /id: \{ home: 'Beranda', discover: 'Temukan', intelligence: 'Intelijen', portfolio: 'Portofolio', more: 'Lainnya' \}/);
+  assert.match(layout, /id: \{ home: 'Beranda', markets: 'Market', intelligence: 'Intelijen', onchain: 'On-Chain', ecosystem: 'Ekosistem' \}/);
   assert.match(layout, /BOTTOM_NAV\.map/);
 });
 
