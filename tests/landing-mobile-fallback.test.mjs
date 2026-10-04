@@ -15,16 +15,19 @@ test('public landing has a responsive CSS safety net for mobile rendering', asyn
 });
 
 test('hero network, center logo and coin badges remain positioned without utility CSS', async () => {
-  const [styles, hero] = await Promise.all([
+  const [styles, hero, console] = await Promise.all([
     read('src/components/landing/GlobalLandingStyles.jsx'),
     read('src/components/landing/GLandingHero.jsx'),
+    read('src/components/landing/GLandingHeroConsole.jsx'),
   ]);
-  assert.match(hero, /ka-hero-visual/);
-  assert.match(hero, /ka-hero-network/);
-  assert.match(hero, /ka-hero-center/);
-  assert.match(hero, /ka-hero-logo/);
-  assert.match(hero, /ka-coin-btc/);
-  assert.match(hero, /ka-coin-trx/);
+  assert.match(hero, /GLandingHeroConsole/);
+  assert.match(hero, /HeroConsolePlaceholder/);
+  assert.match(console, /ka-hero-visual/);
+  assert.match(console, /ka-hero-network/);
+  assert.match(console, /ka-hero-center/);
+  assert.match(console, /ka-hero-logo/);
+  assert.match(console, /ka-coin-btc/);
+  assert.match(console, /ka-coin-trx/);
   assert.match(styles, /\.ka-hero-network\{position:absolute;inset:0;width:100%;height:100%/);
   assert.match(styles, /\.ka-hero-center\{position:absolute;inset:0;display:flex/);
   assert.match(styles, /\.ka-coin-badge\{position:absolute!important;width:58px!important;height:58px!important/);
