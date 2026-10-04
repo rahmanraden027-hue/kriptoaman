@@ -5,7 +5,7 @@ import test from 'node:test';
 const pageUrl = new URL('../src/pages/AdminSKAMLaunch.jsx', import.meta.url);
 const builderUrl = new URL('../src/lib/skamToken2022Builder.js', import.meta.url);
 const pagesConfigUrl = new URL('../src/pages.config.js', import.meta.url);
-const appUrl = new URL('../src/App.jsx', import.meta.url);
+const appUrl = new URL('../src/FullAppShell.jsx', import.meta.url);
 
 const [page, builder, pagesConfig, app] = await Promise.all([
   readFile(pageUrl, 'utf8'),
