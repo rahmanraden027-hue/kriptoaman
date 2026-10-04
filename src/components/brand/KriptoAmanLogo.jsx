@@ -7,7 +7,7 @@ import React from 'react';
 const PREMIUM_GOLD = '#E7B438';
 const SILVER_WHITE = '#F5F8FC';
 
-export default function KriptoAmanLogo({ size = 32, showText = true, textSize = 'text-sm', animate = true, className = '' }) {
+export default function KriptoAmanLogo({ size = 32, showText = true, textSize = 'text-sm', animate = true, className = '', src = '/brand/kriptoaman-mark-premium.webp', loading = 'eager', fetchPriority = 'high', decoding = 'sync' }) {
   return (
     <div className={`flex items-center gap-2.5 select-none ${className}`}>
       <div
@@ -22,14 +22,14 @@ export default function KriptoAmanLogo({ size = 32, showText = true, textSize = 
           .animate-ka-luxury-glow { animation: ka-shield-glow 3.2s ease-in-out infinite; }
         `}</style>
         <img
-          src="/brand/kriptoaman-mark-premium.webp"
+          src={src}
           alt="KriptoAman"
           width={size}
           height={size}
           className="h-full w-full object-contain"
-          decoding="sync"
-          loading="eager"
-          fetchPriority="high"
+          decoding={decoding}
+          loading={loading}
+          fetchPriority={fetchPriority}
         />
       </div>
 
