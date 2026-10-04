@@ -81,8 +81,9 @@ test('below-fold production modules are code-split without breaking anchor acces
     read('src/components/landing/GLandingDeferredContent.jsx'),
   ]);
   assert.equal(landing.includes("const GLandingDeferredContent = lazy(() => import('@/components/landing/GLandingDeferredContent'))"), true);
-  assert.equal(landing.includes("import LiveBlockFlow3D from"), false);
-  assert.equal(landing.includes("const deferredDelayMs = window.matchMedia('(min-width: 768px)').matches ? 1200 : 3500"), true);\n  assert.equal(landing.includes("window.setTimeout(activate, deferredDelayMs)"), true);
+  assert.equal(landing.includes('import LiveBlockFlow3D from'), false);
+  assert.equal(landing.includes("const deferredDelayMs = window.matchMedia('(min-width: 768px)').matches ? 1200 : 3500"), true);
+  assert.equal(landing.includes('window.setTimeout(activate, deferredDelayMs)'), true);
   assert.equal(landing.includes("window.addEventListener('hashchange', onHashChange)"), true);
   assert.equal(landing.includes("scrollIntoView({ block: 'start' })"), true);
   assert.equal(deferred.includes('LiveBlockFlow3D'), true);
