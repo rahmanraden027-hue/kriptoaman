@@ -88,3 +88,5 @@ jobs:
           fi
           [[ "${{ steps.status_contract.outcome }}" == success ]]
           [[ "${{ steps.public_proof.outcome }}" == success ]]
+
+# diagnostic-probe: 2026-10-05 post-data-path-restart
