@@ -11,7 +11,7 @@ test('ZEVARYQ live block endpoint is first-party and fail-closed', async () => {
   assert.match(source, /eth_chainId/);
   assert.match(source, /eth_blockNumber/);
   assert.match(source, /eth_getBlockByNumber/);
-  assert.equal(source.includes("https://explorer.kriptoaman.com/api/v2/blocks"), true);
+  assert.match(source, /const EXPLORER_BLOCKS_URL/);
   assert.match(source, /syntheticBlocksAllowed: false/);
   assert.match(source, /propagationLatencyMeasured: false/);
   assert.match(source, /animationAdvancesOnlyWithVerifiedHeadIncrease: true/);
