@@ -151,8 +151,8 @@ public class Phase7DeviceVisualTest {
         while (SystemClock.elapsedRealtime() < deadline) {
             last = evaluate(instrumentation, webView,
                     "(()=>{" +
-                    "const f=document.querySelector('[data-phase7-visual=\\"live-block-flow\\"]');" +
-                    "const n=document.querySelector('[data-phase7-visual=\\"node-master\\"]');" +
+                    "const f=document.querySelector('[data-phase7-visual=\"live-block-flow\"]');" +
+                    "const n=document.querySelector('[data-phase7-visual=\"node-master\"]');" +
                     "const b=document.querySelector('.zvq-event-beam');" +
                     "const o=document.querySelector('.zvq-node-orbit');" +
                     "const bs=b?getComputedStyle(b):null;" +
