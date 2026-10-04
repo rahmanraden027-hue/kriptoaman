@@ -34,28 +34,28 @@ import { useLanguage } from './lib/LanguageContext';
 
 const BOTTOM_NAV = [
   { id: 'home', page: 'Home', icon: Home },
-  { id: 'discover', page: 'Market', icon: Compass },
+  { id: 'markets', page: 'Market', icon: BarChart3 },
   { id: 'intelligence', page: 'IntelligenceHub', icon: BrainCircuit },
-  { id: 'portfolio', page: 'PortfolioOverview', icon: BarChart3 },
-  { id: 'more', page: 'Services', icon: MoreHorizontal },
+  { id: 'onchain', page: 'ZEVARYQ', icon: ShieldCheck },
+  { id: 'ecosystem', page: 'Services', icon: LayoutGrid },
 ];
 
 const NAV_LABELS = {
-  id: { home: 'Beranda', discover: 'Temukan', intelligence: 'Intelijen', portfolio: 'Portofolio', more: 'Lainnya' },
-  en: { home: 'Home', discover: 'Discover', intelligence: 'Intelligence', portfolio: 'Portfolio', more: 'More' },
+  id: { home: 'Beranda', markets: 'Market', intelligence: 'Intelijen', onchain: 'On-Chain', ecosystem: 'Ekosistem' },
+  en: { home: 'Home', markets: 'Markets', intelligence: 'Intelligence', onchain: 'On-Chain', ecosystem: 'Ecosystem' },
 };
 
 const DESKTOP_NAV = [
   { id: 'home', page: 'Home', icon: Home, to: '/dashboard' },
-  { id: 'discover', page: 'Market', icon: Compass },
+  { id: 'markets', page: 'Market', icon: BarChart3 },
   { id: 'intelligence', page: 'IntelligenceHub', icon: BrainCircuit },
-  { id: 'portfolio', page: 'PortfolioOverview', icon: BarChart3 },
-  { id: 'more', page: 'Services', icon: MoreHorizontal },
+  { id: 'onchain', page: 'ZEVARYQ', icon: ShieldCheck },
+  { id: 'ecosystem', page: 'Services', icon: LayoutGrid },
 ];
 
 const DESKTOP_LABELS = {
-  id: { home: 'Beranda', discover: 'Temukan', intelligence: 'Intelijen', portfolio: 'Portofolio', more: 'Lainnya' },
-  en: { home: 'Home', discover: 'Discover', intelligence: 'Intelligence', portfolio: 'Portfolio', more: 'More' },
+  id: { home: 'Beranda', markets: 'Market', intelligence: 'Intelijen', onchain: 'On-Chain', ecosystem: 'Ekosistem' },
+  en: { home: 'Home', markets: 'Markets', intelligence: 'Intelligence', onchain: 'On-Chain', ecosystem: 'Ecosystem' },
 };
 
 const ADMIN_PRIMARY_NAV = [
