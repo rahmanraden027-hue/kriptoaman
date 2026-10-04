@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 const layout = await readFile(new URL('../src/Layout.jsx', import.meta.url), 'utf8');
-const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8');
+const app = await readFile(new URL('../src/FullAppShell.jsx', import.meta.url), 'utf8');
 const primaryNav = await readFile(new URL('../src/components/mobile/PrimaryBottomNav.jsx', import.meta.url), 'utf8');
 
 test('primary mobile bottom navigation remains fixed to five final tabs', () => {
