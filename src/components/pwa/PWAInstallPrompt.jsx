@@ -97,11 +97,11 @@ export default function PWAInstallPrompt() {
           <button
             type="button"
             onClick={() => { setEngaged(true); isAndroid ? setShowAndroidChoices(true) : install(); }}
-            className={`flex h-11 items-center justify-center text-xs font-bold hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 sm:h-auto sm:min-h-12 sm:w-auto sm:gap-2 sm:px-4 sm:py-3 sm:text-sm ${scrolled || engaged ? 'w-11' : 'w-auto gap-2 px-4'}`}
+            className={`flex h-11 items-center justify-center text-xs font-bold hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 sm:h-11 lg:h-auto lg:min-h-12 lg:py-3 lg:text-sm ${scrolled || engaged ? 'w-11 gap-0 px-0 sm:w-11 sm:gap-0 sm:px-0 lg:w-auto lg:gap-2 lg:px-4' : 'w-auto gap-2 px-4'}`}
             aria-label="Pasang aplikasi KriptoAman"
           >
             <Download className="h-4 w-4 shrink-0" />
-            <span className={`${scrolled || engaged ? 'sr-only' : 'whitespace-nowrap'} sm:not-sr-only sm:whitespace-nowrap`}>Pasang KriptoAman</span>
+            <span className={`${scrolled || engaged ? 'sr-only lg:not-sr-only lg:whitespace-nowrap' : 'whitespace-nowrap'}`}>Pasang KriptoAman</span>
           </button>
           <button
             type="button"
