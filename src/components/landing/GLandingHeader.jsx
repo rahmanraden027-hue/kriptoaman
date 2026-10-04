@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Sun, Moon, Globe, WalletCards, ExternalLink } from 'lucide-react';
 import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
 import { useLanguage } from '@/lib/LanguageContext';
 
@@ -47,20 +46,20 @@ export default function GLandingHeader({ dark, onToggleTheme, active = 'Platform
           ))}
           <Link to="/ZEVARYQ" className="ka-nav-link font-bold">ZEVARYQ</Link>
           <a href="https://explorer.kriptoaman.com/developer" target="_blank" rel="noreferrer" className="ka-nav-link inline-flex items-center gap-1">
-            Developers <ExternalLink className="h-3 w-3" />
+            Developers <span aria-hidden="true">↗</span>
           </a>
         </nav>
 
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <button onClick={onToggleTheme} aria-label="Ganti tema"
             className="hidden sm:flex w-8 h-8 rounded-lg items-center justify-center ka-card2">
-            {dark ? <Sun className="w-4 h-4 ka-gold" /> : <Moon className="w-4 h-4 ka-blue" />}
+            <span aria-hidden="true" className={dark ? "ka-gold text-sm" : "ka-blue text-sm"}>{dark ? "☀" : "◐"}</span>
           </button>
           <Link to="/en" onClick={() => setLanguage('en')} hrefLang="en" aria-label="Switch to English" className="hidden xl:flex items-center gap-1.5 h-8 px-3 rounded-lg ka-card2 text-xs font-bold ka-text2">
-            <Globe className="w-3.5 h-3.5" /> EN
+            <span aria-hidden="true">◎</span> EN
           </Link>
           <Link to="/wallet-app" className="hidden sm:inline-flex items-center justify-center gap-2 h-8 px-3 rounded-lg text-xs font-extrabold ka-wallet-cta">
-            <WalletCards className="w-3.5 h-3.5" /> ZEVARYQ Wallet
+            <span aria-hidden="true">◇</span> ZEVARYQ Wallet
           </Link>
           <Link to="/login"
             className="ka-btn-primary inline-flex items-center justify-center px-3 sm:px-4 h-8 text-xs sm:text-sm">
@@ -68,7 +67,7 @@ export default function GLandingHeader({ dark, onToggleTheme, active = 'Platform
           </Link>
           <button className="xl:hidden w-8 h-8 rounded-lg flex items-center justify-center ka-card2"
             onClick={() => setOpen((o) => !o)} aria-label="Menu">
-            {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            <span aria-hidden="true" className="text-lg leading-none">{open ? "×" : "☰"}</span>
           </button>
         </div>
       </div>
@@ -88,7 +87,7 @@ export default function GLandingHeader({ dark, onToggleTheme, active = 'Platform
             hrefLang="en"
             className="ka-nav-link px-3 py-2 rounded-lg text-sm inline-flex items-center gap-2"
           >
-            <Globe className="w-4 h-4" /> English
+            <span aria-hidden="true">◎</span> English
           </Link>
         </div>
       )}
