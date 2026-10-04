@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Shield, ArrowRight, Activity, Database, ExternalLink, Blocks } from 'lucide-react';
 import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
+import { COIN_META } from '@/components/home/coinMeta';
 
 const PURPOSE = [
   { key: 'APA', title: 'Crypto Intelligence OS', text: 'Mengubah data pasar dan blockchain menjadi intelligence yang dapat ditelusuri.' },
@@ -10,10 +11,10 @@ const PURPOSE = [
 ];
 
 const COINS = [
-  { sym: 'BTC', sub: 'Bitcoin', color: '#F7931A', className: 'ka-coin-btc' },
-  { sym: 'ETH', sub: 'Ethereum', color: '#627EEA', className: 'ka-coin-eth' },
-  { sym: 'SOL', sub: 'Solana', color: '#14F195', className: 'ka-coin-sol' },
-  { sym: 'ZVQ', sub: 'ZEVARYQ', color: '#F5B72E', className: 'ka-coin-trx' },
+  { sym: 'BTC', sub: 'Bitcoin', logo: COIN_META.BTC?.logo, color: '#F7931A', className: 'ka-coin-btc' },
+  { sym: 'ETH', sub: 'Ethereum', logo: COIN_META.ETH?.logo, color: '#627EEA', className: 'ka-coin-eth' },
+  { sym: 'SOL', sub: 'Solana', logo: COIN_META.SOL?.logo, color: '#14F195', className: 'ka-coin-sol' },
+  { sym: 'ZVQ', sub: 'ZEVARYQ', logo: '/brand/zevaryq-wallet-premium-icon.webp', color: '#F5B72E', className: 'ka-coin-trx' },
 ];
 
 function NetworkVisual() {
@@ -62,7 +63,7 @@ export default function GLandingHero({ stats }) {
   const assetCount = stats?.loading || !(Number(stats?.assetCount) > 0) ? '—' : Number(stats.assetCount).toLocaleString('id-ID');
   const networkCount = stats?.loading ? '—' : Number.isFinite(Number(stats?.networkActiveCount)) ? String(Number(stats.networkActiveCount)) : '—';
   const blockNumber = stats?.zvqBlockNumber != null && Number.isFinite(Number(stats.zvqBlockNumber)) ? Number(stats.zvqBlockNumber).toLocaleString('id-ID') : '—';
-  const isOperational = Boolean(stats?.marketAvailable);
+  const isOperational = Boolean(stats?.marketAvailable && blockNumber !== '—');
   const zvqTelemetry = blockNumber !== '—' ? [stats?.zvqSyncStatus ? String(stats.zvqSyncStatus).toUpperCase() : null, Number.isFinite(Number(stats?.zvqProbeDurationMs)) ? `RPC ${Number(stats.zvqProbeDurationMs).toLocaleString('id-ID')} ms` : null].filter(Boolean).join(' · ') : '';
   const verifiedAtRaw = stats?.zvqCheckedAt || stats?.networkCheckedAt || stats?.lastUpdated || null;
   const verifiedAtMs = verifiedAtRaw ? Date.parse(verifiedAtRaw) : NaN;
@@ -144,8 +145,9 @@ export default function GLandingHero({ stats }) {
               </div>
               {COINS.map((coin) => (
                 <div key={coin.sym} className={`ka-coin-badge ka-glow ${coin.className}`}>
-                  <span className="ka-coin-symbol" style={{ color: coin.color }}>{coin.sym}</span>
-                  <span className="ka-coin-name ka-text2">{coin.sub}</span>
+                  {coin.logo ? <img src={coin.logo} alt="" aria-hidden="true" className="h-6 w-6 rounded-full object-contain" loading="lazy" /> : null}
+                  <span className="ka-coin-symbol mt-0.5" style={{ color: coin.color }}>{coin.sym}</span>
+                  <span className="ka-coin-name ka-text2 sr-only">{coin.sub}</span>
                 </div>
               ))}
               <div className="ka-core-purpose">
@@ -165,7 +167,7 @@ export default function GLandingHero({ stats }) {
             <a href="https://explorer.kriptoaman.com" target="_blank" rel="noreferrer"><Shield /><span><b>22028</b>ZEVARYQ Mainnet</span></a>
           </div>
           <div className="border-t border-blue-400/10 px-4 py-2.5 text-center text-[9px] font-semibold tracking-[0.08em] ka-text2">
-            PROOF OF FRESHNESS · {freshness}{verifiedAtLabel ? ` · LAST VERIFIED ${verifiedAtLabel}` : ''}
+            PRODUCTION DATA PATH · {isOperational ? 'VERIFIED' : 'LIMITED'} · PROOF OF FRESHNESS {freshness}{verifiedAtLabel ? ` · LAST VERIFIED ${verifiedAtLabel}` : ''}
           </div>
         </div>
       </div>
