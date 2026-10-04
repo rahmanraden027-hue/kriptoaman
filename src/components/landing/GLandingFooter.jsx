@@ -25,7 +25,7 @@ export default function GLandingFooter() {
   return (
     <footer id="kontak" className="px-4 sm:px-6 pt-12 pb-8 border-t" style={{ borderColor: 'var(--ka-border)' }}>
       <div className="max-w-[1440px] mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-7">
+        <div className="ka-footer-grid grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-7">
           <div className="col-span-2 lg:col-span-2">
             <div className="flex items-center gap-2">
               <KriptoAmanLogo size={32} showText={false} animate={false} />
@@ -51,7 +51,7 @@ export default function GLandingFooter() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-6 pt-6 border-t" style={{ borderColor: 'var(--ka-border)' }}>
-          <p className="text-[11px] ka-text2">© 2026 KriptoAman · Production V2.</p>
+          <p className="text-[11px] ka-text2">© 2026 KriptoAman · Production UI 1.0.</p>
           <p className="text-[10px] tracking-[0.14em] ka-text2">KRIPTOAMAN = INTELLIGENCE · ZEVARYQ = INFRASTRUCTURE</p>
         </div>
       </div>
