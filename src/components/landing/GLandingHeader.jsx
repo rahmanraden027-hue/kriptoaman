@@ -32,9 +32,9 @@ export default function GLandingHeader({ dark, onToggleTheme, active = 'Platform
         borderBottom: scrolled ? '1px solid var(--ka-border)' : '1px solid transparent',
       }}
     >
-      <div className="max-w-[1440px] mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-4">
+      <div className="max-w-[1440px] mx-auto px-3 sm:px-6 h-14 flex items-center justify-between gap-2 sm:gap-4">
         <a href="#beranda" className="flex items-center gap-2 min-w-0 shrink">
-          <KriptoAmanLogo size={30} showText={false} animate={false} className="shrink-0" />
+          <KriptoAmanLogo size={28} showText={false} animate={false} className="shrink-0" />
           <span className="font-extrabold tracking-[0.12em] sm:tracking-[0.16em] text-xs sm:text-sm uppercase whitespace-nowrap">
             <span className="ka-text">KRIPTO</span><span className="ka-blue">AMAN</span>
           </span>
@@ -53,20 +53,20 @@ export default function GLandingHeader({ dark, onToggleTheme, active = 'Platform
 
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <button onClick={onToggleTheme} aria-label="Ganti tema"
-            className="hidden sm:flex w-9 h-9 rounded-lg items-center justify-center ka-card2">
+            className="hidden sm:flex w-8 h-8 rounded-lg items-center justify-center ka-card2">
             {dark ? <Sun className="w-4 h-4 ka-gold" /> : <Moon className="w-4 h-4 ka-blue" />}
           </button>
-          <Link to="/en" onClick={() => setLanguage('en')} hrefLang="en" aria-label="Switch to English" className="hidden xl:flex items-center gap-1.5 h-9 px-3 rounded-lg ka-card2 text-xs font-bold ka-text2">
+          <Link to="/en" onClick={() => setLanguage('en')} hrefLang="en" aria-label="Switch to English" className="hidden xl:flex items-center gap-1.5 h-8 px-3 rounded-lg ka-card2 text-xs font-bold ka-text2">
             <Globe className="w-3.5 h-3.5" /> EN
           </Link>
-          <Link to="/wallet-app" className="hidden sm:inline-flex items-center justify-center gap-2 h-9 px-3 rounded-lg text-xs font-extrabold ka-wallet-cta">
+          <Link to="/wallet-app" className="hidden sm:inline-flex items-center justify-center gap-2 h-8 px-3 rounded-lg text-xs font-extrabold ka-wallet-cta">
             <WalletCards className="w-3.5 h-3.5" /> ZEVARYQ Wallet
           </Link>
           <Link to="/login"
-            className="ka-btn-primary inline-flex items-center justify-center px-3 sm:px-4 h-9 text-xs sm:text-sm">
+            className="ka-btn-primary inline-flex items-center justify-center px-3 sm:px-4 h-8 text-xs sm:text-sm">
             Sign In
           </Link>
-          <button className="xl:hidden w-9 h-9 rounded-lg flex items-center justify-center ka-card2"
+          <button className="xl:hidden w-8 h-8 rounded-lg flex items-center justify-center ka-card2"
             onClick={() => setOpen((o) => !o)} aria-label="Menu">
             {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
