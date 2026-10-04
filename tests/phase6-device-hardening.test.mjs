@@ -53,6 +53,8 @@ test('mobile critical path does not preload the below-fold premium mark', async 
   assert.equal(header.includes('src="/icons/kriptoaman-32.png"'), true);
   assert.equal(hero.includes("const GLandingHeroConsole = lazy(() => import('@/components/landing/GLandingHeroConsole'))"), true);
   assert.equal(console.includes('src="/icons/kriptoaman-192.png" loading="lazy" fetchPriority="low" decoding="async"'), true);
+  const footer = await read('src/components/landing/GLandingFooter.jsx');
+  assert.equal(footer.includes('src="/icons/kriptoaman-32.png" loading="lazy" fetchPriority="low" decoding="async"'), true);
   assert.equal(styles.includes('#beranda .ka-hero-console{content-visibility:auto'), true);
 });
 
