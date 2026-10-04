@@ -106,7 +106,7 @@ export default function GLandingHero({ stats }) {
               <div className="ka-core-ring ring-c" aria-hidden="true" />
               <div className="ka-hero-center absolute inset-0 flex items-center justify-center ka-glow-cyan rounded-full">
                 <div className="ka-hero-logo ka-glow-gold rounded-full">
-                  <KriptoAmanLogo size={104} showText={false} animate={false} />
+                  <KriptoAmanLogo size={104} showText={false} animate={false} loading="lazy" fetchPriority="low" decoding="async" />
                 </div>
               </div>
               {COINS.map((coin) => (
