@@ -5,16 +5,17 @@ import test from 'node:test';
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('public and account entry screens use the official KriptoAman logo', async () => {
-  const [authLayout, landing, kyc, market, profile, logo] = await Promise.all([
+  const [authLayout, header, heroConsole, kyc, market, profile, logo] = await Promise.all([
     read('src/components/AuthLayout.jsx'),
-    read('src/components/landing/GLandingHero.jsx'),
+    read('src/components/landing/GLandingHeader.jsx'),
+    read('src/components/landing/GLandingHeroConsole.jsx'),
     read('src/pages/KYC.jsx'),
     read('src/pages/Market.jsx'),
     read('src/pages/Profile.jsx'),
     read('src/components/brand/KriptoAmanLogo.jsx'),
   ]);
 
-  for (const source of [authLayout, landing, kyc, market, profile]) {
+  for (const source of [authLayout, header, heroConsole, kyc, market, profile]) {
     assert.match(source, /KriptoAmanLogo/);
   }
   assert.match(authLayout, /Digital Asset Monitoring/);
