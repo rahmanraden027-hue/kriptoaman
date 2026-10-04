@@ -6,7 +6,7 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('private routes are protected and marked noindex', async () => {
   const [app, headers, robots] = await Promise.all([
-    read('src/App.jsx'),
+    read('src/FullAppShell.jsx'),
     read('public/_headers'),
     read('public/robots.txt'),
   ]);
