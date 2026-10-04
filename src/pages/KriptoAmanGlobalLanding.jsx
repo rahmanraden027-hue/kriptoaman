@@ -163,7 +163,7 @@ export default function KriptoAmanGlobalLanding() {
     const zvqHeadTimer = window.setInterval(refreshZvqHead, 12_000);
 
     const onScroll = () => {
-      const sections = ['beranda', 'fitur', 'keamanan', 'institutional'];
+      const sections = ['beranda', 'fitur', 'evidence-health', 'institutional'];
       const labels = ['Platform', 'Intelligence', 'Security', 'Company'];
       let cur = 'Platform';
       for (let i = 0; i < sections.length; i++) {
