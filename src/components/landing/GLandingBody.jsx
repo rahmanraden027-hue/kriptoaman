@@ -94,27 +94,19 @@ export default function GLandingBody({ stats }) {
             body="Production V2 memusatkan data pasar, verifikasi on-chain, dan keamanan dalam hierarki yang lebih sederhana sehingga informasi penting dapat ditemukan tanpa memenuhi layar."
           />
 
-          <div className="grid lg:grid-cols-3 gap-4 mt-8">
+          <div className="mt-6 flex gap-2 overflow-x-auto pb-1">
             {INTELLIGENCE_PILLARS.map((pillar) => {
               const Icon = pillar.icon;
               return (
-                <article key={pillar.title} className="ka-card ka-v2-intelligence-card p-6">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="grid h-11 w-11 place-items-center rounded-xl ka-card2">
-                      <Icon className="h-5 w-5 ka-blue" />
-                    </span>
-                    <span className="text-[9px] font-black tracking-[0.16em] ka-text2">{pillar.eyebrow}</span>
+                <div key={pillar.title} className="ka-card2 flex min-w-[210px] flex-1 items-center gap-3 px-4 py-3 lg:min-w-0">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl ka-card">
+                    <Icon className="h-4 w-4 ka-blue" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[9px] font-black tracking-[0.12em] ka-cyan">{pillar.eyebrow}</p>
+                    <p className="mt-1 truncate text-xs font-bold ka-text">{pillar.title}</p>
                   </div>
-                  <h3 className="mt-5 text-lg font-black ka-text">{pillar.title}</h3>
-                  <p className="mt-2 text-sm leading-6 ka-text2">{pillar.desc}</p>
-                  <div className="mt-5 space-y-2">
-                    {pillar.points.map((point) => (
-                      <div key={point} className="flex items-center gap-2 text-xs ka-text2">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[var(--ka-green)]" />{point}
-                      </div>
-                    ))}
-                  </div>
-                </article>
+                </div>
               );
             })}
           </div>
