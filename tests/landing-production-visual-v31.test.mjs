@@ -5,14 +5,19 @@ import { readFile } from 'node:fs/promises';
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('public landing v3.1 follows the compact production structure with market pulse between block flow and node master', async () => {
-  const [landing, deferred] = await Promise.all([\n    read('src/pages/KriptoAmanGlobalLanding.jsx'),\n    read('src/components/landing/GLandingDeferredContent.jsx'),\n  ]);
+  const [landing, deferred] = await Promise.all([
+    read('src/pages/KriptoAmanGlobalLanding.jsx'),
+    read('src/components/landing/GLandingDeferredContent.jsx'),
+  ]);
   assert.match(landing, /data-ka-production-version="3\.1"/);
   assert.match(landing, /<LandingLiveSystemStrip stats=\{stats\} \/>/);
   assert.match(landing, /<GLandingHero stats=\{stats\} \/>/);
-  assert.match(landing, /<GLandingDeferredContent stats=\\{stats\\} \\/>/);\n  assert.match(deferred, /<LiveBlockFlow3D/);
+  assert.match(landing, /<GLandingDeferredContent stats=\{stats\} \/>/);
+  assert.match(deferred, /<LiveBlockFlow3D/);
   assert.match(deferred, /compactLanding/);
-  assert.match(deferred, /betweenBlockAndNode=\\{<LandingMarketPulse \\/>\\}/);
-  assert.doesNotMatch(landing, /<PublicChainIntelligence \\/>/);\n  assert.doesNotMatch(deferred, /<PublicChainIntelligence \\/>/);
+  assert.match(deferred, /betweenBlockAndNode=\{<LandingMarketPulse \/>\}/);
+  assert.doesNotMatch(landing, /<PublicChainIntelligence \/>/);
+  assert.doesNotMatch(deferred, /<PublicChainIntelligence \/>/);
 });
 
 test('landing market pulse reads only KriptoAman-owned market API and fails closed', async () => {
