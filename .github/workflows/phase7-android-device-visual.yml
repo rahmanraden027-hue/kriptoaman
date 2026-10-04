@@ -1,0 +1,104 @@
+name: Phase 7 Android Device Visual Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/components/landing/GLandingHeader.jsx'
+      - 'src/components/landing/GLandingHero.jsx'
+      - 'src/components/landing/GLandingHeroConsole.jsx'
+      - 'src/components/landing/global-landing.css'
+      - 'src/components/pwa/PWAInstallPrompt.jsx'
+      - 'src/components/home/LiveBlockFlow3D.jsx'
+      - 'src/components/home/NodePropagation3D.jsx'
+      - 'android/**'
+      - '.github/scripts/phase7-android-device-visual.sh'
+      - '.github/workflows/phase7-android-device-visual.yml'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'capacitor.config.*'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'src/components/landing/GLandingHeader.jsx'
+      - 'src/components/landing/GLandingHero.jsx'
+      - 'src/components/landing/GLandingHeroConsole.jsx'
+      - 'src/components/landing/global-landing.css'
+      - 'src/components/pwa/PWAInstallPrompt.jsx'
+      - 'src/components/home/LiveBlockFlow3D.jsx'
+      - 'src/components/home/NodePropagation3D.jsx'
+      - '.github/scripts/phase7-android-device-visual.sh'
+      - '.github/workflows/phase7-android-device-visual.yml'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'capacitor.config.*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android-device-visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Install dependencies and sync Capacitor
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --legacy-peer-deps
+          npm run android:sync
+          chmod +x android/gradlew
+
+      - name: Verify production ZEVARYQ live-block feed before device run
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --max-time 20             https://kriptoaman.com/api/zvq-live-blocks             -o /tmp/zvq-live-blocks.json
+          node <<'NODE'
+          const p = require('/tmp/zvq-live-blocks.json');
+          if (p?.status !== 'live') throw new Error('ZEVARYQ live-block feed is not live');
+          if (Number(p?.chainId) !== 22028) throw new Error('Unexpected chainId');
+          if (String(p?.chainIdHex).toLowerCase() !== '0x560c') throw new Error('Unexpected chainIdHex');
+          if (!Number.isSafeInteger(Number(p?.head?.number))) throw new Error('Verified head missing');
+          console.log('PHASE7_DEVICE_PREFLIGHT=PASS head=' + p.head.number);
+          NODE
+
+      - name: Build Android platform debug + instrumentation APKs
+        working-directory: android
+        run: ./gradlew :app:assemblePlatformDebug :app:assemblePlatformDebugAndroidTest
+
+      - name: Run Android WebView visual gate at 390dp and 430dp
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: false
+          emulator-boot-timeout: 900
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot -memory 1536 -cores 2
+          script: bash .github/scripts/phase7-android-device-visual.sh
+
+      - name: Upload Android device visual evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: phase7-android-device-visual-evidence
+          path: device-evidence
+          retention-days: 30
+          if-no-files-found: warn
