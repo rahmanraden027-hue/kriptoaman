@@ -145,7 +145,7 @@ export default function GLandingBody({ stats }) {
         </div>
       </section>
 
-      <section className="px-4 sm:px-6 py-8">
+      <section id="evidence-health" className="px-4 sm:px-6 py-8">
         <div className="max-w-[1440px] mx-auto grid gap-3 lg:grid-cols-3">
           <Link to="/SystemStatus" className="ka-card2 p-4 flex items-center gap-3">
             <ShieldCheck className="h-5 w-5 ka-green shrink-0" />
