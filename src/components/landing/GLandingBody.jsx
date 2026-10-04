@@ -145,120 +145,29 @@ export default function GLandingBody({ stats }) {
         </div>
       </section>
 
-      <section className="px-4 sm:px-6 py-14">
-        <div className="max-w-[1440px] mx-auto">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <SectionHead
-              eyebrow="Network Intelligence"
-              title="Jaringan Terverifikasi Live"
-              body="Hanya jaringan yang berhasil merespons pemeriksaan publik terakhir yang diberi status live."
-            />
-            <a href="https://explorer.kriptoaman.com/developer" target="_blank" rel="noreferrer" className="text-sm font-bold ka-blue inline-flex items-center gap-2">Developer Center <ExternalLink className="h-4 w-4" /></a>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mt-8">
-            {featuredNetworks.length > 0 ? featuredNetworks.map((network) => (
-              <div key={network.name} className="ka-card2 px-4 py-3 text-xs font-semibold ka-text2 flex items-center gap-2">
-                <Network className="w-3.5 h-3.5 ka-blue" />
-                <span className="min-w-0 flex-1 truncate">{network.name}</span>
-                <span className="inline-flex items-center gap-1.5 text-[10px] ka-green"><i className="w-1.5 h-1.5 rounded-full bg-[var(--ka-green)]" />Aktif · Live</span>
-              </div>
-            )) : (
-              <div className="ka-card2 px-4 py-3 text-xs ka-text2">{stats.loading ? 'Memeriksa jaringan live…' : 'Verifikasi jaringan sedang diperbarui.'}</div>
-            )}
-          </div>
-          <p className="text-[11px] ka-text2 mt-4 opacity-70">
-            {networkChecked ? `Pemeriksaan terakhir: ${networkChecked}.` : 'Belum terverifikasi.'} Status provider dapat berubah dan tidak mengubah data tersimpan terakhir.
-          </p>
-        </div>
-      </section>
-
-      <section id="keamanan" className="px-4 sm:px-6 py-14">
-        <div className="max-w-[1440px] mx-auto">
-          <SectionHead
-            eyebrow="Security & Verification"
-            title="Verifikasi lebih dulu. Klaim setelah ada bukti."
-            body="Production V2 memisahkan data live, data terakhir yang pernah diverifikasi, kondisi terbatas, dan kondisi tidak tersedia."
-          />
-          <div className="grid md:grid-cols-3 gap-4 mt-8">
-            <div className="ka-card p-5"><Radar className="h-5 w-5 ka-blue" /><h3 className="mt-4 font-black ka-text">Source-aware</h3><p className="mt-2 text-xs leading-5 ka-text2">Data penting menyertakan sumber atau jalur verifikasi sehingga konteksnya dapat diperiksa.</p></div>
-            <div className="ka-card p-5"><ShieldCheck className="h-5 w-5 ka-green" /><h3 className="mt-4 font-black ka-text">Last verified state</h3><p className="mt-2 text-xs leading-5 ka-text2">Ketika data live terputus, antarmuka tidak menggantinya dengan estimasi tanpa label.</p></div>
-            <div className="ka-card p-5"><AlertTriangle className="h-5 w-5 ka-gold" /><h3 className="mt-4 font-black ka-text">Risk-aware</h3><p className="mt-2 text-xs leading-5 ka-text2">Sinyal risiko bersifat indikatif dan tidak ditampilkan sebagai jaminan keamanan atau hasil investasi.</p></div>
-          </div>
-        </div>
-      </section>
-
-      <section className="px-4 sm:px-6 py-14">
-        <div className="max-w-[1440px] mx-auto">
-          <SectionHead
-            eyebrow="One Ecosystem · Two Products"
-            title="KriptoAman Platform + ZEVARYQ Wallet"
-            body="Platform intelligence dan wallet dipisahkan agar masing-masing memiliki fokus yang jelas tanpa kehilangan koneksi ke ZEVARYQ Mainnet."
-          />
-          <div className="grid lg:grid-cols-2 gap-4 mt-8">
-            <Link to="/login" className="ka-card ka-product-card p-6 sm:p-8 block">
-              <div className="flex items-center justify-between gap-3"><span className="grid h-12 w-12 place-items-center rounded-2xl ka-card2"><Database className="h-6 w-6 ka-blue" /></span><span className="text-[10px] font-black tracking-[0.16em] ka-blue">KRIPTOAMAN PLATFORM</span></div>
-              <h3 className="mt-6 text-2xl font-black ka-text">Digital Asset Intelligence</h3>
-              <p className="mt-3 text-sm leading-6 ka-text2">Market intelligence, on-chain verification, security intelligence, research dan multi-chain monitoring dalam satu workspace.</p>
-              <span className="mt-6 inline-flex items-center gap-2 text-sm font-black ka-blue">Open Platform <ArrowRight className="h-4 w-4" /></span>
-            </Link>
-            <Link to="/wallet-app" className="ka-card ka-product-card ka-product-card-gold p-6 sm:p-8 block">
-              <div className="flex items-center justify-between gap-3"><span className="grid h-12 w-12 place-items-center rounded-2xl ka-card2"><WalletCards className="h-6 w-6 ka-gold" /></span><span className="text-[10px] font-black tracking-[0.16em] ka-gold">ZEVARYQ WALLET</span></div>
-              <h3 className="mt-6 text-2xl font-black ka-text">Native Gateway to ZEVARYQ</h3>
-              <p className="mt-3 text-sm leading-6 ka-text2">ZVQ Mainnet access, verified balances, assets, send/receive flows dan Explorer integration dalam aplikasi wallet terpisah.</p>
-              <span className="mt-6 inline-flex items-center gap-2 text-sm font-black ka-gold">Open ZEVARYQ Wallet <ArrowRight className="h-4 w-4" /></span>
-            </Link>
-          </div>
-          <div className="mt-4 ka-card2 p-4 flex flex-wrap items-center justify-between gap-3 text-xs ka-text2">
-            <span>Powered by ZEVARYQ Network Infrastructure</span>
-            <span className="font-black ka-gold">ZEVARYQ Mainnet · Chain ID 22028</span>
-          </div>
-        </div>
-      </section>
-
-      <section data-nosnippet="" className="px-4 sm:px-6 py-10">
-        <div className="max-w-[1440px] mx-auto ka-card p-5 sm:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <Cpu className="w-5 h-5 ka-blue" />
-              <div><h3 className="font-bold text-sm ka-text">Status Sistem</h3><p className="text-[10px] ka-text2">Production V2 verified data contract</p></div>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className={`w-2.5 h-2.5 rounded-full ${stats.loading ? 'bg-[var(--ka-blue)]' : systemOk ? 'bg-[var(--ka-green)]' : 'bg-[var(--ka-gold)]'}`} />
-              <span className="text-sm font-semibold">
-                {stats.loading ? <span className="ka-blue">Memeriksa data live</span> : systemOk ? <span className="ka-green">Operasional</span> : <span className="ka-gold">Layanan data terbatas</span>}
-              </span>
-              <span className="text-[11px] ka-text2">• {statusTimestampLabel}</span>
-            </div>
-          </div>
-          <p className="text-[11px] ka-text2 mt-3 opacity-75">
-            Market source: {stats?.marketSource || 'Belum terverifikasi'} · ZEVARYQ: {zvqChecked || 'Belum terverifikasi'}.
-          </p>
-        </div>
-      </section>
-
-      <section id="faq" className="px-4 sm:px-6 py-14">
-        <div className="max-w-[860px] mx-auto">
-          <SectionHead eyebrow="FAQ" title="Pertanyaan penting" center />
-          <div className="mt-8 flex flex-col gap-3">
-            {FAQS.map((f) => (
-              <details key={f.q} className="ka-card ka-faq p-4 group">
-                <summary className="flex items-center justify-between gap-3">
-                  <span className="font-semibold text-sm ka-text">{f.q}</span>
-                  <ChevronDown className="w-4 h-4 ka-text2 ka-faq-icon transition-transform" />
-                </summary>
-                <p className="text-xs ka-text2 mt-3 leading-relaxed">{f.a}</p>
-              </details>
-            ))}
-          </div>
+      <section className="px-4 sm:px-6 py-8">
+        <div className="max-w-[1440px] mx-auto grid gap-3 lg:grid-cols-3">
+          <Link to="/SystemStatus" className="ka-card2 p-4 flex items-center gap-3">
+            <ShieldCheck className="h-5 w-5 ka-green shrink-0" />
+            <div className="min-w-0"><p className="text-[10px] font-black tracking-[0.12em] ka-cyan">EVIDENCE HEALTH</p><p className="mt-1 text-sm font-black ka-text">{stats.loading ? 'Memeriksa data live' : systemOk ? 'Operational · verified sources' : 'Data services limited'}</p><p className="mt-1 text-[10px] ka-text2 truncate">{statusTimestampLabel}</p></div>
+          </Link>
+          <a href="https://explorer.kriptoaman.com/developer" target="_blank" rel="noreferrer" className="ka-card2 p-4 flex items-center gap-3">
+            <Network className="h-5 w-5 ka-blue shrink-0" />
+            <div><p className="text-[10px] font-black tracking-[0.12em] ka-cyan">NETWORK EVIDENCE</p><p className="mt-1 text-sm font-black ka-text">{networkCountValue} networks responding</p><p className="mt-1 text-[10px] ka-text2">Open verifiable network sources →</p></div>
+          </a>
+          <Link to="/wallet-app" className="ka-card2 p-4 flex items-center gap-3">
+            <WalletCards className="h-5 w-5 ka-gold shrink-0" />
+            <div><p className="text-[10px] font-black tracking-[0.12em] ka-cyan">ZEVARYQ GATEWAY</p><p className="mt-1 text-sm font-black ka-text">Wallet · Mainnet 22028</p><p className="mt-1 text-[10px] ka-text2">Separate execution gateway →</p></div>
+          </Link>
         </div>
       </section>
 
       <section className="px-4 sm:px-6 py-16">
         <div className="max-w-[1100px] mx-auto ka-card ka-glow-cyan p-8 sm:p-12 text-center relative overflow-hidden">
           <ShieldCheck className="w-8 h-8 ka-blue mx-auto" />
-          <p className="mt-4 text-[10px] font-black tracking-[0.18em] ka-cyan">KRIPTOAMAN PRODUCTION V2</p>
-          <h2 className="ka-sec-title text-2xl sm:text-3xl mt-2">Intelligence yang lebih fokus. Data yang tetap dapat diverifikasi.</h2>
-          <p className="ka-text2 text-sm mt-3 max-w-2xl mx-auto">Masuk ke workspace KriptoAman atau gunakan ZEVARYQ Wallet sebagai gateway terpisah ke ZEVARYQ Mainnet.</p>
+          <p className="mt-4 text-[10px] font-black tracking-[0.18em] ka-cyan">KRIPTOAMAN INTELLIGENCE OS</p>
+          <h2 className="ka-sec-title text-2xl sm:text-3xl mt-2">SEE → UNDERSTAND → VERIFY.</h2>
+          <p className="ka-text2 text-sm mt-3 max-w-2xl mx-auto">Data, signal, risk dan evidence dalam satu command center. Eksekusi wallet tetap dipisahkan melalui ZEVARYQ.</p>
           <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
             <Link to="/login" className="ka-btn-primary inline-flex items-center justify-center gap-2 px-6 text-sm">Open Intelligence Hub <ArrowRight className="w-4 h-4" /></Link>
             <Link to="/wallet-app" className="ka-btn-outline ka-zvq-outline inline-flex items-center justify-center gap-2 px-6 text-sm">ZEVARYQ Wallet <WalletCards className="w-4 h-4" /></Link>
