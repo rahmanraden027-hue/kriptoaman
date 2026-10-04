@@ -105,7 +105,7 @@ export default function NodePropagation3D({
             <span className={`rounded-full border px-2 py-1 text-[8px] font-black uppercase tracking-[.12em] ${statusClass}`}>{state.label}</span>
           </div>
           <h3 className="mt-1 text-lg font-black sm:text-xl">Block Event → Node Pulse → Explorer Index</h3>
-          <p className="mt-1 max-w-3xl text-[10px] leading-5 text-slate-500">
+          <p className="mt-1 max-w-3xl text-[10px] leading-5 text-slate-400">
             Node positions and propagation paths are illustrative. The pulse begins only when a verified ZEVARYQ block head advances; peer-to-peer hop timing and physical node location are not claimed or measured.
           </p>
         </div>
