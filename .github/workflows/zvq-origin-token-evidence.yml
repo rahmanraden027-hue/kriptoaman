@@ -85,6 +85,16 @@ jobs:
           docker compose ps -a || true
           echo "=== container health summary ==="
           docker ps -a --format '{{.Names}}|{{.Status}}|{{.Ports}}' | grep -E 'blockscout|backend|frontend|proxy|indexer|postgres|db' || true
+          echo "=== stopped container wiring ==="
+          for name in proxy redis-db; do
+            if docker inspect "$name" >/dev/null 2>&1; then
+              docker inspect "$name" --format '{{.Name}} restart={{json .HostConfig.RestartPolicy}} ports={{json .HostConfig.PortBindings}} networks={{range $k,$v := .NetworkSettings.Networks}}{{$k}}={{$v.IPAddress}} {{end}}'
+            fi
+          done
+          echo "=== host nginx upstreams ==="
+          (nginx -T 2>/dev/null || sudo -n nginx -T 2>/dev/null || true) | grep -E 'server_name[[:space:]]+explorer\\.kriptoaman\\.com|proxy_pass|upstream[[:space:]]' | head -120 || true
+          echo "=== listening sockets ==="
+          ss -H -ltnp 2>/dev/null | grep -E ':(443|80|8080|3000|4000|4001|7432|7433)[[:space:]]' || true
 
 # diagnostic-probe: 2026-10-05 explorer-origin-readonly
 
