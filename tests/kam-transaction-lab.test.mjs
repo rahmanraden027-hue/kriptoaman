@@ -7,7 +7,7 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 test('KAM Transaction Lab is registered as a public discoverable page', async () => {
   const [pages, app, network, sitemap] = await Promise.all([
     read('src/pages.config.js'),
-    read('src/App.jsx'),
+    read('src/FullAppShell.jsx'),
     read('src/pages/KAMNetwork.jsx'),
     read('public/sitemap.xml'),
   ]);
