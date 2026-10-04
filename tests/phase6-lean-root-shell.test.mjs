@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('public root uses a lean shell and defers provider-heavy application code', async () => {
+test('public root uses a lean shell, keeps landing language context, and defers provider-heavy application code', async () => {
   const [app, full] = await Promise.all([
     read('src/App.jsx'),
     read('src/FullAppShell.jsx'),
@@ -12,7 +12,10 @@ test('public root uses a lean shell and defers provider-heavy application code',
 
   assert.match(app, /const FullAppShell = lazy\(\(\) => import\('\.\/FullAppShell'\)\)/);
   assert.match(app, /if \(pathname === '\/'\)/);
-  assert.match(app, /return <KriptoAmanGlobalLanding \/>/);
+  assert.equal(app.includes("import { LanguageProvider } from '@/lib/LanguageContext';"), true);
+  assert.equal(app.includes('<LanguageProvider>'), true);
+  assert.equal(app.includes('<KriptoAmanGlobalLanding />'), true);
+  assert.equal(app.includes('</LanguageProvider>'), true);
   assert.match(app, /<AppRouteGate \/>/);
   assert.match(app, /<PWAInstallPrompt \/>/);
 
