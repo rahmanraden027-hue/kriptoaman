@@ -6,6 +6,7 @@ on:
       - 'functions/api/zvq-live-blocks.js'
       - 'src/components/home/LiveBlockFlow3D.jsx'
       - 'src/components/home/NodePropagation3D.jsx'
+      - 'src/components/home/NetworkOperationsPanel.jsx'
       - 'src/pages/HomeV3.jsx'
       - 'tests/zvq-live-block-flow-3d.test.mjs'
       - '.github/workflows/zvq-live-block-flow-gate.yml'
@@ -53,6 +54,26 @@ jobs:
             if (payload?.truthPolicy?.propagationLatencyMeasured !== false) {
               throw new Error(`${label}: propagation truth policy invalid`);
             }
+            if (payload?.truthPolicy?.optionalPeerCountIsNeverInferred !== true) {
+              throw new Error(`${label}: peer truth policy invalid`);
+            }
+            if (payload?.truthPolicy?.validatorSetIsShownOnlyWhenPublicQbftRpcReturnsIt !== true) {
+              throw new Error(`${label}: validator truth policy invalid`);
+            }
+            if (payload?.truthPolicy?.proposerEvidenceIsNotValidatorSetEvidence !== true) {
+              throw new Error(`${label}: proposer truth policy invalid`);
+            }
+            const peer = payload?.networkEvidence?.peerCount;
+            if (peer?.available === true && !Number.isSafeInteger(Number(peer.count))) {
+              throw new Error(`${label}: invalid peer count evidence`);
+            }
+            const validators = payload?.networkEvidence?.validatorSet;
+            if (validators?.available === true) {
+              if (!Number.isSafeInteger(Number(validators.count))) throw new Error(`${label}: invalid validator count`);
+              if (!Array.isArray(validators.addresses) || validators.addresses.length !== Number(validators.count)) {
+                throw new Error(`${label}: invalid validator address evidence`);
+              }
+            }
             console.log(JSON.stringify({
               label,
               head: payload.head.number,
@@ -61,6 +82,10 @@ jobs:
               indexedHead: payload.metrics?.indexedHead,
               indexerLagBlocks: payload.metrics?.indexerLagBlocks,
               rpcIdentityLatencyMs: payload.metrics?.rpcIdentityLatencyMs,
+              syncStatus: payload.networkEvidence?.sync?.status ?? 'unavailable',
+              peerCount: payload.networkEvidence?.peerCount?.available ? payload.networkEvidence.peerCount.count : 'unavailable',
+              validatorCount: payload.networkEvidence?.validatorSet?.available ? payload.networkEvidence.validatorSet.count : 'unavailable',
+              observedProposers: payload.networkEvidence?.observedProposers?.count ?? 0,
               checkedAt: payload.checkedAt,
             }));
             return payload;

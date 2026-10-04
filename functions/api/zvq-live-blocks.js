@@ -59,6 +59,25 @@ async function rpc(method, params = []) {
   }, RPC_TIMEOUT_MS);
 }
 
+async function optionalRpc(method, params = []) {
+  const startedAt = Date.now();
+  try {
+    return {
+      available: true,
+      result: await rpc(method, params),
+      latencyMs: Date.now() - startedAt,
+      reason: null,
+    };
+  } catch (error) {
+    return {
+      available: false,
+      result: null,
+      latencyMs: Date.now() - startedAt,
+      reason: error?.name === 'AbortError' ? 'timeout' : 'not-publicly-available',
+    };
+  }
+}
+
 async function explorerHead() {
   const startedAt = Date.now();
   try {
@@ -106,9 +125,12 @@ export async function onRequestGet() {
 
   try {
     const rpcStartedAt = Date.now();
-    const [chainIdHex, headHex] = await Promise.all([
+    const [chainIdHex, headHex, syncingProbe, peerProbe, validatorProbe] = await Promise.all([
       rpc('eth_chainId'),
       rpc('eth_blockNumber'),
+      optionalRpc('eth_syncing'),
+      optionalRpc('net_peerCount'),
+      optionalRpc('qbft_getValidatorsByBlockNumber', ['latest']),
     ]);
     const rpcIdentityLatencyMs = Date.now() - rpcStartedAt;
 
@@ -155,6 +177,22 @@ export async function onRequestGet() {
 
     const indexedHead = explorer.ok ? explorer.height : null;
     const indexerLagBlocks = indexedHead == null ? null : Math.max(0, head - indexedHead);
+    const observedProposers = [...new Set(blocks.map((block) => block.proposer).filter(Boolean))];
+
+    const peerCount = peerProbe.available ? hexToNumber(peerProbe.result) : null;
+    const validatorAddresses = validatorProbe.available && Array.isArray(validatorProbe.result)
+      ? validatorProbe.result.map(safeAddress).filter(Boolean)
+      : [];
+    const validatorSetAvailable = validatorProbe.available
+      && Array.isArray(validatorProbe.result)
+      && validatorAddresses.length === validatorProbe.result.length;
+    const syncStatus = syncingProbe.available
+      ? syncingProbe.result === false
+        ? 'synced'
+        : typeof syncingProbe.result === 'object' && syncingProbe.result !== null
+          ? 'syncing'
+          : 'unavailable'
+      : 'unavailable';
 
     return json({
       status: 'live',
@@ -178,6 +216,35 @@ export async function onRequestGet() {
         indexedHead,
         indexerLagBlocks,
       },
+      networkEvidence: {
+        sync: {
+          available: syncingProbe.available,
+          status: syncStatus,
+          latencyMs: syncingProbe.latencyMs,
+          reason: syncingProbe.available ? null : syncingProbe.reason,
+        },
+        peerCount: {
+          available: peerProbe.available && Number.isSafeInteger(peerCount),
+          count: Number.isSafeInteger(peerCount) ? peerCount : null,
+          latencyMs: peerProbe.latencyMs,
+          reason: peerProbe.available && Number.isSafeInteger(peerCount) ? null : peerProbe.reason || 'invalid-response',
+        },
+        validatorSet: {
+          available: validatorSetAvailable,
+          count: validatorSetAvailable ? validatorAddresses.length : null,
+          addresses: validatorSetAvailable ? validatorAddresses : [],
+          latencyMs: validatorProbe.latencyMs,
+          reason: validatorSetAvailable ? null : validatorProbe.reason || 'invalid-response',
+          evidenceType: validatorSetAvailable ? 'public-qbft-rpc' : 'unavailable',
+        },
+        observedProposers: {
+          available: observedProposers.length > 0,
+          count: observedProposers.length,
+          addresses: observedProposers,
+          sampleBlocks: blocks.length,
+          evidenceType: 'recent-public-blocks',
+        },
+      },
       provenance: {
         ownership: 'first-party',
         rpcEndpoint: 'rpc.kriptoaman.com',
@@ -190,6 +257,9 @@ export async function onRequestGet() {
         syntheticBlocksAllowed: false,
         propagationLatencyMeasured: false,
         indexerLagIsBlockHeightDifference: true,
+        optionalPeerCountIsNeverInferred: true,
+        validatorSetIsShownOnlyWhenPublicQbftRpcReturnsIt: true,
+        proposerEvidenceIsNotValidatorSetEvidence: true,
       },
       checkedAt: new Date().toISOString(),
       latencyMs: Date.now() - startedAt,
