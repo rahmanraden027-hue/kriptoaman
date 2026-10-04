@@ -142,8 +142,28 @@ export default function KriptoAmanGlobalLanding() {
       setStats(next);
     })();
 
+    const refreshZvqHead = async () => {
+      try {
+        const response = await fetch('/api/kam/network-status', { cache: 'no-store', headers: { Accept: 'application/json' } });
+        if (!response.ok) return;
+        const payload = await response.json();
+        const blockNumber = Number(payload?.blockNumber);
+        if (payload?.verified !== true || Number(payload?.chainId) !== 22028 || !Number.isFinite(blockNumber)) return;
+        setStats((current) => ({
+          ...current,
+          zvqBlockNumber: blockNumber,
+          zvqCheckedAt: payload.checkedAt || current.zvqCheckedAt,
+          zvqSyncStatus: payload.syncStatus || current.zvqSyncStatus,
+          zvqProbeDurationMs: Number.isFinite(Number(payload.probeDurationMs)) ? Number(payload.probeDurationMs) : current.zvqProbeDurationMs,
+        }));
+      } catch {
+        // Keep the last verified head; never replace unavailable evidence with a synthetic value.
+      }
+    };
+    const zvqHeadTimer = window.setInterval(refreshZvqHead, 12_000);
+
     const onScroll = () => {
-      const sections = ['beranda', 'fitur', 'keamanan', 'institutional'];
+      const sections = ['beranda', 'fitur', 'evidence-health', 'institutional'];
       const labels = ['Platform', 'Intelligence', 'Security', 'Company'];
       let cur = 'Platform';
       for (let i = 0; i < sections.length; i++) {
@@ -153,7 +173,10 @@ export default function KriptoAmanGlobalLanding() {
       setActive(cur);
     };
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    return () => {
+      window.clearInterval(zvqHeadTimer);
+      window.removeEventListener('scroll', onScroll);
+    };
   }, []);
 
   return (

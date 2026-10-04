@@ -65,13 +65,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        if: github.event_name == 'pull_request'
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Build pull-request candidate for viewport evidence
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --legacy-peer-deps
+          npm run build
+          nohup npx vite preview --host 127.0.0.1 --port 4173 > /tmp/ka-preview.log 2>&1 &
+          for attempt in 1 2 3 4 5 6; do
+            if curl --fail --silent --show-error http://127.0.0.1:4173/ -o /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/ka-preview.log || true
+          exit 1
       - name: Install Playwright CLI
         run: npx -y playwright@1.55.0 install --with-deps chromium
-      - name: Capture production viewport matrix
+      - name: Capture viewport matrix
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p viewport-evidence
+          target='https://kriptoaman.com/'
+          if [ '${{ github.event_name }}' = 'pull_request' ]; then
+            target='http://127.0.0.1:4173/'
+          fi
+          echo "Viewport target: $target"
           for width in 320 360 375 390 412 430 768 1024 1280 1440 1920; do
             height=1000
             if [ "$width" -ge 1024 ]; then height=1080; fi
@@ -79,13 +105,17 @@ jobs:
               --browser=chromium \
               --viewport-size="${width},${height}" \
               --full-page \
-              https://kriptoaman.com/ \
+              "$target" \
               "viewport-evidence/home-${width}.png"
           done
       - name: Basic WCAG 2 AA automated scan
         shell: bash
         run: |
           set -euo pipefail
+          target='https://kriptoaman.com/'
+          if [ '${{ github.event_name }}' = 'pull_request' ]; then
+            target='http://127.0.0.1:4173/'
+          fi
           cat > /tmp/pa11y.json <<'JSON'
           {
             "standard": "WCAG2AA",
@@ -99,7 +129,7 @@ jobs:
             }
           }
           JSON
-          npx -y pa11y@9.0.0 --config /tmp/pa11y.json --reporter json https://kriptoaman.com/ > viewport-evidence/pa11y-home.json
+          npx -y pa11y@9.0.0 --config /tmp/pa11y.json --reporter json "$target" > viewport-evidence/pa11y-home.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:

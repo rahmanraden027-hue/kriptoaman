@@ -44,7 +44,12 @@ test('final public hero presents the evidence-first intelligence identity', asyn
   assert.match(hero, /Lihat/);
   assert.match(hero, /Pahami/);
   assert.match(hero, /Verifikasi/);
-  assert.match(hero, /Global Intelligence Core/);
+  assert.match(hero, /Open Intelligence Core/);
+  assert.match(hero, /CRYPTO INTELLIGENCE OS/);
+  assert.match(hero, /APA/);
+  assert.match(hero, /UNTUK/);
+  assert.match(hero, /MENGAPA/);
+  assert.match(hero, /LIVE INTELLIGENCE GLOBE/);
   assert.match(hero, /PROOF OF FRESHNESS/);
   assert.match(hero, /assetCount/);
   assert.match(hero, /zvqBlockNumber/);
