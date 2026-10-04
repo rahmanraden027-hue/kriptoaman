@@ -33,7 +33,7 @@ export default function CommandCenterHeroVisual({ zvq, market, activeChains, pul
   const evidenceLive = pulse?.status === 'live' && Number(pulse?.chainId) === 22028;
 
   return (
-    <div className="relative min-h-[300px] overflow-hidden rounded-[28px] border border-sky-400/12 bg-[#04101c]/86 p-4 sm:min-h-[360px] sm:p-5">
+    <div className="relative overflow-hidden rounded-[28px] border border-sky-400/12 bg-[#04101c]/86 p-4 sm:p-5">
       <style>{`
         .ka-command-orbit{position:absolute;left:50%;top:42%;width:min(72vw,370px);height:min(30vw,148px);transform:translate(-50%,-50%) rotate(-15deg);border:1px solid rgba(56,189,248,.2);border-radius:50%;box-shadow:0 0 28px rgba(34,211,238,.08)}
         .ka-command-orbit.second{transform:translate(-50%,-50%) rotate(29deg);border-color:rgba(245,158,11,.2)}
@@ -72,7 +72,7 @@ export default function CommandCenterHeroVisual({ zvq, market, activeChains, pul
         {evidenceLive ? 'EVIDENCE LIVE' : 'EVIDENCE GATED'}
       </div>
 
-      <div className="absolute inset-x-4 bottom-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+      <div className="relative z-10 mt-[235px] grid grid-cols-2 gap-2 sm:mt-[245px] sm:grid-cols-3">
         <Metric icon={Activity} label="Block Head" value={verified && Number.isFinite(head) ? `#${fmt(head)}` : 'UNAVAILABLE'} note="Verified ZEVARYQ RPC" tone="emerald" />
         <Metric icon={Radio} label="Sync" value={verified ? String(zvq?.syncStatus || 'unknown').toUpperCase() : 'UNAVAILABLE'} note={verified && Number.isFinite(rpcLatency) ? `RPC probe ${fmt(rpcLatency)} ms` : 'Waiting for verified RPC'} tone={zvq?.syncStatus === 'synced' ? 'emerald' : 'amber'} />
         <Metric icon={Globe2} label="Active Chains" value={Number.isFinite(Number(activeChains)) ? fmt(activeChains) : 'UNAVAILABLE'} note="Current successful network probes" />
