@@ -181,7 +181,7 @@ export default function GlobalLandingStyles() {
       .ka-hero-role{text-shadow:0 0 24px rgba(245,183,46,.18)}
       .ka-purpose-grid{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}.ka-purpose-grid::-webkit-scrollbar{display:none}
       .ka-purpose-card{min-width:220px;flex:1;text-align:left;padding:12px 13px;border:1px solid rgba(59,130,246,.15);border-radius:12px;background:linear-gradient(145deg,rgba(5,18,34,.82),rgba(2,9,18,.92))}
-      .ka-purpose-card>span{display:block;color:var(--ka-blue);font-size:8px;font-weight:900;letter-spacing:.16em}.ka-purpose-card>b{display:block;margin-top:4px;color:var(--ka-text);font-size:11px}.ka-purpose-card>small{display:block;margin-top:4px;color:var(--ka-text2);font-size:9px;line-height:1.45}
+      .ka-purpose-card>span{display:block;color:var(--ka-blue);font-size:8px;font-weight:900;letter-spacing:.16em}.ka-purpose-card>b{display:block;margin-top:4px;color:var(--ka-text);font-size:12px;line-height:1.3}.ka-purpose-card>small{display:block;margin-top:5px;color:var(--ka-text2);font-size:10.5px;line-height:1.55}
       .ka-live-stream{overflow:hidden;border-bottom:1px solid rgba(59,130,246,.12);background:linear-gradient(90deg,rgba(37,99,235,.07),rgba(2,8,17,.9),rgba(245,183,46,.04));mask-image:linear-gradient(90deg,transparent 0,black 5%,black 95%,transparent 100%)}
       .ka-live-stream-track{display:flex;width:max-content;animation:kaTelemetryFlow 22s linear infinite}.ka-live-stream-set{display:flex;align-items:center;gap:0}
       .ka-live-stream-item{display:grid;grid-template-columns:auto auto auto;align-items:center;gap:7px;min-width:210px;padding:9px 14px;border-right:1px solid rgba(59,130,246,.10);white-space:nowrap}
