@@ -27,12 +27,14 @@ jobs:
           node <<'NODE'
           const base = 'https://kriptoaman.com';
           const required = [
-            'KRIPTOAMAN · GLOBAL CHAIN INTELLIGENCE',
-            'Blockchain bergerak setiap detik.',
-            'Lihat. Pahami. Verifikasi.',
-            'CRYPTO INTELLIGENCE OS',
-            'KRIPTOAMAN · LIVE INTELLIGENCE GLOBE',
-            'Open Intelligence Core'
+            'KRIPTOAMAN · CRYPTO COMMAND CENTER',
+            'Market bergerak. Blockchain bergerak.',
+            'KriptoAman membuktikannya.',
+            'LIVE PRODUCTION INTELLIGENCE',
+            'KRIPTOAMAN · PRODUCTION COMMAND CENTER',
+            'Open Command Center',
+            'Live Block Flow 3D',
+            'Network Operations Console'
           ];
 
           const home = await fetch(base + '/', {

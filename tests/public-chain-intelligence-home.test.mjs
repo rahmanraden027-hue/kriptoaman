@@ -3,12 +3,14 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('public landing exposes Chain Intelligence before account actions', async () => {
+test('public landing promotes verified Live Block Flow instead of placeholder-heavy Chain Intelligence', async () => {
   const [page, surface] = await Promise.all([
     read('src/pages/KriptoAmanGlobalLanding.jsx'),
     read('src/components/landing/PublicChainIntelligence.jsx'),
   ]);
-  assert.match(page, /<GLandingHero stats=\{stats\} \/>\s*<PublicChainIntelligence \/>/);
+  assert.match(page, /<GLandingHero stats=\{stats\} \/>/);
+  assert.match(page, /<LiveBlockFlow3D \/>/);
+  assert.doesNotMatch(page, /<PublicChainIntelligence \/>/);
   assert.match(surface, /CHAIN INTELLIGENCE OS/);
   assert.match(surface, /Universal Intelligence Search/);
   assert.match(surface, /GENESIS RADAR/);
@@ -39,17 +41,16 @@ test('public intelligence uses only first-party evidence-gated endpoints and fai
 
 test('final public hero presents the evidence-first intelligence identity', async () => {
   const hero = await read('src/components/landing/GLandingHero.jsx');
-  assert.match(hero, /GLOBAL CHAIN INTELLIGENCE/);
+  assert.match(hero, /CRYPTO COMMAND CENTER/);
   assert.match(hero, /ka-command-hero/);
-  assert.match(hero, /Lihat/);
-  assert.match(hero, /Pahami/);
-  assert.match(hero, /Verifikasi/);
-  assert.match(hero, /Open Intelligence Core/);
-  assert.match(hero, /CRYPTO INTELLIGENCE OS/);
+  assert.match(hero, /Market bergerak/);
+  assert.match(hero, /KriptoAman membuktikannya/);
+  assert.match(hero, /Open Command Center/);
+  assert.match(hero, /LIVE PRODUCTION INTELLIGENCE/);
   assert.match(hero, /APA/);
   assert.match(hero, /UNTUK/);
   assert.match(hero, /MENGAPA/);
-  assert.match(hero, /LIVE INTELLIGENCE GLOBE/);
+  assert.match(hero, /PRODUCTION COMMAND CENTER/);
   assert.match(hero, /PROOF OF FRESHNESS/);
   assert.match(hero, /assetCount/);
   assert.match(hero, /zvqBlockNumber/);

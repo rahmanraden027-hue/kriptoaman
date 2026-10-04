@@ -172,7 +172,7 @@ export default function LiveBlockFlow3D() {
             </span>
           </div>
           <h2 className="mt-1 text-xl font-black sm:text-2xl">Live Block Flow 3D</h2>
-          <p className="mt-1 max-w-2xl text-[10px] leading-5 text-slate-500">
+          <p className="mt-1 max-w-2xl text-[10px] leading-5 text-slate-400">
             The flow advances only when ZEVARYQ chain head increases. No synthetic blocks or invented propagation metrics are shown.
           </p>
         </div>

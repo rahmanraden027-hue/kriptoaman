@@ -84,15 +84,15 @@ export default function GLandingHero({ stats }) {
       <div className="ka-hero-grid max-w-[1440px] mx-auto grid lg:grid-cols-[1.08fr_.92fr] gap-10 lg:gap-8 items-center">
         <div className="ka-hero-copy text-center lg:text-left">
           <span className="ka-chip inline-flex items-center gap-2 px-3.5 py-1.5 text-[11px] font-bold tracking-wide">
-            <Shield className="w-3.5 h-3.5" /> KRIPTOAMAN · GLOBAL CHAIN INTELLIGENCE
+            <Shield className="w-3.5 h-3.5" /> KRIPTOAMAN · CRYPTO COMMAND CENTER
           </span>
-          <p className="ka-hero-role mt-4 text-[11px] font-black tracking-[0.18em] uppercase ka-gold">CRYPTO INTELLIGENCE OS</p>
+          <p className="ka-hero-role mt-4 text-[11px] font-black tracking-[0.18em] uppercase ka-gold">LIVE PRODUCTION INTELLIGENCE</p>
           <h1 className="ka-sec-title mt-3 text-[34px] sm:text-5xl lg:text-[54px]">
-            Blockchain bergerak setiap detik.<br />
-            <span className="ka-blue">Lihat. Pahami. Verifikasi.</span>
+            Market bergerak. Blockchain bergerak.<br />
+            <span className="ka-blue">KriptoAman membuktikannya.</span>
           </h1>
           <p className="ka-text2 mt-5 max-w-xl mx-auto lg:mx-0 text-sm sm:text-base leading-relaxed">
-            KriptoAman membantu pengguna memahami <b className="ka-text">apa yang sedang terjadi</b> di pasar kripto, <b className="ka-text">mengapa sinyal muncul</b>, dan <b className="ka-text">bukti apa yang mendukungnya</b> melalui market intelligence, on-chain verification, dan risk intelligence.
+            Satu pusat kendali untuk market intelligence, ZEVARYQ live blocks, network operations, asset discovery, dan evidence verification. Data yang belum terverifikasi tetap gelap—bukan diisi angka buatan.
           </p>
 
           <div className="ka-purpose-grid mt-6">
@@ -107,10 +107,10 @@ export default function GLandingHero({ stats }) {
 
           <div className="ka-hero-actions mt-7 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
             <Link to="/login" className="ka-btn-primary inline-flex items-center justify-center gap-2 px-6 text-sm sm:text-base">
-              Open Intelligence Core <ArrowRight className="w-4 h-4" />
+              Open Command Center <ArrowRight className="w-4 h-4" />
             </Link>
             <a href="https://explorer.kriptoaman.com" target="_blank" rel="noreferrer" className="ka-btn-outline ka-zvq-outline inline-flex items-center justify-center gap-2 px-6 text-sm sm:text-base">
-              Verify on ZEVARYQ <ExternalLink className="w-4 h-4" />
+              Open ZEVARYQ Explorer <ExternalLink className="w-4 h-4" />
             </a>
           </div>
         </div>
@@ -118,8 +118,8 @@ export default function GLandingHero({ stats }) {
         <div className="ka-hero-console relative mx-auto w-full max-w-[560px]" aria-label="KriptoAman Intelligence Core live status">
           <div className="ka-console-head">
             <div>
-              <span className="ka-console-kicker">KRIPTOAMAN · LIVE INTELLIGENCE GLOBE</span>
-              <strong>Market · On-Chain · Risk · Evidence</strong>
+              <span className="ka-console-kicker">KRIPTOAMAN · PRODUCTION COMMAND CENTER</span>
+              <strong>Market · ZEVARYQ · Network · Evidence</strong>
             </div>
             <span className={`ka-live-state ${isOperational ? 'is-online' : ''}`}><i />{stats?.loading ? 'Memeriksa' : isOperational ? 'Operasional' : 'Terbatas'}</span>
           </div>
@@ -155,7 +155,7 @@ export default function GLandingHero({ stats }) {
               </div>
               <div className="absolute left-1/2 top-1/2 z-[2] -translate-x-1/2 translate-y-[72px] text-center">
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-400/20 bg-blue-500/10 px-3 py-1 text-[9px] font-black tracking-[0.14em] text-blue-200">
-                  KRIPTOAMAN INTELLIGENCE CORE
+                  KRIPTOAMAN LIVE SYSTEM
                 </span>
               </div>
             </div>
