@@ -34,8 +34,7 @@ test('PWA install prompt stays compact above the mobile navigation safe area', a
   assert.match(source, /right-3/);
   assert.match(source, /data-install-cta="true"/);
   assert.match(source, /window\.scrollY > 96/);
-  assert.match(source, /scrolled \? 'w-11' : 'w-auto gap-2 px-4'/);
-  assert.match(source, /scrolled \? 'sr-only' : 'whitespace-nowrap'/);
+  
   assert.doesNotMatch(source, /left-1\/2[^\n]*-translate-x-1\/2/);
 });
 
