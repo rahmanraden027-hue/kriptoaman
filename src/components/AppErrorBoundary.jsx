@@ -29,12 +29,12 @@ function SafePublicLanding() {
         <h1 className="mt-6 text-3xl font-black tracking-tight"><span className="text-slate-100">Kripto</span><span className="text-amber-400">Aman</span></h1>
         <p className="mt-3 text-sm leading-6 text-slate-300">Crypto intelligence, digital asset monitoring, education, and security information.</p>
         <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <a href="/Market" className="min-h-12 rounded-xl bg-sky-600 px-5 py-3 font-bold">Pasar</a>
+          <a href="/Market" className="min-h-12 rounded-xl bg-sky-700 px-5 py-3 font-bold hover:bg-sky-600">Pasar</a>
           <a href="/KAM" className="min-h-12 rounded-xl border border-slate-700 bg-slate-900 px-5 py-3 font-bold">KAM Network</a>
           <a href="/SystemStatus" className="min-h-12 rounded-xl border border-slate-700 bg-slate-900 px-5 py-3 font-bold">Status Sistem</a>
           <a href="/login" className="min-h-12 rounded-xl border border-slate-700 bg-slate-900 px-5 py-3 font-bold">Masuk</a>
         </div>
-        <p className="mt-6 text-xs leading-5 text-slate-500">Mode akses aman aktif. Konten utama tetap tersedia sementara komponen aplikasi dipulihkan.</p>
+        <p className="mt-6 text-xs leading-5 text-slate-400">Mode akses aman aktif. Konten utama tetap tersedia sementara komponen aplikasi dipulihkan.</p>
       </section>
     </main>
   );
