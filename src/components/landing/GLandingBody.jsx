@@ -86,12 +86,12 @@ export default function GLandingBody({ stats }) {
 
   return (
     <>
-      <section id="fitur" className="px-4 sm:px-6 py-14">
+      <section id="fitur" className="px-4 sm:px-6 py-10">
         <div className="max-w-[1440px] mx-auto">
           <SectionHead
-            eyebrow="KriptoAman Intelligence"
-            title="Tiga lapisan intelligence. Satu pengalaman."
-            body="Production V2 memusatkan data pasar, verifikasi on-chain, dan keamanan dalam hierarki yang lebih sederhana sehingga informasi penting dapat ditemukan tanpa memenuhi layar."
+            eyebrow="KriptoAman Intelligence OS"
+            title="SEE → UNDERSTAND → VERIFY."
+            body="Satu bahasa intelligence KriptoAman: lihat perubahan, pahami sinyalnya, lalu telusuri bukti ke sumber."
           />
 
           <div className="mt-6 flex gap-2 overflow-x-auto pb-1">
