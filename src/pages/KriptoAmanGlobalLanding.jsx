@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import GlobalLandingStyles from '@/components/landing/GlobalLandingStyles';
 import GLandingHeader from '@/components/landing/GLandingHeader';
+import LandingLiveSystemStrip from '@/components/landing/LandingLiveSystemStrip';
 import GLandingHero from '@/components/landing/GLandingHero';
 import GLandingBody from '@/components/landing/GLandingBody';
 import LiveBlockFlow3D from '@/components/home/LiveBlockFlow3D';
@@ -185,13 +186,16 @@ export default function KriptoAmanGlobalLanding() {
       <GlobalLandingStyles />
       <GLandingHeader dark={dark} onToggleTheme={() => setDark((d) => !d)} active={active} />
       <main>
+        <LandingLiveSystemStrip stats={stats} />
         <GLandingHero stats={stats} />
         <section className="px-4 sm:px-6" aria-label="ZEVARYQ live command center">
           <div className="max-w-[1440px] mx-auto">
-            <LiveBlockFlow3D />
+            <LiveBlockFlow3D
+              compactLanding
+              betweenBlockAndNode={<LandingMarketPulse />}
+            />
           </div>
         </section>
-        <LandingMarketPulse />
         <GLandingBody stats={stats} />
         <GLandingInstitutional />
       </main>
