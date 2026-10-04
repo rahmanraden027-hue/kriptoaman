@@ -7,7 +7,7 @@ import { useLanguage } from '@/lib/LanguageContext';
 const LINKS = [
   { label: 'Platform', href: '#beranda' },
   { label: 'Intelligence', href: '#fitur' },
-  { label: 'Security', href: '#evidence-health' },
+  { label: 'Network', href: '#network-operations' },
   { label: 'Company', href: '#institutional' },
 ];
 
