@@ -57,7 +57,7 @@ export default function GLandingBody() {
               return (
                 <Link key={module.title} to={module.to} className="ka-card group flex min-h-[190px] flex-col p-5 transition-transform hover:-translate-y-0.5">
                   <span className="grid h-10 w-10 place-items-center rounded-xl ka-card2">
-                    <Icon className="h-4.5 w-4.5 ka-blue" />
+                    <Icon className="h-[18px] w-[18px] ka-blue" />
                   </span>
                   <p className="mt-5 text-[9px] font-black uppercase tracking-[.14em] ka-cyan">{module.eyebrow}</p>
                   <h3 className="mt-2 text-base font-black ka-text">{module.title}</h3>
