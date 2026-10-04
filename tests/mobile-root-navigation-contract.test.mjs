@@ -19,9 +19,9 @@ test('primary bottom navigation keeps approved routes and active-state behavior'
   const requiredRoutes = [
     ["Home", "/dashboard"],
     ["Market", "/Market"],
-    ["PortfolioOverview", "/PortfolioOverview"],
-    ["Wallet", "/Wallet"],
-    ["SecurityHub", "/SecurityHub"],
+    ["IntelligenceHub", "/IntelligenceHub"],
+    ["ZEVARYQ", "/ZEVARYQ"],
+    ["Services", "/Services"],
   ];
 
   for (const [page, route] of requiredRoutes) {
