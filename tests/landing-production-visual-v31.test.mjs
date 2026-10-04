@@ -4,10 +4,13 @@ import { readFile } from 'node:fs/promises';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('public landing v3.1 preserves chain intelligence before verified market pulse', async () => {
+test('public landing v3.1 mounts verified Live Block Flow before market pulse', async () => {
   const landing = await read('src/pages/KriptoAmanGlobalLanding.jsx');
   assert.match(landing, /data-ka-production-version="3\.1"/);
-  assert.match(landing, /<GLandingHero stats=\{stats\} \/>\s*<PublicChainIntelligence \/>\s*<LandingMarketPulse \/>/);
+    assert.match(landing, /<GLandingHero stats=\{stats\} \/>/);
+  assert.match(landing, /<LiveBlockFlow3D \/>/);
+  assert.match(landing, /<LandingMarketPulse \/>/);
+  assert.doesNotMatch(landing, /<PublicChainIntelligence \/>/);
 });
 
 test('landing market pulse reads only KriptoAman-owned market API and fails closed', async () => {
