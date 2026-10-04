@@ -241,6 +241,30 @@ export default function GlobalLandingStyles() {
       }
       @media(max-width:420px){.ka-intel-command{border-radius:20px;padding:14px!important}.ka-intel-engine{min-height:0}.ka-intel-shell{padding-left:10px!important;padding-right:10px!important}.ka-intel-proof>div.grid{grid-template-columns:1fr 1fr}.ka-network-globe{width:min(86vw,276px)}.ka-orbit-copy h3{font-size:20px}.ka-orbit-copy span{font-size:10px}.ka-pulse-bars{height:54px}.ka-radar,.ka-graph-map{height:118px!important}}
 
+      /* Phase 6 physical-device hardening: mobile readability, lower animation cost, no dense 3-column cards. */
+      @media(max-width:900px){
+        .ka-institutional-grid{grid-template-columns:1fr!important}
+        .ka-institutional-card{min-height:0!important;padding:18px!important}
+        .ka-footer-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:24px 18px!important}
+        .ka-footer-grid>div:first-child{grid-column:1/-1!important}
+      }
+      @media(max-width:620px){
+        /* Keep below-the-fold command visuals out of the initial mobile render budget. */
+        #beranda .ka-hero-console{content-visibility:auto;contain-intrinsic-size:auto 610px}
+        .ka-console-metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+        .ka-console-metrics>div,.ka-console-metrics>a{min-height:68px;padding:12px!important;border-right:1px solid var(--ka-border)!important;border-bottom:1px solid var(--ka-border)!important}
+        .ka-console-metrics>*:nth-child(2n){border-right:0!important}
+        .ka-console-metrics>*:nth-child(n+3){border-bottom:0!important}
+        .ka-console-metrics span{font-size:9px!important}
+        .ka-console-metrics b{font-size:14px!important}
+        .ka-command-hero .ka-net-line{animation-duration:45s}
+        .ka-command-hero .ka-network-points .ka-net-dot{animation-duration:4.2s}
+      }
+      @media(max-width:420px){
+        .ka-footer-grid{grid-template-columns:1fr 1fr!important}
+        .ka-footer-grid h4{margin-bottom:10px!important}
+      }
+
       @media (prefers-reduced-motion:reduce){
         .ka-landing *, .ka-landing *::before, .ka-landing *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;}
       }

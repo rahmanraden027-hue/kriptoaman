@@ -4,21 +4,35 @@ import test from 'node:test';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('root UI cleanup phase 5 preserves the final 12-layer production order', async () => {
-  const page = await read('src/pages/KriptoAmanGlobalLanding.jsx');
-  const order = [
+test('root UI cleanup phase 5 preserves the final production order across the deferred boundary', async () => {
+  const [page, deferred] = await Promise.all([
+    read('src/pages/KriptoAmanGlobalLanding.jsx'),
+    read('src/components/landing/GLandingDeferredContent.jsx'),
+  ]);
+
+  const pageOrder = [
     'LandingLiveSystemStrip',
     '<GLandingHero',
+    '<GLandingDeferredContent',
+    '<GLandingFooter',
+  ];
+  let previous = -1;
+  for (const token of pageOrder) {
+    const index = page.indexOf(token);
+    assert.ok(index > previous, `Expected ${token} after previous root production layer`);
+    previous = index;
+  }
+
+  const deferredOrder = [
     '<LiveBlockFlow3D',
     'betweenBlockAndNode={<LandingMarketPulse />}',
     '<GLandingBody',
     '<GLandingInstitutional',
-    '<GLandingFooter',
   ];
-  let previous = -1;
-  for (const token of order) {
-    const index = page.indexOf(token);
-    assert.ok(index > previous, `Expected ${token} after previous production layer`);
+  previous = -1;
+  for (const token of deferredOrder) {
+    const index = deferred.indexOf(token);
+    assert.ok(index > previous, `Expected ${token} after previous deferred production layer`);
     previous = index;
   }
 });

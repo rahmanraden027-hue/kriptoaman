@@ -1,17 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import GlobalLandingStyles from '@/components/landing/GlobalLandingStyles';
 import GLandingHeader from '@/components/landing/GLandingHeader';
 import LandingLiveSystemStrip from '@/components/landing/LandingLiveSystemStrip';
 import GLandingHero from '@/components/landing/GLandingHero';
-import GLandingBody from '@/components/landing/GLandingBody';
-import LiveBlockFlow3D from '@/components/home/LiveBlockFlow3D';
-import LandingMarketPulse from '@/components/landing/LandingMarketPulse';
-import GLandingInstitutional from '@/components/landing/GLandingInstitutional';
 import GLandingFooter from '@/components/landing/GLandingFooter';
+
+const GLandingDeferredContent = lazy(() => import('@/components/landing/GLandingDeferredContent'));
 
 export default function KriptoAmanGlobalLanding() {
   const [dark, setDark] = useState(true);
   const [active, setActive] = useState('Platform');
+  const [heroVisualReady, setHeroVisualReady] = useState(() => typeof window === 'undefined' || window.matchMedia('(min-width: 768px)').matches);
+  const [deferredReady, setDeferredReady] = useState(false);
+  const deferredTriggerRef = useRef(null);
   const [stats, setStats] = useState({
     loading: true,
     overall: 'unavailable',
@@ -181,23 +182,93 @@ export default function KriptoAmanGlobalLanding() {
     };
   }, []);
 
+  useEffect(() => {
+    if (heroVisualReady) return undefined;
+
+    const activate = () => setHeroVisualReady(true);
+    const onScroll = () => {
+      if (window.scrollY > 180) activate();
+    };
+    const onHashChange = () => {
+      if (window.location.hash) activate();
+    };
+    const timer = window.setTimeout(activate, 3000);
+
+    if (window.location.hash) activate();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('hashchange', onHashChange);
+
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('hashchange', onHashChange);
+    };
+  }, [heroVisualReady]);
+
+  useEffect(() => {
+    let observer = null;
+    const activate = () => setDeferredReady(true);
+    const onHashChange = () => {
+      if (window.location.hash) activate();
+    };
+    const deferredDelayMs = window.matchMedia('(min-width: 768px)').matches ? 1200 : 3500;
+    const timer = window.setTimeout(activate, deferredDelayMs);
+
+    if (window.location.hash) activate();
+    window.addEventListener('hashchange', onHashChange);
+
+    if ('IntersectionObserver' in window && deferredTriggerRef.current) {
+      observer = new window.IntersectionObserver(
+        (entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) {
+            activate();
+            observer?.disconnect();
+          }
+        },
+        { rootMargin: '320px 0px' },
+      );
+      observer.observe(deferredTriggerRef.current);
+    }
+
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('hashchange', onHashChange);
+      observer?.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!deferredReady || !window.location.hash) return undefined;
+    const timer = window.setTimeout(() => {
+      const targetId = decodeURIComponent(window.location.hash.slice(1));
+      document.getElementById(targetId)?.scrollIntoView({ block: 'start' });
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [deferredReady]);
+
   return (
     <div data-ka-public-landing="ready" data-ka-production-version="3.1" className={`ka-landing min-h-screen ${dark ? '' : 'light'} overflow-x-hidden`}>
       <GlobalLandingStyles />
       <GLandingHeader dark={dark} onToggleTheme={() => setDark((d) => !d)} active={active} />
       <main>
         <LandingLiveSystemStrip stats={stats} />
-        <GLandingHero stats={stats} />
-        <section className="px-4 sm:px-6" aria-label="ZEVARYQ live command center">
-          <div className="max-w-[1440px] mx-auto">
-            <LiveBlockFlow3D
-              compactLanding
-              betweenBlockAndNode={<LandingMarketPulse />}
-            />
-          </div>
-        </section>
-        <GLandingBody stats={stats} />
-        <GLandingInstitutional />
+        <GLandingHero stats={stats} visualReady={heroVisualReady} />
+        <div ref={deferredTriggerRef} className="h-px w-full" aria-hidden="true" />
+        {deferredReady ? (
+          <Suspense
+            fallback={
+              <section className="ka-deferred-placeholder px-4 sm:px-6" aria-label="Memuat modul intelligence">
+                <div className="mx-auto min-h-[240px] max-w-[1440px] rounded-[24px] border border-blue-400/10 bg-blue-500/[.02]" />
+              </section>
+            }
+          >
+            <GLandingDeferredContent stats={stats} />
+          </Suspense>
+        ) : (
+          <section className="ka-deferred-placeholder px-4 sm:px-6" aria-hidden="true">
+            <div className="mx-auto min-h-[240px] max-w-[1440px] rounded-[24px] border border-blue-400/10 bg-blue-500/[.02]" />
+          </section>
+        )}
       </main>
       <GLandingFooter />
     </div>

@@ -1,0 +1,111 @@
+name: Phase 6 Lab Performance
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/components/landing/**'
+      - 'src/components/pwa/PWAInstallPrompt.jsx'
+      - 'src/components/home/**'
+      - 'src/pages/KriptoAmanGlobalLanding.jsx'
+      - 'tests/phase6-device-hardening.test.mjs'
+      - '.github/workflows/phase6-lab-performance.yml'
+      - 'package.json'
+      - 'package-lock.json'
+
+permissions:
+  contents: read
+
+jobs:
+  lab-performance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Build production candidate and enforce bundle guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --legacy-peer-deps
+          npm run build
+          node scripts/release-budget.mjs
+          nohup npx vite preview --host 127.0.0.1 --port 4173 > /tmp/phase6-preview.log 2>&1 &
+          for attempt in 1 2 3 4 5 6 7 8; do
+            if curl --fail --silent --show-error http://127.0.0.1:4173/ -o /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/phase6-preview.log || true
+          exit 1
+
+      - name: Capture mobile and desktop Lighthouse lab reports
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p phase6-performance
+          npx -y lighthouse@12.2.1 http://127.0.0.1:4173/             --only-categories=performance             --chrome-flags="--headless --no-sandbox --disable-dev-shm-usage"             --output=json             --output-path=phase6-performance/mobile.json             --quiet
+          npx -y lighthouse@12.2.1 http://127.0.0.1:4173/             --preset=desktop             --only-categories=performance             --chrome-flags="--headless --no-sandbox --disable-dev-shm-usage"             --output=json             --output-path=phase6-performance/desktop.json             --quiet
+
+      - name: Enforce reviewed LCP and CLS targets
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const mobile = JSON.parse(fs.readFileSync('phase6-performance/mobile.json','utf8'));
+          const desktop = JSON.parse(fs.readFileSync('phase6-performance/desktop.json','utf8'));
+
+          function metric(report, id) {
+            const value = report?.audits?.[id]?.numericValue;
+            if (!Number.isFinite(value)) throw new Error(`Missing Lighthouse metric: ${id}`);
+            return value;
+          }
+
+          const results = {
+            mobile: {
+              lcpMs: metric(mobile, 'largest-contentful-paint'),
+              cls: metric(mobile, 'cumulative-layout-shift'),
+              score: Number(mobile?.categories?.performance?.score ?? 0),
+            },
+            desktop: {
+              lcpMs: metric(desktop, 'largest-contentful-paint'),
+              cls: metric(desktop, 'cumulative-layout-shift'),
+              score: Number(desktop?.categories?.performance?.score ?? 0),
+            },
+          };
+
+          console.log(JSON.stringify(results, null, 2));
+
+          const failures = [];
+          if (results.mobile.lcpMs > 2500) failures.push(`mobile LCP ${results.mobile.lcpMs.toFixed(0)}ms > 2500ms`);
+          if (results.mobile.cls > 0.10) failures.push(`mobile CLS ${results.mobile.cls.toFixed(3)} > 0.10`);
+          if (results.desktop.lcpMs > 2000) failures.push(`desktop LCP ${results.desktop.lcpMs.toFixed(0)}ms > 2000ms`);
+          if (results.desktop.cls > 0.10) failures.push(`desktop CLS ${results.desktop.cls.toFixed(3)} > 0.10`);
+
+          fs.writeFileSync('phase6-performance/summary.json', JSON.stringify({
+            ...results,
+            inp: {
+              measured: false,
+              reason: 'INP requires real interaction/RUM and is not claimed from this Lighthouse lab gate.'
+            },
+            failures,
+          }, null, 2));
+
+          if (failures.length) {
+            console.error('Phase 6 lab performance gate failed: ' + failures.join(' | '));
+            process.exit(2);
+          }
+          console.log('PHASE6_LAB_PERFORMANCE=PASS');
+          NODE
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase6-lab-performance-evidence
+          path: phase6-performance
+          retention-days: 30

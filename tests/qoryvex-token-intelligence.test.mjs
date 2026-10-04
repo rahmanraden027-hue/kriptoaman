@@ -54,7 +54,7 @@ test('QoryVEx Discovery is public and New Token Radar is surfaced on the crypto 
   const [market, config, app, page] = await Promise.all([
     read('src/pages/MarketGlobal.jsx'),
     read('src/pages.config.js'),
-    read('src/App.jsx'),
+    read('src/FullAppShell.jsx'),
     read('src/pages/QoryVExDiscovery.jsx'),
   ]);
   assert.match(market, /NewTokenRadar/);

@@ -41,11 +41,11 @@ export default function GLandingInstitutional() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-4 mt-8">
+        <div className="ka-institutional-grid grid gap-4 mt-8 md:grid-cols-3">
           {ITEMS.map((item) => {
             const Icon = item.icon;
             return (
-              <Link key={item.title} to={item.to} className="ka-card p-6 flex flex-col min-h-[220px] hover:-translate-y-0.5 transition-transform">
+              <Link key={item.title} to={item.to} className="ka-card p-6 flex flex-col min-h-[220px] hover:-translate-y-0.5 transition-transform ka-institutional-card">
                 <div className="w-11 h-11 rounded-xl ka-card2 flex items-center justify-center">
                   <Icon className="w-5 h-5 ka-blue" />
                 </div>

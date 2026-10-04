@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises';
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('public international and status routes remain exposed', async () => {
-  const app = await read('src/App.jsx');
+  const app = await read('src/FullAppShell.jsx');
   assert.match(app, /path="\/en"/);
   assert.match(app, /path="\/SystemStatus"/);
   assert.match(app, /path="\/register"/);

@@ -11,7 +11,7 @@ test('Android builds KriptoAman Platform and ZEVARYQ Wallet as separate applicat
     read('android/app/src/wallet/res/values/strings.xml'),
     read('android/app/src/platform/assets/capacitor.config.json').then(JSON.parse),
     read('android/app/src/wallet/assets/capacitor.config.json').then(JSON.parse),
-    read('src/App.jsx'),
+    read('src/FullAppShell.jsx'),
   ]);
 
   assert.match(gradle, /flavorDimensions\s+"product"/);
@@ -41,9 +41,9 @@ test('wallet flavor stays non-custodial at the application split boundary', asyn
 
 
 test('standalone ZEVARYQ wallet route has a live Web3 provider', async () => {
-  const app = await read('src/App.jsx');
+  const app = await read('src/FullAppShell.jsx');
   const provider = await read('src/components/web3/Web3Provider.jsx');
-  assert.match(app, /import \{ Web3Provider \} from '@\/components\/web3\/Web3Provider';/);
+  assert.match(app, /const Web3Provider = lazy\(\(\) => import\('@\/components\/web3\/Web3Provider'\)\.then\(\(module\) => \(\{ default: module\.Web3Provider \}\)\)\);/);
   assert.match(app, /path="\/wallet-app"[\s\S]*<Web3Provider><WalletStandalonePage \/><\/Web3Provider>/);
   assert.match(provider, /connectWalletConnect/);
   assert.match(provider, /walletConnectConfigured/);

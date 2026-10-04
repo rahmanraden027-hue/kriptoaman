@@ -6,7 +6,7 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('KAM global roadmap is registered as a public page', async () => {
   const pages = await read('src/pages.config.js');
-  const app = await read('src/App.jsx');
+  const app = await read('src/FullAppShell.jsx');
   assert.match(pages, /'KAMGlobalRoadmap'/);
   assert.match(app, /'KAMGlobalRoadmap'/);
   assert.match(app, /href="\/KAMGlobalRoadmap"/);

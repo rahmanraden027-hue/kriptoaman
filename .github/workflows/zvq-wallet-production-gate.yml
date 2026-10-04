@@ -31,7 +31,7 @@ jobs:
           const provider = await readFile('src/components/web3/Web3Provider.jsx','utf8');
           const network = await readFile('src/services/zevaryqNetwork.js','utf8');
           const pair = await readFile('src/pages/PairPassport.jsx','utf8');
-          const app = await readFile('src/App.jsx','utf8');
+          const app = await readFile('src/FullAppShell.jsx','utf8');
           assert.match(app, /path="\/wallet-app"/);
           assert.match(app, /<Web3Provider><WalletStandalonePage/);
           assert.match(provider, /VITE_ZEVARYQ_TRANSACTIONS_ENABLED !== 'true'/);
