@@ -14,7 +14,7 @@ test('physical-device install prompt collapses instead of covering mobile conten
 });
 
 test('physical-device landing forces readable hero metrics and institutional cards', async () => {
-  const styles = await read('src/components/landing/GlobalLandingStyles.jsx');
+  const styles = await read('src/components/landing/global-landing.css');
   assert.match(styles, /\.ka-institutional-grid\{grid-template-columns:1fr!important\}/);
   assert.match(styles, /\.ka-console-metrics\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)!important\}/);
   assert.match(styles, /\.ka-footer-grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)!important/);
@@ -46,7 +46,7 @@ test('mobile critical path does not preload the below-fold premium mark', async 
     read('src/components/landing/GLandingHeader.jsx'),
     read('src/components/landing/GLandingHero.jsx'),
     read('src/components/landing/GLandingHeroConsole.jsx'),
-    read('src/components/landing/GlobalLandingStyles.jsx'),
+    read('src/components/landing/global-landing.css'),
   ]);
   assert.equal(html.includes('rel="preload" as="image" href="/brand/kriptoaman-mark-premium.webp"'), false);
   assert.equal(html.includes('\\n    <meta name="theme-color"'), false);
