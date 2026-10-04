@@ -37,3 +37,10 @@ test('above-the-fold premium mark is preloaded before React hydration', async ()
   const html = await read('index.html');
   assert.match(html, /rel="preload" as="image" href="\/brand\/kriptoaman-mark-premium\.webp" type="image\/webp" fetchpriority="high"/);
 });
+
+
+test('public root avoids external Google Fonts on the critical render path', async () => {
+  const css = await read('src/index.css');
+  assert.doesNotMatch(css, /fonts\.googleapis\.com/);
+  assert.match(css, /system-ui/);
+});
