@@ -116,9 +116,9 @@ test('platform status enforces the 12-network minimum under a bounded aggregate 
 });
 
 test('public landing uses the stable platform health contract for asset and network counts', async () => {
-  const [page, body, platform] = await Promise.all([
+  const [page, strip, platform] = await Promise.all([
     read('src/pages/KriptoAmanGlobalLanding.jsx'),
-    read('src/components/landing/GLandingBody.jsx'),
+    read('src/components/landing/LandingLiveSystemStrip.jsx'),
     read('functions/api/platform-status.js'),
   ]);
   assert.match(page, /\/api\/platform-status/);
@@ -136,11 +136,12 @@ test('public landing uses the stable platform health contract for asset and netw
   assert.match(platform, /\/api\/network-health/);
   assert.match(platform, /\/api\/kam\/network-status/);
   assert.match(platform, /fabricatedMetrics: false/);
-  assert.match(body, /Market Pulse/);
-  assert.match(body, /assetCountValue/);
-  assert.match(body, /NETWORK EVIDENCE/);
-  assert.match(body, /networks responding/);
-  assert.doesNotMatch(body, /value: '2\.000\+'/);
+  assert.match(strip, /marketAvailable/);
+  assert.match(strip, /assetCount/);
+  assert.match(strip, /networkActiveCount/);
+  assert.match(strip, /responding now/);
+  assert.match(strip, /No synthetic fallback/);
+  assert.doesNotMatch(strip, /value: '2\.000\+'/);
 });
 
 test('Ethereum health and wallet paths use verified resilient RPC fallbacks', async () => {
