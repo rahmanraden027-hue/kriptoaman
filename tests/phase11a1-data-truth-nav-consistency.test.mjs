@@ -20,15 +20,17 @@ test('HomeV10 replaces developer-facing missing-history copy with a product stat
   assert.doesNotMatch(featured, /trace not provided in this snapshot/i);
 });
 
-test('HomeV10 navigation matches the authenticated five-domain taxonomy', async () => {
-  const home = await read('src/pages/HomeV10.jsx');
-  assert.match(home, /home: 'Beranda'/);
-  assert.match(home, /markets: 'Market'/);
-  assert.match(home, /intelligence: 'Intelijen'/);
-  assert.match(home, /onchain: 'On-Chain'/);
-  assert.match(home, /ecosystem: 'Ekosistem'/);
-  assert.match(home, /\{ id: 'onchain', to: '\/ZEVARYQ' \}/);
-  assert.match(home, /\{ id: 'ecosystem', to: '\/qoryvex\/discovery' \}/);
+test('HomeV10 consumes the canonical five-domain navigation taxonomy', async () => {
+  const [home, contract] = await Promise.all([
+    read('src/pages/HomeV10.jsx'),
+    read('src/lib/primaryNavigation.js'),
+  ]);
+  assert.match(home, /PRIMARY_NAV_ITEMS/);
+  assert.match(home, /primaryNavLabels/);
+  assert.match(home, /primaryNavTo\(item, 'public'\)/);
+  assert.match(contract, /publicTo: '\/ZEVARYQ'/);
+  assert.match(contract, /publicTo: '\/Services'/);
+  assert.doesNotMatch(home, /\/qoryvex\/discovery/);
   assert.doesNotMatch(home, /to="\/PortfolioOverview" className="grid min-h-11/);
   assert.doesNotMatch(home, />Verify<\/a>/);
 });

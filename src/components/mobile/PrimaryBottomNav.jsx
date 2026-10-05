@@ -2,23 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Home, BarChart3, BrainCircuit, ShieldCheck, LayoutGrid } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
+import { PRIMARY_NAV_ITEMS, primaryNavLabels, primaryNavTo } from '@/lib/primaryNavigation';
 
-const PRIMARY_NAV = [
-  { id: 'home', page: 'Home', to: '/dashboard', icon: Home },
-  { id: 'markets', page: 'Market', to: '/Market', icon: BarChart3 },
-  { id: 'intelligence', page: 'IntelligenceHub', to: '/IntelligenceHub', icon: BrainCircuit },
-  { id: 'onchain', page: 'ZEVARYQ', to: '/ZEVARYQ', icon: ShieldCheck },
-  { id: 'ecosystem', page: 'Services', to: '/Services', icon: LayoutGrid },
-];
-
-const LABELS = {
-  id: { home: 'Beranda', markets: 'Market', intelligence: 'Intelijen', onchain: 'On-Chain', ecosystem: 'Ekosistem' },
-  en: { home: 'Home', markets: 'Markets', intelligence: 'Intelligence', onchain: 'On-Chain', ecosystem: 'Ecosystem' },
-};
-
-export default function PrimaryBottomNav({ currentPageName }) {
+export default function PrimaryBottomNav({ currentPageName, mode = 'public' }) {
   const { language } = useLanguage();
-  const labels = LABELS[language] || LABELS.id;
+  const labels = primaryNavLabels(language);
 
   return (
     <nav
@@ -27,9 +15,12 @@ export default function PrimaryBottomNav({ currentPageName }) {
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="mx-auto flex max-w-xl items-center justify-around px-1.5 py-1.5">
-        {PRIMARY_NAV.map(({ id, page, to, icon: Icon }) => {
+        {PRIMARY_NAV_ITEMS.map((item) => {
+          const { id, page } = item;
+          const Icon = { home: Home, markets: BarChart3, intelligence: BrainCircuit, onchain: ShieldCheck, ecosystem: LayoutGrid }[id];
           const active = currentPageName === page;
           const label = labels[id];
+          const to = primaryNavTo(item, mode);
           return (
             <Link
               key={page}

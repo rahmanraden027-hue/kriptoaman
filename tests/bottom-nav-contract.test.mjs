@@ -2,41 +2,59 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-const layout = await readFile(new URL('../src/Layout.jsx', import.meta.url), 'utf8');
-const app = await readFile(new URL('../src/FullAppShell.jsx', import.meta.url), 'utf8');
-const primaryNav = await readFile(new URL('../src/components/mobile/PrimaryBottomNav.jsx', import.meta.url), 'utf8');
+const read = path => readFile(new URL('../' + path, import.meta.url), 'utf8');
 
-test('primary mobile bottom navigation remains fixed to five final tabs', () => {
-  const expectedEntries = [
-    "{ id: 'home', page: 'Home', icon: Home }",
-    "{ id: 'markets', page: 'Market', icon: BarChart3 }",
-    "{ id: 'intelligence', page: 'IntelligenceHub', icon: BrainCircuit }",
-    "{ id: 'onchain', page: 'ZEVARYQ', icon: ShieldCheck }",
-    "{ id: 'ecosystem', page: 'Services', icon: LayoutGrid }",
+const [layout, app, primaryNav, contract] = await Promise.all([
+  read('src/Layout.jsx'),
+  read('src/FullAppShell.jsx'),
+  read('src/components/mobile/PrimaryBottomNav.jsx'),
+  read('src/lib/primaryNavigation.js'),
+]);
+
+test('five primary surfaces are defined once in the canonical navigation contract', () => {
+  const expected = [
+    ["home", "Home", "/", "/dashboard"],
+    ["markets", "Market", "/Market", "/Market"],
+    ["intelligence", "IntelligenceHub", "/IntelligenceHub", "/IntelligenceHub"],
+    ["onchain", "ZEVARYQ", "/ZEVARYQ", "/ZEVARYQ"],
+    ["ecosystem", "Services", "/Services", "/Services"],
   ];
 
-  const positions = expectedEntries.map((entry) => {
-    const index = layout.indexOf(entry);
-    assert.notEqual(index, -1, `Missing locked bottom-nav entry: ${entry}`);
-    return index;
-  });
+  let previous = -1;
+  for (const [id, page, publicTo, workspaceTo] of expected) {
+    const marker = `id: '${id}', page: '${page}', publicTo: '${publicTo}', workspaceTo: '${workspaceTo}'`;
+    const index = contract.indexOf(marker);
+    assert.notEqual(index, -1, `Missing canonical primary navigation entry: ${marker}`);
+    assert.ok(index > previous, `Primary navigation order drifted at ${id}`);
+    previous = index;
+  }
 
-  assert.deepEqual(positions, [...positions].sort((a, b) => a - b));
-  assert.match(layout, /id: \{ home: 'Beranda', markets: 'Market', intelligence: 'Intelijen', onchain: 'On-Chain', ecosystem: 'Ekosistem' \}/);
-  assert.match(layout, /BOTTOM_NAV\.map/);
+  assert.match(contract, /home: 'Beranda'/);
+  assert.match(contract, /markets: 'Market'/);
+  assert.match(contract, /intelligence: 'Intelijen'/);
+  assert.match(contract, /onchain: 'On-Chain'/);
+  assert.match(contract, /ecosystem: 'Ekosistem'/);
 });
 
-test('public Market uses the same UI 4.2 five-tab navigation without a back control', () => {
-  const expectedPages = ["page: 'Home'", "page: 'Market'", "page: 'IntelligenceHub'", "page: 'ZEVARYQ'", "page: 'Services'"];
-  const positions = expectedPages.map((entry) => {
-    const index = primaryNav.indexOf(entry);
-    assert.notEqual(index, -1, `Missing public Market bottom-nav entry: ${entry}`);
-    return index;
-  });
+test('public and authenticated shells consume the same primary navigation contract', () => {
+  assert.match(layout, /PRIMARY_NAV_ITEMS/);
+  assert.match(layout, /primaryNavLabels/);
+  assert.match(layout, /primaryNavTo\(item, 'workspace'\)/);
+  assert.match(primaryNav, /PRIMARY_NAV_ITEMS/);
+  assert.match(primaryNav, /primaryNavLabels/);
+  assert.match(primaryNav, /primaryNavTo\(item, mode\)/);
+  assert.match(primaryNav, /mode = 'public'/);
+  assert.match(app, /AdaptivePrimarySurface/);
+  assert.doesNotMatch(app, /PublicMarketWithNav/);
+});
 
-  assert.deepEqual(positions, [...positions].sort((a, b) => a - b));
-  assert.match(primaryNav, /home: 'Beranda', markets: 'Market', intelligence: 'Intelijen', onchain: 'On-Chain', ecosystem: 'Ekosistem'/);
-  assert.match(app, /PublicMarketWithNav/);
-  assert.match(app, /PrimaryBottomNav currentPageName="Market"/);
-  assert.doesNotMatch(app, /MarketPageWithBack/);
+test('primary public surfaces preserve authenticated Layout and public fallback navigation', () => {
+  assert.match(app, /path === 'Market'/);
+  assert.match(app, /path === 'ZEVARYQ'/);
+  assert.match(app, /path === 'QoryVExDiscovery'/);
+  assert.match(app, /currentPageName="Services"/);
+  assert.match(app, /isAuthenticated/);
+  assert.match(app, /<LayoutWrapper currentPageName=\{currentPageName\}><Page \/><\/LayoutWrapper>/);
+  assert.match(app, /<PrimaryBottomNav currentPageName=\{currentPageName\} mode="public" \/>/);
+  assert.equal((app.match(/path="\/Services"/g) || []).length, 1);
 });
