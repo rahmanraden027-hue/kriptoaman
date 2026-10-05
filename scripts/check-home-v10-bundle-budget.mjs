@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 import { gzipSync } from 'node:zlib';
 
 const distDir = resolve('dist');
