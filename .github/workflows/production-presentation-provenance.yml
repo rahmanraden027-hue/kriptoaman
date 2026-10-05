@@ -28,22 +28,22 @@ jobs:
           const base = 'https://kriptoaman.com';
           const origin = new URL(base).origin;
           const required = [
-            'KRIPTOAMAN · CRYPTO COMMAND CENTER',
-            'Market bergerak. Blockchain bergerak.',
-            'KriptoAman membuktikannya.',
-            'LIVE PRODUCTION INTELLIGENCE',
+            'KRIPTOAMAN · VERIFIED CRYPTO INTELLIGENCE',
+            'Data produksi, langsung terlihat.',
+            'Market · On-chain · Network · Evidence',
             'KRIPTOAMAN · PRODUCTION COMMAND CENTER',
-            'Open Command Center',
+            'Open Workspace',
             'Live Block Flow 3D',
-            'Network Operations Console',
+            'ZEVARYQ · FIRST-PARTY BLOCKCHAIN EVIDENCE',
             'KRIPTOAMAN INTELLIGENCE MODULES',
             'Empat fungsi utama. Satu alur verifikasi.',
-            'Four production metrics only.',
-            'No synthetic metrics'
+            'PRODUCTION SURFACES',
+            'VERIFIED-ONLY UI',
+            'no synthetic production metrics'
           ];
 
           const headers = {
-            'User-Agent': 'KriptoAman-Presentation-Provenance/3.0',
+            'User-Agent': 'KriptoAman-Presentation-Provenance/3.1',
             'Cache-Control': 'no-cache'
           };
 
