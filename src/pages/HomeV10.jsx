@@ -36,10 +36,10 @@ export default function HomeV10() {
         style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
         <div className="mx-auto flex min-h-14 max-w-[1480px] items-center gap-3 px-4 sm:px-6 lg:px-8">
-          <Link to="/" className="rounded-lg text-sm font-black tracking-[0.12em] text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">KRIPTOAMAN</Link>
+          <Link to="/" className="inline-flex min-h-11 items-center rounded-lg px-1 text-sm font-black tracking-[0.12em] text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">KRIPTOAMAN</Link>
           <nav aria-label="Primary navigation" className="hidden items-center gap-1 md:flex">
-            {NAV.map(([to, label]) => <Link key={to} to={to} className="rounded-lg px-3 py-2 text-[10px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-white">{label}</Link>)}
-            <a href="#verify" className="rounded-lg px-3 py-2 text-[10px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-white">Verify</a>
+            {NAV.map(([to, label]) => <Link key={to} to={to} className="inline-flex min-h-11 items-center rounded-lg px-3 text-[10px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">{label}</Link>)}
+            <a href="#verify" className="inline-flex min-h-11 items-center rounded-lg px-3 text-[10px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">Verify</a>
           </nav>
           <div className="ml-auto flex items-center gap-2">
             <Link to="/Market" aria-label="Search market" className="grid h-11 w-11 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.02] text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"><Search className="h-4 w-4" aria-hidden="true" /></Link>
@@ -49,6 +49,9 @@ export default function HomeV10() {
       </header>
 
       <LiveMarketTicker assets={market.assets} state={market.state} />
+      <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        Market data status: {market.state}.
+      </span>
 
       <div id="home-v10-content" tabIndex={-1} className="mx-auto max-w-[1480px] space-y-4 px-3 pt-4 outline-none sm:px-6 sm:pt-6 lg:px-8">
         <FeaturedMarketAsset assets={market.featured} state={market.state} />
