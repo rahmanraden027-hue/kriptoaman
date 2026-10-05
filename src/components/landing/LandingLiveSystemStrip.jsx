@@ -10,9 +10,11 @@ export default function LandingLiveSystemStrip({ stats }) {
   const rpc = Number(stats?.zvqProbeDurationMs);
   const chains = Number(stats?.networkActiveCount);
   const liveBlock = Number.isFinite(block);
-  const marketLive = stats?.marketAvailable === true;
   const synced = String(stats?.zvqSyncStatus || '').toLowerCase() === 'synced';
   const snapshot = getProductionFreshness(stats);
+  const marketAvailable = stats?.marketAvailable === true;
+  const marketState = marketAvailable ? snapshot.freshness : 'UNAVAILABLE';
+  const marketHealthy = marketAvailable && snapshot.verified && snapshot.freshness !== 'STALE';
   const snapshotHealthy = snapshot.verified && snapshot.freshness !== 'STALE';
 
   const items = [
@@ -33,9 +35,9 @@ export default function LandingLiveSystemStrip({ stats }) {
     {
       glyph: 'M',
       label: 'MARKET',
-      value: marketLive ? 'LIVE' : 'UNAVAILABLE',
-      note: marketLive ? `${fmt(stats?.assetCount)} assets` : 'No synthetic fallback',
-      ok: marketLive,
+      value: marketState,
+      note: marketAvailable ? `${fmt(stats?.assetCount)} assets · ${snapshot.modeLabel}` : 'No synthetic fallback',
+      ok: marketHealthy,
     },
     {
       glyph: 'N',
