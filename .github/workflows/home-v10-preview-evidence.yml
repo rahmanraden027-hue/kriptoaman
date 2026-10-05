@@ -9,6 +9,7 @@ on:
       - 'src/components/home-v10/**'
       - 'src/hooks/useMarketSurface.js'
       - 'src/FullAppShell.jsx'
+      - 'tests/phase10h-home-v10-isolated.test.mjs'
   workflow_dispatch:
 
 permissions:
