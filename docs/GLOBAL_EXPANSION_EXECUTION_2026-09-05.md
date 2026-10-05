@@ -4,6 +4,10 @@ Date: 2026-09-05
 Status: ACTIVE EXECUTION / EVIDENCE-GATED
 Master tracker: Issue #465
 
+## Brand rule
+
+Global-facing materials use **KRIPTOAMAN** as the master brand, **Market · On-chain · Network · Evidence** as the product signature, and **Verified Data. Real Intelligence.** as positioning. `Intelligence` is a feature/category descriptor, not part of the master-brand name.
+
 ## Objective
 
 Advance KriptoAman and KAM from the current production-readiness state to evidence-backed global expansion without bypassing infrastructure, security, market-integrity, legal, wallet, listing, mobile-distribution, or country-specific compliance gates.
