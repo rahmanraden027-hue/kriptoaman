@@ -26,7 +26,6 @@ test('root UI cleanup phase 5 preserves the final production order across the de
   const deferredOrder = [
     '<LiveBlockFlow3D',
     'betweenBlockAndNode={<LandingMarketPulse />}',
-    '<GLandingBody',
     '<GLandingProductionGateways',
   ];
   previous = -1;
@@ -48,15 +47,10 @@ test('hero cleanup removes repeated purpose cards and the duplicate telemetry ti
   assert.match(hero, /Market · On-chain · Network · Evidence/);
 });
 
-test('landing body contains only core intelligence modules and one CTA surface', async () => {
-  const body = await read('src/components/landing/GLandingBody.jsx');
-  assert.match(body, /KRIPTOAMAN INTELLIGENCE MODULES/);
-  assert.match(body, /Empat fungsi utama\. Satu alur verifikasi\./);
-  assert.match(body, /Open Intelligence Hub/);
-  assert.match(body, /Open ZEVARYQ Wallet/);
-  assert.doesNotMatch(body, /Intelligence Workspace/);
-  assert.doesNotMatch(body, /EVIDENCE HEALTH/);
-  assert.doesNotMatch(body, /SEE → UNDERSTAND → VERIFY/);
+test('landing root no longer renders explanatory intelligence cards or duplicate CTA copy', async () => {
+  const deferred = await read('src/components/landing/GLandingDeferredContent.jsx');
+  assert.doesNotMatch(deferred, /GLandingBody/);
+  assert.match(deferred, /GLandingProductionGateways/);
 });
 
 test('root network operations is compact while keeping the full diagnostic mode available elsewhere', async () => {
