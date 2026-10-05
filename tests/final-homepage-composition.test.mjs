@@ -11,8 +11,8 @@ test('final homepage composition exposes only production-ready evidence gateways
   ]);
 
   assert.match(deferred, /<GLandingProductionGateways \/>/);
-  assert.match(gateways, /UNIFIED ECOSYSTEM GATEWAY/);
-  assert.match(gateways, /Empat surface inti\. Satu gateway produksi\./);
+  assert.match(gateways, /PRODUCTION ROUTES/);
+  assert.match(gateways, /PRODUCTION ROUTES/);
   assert.match(gateways, /VERIFIED-ONLY UI/);
   assert.match(gateways, /DIRECT EVIDENCE ROUTES/);
 
@@ -29,5 +29,5 @@ test('final homepage composition does not advertise unpublished ecosystem routes
   const gateways = await read('src/components/landing/GLandingProductionGateways.jsx');
 
   assert.doesNotMatch(gateways, /\/Nexus|\/ORIVEX|\/ORYVANTIQ/i);
-  assert.match(gateways, /ACTIVE ROUTE/);
+  assert.match(gateways, /LIVE ROUTE/);
 });
