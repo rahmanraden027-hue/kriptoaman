@@ -39,11 +39,12 @@ test('institutional and footer expose phase 6 mobile hooks and production UI lab
   assert.match(footer, /Production UI 1\.0/);
 });
 
-test('public root retains the lightweight language provider required by landing navigation', async () => {
+test('public root retains the lightweight language provider required by HomeV10 navigation', async () => {
   const app = await read('src/App.jsx');
   assert.equal(app.includes("import { LanguageProvider } from '@/lib/LanguageContext';"), true);
   assert.equal(app.includes('<LanguageProvider>'), true);
-  assert.equal(app.includes('<KriptoAmanGlobalLanding />'), true);
+  assert.equal(app.includes('<HomeV10 />'), true);
+  assert.equal(app.includes('<KriptoAmanGlobalLanding />'), false);
   assert.equal(app.includes('</LanguageProvider>'), true);
 });
 
