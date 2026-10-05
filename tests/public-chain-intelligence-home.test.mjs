@@ -48,16 +48,15 @@ test('final public hero presents the evidence-first intelligence identity', asyn
     read('src/components/landing/GLandingHero.jsx'),
     read('src/components/landing/GLandingHeroConsole.jsx'),
   ]);
-  assert.match(hero, /CRYPTO COMMAND CENTER/);
+  assert.match(hero, /VERIFIED CRYPTO INTELLIGENCE/);
   assert.match(hero, /ka-command-hero/);
-  assert.match(hero, /Market bergerak/);
-  assert.match(hero, /KriptoAman membuktikannya/);
-  assert.match(hero, /Open Command Center/);
-  assert.match(hero, /LIVE PRODUCTION INTELLIGENCE/);
-  assert.match(hero, /MARKET/);
-  assert.match(hero, /ON-CHAIN/);
-  assert.match(hero, /RISK/);
-  assert.match(hero, /EVIDENCE/);
+  assert.match(hero, /Data produksi, langsung terlihat/);
+  assert.match(hero, /Market · On-chain · Network · Evidence/);
+  assert.match(hero, /Open Workspace/);
+  assert.match(hero, /MARKET ASSETS/);
+  assert.match(hero, /ZVQ BLOCK/);
+  assert.match(hero, /VERIFIED NETWORKS/);
+  assert.match(hero, /ZVQ STATE/);
   assert.doesNotMatch(hero, /const PURPOSE/);
   assert.match(console, /PRODUCTION COMMAND CENTER/);
   assert.match(console, /PROOF OF FRESHNESS/);
