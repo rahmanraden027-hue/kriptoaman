@@ -40,7 +40,7 @@ export default function VerifyAnything() {
           value={query}
           onChange={event => setQuery(event.target.value)}
           placeholder="Token / Contract / Wallet / Transaction / Block"
-          className="min-w-0 flex-1 bg-transparent px-2 py-3 text-sm text-white outline-none placeholder:text-slate-600"
+          className="min-w-0 flex-1 bg-transparent px-2 py-3 text-sm text-white outline-none placeholder:text-slate-400"
           aria-label="Verify token, contract, wallet, transaction or block"
         />
         <button type="submit" className="min-h-11 rounded-xl bg-cyan-400 px-4 text-[10px] font-black text-[#021018]">VERIFY</button>
@@ -50,7 +50,7 @@ export default function VerifyAnything() {
         {TYPES.map(([Icon, label]) => (
           <div key={label} className="grid min-h-16 place-items-center rounded-xl border border-white/[0.05] bg-white/[0.02] px-1 text-center">
             <Icon className="h-4 w-4 text-slate-400" />
-            <span className="text-[8px] font-black text-slate-500">{label}</span>
+            <span className="text-[8px] font-black text-slate-400">{label}</span>
           </div>
         ))}
       </div>
