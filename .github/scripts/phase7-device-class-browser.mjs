@@ -47,6 +47,9 @@ try {
         tickerPresent: Boolean(ticker),
         verifyPresent: Boolean(verify),
         explorerPresent: Boolean(explorer),
+        featuredTruthful:
+          document.body.innerText.includes('MOVING NOW') ||
+          document.body.innerText.includes('No verified featured asset available.'),
         installVisible: Boolean(install),
       };
     });
@@ -66,8 +69,8 @@ try {
     if (initial.navHeight < 44) {
       throw new Error(`${width}px mobile navigation is too short: ${initial.navHeight}`);
     }
-    if (!initial.tickerPresent || !initial.verifyPresent || !initial.explorerPresent) {
-      throw new Error(`${width}px HomeV10 data-first composition is incomplete`);
+    if (!initial.tickerPresent || !initial.verifyPresent || !initial.explorerPresent || !initial.featuredTruthful) {
+      throw new Error(`${width}px HomeV10 data-first composition is incomplete or featured state is not truthful`);
     }
     if (initial.installVisible) {
       throw new Error(`${width}px install CTA appeared before the root reveal threshold`);
@@ -83,13 +86,11 @@ try {
       const nav = document.querySelector('nav[aria-label="Mobile primary navigation"]');
       const ctaRect = cta?.getBoundingClientRect();
       const navRect = nav?.getBoundingClientRect();
-      const pressed = [...document.querySelectorAll('button[aria-pressed]')];
       return {
         installVisible: Boolean(cta),
         installWidth: ctaRect?.width || 0,
         installBottom: ctaRect?.bottom ?? null,
         navTop: navRect?.top ?? null,
-        pressedButtons: pressed.length,
         scrollWidth: document.documentElement.scrollWidth,
         innerWidth,
       };
@@ -107,9 +108,6 @@ try {
       revealed.installBottom > revealed.navTop - 4
     ) {
       throw new Error(`${width}px install CTA overlaps mobile navigation: ctaBottom=${revealed.installBottom} navTop=${revealed.navTop}`);
-    }
-    if (revealed.pressedButtons < 1) {
-      throw new Error(`${width}px featured market selector has no aria-pressed state`);
     }
     if (revealed.scrollWidth > revealed.innerWidth + 1) {
       throw new Error(`${width}px overflow after HomeV10 content reveal`);
