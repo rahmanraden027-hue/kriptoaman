@@ -7,6 +7,31 @@ import GLandingFooter from '@/components/landing/GLandingFooter';
 
 const GLandingDeferredContent = lazy(() => import('@/components/landing/GLandingDeferredContent'));
 
+function authoritativeSnapshot(payload) {
+  const market = payload?.components?.market || {};
+  const networks = payload?.components?.networks || {};
+  const kam = payload?.components?.kam || {};
+  const marketAssetCount = Number(market.assetCount);
+  const networkOnline = Number(networks.online);
+  const kamBlockNumber = Number(kam.blockNumber);
+  const snapshotAgeMs = Number(payload?.delivery?.snapshotAgeMs);
+
+  return {
+    overall: payload?.overall || 'unavailable',
+    marketAvailable: market.status === 'operational' && market.healthy === true,
+    lastUpdated: market.capturedAt || null,
+    assetCount: Number.isFinite(marketAssetCount) && marketAssetCount > 0 ? marketAssetCount : null,
+    marketSource: market.source || null,
+    networkActiveCount: Number.isFinite(networkOnline) ? networkOnline : undefined,
+    networkCheckedAt: networks.checkedAt || null,
+    zvqBlockNumber: kam.status === 'operational' && Number(kam.chainId) === 22028 && Number.isFinite(kamBlockNumber) ? kamBlockNumber : null,
+    zvqCheckedAt: kam.checkedAt || null,
+    snapshotGeneratedAt: payload?.generatedAt || null,
+    snapshotReadMode: payload?.delivery?.aggregateRead || null,
+    snapshotAgeMs: Number.isFinite(snapshotAgeMs) ? snapshotAgeMs : null,
+  };
+}
+
 export default function KriptoAmanGlobalLanding() {
   const [dark, setDark] = useState(true);
   const [active, setActive] = useState('Platform');
@@ -27,6 +52,9 @@ export default function KriptoAmanGlobalLanding() {
     zvqCheckedAt: null,
     zvqSyncStatus: null,
     zvqProbeDurationMs: null,
+    snapshotGeneratedAt: null,
+    snapshotReadMode: null,
+    snapshotAgeMs: null,
   });
 
   useEffect(() => {
@@ -45,6 +73,9 @@ export default function KriptoAmanGlobalLanding() {
         zvqCheckedAt: null,
         zvqSyncStatus: null,
         zvqProbeDurationMs: null,
+        snapshotGeneratedAt: null,
+        snapshotReadMode: null,
+        snapshotAgeMs: null,
       };
       let platformPayload = null;
       let kamPayload = null;
@@ -58,20 +89,8 @@ export default function KriptoAmanGlobalLanding() {
       if (statusResult.status === 'fulfilled') {
         try {
           platformPayload = await statusResult.value.json();
-          if (platformPayload?.components) {
-            next.overall = platformPayload.overall || 'unavailable';
-            const market = platformPayload.components.market || {};
-            const networks = platformPayload.components.networks || {};
-            const kam = platformPayload.components.kam || {};
-
-            next.marketAvailable = market.status === 'operational';
-            next.assetCount = Number.isFinite(Number(market.assetCount)) && Number(market.assetCount) > 0 ? Number(market.assetCount) : null;
-            next.lastUpdated = market.capturedAt || null;
-            next.marketSource = market.source || null;
-            next.networkActiveCount = Number.isFinite(Number(networks.online)) ? Number(networks.online) : undefined;
-            next.networkCheckedAt = networks.checkedAt || kam.checkedAt || null;
-            next.zvqBlockNumber = kam.blockNumber != null && Number.isFinite(Number(kam.blockNumber)) ? Number(kam.blockNumber) : null;
-            next.zvqCheckedAt = kam.checkedAt || null;
+          if (statusResult.value.ok && platformPayload?.components) {
+            Object.assign(next, authoritativeSnapshot(platformPayload));
           }
         } catch {
           // Production V2 never invents unavailable metrics.
@@ -83,11 +102,6 @@ export default function KriptoAmanGlobalLanding() {
           const payload = await networkResult.value.json();
           if (networkResult.value.ok && Array.isArray(payload?.networks)) {
             next.networks = payload.networks;
-            next.networkCheckedAt = payload.checked_at || next.networkCheckedAt;
-            if (!Number.isFinite(Number(next.networkActiveCount))) {
-              const online = payload.networks.filter((network) => network?.status === 'online').length;
-              next.networkActiveCount = online;
-            }
           }
         } catch {
           // Detailed network badges are optional; the aggregate contract remains authoritative.
@@ -102,68 +116,56 @@ export default function KriptoAmanGlobalLanding() {
         }
       }
 
-      const kamFromPlatform = platformPayload?.components?.kam;
-      const kam = kamFromPlatform || {};
-      const kamVerified = Boolean(
-        (kam?.status === 'operational' && Number(kam.chainId) === 22028) ||
-        (kamPayload?.verified === true && Number(kamPayload.chainId) === 22028),
-      );
-      const kamBlockNumber = kam.blockNumber ?? kamPayload?.blockNumber ?? null;
-      const kamCheckedAt = kam.checkedAt || kamPayload?.checkedAt || null;
+      const kamFromPlatform = platformPayload?.components?.kam || {};
+      const platformKamVerified = kamFromPlatform?.status === 'operational' && Number(kamFromPlatform.chainId) === 22028;
+      const telemetryVerified = kamPayload?.verified === true && Number(kamPayload.chainId) === 22028;
 
-      if (kamVerified) {
-        const hadKam = next.networks.some((network) => Number(network?.chainId) === 22028 || ['KAM Network', 'ZEVARYQ Network'].includes(network?.name));
-        const kamNetworkEntry = kam?.status === 'operational'
-          ? {
-              name: 'ZEVARYQ Network',
-              symbol: 'ZVQ',
-              status: 'online',
-              verification: 'platform-status',
-              chainId: 22028,
-              blockNumber: kamBlockNumber,
-            }
-          : {
-              name: 'ZEVARYQ Network',
-              symbol: 'ZVQ',
-              status: 'online',
-              verification: 'kam-network-status',
-              chainId: 22028,
-              blockNumber: kamBlockNumber,
-            };
+      if (platformKamVerified) {
+        const kamNetworkEntry = {
+          name: 'ZEVARYQ Network',
+          symbol: 'ZVQ',
+          status: 'online',
+          verification: 'platform-status',
+          chainId: 22028,
+          blockNumber: next.zvqBlockNumber,
+        };
         next.networks = [...next.networks.filter((network) => Number(network?.chainId) !== 22028 && !['KAM Network', 'ZEVARYQ Network'].includes(network?.name)), kamNetworkEntry];
-        next.networkCheckedAt = next.networkCheckedAt || kamCheckedAt;
-        next.zvqBlockNumber = kamBlockNumber != null && Number.isFinite(Number(kamBlockNumber)) ? Number(kamBlockNumber) : next.zvqBlockNumber;
-        next.zvqCheckedAt = kamCheckedAt || next.zvqCheckedAt;
-        next.zvqSyncStatus = kamPayload?.verified === true ? (kamPayload.syncStatus || null) : null;
-        next.zvqProbeDurationMs = kamPayload?.verified === true && Number.isFinite(Number(kamPayload.probeDurationMs)) ? Number(kamPayload.probeDurationMs) : null;
-        if (!hadKam) {
-          next.networkActiveCount = (Number(next.networkActiveCount) || 0) + 1;
-        }
-        if (next.overall === 'unavailable') next.overall = 'degraded';
+      }
+
+      if (telemetryVerified) {
+        next.zvqSyncStatus = kamPayload.syncStatus || null;
+        next.zvqProbeDurationMs = Number.isFinite(Number(kamPayload.probeDurationMs)) ? Number(kamPayload.probeDurationMs) : null;
       }
 
       setStats(next);
     })();
 
-    const refreshZvqHead = async () => {
+    const refreshAuthoritativeSnapshot = async () => {
       try {
-        const response = await fetch('/api/kam/network-status', { cache: 'no-store', headers: { Accept: 'application/json' } });
-        if (!response.ok) return;
-        const payload = await response.json();
-        const blockNumber = Number(payload?.blockNumber);
-        if (payload?.verified !== true || Number(payload?.chainId) !== 22028 || !Number.isFinite(blockNumber)) return;
+        const [statusResponse, telemetryResponse] = await Promise.all([
+          fetch('/api/platform-status', { cache: 'no-store', headers: { Accept: 'application/json' } }),
+          fetch('/api/kam/network-status', { cache: 'no-store', headers: { Accept: 'application/json' } }),
+        ]);
+        if (!statusResponse.ok) return;
+        const payload = await statusResponse.json();
+        if (!payload?.components) return;
+        const snapshot = authoritativeSnapshot(payload);
+        let telemetry = null;
+        if (telemetryResponse.ok) telemetry = await telemetryResponse.json().catch(() => null);
+        const telemetryVerified = telemetry?.verified === true && Number(telemetry.chainId) === 22028;
         setStats((current) => ({
           ...current,
-          zvqBlockNumber: blockNumber,
-          zvqCheckedAt: payload.checkedAt || current.zvqCheckedAt,
-          zvqSyncStatus: payload.syncStatus || current.zvqSyncStatus,
-          zvqProbeDurationMs: Number.isFinite(Number(payload.probeDurationMs)) ? Number(payload.probeDurationMs) : current.zvqProbeDurationMs,
+          ...snapshot,
+          zvqSyncStatus: telemetryVerified ? (telemetry.syncStatus || null) : current.zvqSyncStatus,
+          zvqProbeDurationMs: telemetryVerified && Number.isFinite(Number(telemetry.probeDurationMs))
+            ? Number(telemetry.probeDurationMs)
+            : current.zvqProbeDurationMs,
         }));
       } catch {
-        // Keep the last verified head; never replace unavailable evidence with a synthetic value.
+        // Keep the last verified aggregate; never replace unavailable evidence with synthetic values.
       }
     };
-    const zvqHeadTimer = window.setInterval(refreshZvqHead, 12_000);
+    const authoritativeSnapshotTimer = window.setInterval(refreshAuthoritativeSnapshot, 15_000);
 
     const onScroll = () => {
       const sections = ['beranda', 'fitur', 'network-operations', 'institutional'];
@@ -177,7 +179,7 @@ export default function KriptoAmanGlobalLanding() {
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => {
-      window.clearInterval(zvqHeadTimer);
+      window.clearInterval(authoritativeSnapshotTimer);
       window.removeEventListener('scroll', onScroll);
     };
   }, []);
