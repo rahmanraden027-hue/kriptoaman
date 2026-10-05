@@ -3,6 +3,8 @@ import fs from 'node:fs/promises';
 
 const LIVE = process.env.PHASE11E_LIVE || 'https://kriptoaman.com';
 const CANDIDATE = process.env.PHASE11E_CANDIDATE || 'http://127.0.0.1:4173';
+const EVENT = process.env.PHASE11E_EVENT || 'pull_request';
+const REQUIRE_LIVE_BRAND = EVENT !== 'pull_request';
 const PUBLIC_HREFS = ['/', '/Market', '/IntelligenceHub', '/ZEVARYQ', '/Services'];
 const WORKSPACE_HREFS = ['/dashboard', '/Market', '/IntelligenceHub', '/ZEVARYQ', '/Services'];
 const CANONICAL_STATES = ['LIVE', 'VERIFIED', 'SYNCED', 'PARTIAL', 'SNAPSHOT', 'UNAVAILABLE', 'CHECKING'];
@@ -104,9 +106,9 @@ async function surfaceSnapshot(page) {
   }, CANONICAL_STATES);
 }
 
-function checkGeometry(s,label,{mobile=false,stateRequired=false}={}) {
+function checkGeometry(s,label,{mobile=false,stateRequired=false,brandRequired=true}={}) {
   assert(s.scrollWidth <= s.width + 1, label+': horizontal overflow '+s.scrollWidth+' > '+s.width);
-  assert(s.brand, label+': KriptoAman brand missing');
+  if (brandRequired) assert(s.brand, label+': KriptoAman brand missing');
   if (stateRequired) assert(s.stateWords.length>0,label+': canonical production state missing');
   if (mobile && s.bottomNav) {
     assert(s.bottomNav.minItemHeight >= 44,label+': bottom navigation touch area too small ('+s.bottomNav.minItemHeight+')');
@@ -115,8 +117,10 @@ function checkGeometry(s,label,{mobile=false,stateRequired=false}={}) {
   }
 }
 
-async function livePublic() {
-  const {context,page}=await newContext({width:390,height:844});
+function slug(path){ return path==='/'?'home':path.slice(1).toLowerCase(); }
+
+async function publicJourney({ target, name, candidate=false, requireBrand=true }) {
+  const {context,page}=await newContext({width:390,height:844,authenticated:false,candidate});
   const out=[];
   try {
     for (const spec of [
@@ -125,37 +129,34 @@ async function livePublic() {
       {path:'/ZEVARYQ',active:'/ZEVARYQ',state:true},
       {path:'/Services',active:'/Services',state:false},
     ]) {
-      await page.goto(LIVE+spec.path,{waitUntil:'domcontentloaded',timeout:60000});
+      await page.goto(target+spec.path,{waitUntil:'domcontentloaded',timeout:60000});
       await settle(page);
       const nav=await navSnapshot(page,PUBLIC_HREFS);
       const snap=await surfaceSnapshot(page);
-      await page.screenshot({path:'phase11e-evidence/live-mobile-'+slug(spec.path)+'.png',fullPage:true});
-      assert(nav,label(spec.path)+': canonical nav missing');
-      assert(nav.activeHref===spec.active,label(spec.path)+': active nav mismatch '+nav.activeHref);
-      checkGeometry(snap,label(spec.path),{mobile:true,stateRequired:spec.state});
+      await page.screenshot({path:'phase11e-evidence/'+name+'-'+slug(spec.path)+'.png',fullPage:true});
+      assert(nav,name+' '+spec.path+': canonical nav missing');
+      assert(nav.activeHref===spec.active,name+' '+spec.path+': active nav mismatch '+nav.activeHref);
+      checkGeometry(snap,name+' '+spec.path,{mobile:true,stateRequired:spec.state,brandRequired:requireBrand});
       out.push({route:spec.path,nav,snap});
     }
 
-    await page.goto(LIVE+'/IntelligenceHub',{waitUntil:'domcontentloaded',timeout:60000});
+    await page.goto(target+'/IntelligenceHub',{waitUntil:'domcontentloaded',timeout:60000});
     await page.waitForURL(/\/login(?:\?|$)/,{timeout:15000});
-    await page.screenshot({path:'phase11e-evidence/live-mobile-intelligence-login.png',fullPage:true});
+    await page.screenshot({path:'phase11e-evidence/'+name+'-intelligence-login.png',fullPage:true});
     out.push({route:'/IntelligenceHub',boundary:'LOGIN_REQUIRED',resolved:new URL(page.url()).pathname});
 
-    await page.goto(LIVE+'/wallet-app',{waitUntil:'domcontentloaded',timeout:60000});
+    await page.goto(target+'/wallet-app',{waitUntil:'domcontentloaded',timeout:60000});
     await settle(page);
     const wallet=await surfaceSnapshot(page);
     const walletText=await page.locator('body').innerText();
-    await page.screenshot({path:'phase11e-evidence/live-mobile-wallet.png',fullPage:true});
-    assert(/ZEVARYQ/i.test(walletText),'live wallet: ZEVARYQ identity missing');
-    assert(/Connect Wallet|Receive ZVQ|My Wallet Assets/i.test(walletText),'live wallet: wallet surface incomplete');
-    checkGeometry(wallet,'live /wallet-app',{mobile:true,stateRequired:false});
+    await page.screenshot({path:'phase11e-evidence/'+name+'-wallet.png',fullPage:true});
+    assert(/ZEVARYQ/i.test(walletText),name+' wallet: ZEVARYQ identity missing');
+    assert(/Connect Wallet|Receive ZVQ|My Wallet Assets/i.test(walletText),name+' wallet: wallet surface incomplete');
+    checkGeometry(wallet,name+' /wallet-app',{mobile:true,stateRequired:false,brandRequired:false});
     out.push({route:'/wallet-app',snap:wallet});
   } finally { await context.close(); }
   return out;
 }
-
-function slug(path){ return path==='/'?'home':path.slice(1).toLowerCase(); }
-function label(path){ return 'live '+path; }
 
 async function candidateAuthenticated({width,height,name}) {
   const {context,page}=await newContext({width,height,authenticated:true,candidate:true});
@@ -180,7 +181,7 @@ async function candidateAuthenticated({width,height,name}) {
       assert(snap.shell && snap.topbar,name+' '+step.path+': workspace shell incomplete');
       if(width>=1024) assert(snap.sidebar,name+' '+step.path+': desktop sidebar missing');
       else assert(snap.embedded,name+' '+step.path+': mobile embedded navigation missing');
-      checkGeometry(snap,name+' '+step.path,{mobile:width<600,stateRequired:step.state});
+      checkGeometry(snap,name+' '+step.path,{mobile:width<600,stateRequired:step.state,brandRequired:true});
       out.push({route:step.path,nav,snap});
     }
   } finally { await context.close(); }
@@ -188,25 +189,31 @@ async function candidateAuthenticated({width,height,name}) {
 }
 
 try {
-  const live=await livePublic();
+  const live=await publicJourney({target:LIVE,name:'live-mobile',candidate:false,requireBrand:REQUIRE_LIVE_BRAND});
+  const candidatePublic=await publicJourney({target:CANDIDATE,name:'candidate-public-mobile',candidate:true,requireBrand:true});
   const authMobile=await candidateAuthenticated({width:390,height:844,name:'candidate-auth-mobile'});
   const authDesktop=await candidateAuthenticated({width:1440,height:1000,name:'candidate-auth-desktop'});
   const report={
+    event:EVENT,
     liveTarget:LIVE,
     candidateTarget:CANDIDATE,
     generatedAt:new Date().toISOString(),
     policy:{
       livePublic:'real production, read-only',
+      liveBrandRequired:REQUIRE_LIVE_BRAND,
+      candidatePublic:'candidate UI with browser-only unauthenticated fixture',
       authenticated:'candidate browser auth fixture only',
       realCredentialsUsed:false,
       nonAuthCandidateApis:'503 fail-closed',
     },
     live,
+    candidatePublic,
     authMobile,
     authDesktop,
   };
   await fs.writeFile('phase11e-evidence/final-cross-surface-report.json',JSON.stringify(report,null,2));
   console.log('PHASE11E_LIVE_PUBLIC=PASS');
+  console.log('PHASE11E_CANDIDATE_PUBLIC=PASS');
   console.log('PHASE11E_AUTH_MOBILE=PASS');
   console.log('PHASE11E_AUTH_DESKTOP=PASS');
   console.log('PHASE11E_FINAL_CROSS_SURFACE=PASS');
