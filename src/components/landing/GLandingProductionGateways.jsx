@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 
 const CORE = [
-  { icon: BrainCircuit, label: 'KriptoAman Intelligence', kind: 'PLATFORM', to: '/login' },
+  { icon: BrainCircuit, label: 'KriptoAman', kind: 'PLATFORM', to: '/login' },
   { icon: WalletCards, label: 'ZEVARYQ Wallet', kind: 'WALLET', to: '/wallet-app' },
   { icon: Radar, label: 'QoryVEx', kind: 'DISCOVERY', to: '/qoryvex/discovery' },
   { icon: Blocks, label: 'ZEVARYQ Explorer', kind: 'EXPLORER', href: 'https://explorer.kriptoaman.com' },
