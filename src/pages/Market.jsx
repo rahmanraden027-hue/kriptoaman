@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 
 import useLivePrices from '../components/market/useLivePrices';
+import { DATA_STATE, marketDataState } from '@/lib/dataState';
 import useCoinMarkets from '../components/home/useCoinMarkets';
 import InteractiveSparkline from '../components/home/InteractiveSparkline';
 import TradingViewModal from '../components/market/TradingViewModal';
@@ -147,7 +148,8 @@ export default function Market({ compact = false }) {
   const { prices: liveData, connected, idrRate } = useLivePrices();
   const { markets, coins: marketCoins, dataAvailable, source, lastUpdated, isStale, cacheAgeMs } = useCoinMarkets();
   const coins = marketCoins.length > 0 ? marketCoins : COINS;
-  const marketAvailable = connected || dataAvailable;
+  const marketState = marketDataState({ connected, dataAvailable });
+  const marketAvailable = marketState !== DATA_STATE.UNAVAILABLE;
   const sourceLabel = {
     coinlore: 'CoinLore',
     coingecko: 'CoinGecko',
@@ -229,7 +231,7 @@ export default function Market({ compact = false }) {
                 <div className="mt-4 flex flex-wrap items-center gap-2">
                   <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-bold ${marketAvailable ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300' : 'border-amber-400/25 bg-amber-400/10 text-amber-300'}`}>
                     <span className={`h-1.5 w-1.5 rounded-full ${marketAvailable ? 'bg-emerald-400 ka-pulse-dot' : 'bg-amber-400'}`} />
-                    {connected ? text.live : dataAvailable ? text.available : text.connecting}
+                    {marketState}
                   </span>
                   <span className="ka-chip px-3 py-1.5 text-[10px] font-bold text-slate-300">{sourceLabel}</span>
                   {updatedLabel && <span className="ka-chip px-3 py-1.5 text-[10px] font-bold text-slate-400">{text.updated} {updatedLabel}</span>}
@@ -240,7 +242,7 @@ export default function Market({ compact = false }) {
               <div className="grid grid-cols-2 gap-2.5">
                 {[
                   [Activity, text.breadth, `${breadth}%`, breadth >= 50 ? 'text-emerald-300' : 'text-amber-300'],
-                  [Radar, text.feeds, marketAvailable ? (connected ? 'LIVE' : 'SYNC') : 'WAIT', marketAvailable ? 'text-sky-300' : 'text-amber-300'],
+                  [Radar, text.feeds, marketState, marketAvailable ? 'text-sky-300' : 'text-amber-300'],
                   [Layers3, text.universe, coins.length.toLocaleString(language === 'en' ? 'en-US' : 'id-ID'), 'text-white'],
                   [Sparkles, text.mode, language === 'en' ? 'REAL-TIME' : 'REAL-TIME', 'text-cyan-300'],
                 ].map(([Icon, label, value, color]) => (
@@ -271,7 +273,7 @@ export default function Market({ compact = false }) {
               <div className="flex flex-wrap items-center justify-end gap-1.5">
                 <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-bold ${marketAvailable ? 'border-emerald-400/20 bg-emerald-400/10 text-emerald-300' : 'border-amber-400/20 bg-amber-400/10 text-amber-300'}`}>
                   <span className={`h-1.5 w-1.5 rounded-full ${marketAvailable ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-                  {connected ? text.live : dataAvailable ? text.available : text.connecting}
+                  {marketState}
                 </span>
                 <span className="ka-chip px-2.5 py-1 text-[9px] font-bold text-slate-300">{sourceLabel}</span>
                 {ageLabel && <span className={`ka-chip px-2.5 py-1 text-[9px] font-bold ${isStale ? 'text-amber-300' : 'text-emerald-300'}`}>{ageLabel}</span>}
