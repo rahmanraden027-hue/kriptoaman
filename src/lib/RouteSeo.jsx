@@ -152,9 +152,14 @@ export default function RouteSeo() {
     upsertMeta('og:description', description, 'property');
     upsertMeta('og:url', url, 'property');
     upsertMeta('og:image', DEFAULT_IMAGE, 'property');
+    upsertMeta('og:image:secure_url', DEFAULT_IMAGE, 'property');
+    upsertMeta('og:image:type', 'image/webp', 'property');
+    upsertMeta('og:image:width', '1024', 'property');
+    upsertMeta('og:image:height', '1024', 'property');
     upsertMeta('og:image:alt', 'KriptoAman official blue-and-gold security shield', 'property');
     upsertMeta('og:locale', locale, 'property');
-    upsertMeta('twitter:card', 'summary_large_image');
+    upsertMeta('twitter:card', 'summary');
+    upsertMeta('twitter:site', '@KriptoAman');
     upsertMeta('twitter:title', title);
     upsertMeta('twitter:description', description);
     upsertMeta('twitter:image', DEFAULT_IMAGE);
