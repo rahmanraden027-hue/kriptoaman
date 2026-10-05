@@ -81,6 +81,7 @@ export default function ZEVARYQ() {
     wallet: 'Open ZEVARYQ Wallet',
     docs: 'Network docs',
     provenanceTitle: 'Network provenance',
+    publicGate: 'RPC identity verified; public-mainnet promotion remains a separate operational gate.',
     provenance: 'Legacy KAM naming was migrated to ZEVARYQ on the same network identity. Genesis, addresses, balances and historical blocks remain continuity data and are not presented as promotional content.',
   } : {
     eyebrow: 'ZEVARYQ · PRODUCTION NETWORK',
@@ -98,6 +99,7 @@ export default function ZEVARYQ() {
     wallet: 'Buka ZEVARYQ Wallet',
     docs: 'Dokumentasi jaringan',
     provenanceTitle: 'Provenance jaringan',
+    publicGate: 'Identitas RPC terverifikasi; promosi mainnet publik tetap merupakan gerbang operasional terpisah.',
     provenance: 'Penamaan KAM lama dimigrasikan ke ZEVARYQ pada identitas jaringan yang sama. Genesis, alamat, saldo dan riwayat blok tetap menjadi data kontinuitas, bukan materi promosi.',
   };
 
@@ -126,6 +128,7 @@ export default function ZEVARYQ() {
                 {stateText}
               </span>
               {probe.checkedAt && <p className="mt-2 text-[9px] text-slate-500">{new Date(probe.checkedAt).toLocaleString(locale)}</p>}
+              <p className="mt-2 max-w-[260px] text-[9px] leading-4 text-slate-500 lg:ml-auto">{copy.publicGate}</p>
             </div>
           </div>
         </section>
