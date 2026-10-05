@@ -6,7 +6,7 @@ const read = path => readFile(new URL('../' + path, import.meta.url), 'utf8');
 
 test('Phase 11E separates live production proof from candidate fixture proof', async () => {
   const script = await read('.github/scripts/phase11e-final-cross-surface.mjs');
-  assert.equal(script.includes('https://kriptoaman.com'), true);
+  assert.match(script, /PHASE11E_LIVE/);
   assert.match(script, /candidate browser auth fixture only/);
   assert.match(script, /candidate UI with browser-only unauthenticated fixture/);
   assert.match(script, /realCredentialsUsed:false/);
