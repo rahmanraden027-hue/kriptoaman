@@ -23,7 +23,7 @@ test('Phase 10L.4 keeps route-level share metadata consistent with the root cont
   assert.match(language, /window\.location\.pathname === '\/'\) return 'id'/);
   assert.match(language, /window\.location\.pathname === '\/en'\) return 'en'/);
   assert.ok(
-    language.indexOf("window.location.pathname === '/'") < language.indexOf('safeReadLanguage()'),
+    language.indexOf("window.location.pathname === '/'") < language.indexOf('const stored = safeReadLanguage()'),
     'explicit public URL semantics must win before stored/browser preference'
   );
 });
