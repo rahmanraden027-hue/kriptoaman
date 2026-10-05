@@ -1,4 +1,5 @@
 import React from 'react';
+import { getProductionFreshness } from './productionFreshness';
 
 const fmt = (value) => Number.isFinite(Number(value))
   ? Number(value).toLocaleString('en-US')
@@ -11,6 +12,8 @@ export default function LandingLiveSystemStrip({ stats }) {
   const liveBlock = Number.isFinite(block);
   const marketLive = stats?.marketAvailable === true;
   const synced = String(stats?.zvqSyncStatus || '').toLowerCase() === 'synced';
+  const snapshot = getProductionFreshness(stats);
+  const snapshotHealthy = snapshot.verified && snapshot.freshness !== 'STALE';
 
   const items = [
     {
@@ -62,6 +65,18 @@ export default function LandingLiveSystemStrip({ stats }) {
               </div>
             </div>
           ))}
+        </div>
+        <div
+          className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-blue-400/10 bg-black/10 px-3 py-2.5 text-[9px] sm:px-4"
+          aria-label="Authoritative production snapshot provenance"
+        >
+          <span className={`inline-flex items-center gap-2 font-black uppercase tracking-[.11em] ${snapshotHealthy ? 'text-emerald-300' : 'text-slate-400'}`}>
+            <i aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${snapshotHealthy ? 'bg-emerald-300 shadow-[0_0_10px_rgba(110,231,183,.55)]' : 'bg-slate-500'}`} />
+            AUTHORITATIVE SNAPSHOT · {snapshot.freshness}
+          </span>
+          <span className="text-slate-500">
+            {snapshot.modeLabel} · AGE {snapshot.ageLabel}{snapshot.generatedLabel ? ` · GENERATED ${snapshot.generatedLabel}` : ''}
+          </span>
         </div>
       </div>
     </section>
