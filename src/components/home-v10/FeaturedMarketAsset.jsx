@@ -5,6 +5,13 @@ import { formatCompactUsd, formatMagnitude, formatPrice, sparklinePoints } from 
 
 const ROTATION_MS = 10000;
 
+const finite = value => (
+  value !== null
+  && value !== undefined
+  && value !== ''
+  && Number.isFinite(Number(value))
+);
+
 export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE' }) {
   const candidates = useMemo(() => assets.slice(0, 8), [assets]);
   const [index, setIndex] = useState(0);
@@ -27,6 +34,18 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
   const change = Number(asset?.change24h);
   const positive = change >= 0;
   const points = sparklinePoints(asset?.sparkline, 520, 180);
+  const hasTrace = Boolean(points);
+
+  const price = Number(asset?.price);
+  const high = Number(asset?.high24h);
+  const low = Number(asset?.low24h);
+  const hasRange = finite(asset?.price)
+    && finite(asset?.high24h)
+    && finite(asset?.low24h)
+    && high > low;
+  const rangePosition = hasRange
+    ? Math.max(0, Math.min(100, ((price - low) / (high - low)) * 100))
+    : 50;
 
   if (!asset) {
     return (
@@ -79,12 +98,13 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
 
         <div className="relative min-h-[220px] rounded-[24px] border border-white/[0.05] bg-black/10 p-3">
           <div className="absolute inset-x-3 top-3 flex items-center justify-between">
-            <span className="text-[8px] font-black uppercase tracking-[0.16em] text-slate-500">7D PRICE TRACE</span>
+            <span className="text-[8px] font-black uppercase tracking-[0.16em] text-slate-500">{hasTrace ? '7D PRICE TRACE' : '24H RANGE'}</span>
             <span className="text-[9px] font-black text-slate-400">#{asset.rank || '—'}</span>
           </div>
-          <svg viewBox="0 0 520 180" className="absolute inset-x-3 bottom-3 h-[calc(100%-46px)] w-[calc(100%-24px)]" role="img" aria-label={`${asset.sym} price trace`}>
-            <line x1="0" y1="90" x2="520" y2="90" stroke="rgba(148,163,184,.12)" strokeWidth="1" />
-            {points && (
+
+          {hasTrace ? (
+            <svg viewBox="0 0 520 180" className="absolute inset-x-3 bottom-3 h-[calc(100%-46px)] w-[calc(100%-24px)]" role="img" aria-label={`${asset.sym} price trace`}>
+              <line x1="0" y1="90" x2="520" y2="90" stroke="rgba(148,163,184,.12)" strokeWidth="1" />
               <polyline
                 points={points}
                 fill="none"
@@ -94,8 +114,47 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
                 strokeLinejoin="round"
                 vectorEffect="non-scaling-stroke"
               />
-            )}
-          </svg>
+            </svg>
+          ) : (
+            <div className="absolute inset-x-5 bottom-5 top-12 flex flex-col justify-center">
+              {hasRange ? (
+                <>
+                  <div className="relative h-2 rounded-full bg-slate-800">
+                    <div
+                      className={`absolute inset-y-0 left-0 rounded-full ${positive ? 'bg-emerald-400/65' : 'bg-rose-400/65'}`}
+                      style={{ width: `${rangePosition}%` }}
+                    />
+                    <span
+                      className={`absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[#061120] ${positive ? 'bg-emerald-300' : 'bg-rose-300'}`}
+                      style={{ left: `${rangePosition}%` }}
+                    />
+                  </div>
+                  <div className="mt-4 flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-[8px] font-black uppercase tracking-[0.12em] text-slate-600">LOW</p>
+                      <p className="mt-1 text-xs font-black text-slate-300">{formatPrice(asset.low24h)}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-[8px] font-black uppercase tracking-[0.12em] text-cyan-500">NOW</p>
+                      <p className="mt-1 text-base font-black text-white">{formatPrice(asset.price)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[8px] font-black uppercase tracking-[0.12em] text-slate-600">HIGH</p>
+                      <p className="mt-1 text-xs font-black text-slate-300">{formatPrice(asset.high24h)}</p>
+                    </div>
+                  </div>
+                  <p className="mt-6 text-center text-[8px] font-black uppercase tracking-[0.13em] text-slate-600">Persisted history unavailable · live range only</p>
+                </>
+              ) : (
+                <div className="grid h-full place-items-center text-center">
+                  <div>
+                    <p className="text-sm font-black text-slate-300">{formatPrice(asset.price)}</p>
+                    <p className="mt-2 text-[9px] uppercase tracking-[0.13em] text-slate-600">Historical trace unavailable</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
