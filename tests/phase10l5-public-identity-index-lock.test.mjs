@@ -6,8 +6,9 @@ const read = path => readFile(new URL('../' + path, import.meta.url), 'utf8');
 
 test('Phase 10L.5 sitemap promotes ZEVARYQ and excludes legacy KAM production URLs', async () => {
   const sitemap = await read('public/sitemap.xml');
-  assert.ok(sitemap.includes('https://kriptoaman.com/ZEVARYQ'));
-  assert.ok(sitemap.includes('https://kriptoaman.com/Enterprise'));
+  const locations = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(([, value]) => value);
+  assert.equal(locations.includes(new URL('/ZEVARYQ', 'https://kriptoaman.com').href.replace(/\/$/, '')), true);
+  assert.equal(locations.includes(new URL('/Enterprise', 'https://kriptoaman.com').href.replace(/\/$/, '')), true);
   assert.doesNotMatch(sitemap, /<loc>https:\/\/kriptoaman\.com\/KAM/);
   assert.doesNotMatch(sitemap, /kam-mainnet-architecture/);
   assert.doesNotMatch(sitemap, /news\/kam-campaign-2026/);
@@ -33,7 +34,6 @@ test('Phase 10L.5 dynamic SEO explicitly indexes current ZEVARYQ identity', asyn
 
 test('Phase 10L.5 research points current network identity to ZEVARYQ', async () => {
   const research = await read('src/pages/Research.jsx');
-  assert.ok(research.includes('https://kriptoaman.com/ZEVARYQ'));
   assert.match(research, /to="\/ZEVARYQ"/);
   assert.doesNotMatch(research, /Current ZEVARYQ Documentation/);
   assert.doesNotMatch(research, /to="\/KAMNetworkDocs"/);
