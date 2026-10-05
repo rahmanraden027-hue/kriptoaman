@@ -269,6 +269,23 @@ async function serveRescue(edgeCache, rescueCacheKey) {
   });
 }
 
+async function refreshPageCache(edgeCache, cacheKey, rescueCacheKey, env, request, requestId) {
+  if (!edgeCache) return;
+  try {
+    const response = await buildPageSingleFlight(env, request, requestId, cacheKey);
+    if (response.status !== 200) return;
+    await Promise.all([
+      edgeCache.put(cacheKey, response.clone()),
+      edgeCache.put(rescueCacheKey, buildRescueSeed(response)),
+    ]);
+  } catch (error) {
+    console.error('Paged market background cache refresh failed', {
+      requestId,
+      error: error?.message || String(error),
+    });
+  }
+}
+
 export async function onRequestGet({ env, request, waitUntil }) {
   const requestId = crypto.randomUUID();
   const edgeCache = globalThis.caches?.default;
@@ -280,6 +297,21 @@ export async function onRequestGet({ env, request, waitUntil }) {
       const hitHeaders = new Headers(hit.headers);
       hitHeaders.set('X-KriptoAman-Market-Page-Cache', 'HIT');
       return new Response(hit.body, { status: hit.status, headers: hitHeaders });
+    }
+
+    const rescue = await serveRescue(edgeCache, rescueCacheKey);
+    if (rescue) {
+      const refreshTask = refreshPageCache(
+        edgeCache,
+        cacheKey,
+        rescueCacheKey,
+        env,
+        request,
+        requestId,
+      );
+      if (typeof waitUntil === 'function') waitUntil(refreshTask);
+      else refreshTask.catch(() => undefined);
+      return rescue;
     }
   }
 

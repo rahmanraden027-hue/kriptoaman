@@ -11,6 +11,17 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'src/**'
+      - 'functions/**'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/final-go-evidence.yml'
+      - 'docs/FINAL_GO_EVIDENCE.md'
+      - 'load/k6-production-readonly.js'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'src/**'
+      - 'functions/**'
   workflow_dispatch:
     inputs:
       load_stage:
@@ -177,7 +188,41 @@ jobs:
           fi
           echo "stage=$stage" >> "$GITHUB_OUTPUT"
           echo "allow=$allow" >> "$GITHUB_OUTPUT"
+      - name: Resolve load target
+        id: target
+        shell: bash
+        run: |
+          set -euo pipefail
+          base_url='https://kriptoaman.com'
+          load_enabled='YES'
+          if [ '${{ github.event_name }}' = 'push' ]; then
+            echo 'Waiting for production deployment before Final GO load.'
+            sleep 35
+          fi
+          if [ '${{ github.event_name }}' = 'pull_request' ]; then
+            branch='${{ github.head_ref }}'
+            branch="$(printf '%s' "$branch" | tr '[:upper:]' '[:lower:]' | tr '/_' '--')"
+            branch="${branch:0:28}"
+            base_url="https://${branch}.kriptoaman.pages.dev"
+            ready='NO'
+            for attempt in 1 2 3 4 5 6; do
+              if curl -L --fail --silent --show-error --max-time 20 \
+                  "$base_url/api/market-snapshot-page?page=0&limit=1" -o /tmp/preview-market.json; then
+                ready='YES'
+                break
+              fi
+              sleep 10
+            done
+            if [ "$ready" != 'YES' ]; then
+              echo "::notice::PR preview lacks the production market data-plane binding; candidate load is skipped and production push remains mandatory."
+              load_enabled='NO'
+            fi
+          fi
+          echo "base_url=$base_url" >> "$GITHUB_OUTPUT"
+          echo "load_enabled=$load_enabled" >> "$GITHUB_OUTPUT"
+          echo "Load target: $base_url (enabled=$load_enabled)"
       - name: Endpoint latency preflight
+        if: steps.target.outputs.load_enabled == 'YES'
         id: preflight
         shell: bash
         run: |
@@ -187,13 +232,13 @@ jobs:
             for i in 1 2 3; do
               curl -L -sS -o /dev/null --max-time 10 \
                 -w 'status=%{http_code} total=%{time_total}s connect=%{time_connect}s starttransfer=%{time_starttransfer}s\n' \
-                "https://kriptoaman.com${path}"
+                "${{ steps.target.outputs.base_url }}${path}"
             done
           done
 
           hot='NO'
           if curl -L --fail --silent --show-error --max-time 10 \
-              https://kriptoaman.com/api/market-hot -o /tmp/market-hot.json; then
+              "${{ steps.target.outputs.base_url }}/api/market-hot" -o /tmp/market-hot.json; then
             if node -e "const p=require('/tmp/market-hot.json'); if(p.healthy!==true || !Array.isArray(p.data) || !p.data.some(x=>x.symbol==='BTC')) process.exit(1);"; then
               hot='YES'
             fi
@@ -201,11 +246,12 @@ jobs:
           echo "include_hot=$hot" >> "$GITHUB_OUTPUT"
           echo "Hot market load coverage: $hot"
       - name: Run guarded k6 profile
+        if: steps.target.outputs.load_enabled == 'YES'
         shell: bash
         run: |
           set -euo pipefail
           docker run --rm -i \
-            -e BASE_URL=https://kriptoaman.com \
+            -e BASE_URL='${{ steps.target.outputs.base_url }}' \
             -e KA_LOAD_STAGE='${{ steps.stage.outputs.stage }}' \
             -e ALLOW_PRODUCTION_LOAD_TEST='${{ steps.stage.outputs.allow }}' \
             -e KA_INCLUDE_HOT_MARKET='${{ steps.preflight.outputs.include_hot }}' \

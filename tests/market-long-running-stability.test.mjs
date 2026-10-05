@@ -38,6 +38,19 @@ test('dedicated warm watchdog runs every five minutes without cancelling an acti
   assert.match(workflow, /payload\.chunkReady !== true/);
 });
 
+
+test('paged market serves verified rescue before cold D1 rebuild and refreshes cache in background', async () => {
+  const page = await read('functions/api/market-snapshot-page.js');
+  assert.match(page, /async function refreshPageCache/);
+  assert.match(page, /const rescue = await serveRescue\(edgeCache, rescueCacheKey\)/);
+  assert.match(page, /if \(rescue\) \{/);
+  assert.match(page, /const refreshTask = refreshPageCache/);
+  assert.match(page, /waitUntil\(refreshTask\)/);
+  const rescueIndex = page.indexOf('const rescue = await serveRescue(edgeCache, rescueCacheKey)');
+  const blockingBuildIndex = page.indexOf('const response = await buildPageSingleFlight(env, request, requestId, cacheKey);', page.indexOf('export async function onRequestGet'));
+  assert.ok(rescueIndex >= 0 && blockingBuildIndex > rescueIndex, 'rescue fast path must be checked before blocking D1 rebuild');
+});
+
 test('paged market has a bounded 24 hour rescue cache for transient D1 or origin failures', async () => {
   const page = await read('functions/api/market-snapshot-page.js');
   assert.match(page, /RESCUE_CACHE_TTL_SECONDS = 24 \* 60 \* 60/);
