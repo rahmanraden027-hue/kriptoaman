@@ -1,6 +1,5 @@
 import React, { lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
-import { getProductionFreshness } from './productionFreshness';
 
 const GLandingHeroConsole = lazy(() => import('@/components/landing/GLandingHeroConsole'));
 
@@ -18,74 +17,29 @@ function HeroConsolePlaceholder() {
   );
 }
 
-function metric(value, formatter = (item) => item) {
-  if (value === null || value === undefined || value === '') return '—';
-  const numeric = Number(value);
-  if (Number.isFinite(numeric)) return formatter(numeric);
-  return String(value).toUpperCase();
-}
-
 export default function GLandingHero({ stats, visualReady = true }) {
-  const snapshot = getProductionFreshness(stats);
-  const marketState = stats?.marketAvailable ? snapshot.freshness : 'UNAVAILABLE';
-
-  const productionMetrics = [
-    {
-      label: 'MARKET ASSETS',
-      value: metric(stats?.assetCount, (value) => value.toLocaleString('id-ID')),
-      state: marketState,
-    },
-    {
-      label: 'ZVQ BLOCK',
-      value: metric(stats?.zvqBlockNumber, (value) => '#' + value.toLocaleString('id-ID')),
-      state: stats?.zvqBlockNumber != null ? 'LIVE' : 'VERIFYING',
-    },
-    {
-      label: 'VERIFIED NETWORKS',
-      value: metric(stats?.networkActiveCount),
-      state: Number.isFinite(Number(stats?.networkActiveCount)) ? 'LIVE' : 'VERIFYING',
-    },
-    {
-      label: 'CHAIN / RPC',
-      value: stats?.zvqSyncStatus ? String(stats.zvqSyncStatus).toUpperCase() : '—',
-      state: stats?.zvqSyncStatus ? 'VERIFIED' : 'VERIFYING',
-    },
-  ];
-
   return (
-    <section id="beranda" className="ka-command-hero relative overflow-hidden px-4 pb-8 pt-8 sm:px-6 sm:pt-10 lg:flex lg:min-h-[calc(100svh-116px)] lg:items-center lg:py-4">
+    <section id="beranda" className="ka-command-hero relative overflow-hidden px-4 pb-7 pt-6 sm:px-6 sm:pt-8 lg:flex lg:min-h-[calc(100svh-116px)] lg:items-center lg:py-4">
       <div
         className="pointer-events-none absolute -top-24 left-1/2 h-[760px] w-[760px] -translate-x-1/2 rounded-full blur-3xl"
         style={{ background: 'radial-gradient(circle, rgba(37,99,235,0.14), transparent 62%)' }}
       />
-      <div className="ka-hero-grid mx-auto grid w-full max-w-[1440px] items-center gap-7 lg:grid-cols-[.92fr_1.08fr] lg:gap-6">
+      <div className="ka-hero-grid mx-auto grid w-full max-w-[1440px] items-center gap-5 sm:gap-6 lg:grid-cols-[.92fr_1.08fr] lg:gap-6">
         <div className="ka-hero-copy text-center lg:text-left">
           <span className="ka-chip inline-flex items-center gap-2 px-3.5 py-1.5 text-[11px] font-bold tracking-wide">
             <span aria-hidden="true" className="inline-block h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.55)]" />
             KRIPTOAMAN · VERIFIED CRYPTO INTELLIGENCE
           </span>
 
-          <h1 className="ka-sec-title mt-5 text-[36px] sm:text-5xl lg:mt-4 lg:text-[46px] lg:leading-[.98]">
+          <h1 className="ka-sec-title mt-4 text-[34px] sm:text-5xl lg:mt-4 lg:text-[46px] lg:leading-[.98]">
             Data produksi, langsung terlihat.<br />
             <span className="ka-blue">Market · On-chain · Network · Evidence</span>
           </h1>
-          <p className="ka-text2 mx-auto mt-4 max-w-xl text-sm leading-relaxed sm:text-base lg:mx-0 lg:mt-3 lg:max-w-[540px] lg:text-[14px]">
-            KriptoAman menyatukan market intelligence dan bukti jaringan ZEVARYQ dalam satu command center. Nilai hanya ditampilkan ketika sumber produksi dapat diverifikasi.
+          <p className="ka-text2 mx-auto mt-3 max-w-xl text-[13px] leading-6 sm:text-[15px] lg:mx-0 lg:mt-3 lg:max-w-[540px] lg:text-[14px]">
+            Market intelligence dan evidence jaringan ZEVARYQ, ditampilkan hanya dari sumber produksi yang dapat diverifikasi.
           </p>
 
-          <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:hidden" aria-label="KriptoAman production snapshot">
-            {productionMetrics.map((item) => (
-              <div key={item.label} className="rounded-2xl border border-sky-400/12 bg-[#06111e]/78 px-3 py-3 text-left">
-                <p className="text-[9px] font-black uppercase tracking-[.13em] text-slate-400">{item.label}</p>
-                <p className="mt-1.5 truncate text-lg font-black tabular-nums ka-text">{item.value}</p>
-                <p className={"mt-1 text-[9px] font-black uppercase tracking-[.11em] " + (['LIVE', 'RECENT', 'VERIFIED'].includes(item.state) ? 'text-emerald-300' : 'text-amber-300')}>
-                  {item.state}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <div className="ka-hero-actions mt-6 flex flex-col justify-center gap-3 sm:flex-row lg:mt-5 lg:justify-start">
+          <div className="ka-hero-actions mt-5 flex flex-col justify-center gap-2.5 sm:flex-row lg:mt-5 lg:justify-start">
             <Link to="/login" className="ka-btn-primary inline-flex items-center justify-center gap-2 px-6 text-sm sm:text-base">
               Open Workspace <span aria-hidden="true">→</span>
             </Link>
@@ -103,9 +57,6 @@ export default function GLandingHero({ stats, visualReady = true }) {
           <HeroConsolePlaceholder />
         )}
       </div>
-      <p className="ka-text2 mt-5 text-center text-[10px] opacity-70 lg:hidden">
-        Verified data only · unavailable values remain unavailable · no synthetic production metrics.
-      </p>
     </section>
   );
 }
