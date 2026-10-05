@@ -1,0 +1,93 @@
+name: Phase 11E Final Cross-Surface Production Acceptance
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'functions/api/**'
+      - '.github/scripts/phase11e-final-cross-surface.mjs'
+      - '.github/workflows/phase11e-final-cross-surface.yml'
+      - 'tests/phase11e-final-cross-surface.test.mjs'
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'functions/api/**'
+      - '.github/scripts/phase11e-final-cross-surface.mjs'
+      - '.github/workflows/phase11e-final-cross-surface.yml'
+      - 'tests/phase11e-final-cross-surface.test.mjs'
+  schedule:
+    - cron: '37 2,14 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase11e-final-cross-surface-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/phase11e-final-cross-surface.test.mjs
+
+  browser-acceptance:
+    needs: contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Build candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --legacy-peer-deps
+          npm run build
+          nohup npx vite preview --host 127.0.0.1 --port 4173 > /tmp/phase11e-vite.log 2>&1 &
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent --show-error http://127.0.0.1:4173/ -o /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/phase11e-vite.log || true
+          exit 1
+
+      - name: Install Chromium
+        run: |
+          npm install --no-save --legacy-peer-deps playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Allow post-merge production deployment to settle
+        if: github.event_name == 'push'
+        run: sleep 60
+
+      - name: Run final production and candidate acceptance
+        env:
+          PHASE11E_LIVE: https://kriptoaman.com
+          PHASE11E_CANDIDATE: http://127.0.0.1:4173
+          PHASE11E_EVENT: ${{ github.event_name }}
+        run: node .github/scripts/phase11e-final-cross-surface.mjs
+
+      - name: Upload Phase 11E evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase11e-final-cross-surface-evidence
+          path: phase11e-evidence
+          retention-days: 30
+          if-no-files-found: warn
