@@ -49,9 +49,9 @@ export default function LandingLiveSystemStrip({ stats }) {
   ];
 
   return (
-    <section className="ka-live-system-strip px-4 sm:px-6 pt-[72px]" aria-label="KriptoAman live production status">
+    <section className="ka-live-system-strip px-4 sm:px-6 pt-[72px] lg:pt-[68px]" aria-label="KriptoAman live production status">
       <div className="mx-auto max-w-[1440px] overflow-hidden rounded-2xl border border-blue-400/15 bg-[#04101b]/90 backdrop-blur-xl">
-        <div className="grid grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 lg:hidden">
           {items.map(({ glyph, label, value, note, ok }, index) => (
             <div
               key={label}
@@ -69,7 +69,7 @@ export default function LandingLiveSystemStrip({ stats }) {
           ))}
         </div>
         <div
-          className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-blue-400/10 bg-black/10 px-3 py-2.5 text-[9px] sm:px-4"
+          className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-blue-400/10 bg-black/10 px-3 py-2.5 text-[9px] sm:px-4 lg:hidden"
           aria-label="Authoritative production snapshot provenance"
         >
           <span className={`inline-flex items-center gap-2 font-black uppercase tracking-[.11em] ${snapshotHealthy ? 'text-emerald-300' : 'text-slate-400'}`}>
@@ -79,6 +79,31 @@ export default function LandingLiveSystemStrip({ stats }) {
           <span className="text-slate-500">
             {snapshot.modeLabel} · AGE {snapshot.ageLabel}{snapshot.generatedLabel ? ` · GENERATED ${snapshot.generatedLabel}` : ''}
           </span>
+        </div>
+
+        <div className="hidden min-h-[48px] grid-cols-[repeat(4,minmax(0,1fr))_minmax(300px,auto)] items-stretch lg:grid" aria-label="Compact desktop production status">
+          {items.map(({ label, value, note, ok }, index) => (
+            <div
+              key={`desktop-${label}`}
+              className={`flex min-w-0 items-center gap-2 px-3 py-2 ${index < items.length - 1 ? 'border-r border-blue-400/10' : ''}`}
+            >
+              <i aria-hidden="true" className={`h-1.5 w-1.5 shrink-0 rounded-full ${ok ? 'bg-emerald-300 shadow-[0_0_8px_rgba(110,231,183,.45)]' : 'bg-slate-500'}`} />
+              <span className="min-w-0">
+                <span className="mr-2 text-[8px] font-black uppercase tracking-[.12em] text-slate-500">{label}</span>
+                <b className={`text-[11px] font-black ${ok ? 'text-emerald-300' : 'text-slate-200'}`}>{value}</b>
+                <small className="ml-2 text-[8px] text-slate-500">{note}</small>
+              </span>
+            </div>
+          ))}
+          <div className="flex min-w-0 items-center justify-end gap-3 border-l border-blue-400/10 bg-black/10 px-3 py-2 text-right">
+            <span className={`inline-flex items-center gap-2 whitespace-nowrap text-[8px] font-black uppercase tracking-[.1em] ${snapshotHealthy ? 'text-emerald-300' : 'text-slate-400'}`}>
+              <i aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${snapshotHealthy ? 'bg-emerald-300' : 'bg-slate-500'}`} />
+              SNAPSHOT {snapshot.freshness}
+            </span>
+            <span className="whitespace-nowrap text-[8px] text-slate-500">
+              AGE {snapshot.ageLabel}{snapshot.generatedLabel ? ` · ${snapshot.generatedLabel}` : ''}
+            </span>
+          </div>
         </div>
       </div>
     </section>
