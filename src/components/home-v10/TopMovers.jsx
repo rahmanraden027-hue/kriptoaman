@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { formatChange, formatPrice, sparklinePoints } from './format';
+import { formatMagnitude, formatPrice, sparklinePoints } from './format';
 
 const TABS = [
   ['gainers', 'Gainers'],
@@ -47,7 +47,7 @@ export default function TopMovers({ gainers = [], losers = [], active = [], newA
               </div>
               <span className="text-xs font-black text-slate-200">{formatPrice(asset.price)}</span>
               <span className={`text-xs font-black ${change >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
-                {change >= 0 ? '▲ ' : '▼ '}{formatChange(Math.abs(change))}
+                {change >= 0 ? '▲ ' : '▼ '}{formatMagnitude(change)}
               </span>
               <svg viewBox="0 0 90 28" className="hidden h-7 w-[90px] sm:block" aria-hidden="true">
                 {points && <polyline points={points} fill="none" stroke={change >= 0 ? 'rgb(110 231 183)' : 'rgb(253 164 175)'} strokeWidth="2" vectorEffect="non-scaling-stroke" />}
