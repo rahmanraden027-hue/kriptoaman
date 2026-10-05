@@ -46,56 +46,85 @@ jobs:
         run: |
           npm install --no-save --legacy-peer-deps playwright@1.55.0
           npx playwright install --with-deps chromium
-      - name: Capture HomeV10 preview matrix
+      - name: Capture matrix and check horizontal overflow
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p phase10i-evidence
-          target='http://127.0.0.1:4173/preview/home-v10'
-          for spec in '390 844 mobile' '768 1024 tablet' '1440 1080 desktop'; do
-            set -- $spec
-            width="$1"
-            height="$2"
-            label="$3"
-            npx -y playwright@1.55.0 screenshot \
-              --browser=chromium \
-              --viewport-size="${width},${height}" \
-              --full-page \
-              --wait-for-timeout 6500 \
-              "$target" \
-              "phase10i-evidence/home-v10-${label}-${width}.png"
-          done
-      - name: Check preview DOM for horizontal overflow
-        shell: bash
-        run: |
-          set -euo pipefail
-          cat > /tmp/overflow.mjs <<'JS'
+          cat > phase10i-preview.mjs <<'JS'
           import { chromium } from 'playwright';
-          const browser = await chromium.launch({ headless: true });
-          for (const viewport of [
+          import { writeFileSync } from 'node:fs';
+
+          const target = 'http://127.0.0.1:4173/preview/home-v10';
+          const productionOrigin = 'https://kriptoaman.com';
+          const viewports = [
             { width: 390, height: 844, label: 'mobile' },
             { width: 768, height: 1024, label: 'tablet' },
             { width: 1440, height: 1080, label: 'desktop' },
-          ]) {
-            const page = await browser.newPage({ viewport });
-            await page.goto('http://127.0.0.1:4173/preview/home-v10', { waitUntil: 'domcontentloaded' });
-            await page.waitForTimeout(4500);
+          ];
+
+          const browser = await chromium.launch({ headless: true });
+          const results = [];
+          let failed = false;
+
+          for (const viewport of viewports) {
+            const context = await browser.newContext({
+              viewport: { width: viewport.width, height: viewport.height },
+              deviceScaleFactor: 1,
+            });
+            const page = await context.newPage();
+
+            await page.route('**/api/**', async (route) => {
+              const original = new URL(route.request().url());
+              const productionUrl = productionOrigin + original.pathname + original.search;
+              try {
+                const response = await route.fetch({
+                  url: productionUrl,
+                  headers: { Accept: 'application/json' },
+                  timeout: 15000,
+                });
+                await route.fulfill({ response });
+              } catch (error) {
+                console.log('proxy-fallback', productionUrl, String(error));
+                await route.continue();
+              }
+            });
+
+            await page.goto(target, { waitUntil: 'domcontentloaded', timeout: 60000 });
+            await page.waitForTimeout(12000);
+
             const result = await page.evaluate(() => ({
               scrollWidth: document.documentElement.scrollWidth,
               clientWidth: document.documentElement.clientWidth,
-              title: document.title,
+              scrollHeight: document.documentElement.scrollHeight,
               hasFeatured: document.body.innerText.includes('MOVING NOW'),
               hasMovers: document.body.innerText.includes('Top Movers'),
               hasVerify: document.body.innerText.includes('VERIFY ANYTHING'),
+              marketUnavailable: document.body.innerText.includes('Market data unavailable'),
+              bodyText: document.body.innerText.slice(0, 1400),
             }));
+
+            result.label = viewport.label;
+            result.width = viewport.width;
+            result.height = viewport.height;
+            results.push(result);
             console.log(viewport.label, JSON.stringify(result));
-            if (result.scrollWidth > result.clientWidth + 1) process.exitCode = 1;
-            if (!result.hasFeatured || !result.hasMovers || !result.hasVerify) process.exitCode = 1;
-            await page.close();
+
+            await page.screenshot({
+              path: `phase10i-evidence/home-v10-${viewport.label}-${viewport.width}.png`,
+              fullPage: true,
+            });
+
+            if (result.scrollWidth > result.clientWidth + 1) failed = true;
+            if (!result.hasFeatured || !result.hasMovers || !result.hasVerify) failed = true;
+            await context.close();
           }
+
+          writeFileSync('phase10i-evidence/preview-matrix.json', JSON.stringify(results, null, 2));
           await browser.close();
+          if (failed) process.exit(1);
           JS
-          node /tmp/overflow.mjs
+          node phase10i-preview.mjs
       - name: WCAG 2 AA scan
         shell: bash
         run: |
