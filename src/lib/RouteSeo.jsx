@@ -12,7 +12,7 @@ const PUBLIC_META = {
     language: 'id',
   },
   '/en': {
-    title: 'KriptoAman — Crypto Intelligence. Global Market Edge.',
+    title: 'KriptoAman — Verified Data. Real Intelligence.',
     description: 'KriptoAman unifies market, on-chain, network, and evidence into a verified crypto intelligence platform for global users.',
     robots: 'index, follow, max-image-preview:large',
     locale: 'en_US',
