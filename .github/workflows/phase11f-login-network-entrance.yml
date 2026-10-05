@@ -1,0 +1,47 @@
+name: Phase 11F Login Network Entrance
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/pages/Login.jsx'
+      - 'src/components/AuthLayout.jsx'
+      - 'src/components/auth/LoginNetworkEntrance.jsx'
+      - 'tests/phase11f-login-network-entrance.test.mjs'
+      - '.github/workflows/phase11f-login-network-entrance.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/pages/Login.jsx'
+      - 'src/components/AuthLayout.jsx'
+      - 'src/components/auth/LoginNetworkEntrance.jsx'
+      - 'tests/phase11f-login-network-entrance.test.mjs'
+      - '.github/workflows/phase11f-login-network-entrance.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/phase11f-login-network-entrance.test.mjs
+
+  build:
+    needs: contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - run: npm run build
