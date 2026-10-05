@@ -27,7 +27,7 @@ test('root UI cleanup phase 5 preserves the final production order across the de
     '<LiveBlockFlow3D',
     'betweenBlockAndNode={<LandingMarketPulse />}',
     '<GLandingBody',
-    '<GLandingInstitutional',
+    '<GLandingProductionGateways',
   ];
   previous = -1;
   for (const token of deferredOrder) {
@@ -42,10 +42,10 @@ test('hero cleanup removes repeated purpose cards and the duplicate telemetry ti
   assert.doesNotMatch(hero, /const PURPOSE/);
   assert.doesNotMatch(hero, /StreamItems/);
   assert.doesNotMatch(hero, /ka-live-stream-track/);
-  assert.match(hero, /MARKET/);
-  assert.match(hero, /ON-CHAIN/);
-  assert.match(hero, /RISK/);
-  assert.match(hero, /EVIDENCE/);
+  assert.match(hero, /MARKET ASSETS/);
+  assert.match(hero, /ZVQ BLOCK/);
+  assert.match(hero, /VERIFIED NETWORKS/);
+  assert.match(hero, /Market · On-chain · Network · Evidence/);
 });
 
 test('landing body contains only core intelligence modules and one CTA surface', async () => {
