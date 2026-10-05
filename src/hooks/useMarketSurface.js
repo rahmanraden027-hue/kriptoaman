@@ -3,7 +3,12 @@ import useCoinMarkets from '@/components/home/useCoinMarkets';
 
 const FRESH_MS = 30 * 60 * 1000;
 
-const validNumber = (value) => Number.isFinite(Number(value));
+const validNumber = (value) => (
+  value !== null
+  && value !== undefined
+  && value !== ''
+  && Number.isFinite(Number(value))
+);
 
 const qualityAsset = (asset) => Boolean(
   asset?.id
@@ -33,9 +38,9 @@ export default function useMarketSurface() {
 
   return useMemo(() => {
     const assets = Array.isArray(raw.coins) ? raw.coins.filter(qualityAsset) : [];
-    const ageMs = Number.isFinite(Number(raw.cacheAgeMs))
+    const ageMs = validNumber(raw.cacheAgeMs)
       ? Math.max(0, Number(raw.cacheAgeMs))
-      : raw.lastUpdated
+      : validNumber(raw.lastUpdated)
         ? Math.max(0, Date.now() - Number(raw.lastUpdated))
         : null;
 
@@ -74,13 +79,11 @@ export default function useMarketSurface() {
       .slice(0, 8)
       .map(item => item.asset);
 
-    const breadth = movers.length
-      ? movers.reduce((summary, asset) => {
-          if (Number(asset.change24h) > 0) summary.positive += 1;
-          if (Number(asset.change24h) < 0) summary.negative += 1;
-          return summary;
-        }, { positive: 0, negative: 0 })
-      : { positive: 0, negative: 0 };
+    const breadth = movers.reduce((summary, asset) => {
+      if (Number(asset.change24h) > 0) summary.positive += 1;
+      if (Number(asset.change24h) < 0) summary.negative += 1;
+      return summary;
+    }, { positive: 0, negative: 0 });
 
     const direction = movers.length === 0
       ? 'UNAVAILABLE'
@@ -112,7 +115,7 @@ export default function useMarketSurface() {
         value: Number(active[0].volume),
         direction: 'neutral',
       },
-      {
+      movers.length > 0 && {
         id: 'market-direction',
         asset: 'MARKET',
         type: 'BREADTH',
