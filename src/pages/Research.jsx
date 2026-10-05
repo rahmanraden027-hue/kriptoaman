@@ -61,8 +61,8 @@ export default function Research() {
           {
             '@type': 'ListItem',
             position: 1,
-            url: 'https://kriptoaman.com/KAMNetworkDocs',
-            name: 'ZEVARYQ Network Documentation'
+            url: 'https://kriptoaman.com/ZEVARYQ',
+            name: 'ZEVARYQ Mainnet — Current Network Identity'
           },
           {
             '@type': 'ListItem',
@@ -98,7 +98,7 @@ export default function Research() {
             <p className="mt-7 max-w-3xl text-lg sm:text-xl leading-8 text-slate-300">Evidence-oriented technical publications on blockchain infrastructure, digital-asset intelligence, security, reliability, and measurable network readiness.</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a href="#publications" className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-950 hover:bg-slate-200">Explore Research <BookOpen className="w-4 h-4" /></a>
-              <Link to="/KAMNetworkDocs" className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-slate-200 hover:bg-white/5">Current ZEVARYQ Documentation <ArrowUpRight className="w-4 h-4" /></Link>
+              <Link to="/ZEVARYQ" className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-slate-200 hover:bg-white/5">Current ZEVARYQ Network <ArrowUpRight className="w-4 h-4" /></Link>
             </div>
           </div>
           <div className="lg:border-l lg:border-white/10 lg:pl-10 flex items-end">
@@ -112,7 +112,7 @@ export default function Research() {
             <div className="flex items-center gap-2 text-sky-300"><Network className="w-5 h-5" /><span className="text-xs font-semibold uppercase tracking-[0.18em]">ZEVARYQ NETWORK</span></div>
             <h2 className="mt-5 text-2xl sm:text-3xl font-semibold tracking-tight">ZEVARYQ Network Documentation</h2>
             <p className="mt-4 max-w-3xl leading-7 text-slate-400">Current network identity, Chain ID 22028, RPC, Explorer, wallet metadata, security boundaries, and developer-facing verification guidance.</p>
-            <Link to="/KAMNetworkDocs" className="mt-7 inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-3 text-sm font-semibold hover:bg-white/5">Open Current Docs <ArrowUpRight className="w-4 h-4" /></Link>
+            <Link to="/ZEVARYQ" className="mt-7 inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-3 text-sm font-semibold hover:bg-white/5">Open Current Docs <ArrowUpRight className="w-4 h-4" /></Link>
           </article>
           <article className="mt-4 rounded-3xl border border-amber-400/15 bg-[#080d14] p-6 sm:p-8">
             <div className="flex items-center gap-2 text-amber-300"><BookOpen className="w-5 h-5" /><span className="text-xs font-semibold uppercase tracking-[0.18em]">HISTORICAL · PRE-ZEVARYQ REBRAND</span></div>
