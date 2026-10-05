@@ -1,0 +1,82 @@
+name: HomeV10 Production Lock
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/App.jsx'
+      - 'src/pages/HomeV10.jsx'
+      - 'src/components/home-v10/**'
+      - 'src/hooks/useMarketSurface.js'
+      - 'src/components/home/useCoinMarkets.js'
+      - 'scripts/verify-home-v10-production.mjs'
+      - 'tests/phase10k-home-v10-production-lock.test.mjs'
+      - '.github/workflows/home-v10-production-lock.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/App.jsx'
+      - 'src/pages/HomeV10.jsx'
+      - 'src/components/home-v10/**'
+      - 'src/hooks/useMarketSurface.js'
+      - 'src/components/home/useCoinMarkets.js'
+      - 'scripts/verify-home-v10-production.mjs'
+      - 'tests/phase10k-home-v10-production-lock.test.mjs'
+      - '.github/workflows/home-v10-production-lock.yml'
+  schedule:
+    - cron: '17 1,13 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: home-v10-production-lock
+  cancel-in-progress: false
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Phase 10K source contract
+        run: node --test tests/phase10k-home-v10-production-lock.test.mjs
+
+  live-browser:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Allow production deployment to settle
+        if: github.event_name == 'push'
+        run: sleep 60
+      - name: Locate isolated Chrome
+        shell: bash
+        run: |
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || true)"
+          test -n "$CHROME"
+          echo "KA_CHROME=$CHROME" >> "$GITHUB_ENV"
+      - name: Install isolated Playwright client
+        shell: bash
+        run: |
+          npm install --prefix "$RUNNER_TEMP/home-v10-playwright" --no-package-lock --ignore-scripts --no-audit --no-fund playwright-core@1.55.0
+          echo "PLAYWRIGHT_CORE=$RUNNER_TEMP/home-v10-playwright/node_modules/playwright-core/index.mjs" >> "$GITHUB_ENV"
+          echo "HOME_V10_PRODUCTION_EVIDENCE_DIR=$RUNNER_TEMP/home-v10-production-evidence" >> "$GITHUB_ENV"
+      - name: Verify production HomeV10 mobile and desktop
+        run: node scripts/verify-home-v10-production.mjs
+      - name: Preserve Phase 10K production evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: home-v10-production-lock-evidence
+          path: ${{ runner.temp }}/home-v10-production-evidence
+          if-no-files-found: warn
+          retention-days: 30

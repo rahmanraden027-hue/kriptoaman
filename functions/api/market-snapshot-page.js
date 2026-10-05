@@ -6,6 +6,7 @@ const MIN_PAGE_SIZE = 100;
 const MARKET_CHUNK_SIZE = 100;
 const SNAPSHOT_MEMORY_TTL_MS = 60_000;
 const RESCUE_CACHE_TTL_SECONDS = 24 * 60 * 60;
+const FAST_RESCUE_MAX_AGE_MS = 15 * 60 * 1000;
 const PRIMARY_SNAPSHOT_ID = 'global';
 const BACKUP_SNAPSHOT_ID = 'global-backup';
 
@@ -194,6 +195,7 @@ async function buildPage(env, request, requestId) {
       'X-KriptoAman-Market-Page-Cache': 'MISS',
       'X-KriptoAman-Market-Snapshot-Read': result.delivery.snapshotRead,
       'X-KriptoAman-Market-Recovery': result.delivery.recoverySnapshot ? 'backup' : 'primary',
+      'X-KriptoAman-Market-Captured-At': String(result.capturedAt),
       'X-KriptoAman-D1-Session': typeof env.AUTH_DB.withSession === 'function' ? 'enabled' : 'compat',
       ...(result.delivery.recoverySnapshot ? {
         'X-KriptoAman-Market-Stale': 'true',
@@ -253,10 +255,16 @@ function buildRescueSeed(response) {
   });
 }
 
-async function serveRescue(edgeCache, rescueCacheKey) {
+async function serveRescue(edgeCache, rescueCacheKey, { maxAgeMs = null } = {}) {
   if (!edgeCache) return null;
   const rescue = await edgeCache.match(rescueCacheKey);
   if (!rescue) return null;
+
+  if (Number.isFinite(maxAgeMs)) {
+    const capturedAt = Number(rescue.headers.get('X-KriptoAman-Market-Captured-At'));
+    const ageMs = Number.isFinite(capturedAt) && capturedAt > 0 ? Math.max(0, Date.now() - capturedAt) : Infinity;
+    if (ageMs > maxAgeMs) return null;
+  }
 
   const rescueHeaders = new Headers(rescue.headers);
   rescueHeaders.set('Cache-Control', 'no-store');
@@ -299,7 +307,7 @@ export async function onRequestGet({ env, request, waitUntil }) {
       return new Response(hit.body, { status: hit.status, headers: hitHeaders });
     }
 
-    const rescue = await serveRescue(edgeCache, rescueCacheKey);
+    const rescue = await serveRescue(edgeCache, rescueCacheKey, { maxAgeMs: FAST_RESCUE_MAX_AGE_MS });
     if (rescue) {
       const refreshTask = refreshPageCache(
         edgeCache,
