@@ -22,10 +22,10 @@ Current verified preparation state for publisher onboarding:
 KriptoAman
 
 **English subtitle / short positioning**
-Digital Asset Intelligence
+Verified Crypto Intelligence
 
 **Indonesian short positioning**
-Intelijen Aset Digital
+Intelijen Kripto Terverifikasi
 
 **Primary category recommendation**
 Finance
@@ -35,15 +35,15 @@ Utilities / market monitoring, where the store supports a secondary category.
 
 ## English short description
 
-Monitor digital assets, public wallet addresses, market data, portfolio scenarios, and security signals in one intelligence workspace.
+Monitor market, on-chain activity, network state, public addresses, and evidence in one verified intelligence workspace.
 
 ## Indonesian short description
 
-Pantau aset digital, alamat dompet publik, data pasar, simulasi portofolio, dan sinyal keamanan dalam satu ruang kerja intelijen.
+Pantau market, aktivitas on-chain, status jaringan, alamat publik, dan evidence dalam satu ruang kerja intelijen terverifikasi.
 
 ## English full description
 
-KriptoAman is a digital-asset intelligence workspace designed for market monitoring, public-address observation, portfolio analysis, and security awareness.
+KriptoAman is a verified crypto intelligence workspace organized around market, on-chain, network, and evidence, with public-address observation, portfolio analysis, and security awareness.
 
 Use KriptoAman to explore market information, review supported digital-asset data, monitor public blockchain addresses, organize portfolio scenarios, and access security-focused tools from one modern interface.
 
@@ -62,7 +62,7 @@ Market information may be delayed, unavailable, or supplied by third-party data 
 
 ## Indonesian full description
 
-KriptoAman adalah ruang kerja intelijen aset digital yang dirancang untuk pemantauan pasar, pengamatan alamat publik, analisis portofolio, dan peningkatan kesadaran keamanan.
+KriptoAman adalah ruang kerja intelijen kripto terverifikasi yang disusun berdasarkan market, on-chain, network, dan evidence, dengan pengamatan alamat publik, analisis portofolio, serta peningkatan kesadaran keamanan.
 
 Gunakan KriptoAman untuk menjelajahi informasi pasar, meninjau data aset digital yang didukung, memantau alamat blockchain publik, mengatur skenario portofolio, dan mengakses perangkat keamanan dalam satu antarmuka modern.
 
