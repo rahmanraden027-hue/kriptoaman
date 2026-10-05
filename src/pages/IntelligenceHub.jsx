@@ -17,7 +17,7 @@ const COPY = {
   id: {
     eyebrow: 'KRIPTOAMAN · PRODUCTION INTELLIGENCE',
     title: 'Intelijen Produksi',
-    body: 'Market, jaringan, risiko, dan evidence dalam satu workspace. Nilai yang tidak terverifikasi tidak ditampilkan sebagai data produksi.',
+    body: 'Market, jaringan, risiko, dan evidence live. Nilai yang tidak terverifikasi tetap UNAVAILABLE.',
     market: 'Intelijen Pasar',
     marketBody: 'Harga, volume, kapitalisasi, pergerakan dan database aset.',
     alerts: 'Pemantauan',
@@ -36,7 +36,7 @@ const COPY = {
   en: {
     eyebrow: 'KRIPTOAMAN · PRODUCTION INTELLIGENCE',
     title: 'Production Intelligence',
-    body: 'Markets, networks, risk and evidence in one workspace. Unverified values are never presented as production data.',
+    body: 'Live markets, networks, risk and evidence. Unverified values remain UNAVAILABLE.',
     market: 'Market Intelligence',
     marketBody: 'Price, volume, market cap, movement and asset database.',
     alerts: 'Monitoring',
@@ -122,7 +122,7 @@ export default function IntelligenceHub() {
     ['MARKET ASSETS', snapshot.assets != null ? snapshot.assets.toLocaleString(locale) : '—', snapshot.marketState],
     ['ZVQ BLOCK', snapshot.block != null ? '#' + snapshot.block.toLocaleString(locale) : '—', snapshot.networkState],
     ['VERIFIED NETWORKS', snapshot.networks != null ? snapshot.networks.toLocaleString(locale) : '—', snapshot.networks != null ? 'operational' : 'unavailable'],
-    ['FRESHNESS', snapshot.checkedAt ? new Date(snapshot.checkedAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) : '—', snapshot.checkedAt ? 'verified' : 'unavailable'],
+    ['CHECKED AT', snapshot.checkedAt ? new Date(snapshot.checkedAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) : '—', snapshot.checkedAt ? 'verified' : 'unavailable'],
   ];
 
   return (
@@ -154,23 +154,23 @@ export default function IntelligenceHub() {
           </div>
         </section>
 
-        <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <section className="grid grid-cols-2 gap-2 xl:grid-cols-5">
           {modules.map(({ icon: Icon, title, body, to, tone }) => (
-            <Link key={title} to={to} className="ka-surface ka-surface-hover group flex min-h-[150px] flex-col p-5">
-              <div className={'flex h-10 w-10 items-center justify-center rounded-2xl border ' + tones[tone]}>
+            <Link key={title} to={to} className="ka-surface ka-surface-hover group flex min-h-[104px] flex-col p-3.5 sm:min-h-[118px] sm:p-4">
+              <div className={'flex h-9 w-9 items-center justify-center rounded-xl border ' + tones[tone]}>
                 <Icon className="h-4 w-4" />
               </div>
-              <h2 className="mt-4 text-base font-extrabold tracking-[-0.02em]">{title}</h2>
-              <p className="mt-1.5 flex-1 text-xs leading-5 text-slate-400">{body}</p>
-              <span className="mt-3 inline-flex items-center gap-2 text-[10px] font-bold text-sky-300">
+              <h2 className="mt-3 text-sm font-extrabold tracking-[-0.02em] sm:text-base">{title}</h2>
+              <p className="mt-1 hidden flex-1 text-[10px] leading-4 text-slate-400 sm:block">{body}</p>
+              <span className="mt-2 inline-flex items-center gap-2 text-[9px] font-bold text-sky-300">
                 {t.open} <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
               </span>
             </Link>
           ))}
         </section>
 
-        <section className="ka-surface p-4 sm:p-5">
-          <div className="grid gap-4 sm:grid-cols-[auto_1fr_auto] sm:items-center">
+        <section className="ka-surface p-3 sm:p-4">
+          <div className="grid gap-3 sm:grid-cols-[auto_1fr_auto] sm:items-center">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-sky-400/20 bg-sky-500/10 text-sky-300">
               <Database className="h-5 w-5" />
             </div>

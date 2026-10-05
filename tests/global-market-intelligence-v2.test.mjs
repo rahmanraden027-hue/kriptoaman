@@ -48,13 +48,12 @@ test('economic calendar requires an explicit provider credential and does not us
   assert.doesNotMatch(endpoint, /guest:guest/);
 });
 
-test('primary Market V2 is crypto-only while legacy cross-asset modules remain isolated', async () => {
+test('primary Market V2 stays crypto-only and data-first while legacy cross-asset modules remain isolated', async () => {
   const marketPage = await read('src/pages/MarketGlobal.jsx');
   const v2 = await read('src/components/market/GlobalMarketsHubV2.jsx');
   const panel = await read('src/components/market/GlobalMarketIntelligencePanel.jsx');
-  assert.match(marketPage, /FirstPartyCryptoIntelligenceStrip/);
   assert.match(marketPage, /MarketWithKAM/);
-  assert.doesNotMatch(marketPage, /GlobalMarketsHubV2|GlobalMarketIntelligencePanel/);
+  assert.doesNotMatch(marketPage, /FirstPartyCryptoIntelligenceStrip|NewTokenRadar|GlobalMarketsHubV2|GlobalMarketIntelligencePanel/);
   assert.match(v2, /GlobalMarketsHub/);
   assert.match(v2, /GlobalMarketIntelligencePanel/);
   assert.match(panel, /Gold · Dollar · Crypto Context/);
@@ -65,7 +64,6 @@ test('primary Market V2 is crypto-only while legacy cross-asset modules remain i
 
 test('professional provider status is presented as user-facing copy', async () => {
   const panel = await read('src/components/market/GlobalMarketIntelligencePanel.jsx');
-
   assert.match(panel, /Data referensi aktif/);
   assert.match(panel, /Reference data active/);
   assert.match(panel, /const intelligenceStatus/);

@@ -134,7 +134,7 @@ const COPY = {
   },
 };
 
-export default function Market() {
+export default function Market({ compact = false }) {
   const { language } = useLanguage();
   const text = COPY[language] || COPY.id;
   const [search, setSearch] = useState('');
@@ -211,47 +211,49 @@ export default function Market() {
       )}
 
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-3 sm:pt-5 space-y-4">
-        <section className="relative overflow-hidden rounded-[28px] border border-sky-400/20 bg-slate-950/55 p-4 sm:p-6 lg:p-7 shadow-[0_24px_80px_rgba(0,0,0,0.32)]">
-          <div className="pointer-events-none absolute inset-0 opacity-80" style={{ backgroundImage: 'radial-gradient(circle at 12% 0%, rgba(56,189,248,.18), transparent 34%), radial-gradient(circle at 88% 10%, rgba(59,130,246,.14), transparent 30%), linear-gradient(rgba(56,189,248,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(56,189,248,.035) 1px, transparent 1px)', backgroundSize: 'auto, auto, 28px 28px, 28px 28px' }} />
-          <div className="relative grid gap-5 lg:grid-cols-[1.35fr_.65fr] lg:items-center">
-            <div>
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-sky-400/25 bg-sky-400/10 shadow-[0_0_30px_rgba(56,189,248,.16)]">
-                  <KriptoAmanLogo size={34} showText={false} animate={false} />
+        {!compact && (
+          <section className="relative overflow-hidden rounded-[28px] border border-sky-400/20 bg-slate-950/55 p-4 sm:p-6 lg:p-7 shadow-[0_24px_80px_rgba(0,0,0,0.32)]">
+            <div className="pointer-events-none absolute inset-0 opacity-80" style={{ backgroundImage: 'radial-gradient(circle at 12% 0%, rgba(56,189,248,.18), transparent 34%), radial-gradient(circle at 88% 10%, rgba(59,130,246,.14), transparent 30%), linear-gradient(rgba(56,189,248,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(56,189,248,.035) 1px, transparent 1px)', backgroundSize: 'auto, auto, 28px 28px, 28px 28px' }} />
+            <div className="relative grid gap-5 lg:grid-cols-[1.35fr_.65fr] lg:items-center">
+              <div>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-sky-400/25 bg-sky-400/10 shadow-[0_0_30px_rgba(56,189,248,.16)]">
+                    <KriptoAmanLogo size={34} showText={false} animate={false} />
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-extrabold tracking-[0.22em] text-sky-300">{text.identity}</p>
+                    <h1 className="mt-1 text-2xl font-black tracking-tight text-white sm:text-3xl lg:text-4xl">{text.title}</h1>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[9px] font-extrabold tracking-[0.22em] text-sky-300">{text.identity}</p>
-                  <h1 className="mt-1 text-2xl font-black tracking-tight text-white sm:text-3xl lg:text-4xl">{text.title}</h1>
+                <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-400 sm:text-[15px]">{text.hero}</p>
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-bold ${marketAvailable ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300' : 'border-amber-400/25 bg-amber-400/10 text-amber-300'}`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${marketAvailable ? 'bg-emerald-400 ka-pulse-dot' : 'bg-amber-400'}`} />
+                    {connected ? text.live : dataAvailable ? text.available : text.connecting}
+                  </span>
+                  <span className="ka-chip px-3 py-1.5 text-[10px] font-bold text-slate-300">{sourceLabel}</span>
+                  {updatedLabel && <span className="ka-chip px-3 py-1.5 text-[10px] font-bold text-slate-400">{text.updated} {updatedLabel}</span>}
+                  {ageLabel && <span className={`ka-chip px-3 py-1.5 text-[10px] font-bold ${isStale ? 'text-amber-300' : 'text-emerald-300'}`}>{ageLabel}</span>}
                 </div>
               </div>
-              <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-400 sm:text-[15px]">{text.hero}</p>
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-bold ${marketAvailable ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300' : 'border-amber-400/25 bg-amber-400/10 text-amber-300'}`}>
-                  <span className={`h-1.5 w-1.5 rounded-full ${marketAvailable ? 'bg-emerald-400 ka-pulse-dot' : 'bg-amber-400'}`} />
-                  {connected ? text.live : dataAvailable ? text.available : text.connecting}
-                </span>
-                <span className="ka-chip px-3 py-1.5 text-[10px] font-bold text-slate-300">{sourceLabel}</span>
-                {updatedLabel && <span className="ka-chip px-3 py-1.5 text-[10px] font-bold text-slate-400">{text.updated} {updatedLabel}</span>}
-                {ageLabel && <span className={`ka-chip px-3 py-1.5 text-[10px] font-bold ${isStale ? 'text-amber-300' : 'text-emerald-300'}`}>{ageLabel}</span>}
+  
+              <div className="grid grid-cols-2 gap-2.5">
+                {[
+                  [Activity, text.breadth, `${breadth}%`, breadth >= 50 ? 'text-emerald-300' : 'text-amber-300'],
+                  [Radar, text.feeds, marketAvailable ? (connected ? 'LIVE' : 'SYNC') : 'WAIT', marketAvailable ? 'text-sky-300' : 'text-amber-300'],
+                  [Layers3, text.universe, coins.length.toLocaleString(language === 'en' ? 'en-US' : 'id-ID'), 'text-white'],
+                  [Sparkles, text.mode, language === 'en' ? 'REAL-TIME' : 'REAL-TIME', 'text-cyan-300'],
+                ].map(([Icon, label, value, color]) => (
+                  <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.035] p-3.5 backdrop-blur-xl">
+                    <Icon className="h-4 w-4 text-sky-300" />
+                    <p className={`mt-3 text-lg font-black ${color}`}>{value}</p>
+                    <p className="mt-0.5 text-[9px] uppercase tracking-[0.14em] text-slate-500">{label}</p>
+                  </div>
+                ))}
               </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-2.5">
-              {[
-                [Activity, text.breadth, `${breadth}%`, breadth >= 50 ? 'text-emerald-300' : 'text-amber-300'],
-                [Radar, text.feeds, marketAvailable ? (connected ? 'LIVE' : 'SYNC') : 'WAIT', marketAvailable ? 'text-sky-300' : 'text-amber-300'],
-                [Layers3, text.universe, coins.length.toLocaleString(language === 'en' ? 'en-US' : 'id-ID'), 'text-white'],
-                [Sparkles, text.mode, language === 'en' ? 'REAL-TIME' : 'REAL-TIME', 'text-cyan-300'],
-              ].map(([Icon, label, value, color]) => (
-                <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.035] p-3.5 backdrop-blur-xl">
-                  <Icon className="h-4 w-4 text-sky-300" />
-                  <p className={`mt-3 text-lg font-black ${color}`}>{value}</p>
-                  <p className="mt-0.5 text-[9px] uppercase tracking-[0.14em] text-slate-500">{label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {isStale && dataAvailable && (
           <div role="status" className="rounded-2xl border border-amber-400/25 bg-amber-400/10 px-4 py-3 text-[11px] leading-relaxed text-amber-200">
@@ -260,6 +262,22 @@ export default function Market() {
         )}
 
         <section className="ka-surface p-3 sm:p-4">
+          {compact && (
+            <div className="mb-3 flex flex-wrap items-end justify-between gap-2 border-b border-white/[0.06] pb-3">
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-[.18em] text-sky-300">KRIPTOAMAN MARKET DATABASE</p>
+                <h2 className="mt-1 text-lg font-black">{coins.length.toLocaleString(language === 'en' ? 'en-US' : 'id-ID')} {text.assets}</h2>
+              </div>
+              <div className="flex flex-wrap items-center justify-end gap-1.5">
+                <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-bold ${marketAvailable ? 'border-emerald-400/20 bg-emerald-400/10 text-emerald-300' : 'border-amber-400/20 bg-amber-400/10 text-amber-300'}`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${marketAvailable ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                  {connected ? text.live : dataAvailable ? text.available : text.connecting}
+                </span>
+                <span className="ka-chip px-2.5 py-1 text-[9px] font-bold text-slate-300">{sourceLabel}</span>
+                {ageLabel && <span className={`ka-chip px-2.5 py-1 text-[9px] font-bold ${isStale ? 'text-amber-300' : 'text-emerald-300'}`}>{ageLabel}</span>}
+              </div>
+            </div>
+          )}
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <div className="relative flex-1">
               <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-sky-300" />

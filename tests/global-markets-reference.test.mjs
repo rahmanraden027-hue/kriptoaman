@@ -4,12 +4,12 @@ import { readFile } from 'node:fs/promises';
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('Market route points to crypto-only first-party composition', async () => {
+test('Market route points to the data-first crypto market composition', async () => {
   const config = await read('src/pages.config.js');
   const page = await read('src/pages/MarketGlobal.jsx');
   assert.match(config, /Market: 'MarketGlobal'/);
-  assert.match(page, /FirstPartyCryptoIntelligenceStrip/);
   assert.match(page, /MarketWithKAM/);
+  assert.doesNotMatch(page, /FirstPartyCryptoIntelligenceStrip|NewTokenRadar/);
   assert.doesNotMatch(page, /GlobalMarketsHubV2|GlobalMarketsHub|GlobalMarketIntelligencePanel/);
 });
 

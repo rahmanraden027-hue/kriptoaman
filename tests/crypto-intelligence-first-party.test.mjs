@@ -4,10 +4,14 @@ import { readFile } from 'node:fs/promises';
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('primary market surface is crypto-only and removes forex/gold hub', async () => {
-  const page = await read('src/pages/MarketGlobal.jsx');
-  assert.match(page, /FirstPartyCryptoIntelligenceStrip/);
-  assert.doesNotMatch(page, /GlobalMarketsHubV2/);
+test('primary Market is crypto-data-first while first-party chain evidence stays on dedicated surfaces', async () => {
+  const [market, discovery] = await Promise.all([
+    read('src/pages/MarketGlobal.jsx'),
+    read('src/pages/QoryVExDiscovery.jsx'),
+  ]);
+  assert.match(market, /MarketWithKAM/);
+  assert.doesNotMatch(market, /FirstPartyCryptoIntelligenceStrip|NewTokenRadar|GlobalMarketsHubV2/);
+  assert.match(discovery, /NewTokenRadar/);
 });
 
 test('first-party ZEVARYQ discovery reads only KriptoAman RPC', async () => {
@@ -35,7 +39,6 @@ test('architecture requires provenance, reorg handling and explicit unavailable 
   assert.match(doc, /block-to-index latency/);
   assert.match(doc, /No UI may claim first-party coverage/);
 });
-
 
 test('first-party WebSocket live state requires a confirmed subscription and rollback covers partial apply failures', async () => {
   const [listener, deploy, workflow] = await Promise.all([
