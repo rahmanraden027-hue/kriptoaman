@@ -27,7 +27,7 @@ try {
 
     const initial = await page.evaluate(() => {
       const brand = document.querySelector('header a[href="/"]');
-      const search = document.querySelector('a[aria-label="Search market"]');
+      const search = document.querySelector('header a[href="/Market"][aria-label]');
       const nav = document.querySelector('nav[aria-label="Mobile primary navigation"]');
       const verify = document.querySelector('#verify');
       const explorer = document.querySelector('a[href="https://explorer.kriptoaman.com"]');
