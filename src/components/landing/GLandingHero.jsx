@@ -28,7 +28,7 @@ export default function GLandingHero({ stats, visualReady = true }) {
         <div className="ka-hero-copy text-center lg:text-left">
           <span className="ka-chip inline-flex items-center gap-2 px-3.5 py-1.5 text-[11px] font-bold tracking-wide">
             <span aria-hidden="true" className="inline-block h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.55)]" />
-            KRIPTOAMAN · VERIFIED CRYPTO INTELLIGENCE
+            KRIPTOAMAN INTELLIGENCE · VERIFIED DATA
           </span>
 
           <h1 className="ka-sec-title mt-4 text-[34px] sm:text-5xl lg:mt-4 lg:text-[46px] lg:leading-[.98]">
