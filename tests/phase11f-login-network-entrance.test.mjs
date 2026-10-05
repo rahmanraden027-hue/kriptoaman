@@ -12,7 +12,7 @@ test('Phase 11F adds live read-only ZEVARYQ evidence to login', async () => {
   assert.match(visual, /EXPECTED_CHAIN_ID = 22028/);
   assert.match(visual, /EXPECTED_CHAIN_HEX = '0x560c'/);
   assert.match(visual, /\/api\/kam\/network-status/);
-  assert.match(visual, /explorer\.kriptoaman\.com\/api\/v2\/blocks/);
+  assert.equal(visual.includes("const EXPLORER_BLOCKS = 'https://explorer.kriptoaman.com/api/v2/blocks';"), true);
   assert.match(visual, /Promise\.allSettled/);
 });
 
