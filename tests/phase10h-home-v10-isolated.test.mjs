@@ -51,7 +51,7 @@ test('Phase 10I keeps featured market data visible when optional media is absent
   ]);
   assert.doesNotMatch(hook, /filter\(asset => asset\.image && Array\.isArray\(asset\.sparkline\)/);
   assert.match(featured, /MARKET SNAPSHOT/);
-  assert.match(featured, /7D trace not provided in this snapshot/);
+  assert.match(featured, /7D history unavailable/);
   assert.match(featured, /hasTrace/);
   assert.match(featured, /formatCompactUsd\(asset\.volume\)/);
 });
