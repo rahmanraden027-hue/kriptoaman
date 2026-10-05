@@ -38,16 +38,16 @@ export default function IntelligenceStream({ events = [], state = 'UNAVAILABLE',
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <b className="text-sm text-white">{event.asset}</b>
-                  <span className="text-[8px] font-black uppercase tracking-[0.12em] text-slate-500">{event.type}</span>
+                  <span className="text-[8px] font-black uppercase tracking-[0.12em] text-slate-400">{event.type}</span>
                 </div>
               </div>
               <b className={`text-xs ${tone}`}>{valueFor(event)}</b>
             </div>
           );
-        }) : <p className="py-8 text-center text-[10px] text-slate-500">No verified intelligence event available.</p>}
+        }) : <p className="py-8 text-center text-[10px] text-slate-400">No verified intelligence event available.</p>}
       </div>
 
-      <p className="mt-3 text-[8px] uppercase tracking-[0.12em] text-slate-600">
+      <p className="mt-3 text-[8px] uppercase tracking-[0.12em] text-slate-400">
         {capturedAt ? `Snapshot ${new Date(capturedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Snapshot unavailable'}
       </p>
     </section>
