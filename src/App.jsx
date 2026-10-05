@@ -3,8 +3,8 @@ import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt';
 import { LanguageProvider } from '@/lib/LanguageContext';
+import HomeV10 from './pages/HomeV10';
 
-const HomeV10 = lazy(() => import('./pages/HomeV10'));
 const FullAppShell = lazy(() => import('./FullAppShell'));
 
 function AppRouteGate() {
