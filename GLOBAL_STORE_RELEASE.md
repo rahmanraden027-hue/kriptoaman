@@ -1,6 +1,6 @@
 # KriptoAman Global Store Release Readiness
 
-Release candidate: Android 1.5 (`versionCode 6`) / application ID `com.kriptoaman.app`.
+Release candidate: Android 1.5.6 (`versionCode 13`) / application ID `com.kriptoaman.app`.
 
 ## Brand identity
 
