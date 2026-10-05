@@ -27,7 +27,7 @@ Pantau pasar kripto, portofolio, alamat publik, dan keamanan akun.
 
 ### Full description
 
-KriptoAman adalah platform market intelligence dan pemantauan aset digital yang membantu pengguna memahami kondisi pasar, memantau portofolio, alamat blockchain publik, serta keamanan akun dalam satu pengalaman yang terstruktur.
+KriptoAman adalah platform verified crypto intelligence yang menyatukan market, on-chain, network, dan evidence dengan pemantauan portofolio, alamat blockchain publik, serta keamanan akun dalam satu pengalaman yang terstruktur.
 
 Fitur utama:
 
@@ -56,7 +56,7 @@ Track crypto markets, portfolios, public addresses, and account security.
 
 ### Full description
 
-KriptoAman is a digital-asset market intelligence and monitoring platform designed to help users understand market conditions, monitor portfolios, public blockchain addresses, and account security in one structured experience.
+KriptoAman is a verified crypto intelligence platform that brings market, on-chain, network, and evidence together with portfolio, public-address, and account-security monitoring in one structured experience.
 
 Key features:
 
@@ -89,8 +89,8 @@ Prepare one production asset:
 
 - Size: 1024 × 500 px
 - Brand direction: KriptoAman dark graphite/navy interface, restrained electric-blue/cyan accents, clean institutional technology aesthetic.
-- Recommended headline: `Market Intelligence. Watch-Only Monitoring.`
-- Recommended support line: `Crypto market, portfolio, and public-address monitoring.`
+- Recommended headline: `Verified Data. Real Intelligence.`
+- Recommended support line: `Market · On-chain · Network · Evidence`
 - Do not include: “#1”, “best”, “guaranteed”, price claims, download CTA, Google Play badge, OJK approval claims, exchange/custody claims, or unverified security certifications.
 
 ### Phone screenshots
