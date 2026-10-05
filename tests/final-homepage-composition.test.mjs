@@ -11,9 +11,9 @@ test('final homepage composition exposes only production-ready evidence gateways
   ]);
 
   assert.match(deferred, /<GLandingProductionGateways \/>/);
-  assert.match(gateways, /PRODUCTION EVIDENCE GATEWAYS/);
-  assert.match(gateways, /ECOSYSTEM DOCK/);
-  assert.match(gateways, /NO SYNTHETIC SIGNALS/);
+  assert.match(gateways, /PRODUCTION SURFACES/);
+  assert.match(gateways, /CORE ECOSYSTEM/);
+  assert.match(gateways, /VERIFIED-ONLY UI/);
 
   for (const route of ['/IntelligenceHub', '/qoryvex/discovery', '/login', '/wallet-app']) {
     assert.equal(gateways.includes(route), true, `missing production route ${route}`);
@@ -28,5 +28,5 @@ test('final homepage composition does not advertise unpublished ecosystem routes
   const gateways = await read('src/components/landing/GLandingProductionGateways.jsx');
 
   assert.doesNotMatch(gateways, /\/Nexus|\/ORIVEX|\/ORYVANTIQ/i);
-  assert.match(gateways, /Hanya surface yang sudah mempunyai route produksi aktif/);
+  assert.match(gateways, /ACTIVE ROUTE/);
 });
