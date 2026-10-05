@@ -8,6 +8,15 @@ const MARKET_CACHE_FRESH_AGE = 30 * 60 * 1000;
 const REFRESH_INTERVAL = 15 * 60 * 1000;
 const REQUEST_TIMEOUT = 12 * 1000;
 
+const finiteNumberOrNull = (value) => (
+  value !== null
+  && value !== undefined
+  && value !== ''
+  && Number.isFinite(Number(value))
+    ? Number(value)
+    : null
+);
+
 const fetchWithTimeout = async (url, options = {}) => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
@@ -71,14 +80,12 @@ export default function useCoinMarkets() {
             name: coin?.name || sym,
             image: coin?.image || '',
             color: '#10b981',
-            price: Number.isFinite(Number(coin?.current_price)) ? Number(coin.current_price) : null,
-            change24h: Number.isFinite(Number(coin?.price_change_percentage_24h))
-              ? Number(coin.price_change_percentage_24h)
-              : null,
-            marketCap: Number.isFinite(Number(coin?.market_cap)) ? Number(coin.market_cap) : null,
-            volume: Number.isFinite(Number(coin?.total_volume)) ? Number(coin.total_volume) : null,
-            high24h: Number.isFinite(Number(coin?.high_24h)) ? Number(coin.high_24h) : null,
-            low24h: Number.isFinite(Number(coin?.low_24h)) ? Number(coin.low_24h) : null,
+            price: finiteNumberOrNull(coin?.current_price),
+            change24h: finiteNumberOrNull(coin?.price_change_percentage_24h),
+            marketCap: finiteNumberOrNull(coin?.market_cap),
+            volume: finiteNumberOrNull(coin?.total_volume),
+            high24h: finiteNumberOrNull(coin?.high_24h),
+            low24h: finiteNumberOrNull(coin?.low_24h),
             rank: Number(coin?.market_cap_rank) || index + 1,
             sparkline: Array.isArray(coin?.sparkline_in_7d?.price)
               ? coin.sparkline_in_7d.price
