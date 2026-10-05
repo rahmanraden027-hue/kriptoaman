@@ -11,23 +11,14 @@ import VerifyAnything from '@/components/home-v10/VerifyAnything';
 import ZevaryqLiveStrip from '@/components/home-v10/ZevaryqLiveStrip';
 import useMarketSurface from '@/hooks/useMarketSurface';
 import { useLanguage } from '@/lib/LanguageContext';
+import { PRIMARY_NAV_ITEMS, primaryNavLabels, primaryNavTo } from '@/lib/primaryNavigation';
 
-const NAV_ITEMS = [
-  { id: 'markets', to: '/Market' },
-  { id: 'intelligence', to: '/IntelligenceHub' },
-  { id: 'onchain', to: '/ZEVARYQ' },
-  { id: 'ecosystem', to: '/qoryvex/discovery' },
-];
-
-const NAV_LABELS = {
-  id: { home: 'Beranda', markets: 'Market', intelligence: 'Intelijen', onchain: 'On-Chain', ecosystem: 'Ekosistem' },
-  en: { home: 'Home', markets: 'Markets', intelligence: 'Intelligence', onchain: 'On-Chain', ecosystem: 'Ecosystem' },
-};
+const HOME_NAV_ITEMS = PRIMARY_NAV_ITEMS.filter((item) => item.id !== 'home');
 
 export default function HomeV10() {
   const market = useMarketSurface();
   const { language } = useLanguage();
-  const navLabels = NAV_LABELS[language] || NAV_LABELS.id;
+  const navLabels = primaryNavLabels(language);
 
   return (
     <main
@@ -47,7 +38,7 @@ export default function HomeV10() {
         <div className="mx-auto flex min-h-14 max-w-[1480px] items-center gap-3 px-4 sm:px-6 lg:px-8">
           <Link to="/" className="inline-flex min-h-11 items-center rounded-lg px-1 text-sm font-black tracking-[0.12em] text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">KRIPTOAMAN</Link>
           <nav aria-label={language === 'en' ? 'Primary navigation' : 'Navigasi utama'} className="hidden items-center gap-1 md:flex">
-            {NAV_ITEMS.map(({ id, to }) => <Link key={id} to={to} className="inline-flex min-h-11 items-center rounded-lg px-3 text-[10px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">{navLabels[id]}</Link>)}
+            {HOME_NAV_ITEMS.map((item) => <Link key={item.id} to={primaryNavTo(item, 'public')} className="inline-flex min-h-11 items-center rounded-lg px-3 text-[10px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">{navLabels[item.id]}</Link>)}
           </nav>
           <div className="ml-auto flex items-center gap-2">
             <Link to="/Market" aria-label={language === 'en' ? 'Search market' : 'Cari market'} className="grid h-11 w-11 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.02] text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"><Search className="h-4 w-4" aria-hidden="true" /></Link>
@@ -97,8 +88,8 @@ export default function HomeV10() {
       >
         <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
           <Link to="/" aria-current="page" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">{navLabels.home}</Link>
-          {NAV_ITEMS.map(({ id, to }) => (
-            <Link key={id} to={to} className="grid min-h-11 place-items-center rounded-xl text-center text-[9px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">{navLabels[id]}</Link>
+          {HOME_NAV_ITEMS.map((item) => (
+            <Link key={item.id} to={primaryNavTo(item, 'public')} className="grid min-h-11 place-items-center rounded-xl text-center text-[9px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">{navLabels[item.id]}</Link>
           ))}
         </div>
       </nav>
