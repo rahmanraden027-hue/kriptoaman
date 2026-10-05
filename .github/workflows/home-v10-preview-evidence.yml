@@ -60,13 +60,10 @@ jobs:
           set -euo pipefail
           target='https://kriptoaman.com/preview/home-v10'
           if [ '${{ github.event_name }}' = 'pull_request' ]; then
-            branch='${{ github.head_ref }}'
-            branch="$(printf '%s' "$branch" | tr '[:upper:]' '[:lower:]' | tr '/_' '--')"
-            branch="${branch:0:28}"
-            target="https://${branch}.kriptoaman.pages.dev/preview/home-v10"
+            target='http://127.0.0.1:4173/preview/home-v10'
           fi
           echo "target=$target" >> "$GITHUB_OUTPUT"
-          echo "Waiting for HomeV10 preview: $target"
+          echo "Waiting for HomeV10 candidate preview: $target"
           for attempt in $(seq 1 24); do
             if curl -L --fail --silent --show-error --max-time 15 "$target" -o /dev/null; then
               exit 0
