@@ -1,0 +1,79 @@
+name: Phase 11G Login Network Device Acceptance
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/pages/Login.jsx'
+      - 'src/components/AuthLayout.jsx'
+      - 'src/components/auth/LoginNetworkEntrance.jsx'
+      - '.github/scripts/phase11g-login-network-device.mjs'
+      - '.github/workflows/phase11g-login-network-device.yml'
+      - 'tests/phase11g-login-network-device.test.mjs'
+  push:
+    branches: [main]
+    paths:
+      - 'src/pages/Login.jsx'
+      - 'src/components/AuthLayout.jsx'
+      - 'src/components/auth/LoginNetworkEntrance.jsx'
+      - '.github/scripts/phase11g-login-network-device.mjs'
+      - '.github/workflows/phase11g-login-network-device.yml'
+      - 'tests/phase11g-login-network-device.test.mjs'
+  schedule:
+    - cron: '17 3,15 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase11g-login-network-device-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/phase11g-login-network-device.test.mjs
+
+  device-acceptance:
+    needs: contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install Playwright acceptance browser
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --legacy-peer-deps
+          npm install --no-save --legacy-peer-deps playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Allow post-merge production deployment to settle
+        if: github.event_name == 'push'
+        run: sleep 60
+
+      - name: Verify production login network entrance
+        env:
+          PHASE11G_TARGET: https://kriptoaman.com/login
+        run: node .github/scripts/phase11g-login-network-device.mjs
+
+      - name: Upload Phase 11G evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase11g-login-network-device-evidence
+          path: phase11g-evidence
+          retention-days: 30
+          if-no-files-found: warn
