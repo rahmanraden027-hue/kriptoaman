@@ -35,7 +35,7 @@ export default function GLandingHeader({ dark, onToggleTheme, active = 'Platform
         <a href="#beranda" className="flex items-center gap-2 min-w-0 shrink">
           <KriptoAmanLogo size={32} showText={false} animate={false} className="shrink-0" src="/icons/kriptoaman-32.png" fetchPriority="low" decoding="async" />
           <span className="font-extrabold tracking-[0.11em] sm:tracking-[0.16em] text-sm sm:text-[15px] uppercase whitespace-nowrap">
-            <span className="ka-text">KRIPTO</span><span className="ka-blue">AMAN</span>
+            <span className="ka-text">KRIPTO</span><span className="ka-blue">AMAN</span><span className="hidden 2xl:inline ka-text2"> INTELLIGENCE</span>
           </span>
         </a>
 
