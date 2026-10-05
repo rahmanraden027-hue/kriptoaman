@@ -126,10 +126,10 @@ test('public landing uses the stable platform health contract for asset and netw
   assert.match(page, /platformPayload\.components\.market/);
   assert.match(page, /platformPayload\.components\.networks/);
   assert.match(page, /platformPayload\.components\.kam/);
-  assert.match(page, /Number\(kam\.chainId\) === 22028/);
+  assert.match(page, /Number\(kamFromPlatform\.chainId\) === 22028/);
   assert.match(page, /name: 'ZEVARYQ Network'/);
   assert.match(page, /verification: 'platform-status'/);
-  assert.match(page, /kam\?\.status === 'operational'/);
+  assert.match(page, /kamFromPlatform\?\.status === 'operational'/);
   assert.match(page, /assetCount/);
   assert.match(page, /networkActiveCount/);
   assert.match(platform, /\/api\/market-snapshot\?health=1/);
