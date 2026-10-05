@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import useCoinMarkets from '@/components/home/useCoinMarkets';
 
 const FRESH_MS = 30 * 60 * 1000;
+const STABLE_SYMBOLS = new Set(['USDT', 'USDC', 'DAI', 'FDUSD', 'USDE', 'TUSD', 'PYUSD']);
 
 const validNumber = (value) => (
   value !== null
@@ -17,6 +18,26 @@ const qualityAsset = (asset) => Boolean(
     && validNumber(asset?.change24h),
 );
 
+const surfaceEligible = (asset) => {
+  const rank = Number(asset?.rank);
+  const marketCap = Number(asset?.marketCap);
+  const volume = Number(asset?.volume);
+  return Number.isFinite(rank)
+    && rank > 0
+    && rank <= 500
+    && Number.isFinite(marketCap)
+    && marketCap >= 5_000_000
+    && Number.isFinite(volume)
+    && volume >= 250_000;
+};
+
+const featuredEligible = (asset) => (
+  surfaceEligible(asset)
+  && Number(asset?.rank) <= 100
+  && !STABLE_SYMBOLS.has(String(asset?.sym || '').toUpperCase())
+  && Boolean(asset?.image)
+);
+
 const movementScore = (asset) => Math.min(Math.abs(Number(asset.change24h || 0)), 30) / 30;
 const volumeScore = (asset, maxVolume) => maxVolume > 0
   ? Math.log10(Math.max(1, Number(asset.volume || 0))) / Math.log10(Math.max(10, maxVolume))
@@ -30,7 +51,7 @@ const completenessScore = (asset) => [
   asset?.image,
   validNumber(asset?.marketCap),
   validNumber(asset?.volume),
-  Array.isArray(asset?.sparkline) && asset.sparkline.length > 1,
+  validNumber(asset?.high24h) && validNumber(asset?.low24h),
 ].filter(Boolean).length / 4;
 
 export default function useMarketSurface() {
@@ -53,20 +74,21 @@ export default function useMarketSurface() {
       state = 'PARTIAL';
     }
 
-    const movers = assets.filter(asset => validNumber(asset.change24h));
+    const surfaceUniverse = assets.filter(surfaceEligible);
+    const movers = surfaceUniverse.filter(asset => validNumber(asset.change24h));
     const gainers = [...movers]
       .filter(asset => Number(asset.change24h) > 0)
       .sort((a, b) => Number(b.change24h) - Number(a.change24h));
     const losers = [...movers]
       .filter(asset => Number(asset.change24h) < 0)
       .sort((a, b) => Number(a.change24h) - Number(b.change24h));
-    const active = [...assets]
+    const active = [...surfaceUniverse]
       .filter(asset => validNumber(asset.volume))
       .sort((a, b) => Number(b.volume) - Number(a.volume));
 
+    const featuredUniverse = surfaceUniverse.filter(featuredEligible);
     const maxVolume = Number(active[0]?.volume || 0);
-    const featured = assets
-      .filter(asset => asset.image && Array.isArray(asset.sparkline) && asset.sparkline.length > 1)
+    const featured = featuredUniverse
       .map(asset => ({
         asset,
         displayScore:
@@ -141,6 +163,7 @@ export default function useMarketSurface() {
       events,
       assetCount: assets.length,
       rawAssetCount: Array.isArray(raw.coins) ? raw.coins.length : 0,
+      surfaceAssetCount: surfaceUniverse.length,
     };
   }, [
     raw.cacheAgeMs,
