@@ -17,12 +17,12 @@ const INDEXABLE_DIRECT_PATHS = new Set([
 
 const PUBLIC_ROUTE_SEO = {
     '/': {
-        title: 'KriptoAman — Crypto Intelligence. Global Market Edge.',
-        description: 'KriptoAman is a crypto intelligence and digital asset monitoring platform for market information, public-address monitoring, education, and risk context.',
+        title: 'KriptoAman — Verified Data. Real Intelligence.',
+        description: 'KriptoAman unifies market, on-chain, network, and evidence into a verified crypto intelligence platform with transparent product boundaries.',
     },
     '/en': {
-        title: 'KriptoAman — Crypto Intelligence. Global Market Edge.',
-        description: 'Explore KriptoAman for digital asset market information, public-address monitoring, education, and transparent risk context.',
+        title: 'KriptoAman — Verified Data. Real Intelligence.',
+        description: 'Explore KriptoAman for verified market, on-chain, network, and evidence-oriented crypto intelligence.',
     },
     '/enterprise': {
         title: 'KriptoAman Enterprise — Data, Blockchain Infrastructure & Web3 Integration',
