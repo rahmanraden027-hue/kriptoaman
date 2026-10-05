@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { formatCompactUsd, formatMagnitude, formatPrice, sparklinePoints } from './format';
+import { finite, formatCompactUsd, formatMagnitude, formatPrice, sparklinePoints } from './format';
 
 const ROTATION_MS = 10000;
 
@@ -28,6 +28,12 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
   const positive = change >= 0;
   const points = sparklinePoints(asset?.sparkline, 520, 180);
   const hasTrace = Boolean(points);
+  const summaryMetrics = [
+    finite(asset?.marketCap) !== null && ['Market Cap', formatCompactUsd(asset.marketCap)],
+    finite(asset?.volume) !== null && ['Volume', formatCompactUsd(asset.volume)],
+    finite(asset?.high24h) !== null && ['24H High', formatPrice(asset.high24h)],
+    finite(asset?.low24h) !== null && ['24H Low', formatPrice(asset.low24h)],
+  ].filter(Boolean);
 
   if (!asset) {
     return (
@@ -60,12 +66,7 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
           </div>
 
           <div className="mt-6 grid grid-cols-2 gap-2">
-            {[
-              ['Market Cap', formatCompactUsd(asset.marketCap)],
-              ['Volume', formatCompactUsd(asset.volume)],
-              ['24H High', formatPrice(asset.high24h)],
-              ['24H Low', formatPrice(asset.low24h)],
-            ].map(([label, value]) => (
+            {summaryMetrics.map(([label, value]) => (
               <div key={label} className="rounded-2xl border border-white/[0.05] bg-white/[0.025] px-3 py-3">
                 <p className="text-sm font-black text-white">{value}</p>
                 <p className="mt-1 text-[8px] font-black uppercase tracking-[0.13em] text-slate-400">{label}</p>
