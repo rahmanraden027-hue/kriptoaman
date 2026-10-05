@@ -14,9 +14,11 @@ test('Phase 10I exposes HomeV10 only on an isolated preview route', async () => 
 
 test('Phase 10I visual gate captures mobile tablet and desktop evidence', async () => {
   const workflow = await read('.github/workflows/phase10i-home-v10-preview.yml');
-  assert.match(workflow, /390 844 mobile/);
-  assert.match(workflow, /768 1024 tablet/);
-  assert.match(workflow, /1440 1080 desktop/);
+  assert.match(workflow, /width: 390, height: 844, label: 'mobile'/);
+  assert.match(workflow, /width: 768, height: 1024, label: 'tablet'/);
+  assert.match(workflow, /width: 1440, height: 1080, label: 'desktop'/);
   assert.match(workflow, /horizontal overflow/i);
   assert.match(workflow, /WCAG 2 AA scan/);
+  assert.match(workflow, /https:\/\/kriptoaman\.com/);
+  assert.match(workflow, /page\.route\('\*\*\/api\/\*\*'/);
 });
