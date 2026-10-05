@@ -33,8 +33,12 @@ test('Phase 11A renders only validated Explorer block records in the animated fl
   assert.doesNotMatch(gate, /Math\.random/);
 });
 
-test('Phase 11A preview is noindex and provides login, Explorer, and HomeV10 exits', async () => {
-  const gate = await read('src/pages/NetworkGatePreview.jsx');
+test('Phase 11A preview is noindex at server and client layers and provides safe exits', async () => {
+  const [gate, headers] = await Promise.all([
+    read('src/pages/NetworkGatePreview.jsx'),
+    read('public/_headers'),
+  ]);
+  assert.match(headers, /\/preview\/network-gate[^]*X-Robots-Tag: noindex, nofollow, noarchive/);
   assert.match(gate, /noindex,nofollow,noarchive/);
   assert.match(gate, /to="\/login"/);
   assert.match(gate, /https:\/\/explorer\.kriptoaman\.com/);
