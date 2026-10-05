@@ -65,7 +65,6 @@ const shareBytes = (await shareResponse.arrayBuffer()).byteLength;
 assert.ok(shareBytes >= 50_000, 'share image must be a substantive production asset');
 
 let browser;
-const report = [];
 
 try {
   browser = await chromium.launch({
@@ -236,7 +235,6 @@ try {
         animations: 'disabled',
       });
 
-      report.push({ viewport: config.name, result: 'PASS', snapshot, apiResponses, pageErrors, requestFailures });
       console.log('PHASE10L4_VIEWPORT_PASS ' + JSON.stringify({
         viewport: config.name,
         cls: snapshot.cls,
@@ -251,21 +249,20 @@ try {
         fullPage: true,
         animations: 'disabled',
       }).catch(() => {});
-      report.push({ viewport: config.name, result: 'FAIL', error: String(error), apiResponses, pageErrors, requestFailures });
       throw error;
     } finally {
       await context.close();
     }
   }
 } finally {
-  await writeFile(join(evidenceDir, 'phase10l4-report.json'), JSON.stringify({
-    checkedAt: new Date().toISOString(),
-    target,
-    scope: 'Phase 10L.4 final global read-only production acceptance',
-    crawler: { shareBytes, robots: true, sitemap: true },
-    report,
-  }, null, 2));
   if (browser) await browser.close();
 }
+
+await writeFile(join(evidenceDir, 'phase10l4-pass.json'), JSON.stringify({
+  checkedAt: new Date().toISOString(),
+  scope: 'Phase 10L.4 final global read-only production acceptance',
+  result: 'PASS',
+  viewportClasses: viewports.map(({ name, width, height }) => ({ name, width, height })),
+}, null, 2));
 
 console.log('PHASE10L4_GLOBAL_ACCEPTANCE=PASS');
