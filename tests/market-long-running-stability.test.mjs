@@ -46,7 +46,10 @@ test('paged market serves verified rescue before cold D1 rebuild and refreshes c
   assert.match(page, /if \(rescue\) \{/);
   assert.match(page, /const refreshTask = refreshPageCache/);
   assert.match(page, /waitUntil\(refreshTask\)/);
-  const rescueIndex = page.indexOf('const rescue = await serveRescue(edgeCache, rescueCacheKey)');
+  assert.match(page, /FAST_RESCUE_MAX_AGE_MS = 15 \* 60 \* 1000/);
+  assert.match(page, /X-KriptoAman-Market-Captured-At/);
+  assert.match(page, /serveRescue\(edgeCache, rescueCacheKey, \{ maxAgeMs: FAST_RESCUE_MAX_AGE_MS \}\)/);
+  const rescueIndex = page.indexOf('const rescue = await serveRescue(edgeCache, rescueCacheKey, { maxAgeMs: FAST_RESCUE_MAX_AGE_MS })');
   const blockingBuildIndex = page.indexOf('const response = await buildPageSingleFlight(env, request, requestId, cacheKey);', page.indexOf('export async function onRequestGet'));
   assert.ok(rescueIndex >= 0 && blockingBuildIndex > rescueIndex, 'rescue fast path must be checked before blocking D1 rebuild');
 });
