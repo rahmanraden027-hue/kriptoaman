@@ -2,6 +2,13 @@
 
 Release candidate: Android 1.5 (`versionCode 6`) / application ID `com.kriptoaman.app`.
 
+## Brand identity
+
+- Master brand: **KriptoAman**
+- Product signature: **Market · On-chain · Network · Evidence**
+- Positioning: **Verified Data. Real Intelligence.**
+- `Intelligence` remains a feature/category descriptor, not part of the app name.
+
 ## Release objective
 
 Prepare one controlled KriptoAman release line for Google Play and Android stores that accept APK/AAB packages, while keeping Apple App Store signing and publication on a separate protected iOS release path.
