@@ -97,7 +97,7 @@ test('below-fold production modules are code-split without breaking anchor acces
   assert.equal(landing.includes("scrollIntoView({ block: 'start' })"), true);
   assert.equal(deferred.includes('LiveBlockFlow3D'), true);
   assert.equal(deferred.includes('LandingMarketPulse'), true);
-  assert.equal(deferred.includes('GLandingBody'), true);
+  assert.equal(deferred.includes('GLandingBody'), false);
   assert.equal(deferred.includes('GLandingProductionGateways'), true);
 });
 
