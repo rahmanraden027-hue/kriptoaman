@@ -121,7 +121,10 @@ export default function ZEVARYQ() {
           <div className="relative z-10 grid gap-5 lg:grid-cols-[auto_1fr_auto] lg:items-center">
             <ZevaryqMark className="h-20 w-20 shrink-0 sm:h-24 sm:w-24" />
             <div>
-              <p className="ka-command-kicker">{copy.eyebrow}</p>
+              <Link to="/" className="inline-flex min-h-8 items-center rounded-lg border border-sky-400/15 bg-sky-400/[.05] px-2.5 text-[9px] font-black tracking-[.14em] text-sky-300 transition hover:border-sky-400/30 hover:bg-sky-400/[.08]">
+                KRIPTOAMAN · ON-CHAIN
+              </Link>
+              <p className="ka-command-kicker mt-2">{copy.eyebrow}</p>
               <h1 className="mt-2 text-3xl font-black tracking-[-0.04em] sm:text-4xl">{copy.title}</h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">{copy.intro}</p>
             </div>
