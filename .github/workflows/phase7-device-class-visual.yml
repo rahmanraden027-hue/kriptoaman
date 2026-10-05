@@ -4,25 +4,17 @@ on:
   push:
     branches: [main]
     paths:
-      - 'src/components/landing/GLandingHeader.jsx'
-      - 'src/components/landing/GLandingHero.jsx'
-      - 'src/components/landing/GLandingHeroConsole.jsx'
-      - 'src/components/landing/global-landing.css'
+      - 'src/pages/HomeV10.jsx'
+      - 'src/components/home-v10/**'
       - 'src/components/pwa/PWAInstallPrompt.jsx'
-      - 'src/components/home/LiveBlockFlow3D.jsx'
-      - 'src/components/home/NodePropagation3D.jsx'
       - '.github/scripts/phase7-device-class-browser.mjs'
       - '.github/workflows/phase7-device-class-visual.yml'
   pull_request:
     branches: [main]
     paths:
-      - 'src/components/landing/GLandingHeader.jsx'
-      - 'src/components/landing/GLandingHero.jsx'
-      - 'src/components/landing/GLandingHeroConsole.jsx'
-      - 'src/components/landing/global-landing.css'
+      - 'src/pages/HomeV10.jsx'
+      - 'src/components/home-v10/**'
       - 'src/components/pwa/PWAInstallPrompt.jsx'
-      - 'src/components/home/LiveBlockFlow3D.jsx'
-      - 'src/components/home/NodePropagation3D.jsx'
       - '.github/scripts/phase7-device-class-browser.mjs'
       - '.github/workflows/phase7-device-class-visual.yml'
   workflow_dispatch:
@@ -47,7 +39,32 @@ jobs:
           npm ci --legacy-peer-deps
           npm install --no-save --legacy-peer-deps playwright@1.55.0
           npx playwright install --with-deps chromium
-      - name: Verify live production at 390px and 430px
+      - name: Resolve device-class target
+        id: target
+        shell: bash
+        run: |
+          set -euo pipefail
+          target='https://kriptoaman.com/'
+          if [ '${{ github.event_name }}' = 'pull_request' ]; then
+            branch='${{ github.head_ref }}'
+            branch="$(printf '%s' "$branch" | tr '[:upper:]' '[:lower:]' | tr '/_' '--')"
+            branch="${branch:0:28}"
+            target="https://${branch}.kriptoaman.pages.dev/"
+          fi
+          echo "target=$target" >> "$GITHUB_OUTPUT"
+          echo "Waiting for device-class target: $target"
+          for attempt in $(seq 1 30); do
+            if curl -L --fail --silent --show-error --max-time 15 "$target" -o /dev/null; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Device-class target was not reachable." >&2
+          exit 1
+
+      - name: Verify HomeV10 at 390px and 430px
+        env:
+          PHASE7_TARGET: ${{ steps.target.outputs.target }}
         run: node .github/scripts/phase7-device-class-browser.mjs
       - name: Upload device-class evidence
         if: always()

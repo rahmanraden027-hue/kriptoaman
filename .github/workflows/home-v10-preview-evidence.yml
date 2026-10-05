@@ -8,6 +8,7 @@ on:
       - 'src/pages/HomeV10.jsx'
       - 'src/components/home-v10/**'
       - 'src/hooks/useMarketSurface.js'
+      - 'src/components/pwa/PWAInstallPrompt.jsx'
       - 'src/FullAppShell.jsx'
       - 'tests/phase10h-home-v10-isolated.test.mjs'
   workflow_dispatch:
@@ -126,7 +127,7 @@ jobs:
           mkdir -p home-v10-evidence
           target='${{ steps.preview.outputs.target }}'
           echo "Viewport target: $target"
-          for spec in '390,1000,mobile' '768,1100,tablet' '1440,1100,desktop'; do
+          for spec in '360,800,compact-mobile' '390,1000,mobile' '430,932,large-mobile' '768,1100,tablet' '1440,1100,desktop'; do
             IFS=',' read -r width height label <<< "$spec"
             npx -y playwright@1.55.0 screenshot \
               --browser=chromium \

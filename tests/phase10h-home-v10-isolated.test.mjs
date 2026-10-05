@@ -72,3 +72,36 @@ test('Phase 10J promotes HomeV10 to production root while retaining isolated pre
   assert.doesNotMatch(app, /<KriptoAmanGlobalLanding \/>/);
   assert.doesNotMatch(app, /pathname === '\/preview\/home-v10'/);
 });
+
+
+test('Phase 10L hardens HomeV10 for global mobile and accessibility readiness', async () => {
+  const [home, featured, installPrompt, evidence, deviceScript, deviceWorkflow] = await Promise.all([
+    read('src/pages/HomeV10.jsx'),
+    read('src/components/home-v10/FeaturedMarketAsset.jsx'),
+    read('src/components/pwa/PWAInstallPrompt.jsx'),
+    read('.github/workflows/home-v10-preview-evidence.yml'),
+    read('.github/scripts/phase7-device-class-browser.mjs'),
+    read('.github/workflows/phase7-device-class-visual.yml'),
+  ]);
+
+  assert.match(home, /Skip to live market data/);
+  assert.match(home, /id="home-v10-content"/);
+  assert.match(home, /safe-area-inset-top/);
+  assert.match(home, /safe-area-inset-bottom/);
+  assert.match(home, /aria-label="Mobile primary navigation"/);
+  assert.match(home, /aria-current="page"/);
+  assert.match(home, /h-11 w-11/);
+  assert.match(featured, /prefers-reduced-motion: reduce/);
+  assert.match(featured, /aria-pressed=/);
+  assert.match(featured, /min-h-11/);
+  assert.match(installPrompt, /bottom-\[calc\(5\.25rem\+env\(safe-area-inset-bottom,0px\)\)\]/);
+  assert.match(evidence, /360,800,compact-mobile/);
+  assert.match(evidence, /430,932,large-mobile/);
+  assert.match(evidence, /PWAInstallPrompt\.jsx/);
+  assert.match(deviceScript, /PHASE7_TARGET/);
+  assert.match(deviceScript, /Mobile primary navigation/);
+  assert.match(deviceScript, /install CTA overlaps mobile navigation/);
+  assert.doesNotMatch(deviceScript, /Live Block Flow|Node Master|data-phase7-visual/);
+  assert.match(deviceWorkflow, /src\/pages\/HomeV10\.jsx/);
+  assert.match(deviceWorkflow, /kriptoaman\.pages\.dev/);
+});
