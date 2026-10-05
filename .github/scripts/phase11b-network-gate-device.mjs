@@ -10,11 +10,11 @@ const devices = [
 const mobileUA = 'Mozilla/5.0 (Linux; Android 16; Pixel 9 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36';
 const desktopUA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36';
 
-function visibleRatio(rect, width, height) {
-  const left = Math.max(0, rect.left);
-  const right = Math.min(width, rect.right);
-  const top = Math.max(0, rect.top);
-  const bottom = Math.min(height, rect.bottom);
+function containedRatio(rect, bounds) {
+  const left = Math.max(bounds.left, rect.left);
+  const right = Math.min(bounds.right, rect.right);
+  const top = Math.max(bounds.top, rect.top);
+  const bottom = Math.min(bounds.bottom, rect.bottom);
   const visible = Math.max(0, right - left) * Math.max(0, bottom - top);
   const total = Math.max(1, rect.width * rect.height);
   return visible / total;
@@ -63,6 +63,16 @@ try {
         const r = link.getBoundingClientRect();
         return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height, text: link.textContent?.trim() || '' };
       });
+      const stage = document.querySelector('[aria-label="Verified recent ZEVARYQ blocks"]');
+      const stageBox = stage?.getBoundingClientRect();
+      const stageRect = stageBox ? {
+        left: stageBox.left,
+        right: stageBox.right,
+        top: stageBox.top,
+        bottom: stageBox.bottom,
+        width: stageBox.width,
+        height: stageBox.height,
+      } : null;
       const firstCubeStyle = cubes[0] ? getComputedStyle(cubes[0]) : null;
       const latestBlock = text.match(/Latest block\s*#([\d,]+)/i)?.[1] || null;
       const chainId = text.match(/Chain ID\s*(\d+)/i)?.[1] || null;
@@ -79,6 +89,7 @@ try {
         cubeCount: cubes.length,
         cubeRects,
         ctaRects,
+        stageRect,
         reducedMotionAnimationName: firstCubeStyle?.animationName || null,
         title: document.title,
       };
@@ -110,10 +121,20 @@ try {
         throw new Error(device.name + ' CTA clipped horizontally: ' + rect.text);
       }
     }
+    if (!report.stageRect || report.stageRect.width <= 0 || report.stageRect.height <= 0) {
+      throw new Error(device.name + ' 3D stage bounds are unavailable');
+    }
     for (const rect of report.cubeRects) {
-      const ratio = visibleRatio(rect, report.innerWidth, report.innerHeight);
-      if (ratio < 0.6) {
-        throw new Error(device.name + ' 3D cube is severely clipped: ' + rect.text + ' ratio=' + ratio.toFixed(2));
+      const horizontalVisible = Math.max(
+        0,
+        Math.min(report.innerWidth, rect.right) - Math.max(0, rect.left),
+      ) / Math.max(1, rect.width);
+      if (horizontalVisible < 0.6) {
+        throw new Error(device.name + ' 3D cube is severely clipped horizontally: ' + rect.text + ' ratio=' + horizontalVisible.toFixed(2));
+      }
+      const stageRatio = containedRatio(rect, report.stageRect);
+      if (stageRatio < 0.45) {
+        throw new Error(device.name + ' 3D cube escapes its visual stage: ' + rect.text + ' ratio=' + stageRatio.toFixed(2));
       }
     }
 
