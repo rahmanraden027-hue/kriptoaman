@@ -89,6 +89,7 @@ try {
       deviceScaleFactor: 1,
       locale: 'id-ID',
       reducedMotion: 'reduce',
+      serviceWorkers: 'block',
     });
     const page = await context.newPage();
     await page.goto(TARGET, { waitUntil: 'domcontentloaded', timeout: 60000 });
@@ -117,6 +118,7 @@ try {
       deviceScaleFactor: 1,
       locale: 'id-ID',
       reducedMotion: 'reduce',
+      serviceWorkers: 'block',
     });
     const page = await context.newPage();
     await page.route('**/api/kam/network-status*', route => route.fulfill({
