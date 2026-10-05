@@ -43,12 +43,35 @@ jobs:
       - name: Install Chromium
         run: npx -y playwright@1.55.0 install --with-deps chromium
 
+      - name: Resolve live preview target
+        id: preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          target='https://kriptoaman.com/preview/home-v10'
+          if [ '${{ github.event_name }}' = 'pull_request' ]; then
+            branch='${{ github.head_ref }}'
+            branch="$(printf '%s' "$branch" | tr '[:upper:]' '[:lower:]' | tr '/_' '--')"
+            target="https://${branch}.kriptoaman.pages.dev/preview/home-v10"
+          fi
+          echo "target=$target" >> "$GITHUB_OUTPUT"
+          echo "Waiting for HomeV10 preview: $target"
+          for attempt in $(seq 1 24); do
+            if curl -L --fail --silent --show-error --max-time 15 "$target" -o /dev/null; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "HomeV10 live preview was not reachable." >&2
+          exit 1
+
       - name: Capture HomeV10 production viewport matrix
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p home-v10-evidence
-          target='http://127.0.0.1:4173/preview/home-v10'
+          target='${{ steps.preview.outputs.target }}'
+          echo "Viewport target: $target"
           for spec in '390,1000,mobile' '768,1100,tablet' '1440,1100,desktop'; do
             IFS=',' read -r width height label <<< "$spec"
             npx -y playwright@1.55.0 screenshot \
@@ -80,7 +103,7 @@ jobs:
           npx -y pa11y@9.0.0 \
             --config /tmp/pa11y-home-v10.json \
             --reporter json \
-            http://127.0.0.1:4173/preview/home-v10 \
+            '${{ steps.preview.outputs.target }}' \
             > home-v10-evidence/pa11y-home-v10.json
 
       - name: Assert HomeV10 route contract
