@@ -134,3 +134,8 @@
 /research/kam-mainnet-architecture
   Cache-Control: no-cache, no-store, must-revalidate
   X-Robots-Tag: noindex, follow, noarchive
+
+
+/preview/network-gate
+  Cache-Control: no-cache, no-store, must-revalidate
+  X-Robots-Tag: noindex, nofollow, noarchive
