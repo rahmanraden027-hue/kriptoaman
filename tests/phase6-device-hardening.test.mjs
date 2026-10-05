@@ -22,10 +22,10 @@ test('physical-device landing forces readable hero metrics and institutional car
   assert.match(styles, /\.ka-console-metrics\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)!important\}/);
   assert.match(styles, /\.ka-footer-grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)!important/);
   assert.match(styles, /\.ka-command-hero \.ka-net-line\{animation-duration:45s\}/);
-  assert.match(styles, /#beranda\{padding-top:88px!important;padding-bottom:34px!important\}/);
-  assert.match(styles, /#beranda \.ka-hero-grid\{gap:26px!important\}/);
-  assert.match(styles, /\.ka-console-metrics span\{font-size:10px!important/);
-  assert.match(styles, /\.ka-console-metrics b\{font-size:16px!important/);
+  assert.match(styles, /#beranda\{padding-top:24px!important;padding-bottom:26px!important\}/);
+  assert.match(styles, /#beranda \.ka-hero-grid\{gap:18px!important\}/);
+  assert.match(styles, /\.ka-console-metrics span\{font-size:9px!important/);
+  assert.match(styles, /\.ka-console-metrics b\{font-size:15px!important/);
 });
 
 test('institutional and footer expose phase 6 mobile hooks and production UI label', async () => {
