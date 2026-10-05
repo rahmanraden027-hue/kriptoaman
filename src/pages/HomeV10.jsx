@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, Menu, Search } from 'lucide-react';
+import { Bell, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import FeaturedMarketAsset from '@/components/home-v10/FeaturedMarketAsset';
 import IntelligenceStream from '@/components/home-v10/IntelligenceStream';
@@ -32,7 +32,6 @@ export default function HomeV10() {
           <div className="ml-auto flex items-center gap-2">
             <Link to="/Market" aria-label="Search market" className="grid h-9 w-9 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.02] text-slate-400"><Search className="h-4 w-4" /></Link>
             <Link to="/Alerts" aria-label="Alerts" className="grid h-9 w-9 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.02] text-slate-400"><Bell className="h-4 w-4" /></Link>
-            <button type="button" aria-label="More" className="grid h-9 w-9 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.02] text-slate-400"><Menu className="h-4 w-4" /></button>
           </div>
         </div>
       </header>
