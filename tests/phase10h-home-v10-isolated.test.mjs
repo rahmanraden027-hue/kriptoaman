@@ -43,6 +43,19 @@ test('Phase 10H keeps intelligence deterministic and evidence oriented', async (
   assert.match(network, /\/api\/kam\/network-status/);
 });
 
+
+test('Phase 10I keeps featured market data visible when optional media is absent', async () => {
+  const [hook, featured] = await Promise.all([
+    read('src/hooks/useMarketSurface.js'),
+    read('src/components/home-v10/FeaturedMarketAsset.jsx'),
+  ]);
+  assert.doesNotMatch(hook, /filter\(asset => asset\.image && Array\.isArray\(asset\.sparkline\)/);
+  assert.match(featured, /MARKET SNAPSHOT/);
+  assert.match(featured, /7D trace not provided in this snapshot/);
+  assert.match(featured, /hasTrace/);
+  assert.match(featured, /formatCompactUsd\(asset\.volume\)/);
+});
+
 test('Phase 10I exposes HomeV10 only on an isolated preview route while production root stays unchanged', async () => {
   const [homeV3, shell, app] = await Promise.all([
     read('src/pages/HomeV3.jsx'),
