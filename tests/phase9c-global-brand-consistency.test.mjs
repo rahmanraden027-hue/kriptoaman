@@ -28,11 +28,10 @@ test('Phase 9C keeps global public copy under singular KRIPTOAMAN identity', asy
 });
 
 test('Phase 9C keeps store-facing app name singular and positioning consistent', async () => {
-  const [listing, submission, globalRelease, playRelease] = await Promise.all([
+  const [listing, submission, globalRelease] = await Promise.all([
     read('play-console/STORE_LISTING.md'),
     read('STORE_SUBMISSION_PACKAGE.md'),
     read('GLOBAL_STORE_RELEASE.md'),
-    read('PLAY_STORE_RELEASE.md'),
   ]);
 
   assert.match(listing, /App name: `KriptoAman`/);
