@@ -24,7 +24,7 @@ export default function TopMovers({ gainers = [], losers = [], active = [], newA
               type="button"
               disabled={value === 'newAssets' && newAssets.length === 0}
               onClick={() => setTab(value)}
-              className={`min-h-8 shrink-0 rounded-lg px-2.5 text-[9px] font-black uppercase tracking-[0.08em] ${tab === value ? 'bg-cyan-400/10 text-cyan-200' : 'text-slate-500'} disabled:opacity-35`}
+              className={`min-h-8 shrink-0 rounded-lg px-2.5 text-[9px] font-black uppercase tracking-[0.08em] ${tab === value ? 'bg-cyan-400/10 text-cyan-200' : 'text-slate-400'} disabled:opacity-35`}
             >
               {label}
             </button>
@@ -42,7 +42,7 @@ export default function TopMovers({ gainers = [], losers = [], active = [], newA
                 {asset.image && <img src={asset.image} alt="" className="h-7 w-7 rounded-full" loading="lazy" />}
                 <div className="min-w-0">
                   <p className="truncate text-sm font-black text-white">{asset.sym}</p>
-                  <p className="truncate text-[9px] text-slate-500">{asset.name}</p>
+                  <p className="truncate text-[9px] text-slate-400">{asset.name}</p>
                 </div>
               </div>
               <span className="text-xs font-black text-slate-200">{formatPrice(asset.price)}</span>
@@ -55,7 +55,7 @@ export default function TopMovers({ gainers = [], losers = [], active = [], newA
             </a>
           );
         }) : (
-          <div className="py-8 text-center text-[10px] text-slate-500">Verified data unavailable for this view.</div>
+          <div className="py-8 text-center text-[10px] text-slate-400">Verified data unavailable for this view.</div>
         )}
       </div>
     </section>
