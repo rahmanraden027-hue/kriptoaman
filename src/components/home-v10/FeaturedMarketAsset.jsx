@@ -52,7 +52,7 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
       <section className="grid min-h-[360px] place-items-center rounded-[30px] border border-white/[0.07] bg-[#050c16] p-6 text-center">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">{state}</p>
-          <p className="mt-3 text-sm text-slate-500">No verified featured asset available.</p>
+          <p className="mt-3 text-sm text-slate-400">No verified featured asset available.</p>
         </div>
       </section>
     );
@@ -137,7 +137,7 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
                   </div>
                   <div className="mt-4 flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-[8px] font-black uppercase tracking-[0.12em] text-slate-600">LOW</p>
+                      <p className="text-[8px] font-black uppercase tracking-[0.12em] text-slate-400">LOW</p>
                       <p className="mt-1 text-xs font-black text-slate-300">{formatPrice(asset.low24h)}</p>
                     </div>
                     <div className="text-center">
@@ -145,16 +145,16 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
                       <p className="mt-1 text-base font-black text-white">{formatPrice(asset.price)}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[8px] font-black uppercase tracking-[0.12em] text-slate-600">HIGH</p>
+                      <p className="text-[8px] font-black uppercase tracking-[0.12em] text-slate-400">HIGH</p>
                       <p className="mt-1 text-xs font-black text-slate-300">{formatPrice(asset.high24h)}</p>
                     </div>
                   </div>
-                  <p className="mt-6 text-center text-[8px] font-black uppercase tracking-[0.13em] text-slate-600">Persisted history unavailable · live range only</p>
+                  <p className="mt-6 text-center text-[8px] font-black uppercase tracking-[0.13em] text-slate-400">Persisted history unavailable · live range only</p>
                 </>
               ) : (
                 <div className="grid h-full place-items-center text-center">
                   <div className="w-full max-w-[360px]">
-                    <p className="text-[8px] font-black uppercase tracking-[0.16em] text-slate-600">24H MOVE</p>
+                    <p className="text-[8px] font-black uppercase tracking-[0.16em] text-slate-400">24H MOVE</p>
                     <p className={`mt-2 text-4xl font-black ${positive ? 'text-emerald-300' : 'text-rose-300'}`}>
                       {positive ? '▲ ' : '▼ '}{formatMagnitude(change)}
                     </p>
@@ -164,11 +164,11 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
                         style={{ width: `${Math.max(8, Math.min(100, Math.abs(change) * 5))}%` }}
                       />
                     </div>
-                    <div className="mt-4 flex items-center justify-center gap-4 text-[9px] font-black uppercase tracking-[0.1em] text-slate-600">
+                    <div className="mt-4 flex items-center justify-center gap-4 text-[9px] font-black uppercase tracking-[0.1em] text-slate-400">
                       <span>Rank #{asset.rank || '—'}</span>
                       <span>Volume {formatCompactUsd(asset.volume)}</span>
                     </div>
-                    <p className="mt-5 text-[8px] font-black uppercase tracking-[0.13em] text-slate-700">No synthetic history</p>
+                    <p className="mt-5 text-[8px] font-black uppercase tracking-[0.13em] text-slate-400">No synthetic history</p>
                   </div>
                 </div>
               )}
