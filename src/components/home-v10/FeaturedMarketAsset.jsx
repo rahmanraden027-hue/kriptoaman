@@ -33,7 +33,7 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
       <section className="grid min-h-[360px] place-items-center rounded-[30px] border border-white/[0.07] bg-[#050c16] p-6 text-center">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">{state}</p>
-          <p className="mt-3 text-sm text-slate-500">No verified featured asset available.</p>
+          <p className="mt-3 text-sm text-slate-400">No verified featured asset available.</p>
         </div>
       </section>
     );
@@ -67,7 +67,7 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
             ].map(([label, value]) => (
               <div key={label} className="rounded-2xl border border-white/[0.05] bg-white/[0.025] px-3 py-3">
                 <p className="text-sm font-black text-white">{value}</p>
-                <p className="mt-1 text-[8px] font-black uppercase tracking-[0.13em] text-slate-500">{label}</p>
+                <p className="mt-1 text-[8px] font-black uppercase tracking-[0.13em] text-slate-400">{label}</p>
               </div>
             ))}
           </div>
@@ -79,7 +79,7 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
 
         <div className="relative min-h-[220px] rounded-[24px] border border-white/[0.05] bg-black/10 p-3">
           <div className="absolute inset-x-3 top-3 flex items-center justify-between">
-            <span className="text-[8px] font-black uppercase tracking-[0.16em] text-slate-500">7D PRICE TRACE</span>
+            <span className="text-[8px] font-black uppercase tracking-[0.16em] text-slate-400">7D PRICE TRACE</span>
             <span className="text-[9px] font-black text-slate-400">#{asset.rank || '—'}</span>
           </div>
           <svg viewBox="0 0 520 180" className="absolute inset-x-3 bottom-3 h-[calc(100%-46px)] w-[calc(100%-24px)]" role="img" aria-label={`${asset.sym} price trace`}>
