@@ -41,7 +41,7 @@ test('Phase 9D routes full diagnostics to dedicated surfaces', async () => {
 
   assert.match(home, /System Evidence/);
   assert.match(home, /\/SystemStatus/);
-  assert.match(home, /https:\/\/explorer\.kriptoaman\.com/);
+  assert.ok(home.includes('https://explorer.kriptoaman.com'));
   assert.match(home, /Verified state, without duplicate diagnostics/);
 
   assert.doesNotMatch(home, /Network Operations Console/);
