@@ -70,10 +70,10 @@ export default function HomeV10() {
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/[0.07] bg-[#020711]/96 px-2 py-2 backdrop-blur-xl md:hidden">
         <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
           <Link to="/" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-cyan-300">Home</Link>
-          <Link to="/Market" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-500 hover:bg-white/[0.04] hover:text-cyan-300">Market</Link>
-          <Link to="/IntelligenceHub" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-500 hover:bg-white/[0.04] hover:text-cyan-300">Intel</Link>
-          <a href="#verify" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-500 hover:bg-white/[0.04] hover:text-cyan-300">Verify</a>
-          <Link to="/PortfolioOverview" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-500 hover:bg-white/[0.04] hover:text-cyan-300">Portfolio</Link>
+          <Link to="/Market" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-cyan-300">Market</Link>
+          <Link to="/IntelligenceHub" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-cyan-300">Intel</Link>
+          <a href="#verify" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-cyan-300">Verify</a>
+          <Link to="/PortfolioOverview" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-cyan-300">Portfolio</Link>
         </div>
       </nav>
     </main>
