@@ -1,0 +1,94 @@
+name: Phase 11D Runtime Truth Gate
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'public/manifest.json'
+      - 'explorer-dashboard/**'
+      - 'functions/api/kam/network-status.js'
+      - '.github/workflows/phase11d-runtime-truth-gate.yml'
+  schedule:
+    - cron: '7 * * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase11d-runtime-truth-gate
+  cancel-in-progress: false
+
+jobs:
+  runtime-truth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify KriptoAman production and ZEVARYQ runtime truth
+        shell: bash
+        run: |
+          set -euo pipefail
+          base=https://kriptoaman.com
+          explorer=https://explorer.kriptoaman.com
+          rpc=https://rpc.kriptoaman.com
+
+          curl -fsS --connect-timeout 8 --max-time 25 -H 'Cache-Control: no-cache' \
+            "$base/manifest.json?gate=$GITHUB_RUN_ID" -o /tmp/live-manifest.json
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFile } from 'node:fs/promises';
+          const source=JSON.parse(await readFile('public/manifest.json','utf8'));
+          const live=JSON.parse(await readFile('/tmp/live-manifest.json','utf8'));
+          assert.equal(live.version, source.version, `production web version drift: live=${live.version} source=${source.version}`);
+          NODE
+
+          curl -fsS --connect-timeout 8 --max-time 25 -H 'Cache-Control: no-cache' \
+            "$base/?gate=$GITHUB_RUN_ID" -o /tmp/home.html
+          grep -Fq 'id="root"' /tmp/home.html
+
+          curl -fsS --connect-timeout 8 --max-time 35 -H 'Accept: application/json' -H 'Cache-Control: no-cache' \
+            "$base/api/kam/network-status?gate=$GITHUB_RUN_ID" -o /tmp/network.json
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFile } from 'node:fs/promises';
+          const p=JSON.parse(await readFile('/tmp/network.json','utf8'));
+          assert.equal(Number(p.chainId ?? p.network?.chainId),22028);
+          const block=Number(p.blockNumber ?? p.network?.blockNumber ?? p.latestBlock ?? p.network?.latestBlock);
+          assert.ok(Number.isInteger(block) && block > 0, 'KriptoAman network-status must expose a positive block height');
+          const rpcState=String(p.rpc ?? p.network?.rpc ?? p.status ?? '').toLowerCase();
+          assert.ok(rpcState.includes('connected') || rpcState.includes('live') || rpcState.includes('online') || p.verified === true, 'network-status must prove a connected/live/verified state');
+          console.log(`platform_network_head=${block}`);
+          NODE
+
+          rpc_call(){
+            local endpoint="$1" method="$2"
+            curl -fsS --connect-timeout 8 --max-time 22 -H 'Content-Type: application/json' \
+              --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"$method\",\"params\":[]}" "$endpoint"
+          }
+
+          test "$(rpc_call "$rpc" eth_chainId | jq -r '.result')" = 0x560c
+          h1="$(rpc_call "$rpc" eth_blockNumber | jq -r '.result')"
+          sleep 20
+          h2="$(rpc_call "$rpc" eth_blockNumber | jq -r '.result')"
+          python3 - "$h1" "$h2" <<'PY'
+          import sys
+          a,b=[int(x,16) for x in sys.argv[1:]]
+          assert a > 0 and b > a, (a,b)
+          print(f'canonical_rpc_head={a}->{b}')
+          PY
+
+          curl -fsS --connect-timeout 8 --max-time 25 -H 'Cache-Control: no-cache' \
+            "$explorer/?gate=$GITHUB_RUN_ID" -o /tmp/explorer.html
+          grep -Fq 'ZEVARYQ' /tmp/explorer.html
+          ! grep -Eq 'KAM NETWORK|<strong>KAM Explorer</strong>|KriptoAman Mainnet Explorer · KAM Network' /tmp/explorer.html
+
+          curl -fsS --connect-timeout 8 --max-time 22 "$explorer/api/v2/blocks" -o /tmp/blocks.json
+          jq -e '(.items|type=="array") and (.items|length>0)' /tmp/blocks.json >/dev/null
+          latest_indexed="$(jq -r '.items[0].height // .items[0].number // empty' /tmp/blocks.json)"
+          test -n "$latest_indexed"
+          echo "explorer_indexed_head=$latest_indexed"
+
+          echo 'phase11d_runtime_truth=PASS'
