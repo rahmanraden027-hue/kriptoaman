@@ -21,9 +21,14 @@ function safeWriteLanguage(value) {
 
 function initialLanguage() {
   if (typeof window === 'undefined') return 'id';
+
+  // Explicit localized public URLs own their document-language semantics.
+  // Browser or stored preferences must not contradict canonical/hreflang metadata.
+  if (window.location.pathname === '/') return 'id';
+  if (window.location.pathname === '/en') return 'en';
+
   const stored = safeReadLanguage();
   if (stored === 'id' || stored === 'en') return stored;
-  if (window.location.pathname === '/en') return 'en';
   try {
     return navigator.language?.toLowerCase().startsWith('id') ? 'id' : 'en';
   } catch {

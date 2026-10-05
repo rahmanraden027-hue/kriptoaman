@@ -1,0 +1,98 @@
+name: Phase 10L.4 Global Acceptance Lock
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'public/robots.txt'
+      - 'public/sitemap.xml'
+      - 'public/brand/kriptoaman-mark-premium.webp'
+      - 'src/App.jsx'
+      - 'src/pages/HomeV10.jsx'
+      - 'src/components/home-v10/**'
+      - 'src/components/pwa/PWAInstallPrompt.jsx'
+      - 'src/lib/RouteSeo.jsx'
+      - 'src/lib/LanguageContext.jsx'
+      - 'src/lib/LanguageContext.jsx'
+      - 'src/hooks/useMarketSurface.js'
+      - 'src/components/home/useCoinMarkets.js'
+      - 'scripts/check-home-v10-bundle-budget.mjs'
+      - 'scripts/verify-phase10l4-global-acceptance.mjs'
+      - 'tests/phase10l4-final-global-acceptance.test.mjs'
+      - '.github/workflows/phase10l4-global-acceptance.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'public/robots.txt'
+      - 'public/sitemap.xml'
+      - 'public/brand/kriptoaman-mark-premium.webp'
+      - 'src/App.jsx'
+      - 'src/pages/HomeV10.jsx'
+      - 'src/components/home-v10/**'
+      - 'src/components/pwa/PWAInstallPrompt.jsx'
+      - 'src/lib/RouteSeo.jsx'
+      - 'src/hooks/useMarketSurface.js'
+      - 'src/components/home/useCoinMarkets.js'
+      - 'scripts/check-home-v10-bundle-budget.mjs'
+      - 'scripts/verify-phase10l4-global-acceptance.mjs'
+      - 'tests/phase10l4-final-global-acceptance.test.mjs'
+      - '.github/workflows/phase10l4-global-acceptance.yml'
+  schedule:
+    - cron: '41 2,14 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase10l4-global-acceptance
+  cancel-in-progress: false
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Phase 10L.4 source contract
+        run: node --test tests/phase10l4-final-global-acceptance.test.mjs
+
+  live-global-acceptance:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Allow production deployment to settle
+        if: github.event_name == 'push'
+        run: sleep 60
+      - name: Locate isolated Chrome
+        shell: bash
+        run: |
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || true)"
+          test -n "$CHROME"
+          echo "KA_CHROME=$CHROME" >> "$GITHUB_ENV"
+      - name: Install isolated Playwright client
+        shell: bash
+        run: |
+          npm install --prefix "$RUNNER_TEMP/phase10l4-playwright" --no-package-lock --ignore-scripts --no-audit --no-fund playwright-core@1.55.0
+          echo "PLAYWRIGHT_CORE=$RUNNER_TEMP/phase10l4-playwright/node_modules/playwright-core/index.mjs" >> "$GITHUB_ENV"
+          echo "PHASE10L4_EVIDENCE_DIR=$RUNNER_TEMP/phase10l4-global-evidence" >> "$GITHUB_ENV"
+      - name: Run five-viewport global production acceptance
+        run: node scripts/verify-phase10l4-global-acceptance.mjs
+      - name: Preserve Phase 10L.4 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase10l4-global-acceptance-evidence
+          path: ${{ runner.temp }}/phase10l4-global-evidence
+          if-no-files-found: warn
+          retention-days: 30
