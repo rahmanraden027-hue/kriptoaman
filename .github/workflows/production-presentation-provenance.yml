@@ -35,17 +35,15 @@ jobs:
             'Open Workspace',
             'Live Block Flow 3D',
             'ZEVARYQ · FIRST-PARTY BLOCKCHAIN EVIDENCE',
-            'KRIPTOAMAN INTELLIGENCE MODULES',
-            'Empat fungsi utama. Satu alur verifikasi.',
-            'UNIFIED ECOSYSTEM GATEWAY',
-            'Empat surface inti. Satu gateway produksi.',
+            'PRODUCTION ROUTES',
+            'KriptoAman Intelligence',
             'VERIFIED-ONLY UI',
             'AUTHORITATIVE SNAPSHOT',
             'no synthetic production metrics'
           ];
 
           const headers = {
-            'User-Agent': 'KriptoAman-Presentation-Provenance/3.3',
+            'User-Agent': 'KriptoAman-Presentation-Provenance/3.5',
             'Cache-Control': 'no-cache'
           };
 
