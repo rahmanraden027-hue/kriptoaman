@@ -1,9 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { formatCompactUsd, formatMagnitude, formatPrice, sparklinePoints } from './format';
+import { finite, formatCompactUsd, formatMagnitude, formatPrice, sparklinePoints } from './format';
 
 const ROTATION_MS = 10000;
+
+const formatRangePrice = (value) => {
+  const number = finite(value);
+  return Number.isFinite(number) && number > 0 ? formatPrice(number) : '—';
+};
 
 export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE' }) {
   const candidates = useMemo(() => assets.slice(0, 8), [assets]);
@@ -73,8 +78,8 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
             {[
               ['Market Cap', formatCompactUsd(asset.marketCap)],
               ['Volume', formatCompactUsd(asset.volume)],
-              ['24H High', formatPrice(asset.high24h)],
-              ['24H Low', formatPrice(asset.low24h)],
+              ['24H High', formatRangePrice(asset.high24h)],
+              ['24H Low', formatRangePrice(asset.low24h)],
             ].map(([label, value]) => (
               <div key={label} className="rounded-2xl border border-white/[0.05] bg-white/[0.025] px-3 py-3">
                 <p className="text-sm font-black text-white">{value}</p>
@@ -111,7 +116,7 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
             </svg>
           ) : (
             <div className="mt-5">
-              <p className="text-[9px] font-black uppercase tracking-[0.12em] text-slate-400">7D trace not provided in this snapshot</p>
+              <p className="text-[9px] font-black uppercase tracking-[0.12em] text-slate-400">7D history unavailable</p>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 {[
                   ['Price', formatPrice(asset.price)],
