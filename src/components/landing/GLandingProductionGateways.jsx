@@ -33,10 +33,10 @@ function RouteRow({ item }) {
         <Icon className="h-4 w-4 ka-blue" />
       </span>
       <span className="min-w-0 flex-1">
-        <b className="block truncate text-[11px] ka-text">{item.label}</b>
-        <small className="mt-0.5 block truncate text-[8px] ka-text2">{item.note}</small>
+        <b className="block truncate text-xs ka-text">{item.label}</b>
+        <small className="mt-0.5 block truncate text-[9px] ka-text2">{item.note}</small>
       </span>
-      <span className="hidden rounded-full border border-emerald-400/15 bg-emerald-400/[.05] px-2 py-1 text-[7px] font-black uppercase tracking-[.12em] text-emerald-300 sm:inline">
+      <span className="hidden rounded-full border border-emerald-400/15 bg-emerald-400/[.05] px-2 py-1 text-[8px] font-black uppercase tracking-[.11em] text-emerald-300 sm:inline">
         ACTIVE ROUTE
       </span>
       <ArrowRight className="h-3.5 w-3.5 shrink-0 text-slate-500 transition group-hover:translate-x-0.5 group-hover:text-sky-300" />
@@ -52,7 +52,7 @@ export default function GLandingProductionGateways() {
           <div className="ka-card overflow-hidden p-5 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-[9px] font-black uppercase tracking-[.18em] ka-cyan">PRODUCTION SURFACES</p>
+                <p className="text-[10px] font-black uppercase tracking-[.16em] ka-cyan">PRODUCTION SURFACES</p>
                 <h2 className="ka-sec-title mt-2 text-xl sm:text-2xl">Langsung ke data dan evidence.</h2>
               </div>
               <span className="rounded-full border border-emerald-400/15 bg-emerald-400/[.06] px-3 py-1.5 text-[8px] font-black uppercase tracking-[.12em] text-emerald-300">
