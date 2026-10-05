@@ -162,7 +162,15 @@ export default function HomeV3() {
   const latency = verifiedNumber(zvq?.probeDurationMs);
   const verified = zvq?.verified === true;
   const syncState = verified ? String(zvq?.syncStatus || 'unknown').toUpperCase() : 'UNAVAILABLE';
-  const marketAvailable = market?.status === 'available';
+  const marketCoreMetricCount = [market?.marketCap, market?.volume24h, market?.btcDominance]
+    .map(verifiedNumber)
+    .filter(Number.isFinite).length;
+  const marketAvailable = market?.status === 'available' && marketCoreMetricCount === 3;
+  const marketState = marketAvailable
+    ? 'AVAILABLE'
+    : market?.status === 'available'
+      ? 'PARTIAL'
+      : 'UNAVAILABLE';
 
   return (
     <div className="ka-home-v3 ka-bg min-h-screen text-white">
@@ -226,7 +234,7 @@ export default function HomeV3() {
               />
               <StatusCell
                 label="MARKET"
-                value={marketAvailable ? 'AVAILABLE' : 'UNAVAILABLE'}
+                value={marketState}
                 note="KriptoAman market source"
                 tone={marketAvailable ? 'emerald' : 'amber'}
               />
