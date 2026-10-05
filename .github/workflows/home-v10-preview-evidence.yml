@@ -5,12 +5,15 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/home-v10-preview-evidence.yml'
+      - 'index.html'
       - 'src/pages/HomeV10.jsx'
       - 'src/components/home-v10/**'
       - 'src/hooks/useMarketSurface.js'
       - 'src/components/pwa/PWAInstallPrompt.jsx'
       - 'src/FullAppShell.jsx'
       - 'tests/phase10h-home-v10-isolated.test.mjs'
+      - 'tests/phase10l3-global-readiness.test.mjs'
+      - 'scripts/check-home-v10-bundle-budget.mjs'
   workflow_dispatch:
 
 permissions:
@@ -41,6 +44,11 @@ jobs:
           done
           cat /tmp/home-v10-preview.log || true
           exit 1
+
+      - name: HomeV10 initial bundle budget
+        env:
+          HOME_V10_EVIDENCE_DIR: home-v10-evidence
+        run: node scripts/check-home-v10-bundle-budget.mjs
 
       - name: Install Chromium
         run: npx -y playwright@1.55.0 install --with-deps chromium
