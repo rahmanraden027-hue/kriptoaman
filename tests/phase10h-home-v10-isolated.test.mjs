@@ -43,8 +43,12 @@ test('Phase 10H keeps intelligence deterministic and evidence oriented', async (
   assert.match(network, /\/api\/kam\/network-status/);
 });
 
-test('Phase 10H leaves the production HomeV3 source intact', async () => {
-  const homeV3 = await read('src/pages/HomeV3.jsx');
+test('Phase 10H leaves production HomeV3 and production routing intact', async () => {
+  const [homeV3, shell] = await Promise.all([
+    read('src/pages/HomeV3.jsx'),
+    read('src/FullAppShell.jsx'),
+  ]);
   assert.match(homeV3, /export default function HomeV3/);
   assert.match(homeV3, /MY KRIPTOAMAN/);
+  assert.doesNotMatch(shell, /HomeV10/);
 });
