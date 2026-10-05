@@ -29,12 +29,9 @@ export const formatChange = (value) => {
   return `${number >= 0 ? '+' : ''}${number.toFixed(2)}%`;
 };
 
-export const stateLabel = (state) => String(state || 'UNAVAILABLE').toUpperCase();
-
-export const stateTone = (state) => {
-  if (state === 'LIVE' || state === 'SNAPSHOT') return 'text-emerald-300';
-  if (state === 'PARTIAL' || state === 'STALE') return 'text-amber-300';
-  return 'text-slate-500';
+export const formatMagnitude = (value) => {
+  const number = finite(value);
+  return Number.isFinite(number) ? Math.abs(number).toFixed(2) + '%' : '—';
 };
 
 export const sparklinePoints = (values, width = 220, height = 72) => {
