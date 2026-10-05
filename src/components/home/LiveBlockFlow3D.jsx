@@ -48,7 +48,12 @@ function Cube({ block, index, latest, advanceKey }) {
   );
 }
 
-export default function LiveBlockFlow3D({ betweenBlockAndNode = null, compactLanding = false }) {
+export default function LiveBlockFlow3D({
+  betweenBlockAndNode = null,
+  compactLanding = false,
+  snapshotBlock = null,
+  snapshotGeneratedAt = null,
+}) {
   const [payload, setPayload] = useState(null);
   const [error, setError] = useState(null);
   const [advanceKey, setAdvanceKey] = useState(0);
@@ -139,6 +144,15 @@ export default function LiveBlockFlow3D({ betweenBlockAndNode = null, compactLan
   const indexerLag = payload?.metrics?.indexerLagBlocks;
   const indexedHead = payload?.metrics?.indexedHead;
   const live = state === 'live';
+  const snapshotHead = snapshotBlock === null || snapshotBlock === undefined || snapshotBlock === ''
+    ? NaN
+    : Number(snapshotBlock);
+  const liveHead = Number(head);
+  const hasSnapshotComparison = Number.isSafeInteger(snapshotHead) && Number.isSafeInteger(liveHead);
+  const snapshotDelta = hasSnapshotComparison ? liveHead - snapshotHead : null;
+  const snapshotGeneratedLabel = snapshotGeneratedAt && Number.isFinite(Date.parse(snapshotGeneratedAt))
+    ? new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date(snapshotGeneratedAt))
+    : null;
 
   return (
     <section data-phase7-visual="live-block-flow" className="zvq-live-flow mt-5 overflow-hidden rounded-[30px] border border-cyan-400/15 bg-[#030914] p-4 sm:p-5">
@@ -184,6 +198,14 @@ export default function LiveBlockFlow3D({ betweenBlockAndNode = null, compactLan
           <p className="mt-1 max-w-2xl text-[11px] leading-5 text-slate-400">
             The flow advances only when ZEVARYQ chain head increases. No synthetic blocks or invented propagation metrics are shown.
           </p>
+          {hasSnapshotComparison && (
+            <p className="mt-2 text-[9px] font-bold tracking-[.04em] text-slate-500" aria-label="Authoritative snapshot to live head comparison">
+              AUTHORITATIVE SNAPSHOT #{fmtNumber(snapshotHead)}
+              {' → '}LIVE HEAD #{fmtNumber(liveHead)}
+              {' · '}Δ {snapshotDelta >= 0 ? '+' : ''}{fmtNumber(snapshotDelta)}
+              {snapshotGeneratedLabel ? ` · SNAPSHOT ${snapshotGeneratedLabel}` : ''}
+            </p>
+          )}
         </div>
         {Number.isFinite(Number(head)) && (
           <a

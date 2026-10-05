@@ -1,5 +1,6 @@
 import React, { lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
+import { getProductionFreshness } from './productionFreshness';
 
 const GLandingHeroConsole = lazy(() => import('@/components/landing/GLandingHeroConsole'));
 
@@ -26,11 +27,14 @@ function metric(value, formatter = (item) => item) {
 }
 
 export default function GLandingHero({ stats, visualReady = true }) {
+  const snapshot = getProductionFreshness(stats);
+  const marketState = stats?.marketAvailable ? snapshot.freshness : 'UNAVAILABLE';
+
   const productionMetrics = [
     {
       label: 'MARKET ASSETS',
       value: metric(stats?.assetCount, (value) => value.toLocaleString('id-ID')),
-      state: stats?.marketAvailable ? 'LIVE' : 'VERIFYING',
+      state: marketState,
     },
     {
       label: 'ZVQ BLOCK',
@@ -43,7 +47,7 @@ export default function GLandingHero({ stats, visualReady = true }) {
       state: Number.isFinite(Number(stats?.networkActiveCount)) ? 'LIVE' : 'VERIFYING',
     },
     {
-      label: 'ZVQ STATE',
+      label: 'CHAIN / RPC',
       value: stats?.zvqSyncStatus ? String(stats.zvqSyncStatus).toUpperCase() : '—',
       state: stats?.zvqSyncStatus ? 'VERIFIED' : 'VERIFYING',
     },
@@ -75,7 +79,7 @@ export default function GLandingHero({ stats, visualReady = true }) {
               <div key={item.label} className="rounded-2xl border border-sky-400/12 bg-[#06111e]/78 px-3 py-3 text-left">
                 <p className="text-[9px] font-black uppercase tracking-[.13em] text-slate-400">{item.label}</p>
                 <p className="mt-1.5 truncate text-lg font-black tabular-nums ka-text">{item.value}</p>
-                <p className={"mt-1 text-[9px] font-black uppercase tracking-[.11em] " + (item.state === 'LIVE' || item.state === 'VERIFIED' ? 'text-emerald-300' : 'text-amber-300')}>
+                <p className={"mt-1 text-[9px] font-black uppercase tracking-[.11em] " + (['LIVE', 'RECENT', 'VERIFIED'].includes(item.state) ? 'text-emerald-300' : 'text-amber-300')}>
                   {item.state}
                 </p>
               </div>

@@ -6,7 +6,8 @@ const source = await readFile(new URL('../src/components/landing/LandingLiveSyst
 
 test('public landing distinguishes verified live states from unavailable evidence', () => {
   assert.match(source, /liveBlock \? 'LIVE' : 'VERIFYING'/);
-  assert.match(source, /marketLive \? 'LIVE' : 'UNAVAILABLE'/);
+  assert.match(source, /const marketState = marketAvailable \? snapshot\.freshness : 'UNAVAILABLE'/);
+  assert.match(source, /const marketHealthy = marketAvailable && snapshot\.verified && snapshot\.freshness !== 'STALE'/);
   assert.match(source, /Number\.isFinite\(rpc\)/);
   assert.match(source, /synced \? 'SYNCED'/);
   assert.doesNotMatch(source, /Data belum tersedia/);

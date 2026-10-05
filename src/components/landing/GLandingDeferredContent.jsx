@@ -11,6 +11,8 @@ export default function GLandingDeferredContent({ stats }) {
         <div className="max-w-[1440px] mx-auto">
           <LiveBlockFlow3D
             compactLanding
+            snapshotBlock={stats?.zvqBlockNumber}
+            snapshotGeneratedAt={stats?.snapshotGeneratedAt}
             betweenBlockAndNode={<LandingMarketPulse />}
           />
         </div>

@@ -86,10 +86,12 @@ export default function LandingMarketPulse() {
 
   const capturedAt = formatCapturedAt(state.capturedAt);
   const statusLabel = state.loading
-    ? 'VERIFYING'
+    ? 'VERIFYING HOT FEED'
     : state.available
-      ? state.healthy && state.freshness === 'live' ? 'LIVE VERIFIED' : String(state.freshness || 'AVAILABLE').toUpperCase()
-      : 'UNAVAILABLE';
+      ? state.healthy && state.freshness === 'live'
+        ? 'HOT FEED LIVE'
+        : `HOT FEED ${String(state.freshness || 'AVAILABLE').toUpperCase()}`
+      : 'HOT FEED UNAVAILABLE';
 
   return (
     <section className="ka-market-pulse-shell px-4 sm:px-6" aria-label="KriptoAman verified market pulse">
@@ -97,7 +99,7 @@ export default function LandingMarketPulse() {
         <div className="ka-market-pulse-head">
           <div className="min-w-0">
             <p className="ka-market-pulse-kicker"><Activity className="h-3.5 w-3.5" /> VERIFIED MARKET PULSE</p>
-            <p className="ka-market-pulse-sub">Major assets from the KriptoAman-owned read path. Missing values stay unavailable.</p>
+            <p className="ka-market-pulse-sub">Hot-asset feed freshness is shown independently from the authoritative aggregate snapshot. Missing values stay unavailable.</p>
           </div>
           <div className="ka-market-pulse-status">
             <span className={state.available ? 'is-live' : 'is-idle'}><i />{statusLabel}</span>

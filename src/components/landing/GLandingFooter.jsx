@@ -13,12 +13,12 @@ const COLS = [
 function FooterLink({ label, to }) {
   if (to.startsWith('http')) {
     return (
-      <a href={to} target="_blank" rel="noopener noreferrer" className="text-xs ka-text2 hover:ka-blue transition-colors inline-flex items-center gap-1">
+      <a href={to} target="_blank" rel="noopener noreferrer" className="text-[13px] leading-5 ka-text2 hover:ka-blue transition-colors inline-flex items-center gap-1">
         {label}<ExternalLink className="w-3 h-3" />
       </a>
     );
   }
-  return <Link to={to} className="text-xs ka-text2 hover:ka-blue transition-colors">{label}</Link>;
+  return <Link to={to} className="text-[13px] leading-5 ka-text2 hover:ka-blue transition-colors">{label}</Link>;
 }
 
 export default function GLandingFooter() {
@@ -32,12 +32,12 @@ export default function GLandingFooter() {
               <span className="font-extrabold tracking-[0.16em] text-sm uppercase"><span className="ka-text">KRIPTO</span><span className="ka-blue">AMAN</span></span>
             </div>
             <p className="text-sm ka-text2 mt-4 max-w-sm leading-6">Digital Asset Intelligence Platform untuk market intelligence, on-chain verification, security intelligence dan multi-chain monitoring.</p>
-            <p className="text-[11px] ka-text2 mt-3">PT Kripto Aman Indonesia · Indonesia</p>
-            <a href="mailto:hello@kriptoaman.com" className="inline-flex items-center gap-2 text-xs ka-blue mt-3"><Mail className="w-3.5 h-3.5" /> hello@kriptoaman.com</a>
+            <p className="text-xs ka-text2 mt-3">PT Kripto Aman Indonesia · Indonesia</p>
+            <a href="mailto:hello@kriptoaman.com" className="inline-flex items-center gap-2 text-[13px] ka-blue mt-3"><Mail className="w-3.5 h-3.5" /> hello@kriptoaman.com</a>
           </div>
           {COLS.map((c) => (
             <div key={c.title}>
-              <h4 className="text-[10px] font-black uppercase tracking-[0.16em] ka-text2 mb-4">{c.title}</h4>
+              <h4 className="text-[11px] font-black uppercase tracking-[0.12em] ka-text2 mb-4">{c.title}</h4>
               <ul className="space-y-2.5">{c.links.map(([label, to]) => <li key={label}><FooterLink label={label} to={to} /></li>)}</ul>
             </div>
           ))}
@@ -45,14 +45,14 @@ export default function GLandingFooter() {
 
         <div className="ka-card2 p-4 mt-8 flex items-start gap-3">
           <AlertTriangle className="w-4 h-4 ka-gold shrink-0 mt-0.5" />
-          <p className="text-[11px] ka-text2 leading-relaxed">
+          <p className="text-xs ka-text2 leading-5">
             Informasi pasar, riset, status jaringan dan analisis risiko disediakan untuk pemantauan, verifikasi dan edukasi. KriptoAman bukan bursa, kustodian, broker, atau penasihat investasi dan tidak menjanjikan harga, keuntungan, likuiditas, listing, atau hasil investasi tertentu.
           </p>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-6 pt-6 border-t" style={{ borderColor: 'var(--ka-border)' }}>
-          <p className="text-[11px] ka-text2">© 2026 KriptoAman · Production UI 1.0.</p>
-          <p className="text-[10px] tracking-[0.14em] ka-text2">KRIPTOAMAN = INTELLIGENCE · ZEVARYQ = INFRASTRUCTURE</p>
+          <p className="text-xs ka-text2">© 2026 KriptoAman · Production UI 1.0.</p>
+          <p className="text-[11px] tracking-[0.08em] ka-text2">KRIPTOAMAN = INTELLIGENCE · ZEVARYQ = INFRASTRUCTURE</p>
         </div>
       </div>
     </footer>
