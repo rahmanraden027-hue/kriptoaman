@@ -14,7 +14,6 @@ import useMarketSurface from '@/hooks/useMarketSurface';
 const NAV = [
   ['/Market', 'Market'],
   ['/IntelligenceHub', 'Intelligence'],
-  ['/PortfolioOverview', 'Portfolio'],
 ];
 
 export default function HomeV10() {
@@ -28,6 +27,7 @@ export default function HomeV10() {
           <nav className="hidden items-center gap-1 md:flex">
             {NAV.map(([to, label]) => <Link key={to} to={to} className="rounded-lg px-3 py-2 text-[10px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-white">{label}</Link>)}
             <a href="#verify" className="rounded-lg px-3 py-2 text-[10px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-white">Verify</a>
+            <Link to="/PortfolioOverview" className="rounded-lg px-3 py-2 text-[10px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-white">Portfolio</Link>
           </nav>
           <div className="ml-auto flex items-center gap-2">
             <Link to="/Market" aria-label="Search market" className="grid h-9 w-9 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.02] text-slate-400"><Search className="h-4 w-4" /></Link>
@@ -72,7 +72,7 @@ export default function HomeV10() {
         <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
           <Link to="/" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-cyan-300">Home</Link>
           <Link to="/Market" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-500 hover:bg-white/[0.04] hover:text-cyan-300">Market</Link>
-          <Link to="/IntelligenceHub" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-500 hover:bg-white/[0.04] hover:text-cyan-300">Intel</Link>
+          <Link to="/IntelligenceHub" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-500 hover:bg-white/[0.04] hover:text-cyan-300">Intelligence</Link>
           <a href="#verify" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-500 hover:bg-white/[0.04] hover:text-cyan-300">Verify</a>
           <Link to="/PortfolioOverview" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-500 hover:bg-white/[0.04] hover:text-cyan-300">Portfolio</Link>
         </div>
