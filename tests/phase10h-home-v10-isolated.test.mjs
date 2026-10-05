@@ -67,7 +67,7 @@ test('Phase 10J promotes HomeV10 to production root while retaining isolated pre
   assert.match(shell, /HomeV10/);
   assert.match(shell, /path="\/preview\/home-v10"/);
   assert.match(app, /if \(pathname === '\/'\)/);
-  assert.match(app, /const HomeV10 = lazy\(\(\) => import\('\.\/pages\/HomeV10'\)\)/);
+  assert.equal(app.includes("import HomeV10 from './pages/HomeV10';"), true);
   assert.match(app, /<HomeV10 \/>/);
   assert.doesNotMatch(app, /<KriptoAmanGlobalLanding \/>/);
   assert.doesNotMatch(app, /pathname === '\/preview\/home-v10'/);
