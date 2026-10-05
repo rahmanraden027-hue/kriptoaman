@@ -1,13 +1,13 @@
 # KriptoAman — Google Play Store Listing
 
-Prepared: 19 August 2026
+Updated: 5 October 2026
 
 ## App identity
 
 - App name: `KriptoAman`
 - Package ID: `com.kriptoaman.app`
-- Android version: `1.3`
-- Version code: `4`
+- Android version: `1.5.6`
+- Version code: `13`
 - Category: `Finance`
 - Developer / organization name: `PT KRIPTO AMAN INDONESIA`
 - Website: `https://kriptoaman.com`
