@@ -23,7 +23,7 @@ const STATS = [
 export default function AboutUs() {
   useEffect(() => {
     const title = 'Tentang KriptoAman | PT Kripto Aman Indonesia';
-    const description = 'Tentang KriptoAman, platform informasi, pemantauan, edukasi, dan analisis risiko indikatif aset digital yang dioperasikan oleh PT Kripto Aman Indonesia.';
+    const description = 'Tentang KriptoAman, platform verified crypto intelligence untuk market, on-chain, network, dan evidence yang dioperasikan oleh PT Kripto Aman Indonesia.';
     const canonical = 'https://kriptoaman.com/AboutUs';
     const previousTitle = document.title;
 
@@ -114,14 +114,14 @@ export default function AboutUs() {
               </svg>
             </div>
             <h1 className="text-3xl font-black text-white tracking-wide">KriptoAman</h1>
-            <p className="text-slate-300 text-sm mt-2 leading-relaxed">Platform pemantauan dan analitik aset kripto untuk pengguna Indonesia</p>
+            <p className="text-slate-300 text-sm mt-2 leading-relaxed">Market · On-chain · Network · Evidence</p>
           </div>
         </div>
 
         <div className="bg-slate-800/50 border border-slate-700/40 rounded-2xl p-5">
           <h2 className="text-white font-bold text-lg mb-3">Misi Kami</h2>
           <p className="text-slate-400 text-sm leading-relaxed">
-            KriptoAman dikembangkan untuk membantu pengguna mengakses informasi aset digital melalui antarmuka yang mudah dipahami, transparan, dan berorientasi pada keamanan.
+            KriptoAman dikembangkan untuk menyatukan market, on-chain, network, dan evidence dalam antarmuka data yang transparan, dapat diperiksa, dan berorientasi pada keamanan.
           </p>
           <p className="text-slate-400 text-sm leading-relaxed mt-3">
             Fitur publik saat ini berfokus pada pemantauan pasar, analitik, keamanan akun, dan koneksi alamat dompet publik. Fitur transaksi hanya akan ditampilkan apabila benar-benar tersedia dan telah melewati pengujian yang sesuai.

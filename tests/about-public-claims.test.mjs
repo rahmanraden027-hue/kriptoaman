@@ -23,7 +23,7 @@ test('About page avoids unverified scale, trading, regulatory, and trust claims'
     assert.doesNotMatch(about + badges, claim);
   }
 
-  assert.match(about, /Platform pemantauan dan analitik aset kripto/);
+  assert.match(about, /Market · On-chain · Network · Evidence/);
   assert.match(about, /EVM atau Solana/);
   assert.match(about, /Mode Read-Only/);
   assert.match(about, /Transparansi & Keamanan/);

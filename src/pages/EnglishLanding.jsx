@@ -46,11 +46,11 @@ export default function EnglishLanding() {
           <div className="relative mx-auto grid max-w-[1200px] items-center gap-10 lg:grid-cols-2">
             <div>
               <span className="ka-chip inline-flex items-center gap-2 px-3.5 py-1.5 text-[11px] font-bold tracking-wide">
-                <ShieldCheck className="h-3.5 w-3.5" /> DIGITAL ASSET MONITORING &amp; RISK INFORMATION
+                <ShieldCheck className="h-3.5 w-3.5" /> KRIPTOAMAN · VERIFIED DATA
               </span>
-              <h1 className="ka-sec-title mt-5 text-4xl leading-tight sm:text-5xl">Understand crypto markets with <span className="ka-blue">clearer signals</span></h1>
+              <h1 className="ka-sec-title mt-5 text-4xl leading-tight sm:text-5xl">Verified data.<br /><span className="ka-blue">Real intelligence.</span></h1>
               <p className="ka-text2 mt-5 max-w-xl text-base leading-relaxed">
-                KriptoAman is an Indonesian information platform for market monitoring, blockchain transaction verification, education, and indicative risk analysis.
+                KriptoAman brings market, on-chain, network, and evidence into one verified crypto intelligence experience with clear source and product boundaries.
               </p>
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                 <Link to="/Market" className="ka-btn-primary inline-flex items-center justify-center gap-2 px-6">Explore markets <ArrowRight className="h-4 w-4" /></Link>
@@ -61,7 +61,7 @@ export default function EnglishLanding() {
             <div className="ka-card ka-glow p-6 sm:p-8">
               <KriptoAmanLogo size={128} showText={false} animate />
               <div className="mt-6 grid grid-cols-2 gap-3">
-                {[['2,000+', 'market assets'], ['8', 'supported networks'], ['IDR / USD', 'display currencies'], ['24/7', 'public monitoring']].map(([value,label]) => (
+                {[['MARKET', 'verified market context'], ['ON-CHAIN', 'transaction evidence'], ['NETWORK', 'live network state'], ['EVIDENCE', 'source-aware verification']].map(([value,label]) => (
                   <div key={label} className="ka-card2 p-4"><p className="ka-blue text-xl font-extrabold">{value}</p><p className="ka-text2 mt-1 text-xs">{label}</p></div>
                 ))}
               </div>
