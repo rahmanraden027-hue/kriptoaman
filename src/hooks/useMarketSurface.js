@@ -35,7 +35,6 @@ const featuredEligible = (asset) => (
   surfaceEligible(asset)
   && Number(asset?.rank) <= 100
   && !STABLE_SYMBOLS.has(String(asset?.sym || '').toUpperCase())
-  && Boolean(asset?.image)
 );
 
 const movementScore = (asset) => Math.min(Math.abs(Number(asset.change24h || 0)), 30) / 30;
