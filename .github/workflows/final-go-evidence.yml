@@ -11,6 +11,7 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'src/**'
+      - 'functions/**'
   workflow_dispatch:
     inputs:
       load_stage:
