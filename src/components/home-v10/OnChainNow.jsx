@@ -51,7 +51,7 @@ export default function OnChainNow() {
         {metrics.map(([label, value]) => (
           <div key={label} className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-3">
             <p className="truncate text-sm font-black text-white">{value}</p>
-            <p className="mt-1 text-[8px] font-black uppercase tracking-[0.1em] text-slate-500">{label}</p>
+            <p className="mt-1 text-[8px] font-black uppercase tracking-[0.1em] text-slate-400">{label}</p>
           </div>
         ))}
       </div>
