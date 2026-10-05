@@ -29,9 +29,9 @@ export default function GLandingFooter() {
           <div className="col-span-2 lg:col-span-2">
             <div className="flex items-center gap-2">
               <KriptoAmanLogo size={32} showText={false} animate={false} src="/icons/kriptoaman-32.png" loading="lazy" fetchPriority="low" decoding="async" />
-              <span className="font-extrabold tracking-[0.16em] text-sm uppercase"><span className="ka-text">KRIPTO</span><span className="ka-blue">AMAN</span></span>
+              <span className="font-extrabold tracking-[0.14em] text-sm uppercase"><span className="ka-text">KRIPTO</span><span className="ka-blue">AMAN</span><span className="ka-text2"> INTELLIGENCE</span></span>
             </div>
-            <p className="text-sm ka-text2 mt-4 max-w-sm leading-6">Digital Asset Intelligence Platform untuk market intelligence, on-chain verification, security intelligence dan multi-chain monitoring.</p>
+            <p className="text-sm ka-text2 mt-4 max-w-sm leading-6">Verified crypto intelligence untuk market, on-chain activity, network state, dan evidence yang dapat diperiksa.</p>
             <p className="text-xs ka-text2 mt-3">PT Kripto Aman Indonesia · Indonesia</p>
             <a href="mailto:hello@kriptoaman.com" className="inline-flex items-center gap-2 text-[13px] ka-blue mt-3"><Mail className="w-3.5 h-3.5" /> hello@kriptoaman.com</a>
           </div>
@@ -52,7 +52,7 @@ export default function GLandingFooter() {
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-6 pt-6 border-t" style={{ borderColor: 'var(--ka-border)' }}>
           <p className="text-xs ka-text2">© 2026 KriptoAman · Production UI 1.0.</p>
-          <p className="text-[11px] tracking-[0.08em] ka-text2">KRIPTOAMAN = INTELLIGENCE · ZEVARYQ = INFRASTRUCTURE</p>
+          <p className="text-[11px] tracking-[0.08em] ka-text2">KRIPTOAMAN INTELLIGENCE = VERIFIED DATA · ZEVARYQ = INFRASTRUCTURE</p>
         </div>
       </div>
     </footer>

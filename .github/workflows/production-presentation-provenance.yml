@@ -28,7 +28,7 @@ jobs:
           const base = 'https://kriptoaman.com';
           const origin = new URL(base).origin;
           const required = [
-            'KRIPTOAMAN · VERIFIED CRYPTO INTELLIGENCE',
+            'KRIPTOAMAN INTELLIGENCE · VERIFIED DATA',
             'Data produksi, langsung terlihat.',
             'Market · On-chain · Network · Evidence',
             'KRIPTOAMAN · PRODUCTION COMMAND CENTER',
@@ -43,7 +43,7 @@ jobs:
           ];
 
           const headers = {
-            'User-Agent': 'KriptoAman-Presentation-Provenance/3.6',
+            'User-Agent': 'KriptoAman-Presentation-Provenance/4.0',
             'Cache-Control': 'no-cache'
           };
 
