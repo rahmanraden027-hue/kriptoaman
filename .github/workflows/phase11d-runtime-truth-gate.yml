@@ -2,6 +2,14 @@ name: Phase 11D Runtime Truth Gate
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'public/manifest.json'
+      - 'explorer-dashboard/**'
+      - 'functions/api/kam/network-status.js'
+      - '.github/workflows/phase11d-runtime-truth-gate.yml'
   push:
     branches: [main]
     paths:
