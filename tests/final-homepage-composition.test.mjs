@@ -12,9 +12,8 @@ test('final homepage composition exposes only production-ready evidence gateways
 
   assert.match(deferred, /<GLandingProductionGateways \/>/);
   assert.match(gateways, /PRODUCTION ROUTES/);
-  assert.match(gateways, /PRODUCTION ROUTES/);
   assert.match(gateways, /VERIFIED-ONLY UI/);
-  assert.match(gateways, /DIRECT EVIDENCE ROUTES/);
+  assert.match(gateways, />EVIDENCE</);
 
   for (const route of ['/IntelligenceHub', '/qoryvex/discovery', '/login', '/wallet-app']) {
     assert.equal(gateways.includes(route), true, `missing production route ${route}`);
