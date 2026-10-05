@@ -53,10 +53,10 @@ test('final public hero presents the evidence-first intelligence identity', asyn
   assert.match(hero, /Data produksi, langsung terlihat/);
   assert.match(hero, /Market · On-chain · Network · Evidence/);
   assert.match(hero, /Open Workspace/);
-  assert.match(hero, /MARKET ASSETS/);
-  assert.match(hero, /ZVQ BLOCK/);
-  assert.match(hero, /VERIFIED NETWORKS/);
-  assert.match(hero, /CHAIN \/ RPC/);
+  assert.doesNotMatch(hero, /MARKET ASSETS/);
+  assert.doesNotMatch(hero, /ZVQ BLOCK/);
+  assert.doesNotMatch(hero, /VERIFIED NETWORKS/);
+  assert.doesNotMatch(hero, /CHAIN \/ RPC/);
   assert.doesNotMatch(hero, /const PURPOSE/);
   assert.match(console, /PRODUCTION COMMAND CENTER/);
   assert.match(console, /PROOF OF FRESHNESS/);
