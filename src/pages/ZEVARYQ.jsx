@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Activity, ArrowRight, ExternalLink, Globe2, ShieldCheck, WalletCards } from 'lucide-react';
 import ZevaryqMark from '@/components/zevaryq-wallet/ZevaryqMark';
 import { useLanguage } from '@/lib/LanguageContext';
+import { DATA_STATE, isPositiveDataState, normalizeDataState } from '@/lib/dataState';
 
 const IDENTITY = Object.freeze({
   network: 'ZEVARYQ Mainnet',
@@ -103,13 +104,14 @@ export default function ZEVARYQ() {
     provenance: 'Penamaan KAM lama dimigrasikan ke ZEVARYQ pada identitas jaringan yang sama. Genesis, alamat, saldo dan riwayat blok tetap menjadi data kontinuitas, bukan materi promosi.',
   };
 
-  const stateText = probe.phase === 'verified' ? copy.verified : probe.phase === 'checking' ? copy.checking : copy.unavailable;
+  const stateText = probe.phase === 'verified' ? DATA_STATE.VERIFIED : probe.phase === 'checking' ? DATA_STATE.CHECKING : DATA_STATE.UNAVAILABLE;
   const live = probe.phase === 'verified';
+  const syncState = live ? normalizeDataState(probe.syncStatus, DATA_STATE.VERIFIED) : stateText;
   const metrics = [
-    ['CHAIN ID', IDENTITY.chainId + ' · ' + IDENTITY.chainIdHex, copy.verified],
-    ['NATIVE ASSET', 'ZEVARYQ (ZVQ)', copy.verified],
+    ['CHAIN ID', IDENTITY.chainId + ' · ' + IDENTITY.chainIdHex, DATA_STATE.VERIFIED],
+    ['NATIVE ASSET', 'ZEVARYQ (ZVQ)', DATA_STATE.VERIFIED],
     [copy.latestBlock.toUpperCase(), probe.height != null ? '#' + probe.height.toLocaleString(locale) : '—', stateText],
-    [copy.sync.toUpperCase(), probe.syncStatus || '—', live && probe.syncStatus ? copy.verified : stateText],
+    [copy.sync.toUpperCase(), probe.syncStatus || '—', syncState],
   ];
 
   return (
@@ -138,7 +140,7 @@ export default function ZEVARYQ() {
             <div key={label} className="ka-command-panel p-4">
               <p className="text-[8px] font-black uppercase tracking-[.13em] text-slate-500">{label}</p>
               <p className="mt-2 break-words text-base font-black text-white">{value}</p>
-              <p className={'mt-1 text-[8px] font-black uppercase ' + (state === copy.verified ? 'text-emerald-300' : 'text-amber-300')}>{state}</p>
+              <p className={'mt-1 text-[8px] font-black uppercase ' + (isPositiveDataState(state) ? 'text-emerald-300' : state === DATA_STATE.UNAVAILABLE ? 'text-amber-300' : 'text-cyan-300')}>{state}</p>
             </div>
           ))}
         </section>
