@@ -7,13 +7,13 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 test('physical-device install prompt collapses instead of covering mobile content', async () => {
   const source = await read('src/components/pwa/PWAInstallPrompt.jsx');
   assert.match(source, /const isPublicRoot = pathname === '\/'/);
-  assert.match(source, /isPublicRoot \? 'bottom-\[calc\(\.75rem\+env\(safe-area-inset-bottom,0px\)\)\] right-3'/);
+  assert.match(source, /isPublicRoot \? 'bottom-\[calc\(5\.25rem\+env\(safe-area-inset-bottom,0px\)\)\] right-3 md:bottom-4'/);
   assert.match(source, /Math\.max\(420, Math\.round\(window\.innerHeight \* 0\.58\)\)/);
   assert.match(source, /isPublicRoot && !rootCtaReady/);
   assert.match(source, /isPublicRoot \|\| scrolled \|\| engaged \? 'w-11 px-0'/);
   assert.match(source, /lg:not-sr-only/);
   assert.match(source, /lg:w-auto lg:gap-2 lg:px-4/);
-  assert.match(source, /className="flex min-h-11 min-w-10/);
+  assert.match(source, /className="flex min-h-11 min-w-11/);
 });
 
 test('physical-device landing forces readable hero metrics and institutional cards', async () => {
