@@ -43,7 +43,9 @@ jobs:
           cat /tmp/ka-home-v10-preview.log || true
           exit 1
       - name: Install Playwright Chromium
-        run: npx -y playwright@1.55.0 install --with-deps chromium
+        run: |
+          npm install --no-save --legacy-peer-deps playwright@1.55.0
+          npx playwright install --with-deps chromium
       - name: Capture HomeV10 preview matrix
         shell: bash
         run: |
@@ -93,7 +95,7 @@ jobs:
           }
           await browser.close();
           JS
-          npx -y -p playwright@1.55.0 node /tmp/overflow.mjs
+          node /tmp/overflow.mjs
       - name: WCAG 2 AA scan
         shell: bash
         run: |
