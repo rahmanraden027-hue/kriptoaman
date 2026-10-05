@@ -14,6 +14,8 @@ on:
       - 'src/components/home-v10/**'
       - 'src/components/pwa/PWAInstallPrompt.jsx'
       - 'src/lib/RouteSeo.jsx'
+      - 'src/lib/LanguageContext.jsx'
+      - 'src/lib/LanguageContext.jsx'
       - 'src/hooks/useMarketSurface.js'
       - 'src/components/home/useCoinMarkets.js'
       - 'scripts/check-home-v10-bundle-budget.mjs'
