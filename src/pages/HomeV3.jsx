@@ -17,6 +17,7 @@ import {
 import { Link } from 'react-router-dom';
 import HomeInstitutionalFooter from '@/components/home/HomeInstitutionalFooter';
 import NewTokenRadar from '@/components/market/NewTokenRadar';
+import { DATA_STATE, normalizeDataState } from '@/lib/dataState';
 
 const verifiedNumber = (value) => (
   value !== null &&
@@ -161,16 +162,16 @@ export default function HomeV3() {
   const head = verifiedNumber(zvq?.blockNumber);
   const latency = verifiedNumber(zvq?.probeDurationMs);
   const verified = zvq?.verified === true;
-  const syncState = verified ? String(zvq?.syncStatus || 'unknown').toUpperCase() : 'UNAVAILABLE';
+  const syncState = verified ? normalizeDataState(zvq?.syncStatus) : DATA_STATE.UNAVAILABLE;
   const marketCoreMetricCount = [market?.marketCap, market?.volume24h, market?.btcDominance]
     .map(verifiedNumber)
     .filter(Number.isFinite).length;
   const marketAvailable = market?.status === 'available' && marketCoreMetricCount === 3;
   const marketState = marketAvailable
-    ? 'AVAILABLE'
+    ? DATA_STATE.SNAPSHOT
     : market?.status === 'available'
-      ? 'PARTIAL'
-      : 'UNAVAILABLE';
+      ? DATA_STATE.PARTIAL
+      : DATA_STATE.UNAVAILABLE;
 
   return (
     <div className="ka-home-v3 ka-bg min-h-screen text-white">
