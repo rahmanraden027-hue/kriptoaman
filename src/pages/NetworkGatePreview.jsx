@@ -195,12 +195,12 @@ export default function NetworkGatePreview() {
           <div className="absolute inset-0 [perspective:1200px]" aria-label="Verified recent ZEVARYQ blocks">
             {displayBlocks.map((block, index) => {
               const positions = [
-                ['-210px', '-105px', '80px'],
-                ['-80px', '-205px', '10px'],
-                ['90px', '-145px', '120px'],
-                ['180px', '-20px', '35px'],
-                ['55px', '115px', '95px'],
-                ['-145px', '85px', '30px'],
+                ['-118px', '-92px', '80px'],
+                ['-58px', '-168px', '10px'],
+                ['68px', '-128px', '120px'],
+                ['118px', '-12px', '35px'],
+                ['48px', '102px', '95px'],
+                ['-112px', '72px', '30px'],
               ];
               const [x, y, z] = positions[index] || ['0px', '0px', '0px'];
               return (
