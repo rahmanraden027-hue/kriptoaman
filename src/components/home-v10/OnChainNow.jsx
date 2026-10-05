@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowRight, Boxes, Radio, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Radio, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const REFRESH_MS = 15000;
