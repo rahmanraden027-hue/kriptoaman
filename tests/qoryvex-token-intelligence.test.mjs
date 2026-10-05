@@ -50,14 +50,14 @@ test('Launch DNA remains descriptive and QoryVEx execution stays gated without p
   assert.match(ui, /not a safety score/i);
 });
 
-test('QoryVEx Discovery is public and New Token Radar is surfaced on the crypto market', async () => {
+test('QoryVEx Discovery is public and New Token Radar stays on its dedicated discovery surface', async () => {
   const [market, config, app, page] = await Promise.all([
     read('src/pages/MarketGlobal.jsx'),
     read('src/pages.config.js'),
     read('src/FullAppShell.jsx'),
     read('src/pages/QoryVExDiscovery.jsx'),
   ]);
-  assert.match(market, /NewTokenRadar/);
+  assert.doesNotMatch(market, /NewTokenRadar/);
   assert.match(config, /QoryVExDiscovery/);
   assert.match(app, /'QoryVExDiscovery'/);
   assert.match(app, /'\/qoryvex\/discovery'/);
