@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { formatChange, formatCompactUsd, formatPrice, sparklinePoints } from './format';
+import { formatCompactUsd, formatMagnitude, formatPrice, sparklinePoints } from './format';
 
 const ROTATION_MS = 10000;
 
@@ -24,7 +24,8 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
   }, [candidates.length, index]);
 
   const asset = candidates[index];
-  const positive = Number(asset?.change24h) >= 0;
+  const change = Number(asset?.change24h);
+  const positive = change >= 0;
   const points = sparklinePoints(asset?.sparkline, 520, 180);
 
   if (!asset) {
@@ -53,7 +54,7 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
           <div className="mt-5">
             <div className="text-4xl font-black tracking-[-0.04em] text-white sm:text-5xl">{formatPrice(asset.price)}</div>
             <div className={`mt-2 text-lg font-black ${positive ? 'text-emerald-300' : 'text-rose-300'}`}>
-              {positive ? '▲ ' : '▼ '}{formatChange(Math.abs(Number(asset.change24h)))}
+              {positive ? '▲ ' : '▼ '}{formatMagnitude(change)}
             </div>
           </div>
 
