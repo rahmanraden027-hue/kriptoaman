@@ -32,8 +32,8 @@ export default function PWAInstallPrompt() {
     isIos = false;
     isAndroid = false;
   }
-  const isPublicKamDocument = pathname.startsWith('/KAM') || pathname.startsWith('/news/');
   const isPublicRoot = pathname === '/';
+  const isInstallSurface = isPublicRoot || pathname === '/Services';
 
   useEffect(() => {
     try {
@@ -81,7 +81,7 @@ export default function PWAInstallPrompt() {
     };
   }, []);
 
-  if (installed || dismissed || (!installEvent && !isIos && !isAndroid) || (isPublicRoot && !rootCtaReady)) return null;
+  if (!isInstallSurface || installed || dismissed || (!installEvent && !isIos && !isAndroid) || (isPublicRoot && !rootCtaReady)) return null;
 
   const install = async () => {
     if (isIos && !installEvent) {
@@ -102,7 +102,7 @@ export default function PWAInstallPrompt() {
     <>
       <div
         data-install-cta="true"
-        className={`fixed z-[70] max-w-[calc(100vw-1.5rem)] ${isPublicKamDocument ? 'bottom-[calc(.75rem+env(safe-area-inset-bottom,0px))] right-3' : isPublicRoot ? 'bottom-[calc(.75rem+env(safe-area-inset-bottom,0px))] right-3' : 'bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] right-3 sm:bottom-4 sm:right-4 lg:bottom-6 lg:right-6'}`}
+        className={`fixed z-[70] max-w-[calc(100vw-1.5rem)] ${isPublicRoot ? 'bottom-[calc(.75rem+env(safe-area-inset-bottom,0px))] right-3' : 'bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] right-3 sm:bottom-4 sm:right-4 lg:bottom-6 lg:right-6'}`}
       >
         <div className="flex items-center overflow-hidden rounded-full border border-sky-300/30 bg-[#08233a]/95 text-white shadow-lg shadow-sky-950/40 backdrop-blur-md sm:rounded-2xl">
           <button

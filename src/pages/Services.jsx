@@ -6,38 +6,38 @@ import NativeMobileUtility from '@/components/mobile/NativeMobileUtility';
 import { useLanguage } from '@/lib/LanguageContext';
 import {
   ShieldCheck, GraduationCap, Info, BarChart3,
-  TrendingUp, Sparkles, MessageCircle, Settings, Mail, AlertTriangle, ChevronRight, ArrowLeft,
-  Lock, Server, FileCheck2, Database, UserCog, Layers3, Radar,
+  TrendingUp, MessageCircle, Settings, Mail, ChevronRight, ArrowLeft,
+  Lock, Server, FileCheck2, Database, UserCog, Layers3, Radar, WalletCards,
 } from 'lucide-react';
 
 const COPY = {
   id: {
-    kicker: 'KRIPTOAMAN SERVICE MATRIX',
-    title: 'Pusat Layanan Platform',
-    body: 'Akses intelijen pasar, identitas, keamanan, pembelajaran, pemantauan, dan layanan platform melalui satu pusat navigasi yang konsisten.',
-    unified: 'WORKSPACE TERPADU',
-    core: 'LAYANAN INTI',
-    main: 'Layanan Utama',
-    explore: 'JELAJAHI PLATFORM',
+    kicker: 'KRIPTOAMAN ECOSYSTEM',
+    title: 'Ekosistem Produksi',
+    body: 'Surface inti KriptoAman diposisikan berdasarkan fungsi produksi: market, jaringan, wallet, discovery, dan status sistem.',
+    unified: 'PRODUCTION ROUTES',
+    core: 'CORE PRODUCTS',
+    main: 'Surface Produksi',
+    explore: 'OPERASIONAL & LAYANAN',
     open: 'BUKA',
     secureTitle: 'Workspace Aman',
-    secureBody: 'Akses layanan menyesuaikan status akun dan peran pengguna.',
-    platformLayer: 'LAPISAN PLATFORM',
+    secureBody: 'Akses operasional menyesuaikan status akun dan peran pengguna.',
+    platformLayer: 'DATA LAYERS',
     adminTitle: 'Workspace Admin',
     adminBody: 'Tersedia hanya untuk sesi admin yang sah.',
   },
   en: {
-    kicker: 'KRIPTOAMAN SERVICE MATRIX',
-    title: 'Platform Service Center',
-    body: 'Access market intelligence, identity, security, learning, monitoring, and platform services through one consistent navigation center.',
-    unified: 'UNIFIED WORKSPACE',
-    core: 'CORE SERVICES',
-    main: 'Primary Services',
-    explore: 'EXPLORE PLATFORM',
+    kicker: 'KRIPTOAMAN ECOSYSTEM',
+    title: 'Production Ecosystem',
+    body: 'KriptoAman core surfaces are organized by production function: markets, network, wallet, discovery, and system status.',
+    unified: 'PRODUCTION ROUTES',
+    core: 'CORE PRODUCTS',
+    main: 'Production Surfaces',
+    explore: 'OPERATIONS & SERVICES',
     open: 'OPEN',
     secureTitle: 'Secure Workspace',
-    secureBody: 'Service access adapts to account status and user role.',
-    platformLayer: 'PLATFORM LAYER',
+    secureBody: 'Operational access adapts to account status and user role.',
+    platformLayer: 'DATA LAYERS',
     adminTitle: 'Admin Workspace',
     adminBody: 'Available only to an authenticated admin session.',
   },
@@ -46,34 +46,40 @@ const COPY = {
 const ITEMS = {
   id: {
     primary: [
-      { label: 'Verifikasi KYC', page: 'KYC', icon: ShieldCheck, desc: 'Verifikasi identitas terintegrasi' },
-      { label: 'Pendidikan Kripto', page: 'Edukasi', icon: GraduationCap, desc: 'Pusat pembelajaran dan wawasan' },
-      { label: 'Tentang KriptoAman', page: 'AboutUs', icon: Info, desc: 'Visi, ruang lingkup, dan identitas platform' },
+      { label: 'Market Intelligence', to: '/Market', icon: BarChart3, desc: 'Database pasar, movers, radar dan data aset' },
+      { label: 'ZEVARYQ Network', to: '/ZEVARYQ', icon: ShieldCheck, desc: 'Chain ID, RPC, block height dan evidence jaringan' },
+      { label: 'ZEVARYQ Wallet', to: '/wallet-app', icon: WalletCards, desc: 'Wallet ZVQ, assets, receive dan swap surface' },
+      { label: 'QoryVEx Discovery', to: '/qoryvex/discovery', icon: Radar, desc: 'Discovery kontrak dan token berbasis first-party evidence' },
+      { label: 'System Status', to: '/SystemStatus', icon: Server, desc: 'Status live aplikasi, market, network dan ZEVARYQ' },
     ],
     secondary: [
+      { label: 'Verifikasi KYC', page: 'KYC', icon: ShieldCheck },
+      { label: 'Pendidikan Kripto', page: 'Edukasi', icon: GraduationCap },
       { label: 'Portofolio', page: 'PortfolioOverview', icon: BarChart3 },
       { label: 'Riset Pasar', page: 'MarketResearch', icon: TrendingUp },
-      { label: 'Premium', page: 'Premium', icon: Sparkles },
       { label: 'Dukungan', page: 'Support', icon: MessageCircle },
       { label: 'Pengaturan', page: 'Settings', icon: Settings },
+      { label: 'Tentang KriptoAman', page: 'AboutUs', icon: Info },
       { label: 'Kontak', page: 'Contact', icon: Mail },
-      { label: 'Disclaimer', page: 'Disclaimer', icon: AlertTriangle },
     ],
   },
   en: {
     primary: [
-      { label: 'KYC Verification', page: 'KYC', icon: ShieldCheck, desc: 'Integrated identity verification' },
-      { label: 'Crypto Education', page: 'Edukasi', icon: GraduationCap, desc: 'Learning center and market literacy' },
-      { label: 'About KriptoAman', page: 'AboutUs', icon: Info, desc: 'Platform vision, scope, and identity' },
+      { label: 'Market Intelligence', to: '/Market', icon: BarChart3, desc: 'Market database, movers, radar and asset data' },
+      { label: 'ZEVARYQ Network', to: '/ZEVARYQ', icon: ShieldCheck, desc: 'Chain ID, RPC, block height and network evidence' },
+      { label: 'ZEVARYQ Wallet', to: '/wallet-app', icon: WalletCards, desc: 'ZVQ wallet, assets, receive and swap surface' },
+      { label: 'QoryVEx Discovery', to: '/qoryvex/discovery', icon: Radar, desc: 'Contract and token discovery from first-party evidence' },
+      { label: 'System Status', to: '/SystemStatus', icon: Server, desc: 'Live app, market, network and ZEVARYQ status' },
     ],
     secondary: [
+      { label: 'KYC Verification', page: 'KYC', icon: ShieldCheck },
+      { label: 'Crypto Education', page: 'Edukasi', icon: GraduationCap },
       { label: 'Portfolio', page: 'PortfolioOverview', icon: BarChart3 },
       { label: 'Market Research', page: 'MarketResearch', icon: TrendingUp },
-      { label: 'Premium', page: 'Premium', icon: Sparkles },
       { label: 'Support', page: 'Support', icon: MessageCircle },
       { label: 'Settings', page: 'Settings', icon: Settings },
+      { label: 'About KriptoAman', page: 'AboutUs', icon: Info },
       { label: 'Contact', page: 'Contact', icon: Mail },
-      { label: 'Disclaimer', page: 'Disclaimer', icon: AlertTriangle },
     ],
   },
 };
@@ -126,9 +132,9 @@ export default function Services() {
                 <p className="ka-command-kicker"><Radar className="h-3.5 w-3.5" aria-hidden="true" /> {text.core}</p>
                 <h2 id="primary-services-title" className="mt-2 text-lg font-black">{text.main}</h2>
               </div>
-              <div className="grid gap-3 md:grid-cols-3">
-                {items.primary.map(({ label, page, icon: Icon, desc }) => (
-                  <Link key={page} to={createPageUrl(page)} className="ka-command-tile group p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70">
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {items.primary.map(({ label, page, to, icon: Icon, desc }) => (
+                  <Link key={to || page} to={to || createPageUrl(page)} className="ka-command-tile group p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70">
                     <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-sky-500/20 bg-sky-500/10">
                       <Icon className="h-5 w-5 text-sky-400" aria-hidden="true" />
                     </div>
@@ -189,7 +195,7 @@ export default function Services() {
             <section className="ka-command-panel p-5" aria-label={text.platformLayer}>
               <p className="ka-command-kicker">{text.platformLayer}</p>
               <div className="mt-4 grid grid-cols-2 gap-2">
-                {['Market Intelligence', 'Identity', 'Security', 'Education'].map((label) => (
+                {['Market Data', 'On-chain', 'Network Evidence', 'Identity'].map((label) => (
                   <div key={label} className="rounded-xl border border-slate-700/50 bg-slate-950/35 px-3 py-3 text-[10px] font-bold text-slate-300">{label}</div>
                 ))}
               </div>

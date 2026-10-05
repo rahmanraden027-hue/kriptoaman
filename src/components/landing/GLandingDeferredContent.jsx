@@ -2,7 +2,6 @@ import React from 'react';
 import LiveBlockFlow3D from '@/components/home/LiveBlockFlow3D';
 import LandingMarketPulse from '@/components/landing/LandingMarketPulse';
 import GLandingBody from '@/components/landing/GLandingBody';
-import GLandingInstitutional from '@/components/landing/GLandingInstitutional';
 import GLandingProductionGateways from '@/components/landing/GLandingProductionGateways';
 
 export default function GLandingDeferredContent({ stats }) {
@@ -18,7 +17,6 @@ export default function GLandingDeferredContent({ stats }) {
       </section>
       <GLandingBody stats={stats} />
       <GLandingProductionGateways />
-      <GLandingInstitutional />
     </>
   );
 }

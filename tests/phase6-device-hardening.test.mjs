@@ -98,7 +98,7 @@ test('below-fold production modules are code-split without breaking anchor acces
   assert.equal(deferred.includes('LiveBlockFlow3D'), true);
   assert.equal(deferred.includes('LandingMarketPulse'), true);
   assert.equal(deferred.includes('GLandingBody'), true);
-  assert.equal(deferred.includes('GLandingInstitutional'), true);
+  assert.equal(deferred.includes('GLandingProductionGateways'), true);
 });
 
 test('public root avoids external Google Fonts on the critical render path', async () => {
