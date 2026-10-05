@@ -39,11 +39,11 @@ jobs:
             'ZEVARYQ Explorer',
             'VERIFIED-ONLY UI',
             'AUTHORITATIVE SNAPSHOT',
-            'no synthetic production metrics'
+            'Market intelligence dan evidence jaringan ZEVARYQ'
           ];
 
           const headers = {
-            'User-Agent': 'KriptoAman-Presentation-Provenance/3.5',
+            'User-Agent': 'KriptoAman-Presentation-Provenance/3.6',
             'Cache-Control': 'no-cache'
           };
 
