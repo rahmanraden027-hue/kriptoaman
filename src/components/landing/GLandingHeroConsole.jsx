@@ -2,6 +2,7 @@ import React from 'react';
 import { Activity, Blocks, Database, Shield } from 'lucide-react';
 import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
 import { COIN_META } from '@/components/home/coinMeta';
+import { getProductionFreshness } from './productionFreshness';
 
 const COINS = [
   { sym: 'BTC', sub: 'Bitcoin', logo: COIN_META.BTC?.logo, color: '#F7931A', className: 'ka-coin-btc' },
@@ -42,22 +43,19 @@ export default function GLandingHeroConsole({ stats }) {
   const assetCount = stats?.loading || !(Number(stats?.assetCount) > 0) ? '—' : Number(stats.assetCount).toLocaleString('id-ID');
   const networkCount = stats?.loading ? '—' : Number.isFinite(Number(stats?.networkActiveCount)) ? String(Number(stats.networkActiveCount)) : '—';
   const blockNumber = stats?.zvqBlockNumber != null && Number.isFinite(Number(stats.zvqBlockNumber)) ? Number(stats.zvqBlockNumber).toLocaleString('id-ID') : '—';
-  const isOperational = Boolean(stats?.marketAvailable && blockNumber !== '—');
+  const isOperational = Boolean(
+    stats?.overall === 'operational'
+      && stats?.marketAvailable
+      && blockNumber !== '—'
+      && networkCount !== '—',
+  );
   const zvqTelemetry = blockNumber !== '—'
     ? [
         stats?.zvqSyncStatus ? String(stats.zvqSyncStatus).toUpperCase() : null,
         Number.isFinite(Number(stats?.zvqProbeDurationMs)) ? `RPC ${Number(stats.zvqProbeDurationMs).toLocaleString('id-ID')} ms` : null,
       ].filter(Boolean).join(' · ')
     : '';
-  const verifiedAtRaw = stats?.zvqCheckedAt || stats?.networkCheckedAt || stats?.lastUpdated || null;
-  const verifiedAtMs = verifiedAtRaw ? Date.parse(verifiedAtRaw) : NaN;
-  const verifiedAgeMs = Number.isFinite(verifiedAtMs) ? Math.max(0, Date.now() - verifiedAtMs) : NaN;
-  const freshness = Number.isFinite(verifiedAgeMs)
-    ? (verifiedAgeMs <= 5 * 60 * 1000 ? 'LIVE' : verifiedAgeMs <= 30 * 60 * 1000 ? 'RECENT' : 'STALE')
-    : 'UNVERIFIED';
-  const verifiedAtLabel = Number.isFinite(verifiedAtMs)
-    ? new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date(verifiedAtMs))
-    : null;
+  const snapshot = getProductionFreshness(stats);
 
   return (
     <div className="ka-hero-console relative mx-auto w-full max-w-[560px]" aria-label="KriptoAman Intelligence Core live status">
@@ -105,7 +103,7 @@ export default function GLandingHeroConsole({ stats }) {
         <a href="https://explorer.kriptoaman.com" target="_blank" rel="noreferrer"><Shield /><span><b>22028</b>ZEVARYQ Mainnet</span></a>
       </div>
       <div className="border-t border-blue-400/10 px-4 py-3 text-center text-[10px] font-semibold tracking-[0.07em] ka-text2">
-        PRODUCTION DATA PATH · {isOperational ? 'VERIFIED' : 'LIMITED'} · PROOF OF FRESHNESS {freshness}{verifiedAtLabel ? ` · LAST VERIFIED ${verifiedAtLabel}` : ''}
+        PRODUCTION DATA PATH · {isOperational ? 'VERIFIED' : 'LIMITED'} · PROOF OF FRESHNESS {snapshot.freshness} · {snapshot.modeLabel} · AGE {snapshot.ageLabel}{snapshot.generatedLabel ? ` · GENERATED ${snapshot.generatedLabel}` : ''}
       </div>
     </div>
   );
