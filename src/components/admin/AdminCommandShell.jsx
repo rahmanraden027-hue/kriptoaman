@@ -88,7 +88,7 @@ export default function AdminCommandShell({ kicker, title, description, icon: Ic
           <div><span className="ka-suite-dot bg-emerald-400" /> Role guard enabled</div>
           <div><span className="ka-suite-dot bg-sky-400" /> Connected admin workspace</div>
           <div><span className="ka-suite-dot bg-indigo-400" /> Security-aware interface</div>
-          <div className="ml-auto text-slate-600">KriptoAman Intelligence Workspace</div>
+          <div className="ml-auto text-slate-600">KriptoAman · Admin Workspace</div>
         </footer>
       </div>
     </div>

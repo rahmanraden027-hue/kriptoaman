@@ -7,7 +7,7 @@ function HeroConsolePlaceholder() {
   return (
     <div
       className="ka-hero-console ka-hero-console-placeholder relative mx-auto flex min-h-[460px] w-full max-w-[560px] items-center justify-center sm:min-h-[520px] lg:min-h-[410px] lg:max-w-[500px]"
-      aria-label="Memuat KriptoAman Intelligence Core"
+      aria-label="Memuat KriptoAman Core"
     >
       <div className="px-6 text-center">
         <span className="ka-console-kicker">KRIPTOAMAN · PRODUCTION COMMAND CENTER</span>
@@ -28,7 +28,7 @@ export default function GLandingHero({ stats, visualReady = true }) {
         <div className="ka-hero-copy text-center lg:text-left">
           <span className="ka-chip inline-flex items-center gap-2 px-3.5 py-1.5 text-[11px] font-bold tracking-wide">
             <span aria-hidden="true" className="inline-block h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.55)]" />
-            KRIPTOAMAN INTELLIGENCE · VERIFIED DATA
+            KRIPTOAMAN · VERIFIED DATA
           </span>
 
           <h1 className="ka-sec-title mt-4 text-[34px] sm:text-5xl lg:mt-4 lg:text-[46px] lg:leading-[.98]">

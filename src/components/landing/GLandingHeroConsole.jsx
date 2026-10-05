@@ -59,7 +59,7 @@ export default function GLandingHeroConsole({ stats }) {
       ].filter(Boolean).join(' · ')
     : '';
   return (
-    <div className="ka-hero-console relative mx-auto w-full max-w-[560px] lg:max-w-[500px]" aria-label="KriptoAman Intelligence Core live status">
+    <div className="ka-hero-console relative mx-auto w-full max-w-[560px] lg:max-w-[500px]" aria-label="KriptoAman production core live status">
       <div className="ka-console-head">
         <div>
           <span className="ka-console-kicker">KRIPTOAMAN · PRODUCTION COMMAND CENTER</span>

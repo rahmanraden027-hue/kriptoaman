@@ -48,7 +48,7 @@ test('final public hero presents the evidence-first intelligence identity', asyn
     read('src/components/landing/GLandingHero.jsx'),
     read('src/components/landing/GLandingHeroConsole.jsx'),
   ]);
-  assert.match(hero, /KRIPTOAMAN INTELLIGENCE · VERIFIED DATA/);
+  assert.match(hero, /KRIPTOAMAN · VERIFIED DATA/);
   assert.match(hero, /ka-command-hero/);
   assert.match(hero, /Data produksi, langsung terlihat/);
   assert.match(hero, /Market · On-chain · Network · Evidence/);
