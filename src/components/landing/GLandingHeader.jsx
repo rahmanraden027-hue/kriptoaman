@@ -7,7 +7,7 @@ const LINKS = [
   { label: 'Platform', href: '#beranda' },
   { label: 'Intelligence', href: '#fitur' },
   { label: 'Network', href: '#network-operations' },
-  { label: 'Company', href: '#institutional' },
+  { label: 'Company', href: '/company' },
 ];
 
 export default function GLandingHeader({ dark, onToggleTheme, active = 'Platform' }) {
