@@ -5,13 +5,16 @@ import { readFile } from 'node:fs/promises';
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('primary navigation is bilingual and meets mobile touch sizing', async () => {
-  const layout = await read('src/Layout.jsx');
-  assert.match(layout, /NAV_LABELS/);
-  assert.match(layout, /Beranda/);
-  assert.match(layout, /Market/);
-  assert.match(layout, /Intelijen/);
-  assert.match(layout, /On-Chain/);
-  assert.match(layout, /Ekosistem/);
+  const [layout, navigation] = await Promise.all([
+    read('src/Layout.jsx'),
+    read('src/lib/primaryNavigation.js'),
+  ]);
+  assert.match(layout, /primaryNavLabels/);
+  assert.match(navigation, /Beranda/);
+  assert.match(navigation, /Market/);
+  assert.match(navigation, /Intelijen/);
+  assert.match(navigation, /On-Chain/);
+  assert.match(navigation, /Ekosistem/);
   assert.match(layout, /min-h-\[62px\]/);
 });
 
