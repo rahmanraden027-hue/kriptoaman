@@ -42,7 +42,7 @@ export default function TopMovers({ gainers = [], losers = [], active = [], newA
                 {asset.image && <img src={asset.image} alt="" className="h-7 w-7 rounded-full" loading="lazy" />}
                 <div className="min-w-0">
                   <p className="truncate text-sm font-black text-white">{asset.sym}</p>
-                  <p className="truncate text-[9px] text-slate-500">{asset.name}</p>
+                  <p className="truncate text-[9px] text-slate-400">{asset.name}</p>
                 </div>
               </div>
               <span className="text-xs font-black text-slate-200">{formatPrice(asset.price)}</span>
