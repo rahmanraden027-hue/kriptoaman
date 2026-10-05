@@ -40,7 +40,7 @@ export default function TopMovers({ gainers = [], losers = [], active = [], newA
           return (
             <a key={asset.id} href={`/Market?search=${encodeURIComponent(asset.sym)}`} className="grid grid-cols-[1fr_auto_auto] items-center gap-3 rounded-xl py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 sm:grid-cols-[1fr_auto_auto_100px]">
               <div className="flex min-w-0 items-center gap-2.5">
-                {asset.image && <img src={asset.image} alt="" className="h-7 w-7 rounded-full" loading="lazy" decoding="async" />}
+                {asset.image && <img src={asset.image} alt="" width="28" height="28" className="h-7 w-7 rounded-full" loading="lazy" decoding="async" />}
                 <div className="min-w-0">
                   <p className="truncate text-sm font-black text-white">{asset.sym}</p>
                   <p className="truncate text-[9px] text-slate-400">{asset.name}</p>
