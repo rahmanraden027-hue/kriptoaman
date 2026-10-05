@@ -1,8 +1,8 @@
 # KriptoAman Store Submission Package
 
-Release line: KriptoAman 1.5
+Release line: KriptoAman 1.5.6
 Android package: `com.kriptoaman.app`
-Android `versionCode`: `6`
+Android `versionCode`: `13`
 Product position: digital-asset intelligence, public-address monitoring, market data, portfolio simulation, security and risk-analysis workspace. Public release must not claim custody, exchange execution, guaranteed investment returns, or regulatory approval unless separately supported.
 
 ## Organization verification readiness
