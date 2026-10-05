@@ -14,7 +14,6 @@ import useMarketSurface from '@/hooks/useMarketSurface';
 const NAV = [
   ['/Market', 'Market'],
   ['/IntelligenceHub', 'Intelligence'],
-  ['/asset-passport', 'Verify'],
   ['/PortfolioOverview', 'Portfolio'],
 ];
 
@@ -28,6 +27,7 @@ export default function HomeV10() {
           <Link to="/" className="text-sm font-black tracking-[0.12em] text-white">KRIPTOAMAN</Link>
           <nav className="hidden items-center gap-1 md:flex">
             {NAV.map(([to, label]) => <Link key={to} to={to} className="rounded-lg px-3 py-2 text-[10px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-white">{label}</Link>)}
+            <a href="#verify" className="rounded-lg px-3 py-2 text-[10px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-white">Verify</a>
           </nav>
           <div className="ml-auto flex items-center gap-2">
             <Link to="/Market" aria-label="Search market" className="grid h-9 w-9 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.02] text-slate-400"><Search className="h-4 w-4" /></Link>
@@ -70,15 +70,11 @@ export default function HomeV10() {
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/[0.07] bg-[#020711]/96 px-2 py-2 backdrop-blur-xl md:hidden">
         <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
-          {[
-            ['/', 'Home'],
-            ['/Market', 'Market'],
-            ['/IntelligenceHub', 'Intel'],
-            ['/asset-passport', 'Verify'],
-            ['/PortfolioOverview', 'Portfolio'],
-          ].map(([to, label]) => (
-            <Link key={to + label} to={to} className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-500 hover:bg-white/[0.04] hover:text-cyan-300">{label}</Link>
-          ))}
+          <Link to="/" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-cyan-300">Home</Link>
+          <Link to="/Market" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-500 hover:bg-white/[0.04] hover:text-cyan-300">Market</Link>
+          <Link to="/IntelligenceHub" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-500 hover:bg-white/[0.04] hover:text-cyan-300">Intel</Link>
+          <a href="#verify" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-500 hover:bg-white/[0.04] hover:text-cyan-300">Verify</a>
+          <Link to="/PortfolioOverview" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-500 hover:bg-white/[0.04] hover:text-cyan-300">Portfolio</Link>
         </div>
       </nav>
     </main>
