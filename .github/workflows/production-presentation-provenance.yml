@@ -2,6 +2,13 @@ name: Production Presentation Provenance
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src/pages/HomeV10.jsx'
+      - 'src/components/home-v10/**'
+      - 'src/hooks/useMarketSurface.js'
+      - 'src/components/home/useCoinMarkets.js'
+      - '.github/workflows/production-presentation-provenance.yml'
   push:
     branches: [main]
   schedule:
@@ -27,23 +34,25 @@ jobs:
           node <<'NODE'
           const base = 'https://kriptoaman.com';
           const origin = new URL(base).origin;
+          // Phase 10K production contract: prove the current HomeV10 data-first
+          // homepage instead of legacy Phase 6/9 presentation copy.
           const required = [
-            'KRIPTOAMAN · VERIFIED DATA',
-            'Data produksi, langsung terlihat.',
-            'Market · On-chain · Network · Evidence',
-            'KRIPTOAMAN · PRODUCTION COMMAND CENTER',
-            'Open Workspace',
-            'Live Block Flow 3D',
-            'ZEVARYQ · FIRST-PARTY BLOCKCHAIN EVIDENCE',
-            'PRODUCTION ROUTES',
-            'ZEVARYQ Explorer',
-            'VERIFIED-ONLY UI',
-            'AUTHORITATIVE SNAPSHOT',
-            'Market intelligence dan evidence jaringan ZEVARYQ'
+            'MOVING NOW',
+            'Top Gainer',
+            'Most Active',
+            'Market Direction',
+            'Assets Tracked',
+            'Top Movers',
+            'Live Intelligence',
+            'VERIFY ANYTHING',
+            'Token / Contract / Wallet / Transaction / Block',
+            'ON-CHAIN NOW',
+            'ZEVARYQ discovery',
+            'Open discovery'
           ];
 
           const headers = {
-            'User-Agent': 'KriptoAman-Presentation-Provenance/4.1',
+            'User-Agent': 'KriptoAman-Presentation-Provenance/5.0',
             'Cache-Control': 'no-cache'
           };
 
@@ -55,7 +64,7 @@ jobs:
             .map((match) => new URL(match[1], base).toString());
           if (!entryScripts.length) throw new Error('No JavaScript bundle discovered on homepage');
 
-          // Phase 6 intentionally code-splits heavy presentation modules. Follow the
+          // HomeV10 and the authenticated workspace intentionally use code splitting. Follow the
           // same-origin JavaScript chunk graph instead of assuming every production
           // presentation string lives inside the first entry bundle.
           const queue = [...entryScripts];
@@ -122,7 +131,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for route in /founder /company /research /research/kam-mainnet-architecture; do
+          for route in / /Market /IntelligenceHub /PortfolioOverview /QoryVExDiscovery /founder /company /research /research/kam-mainnet-architecture; do
             code="$(curl --location --silent --show-error --connect-timeout 10 --max-time 25 -o /dev/null -w '%{http_code}' "https://kriptoaman.com${route}")"
             test "$code" = "200"
           done
