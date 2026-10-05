@@ -1,0 +1,74 @@
+name: Phase 11B Network Gate Device Acceptance
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/pages/NetworkGatePreview.jsx'
+      - 'src/App.jsx'
+      - '.github/scripts/phase11b-network-gate-device.mjs'
+      - '.github/workflows/phase11b-network-gate-device.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/pages/NetworkGatePreview.jsx'
+      - 'src/App.jsx'
+      - '.github/scripts/phase11b-network-gate-device.mjs'
+      - '.github/workflows/phase11b-network-gate-device.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  device-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install Playwright acceptance browser
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --legacy-peer-deps
+          npm install --no-save --legacy-peer-deps playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Allow production route to settle
+        if: github.event_name == 'push'
+        run: sleep 45
+
+      - name: Verify live preview route
+        shell: bash
+        run: |
+          set -euo pipefail
+          target='https://kriptoaman.com/preview/network-gate'
+          for attempt in $(seq 1 30); do
+            code="$(curl -L -sS -o /tmp/phase11b.html -w '%{http_code}' --max-time 15 "$target" || true)"
+            if [ "$code" = "200" ]; then
+              echo "target=$target"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Phase 11B target was not reachable." >&2
+          exit 1
+
+      - name: Device acceptance 390 / 768 / 1440
+        env:
+          PHASE11B_TARGET: https://kriptoaman.com/preview/network-gate
+        run: node .github/scripts/phase11b-network-gate-device.mjs
+
+      - name: Upload Phase 11B evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: phase11b-network-gate-device-evidence
+          path: phase11b-evidence
+          retention-days: 30
+          if-no-files-found: warn
