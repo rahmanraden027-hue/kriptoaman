@@ -22,7 +22,7 @@ export default function LiveMarketTicker({ assets = [], state = 'UNAVAILABLE' })
               const change = Number(asset.change24h);
               return (
                 <div key={asset.id} className="flex shrink-0 items-center gap-2 text-[11px]">
-                  {asset.image && <img src={asset.image} alt="" className="h-4 w-4 rounded-full" loading="lazy" />}
+                  {asset.image && <img src={asset.image} alt="" width="16" height="16" className="h-4 w-4 rounded-full" loading="lazy" decoding="async" />}
                   <b className="text-white">{asset.sym}</b>
                   <span className="text-slate-300">{formatPrice(asset.price)}</span>
                   <span className={change >= 0 ? 'text-emerald-300' : 'text-rose-300'}>
