@@ -15,6 +15,27 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
+async function openLogin(page, marker) {
+  let lastError = null;
+  for (let attempt = 1; attempt <= 4; attempt += 1) {
+    const joiner = TARGET.includes('?') ? '&' : '?';
+    const url = TARGET + joiner + 'phase11g=' + encodeURIComponent(marker + '-' + attempt);
+    try {
+      const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      if (!response || response.status() >= 500) {
+        throw new Error('login document returned HTTP ' + (response?.status() ?? 'unknown'));
+      }
+      await page.locator('form').waitFor({ state: 'visible', timeout: 12000 });
+      await page.locator('aside[aria-label="Live network evidence"]').waitFor({ state: 'visible', timeout: 12000 });
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt < 4) await page.waitForTimeout(1500);
+    }
+  }
+  throw new Error('login readiness failed after retries: ' + (lastError?.message || 'unknown error'));
+}
+
 async function snapshot(page) {
   return page.evaluate(() => {
     const form = document.querySelector('form');
@@ -92,9 +113,7 @@ try {
       serviceWorkers: 'block',
     });
     const page = await context.newPage();
-    await page.goto(TARGET, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await page.locator('form').waitFor({ state: 'visible', timeout: 30000 });
-    await page.locator('aside[aria-label="Live network evidence"]').waitFor({ state: 'visible', timeout: 30000 });
+    await openLogin(page, 'live-' + device.name);
     await page.waitForTimeout(3500);
 
     const report = await snapshot(page);
@@ -132,9 +151,7 @@ try {
       body: JSON.stringify({ error: 'Phase 11G forced fail-closed probe' }),
     }));
 
-    await page.goto(TARGET + '?phase11g=fail-closed-' + device.name, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await page.locator('form').waitFor({ state: 'visible', timeout: 30000 });
-    await page.locator('aside[aria-label="Live network evidence"]').waitFor({ state: 'visible', timeout: 30000 });
+    await openLogin(page, 'fail-closed-' + device.name);
     await page.waitForTimeout(1500);
 
     const report = await snapshot(page);
