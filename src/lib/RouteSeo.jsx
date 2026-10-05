@@ -5,15 +5,15 @@ const DEFAULT_IMAGE = `${SITE_URL}/brand/kriptoaman-mark-premium.webp`;
 
 const PUBLIC_META = {
   '/': {
-    title: 'KriptoAman — Crypto Intelligence. Global Market Edge.',
-    description: 'KriptoAman menghadirkan intelijen pasar, pemantauan aset digital, edukasi, dan konteks risiko dalam pengalaman modern yang dirancang untuk pengguna Indonesia dan global.',
+    title: 'KriptoAman Intelligence — Verified Data. Real Intelligence.',
+    description: 'KriptoAman Intelligence menyatukan market, on-chain, network, dan evidence dalam satu platform verified crypto intelligence untuk pengguna Indonesia dan global.',
     robots: 'index, follow, max-image-preview:large',
     locale: 'id_ID',
     language: 'id',
   },
   '/en': {
     title: 'KriptoAman — Crypto Intelligence. Global Market Edge.',
-    description: 'KriptoAman brings together market intelligence, digital asset monitoring, education, and risk context in a modern experience designed for global users.',
+    description: 'KriptoAman Intelligence unifies market, on-chain, network, and evidence into a verified crypto intelligence platform for global users.',
     robots: 'index, follow, max-image-preview:large',
     locale: 'en_US',
     language: 'en',
@@ -147,7 +147,7 @@ export default function RouteSeo() {
     upsertMeta('description', description);
     upsertMeta('robots', robots);
     upsertMeta('og:type', 'website', 'property');
-    upsertMeta('og:site_name', 'KriptoAman', 'property');
+    upsertMeta('og:site_name', 'KriptoAman Intelligence', 'property');
     upsertMeta('og:title', title, 'property');
     upsertMeta('og:description', description, 'property');
     upsertMeta('og:url', url, 'property');
