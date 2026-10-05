@@ -56,6 +56,16 @@ test('Phase 10I keeps featured market data visible when optional media is absent
   assert.match(featured, /formatCompactUsd\(asset\.volume\)/);
 });
 
+
+test('Phase 10I.1 preserves missing numeric market fields as unavailable instead of zero', async () => {
+  const marketHook = await read('src/components/home/useCoinMarkets.js');
+  assert.match(marketHook, /finiteNumberOrNull/);
+  assert.match(marketHook, /value !== null/);
+  assert.match(marketHook, /high24h: finiteNumberOrNull\(coin\?\.high_24h\)/);
+  assert.match(marketHook, /low24h: finiteNumberOrNull\(coin\?\.low_24h\)/);
+  assert.doesNotMatch(marketHook, /high24h: Number\.isFinite\(Number\(coin\?\.high_24h\)\)/);
+});
+
 test('Phase 10I exposes HomeV10 only on an isolated preview route while production root stays unchanged', async () => {
   const [homeV3, shell, app] = await Promise.all([
     read('src/pages/HomeV3.jsx'),
