@@ -2,8 +2,8 @@ import React, { useEffect } from 'react';
 import { ArrowLeft, CalendarDays, Globe2, Network, ShieldCheck, Sparkles } from 'lucide-react';
 
 const ARTICLE_URL = 'https://kriptoaman.com/news/kam-campaign-2026';
-const ARTICLE_TITLE = 'KriptoAman Memulai Kampanye Global KAM: Technology, Transparency & Verifiable Progress';
-const ARTICLE_DESCRIPTION = 'Kampanye KAM 2026 berfokus pada teknologi, transparansi Tokenomics v1, governance, kesiapan jaringan, dan milestone yang dapat diverifikasi.';
+const ARTICLE_TITLE = 'Historical Archive — Kampanye Global KAM 2026';
+const ARTICLE_DESCRIPTION = 'Arsip historis kampanye KAM 2026 sebelum migrasi identitas jaringan ke ZEVARYQ Mainnet (ZVQ). Konten dipertahankan sebagai catatan historis, bukan identitas produksi aktif.';
 
 const allocations = [
   ['Ecosystem & Development', '35%'],
@@ -29,6 +29,7 @@ export default function KAMCampaignNews() {
     document.title = `${ARTICLE_TITLE} | KriptoAman News`;
 
     upsertMeta('meta[name="description"]', { name: 'description', content: ARTICLE_DESCRIPTION });
+    upsertMeta('meta[name="robots"]', { name: 'robots', content: 'noindex,follow,noarchive' });
     upsertMeta('meta[property="og:title"]', { property: 'og:title', content: ARTICLE_TITLE });
     upsertMeta('meta[property="og:description"]', { property: 'og:description', content: ARTICLE_DESCRIPTION });
     upsertMeta('meta[property="og:type"]', { property: 'og:type', content: 'article' });
