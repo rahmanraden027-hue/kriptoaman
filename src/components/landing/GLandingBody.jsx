@@ -44,7 +44,7 @@ export default function GLandingBody() {
         <div className="mx-auto max-w-[1440px]">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div className="max-w-3xl">
-              <p className="text-[10px] font-black uppercase tracking-[.18em] ka-cyan">KRIPTOAMAN INTELLIGENCE MODULES</p>
+              <p className="text-[10px] font-black uppercase tracking-[.18em] ka-cyan">KRIPTOAMAN · INTELLIGENCE MODULES</p>
               <h2 className="ka-sec-title mt-2 text-2xl sm:text-3xl">Empat fungsi utama. Satu alur verifikasi.</h2>
               <p className="ka-text2 mt-3 max-w-2xl text-sm leading-6">Homepage hanya menampilkan fungsi inti. Detail teknis dan diagnostik tetap tersedia di workspace khususnya.</p>
             </div>
