@@ -15,16 +15,16 @@ export default function TopMovers({ gainers = [], losers = [], active = [], newA
 
   return (
     <section className="rounded-[26px] border border-white/[0.07] bg-[#050c16] p-4 sm:p-5">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-black text-white">Top Movers</h2>
-        <div className="flex gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div>
+        <h2 className="whitespace-nowrap text-lg font-black text-white">Top Movers</h2>
+        <div className="mt-3 flex w-full gap-1 overflow-x-auto [scrollbar-width:none] sm:mt-0 sm:w-auto sm:justify-end [&::-webkit-scrollbar]:hidden">
           {TABS.map(([value, label]) => (
             <button
               key={value}
               type="button"
               disabled={value === 'newAssets' && newAssets.length === 0}
               onClick={() => setTab(value)}
-              className={`min-h-8 shrink-0 rounded-lg px-2.5 text-[9px] font-black uppercase tracking-[0.08em] ${tab === value ? 'bg-cyan-400/10 text-cyan-200' : 'text-slate-500'} disabled:opacity-35`}
+              className={`min-h-8 shrink-0 rounded-lg px-2.5 text-[9px] font-black uppercase tracking-[0.08em] ${tab === value ? 'bg-cyan-400/10 text-cyan-200' : 'text-slate-400'} disabled:opacity-45`}
             >
               {label}
             </button>
@@ -55,7 +55,7 @@ export default function TopMovers({ gainers = [], losers = [], active = [], newA
             </a>
           );
         }) : (
-          <div className="py-8 text-center text-[10px] text-slate-500">Verified data unavailable for this view.</div>
+          <div className="py-8 text-center text-[10px] text-slate-400">Verified data unavailable for this view.</div>
         )}
       </div>
     </section>
