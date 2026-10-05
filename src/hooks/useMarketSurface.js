@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import useCoinMarkets from '@/components/home/useCoinMarkets';
+import { DATA_STATE } from '@/lib/dataState';
 
 const FRESH_MS = 30 * 60 * 1000;
 
@@ -44,13 +45,13 @@ export default function useMarketSurface() {
         ? Math.max(0, Date.now() - Number(raw.lastUpdated))
         : null;
 
-    let state = 'UNAVAILABLE';
+    let state = DATA_STATE.UNAVAILABLE;
     if (assets.length > 0) {
-      if (raw.isStale || !Number.isFinite(ageMs) || ageMs > FRESH_MS) state = 'STALE';
-      else if (raw.source === 'kriptoaman-market-db') state = 'LIVE';
-      else state = 'SNAPSHOT';
+      if (raw.isStale || !Number.isFinite(ageMs) || ageMs > FRESH_MS) state = DATA_STATE.SNAPSHOT;
+      else if (raw.source === 'kriptoaman-market-db') state = DATA_STATE.LIVE;
+      else state = DATA_STATE.SNAPSHOT;
     } else if (!raw.loading && Array.isArray(raw.coins) && raw.coins.length > 0) {
-      state = 'PARTIAL';
+      state = DATA_STATE.PARTIAL;
     }
 
     const movers = assets.filter(asset => validNumber(asset.change24h));
