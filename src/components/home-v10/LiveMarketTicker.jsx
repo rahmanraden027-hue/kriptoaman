@@ -1,5 +1,5 @@
 import React from 'react';
-import { formatChange, formatPrice } from './format';
+import { formatMagnitude, formatPrice } from './format';
 
 const tickerAssets = (assets) => {
   const top = [...assets]
@@ -17,7 +17,7 @@ export default function LiveMarketTicker({ assets = [], state = 'UNAVAILABLE' })
       <div className="flex min-h-10 items-center gap-3 px-4">
         <span className="shrink-0 text-[9px] font-black uppercase tracking-[0.16em] text-cyan-300">● {state}</span>
         <div className="min-w-0 flex-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="flex w-max items-center gap-5 py-2 pr-5 motion-safe:animate-none">
+          <div className="flex w-max items-center gap-5 py-2 pr-5">
             {items.length ? items.map(asset => {
               const change = Number(asset.change24h);
               return (
@@ -26,7 +26,7 @@ export default function LiveMarketTicker({ assets = [], state = 'UNAVAILABLE' })
                   <b className="text-white">{asset.sym}</b>
                   <span className="text-slate-300">{formatPrice(asset.price)}</span>
                   <span className={change >= 0 ? 'text-emerald-300' : 'text-rose-300'}>
-                    {change >= 0 ? '▲ ' : '▼ '}{formatChange(Math.abs(change))}
+                    {change >= 0 ? '▲ ' : '▼ '}{formatMagnitude(change)}
                   </span>
                 </div>
               );
