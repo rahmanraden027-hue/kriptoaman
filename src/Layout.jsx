@@ -29,32 +29,7 @@ import DisclaimerGate from './components/disclaimer/DisclaimerGate';
 import { Web3Provider } from './components/web3/Web3Provider';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import { useLanguage } from './lib/LanguageContext';
-
-const BOTTOM_NAV = [
-  { id: 'home', page: 'Home', icon: Home },
-  { id: 'markets', page: 'Market', icon: BarChart3 },
-  { id: 'intelligence', page: 'IntelligenceHub', icon: BrainCircuit },
-  { id: 'onchain', page: 'ZEVARYQ', icon: ShieldCheck },
-  { id: 'ecosystem', page: 'Services', icon: LayoutGrid },
-];
-
-const NAV_LABELS = {
-  id: { home: 'Beranda', markets: 'Market', intelligence: 'Intelijen', onchain: 'On-Chain', ecosystem: 'Ekosistem' },
-  en: { home: 'Home', markets: 'Markets', intelligence: 'Intelligence', onchain: 'On-Chain', ecosystem: 'Ecosystem' },
-};
-
-const DESKTOP_NAV = [
-  { id: 'home', page: 'Home', icon: Home, to: '/dashboard' },
-  { id: 'markets', page: 'Market', icon: BarChart3 },
-  { id: 'intelligence', page: 'IntelligenceHub', icon: BrainCircuit },
-  { id: 'onchain', page: 'ZEVARYQ', icon: ShieldCheck },
-  { id: 'ecosystem', page: 'Services', icon: LayoutGrid },
-];
-
-const DESKTOP_LABELS = {
-  id: { home: 'Beranda', markets: 'Market', intelligence: 'Intelijen', onchain: 'On-Chain', ecosystem: 'Ekosistem' },
-  en: { home: 'Home', markets: 'Markets', intelligence: 'Intelligence', onchain: 'On-Chain', ecosystem: 'Ecosystem' },
-};
+import { PRIMARY_NAV_ITEMS, primaryNavLabels, primaryNavTo } from './lib/primaryNavigation';
 
 const ADMIN_PRIMARY_NAV = [
   { id: 'kycOps', page: 'AdminKYCManagement', icon: ShieldCheck },
@@ -93,8 +68,7 @@ const ADMIN_LABELS = {
 
 export default function Layout({ children, currentPageName }) {
   const { language } = useLanguage();
-  const navLabels = NAV_LABELS[language] || NAV_LABELS.id;
-  const desktopLabels = DESKTOP_LABELS[language] || DESKTOP_LABELS.id;
+  const navLabels = primaryNavLabels(language);
   const adminLabels = ADMIN_LABELS[language] || ADMIN_LABELS.id;
   const [user, setUser] = useState(null);
   const { locked, unlock } = useAppLock(
@@ -226,13 +200,15 @@ export default function Layout({ children, currentPageName }) {
               </div>
 
               <nav className="space-y-1" aria-label={language === 'en' ? 'Main workspace' : 'Ruang kerja utama'}>
-                {DESKTOP_NAV.map(({ id, page, icon: Icon, to }) => {
-                  const label = desktopLabels[id];
+                {PRIMARY_NAV_ITEMS.map((item) => {
+                  const { id, page } = item;
+                  const Icon = { home: Home, markets: BarChart3, intelligence: BrainCircuit, onchain: ShieldCheck, ecosystem: LayoutGrid }[id];
+                  const label = navLabels[id];
                   const active = currentPageName === page;
                   return (
                     <Link
                       key={page}
-                      to={to || createPageUrl(page)}
+                      to={primaryNavTo(item, 'workspace')}
                       aria-current={active ? 'page' : undefined}
                       className={`ka-sidebar-link flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all ${active ? 'is-active' : ''} ${focusRing}`}
                     >
@@ -295,13 +271,15 @@ export default function Layout({ children, currentPageName }) {
 
           <nav className="ka-embedded-nav fixed left-3 right-3 z-40 rounded-[28px] border border-sky-400/20 bg-[#071321]/94 p-1.5 backdrop-blur-2xl lg:hidden" aria-label={language === 'en' ? 'Primary navigation' : 'Navigasi utama'}>
             <div className="relative z-10 grid grid-cols-5 gap-1.5">
-              {BOTTOM_NAV.map(({ id, page, icon: Icon }) => {
+              {PRIMARY_NAV_ITEMS.map((item) => {
+                const { id, page } = item;
+                const Icon = { home: Home, markets: BarChart3, intelligence: BrainCircuit, onchain: ShieldCheck, ecosystem: LayoutGrid }[id];
                 const label = navLabels[id];
                 const active = currentPageName === page;
                 return (
                   <Link
                     key={page}
-                    to={createPageUrl(page)}
+                    to={primaryNavTo(item, 'workspace')}
                     aria-current={active ? 'page' : undefined}
                     aria-label={label}
                     className={`relative flex min-h-[62px] min-w-0 flex-col items-center justify-center gap-1 rounded-[20px] border px-1 transition-all duration-200 ${active ? 'border-sky-400/45 bg-gradient-to-b from-sky-400/20 to-blue-500/10 text-sky-300 shadow-[0_8px_24px_rgba(14,165,233,.16),inset_0_1px_0_rgba(255,255,255,.08)]' : 'border-white/[0.06] bg-slate-950/35 text-slate-400 hover:border-sky-400/20 hover:bg-sky-500/[0.07] hover:text-slate-200'} ${focusRing}`}
