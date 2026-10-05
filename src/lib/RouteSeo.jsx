@@ -18,6 +18,34 @@ const PUBLIC_META = {
     locale: 'en_US',
     language: 'en',
   },
+  '/ZEVARYQ': {
+    title: 'ZEVARYQ Mainnet (ZVQ) — Verified Network Identity | KriptoAman',
+    description: 'Official ZEVARYQ Mainnet network identity for ZVQ, including Chain ID 22028 (0x560c), verified network status, read-only RPC access, and explorer provenance.',
+    robots: 'index, follow, max-image-preview:large',
+    locale: 'id_ID',
+    language: 'id',
+  },
+  '/Market': {
+    title: 'Crypto Market Intelligence — KriptoAman',
+    description: 'Verified digital-asset market intelligence, market structure, price context, and cross-asset monitoring from KriptoAman.',
+    robots: 'index, follow, max-image-preview:large',
+    locale: 'id_ID',
+    language: 'id',
+  },
+  '/SystemStatus': {
+    title: 'System Status — KriptoAman',
+    description: 'Current KriptoAman service and network-readiness status with evidence-oriented operational monitoring.',
+    robots: 'index, follow, max-image-preview:large',
+    locale: 'id_ID',
+    language: 'id',
+  },
+  '/Enterprise': {
+    title: 'Enterprise — KriptoAman',
+    description: 'KriptoAman enterprise capabilities for verified digital-asset intelligence, monitoring, security, and data infrastructure.',
+    robots: 'index, follow, max-image-preview:large',
+    locale: 'id_ID',
+    language: 'id',
+  },
   '/AboutUs': {
     title: 'About KriptoAman — Digital Asset Intelligence Platform',
     description: 'Learn about KriptoAman, its platform scope, approach to digital asset intelligence, monitoring, education, transparency, and responsible risk communication.',
@@ -152,9 +180,14 @@ export default function RouteSeo() {
     upsertMeta('og:description', description, 'property');
     upsertMeta('og:url', url, 'property');
     upsertMeta('og:image', DEFAULT_IMAGE, 'property');
+    upsertMeta('og:image:secure_url', DEFAULT_IMAGE, 'property');
+    upsertMeta('og:image:type', 'image/webp', 'property');
+    upsertMeta('og:image:width', '1024', 'property');
+    upsertMeta('og:image:height', '1024', 'property');
     upsertMeta('og:image:alt', 'KriptoAman official blue-and-gold security shield', 'property');
     upsertMeta('og:locale', locale, 'property');
-    upsertMeta('twitter:card', 'summary_large_image');
+    upsertMeta('twitter:card', 'summary');
+    upsertMeta('twitter:site', '@KriptoAman');
     upsertMeta('twitter:title', title);
     upsertMeta('twitter:description', description);
     upsertMeta('twitter:image', DEFAULT_IMAGE);
