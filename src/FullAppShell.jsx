@@ -37,6 +37,7 @@ const Services = lazy(() => import('./pages/Services'));
 const SystemStatus = lazy(() => import('./pages/SystemStatus'));
 const MultiChainWallet = lazy(() => import('./pages/MultiChainWallet'));
 const SecurityHub = lazy(() => import('./pages/SecurityHub'));
+const HomeV10Preview = lazy(() => import('./pages/HomeV10'));
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -109,6 +110,7 @@ function RoutedWorkspace() {
         <Route path="/research/kam-mainnet-architecture" element={<KAMResearchPaper />} />
         <Route path="/SystemStatus" element={<SystemStatus />} />
         <Route path="/wallet-app" element={WalletStandalonePage ? <Web3Provider><WalletStandalonePage /></Web3Provider> : <PageNotFound />} />
+        <Route path="/preview/home-v10" element={<HomeV10Preview />} />
 
         {Object.entries(Pages).map(([path, Page]) => {
           if (!PUBLIC_PAGE_KEYS.has(path)) return null;
