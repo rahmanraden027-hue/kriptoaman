@@ -41,7 +41,8 @@ test('Phase 11A preview is noindex at server and client layers and provides safe
   assert.match(headers, /\/preview\/network-gate[^]*X-Robots-Tag: noindex, nofollow, noarchive/);
   assert.match(gate, /noindex,nofollow,noarchive/);
   assert.match(gate, /to="\/login"/);
-  assert.equal(gate.includes('https://explorer.kriptoaman.com'), true);
+  assert.match(gate, /Buka Explorer/);
+  assert.equal((gate.match(/target="_blank"/g) || []).length >= 2, true);
   assert.match(gate, /to="\/"/);
   assert.match(gate, /prefers-reduced-motion/);
 });
