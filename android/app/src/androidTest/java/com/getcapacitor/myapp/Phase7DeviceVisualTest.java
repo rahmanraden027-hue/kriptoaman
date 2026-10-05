@@ -17,6 +17,8 @@ import android.webkit.WebView;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry;
+import androidx.test.runner.lifecycle.Stage;
 
 import org.json.JSONArray;
 import org.junit.Test;
@@ -24,6 +26,7 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -32,6 +35,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class Phase7DeviceVisualTest {
     private static final long PAGE_TIMEOUT_MS = 45_000L;
     private static final long JS_TIMEOUT_MS = 8_000L;
+    private static final long ACTIVITY_TIMEOUT_MS = 30_000L;
 
     @Test
     public void phase7ProductionVisualsRenderAndAnimate() throws Exception {
@@ -45,12 +49,11 @@ public class Phase7DeviceVisualTest {
         assertNotNull("Launch intent missing for target application", launchIntent);
         launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
-        Activity activity = instrumentation.startActivitySync(launchIntent);
+        Activity activity = launchActivityWithoutIdleWait(instrumentation, launchIntent);
         assertNotNull("Target activity did not start", activity);
-        instrumentation.waitForIdleSync();
 
         WebView webView = waitForWebView(instrumentation, activity);
-        String url = readUrl(instrumentation, webView);
+        String url = waitForProductionUrl(instrumentation, webView);
         assertTrue("WebView must load KriptoAman production, got: " + url,
                 url != null && url.startsWith("https://kriptoaman.com"));
 
@@ -115,6 +118,29 @@ public class Phase7DeviceVisualTest {
         activity.finish();
     }
 
+    private static Activity launchActivityWithoutIdleWait(
+            Instrumentation instrumentation,
+            Intent launchIntent
+    ) {
+        instrumentation.getTargetContext().startActivity(launchIntent);
+
+        long deadline = SystemClock.elapsedRealtime() + ACTIVITY_TIMEOUT_MS;
+        AtomicReference<Activity> ref = new AtomicReference<>();
+        while (SystemClock.elapsedRealtime() < deadline) {
+            instrumentation.runOnMainSync(() -> {
+                Collection<Activity> resumed = ActivityLifecycleMonitorRegistry.getInstance()
+                        .getActivitiesInStage(Stage.RESUMED);
+                if (!resumed.isEmpty()) {
+                    ref.set(resumed.iterator().next());
+                }
+            });
+            if (ref.get() != null) return ref.get();
+            SystemClock.sleep(250L);
+        }
+        fail("Target activity did not reach RESUMED state without idle synchronization");
+        return null;
+    }
+
     private static WebView waitForWebView(Instrumentation instrumentation, Activity activity) {
         long deadline = SystemClock.elapsedRealtime() + 20_000L;
         AtomicReference<WebView> ref = new AtomicReference<>();
@@ -137,6 +163,22 @@ public class Phase7DeviceVisualTest {
             if (found != null) return found;
         }
         return null;
+    }
+
+    private static String waitForProductionUrl(
+            Instrumentation instrumentation,
+            WebView webView
+    ) {
+        long deadline = SystemClock.elapsedRealtime() + 20_000L;
+        String last = "";
+        while (SystemClock.elapsedRealtime() < deadline) {
+            last = readUrl(instrumentation, webView);
+            if (last != null && last.startsWith("https://kriptoaman.com")) {
+                return last;
+            }
+            SystemClock.sleep(250L);
+        }
+        return last;
     }
 
     private static String readUrl(Instrumentation instrumentation, WebView webView) {
@@ -176,7 +218,7 @@ public class Phase7DeviceVisualTest {
     private static void scrollIntoView(Instrumentation instrumentation, WebView webView, String selector) throws Exception {
         evaluate(instrumentation, webView,
                 "(()=>{const e=document.querySelector(" + quote(selector) + ");if(!e)return 'missing';e.scrollIntoView({block:'center',behavior:'auto'});return 'ok';})()");
-        instrumentation.waitForIdleSync();
+        SystemClock.sleep(250L);
     }
 
     private static String evaluate(Instrumentation instrumentation, WebView webView, String script) throws Exception {
