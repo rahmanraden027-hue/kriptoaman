@@ -28,7 +28,15 @@ test('Phase 8.3 explains authoritative snapshot versus live ZEVARYQ head', async
   assert.match(deferred, /snapshotGeneratedAt=\{stats\?\.snapshotGeneratedAt\}/);
   assert.match(flow, /AUTHORITATIVE SNAPSHOT #\{fmtNumber\(snapshotHead\)\}/);
   assert.match(flow, /LIVE HEAD #\{fmtNumber\(liveHead\)\}/);
+  assert.match(flow, /snapshotBlock === null \|\| snapshotBlock === undefined/);
   assert.match(flow, /const snapshotDelta = hasSnapshotComparison \? liveHead - snapshotHead : null/);
+});
+
+test('Phase 8.3 labels hot market feed freshness separately from the aggregate snapshot', async () => {
+  const pulse = await read('src/components/landing/LandingMarketPulse.jsx');
+  assert.match(pulse, /HOT FEED LIVE/);
+  assert.match(pulse, /HOT FEED \$\{String\(state\.freshness/);
+  assert.match(pulse, /independently from the authoritative aggregate snapshot/);
 });
 
 test('Phase 8.3 compacts production navigation into one four-surface gateway', async () => {
