@@ -6,9 +6,28 @@ import { LanguageProvider } from '@/lib/LanguageContext';
 import HomeV10 from './pages/HomeV10';
 
 const FullAppShell = lazy(() => import('./FullAppShell'));
+const NetworkGatePreview = lazy(() => import('./pages/NetworkGatePreview'));
 
 function AppRouteGate() {
   const { pathname } = useLocation();
+
+  if (pathname === '/preview/network-gate') {
+    return (
+      <LanguageProvider>
+        <Suspense
+          fallback={
+            <div className="min-h-screen bg-[#01050d] px-5 py-12 text-slate-300">
+              <div className="mx-auto max-w-md rounded-2xl border border-cyan-400/15 bg-[#050c16] p-5 text-sm">
+                Memuat ZEVARYQ Live Network Gate…
+              </div>
+            </div>
+          }
+        >
+          <NetworkGatePreview />
+        </Suspense>
+      </LanguageProvider>
+    );
+  }
 
   if (pathname === '/') {
     return (
