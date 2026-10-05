@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LogIn, Mail, Lock, Loader2, ShieldCheck } from "lucide-react";
-import AuthLayout from "@/components/AuthLayout";\nimport LoginNetworkEntrance from "@/components/auth/LoginNetworkEntrance";
+import AuthLayout from "@/components/AuthLayout";
+import LoginNetworkEntrance from "@/components/auth/LoginNetworkEntrance";
 import { useLanguage } from "@/lib/LanguageContext";
 
 const COPY = {
