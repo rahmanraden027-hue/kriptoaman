@@ -12,7 +12,10 @@ const formatAge = (ageMs) => {
 };
 
 export function getProductionFreshness(stats, now = Date.now()) {
-  const snapshotAgeMs = Number(stats?.snapshotAgeMs);
+  const rawSnapshotAgeMs = stats?.snapshotAgeMs;
+  const snapshotAgeMs = rawSnapshotAgeMs === null || rawSnapshotAgeMs === undefined || rawSnapshotAgeMs === ''
+    ? NaN
+    : Number(rawSnapshotAgeMs);
   const generatedAtMs = stats?.snapshotGeneratedAt ? Date.parse(stats.snapshotGeneratedAt) : NaN;
   const wallAgeMs = Number.isFinite(generatedAtMs) ? Math.max(0, now - generatedAtMs) : NaN;
 
@@ -20,7 +23,7 @@ export function getProductionFreshness(stats, now = Date.now()) {
   const ageMs = candidates.length ? Math.max(...candidates) : NaN;
   const mode = stats?.snapshotReadMode ? String(stats.snapshotReadMode) : null;
   const modeLabel = mode ? (MODE_LABELS[mode] || mode.replaceAll('-', ' ').toUpperCase()) : 'UNVERIFIED';
-  const freshness = !Number.isFinite(ageMs)
+  const freshness = !mode || !Number.isFinite(ageMs)
     ? 'UNVERIFIED'
     : ageMs <= 60_000
       ? (mode === 'live-verified' ? 'LIVE' : 'RECENT')
