@@ -56,7 +56,7 @@ export default function OnChainNow() {
         ))}
       </div>
 
-      <Link to="/QoryVExDiscovery" className="mt-4 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.12em] text-amber-300">
+      <Link to="/QoryVExDiscovery" className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg px-1 text-[10px] font-black uppercase tracking-[0.12em] text-amber-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/80">
         Open discovery <ArrowRight className="h-3.5 w-3.5" />
       </Link>
     </section>

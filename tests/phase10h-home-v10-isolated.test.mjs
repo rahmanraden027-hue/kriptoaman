@@ -75,9 +75,12 @@ test('Phase 10J promotes HomeV10 to production root while retaining isolated pre
 
 
 test('Phase 10L hardens HomeV10 for global mobile and accessibility readiness', async () => {
-  const [home, featured, installPrompt, evidence, deviceScript, deviceWorkflow] = await Promise.all([
+  const [home, featured, topMovers, onchain, network, installPrompt, evidence, deviceScript, deviceWorkflow] = await Promise.all([
     read('src/pages/HomeV10.jsx'),
     read('src/components/home-v10/FeaturedMarketAsset.jsx'),
+    read('src/components/home-v10/TopMovers.jsx'),
+    read('src/components/home-v10/OnChainNow.jsx'),
+    read('src/components/home-v10/ZevaryqLiveStrip.jsx'),
     read('src/components/pwa/PWAInstallPrompt.jsx'),
     read('.github/workflows/home-v10-preview-evidence.yml'),
     read('.github/scripts/phase7-device-class-browser.mjs'),
@@ -91,9 +94,20 @@ test('Phase 10L hardens HomeV10 for global mobile and accessibility readiness', 
   assert.match(home, /aria-label="Mobile primary navigation"/);
   assert.match(home, /aria-current="page"/);
   assert.match(home, /h-11 w-11/);
+  assert.match(home, /role="status"/);
+  assert.match(home, /aria-live="polite"/);
+  assert.match(home, /Market data status:/);
   assert.match(featured, /prefers-reduced-motion: reduce/);
   assert.match(featured, /aria-pressed=/);
   assert.match(featured, /min-h-11/);
+  assert.match(featured, /decoding="async"/);
+  assert.match(topMovers, /aria-pressed=/);
+  assert.match(topMovers, /min-h-11/);
+  assert.match(onchain, /min-h-11/);
+  assert.match(network, /role="status"/);
+  assert.match(network, /aria-live="polite"/);
+  assert.match(network, /Open ZEVARYQ Explorer in a new tab/);
+  assert.match(network, /min-h-11/);
   assert.match(installPrompt, /bottom-\[calc\(5\.25rem\+env\(safe-area-inset-bottom,0px\)\)\]/);
   assert.match(evidence, /360,800,compact-mobile/);
   assert.match(evidence, /430,932,large-mobile/);
