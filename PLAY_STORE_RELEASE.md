@@ -4,7 +4,7 @@
 
 - Package ID: `com.kriptoaman.app`
 - Nama: `KriptoAman`
-- Versi Android: `1.3` (`versionCode 4`)
+- Versi Android: `1.5.6` (`versionCode 13`)
 - Target SDK: API 36
 - Mode rilis awal: market intelligence, edukasi, keamanan akun, portfolio/watch-only, dan pemantauan wallet/alamat publik non-kustodial.
 - Tidak menyatakan diri sebagai kustodian aset atau bursa kripto selama fungsi tersebut tidak benar-benar tersedia dan belum didukung perizinan yang relevan.
@@ -13,16 +13,16 @@
 
 Workflow: **Android Release Artifacts**
 
-Trusted `main` run: `32121808660`
+Trusted `main` run: `37308557602`
 
 Hasil tervalidasi:
 
 - Play AAB: `kriptoaman-play-aab`
-  - Size: `6,986,427 bytes`
-  - Artifact digest: `sha256:f1611f4365960b9053261ac8181e657a1b8ac4973040eb6f77c775fe272eeba5`
+  - Size: `8,632,999 bytes`
+  - Artifact digest: `sha256:d75ed7f204b73d7213fda90c4a5a2c35b2bf7dcd540ed1de8dd404f6e1fb7423`
 - Direct APK: `kriptoaman-direct-apk`
-  - Size: `6,899,098 bytes`
-  - Artifact digest: `sha256:cce3a89c4f9393141b801f7a7bad49b1184442a752f030d4ea362845f3877976`
+  - Size: `8,535,844 bytes`
+  - Artifact digest: `sha256:2b3c4534b7f0dbbafc65d1a5baf7ba14dfb980557a7af0f2545065877cc45476`
 
 Run tersebut berhasil melewati:
 
