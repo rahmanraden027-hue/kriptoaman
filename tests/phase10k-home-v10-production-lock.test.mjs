@@ -35,7 +35,8 @@ test('Phase 10K preserves first-party market and ZEVARYQ evidence boundaries', a
   ]);
   assert.match(market, /kriptoaman-market-db/);
   assert.match(market, /LIVE/);
-  assert.match(market, /STALE/);
+  assert.match(market, /SNAPSHOT/);
+  assert.doesNotMatch(market, /state = ['\"]STALE['\"]/);
   assert.match(raw, /\/api\/market-snapshot-page/);
   assert.match(raw, /MARKET_ASSET_LIMIT = 5000/);
   assert.match(raw, /fetchWithTimeout\(\s*`\/api\/market-snapshot-page/);

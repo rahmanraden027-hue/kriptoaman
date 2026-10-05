@@ -12,6 +12,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
+import { DATA_STATE, isPositiveDataState, normalizeDataState } from '@/lib/dataState';
 
 const COPY = {
   id: {
@@ -138,13 +139,14 @@ export default function IntelligenceHub() {
               </div>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:min-w-[560px]">
                 {metrics.map(([label, value, state]) => {
-                  const live = ['operational', 'verified'].includes(String(state).toLowerCase());
+                  const displayState = normalizeDataState(state, DATA_STATE.UNAVAILABLE);
+                  const positive = isPositiveDataState(displayState);
                   return (
                     <div key={label} className="rounded-2xl border border-white/[0.07] bg-black/20 px-3 py-3">
                       <p className="text-[8px] font-black uppercase tracking-[.12em] text-slate-500">{label}</p>
                       <p className="mt-1.5 truncate text-base font-black">{value}</p>
-                      <p className={'mt-1 text-[8px] font-black uppercase ' + (live ? 'text-emerald-300' : 'text-amber-300')}>
-                        {live ? 'LIVE' : state === 'checking' ? 'CHECKING' : t.unavailable}
+                      <p className={'mt-1 text-[8px] font-black uppercase ' + (positive ? 'text-emerald-300' : displayState === DATA_STATE.UNAVAILABLE ? 'text-amber-300' : 'text-cyan-300')}>
+                        {displayState}
                       </p>
                     </div>
                   );

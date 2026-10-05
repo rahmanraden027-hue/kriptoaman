@@ -3,6 +3,7 @@ import { Activity, Gauge, Radio, TrendingDown, TrendingUp } from 'lucide-react';
 import Market from './Market.jsx';
 import useLivePrices from '@/components/market/useLivePrices';
 import { useLanguage } from '@/lib/LanguageContext';
+import { DATA_STATE, marketDataState } from '@/lib/dataState';
 
 const COPY = {
   id: {
@@ -58,6 +59,8 @@ export default function MarketWithKAM() {
 
   const breadthLabel = marketIntel.breadth > 15 ? text.advancing : marketIntel.breadth < -15 ? text.declining : text.neutral;
   const breadthTone = marketIntel.breadth > 15 ? 'text-emerald-300' : marketIntel.breadth < -15 ? 'text-rose-300' : 'text-amber-300';
+  const feedState = marketDataState({ connected, dataAvailable: marketIntel.total > 0 });
+  const feedHealthy = feedState !== DATA_STATE.UNAVAILABLE;
 
   return (
     <div className="ka-market-shell ka-bg text-white">
@@ -82,8 +85,8 @@ export default function MarketWithKAM() {
               </p>
               <h1 id="market-intelligence-title" className="mt-1 text-base font-black sm:text-lg">{text.intelligenceTitle}</h1>
             </div>
-            <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[9px] font-bold ${connected ? 'border-emerald-400/20 bg-emerald-400/8 text-emerald-300' : 'border-slate-700/50 bg-slate-900/50 text-slate-300'}`}>
-              <Radio className="h-3.5 w-3.5" /> {connected ? text.live : text.alternate}
+            <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[9px] font-bold ${feedHealthy ? 'border-emerald-400/20 bg-emerald-400/8 text-emerald-300' : 'border-slate-700/50 bg-slate-900/50 text-slate-300'}`}>
+              <Radio className="h-3.5 w-3.5" /> {feedState}
             </span>
           </div>
 

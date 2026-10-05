@@ -23,7 +23,7 @@ test('Phase 10H reuses the existing KriptoAman market data boundary', async () =
   assert.match(hook, /kriptoaman-market-db/);
   assert.match(hook, /LIVE/);
   assert.match(hook, /SNAPSHOT/);
-  assert.match(hook, /STALE/);
+  assert.doesNotMatch(hook, /state = ['\"]STALE['\"]/);
   assert.match(hook, /UNAVAILABLE/);
   assert.doesNotMatch(hook, /coingecko|coinmarketcap|cryptocompare/i);
 });
