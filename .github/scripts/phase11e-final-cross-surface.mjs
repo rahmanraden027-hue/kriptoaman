@@ -70,16 +70,26 @@ async function navSnapshot(page, expected) {
 async function surfaceSnapshot(page) {
   return page.evaluate(states => {
     const text=document.body.innerText;
-    const bottomNav=document.querySelector('.ka-embedded-nav, nav[aria-label="Mobile primary navigation"], nav[aria-label="Navigasi utama"]');
+    const bottomNav=document.querySelector('.ka-embedded-nav, .ka-primary-bottom-nav, nav[aria-label="Mobile primary navigation"], nav[aria-label="Navigasi utama"]');
     const r=bottomNav?.getBoundingClientRect();
+    const navItems=bottomNav ? [...bottomNav.querySelectorAll('a,button')]
+      .map(el=>el.getBoundingClientRect())
+      .filter(rect=>rect.width>0 && rect.height>0) : [];
     return {
       path:location.pathname,
       title:document.title,
       width:innerWidth,
+      height:innerHeight,
       scrollWidth:document.documentElement.scrollWidth,
       brand:/KRIPTOAMAN|KriptoAman/.test(text),
       stateWords:states.filter(s=>new RegExp('\\b'+s+'\\b').test(text)),
-      bottomNav: r ? { top:r.top, bottom:r.bottom, height:r.height } : null,
+      bottomNav: r ? {
+        top:r.top,
+        bottom:r.bottom,
+        height:r.height,
+        minItemHeight:navItems.length ? Math.min(...navItems.map(x=>x.height)) : 0,
+        minItemWidth:navItems.length ? Math.min(...navItems.map(x=>x.width)) : 0,
+      } : null,
       shell:Boolean(document.querySelector('.ka-global-shell')),
       topbar:Boolean(document.querySelector('.ka-global-topbar')),
       sidebar:Boolean(document.querySelector('.ka-global-sidebar')),
@@ -94,8 +104,9 @@ function checkGeometry(s,label,{mobile=false,stateRequired=false}={}) {
   assert(s.brand, label+': KriptoAman brand missing');
   if (stateRequired) assert(s.stateWords.length>0,label+': canonical production state missing');
   if (mobile && s.bottomNav) {
-    assert(s.bottomNav.height >= 44,label+': bottom navigation touch area too small');
-    assert(s.bottomNav.bottom <= 845,label+': bottom navigation extends beyond viewport');
+    assert(s.bottomNav.minItemHeight >= 44,label+': bottom navigation touch area too small');
+    assert(s.bottomNav.minItemWidth >= 44,label+': bottom navigation touch width too small');
+    assert(s.bottomNav.bottom <= s.height + 1,label+': bottom navigation extends beyond viewport');
   }
 }
 
@@ -127,8 +138,9 @@ async function livePublic() {
     await page.goto(LIVE+'/wallet-app',{waitUntil:'domcontentloaded',timeout:60000});
     await settle(page);
     const wallet=await surfaceSnapshot(page);
-    assert(/ZEVARYQ/i.test(await page.locator('body').innerText()),'live wallet: ZEVARYQ identity missing');
-    assert(/Connect Wallet|Receive ZVQ|My Wallet Assets/i.test(await page.locator('body').innerText()),'live wallet: wallet surface incomplete');
+    const walletText=await page.locator('body').innerText();
+    assert(/ZEVARYQ/i.test(walletText),'live wallet: ZEVARYQ identity missing');
+    assert(/Connect Wallet|Receive ZVQ|My Wallet Assets/i.test(walletText),'live wallet: wallet surface incomplete');
     checkGeometry(wallet,'live /wallet-app',{mobile:true,stateRequired:false});
     await page.screenshot({path:'phase11e-evidence/live-mobile-wallet.png',fullPage:true});
     out.push({route:'/wallet-app',snap:wallet});
