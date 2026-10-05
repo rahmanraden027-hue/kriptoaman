@@ -39,11 +39,12 @@ jobs:
             'Empat fungsi utama. Satu alur verifikasi.',
             'PRODUCTION SURFACES',
             'VERIFIED-ONLY UI',
+            'AUTHORITATIVE SNAPSHOT',
             'no synthetic production metrics'
           ];
 
           const headers = {
-            'User-Agent': 'KriptoAman-Presentation-Provenance/3.1',
+            'User-Agent': 'KriptoAman-Presentation-Provenance/3.2',
             'Cache-Control': 'no-cache'
           };
 
