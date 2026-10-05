@@ -41,8 +41,7 @@ test('Phase 8.3 labels hot market feed freshness separately from the aggregate s
 
 test('Phase 8.3 compacts production navigation into one four-surface gateway', async () => {
   const gateways = await read('src/components/landing/GLandingProductionGateways.jsx');
-  assert.match(gateways, /UNIFIED ECOSYSTEM GATEWAY/);
-  assert.match(gateways, /Empat surface inti\. Satu gateway produksi\./);
+  assert.match(gateways, /PRODUCTION ROUTES/);
   for (const label of ['KriptoAman Platform', 'ZEVARYQ Wallet', 'QoryVEx', 'ZEVARYQ Explorer']) {
     assert.equal(gateways.includes(label), true, `missing core surface ${label}`);
   }

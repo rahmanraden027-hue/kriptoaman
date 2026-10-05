@@ -59,7 +59,7 @@ export default function GLandingHeroConsole({ stats }) {
       ].filter(Boolean).join(' · ')
     : '';
   return (
-    <div className="ka-hero-console relative mx-auto w-full max-w-[560px]" aria-label="KriptoAman Intelligence Core live status">
+    <div className="ka-hero-console relative mx-auto w-full max-w-[560px] lg:max-w-[500px]" aria-label="KriptoAman Intelligence Core live status">
       <div className="ka-console-head">
         <div>
           <span className="ka-console-kicker">KRIPTOAMAN · PRODUCTION COMMAND CENTER</span>
@@ -69,7 +69,7 @@ export default function GLandingHeroConsole({ stats }) {
       </div>
 
       <div className="ka-console-stage ka-core-stage">
-        <div className="ka-hero-visual relative mx-auto aspect-square w-full max-w-[320px] sm:max-w-[350px]">
+        <div className="ka-hero-visual relative mx-auto aspect-square w-full max-w-[320px] sm:max-w-[350px] lg:max-w-[280px]">
           <NetworkVisual />
           <div className="ka-core-horizon" aria-hidden="true" />
           <div className="ka-core-ring ring-a" aria-hidden="true" />
@@ -97,13 +97,13 @@ export default function GLandingHeroConsole({ stats }) {
           </div>
         </div>
       </div>
-      <div className="ka-console-metrics">
+      <div className="ka-console-metrics lg:hidden">
         <div><Database /><span><b>{assetCount}</b>Cakupan aset</span></div>
         <div><Activity /><span><b>{networkCount}</b>Jaringan aktif</span></div>
         <div><Blocks /><span><b>{blockNumber}</b>ZEVARYQ block{zvqTelemetry ? <small className="block text-[10px] font-medium opacity-75">{zvqTelemetry}</small> : null}</span></div>
         <a href="https://explorer.kriptoaman.com" target="_blank" rel="noreferrer"><Shield /><span><b>22028</b>ZEVARYQ Mainnet</span></a>
       </div>
-      <div className="border-t border-blue-400/10 px-4 py-3 text-center text-[10px] font-semibold tracking-[0.07em] ka-text2">
+      <div className="border-t border-blue-400/10 px-4 py-3 text-center text-[10px] font-semibold tracking-[0.07em] ka-text2 lg:hidden">
         PRODUCTION DATA PATH · {isOperational ? 'VERIFIED' : 'LIMITED'} · PROOF OF FRESHNESS {snapshot.freshness} · {snapshot.modeLabel} · AGE {snapshot.ageLabel}{snapshot.generatedLabel ? ` · GENERATED ${snapshot.generatedLabel}` : ''}
       </div>
     </div>
