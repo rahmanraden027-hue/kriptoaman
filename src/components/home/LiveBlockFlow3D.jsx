@@ -144,7 +144,9 @@ export default function LiveBlockFlow3D({
   const indexerLag = payload?.metrics?.indexerLagBlocks;
   const indexedHead = payload?.metrics?.indexedHead;
   const live = state === 'live';
-  const snapshotHead = Number(snapshotBlock);
+  const snapshotHead = snapshotBlock === null || snapshotBlock === undefined || snapshotBlock === ''
+    ? NaN
+    : Number(snapshotBlock);
   const liveHead = Number(head);
   const hasSnapshotComparison = Number.isSafeInteger(snapshotHead) && Number.isSafeInteger(liveHead);
   const snapshotDelta = hasSnapshotComparison ? liveHead - snapshotHead : null;
