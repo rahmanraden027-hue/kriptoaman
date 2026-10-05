@@ -265,28 +265,28 @@
       }
 
 
-/* Phase 7 final mobile production polish: tighter hero rhythm, stronger telemetry readability. */
+/* Phase 8.6 final mobile density freeze: status strip owns the header offset,
+   so the hero no longer repeats a large pre-hero spacer. */
 @media(max-width:620px){
   .ka-landing header>div:first-of-type>a:first-child{gap:9px}
   .ka-landing header>div:first-of-type>a:first-child span{font-size:13px!important;letter-spacing:.085em!important}
-  #beranda{padding-top:88px!important;padding-bottom:34px!important}
-  #beranda .ka-hero-grid{gap:26px!important}
-  #beranda .ka-sec-title{margin-top:14px!important}
-  #beranda .ka-hero-copy>p{margin-top:14px!important;line-height:1.58!important}
-  #beranda .ka-hero-actions{margin-top:20px!important;gap:10px!important}
-  #beranda .ka-hero-actions>a{min-height:46px!important}
-  #beranda>p{margin-top:18px!important}
-  .ka-console-head{padding:16px 16px!important}
-  .ka-console-head strong{font-size:14px!important}
-  .ka-console-kicker{font-size:9px!important}
-  .ka-console-metrics>div,.ka-console-metrics>a{min-height:72px!important;padding:13px 12px!important;gap:9px!important}
-  .ka-console-metrics svg{width:18px!important;height:18px!important}
-  .ka-console-metrics span{font-size:10px!important;line-height:1.35!important}
-  .ka-console-metrics b{font-size:16px!important;line-height:1.15!important;letter-spacing:.01em}
-  .ka-console-metrics small{font-size:9px!important;line-height:1.25!important}
+  #beranda{padding-top:24px!important;padding-bottom:26px!important}
+  #beranda .ka-hero-grid{gap:18px!important}
+  #beranda .ka-sec-title{margin-top:12px!important}
+  #beranda .ka-hero-copy>p{margin-top:10px!important;line-height:1.5!important}
+  #beranda .ka-hero-actions{margin-top:16px!important;gap:9px!important}
+  #beranda .ka-hero-actions>a{min-height:44px!important}
+  .ka-console-head{padding:14px 15px!important}
+  .ka-console-head strong{font-size:13px!important}
+  .ka-console-kicker{font-size:8px!important}
+  .ka-console-metrics>div,.ka-console-metrics>a{min-height:60px!important;padding:10px 11px!important;gap:8px!important}
+  .ka-console-metrics svg{width:17px!important;height:17px!important}
+  .ka-console-metrics span{font-size:9px!important;line-height:1.3!important}
+  .ka-console-metrics b{font-size:15px!important;line-height:1.12!important;letter-spacing:.01em}
+  .ka-console-metrics small{font-size:8px!important;line-height:1.2!important}
 }
 @media(max-width:420px){
-  #beranda{padding-top:84px!important}
-  #beranda .ka-hero-grid{gap:22px!important}
-  .ka-console-metrics>div,.ka-console-metrics>a{padding:12px 10px!important}
+  #beranda{padding-top:20px!important}
+  #beranda .ka-hero-grid{gap:16px!important}
+  .ka-console-metrics>div,.ka-console-metrics>a{padding:9px 9px!important}
 }
