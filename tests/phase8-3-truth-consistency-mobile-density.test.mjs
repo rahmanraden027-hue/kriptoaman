@@ -13,8 +13,8 @@ test('Phase 8.3 binds market labels to authoritative freshness', async () => {
 
   assert.match(strip, /const marketState = marketAvailable \? snapshot\.freshness : 'UNAVAILABLE'/);
   assert.match(strip, /const marketHealthy = marketAvailable && snapshot\.verified && snapshot\.freshness !== 'STALE'/);
-  assert.match(hero, /const marketState = stats\?\.marketAvailable \? snapshot\.freshness : 'UNAVAILABLE'/);
-  assert.match(hero, /CHAIN \/ RPC/);
+  assert.doesNotMatch(hero, /marketState/);
+  assert.doesNotMatch(hero, /CHAIN \/ RPC/);
   assert.match(consoleSource, /snapshot\.freshness !== 'STALE'/);
 });
 
