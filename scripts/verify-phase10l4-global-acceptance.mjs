@@ -50,7 +50,7 @@ const robots = await robotsResponse.text();
 assert.match(robots, /User-agent:\s*\*/i);
 assert.match(robots, /Allow:\s*\//i);
 assert.match(robots, /Disallow:\s*\/api\//i);
-assert.match(robots, /Sitemap:\s*https:\/\/kriptoaman\.com\/sitemap\.xml/i);
+assert.match(robots, /^Sitemap:\s*https:\/\/kriptoaman\.com\/sitemap\.xml\s*$/im);
 
 const sitemapResponse = await fetch(origin + '/sitemap.xml', { redirect: 'follow' });
 assert.equal(sitemapResponse.status, 200, 'sitemap.xml must return HTTP 200');
