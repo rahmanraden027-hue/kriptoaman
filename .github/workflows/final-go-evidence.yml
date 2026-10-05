@@ -12,6 +12,16 @@ on:
       - 'package-lock.json'
       - 'src/**'
       - 'functions/**'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/final-go-evidence.yml'
+      - 'docs/FINAL_GO_EVIDENCE.md'
+      - 'load/k6-production-readonly.js'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'src/**'
+      - 'functions/**'
   workflow_dispatch:
     inputs:
       load_stage:
@@ -184,6 +194,10 @@ jobs:
         run: |
           set -euo pipefail
           base_url='https://kriptoaman.com'
+          if [ '${{ github.event_name }}' = 'push' ]; then
+            echo 'Waiting for production deployment before Final GO load.'
+            sleep 35
+          fi
           if [ '${{ github.event_name }}' = 'pull_request' ]; then
             branch='${{ github.head_ref }}'
             branch="$(printf '%s' "$branch" | tr '[:upper:]' '[:lower:]' | tr '/_' '--')"
