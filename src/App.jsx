@@ -1,9 +1,9 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, useLocation } from 'react-router-dom';
-import KriptoAmanGlobalLanding from './pages/KriptoAmanGlobalLanding';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt';
 import { LanguageProvider } from '@/lib/LanguageContext';
+import HomeV10 from './pages/HomeV10';
 
 const FullAppShell = lazy(() => import('./FullAppShell'));
 
@@ -13,7 +13,17 @@ function AppRouteGate() {
   if (pathname === '/') {
     return (
       <LanguageProvider>
-        <KriptoAmanGlobalLanding />
+        <Suspense
+          fallback={
+            <div className="min-h-screen bg-[#020711] px-5 py-12 text-slate-300">
+              <div className="mx-auto max-w-md rounded-2xl border border-cyan-400/15 bg-[#050c16] p-5 text-sm">
+                Memuat data KriptoAman…
+              </div>
+            </div>
+          }
+        >
+          <HomeV10 />
+        </Suspense>
       </LanguageProvider>
     );
   }

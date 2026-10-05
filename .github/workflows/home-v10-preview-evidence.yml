@@ -53,6 +53,7 @@ jobs:
           if [ '${{ github.event_name }}' = 'pull_request' ]; then
             branch='${{ github.head_ref }}'
             branch="$(printf '%s' "$branch" | tr '[:upper:]' '[:lower:]' | tr '/_' '--')"
+            branch="${branch:0:28}"
             target="https://${branch}.kriptoaman.pages.dev/preview/home-v10"
           fi
           echo "target=$target" >> "$GITHUB_OUTPUT"
