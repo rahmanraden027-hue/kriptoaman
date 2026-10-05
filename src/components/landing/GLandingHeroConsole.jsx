@@ -83,7 +83,7 @@ export default function GLandingHeroConsole({ stats }) {
           </div>
           {COINS.map((coin) => (
             <div key={coin.sym} className={`ka-coin-badge ka-glow ${coin.className}`}>
-              {coin.logo ? <img src={coin.logo} alt="" aria-hidden="true" className="h-6 w-6 rounded-full object-contain" loading="lazy" decoding="async" /> : null}
+              {coin.logo ? <img src={coin.logo} alt="" aria-hidden="true" className="h-7 w-7 rounded-full object-contain" loading="lazy" decoding="async" /> : null}
               <span className="ka-coin-symbol mt-0.5" style={{ color: coin.color }}>{coin.sym}</span>
               <span className="ka-coin-name ka-text2 sr-only">{coin.sub}</span>
             </div>
@@ -92,7 +92,7 @@ export default function GLandingHeroConsole({ stats }) {
             <span>OBSERVATION</span><i>→</i><span>SIGNAL</span><i>→</i><span>EVIDENCE</span>
           </div>
           <div className="absolute left-1/2 top-1/2 z-[2] -translate-x-1/2 translate-y-[72px] text-center">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-400/20 bg-blue-500/10 px-3 py-1 text-[9px] font-black tracking-[0.14em] text-blue-200">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-400/20 bg-blue-500/10 px-3 py-1.5 text-[10px] font-black tracking-[0.12em] text-blue-100">
               KRIPTOAMAN LIVE SYSTEM
             </span>
           </div>
@@ -101,10 +101,10 @@ export default function GLandingHeroConsole({ stats }) {
       <div className="ka-console-metrics">
         <div><Database /><span><b>{assetCount}</b>Cakupan aset</span></div>
         <div><Activity /><span><b>{networkCount}</b>Jaringan aktif</span></div>
-        <div><Blocks /><span><b>{blockNumber}</b>ZEVARYQ block{zvqTelemetry ? <small className="block text-[9px] font-medium opacity-70">{zvqTelemetry}</small> : null}</span></div>
+        <div><Blocks /><span><b>{blockNumber}</b>ZEVARYQ block{zvqTelemetry ? <small className="block text-[10px] font-medium opacity-75">{zvqTelemetry}</small> : null}</span></div>
         <a href="https://explorer.kriptoaman.com" target="_blank" rel="noreferrer"><Shield /><span><b>22028</b>ZEVARYQ Mainnet</span></a>
       </div>
-      <div className="border-t border-blue-400/10 px-4 py-2.5 text-center text-[9px] font-semibold tracking-[0.08em] ka-text2">
+      <div className="border-t border-blue-400/10 px-4 py-3 text-center text-[10px] font-semibold tracking-[0.07em] ka-text2">
         PRODUCTION DATA PATH · {isOperational ? 'VERIFIED' : 'LIMITED'} · PROOF OF FRESHNESS {freshness}{verifiedAtLabel ? ` · LAST VERIFIED ${verifiedAtLabel}` : ''}
       </div>
     </div>
