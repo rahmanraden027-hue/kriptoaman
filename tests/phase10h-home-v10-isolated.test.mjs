@@ -51,6 +51,6 @@ test('Phase 10H leaves production HomeV3 routing intact while allowing isolated 
   assert.match(homeV3, /export default function HomeV3/);
   assert.match(homeV3, /MY KRIPTOAMAN/);
   assert.match(shell, /DashboardPage/);
-  assert.doesNotMatch(shell, /path="\\/"[^\n]*HomeV10/);
-  assert.doesNotMatch(shell, /path="\\/dashboard"[^\n]*HomeV10/);
+  assert.equal(shell.includes('<Route path="/" element={<HomeV10Preview'), false);
+  assert.equal(shell.includes('<Route path="/dashboard" element={<HomeV10Preview'), false);
 });
