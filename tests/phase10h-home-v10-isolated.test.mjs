@@ -56,7 +56,7 @@ test('Phase 10I keeps featured market data visible when optional media is absent
   assert.match(featured, /formatCompactUsd\(asset\.volume\)/);
 });
 
-test('Phase 10I exposes HomeV10 only on an isolated preview route while production root stays unchanged', async () => {
+test('Phase 10J promotes HomeV10 to production root while retaining isolated preview rollback surface', async () => {
   const [homeV3, shell, app] = await Promise.all([
     read('src/pages/HomeV3.jsx'),
     read('src/FullAppShell.jsx'),
