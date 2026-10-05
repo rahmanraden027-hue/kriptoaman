@@ -43,20 +43,21 @@ export default function GLandingHeroConsole({ stats }) {
   const assetCount = stats?.loading || !(Number(stats?.assetCount) > 0) ? '—' : Number(stats.assetCount).toLocaleString('id-ID');
   const networkCount = stats?.loading ? '—' : Number.isFinite(Number(stats?.networkActiveCount)) ? String(Number(stats.networkActiveCount)) : '—';
   const blockNumber = stats?.zvqBlockNumber != null && Number.isFinite(Number(stats.zvqBlockNumber)) ? Number(stats.zvqBlockNumber).toLocaleString('id-ID') : '—';
+  const snapshot = getProductionFreshness(stats);
   const isOperational = Boolean(
     stats?.overall === 'operational'
       && stats?.marketAvailable
+      && snapshot.verified
+      && snapshot.freshness !== 'STALE'
       && blockNumber !== '—'
       && networkCount !== '—',
   );
   const zvqTelemetry = blockNumber !== '—'
     ? [
-        stats?.zvqSyncStatus ? String(stats.zvqSyncStatus).toUpperCase() : null,
+        stats?.zvqSyncStatus ? `CHAIN ${String(stats.zvqSyncStatus).toUpperCase()}` : null,
         Number.isFinite(Number(stats?.zvqProbeDurationMs)) ? `RPC ${Number(stats.zvqProbeDurationMs).toLocaleString('id-ID')} ms` : null,
       ].filter(Boolean).join(' · ')
     : '';
-  const snapshot = getProductionFreshness(stats);
-
   return (
     <div className="ka-hero-console relative mx-auto w-full max-w-[560px]" aria-label="KriptoAman Intelligence Core live status">
       <div className="ka-console-head">
