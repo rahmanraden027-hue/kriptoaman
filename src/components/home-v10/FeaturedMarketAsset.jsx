@@ -55,7 +55,7 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
       <div className="grid gap-6 lg:grid-cols-[.8fr_1.2fr] lg:items-end">
         <div>
           <div className="flex items-center gap-3">
-            {asset.image && <img src={asset.image} alt="" className="h-14 w-14 rounded-full shadow-[0_0_30px_rgba(34,211,238,.16)]" decoding="async" />}
+            {asset.image && <img src={asset.image} alt="" width="56" height="56" fetchPriority="high" className="h-14 w-14 rounded-full shadow-[0_0_30px_rgba(34,211,238,.16)]" decoding="async" />}
             <div>
               <p className="text-[9px] font-black uppercase tracking-[0.2em] text-cyan-300">MOVING NOW · {state}</p>
               <h1 className="mt-1 text-3xl font-black tracking-[-0.04em] text-white sm:text-4xl">{asset.sym}</h1>
@@ -144,7 +144,7 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
               aria-label={`Show ${candidate.sym} market snapshot`}
               className={`flex min-h-11 shrink-0 items-center gap-2 rounded-xl border px-3 text-[10px] font-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 ${candidateIndex === index ? 'border-cyan-400/30 bg-cyan-400/10 text-cyan-200' : 'border-white/[0.06] bg-white/[0.02] text-slate-400'}`}
             >
-              {candidate.image && <img src={candidate.image} alt="" className="h-4 w-4 rounded-full" loading="lazy" decoding="async" />}
+              {candidate.image && <img src={candidate.image} alt="" width="16" height="16" className="h-4 w-4 rounded-full" loading="lazy" decoding="async" />}
               {candidate.sym}
             </button>
           ))}
