@@ -19,11 +19,11 @@ function Metric({ icon: Icon, label, value, note }) {
   return (
     <div className="rounded-2xl border border-sky-400/10 bg-[#07111f]/80 p-3">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[8px] font-black uppercase tracking-[.12em] text-slate-500">{label}</span>
+        <span className="text-[9px] font-black uppercase tracking-[.11em] text-slate-400">{label}</span>
         <Icon className="h-3.5 w-3.5 text-sky-300" />
       </div>
       <div className="mt-2 text-base font-black text-white">{value}</div>
-      {note && <div className="mt-1 text-[8px] text-slate-500">{note}</div>}
+      {note && <div className="mt-1 text-[9px] text-slate-500">{note}</div>}
     </div>
   );
 }
@@ -152,7 +152,7 @@ export default function LiveBlockFlow3D({ betweenBlockAndNode = null, compactLan
         .zvq-event-beam.is-live{opacity:.8;animation:zvqEventSweep 7.5s linear infinite}
         .zvq-flow-head-tag{position:absolute;right:14px;top:14px;z-index:9;display:flex;align-items:center;gap:8px;border:1px solid rgba(56,189,248,.14);border-radius:999px;background:rgba(2,12,20,.66);padding:7px 10px;backdrop-filter:blur(12px);box-shadow:0 0 24px rgba(34,211,238,.08)}
         .zvq-flow-head-tag i{width:6px;height:6px;border-radius:999px;background:rgb(52 211 153);box-shadow:0 0 14px rgba(52,211,153,.7)}
-        .zvq-flow-head-tag span{font-size:8px;font-weight:900;letter-spacing:.1em;color:rgb(186 230 253)}
+        .zvq-flow-head-tag span{font-size:9px;font-weight:900;letter-spacing:.09em;color:rgb(186 230 253)}
         .zvq-flow-orbit{position:absolute;left:50%;top:50%;width:68%;height:38%;transform:translate(-50%,-50%) rotateX(66deg);border:1px solid rgba(56,189,248,.2);border-radius:50%;box-shadow:0 0 28px rgba(34,211,238,.12),inset 0 0 28px rgba(34,211,238,.08)}
         .zvq-flow-orbit::after{content:'';position:absolute;inset:18%;border:1px solid rgba(245,158,11,.18);border-radius:50%}
         .zvq-flow-line{position:absolute;left:9%;right:9%;top:50%;height:1px;background:linear-gradient(90deg,transparent,rgba(56,189,248,.4),rgba(34,211,238,.9),rgba(56,189,248,.4),transparent);box-shadow:0 0 18px rgba(34,211,238,.35)}
@@ -176,12 +176,12 @@ export default function LiveBlockFlow3D({ betweenBlockAndNode = null, compactLan
         <div>
           <div className="flex items-center gap-2">
             <p className="text-[9px] font-black uppercase tracking-[.18em] text-cyan-300">ZEVARYQ · FIRST-PARTY BLOCKCHAIN EVIDENCE</p>
-            <span className={`rounded-full border px-2 py-1 text-[8px] font-black uppercase tracking-[.12em] ${live ? 'border-emerald-400/20 bg-emerald-400/10 text-emerald-300' : 'border-amber-400/20 bg-amber-400/10 text-amber-300'}`}>
+            <span className={`rounded-full border px-2 py-1 text-[9px] font-black uppercase tracking-[.11em] ${live ? 'border-emerald-400/20 bg-emerald-400/10 text-emerald-300' : 'border-amber-400/20 bg-amber-400/10 text-amber-300'}`}>
               {state === 'live' ? 'LIVE' : state === 'loading' ? 'CONNECTING' : state === 'delayed' ? 'DATA DELAYED' : 'UNAVAILABLE'}
             </span>
           </div>
           <h2 className="mt-1 text-xl font-black sm:text-2xl">Live Block Flow 3D</h2>
-          <p className="mt-1 max-w-2xl text-[10px] leading-5 text-slate-400">
+          <p className="mt-1 max-w-2xl text-[11px] leading-5 text-slate-400">
             The flow advances only when ZEVARYQ chain head increases. No synthetic blocks or invented propagation metrics are shown.
           </p>
         </div>
@@ -231,11 +231,11 @@ export default function LiveBlockFlow3D({ betweenBlockAndNode = null, compactLan
             </div>
           )}
           <div className="absolute bottom-3 left-3 right-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/[.06] bg-slate-950/55 px-3 py-2 backdrop-blur-xl">
-            <div className="flex items-center gap-2 text-[9px] text-slate-400">
+            <div className="flex items-center gap-2 text-[10px] text-slate-400">
               <Activity className={`h-3.5 w-3.5 ${live ? 'text-emerald-300' : 'text-amber-300'}`} />
               {live ? 'Verified head polling active' : 'Animation frozen until verified data returns'}
             </div>
-            <div className="text-[9px] font-black text-sky-300">CHAIN ID 22028 · 0x560c</div>
+            <div className="text-[10px] font-black text-sky-300">CHAIN ID 22028 · 0x560c</div>
           </div>
         </div>
 

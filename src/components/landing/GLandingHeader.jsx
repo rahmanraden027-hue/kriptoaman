@@ -31,10 +31,10 @@ export default function GLandingHeader({ dark, onToggleTheme, active = 'Platform
         borderBottom: scrolled ? '1px solid var(--ka-border)' : '1px solid transparent',
       }}
     >
-      <div className="max-w-[1440px] mx-auto px-3 sm:px-6 h-14 flex items-center justify-between gap-2 sm:gap-4">
+      <div className="max-w-[1440px] mx-auto px-3 sm:px-6 h-[60px] flex items-center justify-between gap-2 sm:gap-4">
         <a href="#beranda" className="flex items-center gap-2 min-w-0 shrink">
           <KriptoAmanLogo size={32} showText={false} animate={false} className="shrink-0" src="/icons/kriptoaman-32.png" fetchPriority="low" decoding="async" />
-          <span className="font-extrabold tracking-[0.11em] sm:tracking-[0.16em] text-[13px] sm:text-sm uppercase whitespace-nowrap">
+          <span className="font-extrabold tracking-[0.11em] sm:tracking-[0.16em] text-sm sm:text-[15px] uppercase whitespace-nowrap">
             <span className="ka-text">KRIPTO</span><span className="ka-blue">AMAN</span>
           </span>
         </a>

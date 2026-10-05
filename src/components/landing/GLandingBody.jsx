@@ -40,7 +40,7 @@ const MODULES = [
 export default function GLandingBody() {
   return (
     <>
-      <section id="fitur" className="px-4 py-10 sm:px-6 sm:py-12">
+      <section id="fitur" className="px-4 py-8 sm:px-6 sm:py-10">
         <div className="mx-auto max-w-[1440px]">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div className="max-w-3xl">
@@ -51,18 +51,18 @@ export default function GLandingBody() {
             <Link to="/login" className="inline-flex items-center gap-2 text-xs font-black ka-blue">Open Command Center <ArrowRight className="h-3.5 w-3.5" /></Link>
           </div>
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {MODULES.map((module) => {
               const Icon = module.icon;
               return (
-                <Link key={module.title} to={module.to} className="ka-card group flex min-h-[190px] flex-col p-5 transition-transform hover:-translate-y-0.5">
+                <Link key={module.title} to={module.to} className="ka-card group flex min-h-[176px] flex-col p-5 transition-transform hover:-translate-y-0.5">
                   <span className="grid h-10 w-10 place-items-center rounded-xl ka-card2">
                     <Icon className="h-[18px] w-[18px] ka-blue" />
                   </span>
-                  <p className="mt-5 text-[9px] font-black uppercase tracking-[.14em] ka-cyan">{module.eyebrow}</p>
+                  <p className="mt-4 text-[10px] font-black uppercase tracking-[.13em] ka-cyan">{module.eyebrow}</p>
                   <h3 className="mt-2 text-base font-black ka-text">{module.title}</h3>
-                  <p className="ka-text2 mt-2 flex-1 text-[11px] leading-5">{module.desc}</p>
-                  <span className="mt-4 inline-flex items-center gap-2 text-[10px] font-black ka-blue">{module.action} <ArrowRight className="h-3.5 w-3.5" /></span>
+                  <p className="ka-text2 mt-2 flex-1 text-xs leading-5">{module.desc}</p>
+                  <span className="mt-4 inline-flex items-center gap-2 text-[11px] font-black ka-blue">{module.action} <ArrowRight className="h-3.5 w-3.5" /></span>
                 </Link>
               );
             })}

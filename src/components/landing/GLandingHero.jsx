@@ -6,8 +6,8 @@ const GLandingHeroConsole = lazy(() => import('@/components/landing/GLandingHero
 function HeroConsolePlaceholder() {
   return (
     <div
-      className="ka-hero-console ka-hero-console-placeholder relative mx-auto flex min-h-[610px] w-full max-w-[560px] items-center justify-center"
-      style={{ minHeight: 610 }}
+      className="ka-hero-console ka-hero-console-placeholder relative mx-auto flex min-h-[560px] w-full max-w-[560px] items-center justify-center"
+      style={{ minHeight: 560 }}
       aria-label="Memuat KriptoAman Intelligence Core"
     >
       <div className="px-6 text-center">
@@ -55,14 +55,14 @@ export default function GLandingHero({ stats, visualReady = true }) {
         className="pointer-events-none absolute -top-24 left-1/2 h-[760px] w-[760px] -translate-x-1/2 rounded-full blur-3xl"
         style={{ background: 'radial-gradient(circle, rgba(37,99,235,0.14), transparent 62%)' }}
       />
-      <div className="ka-hero-grid mx-auto grid max-w-[1440px] items-center gap-10 lg:grid-cols-[1.08fr_.92fr] lg:gap-8">
+      <div className="ka-hero-grid mx-auto grid max-w-[1440px] items-center gap-7 lg:grid-cols-[1.08fr_.92fr] lg:gap-8">
         <div className="ka-hero-copy text-center lg:text-left">
           <span className="ka-chip inline-flex items-center gap-2 px-3.5 py-1.5 text-[11px] font-bold tracking-wide">
             <span aria-hidden="true" className="inline-block h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.55)]" />
             KRIPTOAMAN · VERIFIED CRYPTO INTELLIGENCE
           </span>
 
-          <h1 className="ka-sec-title mt-5 text-[34px] sm:text-5xl lg:text-[54px]">
+          <h1 className="ka-sec-title mt-5 text-[36px] sm:text-5xl lg:text-[54px]">
             Data produksi, langsung terlihat.<br />
             <span className="ka-blue">Market · On-chain · Network · Evidence</span>
           </h1>
@@ -73,9 +73,9 @@ export default function GLandingHero({ stats, visualReady = true }) {
           <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="KriptoAman production snapshot">
             {productionMetrics.map((item) => (
               <div key={item.label} className="rounded-2xl border border-sky-400/12 bg-[#06111e]/78 px-3 py-3 text-left">
-                <p className="text-[8px] font-black uppercase tracking-[.14em] text-slate-500">{item.label}</p>
-                <p className="mt-1.5 truncate text-base font-black ka-text">{item.value}</p>
-                <p className={"mt-1 text-[8px] font-black uppercase tracking-[.12em] " + (item.state === 'LIVE' || item.state === 'VERIFIED' ? 'text-emerald-300' : 'text-amber-300')}>
+                <p className="text-[9px] font-black uppercase tracking-[.13em] text-slate-400">{item.label}</p>
+                <p className="mt-1.5 truncate text-lg font-black tabular-nums ka-text">{item.value}</p>
+                <p className={"mt-1 text-[9px] font-black uppercase tracking-[.11em] " + (item.state === 'LIVE' || item.state === 'VERIFIED' ? 'text-emerald-300' : 'text-amber-300')}>
                   {item.state}
                 </p>
               </div>
