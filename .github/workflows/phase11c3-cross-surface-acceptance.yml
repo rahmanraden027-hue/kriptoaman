@@ -1,0 +1,85 @@
+name: Phase 11C.3 Cross-Surface Acceptance
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/FullAppShell.jsx'
+      - 'src/Layout.jsx'
+      - 'src/lib/primaryNavigation.js'
+      - 'src/lib/dataState.js'
+      - 'src/pages/HomeV10.jsx'
+      - 'src/pages/HomeV3.jsx'
+      - 'src/pages/Market.jsx'
+      - 'src/pages/IntelligenceHub.jsx'
+      - 'src/pages/ZEVARYQ.jsx'
+      - 'src/pages/Services.jsx'
+      - 'src/components/mobile/PrimaryBottomNav.jsx'
+      - '.github/scripts/phase11c3-cross-surface-browser.mjs'
+      - '.github/workflows/phase11c3-cross-surface-acceptance.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/FullAppShell.jsx'
+      - 'src/Layout.jsx'
+      - 'src/lib/primaryNavigation.js'
+      - 'src/lib/dataState.js'
+      - 'src/pages/HomeV10.jsx'
+      - 'src/pages/HomeV3.jsx'
+      - 'src/pages/Market.jsx'
+      - 'src/pages/IntelligenceHub.jsx'
+      - 'src/pages/ZEVARYQ.jsx'
+      - 'src/pages/Services.jsx'
+      - 'src/components/mobile/PrimaryBottomNav.jsx'
+      - '.github/scripts/phase11c3-cross-surface-browser.mjs'
+      - '.github/workflows/phase11c3-cross-surface-acceptance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cross-surface-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Build KriptoAman candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --legacy-peer-deps
+          npm run build
+          nohup npx vite preview --host 127.0.0.1 --port 4173 > /tmp/phase11c3-vite.log 2>&1 &
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent --show-error http://127.0.0.1:4173/ -o /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/phase11c3-vite.log || true
+          exit 1
+
+      - name: Install Chromium
+        run: |
+          npm install --no-save --legacy-peer-deps playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Verify unified public and authenticated surfaces
+        env:
+          PHASE11C3_TARGET: http://127.0.0.1:4173
+        run: node .github/scripts/phase11c3-cross-surface-browser.mjs
+
+      - name: Upload Phase 11C.3 evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: phase11c3-cross-surface-evidence
+          path: phase11c3-evidence
+          retention-days: 30
+          if-no-files-found: warn
