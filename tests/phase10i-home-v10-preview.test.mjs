@@ -22,3 +22,18 @@ test('Phase 10I visual gate captures mobile tablet and desktop evidence', async 
   assert.match(workflow, /https:\/\/kriptoaman\.com/);
   assert.match(workflow, /page\.route\('\*\*\/api\/\*\*'/);
 });
+
+test('Phase 10I preserves unavailable high and low values as null instead of zero', async () => {
+  const marketHook = await read('src/components/home/useCoinMarkets.js');
+  assert.match(marketHook, /const nullableNumber/);
+  assert.match(marketHook, /high24h: nullableNumber\(coin\?\.high_24h\)/);
+  assert.match(marketHook, /low24h: nullableNumber\(coin\?\.low_24h\)/);
+});
+
+test('Phase 10I makes the market ticker visibly live without timer-driven rerenders', async () => {
+  const ticker = await read('src/components/home-v10/LiveMarketTicker.jsx');
+  assert.match(ticker, /ka-v10-market-ticker/);
+  assert.match(ticker, /prefers-reduced-motion/);
+  assert.match(ticker, /42s linear infinite/);
+  assert.doesNotMatch(ticker, /setInterval|requestAnimationFrame/);
+});
