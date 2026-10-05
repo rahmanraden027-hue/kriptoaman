@@ -27,8 +27,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: phase11e-final-cross-surface
-  cancel-in-progress: false
+  group: phase11e-final-cross-surface-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   contract:
