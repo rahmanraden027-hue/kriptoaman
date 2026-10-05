@@ -66,7 +66,6 @@ export default function useMarketSurface() {
 
     const maxVolume = Number(active[0]?.volume || 0);
     const featured = assets
-      .filter(asset => asset.image && Array.isArray(asset.sparkline) && asset.sparkline.length > 1)
       .map(asset => ({
         asset,
         displayScore:
