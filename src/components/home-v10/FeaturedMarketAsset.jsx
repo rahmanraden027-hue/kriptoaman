@@ -63,7 +63,13 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
       <div className="grid gap-6 lg:grid-cols-[.8fr_1.2fr] lg:items-end">
         <div>
           <div className="flex items-center gap-3">
-            {asset.image && <img src={asset.image} alt="" className="h-14 w-14 rounded-full shadow-[0_0_30px_rgba(34,211,238,.16)]" />}
+            {asset.image ? (
+              <img src={asset.image} alt="" className="h-14 w-14 rounded-full shadow-[0_0_30px_rgba(34,211,238,.16)]" />
+            ) : (
+              <div className="grid h-14 w-14 place-items-center rounded-full border border-cyan-400/25 bg-cyan-400/10 text-sm font-black tracking-[0.08em] text-cyan-200 shadow-[0_0_30px_rgba(34,211,238,.10)]">
+                {String(asset.sym || 'KA').slice(0, 4)}
+              </div>
+            )}
             <div>
               <p className="text-[9px] font-black uppercase tracking-[0.2em] text-cyan-300">MOVING NOW · {state}</p>
               <h1 className="mt-1 text-3xl font-black tracking-[-0.04em] text-white sm:text-4xl">{asset.sym}</h1>
@@ -147,9 +153,22 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
                 </>
               ) : (
                 <div className="grid h-full place-items-center text-center">
-                  <div>
-                    <p className="text-sm font-black text-slate-300">{formatPrice(asset.price)}</p>
-                    <p className="mt-2 text-[9px] uppercase tracking-[0.13em] text-slate-600">Historical trace unavailable</p>
+                  <div className="w-full max-w-[360px]">
+                    <p className="text-[8px] font-black uppercase tracking-[0.16em] text-slate-600">24H MOVE</p>
+                    <p className={`mt-2 text-4xl font-black ${positive ? 'text-emerald-300' : 'text-rose-300'}`}>
+                      {positive ? '▲ ' : '▼ '}{formatMagnitude(change)}
+                    </p>
+                    <div className="mx-auto mt-5 h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+                      <div
+                        className={`h-full rounded-full ${positive ? 'bg-emerald-400/70' : 'bg-rose-400/70'}`}
+                        style={{ width: `${Math.max(8, Math.min(100, Math.abs(change) * 5))}%` }}
+                      />
+                    </div>
+                    <div className="mt-4 flex items-center justify-center gap-4 text-[9px] font-black uppercase tracking-[0.1em] text-slate-600">
+                      <span>Rank #{asset.rank || '—'}</span>
+                      <span>Volume {formatCompactUsd(asset.volume)}</span>
+                    </div>
+                    <p className="mt-5 text-[8px] font-black uppercase tracking-[0.13em] text-slate-700">No synthetic history</p>
                   </div>
                 </div>
               )}
