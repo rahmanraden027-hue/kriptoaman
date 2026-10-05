@@ -1,0 +1,117 @@
+name: Phase 10I HomeV10 Visual Preview
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/FullAppShell.jsx'
+      - 'src/pages/HomeV10.jsx'
+      - 'src/components/home-v10/**'
+      - 'src/hooks/useMarketSurface.js'
+      - 'tests/phase10i-home-v10-preview.test.mjs'
+      - '.github/workflows/phase10i-home-v10-preview.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  visual-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      - name: Run regression tests
+        run: npm test
+      - name: Build preview candidate
+        run: npm run build
+      - name: Start local preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          nohup npx vite preview --host 127.0.0.1 --port 4173 > /tmp/ka-home-v10-preview.log 2>&1 &
+          for attempt in 1 2 3 4 5 6; do
+            if curl --fail --silent --show-error http://127.0.0.1:4173/preview/home-v10 -o /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/ka-home-v10-preview.log || true
+          exit 1
+      - name: Install Playwright Chromium
+        run: npx -y playwright@1.55.0 install --with-deps chromium
+      - name: Capture HomeV10 preview matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p phase10i-evidence
+          target='http://127.0.0.1:4173/preview/home-v10'
+          for spec in '390 844 mobile' '768 1024 tablet' '1440 1080 desktop'; do
+            set -- $spec
+            width="$1"
+            height="$2"
+            label="$3"
+            npx -y playwright@1.55.0 screenshot \
+              --browser=chromium \
+              --viewport-size="${width},${height}" \
+              --full-page \
+              --wait-for-timeout 6500 \
+              "$target" \
+              "phase10i-evidence/home-v10-${label}-${width}.png"
+          done
+      - name: Check preview DOM for horizontal overflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/overflow.mjs <<'JS'
+          import { chromium } from 'playwright';
+          const browser = await chromium.launch({ headless: true });
+          for (const viewport of [
+            { width: 390, height: 844, label: 'mobile' },
+            { width: 768, height: 1024, label: 'tablet' },
+            { width: 1440, height: 1080, label: 'desktop' },
+          ]) {
+            const page = await browser.newPage({ viewport });
+            await page.goto('http://127.0.0.1:4173/preview/home-v10', { waitUntil: 'domcontentloaded' });
+            await page.waitForTimeout(4500);
+            const result = await page.evaluate(() => ({
+              scrollWidth: document.documentElement.scrollWidth,
+              clientWidth: document.documentElement.clientWidth,
+              title: document.title,
+              hasFeatured: document.body.innerText.includes('MOVING NOW'),
+              hasMovers: document.body.innerText.includes('Top Movers'),
+              hasVerify: document.body.innerText.includes('VERIFY ANYTHING'),
+            }));
+            console.log(viewport.label, JSON.stringify(result));
+            if (result.scrollWidth > result.clientWidth + 1) process.exitCode = 1;
+            if (!result.hasFeatured || !result.hasMovers || !result.hasVerify) process.exitCode = 1;
+            await page.close();
+          }
+          await browser.close();
+          JS
+          npx -y -p playwright@1.55.0 node /tmp/overflow.mjs
+      - name: WCAG 2 AA scan
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/pa11y.json <<'JSON'
+          {
+            "standard": "WCAG2AA",
+            "timeout": 180000,
+            "wait": 4500,
+            "gotoOptions": { "waitUntil": "domcontentloaded" },
+            "chromeLaunchConfig": { "args": ["--no-sandbox", "--disable-setuid-sandbox"] }
+          }
+          JSON
+          npx -y pa11y@9.0.0 --config /tmp/pa11y.json --reporter json \
+            http://127.0.0.1:4173/preview/home-v10 > phase10i-evidence/pa11y-home-v10.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase10i-home-v10-visual-evidence
+          path: phase10i-evidence
+          retention-days: 14
