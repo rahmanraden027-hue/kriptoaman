@@ -1,38 +1,6 @@
 name: Phase 7 Android Device Visual Gate
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'src/components/landing/GLandingHeader.jsx'
-      - 'src/components/landing/GLandingHero.jsx'
-      - 'src/components/landing/GLandingHeroConsole.jsx'
-      - 'src/components/landing/global-landing.css'
-      - 'src/components/pwa/PWAInstallPrompt.jsx'
-      - 'src/components/home/LiveBlockFlow3D.jsx'
-      - 'src/components/home/NodePropagation3D.jsx'
-      - 'android/**'
-      - '.github/scripts/phase7-android-device-visual.sh'
-      - '.github/workflows/phase7-android-device-visual.yml'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'capacitor.config.*'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'android/**'
-      - 'src/components/landing/GLandingHeader.jsx'
-      - 'src/components/landing/GLandingHero.jsx'
-      - 'src/components/landing/GLandingHeroConsole.jsx'
-      - 'src/components/landing/global-landing.css'
-      - 'src/components/pwa/PWAInstallPrompt.jsx'
-      - 'src/components/home/LiveBlockFlow3D.jsx'
-      - 'src/components/home/NodePropagation3D.jsx'
-      - '.github/scripts/phase7-android-device-visual.sh'
-      - '.github/workflows/phase7-android-device-visual.yml'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'capacitor.config.*'
   workflow_dispatch:
 
 permissions:
