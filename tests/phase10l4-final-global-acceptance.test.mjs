@@ -5,9 +5,10 @@ import test from 'node:test';
 const read = path => readFile(new URL('../' + path, import.meta.url), 'utf8');
 
 test('Phase 10L.4 keeps route-level share metadata consistent with the root contract', async () => {
-  const [html, routeSeo] = await Promise.all([
+  const [html, routeSeo, language] = await Promise.all([
     read('index.html'),
     read('src/lib/RouteSeo.jsx'),
+    read('src/lib/LanguageContext.jsx'),
   ]);
   for (const source of [html, routeSeo]) {
     assert.match(source, /image\/webp/);
@@ -19,6 +20,12 @@ test('Phase 10L.4 keeps route-level share metadata consistent with the root cont
   assert.match(routeSeo, /og:image:secure_url/);
   assert.match(routeSeo, /og:image:width/);
   assert.match(routeSeo, /og:image:height/);
+  assert.match(language, /window\.location\.pathname === '\/'\) return 'id'/);
+  assert.match(language, /window\.location\.pathname === '\/en'\) return 'en'/);
+  assert.ok(
+    language.indexOf("window.location.pathname === '/'") < language.indexOf('const stored = safeReadLanguage()'),
+    'explicit public URL semantics must win before stored/browser preference'
+  );
 });
 
 test('Phase 10L.4 global acceptance is read-only and covers five production viewport classes', async () => {
