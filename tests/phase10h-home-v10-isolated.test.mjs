@@ -104,4 +104,7 @@ test('Phase 10L hardens HomeV10 for global mobile and accessibility readiness', 
   assert.doesNotMatch(deviceScript, /Live Block Flow|Node Master|data-phase7-visual/);
   assert.match(deviceWorkflow, /src\/pages\/HomeV10\.jsx/);
   assert.match(deviceWorkflow, /kriptoaman\.pages\.dev/);
+  assert.match(deviceWorkflow, /Allow production deployment to settle/);
+  assert.match(deviceWorkflow, /github\.event_name == 'push'/);
+  assert.match(deviceWorkflow, /sleep 60/);
 });
