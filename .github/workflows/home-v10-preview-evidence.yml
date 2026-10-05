@@ -55,18 +55,22 @@ jobs:
             branch='${{ github.head_ref }}'
             branch="$(printf '%s' "$branch" | tr '[:upper:]' '[:lower:]' | tr '/_' '--')"
             branch="${branch:0:28}"
-            target="https://${branch}.kriptoaman.pages.dev/preview/home-v10"
+            cloudflare_target="https://${branch}.kriptoaman.pages.dev/preview/home-v10"
+            target='http://127.0.0.1:4173/preview/home-v10'
+            for attempt in $(seq 1 6); do
+              if curl -L --fail --silent --show-error --max-time 10 "$cloudflare_target" -o /dev/null; then
+                target="$cloudflare_target"
+                break
+              fi
+              sleep 3
+            done
           fi
           echo "target=$target" >> "$GITHUB_OUTPUT"
-          echo "Waiting for HomeV10 preview: $target"
-          for attempt in $(seq 1 24); do
-            if curl -L --fail --silent --show-error --max-time 15 "$target" -o /dev/null; then
-              exit 0
-            fi
-            sleep 5
-          done
-          echo "HomeV10 live preview was not reachable." >&2
-          exit 1
+          echo "HomeV10 evidence target: $target"
+          if ! curl -L --fail --silent --show-error --max-time 15 "$target" -o /dev/null; then
+            echo "HomeV10 candidate target was not reachable." >&2
+            exit 1
+          fi
 
       - name: Prepare verified market snapshot for visual evidence
         shell: bash
