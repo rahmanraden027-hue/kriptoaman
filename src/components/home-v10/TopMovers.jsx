@@ -24,7 +24,8 @@ export default function TopMovers({ gainers = [], losers = [], active = [], newA
               type="button"
               disabled={value === 'newAssets' && newAssets.length === 0}
               onClick={() => setTab(value)}
-              className={`min-h-8 shrink-0 rounded-lg px-2.5 text-[9px] font-black uppercase tracking-[0.08em] ${tab === value ? 'bg-cyan-400/10 text-cyan-200' : 'text-slate-400'} disabled:opacity-35`}
+              aria-pressed={tab === value}
+              className={`min-h-11 shrink-0 rounded-lg px-2.5 text-[9px] font-black uppercase tracking-[0.08em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 ${tab === value ? 'bg-cyan-400/10 text-cyan-200' : 'text-slate-400'} disabled:opacity-35`}
             >
               {label}
             </button>
@@ -37,9 +38,9 @@ export default function TopMovers({ gainers = [], losers = [], active = [], newA
           const change = Number(asset.change24h);
           const points = sparklinePoints(asset.sparkline, 90, 28);
           return (
-            <a key={asset.id} href={`/Market?search=${encodeURIComponent(asset.sym)}`} className="grid grid-cols-[1fr_auto_auto] items-center gap-3 py-3 sm:grid-cols-[1fr_auto_auto_100px]">
+            <a key={asset.id} href={`/Market?search=${encodeURIComponent(asset.sym)}`} className="grid grid-cols-[1fr_auto_auto] items-center gap-3 rounded-xl py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 sm:grid-cols-[1fr_auto_auto_100px]">
               <div className="flex min-w-0 items-center gap-2.5">
-                {asset.image && <img src={asset.image} alt="" className="h-7 w-7 rounded-full" loading="lazy" />}
+                {asset.image && <img src={asset.image} alt="" className="h-7 w-7 rounded-full" loading="lazy" decoding="async" />}
                 <div className="min-w-0">
                   <p className="truncate text-sm font-black text-white">{asset.sym}</p>
                   <p className="truncate text-[9px] text-slate-400">{asset.name}</p>
