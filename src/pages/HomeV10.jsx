@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, Menu, Search } from 'lucide-react';
+import { Bell, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import FeaturedMarketAsset from '@/components/home-v10/FeaturedMarketAsset';
 import IntelligenceStream from '@/components/home-v10/IntelligenceStream';
@@ -32,7 +32,6 @@ export default function HomeV10() {
           <div className="ml-auto flex items-center gap-2">
             <Link to="/Market" aria-label="Search market" className="grid h-9 w-9 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.02] text-slate-400"><Search className="h-4 w-4" /></Link>
             <Link to="/Alerts" aria-label="Alerts" className="grid h-9 w-9 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.02] text-slate-400"><Bell className="h-4 w-4" /></Link>
-            <button type="button" aria-label="More" className="grid h-9 w-9 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.02] text-slate-400"><Menu className="h-4 w-4" /></button>
           </div>
         </div>
       </header>
@@ -71,10 +70,10 @@ export default function HomeV10() {
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/[0.07] bg-[#020711]/96 px-2 py-2 backdrop-blur-xl md:hidden">
         <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
           <Link to="/" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-cyan-300">Home</Link>
-          <Link to="/Market" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-500 hover:bg-white/[0.04] hover:text-cyan-300">Market</Link>
-          <Link to="/IntelligenceHub" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-500 hover:bg-white/[0.04] hover:text-cyan-300">Intel</Link>
-          <a href="#verify" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-500 hover:bg-white/[0.04] hover:text-cyan-300">Verify</a>
-          <Link to="/PortfolioOverview" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-500 hover:bg-white/[0.04] hover:text-cyan-300">Portfolio</Link>
+          <Link to="/Market" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-cyan-300">Market</Link>
+          <Link to="/IntelligenceHub" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-cyan-300">Intel</Link>
+          <a href="#verify" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-cyan-300">Verify</a>
+          <Link to="/PortfolioOverview" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-cyan-300">Portfolio</Link>
         </div>
       </nav>
     </main>

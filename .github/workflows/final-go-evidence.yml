@@ -109,6 +109,22 @@ jobs:
               "$target" \
               "viewport-evidence/home-${width}.png"
           done
+
+          if [ '${{ github.event_name }}' = 'pull_request' ] && grep -q 'path="/preview/home-v10"' src/FullAppShell.jsx; then
+            preview_target='http://127.0.0.1:4173/preview/home-v10'
+            echo "HomeV10 preview target: $preview_target"
+            for width in 390 768 1440; do
+              height=1000
+              if [ "$width" -ge 1024 ]; then height=1080; fi
+              npx -y playwright@1.55.0 screenshot \
+                --browser=chromium \
+                --viewport-size="${width},${height}" \
+                --full-page \
+                --wait-for-timeout 4500 \
+                "$preview_target" \
+                "viewport-evidence/home-v10-${width}.png"
+            done
+          fi
       - name: Basic WCAG 2 AA automated scan
         shell: bash
         run: |

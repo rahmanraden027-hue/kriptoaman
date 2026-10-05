@@ -1,0 +1,196 @@
+name: HomeV10 Preview Evidence
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/home-v10-preview-evidence.yml'
+      - 'src/pages/HomeV10.jsx'
+      - 'src/components/home-v10/**'
+      - 'src/hooks/useMarketSurface.js'
+      - 'src/FullAppShell.jsx'
+      - 'tests/phase10h-home-v10-isolated.test.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  home-v10-preview-evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Build isolated HomeV10 candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --legacy-peer-deps
+          npm run build
+          nohup npx vite preview --host 127.0.0.1 --port 4173 > /tmp/home-v10-preview.log 2>&1 &
+          for attempt in 1 2 3 4 5 6; do
+            if curl --fail --silent --show-error http://127.0.0.1:4173/preview/home-v10 -o /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/home-v10-preview.log || true
+          exit 1
+
+      - name: Install Chromium
+        run: npx -y playwright@1.55.0 install --with-deps chromium
+
+      - name: Resolve live preview target
+        id: preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          target='https://kriptoaman.com/preview/home-v10'
+          if [ '${{ github.event_name }}' = 'pull_request' ]; then
+            branch='${{ github.head_ref }}'
+            branch="$(printf '%s' "$branch" | tr '[:upper:]' '[:lower:]' | tr '/_' '--')"
+            target="https://${branch}.kriptoaman.pages.dev/preview/home-v10"
+          fi
+          echo "target=$target" >> "$GITHUB_OUTPUT"
+          echo "Waiting for HomeV10 preview: $target"
+          for attempt in $(seq 1 24); do
+            if curl -L --fail --silent --show-error --max-time 15 "$target" -o /dev/null; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "HomeV10 live preview was not reachable." >&2
+          exit 1
+
+      - name: Prepare verified market snapshot for visual evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p home-v10-evidence
+          target='${{ steps.preview.outputs.target }}'
+          origin="$(node -e "console.log(new URL(process.argv[1]).origin)" "$target")"
+          curl -L --fail --silent --show-error --max-time 30 \
+            'https://kriptoaman.com/api/market-snapshot-page?page=0&limit=500' \
+            -o /tmp/home-v10-market-page.json
+          PREVIEW_ORIGIN="$origin" node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+
+          const payload = JSON.parse(fs.readFileSync('/tmp/home-v10-market-page.json', 'utf8'));
+          if (!Array.isArray(payload?.data) || payload.data.length < 100) {
+            throw new Error('Verified production market snapshot is unavailable or incomplete.');
+          }
+          if (!payload.data.some(asset => String(asset?.symbol || '').toUpperCase() === 'BTC')) {
+            throw new Error('Verified production market snapshot does not contain BTC.');
+          }
+
+          const savedAt = Number(payload.capturedAt);
+          if (!Number.isFinite(savedAt) || savedAt <= 0) {
+            throw new Error('Verified production market snapshot is missing capturedAt.');
+          }
+
+          const cacheValue = JSON.stringify({
+            savedAt,
+            source: 'kriptoaman-market-db',
+            data: payload.data,
+          });
+          fs.writeFileSync('/tmp/home-v10-market-storage.json', JSON.stringify({
+            cookies: [],
+            origins: [{
+              origin: process.env.PREVIEW_ORIGIN,
+              localStorage: [{
+                name: 'ka_market_snapshot_v5',
+                value: cacheValue,
+              }],
+            }],
+          }));
+          fs.writeFileSync(
+            'home-v10-evidence/market-snapshot-proof.json',
+            JSON.stringify({
+              capturedAt: savedAt,
+              assetCount: payload.data.length,
+              source: payload.source || 'kriptoaman-market-db',
+              evidenceMode: 'verified-production-snapshot-seeded-into-preview-cache',
+            }, null, 2),
+          );
+          NODE
+
+      - name: Capture HomeV10 production viewport matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p home-v10-evidence
+          target='${{ steps.preview.outputs.target }}'
+          echo "Viewport target: $target"
+          for spec in '390,1000,mobile' '768,1100,tablet' '1440,1100,desktop'; do
+            IFS=',' read -r width height label <<< "$spec"
+            npx -y playwright@1.55.0 screenshot \
+              --browser=chromium \
+              --viewport-size="${width},${height}" \
+              --load-storage=/tmp/home-v10-market-storage.json \
+              --full-page \
+              --wait-for-timeout 5000 \
+              "$target" \
+              "home-v10-evidence/home-v10-${label}-${width}.png"
+          done
+
+      - name: HomeV10 automated accessibility gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/pa11y-home-v10.json <<'JSON'
+          {
+            "standard": "WCAG2AA",
+            "timeout": 180000,
+            "wait": 5000,
+            "gotoOptions": {
+              "waitUntil": "domcontentloaded"
+            },
+            "chromeLaunchConfig": {
+              "args": ["--no-sandbox", "--disable-setuid-sandbox"]
+            }
+          }
+          JSON
+          set +e
+          npx -y pa11y@9.0.0 \
+            --config /tmp/pa11y-home-v10.json \
+            --reporter json \
+            '${{ steps.preview.outputs.target }}' \
+            > home-v10-evidence/pa11y-home-v10.json
+          status=$?
+          set -e
+          cat home-v10-evidence/pa11y-home-v10.json || true
+          exit "$status"
+
+      - name: Assert HomeV10 route contract
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+
+          const shell = fs.readFileSync('src/FullAppShell.jsx', 'utf8');
+          const app = fs.readFileSync('src/App.jsx', 'utf8');
+          const home = fs.readFileSync('src/pages/HomeV10.jsx', 'utf8');
+
+          if (!shell.includes('path="/preview/home-v10"')) {
+            throw new Error('HomeV10 preview route is missing.');
+          }
+          if (!home.includes('LiveMarketTicker') || !home.includes('FeaturedMarketAsset') || !home.includes('VerifyAnything')) {
+            throw new Error('HomeV10 data-first composition contract is incomplete.');
+          }
+          if (!app.includes("if (pathname === '/')")) {
+            throw new Error('Production root routing contract changed unexpectedly.');
+          }
+          NODE
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: home-v10-preview-evidence
+          path: home-v10-evidence
+          retention-days: 30

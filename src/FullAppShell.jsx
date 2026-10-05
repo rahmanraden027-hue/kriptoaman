@@ -23,6 +23,7 @@ const LegalCorporateInformation = lazy(() => import('./pages/LegalCorporateInfor
 const Founder = lazy(() => import('./pages/Founder'));
 const CompanyFacts = lazy(() => import('./pages/CompanyFacts'));
 const Research = lazy(() => import('./pages/Research'));
+const HomeV10 = lazy(() => import('./pages/HomeV10'));
 const AssetPassport = lazy(() => import('./pages/AssetPassport'));
 const PairPassport = lazy(() => import('./pages/PairPassport'));
 const KAMResearchPaper = lazy(() => import('./pages/KAMResearchPaper'));
@@ -108,6 +109,7 @@ function RoutedWorkspace() {
         <Route path="/qoryvex/pair-passport" element={<PairPassport />} />
         <Route path="/research/kam-mainnet-architecture" element={<KAMResearchPaper />} />
         <Route path="/SystemStatus" element={<SystemStatus />} />
+        <Route path="/preview/home-v10" element={<HomeV10 />} />
         <Route path="/wallet-app" element={WalletStandalonePage ? <Web3Provider><WalletStandalonePage /></Web3Provider> : <PageNotFound />} />
 
         {Object.entries(Pages).map(([path, Page]) => {

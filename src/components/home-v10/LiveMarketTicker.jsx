@@ -30,7 +30,7 @@ export default function LiveMarketTicker({ assets = [], state = 'UNAVAILABLE' })
                   </span>
                 </div>
               );
-            }) : <span className="text-[10px] text-slate-500">Market data unavailable</span>}
+            }) : <span className="text-[10px] text-slate-400">Market data unavailable</span>}
           </div>
         </div>
       </div>

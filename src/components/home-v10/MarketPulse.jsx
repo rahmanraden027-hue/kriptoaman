@@ -4,9 +4,9 @@ import { formatChange, formatCompactUsd } from './format';
 function PulseCell({ label, value, detail, tone = 'text-white' }) {
   return (
     <div className="rounded-2xl border border-white/[0.06] bg-white/[0.025] p-3.5">
-      <p className="text-[8px] font-black uppercase tracking-[0.14em] text-slate-500">{label}</p>
+      <p className="text-[8px] font-black uppercase tracking-[0.14em] text-slate-400">{label}</p>
       <p className={`mt-2 truncate text-lg font-black ${tone}`}>{value}</p>
-      {detail && <p className="mt-1 truncate text-[9px] text-slate-500">{detail}</p>}
+      {detail && <p className="mt-1 truncate text-[9px] text-slate-400">{detail}</p>}
     </div>
   );
 }
