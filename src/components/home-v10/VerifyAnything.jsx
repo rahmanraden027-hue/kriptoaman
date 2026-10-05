@@ -32,7 +32,7 @@ export default function VerifyAnything() {
   };
 
   return (
-    <section className="rounded-[28px] border border-violet-400/15 bg-[radial-gradient(circle_at_50%_0%,rgba(139,92,246,.11),transparent_40%),#050c16] p-5 sm:p-6">
+    <section id="verify" className="scroll-mt-20 rounded-[28px] border border-violet-400/15 bg-[radial-gradient(circle_at_50%_0%,rgba(139,92,246,.11),transparent_40%),#050c16] p-5 sm:p-6">
       <p className="text-[9px] font-black uppercase tracking-[0.18em] text-violet-300">VERIFY ANYTHING</p>
       <form onSubmit={submit} className="mt-3 flex items-center gap-2 rounded-2xl border border-white/[0.08] bg-black/20 p-2">
         <Search className="ml-2 h-4 w-4 shrink-0 text-cyan-300" />
