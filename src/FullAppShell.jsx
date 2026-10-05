@@ -6,7 +6,7 @@ import NavigationTracker from '@/lib/NavigationTracker';
 import { pagesConfig } from './pages.config';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
-import { AuthProvider } from '@/lib/AuthContext';
+import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import PrimaryBottomNav from '@/components/mobile/PrimaryBottomNav';
 import NativeConnectivityBanner from '@/components/mobile/NativeConnectivityBanner';
 import { LanguageProvider } from '@/lib/LanguageContext';
@@ -67,8 +67,6 @@ const StoreAvailabilityNotice = () => (
   </div>
 );
 
-const PublicMarketWithNav = ({ Page }) => <div className="min-h-screen"><Page /><PrimaryBottomNav currentPageName="Market" /></div>;
-
 const PublicKAMWithDocument = ({ Page }) => (
   <div className="min-h-screen bg-slate-950">
     <Page />
@@ -91,6 +89,25 @@ const PUBLIC_PAGE_KEYS = new Set(['AboutUs', 'Edukasi', 'Enterprise', 'Contact',
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ? <Layout currentPageName={currentPageName}>{children}</Layout> : <>{children}</>;
 
+const AdaptivePrimarySurface = ({ Page, currentPageName }) => {
+  const { isAuthenticated, isLoadingAuth } = useAuth();
+
+  if (isLoadingAuth) {
+    return <WorkspaceState mode="loading" title="Memuat KriptoAman" body="Menyinkronkan sesi dan surface produksi." />;
+  }
+
+  if (isAuthenticated) {
+    return <LayoutWrapper currentPageName={currentPageName}><Page /></LayoutWrapper>;
+  }
+
+  return (
+    <div className="min-h-screen">
+      <Page />
+      <PrimaryBottomNav currentPageName={currentPageName} mode="public" />
+    </div>
+  );
+};
+
 function RoutedWorkspace() {
   return (
     <Suspense fallback={<WorkspaceState mode="loading" title="Memuat workspace" body="Komponen sedang dimuat. Data tersimpan tidak berubah." />}>
@@ -109,12 +126,24 @@ function RoutedWorkspace() {
         <Route path="/qoryvex/pair-passport" element={<PairPassport />} />
         <Route path="/research/kam-mainnet-architecture" element={<KAMResearchPaper />} />
         <Route path="/SystemStatus" element={<SystemStatus />} />
+        <Route path="/Services" element={<AdaptivePrimarySurface Page={Services} currentPageName="Services" />} />
         <Route path="/preview/home-v10" element={<HomeV10 />} />
         <Route path="/wallet-app" element={WalletStandalonePage ? <Web3Provider><WalletStandalonePage /></Web3Provider> : <PageNotFound />} />
 
         {Object.entries(Pages).map(([path, Page]) => {
           if (!PUBLIC_PAGE_KEYS.has(path)) return null;
-          const element = path === 'Market' ? <PublicMarketWithNav Page={Page} /> : path === 'KAM' ? <PublicKAMWithDocument Page={Page} /> : <Page />;
+          const primaryPageName = path === 'Market'
+            ? 'Market'
+            : path === 'ZEVARYQ'
+              ? 'ZEVARYQ'
+              : path === 'QoryVExDiscovery'
+                ? 'Services'
+                : null;
+          const element = primaryPageName
+            ? <AdaptivePrimarySurface Page={Page} currentPageName={primaryPageName} />
+            : path === 'KAM'
+              ? <PublicKAMWithDocument Page={Page} />
+              : <Page />;
           const routePath = path === 'KAMCampaignNews'
             ? '/news/kam-campaign-2026'
             : path === 'QoryVExDiscovery'
@@ -132,7 +161,6 @@ function RoutedWorkspace() {
           })}
           <Route path="/FeatureUpdateBroadcast" element={<AdminRoute><LayoutWrapper currentPageName="FeatureUpdateBroadcast"><FeatureUpdateBroadcast /></LayoutWrapper></AdminRoute>} />
           <Route path="/AMLAssistant" element={<LayoutWrapper currentPageName="AMLAssistant"><AMLAssistant /></LayoutWrapper>} />
-          <Route path="/Services" element={<LayoutWrapper currentPageName="Services"><Services /></LayoutWrapper>} />
           <Route path="/MultiChainWallet" element={<LayoutWrapper currentPageName="MultiChainWallet"><MultiChainWallet /></LayoutWrapper>} />
           <Route path="/SecurityHub" element={<LayoutWrapper currentPageName="SecurityHub"><SecurityHub /></LayoutWrapper>} />
           <Route path="/BigQueryKYCReports" element={<AdminRoute><LayoutWrapper currentPageName="BigQueryKYCReports"><BigQueryKYCReports /></LayoutWrapper></AdminRoute>} />
