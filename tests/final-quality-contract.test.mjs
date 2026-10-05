@@ -14,11 +14,14 @@ test('price alerts evaluate live prices once and persist trigger state', async (
 });
 
 test('mobile and desktop primary actions follow the selected language', async () => {
-  const [layout, actions] = await Promise.all([
+  const [layout, actions, navigation] = await Promise.all([
     read('src/Layout.jsx'),
     read('src/components/home/HomeQuickActions.jsx'),
+    read('src/lib/primaryNavigation.js'),
   ]);
-  assert.match(layout, /DESKTOP_LABELS/);
+  assert.match(layout, /primaryNavLabels/);
+  assert.match(navigation, /home: 'Home'/);
+  assert.match(navigation, /home: 'Beranda'/);
   assert.match(layout, /Global intelligence · Watch-only/);
   assert.match(layout, /Intelijen global · Pemantauan/);
   assert.match(actions, /Watch Wallet/);
