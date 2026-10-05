@@ -1,6 +1,6 @@
 package com.getcapacitor.myapp;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -9,18 +9,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
- * Instrumented test, which will execute on an Android device.
- *
- * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
+ * Basic package-identity smoke shared by both Android product flavors.
  */
 @RunWith(AndroidJUnit4.class)
 public class ExampleInstrumentedTest {
 
     @Test
-    public void useAppContext() throws Exception {
-        // Context of the app under test.
+    public void useAppContext() {
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-
-        assertEquals("com.getcapacitor.app", appContext.getPackageName());
+        String packageName = appContext.getPackageName();
+        assertTrue(
+                "Unexpected KriptoAman Android package: " + packageName,
+                "com.kriptoaman.app".equals(packageName) || "com.kriptoaman.wallet".equals(packageName)
+        );
     }
 }
