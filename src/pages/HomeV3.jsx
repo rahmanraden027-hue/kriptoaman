@@ -10,6 +10,7 @@ import {
   Radar,
   Search,
   ShieldCheck,
+  Star,
   TrendingUp,
   WalletCards,
 } from 'lucide-react';
@@ -98,7 +99,6 @@ export default function HomeV3() {
   const [market, setMarket] = useState(null);
   const [activeChains, setActiveChains] = useState(null);
   const [zvq, setZvq] = useState(null);
-  const [pulse, setPulse] = useState(null);
   const [query, setQuery] = useState('');
 
   const submitSearch = (event) => {
@@ -121,11 +121,10 @@ export default function HomeV3() {
 
     const load = async () => {
       try {
-        const [m, n, z, p] = await Promise.allSettled([
+        const [m, n, z] = await Promise.allSettled([
           fetch('/api/market-overview', { headers: { Accept: 'application/json' }, cache: 'no-store' }),
           fetch('/api/network-health', { headers: { Accept: 'application/json' }, cache: 'no-store' }),
           fetch('/api/kam/network-status', { headers: { Accept: 'application/json' }, cache: 'no-store' }),
-          fetch('/api/zvq-token-intelligence', { headers: { Accept: 'application/json' }, cache: 'no-store' }),
         ]);
 
         if (!live) return;
@@ -146,10 +145,6 @@ export default function HomeV3() {
           if (live) setZvq(payload?.live === true && payload?.verified === true ? payload : null);
         }
 
-        if (p.status === 'fulfilled' && p.value.ok) {
-          const payload = await p.value.json();
-          if (live && payload?.status === 'live' && Number(payload?.chainId) === 22028) setPulse(payload);
-        }
       } catch {
         // Keep verified-data placeholders on failure.
       }
@@ -167,7 +162,6 @@ export default function HomeV3() {
   const latency = verifiedNumber(zvq?.probeDurationMs);
   const verified = zvq?.verified === true;
   const syncState = verified ? String(zvq?.syncStatus || 'unknown').toUpperCase() : 'UNAVAILABLE';
-  const evidenceLive = pulse?.status === 'live' && Number(pulse?.chainId) === 22028;
   const marketAvailable = market?.status === 'available';
 
   return (
@@ -258,7 +252,7 @@ export default function HomeV3() {
             <WorkspaceRoute icon={TrendingUp} label="Discover Market" note="Markets, movers, watchlist context." to="/Market" />
             <WorkspaceRoute icon={WalletCards} label="Portfolio" note="Watch-only holdings and asset context." to="/PortfolioOverview" tone="violet" />
             <WorkspaceRoute icon={BellRing} label="Alerts" note="Signals and monitored conditions." to="/Alerts" tone="amber" />
-            <WorkspaceRoute icon={ShieldCheck} label="On-Chain Evidence" note="Verification, risk and network evidence." to="/IntelligenceHub" tone="emerald" />
+            <WorkspaceRoute icon={Star} label="Watchlist" note="Saved assets and monitored market context." to="/Market" tone="emerald" />
           </div>
         </section>
 
@@ -318,40 +312,7 @@ export default function HomeV3() {
           </a>
         </section>
 
-        <section className="mt-5 rounded-[24px] border border-cyan-400/15 bg-[#050d17]/88 p-4" aria-label="Compact ZEVARYQ evidence">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-[9px] font-black uppercase tracking-[.16em] text-cyan-300">ZEVARYQ EVIDENCE</p>
-              <h2 className="mt-1 text-base font-black">Verified state, without duplicate diagnostics.</h2>
-            </div>
-            <span className={'rounded-full border px-3 py-1.5 text-[9px] font-black uppercase tracking-[.12em] ' + (evidenceLive ? 'border-emerald-400/20 bg-emerald-400/10 text-emerald-300' : 'border-white/10 bg-white/[.04] text-slate-400')}>
-              {evidenceLive ? 'LIVE EVIDENCE' : 'UNAVAILABLE'}
-            </span>
-          </div>
 
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <StatusCell label="CHAIN HEAD" value={verified && Number.isFinite(head) ? '#' + fmtNum(head) : 'UNAVAILABLE'} tone={verified ? 'emerald' : 'amber'} />
-            <StatusCell label="CHAIN ID" value="22028" note="0x560c" />
-            <StatusCell label="SYNC" value={syncState} tone={syncState === 'SYNCED' ? 'emerald' : 'amber'} />
-            <StatusCell label="EVIDENCE" value={evidenceLive ? 'LIVE' : 'GATED'} tone={evidenceLive ? 'emerald' : 'amber'} />
-          </div>
-
-          <div className="mt-3 flex flex-wrap gap-2">
-            {verified && Number.isFinite(head) && (
-              <a
-                href={'https://explorer.kriptoaman.com/block/' + head}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex min-h-9 items-center gap-1 rounded-xl border border-cyan-400/15 bg-cyan-400/[.05] px-3 text-[10px] font-black text-cyan-300"
-              >
-                VERIFY HEAD <ExternalLink className="h-3 w-3" />
-              </a>
-            )}
-            <Link to="/SystemStatus" className="inline-flex min-h-9 items-center gap-1 rounded-xl border border-white/[.06] bg-white/[.025] px-3 text-[10px] font-black text-slate-300">
-              FULL DIAGNOSTICS <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
-        </section>
       </div>
 
       <div className="mx-auto mt-5 max-w-7xl border-t border-sky-400/10 px-4 pb-1 pt-5 sm:px-6 sm:pb-2 lg:px-8">

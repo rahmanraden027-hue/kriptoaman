@@ -29,14 +29,16 @@ test('HomeV3 keeps compact status source-aware and fail-closed', async () => {
   assert.match(source, /Verified RPC required/);
   assert.match(source, /UNAVAILABLE/);
   assert.match(source, /Successful live probes/);
-  assert.match(source, /LIVE EVIDENCE/);
+  assert.match(source, /KriptoAman market source/);
 });
 
 test('technical diagnostics are routed away from Home instead of repeated inline', async () => {
   const source = await read('src/pages/HomeV3.jsx');
   assert.match(source, /System Evidence/);
-  assert.match(source, /FULL DIAGNOSTICS/);
+  assert.match(source, /SYSTEM STATUS/);
   assert.match(source, /ZEVARYQ Explorer/);
+  assert.match(source, /OPEN EXPLORER/);
+  assert.doesNotMatch(source, /ZEVARYQ EVIDENCE/);
   assert.doesNotMatch(source, /Network Operations Console/);
   assert.doesNotMatch(source, /Block Event → Node Pulse → Explorer Index/);
 });
