@@ -9,15 +9,25 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
   const candidates = useMemo(() => assets.slice(0, 8), [assets]);
   const [index, setIndex] = useState(0);
   const [pausedUntil, setPausedUntil] = useState(0);
+  const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
-    if (candidates.length < 2) return undefined;
+    if (typeof window.matchMedia !== 'function') return undefined;
+    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const sync = () => setReduceMotion(query.matches);
+    sync();
+    query.addEventListener?.('change', sync);
+    return () => query.removeEventListener?.('change', sync);
+  }, []);
+
+  useEffect(() => {
+    if (candidates.length < 2 || reduceMotion) return undefined;
     const timer = window.setInterval(() => {
       if (Date.now() < pausedUntil || document.visibilityState !== 'visible') return;
       setIndex(current => (current + 1) % candidates.length);
     }, ROTATION_MS);
     return () => window.clearInterval(timer);
-  }, [candidates.length, pausedUntil]);
+  }, [candidates.length, pausedUntil, reduceMotion]);
 
   useEffect(() => {
     if (index >= candidates.length) setIndex(0);
@@ -130,7 +140,9 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
                 setIndex(candidateIndex);
                 setPausedUntil(Date.now() + 30000);
               }}
-              className={`flex min-h-9 shrink-0 items-center gap-2 rounded-xl border px-3 text-[10px] font-black ${candidateIndex === index ? 'border-cyan-400/30 bg-cyan-400/10 text-cyan-200' : 'border-white/[0.06] bg-white/[0.02] text-slate-400'}`}
+              aria-pressed={candidateIndex === index}
+              aria-label={`Show ${candidate.sym} market snapshot`}
+              className={`flex min-h-11 shrink-0 items-center gap-2 rounded-xl border px-3 text-[10px] font-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 ${candidateIndex === index ? 'border-cyan-400/30 bg-cyan-400/10 text-cyan-200' : 'border-white/[0.06] bg-white/[0.02] text-slate-400'}`}
             >
               {candidate.image && <img src={candidate.image} alt="" className="h-4 w-4 rounded-full" />}
               {candidate.sym}
