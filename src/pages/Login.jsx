@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LogIn, Mail, Lock, Loader2, ShieldCheck } from "lucide-react";
-import AuthLayout from "@/components/AuthLayout";
+import AuthLayout from "@/components/AuthLayout";\nimport LoginNetworkEntrance from "@/components/auth/LoginNetworkEntrance";
 import { useLanguage } from "@/lib/LanguageContext";
 
 const COPY = {
@@ -85,7 +85,7 @@ export default function Login() {
   };
 
   return (
-    <AuthLayout icon={LogIn} title={text.title} subtitle={text.subtitle} logo darkBlue footer={<>{text.noAccount}{" "}<Link to="/register" className="font-semibold text-sky-400 hover:text-sky-300 hover:underline">{text.register}</Link></>}>
+    <AuthLayout icon={LogIn} title={text.title} subtitle={text.subtitle} logo darkBlue visual={<LoginNetworkEntrance language={language} />} footer={<>{text.noAccount}{" "}<Link to="/register" className="font-semibold text-sky-400 hover:text-sky-300 hover:underline">{text.register}</Link></>}>
       {error && <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>}
 
       <form onSubmit={handleSubmit} className="space-y-4">
