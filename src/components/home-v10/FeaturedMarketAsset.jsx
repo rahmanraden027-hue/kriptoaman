@@ -27,6 +27,7 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
   const change = Number(asset?.change24h);
   const positive = change >= 0;
   const points = sparklinePoints(asset?.sparkline, 520, 180);
+  const hasTrace = Boolean(points);
 
   if (!asset) {
     return (
@@ -77,14 +78,17 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
           </Link>
         </div>
 
-        <div className="relative min-h-[220px] rounded-[24px] border border-white/[0.05] bg-black/10 p-3">
-          <div className="absolute inset-x-3 top-3 flex items-center justify-between">
-            <span className="text-[8px] font-black uppercase tracking-[0.16em] text-slate-400">7D PRICE TRACE</span>
+        <div className="relative min-h-[180px] rounded-[24px] border border-white/[0.05] bg-black/10 p-3 sm:min-h-[220px]">
+          <div className="flex items-center justify-between">
+            <span className="text-[8px] font-black uppercase tracking-[0.16em] text-slate-400">
+              {hasTrace ? '7D PRICE TRACE' : 'MARKET SNAPSHOT'}
+            </span>
             <span className="text-[9px] font-black text-slate-400">#{asset.rank || '—'}</span>
           </div>
-          <svg viewBox="0 0 520 180" className="absolute inset-x-3 bottom-3 h-[calc(100%-46px)] w-[calc(100%-24px)]" role="img" aria-label={`${asset.sym} price trace`}>
-            <line x1="0" y1="90" x2="520" y2="90" stroke="rgba(148,163,184,.12)" strokeWidth="1" />
-            {points && (
+
+          {hasTrace ? (
+            <svg viewBox="0 0 520 180" className="absolute inset-x-3 bottom-3 h-[calc(100%-46px)] w-[calc(100%-24px)]" role="img" aria-label={`${asset.sym} price trace`}>
+              <line x1="0" y1="90" x2="520" y2="90" stroke="rgba(148,163,184,.12)" strokeWidth="1" />
               <polyline
                 points={points}
                 fill="none"
@@ -94,8 +98,25 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
                 strokeLinejoin="round"
                 vectorEffect="non-scaling-stroke"
               />
-            )}
-          </svg>
+            </svg>
+          ) : (
+            <div className="mt-5">
+              <p className="text-[9px] font-black uppercase tracking-[0.12em] text-slate-400">7D trace not provided in this snapshot</p>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                {[
+                  ['Price', formatPrice(asset.price)],
+                  ['24H Move', `${positive ? '▲ ' : '▼ '}${formatMagnitude(change)}`],
+                  ['Market Cap', formatCompactUsd(asset.marketCap)],
+                  ['24H Volume', formatCompactUsd(asset.volume)],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-2xl border border-white/[0.05] bg-white/[0.025] p-3">
+                    <p className={`truncate text-sm font-black ${label === '24H Move' ? (positive ? 'text-emerald-300' : 'text-rose-300') : 'text-white'}`}>{value}</p>
+                    <p className="mt-1 text-[8px] font-black uppercase tracking-[0.1em] text-slate-400">{label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
