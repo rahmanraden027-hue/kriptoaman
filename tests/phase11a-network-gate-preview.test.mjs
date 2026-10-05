@@ -15,7 +15,7 @@ test('Phase 11A exposes an isolated preview route without replacing production r
 test('Phase 11A gate uses verified read-only ZEVARYQ sources and fails closed', async () => {
   const gate = await read('src/pages/NetworkGatePreview.jsx');
   assert.match(gate, /\/api\/kam\/network-status/);
-  assert.match(gate, /https:\/\/explorer\.kriptoaman\.com\/api\/v2\/blocks/);
+  assert.equal(gate.includes("const EXPLORER_BLOCKS = 'https://explorer.kriptoaman.com/api/v2/blocks';"), true);
   assert.match(gate, /EXPECTED_CHAIN_ID = 22028/);
   assert.match(gate, /EXPECTED_CHAIN_HEX = '0x560c'/);
   assert.match(gate, /payload\?\.live !== true/);
@@ -41,7 +41,7 @@ test('Phase 11A preview is noindex at server and client layers and provides safe
   assert.match(headers, /\/preview\/network-gate[^]*X-Robots-Tag: noindex, nofollow, noarchive/);
   assert.match(gate, /noindex,nofollow,noarchive/);
   assert.match(gate, /to="\/login"/);
-  assert.match(gate, /https:\/\/explorer\.kriptoaman\.com/);
+  assert.equal(gate.includes('https://explorer.kriptoaman.com'), true);
   assert.match(gate, /to="\/"/);
   assert.match(gate, /prefers-reduced-motion/);
 });
