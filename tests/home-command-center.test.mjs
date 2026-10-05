@@ -4,12 +4,14 @@ import test from 'node:test';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('HomeV3 presents the production crypto command center first', async () => {
+test('HomeV3 presents a personal workspace instead of repeating the public command center', async () => {
   const source = await read('src/pages/HomeV3.jsx');
-  assert.match(source, /CRYPTO COMMAND CENTER/);
-  assert.match(source, /LIVE PRODUCTION INTELLIGENCE/);
-  assert.match(source, /CommandCenterHeroVisual/);
-  assert.match(source, /<LiveBlockFlow3D\/>/);
+  assert.match(source, /MY KRIPTOAMAN/);
+  assert.match(source, /Your market\. Your evidence\./);
+  assert.match(source, /MY WORKSPACE/);
+  assert.doesNotMatch(source, /CRYPTO COMMAND CENTER/);
+  assert.doesNotMatch(source, /CommandCenterHeroVisual/);
+  assert.doesNotMatch(source, /<LiveBlockFlow3D\/>/);
 });
 
 test('HomeV3 removes placeholder-heavy prototype modules from the production landing surface', async () => {
@@ -21,18 +23,20 @@ test('HomeV3 removes placeholder-heavy prototype modules from the production lan
   assert.doesNotMatch(source, /SignalDNA/);
 });
 
-test('command-center hero remains source aware and fail-closed', async () => {
-  const source = await read('src/components/home/CommandCenterHeroVisual.jsx');
-  assert.match(source, /MAINNET VERIFIED/);
-  assert.match(source, /VERIFYING NETWORK/);
+test('HomeV3 keeps compact status source-aware and fail-closed', async () => {
+  const source = await read('src/pages/HomeV3.jsx');
+  assert.match(source, /Verified chain head/);
+  assert.match(source, /Verified RPC required/);
   assert.match(source, /UNAVAILABLE/);
-  assert.match(source, /Verified ZEVARYQ RPC/);
-  assert.match(source, /Current successful network probes/);
-  assert.match(source, /First-party on-chain evidence/);
+  assert.match(source, /Successful live probes/);
+  assert.match(source, /LIVE EVIDENCE/);
 });
 
-test('command-center hero keeps metrics in normal document flow for mobile safety', async () => {
-  const source = await read('src/components/home/CommandCenterHeroVisual.jsx');
-  assert.match(source, /relative z-10 mt-\[235px\]/);
-  assert.doesNotMatch(source, /absolute inset-x-4 bottom-4 grid grid-cols-2/);
+test('technical diagnostics are routed away from Home instead of repeated inline', async () => {
+  const source = await read('src/pages/HomeV3.jsx');
+  assert.match(source, /System Evidence/);
+  assert.match(source, /FULL DIAGNOSTICS/);
+  assert.match(source, /ZEVARYQ Explorer/);
+  assert.doesNotMatch(source, /Network Operations Console/);
+  assert.doesNotMatch(source, /Block Event → Node Pulse → Explorer Index/);
 });
