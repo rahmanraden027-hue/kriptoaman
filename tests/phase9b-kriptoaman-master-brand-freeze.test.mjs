@@ -56,3 +56,13 @@ test('Phase 9B preserves legal and ecosystem identities', async () => {
   assert.match(routes, /QoryVEx/);
   assert.match(routes, /ZEVARYQ Explorer/);
 });
+
+test('Phase 9B documents the brand boundary so the suffix does not drift back', async () => {
+  const contract = await read('docs/KRIPTOAMAN_BRAND_IDENTITY_CONTRACT.md');
+  assert.match(contract, /\*\*KRIPTOAMAN\*\*/);
+  assert.match(contract, /Intelligence.*product\/category descriptor/);
+  assert.match(contract, /Do not present these as the master brand/);
+  assert.match(contract, /KriptoAman Intelligence/);
+  assert.match(contract, /Verified Data\. Real Intelligence\./);
+  assert.match(contract, /PT KRIPTO AMAN INDONESIA/);
+});
