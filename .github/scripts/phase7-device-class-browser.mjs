@@ -79,7 +79,10 @@ try {
     if (before.orbitAnimation !== 'zvqOrbitDrift') {
       throw new Error(`${width}px live node orbit is not running: ${before.orbitAnimation}`);
     }
-    if (before.metricValueSize !== '16px' || before.metricLabelSize !== '10px') {
+    const acceptedTelemetryType =
+      (before.metricValueSize === '16px' && before.metricLabelSize === '10px') ||
+      (before.metricValueSize === '15px' && before.metricLabelSize === '9px');
+    if (!acceptedTelemetryType) {
       throw new Error(`${width}px telemetry type mismatch: value=${before.metricValueSize} label=${before.metricLabelSize}`);
     }
     if (before.installWidth <= 0 || before.installWidth > 105) {

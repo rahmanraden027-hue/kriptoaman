@@ -41,9 +41,10 @@ test('hero cleanup removes repeated purpose cards and the duplicate telemetry ti
   assert.doesNotMatch(hero, /const PURPOSE/);
   assert.doesNotMatch(hero, /StreamItems/);
   assert.doesNotMatch(hero, /ka-live-stream-track/);
-  assert.match(hero, /MARKET ASSETS/);
-  assert.match(hero, /ZVQ BLOCK/);
-  assert.match(hero, /VERIFIED NETWORKS/);
+  assert.doesNotMatch(hero, /MARKET ASSETS/);
+  assert.doesNotMatch(hero, /ZVQ BLOCK/);
+  assert.doesNotMatch(hero, /VERIFIED NETWORKS/);
+  assert.doesNotMatch(hero, /CHAIN \/ RPC/);
   assert.match(hero, /Market · On-chain · Network · Evidence/);
 });
 

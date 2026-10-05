@@ -16,9 +16,9 @@ test('Phase 8.4 keeps the desktop entry experience inside one viewport budget', 
   assert.match(strip, /hidden min-h-\[48px\].*lg:grid/);
 
   assert.match(hero, /lg:min-h-\[calc\(100svh-116px\)\]/);
-  assert.match(hero, /sm:grid-cols-4 lg:hidden/);
+  assert.doesNotMatch(hero, /productionMetrics/);
   assert.match(hero, /lg:text-\[46px\]/);
-  assert.match(hero, /lg:hidden\"\>\n        Verified data only/);
+  assert.doesNotMatch(hero, /no synthetic production metrics/);
 
   assert.match(consoleSource, /lg:max-w-\[500px\]/);
   assert.match(consoleSource, /lg:max-w-\[280px\]/);
