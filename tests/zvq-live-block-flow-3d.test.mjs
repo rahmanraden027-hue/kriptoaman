@@ -27,10 +27,14 @@ test('LiveBlockFlow3D advances only on a verified increasing head', async () => 
   assert.match(source, /No synthetic blocks or invented propagation metrics are shown/);
 });
 
-test('production HomeV3 mounts the isolated live block flow', async () => {
-  const source = await read('src/pages/HomeV3.jsx');
-  assert.match(source, /LiveBlockFlow3D/);
-  assert.match(source, /<LiveBlockFlow3D\/>/);
+test('public landing owns the isolated live block flow while authenticated Home stays de-duplicated', async () => {
+  const [landing, home] = await Promise.all([
+    read('src/components/landing/GLandingDeferredContent.jsx'),
+    read('src/pages/HomeV3.jsx'),
+  ]);
+  assert.match(landing, /LiveBlockFlow3D/);
+  assert.match(landing, /<LiveBlockFlow3D/);
+  assert.doesNotMatch(home, /LiveBlockFlow3D/);
 });
 
 
