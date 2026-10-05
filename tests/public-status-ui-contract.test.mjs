@@ -7,9 +7,10 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 test('landing consumes the stable platform status contract', async () => {
   const landing = await read('src/pages/KriptoAmanGlobalLanding.jsx');
   assert.match(landing, /\/api\/platform-status/);
-  assert.match(landing, /platformPayload\.components\.market/);
-  assert.match(landing, /platformPayload\.components\.networks/);
-  assert.match(landing, /platformPayload\.components\.kam/);
+  assert.match(landing, /function authoritativeSnapshot\(payload\)/);
+  assert.match(landing, /const market = payload\?\.components\?\.market/);
+  assert.match(landing, /const networks = payload\?\.components\?\.networks/);
+  assert.match(landing, /const kam = payload\?\.components\?\.kam/);
   assert.doesNotMatch(landing, /Math\.random/);
 });
 
