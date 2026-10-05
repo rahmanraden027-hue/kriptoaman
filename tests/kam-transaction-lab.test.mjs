@@ -4,17 +4,19 @@ import test from 'node:test';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('KAM Transaction Lab is registered as a public discoverable page', async () => {
-  const [pages, app, network, sitemap] = await Promise.all([
+test('KAM Transaction Lab remains accessible as a legacy archive but is not search-discoverable', async () => {
+  const [pages, app, network, sitemap, headers] = await Promise.all([
     read('src/pages.config.js'),
     read('src/FullAppShell.jsx'),
     read('src/pages/KAMNetwork.jsx'),
     read('public/sitemap.xml'),
+    read('public/_headers'),
   ]);
   assert.match(pages, /'KAMTransactionLab'/);
   assert.match(app, /'KAMTransactionLab'/);
   assert.match(network, /href="\/KAMTransactionLab"/);
-  assert.match(sitemap, /\/KAMTransactionLab/);
+  assert.doesNotMatch(sitemap, /\/KAMTransactionLab/);
+  assert.match(headers, /\/KAM\*[^]*X-Robots-Tag: noindex, follow, noarchive/);
 });
 
 test('transaction flow remains wallet-approved and constrained', async () => {

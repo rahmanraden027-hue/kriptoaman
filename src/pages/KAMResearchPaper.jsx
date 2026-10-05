@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-const TITLE = 'KAM Mainnet Architecture, Security & Public Readiness | KriptoAman Research';
-const DESCRIPTION = 'Technical paper from KriptoAman Research documenting KAM Mainnet architecture, network identity, security controls, RPC and explorer integrity, reliability, and evidence-oriented public-readiness methodology.';
+const TITLE = 'Historical Archive — KAM Mainnet Architecture | KriptoAman Research';
+const DESCRIPTION = 'Historical pre-migration technical archive documenting the former KAM Mainnet naming. The current production network identity is ZEVARYQ Mainnet (ZVQ), Chain ID 22028 (0x560c).';
 const CANONICAL = 'https://kriptoaman.com/research/kam-mainnet-architecture';
 
 function upsertMeta(selector, attrs) {
@@ -32,7 +32,7 @@ export default function KAMResearchPaper(){
  useEffect(()=>{
   document.title = TITLE;
   upsertMeta('meta[name="description"]', { name: 'description', content: DESCRIPTION });
-  upsertMeta('meta[name="robots"]', { name: 'robots', content: 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1' });
+  upsertMeta('meta[name="robots"]', { name: 'robots', content: 'noindex,follow,noarchive' });
   upsertMeta('meta[property="og:title"]', { property: 'og:title', content: TITLE });
   upsertMeta('meta[property="og:description"]', { property: 'og:description', content: DESCRIPTION });
   upsertMeta('meta[property="og:type"]', { property: 'og:type', content: 'article' });
@@ -57,7 +57,7 @@ export default function KAMResearchPaper(){
     headline: 'KAM Mainnet: Architecture, Security and Public Readiness Framework',
     description: DESCRIPTION,
     datePublished: '2026-08-30',
-    dateModified: '2026-08-30',
+    dateModified: '2026-10-06',
     version: '1.0',
     isPartOf: { '@id': 'https://kriptoaman.com/research#research' },
     publisher: {

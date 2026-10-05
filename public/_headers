@@ -122,3 +122,15 @@
   X-Robots-Tag: noindex, nofollow, noarchive
 /reset-password*
   X-Robots-Tag: noindex, nofollow, noarchive
+
+/KAM*
+  Cache-Control: no-cache, no-store, must-revalidate
+  X-Robots-Tag: noindex, follow, noarchive
+
+/news/kam-campaign-2026
+  Cache-Control: no-cache, no-store, must-revalidate
+  X-Robots-Tag: noindex, follow, noarchive
+
+/research/kam-mainnet-architecture
+  Cache-Control: no-cache, no-store, must-revalidate
+  X-Robots-Tag: noindex, follow, noarchive
