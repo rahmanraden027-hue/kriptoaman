@@ -42,7 +42,12 @@
     "allocationWalletsPublished": false,
     "vestingAndLockEvidencePublished": false,
     "externalSubmissionAllowed": false,
-    "publicClaimRule": "Do not publish 1B as technically enforced maximum supply or 70M as current circulating supply until production genesis/on-chain evidence and allocation methodology are reconciled."
+    "publicClaimRule": "Do not publish 1B as technically enforced maximum supply or 70M as current circulating supply until production genesis/on-chain evidence and allocation methodology are reconciled.",
+    "reconciliationStatus": "BLOCKED_PENDING_PRODUCTION_GENESIS_ATTESTATION_AND_ALLOCATION_WALLETS",
+    "reconciliationDocument": "chain/zevaryq-mainnet/registry/zvq-supply-reconciliation.draft.json",
+    "supplyAttestationTemplate": "chain/zevaryq-mainnet/registry/zvq-supply-attestation.template.json",
+    "historicalAllocationDriftDetected": true,
+    "circulatingTargetDistinctFromLiquidityAllocation": true
   },
   "assets": [
     {
