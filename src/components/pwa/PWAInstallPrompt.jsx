@@ -33,7 +33,8 @@ export default function PWAInstallPrompt() {
     isAndroid = false;
   }
   const isPublicRoot = pathname === '/';
-  const isInstallSurface = isPublicRoot || pathname === '/Services';
+  const isServices = pathname === '/Services';
+  const isInstallSurface = isPublicRoot || isServices;
 
   useEffect(() => {
     try {
@@ -81,7 +82,14 @@ export default function PWAInstallPrompt() {
     };
   }, []);
 
-  if (!isInstallSurface || installed || dismissed || (!installEvent && !isIos && !isAndroid) || (isPublicRoot && !rootCtaReady)) return null;
+  if (
+    !isInstallSurface
+    || installed
+    || dismissed
+    || (!installEvent && !isIos && !isAndroid)
+    || (isPublicRoot && !rootCtaReady)
+    || (isServices && !scrolled)
+  ) return null;
 
   const install = async () => {
     if (isIos && !installEvent) {
@@ -102,17 +110,17 @@ export default function PWAInstallPrompt() {
     <>
       <div
         data-install-cta="true"
-        className={`fixed z-[70] max-w-[calc(100vw-1.5rem)] ${isPublicRoot ? 'bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] right-3 md:bottom-4' : 'bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] right-3 sm:bottom-4 sm:right-4 lg:bottom-6 lg:right-6'}`}
+        className={`fixed z-[70] max-w-[calc(100vw-1.5rem)] ${isPublicRoot ? 'bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] right-3 md:bottom-4' : 'bottom-[calc(6.5rem+env(safe-area-inset-bottom,0px))] right-3 sm:bottom-4 sm:right-4 lg:bottom-6 lg:right-6'}`}
       >
         <div className="flex items-center overflow-hidden rounded-full border border-sky-300/30 bg-[#08233a]/95 text-white shadow-lg shadow-sky-950/40 backdrop-blur-md sm:rounded-2xl">
           <button
             type="button"
             onClick={() => { setEngaged(true); isAndroid ? setShowAndroidChoices(true) : install(); }}
-            className={`flex h-11 items-center justify-center text-xs font-bold hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 sm:h-auto sm:min-h-12 sm:w-auto sm:gap-2 sm:px-4 sm:py-3 sm:text-sm ${isPublicRoot || scrolled || engaged ? 'w-11 px-0' : 'w-auto gap-2 px-4'} lg:w-auto lg:gap-2 lg:px-4`}
+            className={`flex h-11 items-center justify-center text-xs font-bold hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 sm:h-auto sm:min-h-12 sm:w-auto sm:gap-2 sm:px-4 sm:py-3 sm:text-sm ${isPublicRoot || isServices || scrolled || engaged ? 'w-11 px-0' : 'w-auto gap-2 px-4'} lg:w-auto lg:gap-2 lg:px-4`}
             aria-label="Pasang aplikasi KriptoAman"
           >
             <Download className="h-4 w-4 shrink-0" />
-            <span className={`${isPublicRoot || scrolled || engaged ? 'sr-only' : 'whitespace-nowrap'} lg:not-sr-only lg:whitespace-nowrap`}>Pasang KriptoAman</span>
+            <span className={`${isPublicRoot || isServices || scrolled || engaged ? 'sr-only' : 'whitespace-nowrap'} lg:not-sr-only lg:whitespace-nowrap`}>Pasang KriptoAman</span>
           </button>
           <button
             type="button"
