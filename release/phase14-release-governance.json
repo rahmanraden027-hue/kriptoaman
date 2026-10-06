@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "phase": "14",
+  "name": "Release Governance & Hard Enforcement",
+  "status": "transition-active",
+  "phase13Final": {
+    "commit": "0b5be71b8386e7af8bc1969acbb85aa7ea23b7c5",
+    "pullRequest": 1020,
+    "result": "FINAL_PASS",
+    "date": "2026-10-06"
+  },
+  "repository": "rahmanraden027-hue/kriptoaman",
+  "ruleset": {
+    "id": 21245066,
+    "name": "KriptoAman Production Main Protection",
+    "enforcement": "active",
+    "target": "branch",
+    "defaultBranchOnly": true,
+    "strictRequiredStatusChecks": true,
+    "requiredStatusContexts": [
+      "kriptoaman/production-security",
+      "kriptoaman/live-site-smoke"
+    ],
+    "requirePullRequest": true,
+    "requireReviewThreadResolution": true,
+    "blockDeletion": true,
+    "blockNonFastForward": true,
+    "bypassActors": 0
+  },
+  "transition": {
+    "active": true,
+    "headBranch": "phase14a-hard-enforcement-transition",
+    "baseBranch": "main",
+    "baselineCommit": "0b5be71b8386e7af8bc1969acbb85aa7ea23b7c5",
+    "allowedProtectedPathChanges": [
+      ".github/workflows/security-audit.yml"
+    ]
+  },
+  "governanceGate": {
+    "requiredContext": "kriptoaman/production-security",
+    "verifier": "scripts/verify-phase14-release-governance.mjs",
+    "workflow": ".github/workflows/security-audit.yml"
+  },
+  "forbiddenRuntimeMutations": [
+    "genesis",
+    "validator-keys",
+    "private-keys",
+    "balances",
+    "transactions",
+    "dns",
+    "rpc-write-methods",
+    "wallet-signing",
+    "wallet-broadcasting",
+    "token-state"
+  ]
+}
