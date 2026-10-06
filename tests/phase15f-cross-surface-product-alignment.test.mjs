@@ -10,7 +10,6 @@ const SURFACES = [
   ['src/pages/ZEVARYQ.jsx', 'network'],
   ['src/pages/PortfolioOverview.jsx', 'portfolio'],
   ['src/pages/SecurityHub.jsx', 'security'],
-  ['src/pages/Wallet.jsx', 'wallet'],
 ];
 
 test('Phase 15F exposes one shared continuity component and canonical destinations', async () => {
@@ -51,12 +50,20 @@ test('Phase 15F aligns Market and Security to command hero language', async () =
   assert.match(security, /className="ka-command-hero p-5 sm:p-7"/);
 });
 
-test('Phase 15F preserves Wallet as a standalone execution identity', async () => {
-  const wallet = await read('src/pages/Wallet.jsx');
-  assert.match(wallet, /standalone&&<CrossSurfaceRail current="wallet" compact \/>/);
+test('Phase 15F preserves the protected Wallet implementation and aligns it at the route shell', async () => {
+  const [shell, wallet] = await Promise.all([
+    read('src/FullAppShell.jsx'),
+    read('src/pages/Wallet.jsx'),
+  ]);
+  assert.match(shell, /path="\/wallet-app"/);
+  assert.match(shell, /data-product-surface="wallet"/);
+  assert.match(shell, /data-product-release="phase15f"/);
+  assert.match(shell, /<CrossSurfaceRail current="wallet" compact \/>/);
   assert.match(wallet, /OFFICIAL WALLET/);
   assert.match(wallet, /ZEVARYQ Wallet/);
   assert.match(wallet, /No custody or transaction execution without explicit wallet confirmation/);
+  assert.doesNotMatch(wallet, /data-product-release="phase15f"/);
+  assert.doesNotMatch(wallet, /CrossSurfaceRail/);
 });
 
 test('Phase 15F publishes the corrected architecture contract', async () => {
