@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
 import { DATA_STATE, isPositiveDataState, normalizeDataState } from '@/lib/dataState';
+import CrossSurfaceRail from '@/components/command/CrossSurfaceRail';
 
 const COPY = {
   id: {
@@ -105,7 +106,7 @@ export default function IntelligenceHub() {
 
   const modules = [
     { icon: TrendingUp, title: t.market, body: t.marketBody, to: '/Market', tone: 'sky' },
-    { icon: Network, title: t.network, body: t.networkBody, to: '/KAMNetwork', tone: 'violet' },
+    { icon: Network, title: t.network, body: t.networkBody, to: '/ZEVARYQ', tone: 'violet' },
     { icon: ShieldCheck, title: t.security, body: t.securityBody, to: '/SecurityHub', tone: 'emerald' },
     { icon: BellRing, title: t.alerts, body: t.alertsBody, to: '/Alerts', tone: 'cyan' },
     { icon: Radar, title: t.research, body: t.researchBody, to: '/MarketResearch', tone: 'blue' },
@@ -127,8 +128,9 @@ export default function IntelligenceHub() {
   ];
 
   return (
-    <div className="ka-bg min-h-screen pb-28 text-white">
+    <div className="ka-bg min-h-screen pb-28 text-white" data-product-surface="intelligence" data-product-release="phase15f">
       <div className="mx-auto max-w-7xl space-y-4 px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8">
+        <CrossSurfaceRail current="intelligence" />
         <section className="ka-command-hero p-5 sm:p-6">
           <div className="relative z-10">
             <p className="ka-command-kicker"><BrainCircuit className="h-3.5 w-3.5" /> {t.eyebrow}</p>
