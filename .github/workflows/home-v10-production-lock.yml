@@ -77,7 +77,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: home-v10-phase16d-production-lock-evidence
+          name: home-v10-production-lock-evidence
           path: ${{ runner.temp }}/home-v10-production-evidence
           if-no-files-found: warn
           retention-days: 30
