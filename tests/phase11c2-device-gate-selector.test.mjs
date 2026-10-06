@@ -13,5 +13,5 @@ test('Phase 7 device gate measures the HomeV10 market search target independent 
   assert.match(script, /header a\[href="\/Market"\]\[aria-label\]/);
   assert.doesNotMatch(script, /aria-label="Search market"/);
   assert.match(home, /language === 'en' \? 'Search market' : 'Cari market'/);
-  assert.match(home, /className="grid h-11 w-11/);
+  assert.match(home, /className="grid h-11 min-h-11 w-11 min-w-11 shrink-0/);
 });

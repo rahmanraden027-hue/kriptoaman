@@ -84,3 +84,10 @@ test('homepage command center remains presentation-only', async () => {
   assert.doesNotMatch(source, /eth_sendRawTransaction|eth_sendTransaction|private.?key|validator.?key|genesis|transaction broadcast|wallet broadcasting/i);
   assert.doesNotMatch(source, /rpc\.kriptoaman\.com[^'"]*fetch|fetch\([^)]*rpc\.kriptoaman\.com/i);
 });
+
+
+test('mobile header search and alert controls cannot shrink below 44px targets', async () => {
+  const home = await read('src/pages/HomeV10.jsx');
+  assert.match(home, /h-11 min-h-11 w-11 min-w-11 shrink-0[^"]+lg:hidden/);
+  assert.match(home, /h-11 min-h-11 w-11 min-w-11 shrink-0[^"]+text-slate-400/);
+});
