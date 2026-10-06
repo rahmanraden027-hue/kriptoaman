@@ -1,0 +1,116 @@
+name: Phase 16E Observation Continuity Guardian
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/phase16e-observation-continuity.yml'
+      - 'tests/phase16e-observation-continuity.test.mjs'
+      - 'docs/PHASE16E_OBSERVATION_CONTINUITY.md'
+  schedule:
+    - cron: '53 * * * *'
+
+permissions:
+  contents: read
+  actions: write
+  statuses: write
+
+concurrency:
+  group: phase16e-observation-continuity
+  cancel-in-progress: false
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify continuity contract
+        run: node --test tests/phase16e-observation-continuity.test.mjs
+
+  guard:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check Phase 16E observation continuity
+        id: continuity
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUNS="$RUNNER_TEMP/phase16e-runs.json"
+          NOW_EPOCH="$(date -u +%s)"
+          MAX_AGE_SECONDS=5400
+
+          gh run list \
+            --workflow phase16e-production-observation.yml \
+            --branch main \
+            --limit 20 \
+            --json databaseId,createdAt,updatedAt,status,conclusion,event,headSha \
+            > "$RUNS"
+
+          recent_count="$(jq --argjson now "$NOW_EPOCH" --argjson maxAge "$MAX_AGE_SECONDS" '
+            [ .[]
+              | .createdEpoch = (.createdAt | fromdateiso8601)
+              | select(($now - .createdEpoch) <= $maxAge)
+              | select(.status == "queued" or .status == "in_progress" or (.status == "completed" and .conclusion == "success"))
+            ] | length
+          ' "$RUNS")"
+
+          if [ "$recent_count" -gt 0 ]; then
+            echo "fresh=true" >> "$GITHUB_OUTPUT"
+            echo "dispatched=false" >> "$GITHUB_OUTPUT"
+            echo "Phase 16E continuity healthy; recent observation exists."
+            exit 0
+          fi
+
+          echo "No fresh Phase 16E observation found in the last 90 minutes; dispatching read-only observation."
+          gh workflow run phase16e-production-observation.yml --ref main
+          echo "fresh=false" >> "$GITHUB_OUTPUT"
+          echo "dispatched=true" >> "$GITHUB_OUTPUT"
+
+      - name: Publish continuity guardian status
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          JOB_STATUS: ${{ job.status }}
+          DISPATCHED: ${{ steps.continuity.outputs.dispatched }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          state=failure
+          description="Phase 16E continuity guardian failed"
+          if [ "$JOB_STATUS" = "success" ]; then
+            state=success
+            if [ "$DISPATCHED" = "true" ]; then
+              description="Phase 16E observation gap detected; recovery dispatched"
+            else
+              description="Phase 16E observation continuity healthy"
+            fi
+          fi
+
+          payload="$(jq -nc \
+            --arg state "$state" \
+            --arg context "kriptoaman/phase16e-observation-continuity" \
+            --arg description "$description" \
+            --arg target_url "$RUN_URL" \
+            '{state:$state,context:$context,description:$description,target_url:$target_url}')"
+
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$REPO/statuses/$SHA" \
+            -d "$payload" >/dev/null
