@@ -1,6 +1,9 @@
 import { readFile } from 'node:fs/promises';
 
 const manifest = JSON.parse(await readFile(new URL('../release/phase14-release-governance.json', import.meta.url), 'utf8'));
+const REPOSITORY = 'rahmanraden027-hue/kriptoaman';
+const RULESET_ID = 21245066;
+const RULESET_URL = 'https://api.github.com/repos/rahmanraden027-hue/kriptoaman/rulesets/21245066';
 
 const fail = (message) => {
   console.error('PHASE14_GOVERNANCE_FAIL:', message);
@@ -9,7 +12,8 @@ const fail = (message) => {
 
 if (manifest.phase !== '14') fail('unexpected phase');
 if (!['transition-active', 'locked'].includes(manifest.status)) fail('governance status is not enforceable');
-if (manifest.repository !== 'rahmanraden027-hue/kriptoaman') fail('repository identity mismatch');
+if (manifest.repository !== REPOSITORY) fail('repository identity mismatch');
+if (Number(manifest.ruleset?.id) !== RULESET_ID) fail('ruleset id mismatch');
 if (manifest.governanceGate?.requiredContext !== 'kriptoaman/production-security') fail('required governance context changed');
 if (manifest.governanceGate?.workflow !== '.github/workflows/security-audit.yml') fail('security workflow changed');
 if (manifest.ruleset?.enforcement !== 'active') fail('expected ruleset enforcement is not active');
@@ -27,8 +31,7 @@ const headers = {
 };
 if (token) headers.Authorization = `Bearer ${token}`;
 
-const url = `https://api.github.com/repos/${manifest.repository}/rulesets/${manifest.ruleset.id}`;
-const response = await fetch(url, { headers, redirect: 'follow' });
+const response = await fetch(RULESET_URL, { headers, redirect: 'follow' });
 if (!response.ok) fail(`ruleset lookup failed HTTP ${response.status}`);
 const ruleset = await response.json();
 
