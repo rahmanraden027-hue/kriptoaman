@@ -124,6 +124,18 @@ export default function useMarketSurface() {
       },
     ].filter(Boolean);
 
+    const provenance = Object.freeze({
+      state,
+      sourceId: raw.source || null,
+      sourceLabel: raw.source === 'kriptoaman-market-db'
+        ? 'KriptoAman Market DB'
+        : raw.source
+          ? 'KriptoAman Market Snapshot'
+          : 'Source unavailable',
+      capturedAt: raw.lastUpdated || null,
+      ageMs,
+    });
+
     return {
       assets,
       loading: raw.loading,
@@ -131,6 +143,7 @@ export default function useMarketSurface() {
       capturedAt: raw.lastUpdated,
       ageMs,
       state,
+      provenance,
       featured,
       gainers,
       losers,
