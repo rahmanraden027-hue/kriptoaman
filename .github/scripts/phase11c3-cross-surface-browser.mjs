@@ -209,9 +209,9 @@ async function authenticatedJourney({ width, height, label }) {
       const step = journey[index];
       if (index > 0) {
         const selector = width >= 1024
-          ? '.ka-global-sidebar a[href="' + step.path + '"]'
+          ? '.ka-global-sidebar a.ka-sidebar-link[href="' + step.path + '"]'
           : '.ka-embedded-nav a[href="' + step.path + '"]';
-        await page.locator(selector).click();
+        await page.locator(selector).first().click();
         await page.waitForURL((url) => url.pathname === step.path, { timeout: 15000 });
         await waitForStable(page);
       }
