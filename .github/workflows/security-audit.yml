@@ -41,6 +41,11 @@ jobs:
       - name: Crypto agility and post-quantum readiness gate
         run: node scripts/audit-crypto-posture.mjs
 
+      - name: Verify Phase 14 release governance hard enforcement
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/verify-phase14-release-governance.mjs
+
       - name: Lint release-critical security surfaces
         run: >-
           npx eslint server/auth/*.js functions/api/auth/*.js functions/api/market-snapshot.js
@@ -56,7 +61,7 @@ jobs:
           src/components/market/GlobalMarketIntelligencePanel.jsx src/components/market/GlobalMarketsHubV2.jsx
           src/components/home/useCoinMarkets.js src/components/LanguageSwitcher.jsx
           src/lib/LanguageContext.jsx src/components/pwa/PWAInstallPrompt.jsx
-          scripts/audit-production-deps.mjs scripts/audit-crypto-posture.mjs scripts/check-market-health.mjs scripts/check-system-health.mjs public/sw.js --quiet
+          scripts/audit-production-deps.mjs scripts/audit-crypto-posture.mjs scripts/verify-phase14-release-governance.mjs scripts/check-market-health.mjs scripts/check-system-health.mjs public/sw.js --quiet
 
       - name: Build production bundle
         run: npm run build
@@ -144,10 +149,10 @@ jobs:
         run: |
           if [ "$JOB_STATUS" = "success" ]; then
             STATE=success
-            DESCRIPTION='Production security, crypto agility and KAM integrity gates passed'
+            DESCRIPTION='Production security, governance and KAM integrity gates passed'
           else
             STATE=failure
-            DESCRIPTION='Production security, crypto agility or KAM integrity gate failed'
+            DESCRIPTION='Production security, governance or KAM integrity gate failed'
           fi
           curl --fail-with-body --silent --show-error \
             -X POST \
