@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from 'react';
-import DataProvenanceBar from './DataProvenanceBar';
 import { formatMagnitude, formatPrice, sparklinePoints } from './format';
 
 const TABS = [
@@ -9,7 +8,7 @@ const TABS = [
   ['newAssets', 'New'],
 ];
 
-export default function TopMovers({ gainers = [], losers = [], active = [], newAssets = [], provenance = null }) {
+export default function TopMovers({ gainers = [], losers = [], active = [], newAssets = [] }) {
   const [tab, setTab] = useState('gainers');
   const groups = useMemo(() => ({ gainers, losers, active, newAssets }), [active, gainers, losers, newAssets]);
   const rows = (groups[tab] || []).slice(0, 6);
@@ -32,16 +31,6 @@ export default function TopMovers({ gainers = [], losers = [], active = [], newA
             </button>
           ))}
         </div>
-      </div>
-
-      <div className="mt-3">
-        <DataProvenanceBar
-          state={provenance?.state}
-          source={provenance?.sourceLabel || 'Source unavailable'}
-          timestamp={provenance?.capturedAt}
-          ageMs={provenance?.ageMs}
-          label="MOVERS SOURCE"
-        />
       </div>
 
       <div className="mt-3 divide-y divide-white/[0.05]">
