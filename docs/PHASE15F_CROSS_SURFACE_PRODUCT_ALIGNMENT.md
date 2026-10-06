@@ -48,7 +48,8 @@ ZEVARYQ Wallet remains intentionally distinct:
 
 - it keeps the blue/gold execution-interface identity;
 - it keeps wallet-specific navigation;
-- it receives only the compact KriptoAman continuity rail on the standalone route;
+- its protected `src/pages/Wallet.jsx` implementation remains byte-for-byte on the accepted production baseline;
+- the unprotected `/wallet-app` route shell supplies the compact KriptoAman continuity rail and Phase 15F markers;
 - signing and broadcasting rules are unchanged.
 
 This preserves the architecture:
@@ -83,4 +84,4 @@ The authenticated surfaces use the existing browser-only auth fixture. No real c
 
 ## Safety boundary
 
-Phase 15F does not alter market data collection, authentication policy, KYC state, wallet signing, transaction broadcast, balances, token state, RPC write policy, genesis, validator configuration, DNS, or chain state.
+Phase 15F does not alter the protected Wallet implementation, market data collection, authentication policy, KYC state, wallet signing, transaction broadcast, balances, token state, RPC write policy, genesis, validator configuration, DNS, or chain state.
