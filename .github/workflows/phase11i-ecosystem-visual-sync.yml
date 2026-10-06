@@ -1,0 +1,45 @@
+name: Phase 11I Ecosystem Visual Synchronization
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src/pages/NotificationCenterV2.jsx'
+      - 'src/components/AppErrorBoundary.jsx'
+      - 'src/pages/Founder.jsx'
+      - 'src/pages/AdminKAMAnalytics.jsx'
+      - 'src/pages/RPCPrivacyPolicy.jsx'
+      - 'src/pages/KAMLaunchReadiness.jsx'
+      - 'src/pages/KAM.jsx'
+      - 'src/pages/KAMResearchPaper.jsx'
+      - 'tests/phase11i-ecosystem-visual-sync.test.mjs'
+      - '.github/workflows/phase11i-ecosystem-visual-sync.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/pages/NotificationCenterV2.jsx'
+      - 'src/components/AppErrorBoundary.jsx'
+      - 'src/pages/Founder.jsx'
+      - 'src/pages/AdminKAMAnalytics.jsx'
+      - 'src/pages/RPCPrivacyPolicy.jsx'
+      - 'src/pages/KAMLaunchReadiness.jsx'
+      - 'src/pages/KAM.jsx'
+      - 'src/pages/KAMResearchPaper.jsx'
+      - 'tests/phase11i-ecosystem-visual-sync.test.mjs'
+      - '.github/workflows/phase11i-ecosystem-visual-sync.yml'
+permissions:
+  contents: read
+jobs:
+  identity-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify Phase 11I production identity contract
+        run: node --test tests/phase11i-ecosystem-visual-sync.test.mjs
+      - name: Confirm release build still compiles
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run build
