@@ -59,23 +59,23 @@ jobs:
           const scriptMatches = [...home.text.matchAll(/<script[^>]+src=["']([^"']+\.js(?:\?[^"']*)?)["']/gi)].map((m) => m[1]);
           if (scriptMatches.length === 0) throw new Error('No JavaScript bundle discovered on homepage');
 
-          let foundKamNetwork = false;
+          let foundZevaryqNetwork = false;
           for (const src of scriptMatches.slice(0, 20)) {
             const url = src.startsWith('http') ? src : new URL(src, base).toString();
             const response = await fetch(url, { headers: { 'User-Agent': 'KriptoAman-KAM-Landing-Smoke/1.0' } });
             if (!response.ok) continue;
             const js = await response.text();
-            const hasKamLabel = js.includes('KAM Network');
+            const hasZevaryqLabel = js.includes('ZEVARYQ Network');
             const hasDirectKamContract = js.includes('/api/kam/network-status');
             const hasPlatformKamContract = js.includes('/api/platform-status') && js.includes('22028');
-            if (hasKamLabel && (hasDirectKamContract || hasPlatformKamContract)) {
-              foundKamNetwork = true;
+            if (hasZevaryqLabel && (hasDirectKamContract || hasPlatformKamContract)) {
+              foundZevaryqNetwork = true;
               break;
             }
           }
-          if (!foundKamNetwork) throw new Error('Production landing bundle does not include the current KAM Network integration contract');
+          if (!foundZevaryqNetwork) throw new Error('Production landing bundle does not include the current ZEVARYQ Network integration contract');
 
           console.log(`KAM: VERIFIED | chainId=${kamPayload.chainId} block=${kamPayload.blockNumber} status=${kamPayload.status}`);
           console.log(`PUBLIC_NETWORKS: HEALTHY | online=${online}/${total} | KAM isolated=true`);
-          console.log('LANDING_BUNDLE: VERIFIED | KAM Network integration contract present=true');
+          console.log('LANDING_BUNDLE: VERIFIED | ZEVARYQ Network integration contract present=true');
           NODE
