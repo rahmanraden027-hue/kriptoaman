@@ -245,3 +245,14 @@ test('deployment is exact-route, narrow, nginx-safe, rollback-safe and avoids cu
   assert.match(deploy, /address-detail\.html/);
   assert.match(deploy, /\/token\/\$CANONICAL_WKAM/);
 });
+
+
+test('Explorer static fallback is pending, not a false outage', () => {
+  assert.match(html, /data-static-observability="pending-not-failed"/);
+  assert.match(html, /Live Explorer values require browser verification/);
+  assert.match(html, /Loading verified indexed blocks…/);
+  assert.match(html, /Loading verified indexed transactions…/);
+  assert.match(html, /Verifying indexed data…/);
+  assert.doesNotMatch(html, /Connecting to ZVQ Network…/);
+  assert.doesNotMatch(html, /Waiting for recent blocks…/);
+});
