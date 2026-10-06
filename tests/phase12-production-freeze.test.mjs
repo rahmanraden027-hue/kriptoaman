@@ -62,9 +62,18 @@ test('Phase 12 reuses the existing production safety gates instead of replacing 
     '.github/workflows/zvq-explorer-browser-proof.yml',
     '.github/workflows/zvq-wallet-production-gate.yml',
     '.github/workflows/security-audit.yml',
+    '.github/workflows/kam-landing-live-smoke.yml',
   ]) {
     assert.equal(required.has(path), true, path);
     const source = await read(path);
     assert.ok(source.length > 100, path + ' must remain present');
   }
+});
+
+test('Phase 12 landing smoke follows the active ZEVARYQ identity', async () => {
+  const smoke = await read('.github/workflows/kam-landing-live-smoke.yml');
+  assert.match(smoke, /js\.includes\('ZEVARYQ Network'\)/);
+  assert.match(smoke, /current ZEVARYQ Network integration contract/);
+  assert.match(smoke, /LANDING_BUNDLE: VERIFIED \| ZEVARYQ Network integration contract present=true/);
+  assert.doesNotMatch(smoke, /const hasKamLabel = js\.includes\('KAM Network'\)/);
 });
