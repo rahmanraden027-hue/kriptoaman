@@ -12,6 +12,7 @@ import TopMovers from '@/components/home-v10/TopMovers';
 import VerifyAnything from '@/components/home-v10/VerifyAnything';
 import ZevaryqLiveStrip from '@/components/home-v10/ZevaryqLiveStrip';
 import useMarketSurface from '@/hooks/useMarketSurface';
+import useZevaryqSurface from '@/hooks/useZevaryqSurface';
 import { useLanguage } from '@/lib/LanguageContext';
 import { PRODUCT_ARCHITECTURE_VERSION } from '@/lib/productArchitecture';
 import { PRIMARY_NAV_ITEMS, primaryNavLabels, primaryNavTo } from '@/lib/primaryNavigation';
@@ -20,6 +21,7 @@ const HOME_NAV_ITEMS = PRIMARY_NAV_ITEMS.filter((item) => item.id !== 'home');
 
 export default function HomeV10() {
   const market = useMarketSurface();
+  const zevaryq = useZevaryqSurface();
   const { language } = useLanguage();
   const navLabels = primaryNavLabels(language);
 
@@ -27,7 +29,8 @@ export default function HomeV10() {
     <main
       className="min-h-screen bg-[#020711] pb-24 text-white"
       data-product-architecture={'kriptoaman-final-' + PRODUCT_ARCHITECTURE_VERSION}
-      data-command-release="phase15d"
+      data-command-release="phase16b"
+      data-production-data-binding="verified-live-state-v1"
       style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))' }}
     >
       <a
@@ -54,7 +57,7 @@ export default function HomeV10() {
 
       <LiveMarketTicker assets={market.assets} state={market.state} />
       <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">
-        Market data status: {market.state}.
+        Market data status: {market.state}. ZEVARYQ data status: {zevaryq.overallState}.
       </span>
 
       <div id="home-v10-content" tabIndex={-1} className="mx-auto max-w-[1480px] space-y-4 px-3 pt-4 outline-none sm:px-6 sm:pt-6 lg:px-8">
@@ -85,9 +88,14 @@ export default function HomeV10() {
           <IntelligenceStream events={market.events} state={market.state} />
         </section>
 
-        <section data-command-layer="network" aria-label="ZEVARYQ network layer" className="space-y-3">
-          <ZevaryqLiveStrip />
-          <OnChainNow />
+        <section
+          data-command-layer="network"
+          data-zvq-overall-state={zevaryq.overallState}
+          aria-label="ZEVARYQ network layer"
+          className="space-y-3"
+        >
+          <ZevaryqLiveStrip surface={zevaryq} />
+          <OnChainNow surface={zevaryq} />
         </section>
 
         <section data-command-layer="evidence" aria-label="Verification and evidence layer">
