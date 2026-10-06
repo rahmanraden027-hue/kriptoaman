@@ -2,6 +2,9 @@ export const DATA_STATE = Object.freeze({
   LIVE: 'LIVE',
   VERIFIED: 'VERIFIED',
   SYNCED: 'SYNCED',
+  INDEXED: 'INDEXED',
+  CALCULATED: 'CALCULATED',
+  DELAYED: 'DELAYED',
   PARTIAL: 'PARTIAL',
   SNAPSHOT: 'SNAPSHOT',
   UNAVAILABLE: 'UNAVAILABLE',
@@ -15,10 +18,14 @@ const NORMALIZED = Object.freeze({
   healthy: DATA_STATE.LIVE,
   verified: DATA_STATE.VERIFIED,
   synced: DATA_STATE.SYNCED,
+  indexed: DATA_STATE.INDEXED,
+  calculated: DATA_STATE.CALCULATED,
+  computed: DATA_STATE.CALCULATED,
+  delayed: DATA_STATE.DELAYED,
   partial: DATA_STATE.PARTIAL,
   degraded: DATA_STATE.PARTIAL,
   snapshot: DATA_STATE.SNAPSHOT,
-  stale: DATA_STATE.SNAPSHOT,
+  stale: DATA_STATE.DELAYED,
   cached: DATA_STATE.SNAPSHOT,
   available: DATA_STATE.SNAPSHOT,
   unavailable: DATA_STATE.UNAVAILABLE,
@@ -44,5 +51,5 @@ export function marketDataState({ connected = false, dataAvailable = false, part
 }
 
 export function isPositiveDataState(state) {
-  return [DATA_STATE.LIVE, DATA_STATE.VERIFIED, DATA_STATE.SYNCED].includes(state);
+  return [DATA_STATE.LIVE, DATA_STATE.VERIFIED, DATA_STATE.SYNCED, DATA_STATE.INDEXED].includes(state);
 }

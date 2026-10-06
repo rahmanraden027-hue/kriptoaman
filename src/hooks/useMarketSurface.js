@@ -51,7 +51,7 @@ export default function useMarketSurface() {
 
     let state = DATA_STATE.UNAVAILABLE;
     if (assets.length > 0) {
-      if (raw.isStale || !Number.isFinite(ageMs) || ageMs > FRESH_MS) state = DATA_STATE.SNAPSHOT;
+      if (raw.isStale || !Number.isFinite(ageMs) || ageMs > FRESH_MS) state = DATA_STATE.DELAYED;
       else if (raw.source === 'kriptoaman-market-db') state = DATA_STATE.LIVE;
       else state = DATA_STATE.SNAPSHOT;
     } else if (!raw.loading && Array.isArray(raw.coins) && raw.coins.length > 0) {
@@ -138,6 +138,7 @@ export default function useMarketSurface() {
           : 'Source unavailable',
       capturedAt: raw.lastUpdated || null,
       ageMs,
+      freshnessMs: FRESH_MS,
     });
 
     return {
@@ -146,6 +147,7 @@ export default function useMarketSurface() {
       source: raw.source,
       capturedAt: raw.lastUpdated,
       ageMs,
+      freshnessMs: FRESH_MS,
       state,
       provenance,
       featured,

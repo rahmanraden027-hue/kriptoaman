@@ -23,24 +23,27 @@ test('Phase 10H reuses the existing KriptoAman market data boundary', async () =
   assert.match(hook, /kriptoaman-market-db/);
   assert.match(hook, /LIVE/);
   assert.match(hook, /SNAPSHOT/);
-  assert.doesNotMatch(hook, /state = ['\"]STALE['\"]/);
+  assert.doesNotMatch(hook, /state = ['"]STALE['"]/);
   assert.match(hook, /UNAVAILABLE/);
   assert.doesNotMatch(hook, /coingecko|coinmarketcap|cryptocompare/i);
 });
 
 test('Phase 10H keeps intelligence deterministic and evidence oriented', async () => {
-  const [hook, intelligence, onchain, network] = await Promise.all([
+  const [hook, intelligence, onchain, network, zevaryqSurface] = await Promise.all([
     read('src/hooks/useMarketSurface.js'),
     read('src/components/home-v10/IntelligenceStream.jsx'),
     read('src/components/home-v10/OnChainNow.jsx'),
     read('src/components/home-v10/ZevaryqLiveStrip.jsx'),
+    read('src/hooks/useZevaryqSurface.js'),
   ]);
   assert.match(hook, /MOMENTUM/);
   assert.match(hook, /VOLUME/);
   assert.match(hook, /BREADTH/);
   assert.match(intelligence, /Live Intelligence/);
-  assert.match(onchain, /\/api\/zvq-token-intelligence/);
-  assert.match(network, /\/api\/kam\/network-status/);
+  assert.match(zevaryqSurface, /\/api\/zvq-token-intelligence/);
+  assert.match(zevaryqSurface, /\/api\/kam\/network-status/);
+  assert.match(onchain, /ON-CHAIN EVIDENCE/);
+  assert.match(network, /NETWORK PROOF/);
 });
 
 
