@@ -1,0 +1,96 @@
+name: Phase 16E Production Observation Baseline
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'release/phase16e-production-observation-baseline.json'
+      - 'scripts/observe-phase16e-production.mjs'
+      - 'tests/phase16e-production-observation.test.mjs'
+      - 'docs/PHASE16E_PRODUCTION_OBSERVATION_BASELINE.md'
+      - '.github/workflows/phase16e-production-observation.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'release/phase16e-production-observation-baseline.json'
+      - 'scripts/observe-phase16e-production.mjs'
+      - 'tests/phase16e-production-observation.test.mjs'
+      - 'docs/PHASE16E_PRODUCTION_OBSERVATION_BASELINE.md'
+      - '.github/workflows/phase16e-production-observation.yml'
+  schedule:
+    - cron: '23 * * * *'
+
+permissions:
+  contents: read
+  statuses: write
+
+concurrency:
+  group: phase16e-production-observation
+  cancel-in-progress: false
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify Phase 16E observation contract
+        run: node --test tests/phase16e-production-observation.test.mjs
+
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Observe live production baseline
+        env:
+          PHASE16E_EVIDENCE_DIR: ${{ runner.temp }}/phase16e-observation
+        run: node scripts/observe-phase16e-production.mjs
+
+      - name: Preserve Phase 16E observation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase16e-production-observation
+          path: ${{ runner.temp }}/phase16e-observation
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Publish Phase 16E observation status
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          JOB_STATUS: ${{ job.status }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          state=failure
+          description="Phase 16E production observation failed"
+          if [ "$JOB_STATUS" = "success" ]; then
+            state=success
+            description="Phase 16E production baseline stable"
+          fi
+          payload="$(jq -nc \
+            --arg state "$state" \
+            --arg context "kriptoaman/phase16e-production-observation" \
+            --arg description "$description" \
+            --arg target_url "$RUN_URL" \
+            '{state:$state,context:$context,description:$description,target_url:$target_url}')"
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$REPO/statuses/$SHA" \
+            -d "$payload" >/dev/null
