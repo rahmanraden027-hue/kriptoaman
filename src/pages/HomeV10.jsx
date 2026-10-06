@@ -57,12 +57,13 @@ export default function HomeV10() {
 
       <div id="home-v10-content" tabIndex={-1} className="mx-auto max-w-[1480px] space-y-4 px-3 pt-4 outline-none sm:px-6 sm:pt-6 lg:px-8">
         <ProductFlowRail />
-        <FeaturedMarketAsset assets={market.featured} state={market.state} />
+        <FeaturedMarketAsset assets={market.featured} state={market.state} provenance={market.provenance} />
         <MarketPulse
           gainers={market.gainers}
           active={market.active}
           direction={market.direction}
           assetCount={market.rawAssetCount}
+          provenance={market.provenance}
         />
 
         <section className="grid gap-4 xl:grid-cols-[1.2fr_.8fr]">
@@ -71,8 +72,9 @@ export default function HomeV10() {
             losers={market.losers}
             active={market.active}
             newAssets={market.newAssets}
+            provenance={market.provenance}
           />
-          <IntelligenceStream events={market.events} state={market.state} capturedAt={market.capturedAt} />
+          <IntelligenceStream events={market.events} state={market.state} provenance={market.provenance} />
         </section>
 
         <VerifyAnything />
