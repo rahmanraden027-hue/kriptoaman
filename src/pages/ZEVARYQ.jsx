@@ -4,6 +4,7 @@ import { Activity, ArrowRight, ExternalLink, Globe2, ShieldCheck, WalletCards } 
 import ZevaryqMark from '@/components/zevaryq-wallet/ZevaryqMark';
 import { useLanguage } from '@/lib/LanguageContext';
 import { DATA_STATE, isPositiveDataState, normalizeDataState } from '@/lib/dataState';
+import CrossSurfaceRail from '@/components/command/CrossSurfaceRail';
 
 const IDENTITY = Object.freeze({
   network: 'ZEVARYQ Mainnet',
@@ -115,8 +116,9 @@ export default function ZEVARYQ() {
   ];
 
   return (
-    <main className="ka-bg min-h-screen px-4 pb-28 pt-5 text-white">
+    <main className="ka-bg min-h-screen px-4 pb-28 pt-5 text-white" data-product-surface="network" data-product-release="phase15f">
       <div className="mx-auto max-w-6xl space-y-4">
+        <CrossSurfaceRail current="network" />
         <section className="ka-command-hero p-5 sm:p-7">
           <div className="relative z-10 grid gap-5 lg:grid-cols-[auto_1fr_auto] lg:items-center">
             <ZevaryqMark className="h-20 w-20 shrink-0 sm:h-24 sm:w-24" />

@@ -12,6 +12,7 @@ import NativeConnectivityBanner from '@/components/mobile/NativeConnectivityBann
 import { LanguageProvider } from '@/lib/LanguageContext';
 import WorkspaceExperience from '@/components/workspace/WorkspaceExperience';
 import WorkspaceState from '@/components/workspace/WorkspaceState';
+import CrossSurfaceRail from '@/components/command/CrossSurfaceRail';
 
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
@@ -43,7 +44,19 @@ const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
 const DashboardPage = Pages.Home ?? MainPage;
-const WalletStandalonePage = Pages.Wallet;
+const WalletPage = Pages.Wallet;
+const WalletStandalonePage = WalletPage
+  ? function WalletStandaloneSurface() {
+      return (
+        <div className="min-h-screen bg-[#020711]" data-product-surface="wallet" data-product-release="phase15f">
+          <div className="mx-auto max-w-xl px-3 pt-3">
+            <CrossSurfaceRail current="wallet" compact />
+          </div>
+          <WalletPage />
+        </div>
+      );
+    }
+  : null;
 
 const ADMIN_PAGE_KEYS = new Set([
   'AdminKAMAnalytics', 'AdminKAMBulkRewards', 'AdminKAMRewards', 'AdminKAMSnapshotApproval', 'AdminKAMSnapshotReadiness', 'AdminSKAMLaunch', 'AdminKYCManagement', 'AdminPlatformAssets', 'AdminProfitAnalytics', 'AdminUserBalances',

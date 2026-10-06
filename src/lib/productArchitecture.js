@@ -35,6 +35,8 @@ export const PRODUCT_ROLES = Object.freeze({
   }),
 });
 
+export const CROSS_SURFACE_RELEASE = 'phase15f';
+
 export const DECISION_LOOP = Object.freeze([
   'OBSERVE',
   'UNDERSTAND',
@@ -102,7 +104,7 @@ export const FINAL_SCREEN_ARCHITECTURE = Object.freeze([
   Object.freeze({
     id: 'portfolio',
     title: 'Portfolio',
-    route: '/dashboard',
+    route: '/PortfolioOverview',
     owner: PRODUCT_ROLES.kriptoaman.id,
     intent: 'Authenticated portfolio intelligence without fabricating unavailable data.',
     sources: Object.freeze(['authenticated-wallet-state', 'market-surface']),

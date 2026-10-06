@@ -6,6 +6,7 @@ import PortfolioStats from '../components/portfolio/PortfolioStats';
 import AssetAllocationChart from '../components/portfolio/AssetAllocationChart';
 import StrategyOverviewCard from '../components/portfolio/StrategyOverviewCard';
 import { useLanguage } from '../lib/LanguageContext';
+import CrossSurfaceRail from '@/components/command/CrossSurfaceRail';
 
 const QUERY_TIMEOUT_MS = 8000;
 
@@ -246,8 +247,9 @@ export default function PortfolioOverview() {
   const pnlCopy = intelligence.pnlState === 'positive' ? text.positive : intelligence.pnlState === 'negative' ? text.negative : text.neutral;
 
   return (
-    <div className="ka-bg ka-workspace-page min-h-screen pb-24 text-white sm:pb-28">
+    <div className="ka-bg ka-workspace-page min-h-screen pb-24 text-white sm:pb-28" data-product-surface="portfolio" data-product-release="phase15f">
       <div className="mx-auto max-w-7xl space-y-4 px-4 pt-4 sm:space-y-5 sm:px-6 sm:pt-5 lg:px-8">
+        <CrossSurfaceRail current="portfolio" />
         <section className="ka-command-hero p-5 sm:p-7" aria-labelledby="portfolio-intelligence-title">
           <div className="relative z-10 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div>

@@ -32,6 +32,7 @@ async function prepareContext({ width, height, authenticated }) {
   await context.addInitScript(() => {
     localStorage.setItem('ka_language', 'id');
     localStorage.setItem('_ka_disclaimer_accepted_v2', '1');
+    localStorage.setItem('ka_financial_intelligence_onboarding_v2', 'done');
     localStorage.removeItem('cv_pin_enabled');
   });
 
@@ -208,9 +209,9 @@ async function authenticatedJourney({ width, height, label }) {
       const step = journey[index];
       if (index > 0) {
         const selector = width >= 1024
-          ? '.ka-global-sidebar a[href="' + step.path + '"]'
+          ? '.ka-global-sidebar a.ka-sidebar-link[href="' + step.path + '"]'
           : '.ka-embedded-nav a[href="' + step.path + '"]';
-        await page.locator(selector).click();
+        await page.locator(selector).first().click();
         await page.waitForURL((url) => url.pathname === step.path, { timeout: 15000 });
         await waitForStable(page);
       }
@@ -260,10 +261,78 @@ async function authenticatedJourney({ width, height, label }) {
   return evidence;
 }
 
+
+async function phase15fContinuityAcceptance({ width, height, label }) {
+  const { context, page } = await prepareContext({ width, height, authenticated: true });
+  const evidence = [];
+  const surfaces = [
+    { path: '/Market', id: 'market' },
+    { path: '/IntelligenceHub', id: 'intelligence' },
+    { path: '/ZEVARYQ', id: 'network' },
+    { path: '/PortfolioOverview', id: 'portfolio' },
+    { path: '/SecurityHub', id: 'security' },
+    { path: '/wallet-app', id: 'wallet' },
+  ];
+
+  try {
+    for (const spec of surfaces) {
+      await page.goto(TARGET + spec.path, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      await waitForStable(page);
+
+      const continuity = await page.evaluate(({ id }) => {
+        const surface = document.querySelector(
+          '[data-product-surface="' + id + '"][data-product-release="phase15f"]',
+        );
+        const rail = document.querySelector(
+          '[data-product-continuity="phase15f"][data-current-surface="' + id + '"]',
+        );
+        const links = rail ? [...rail.querySelectorAll('[data-surface-link]')] : [];
+        const active = rail?.querySelector('[aria-current="page"]');
+        return {
+          id,
+          surfacePresent: Boolean(surface),
+          railPresent: Boolean(rail),
+          linkIds: links.map((link) => link.getAttribute('data-surface-link')),
+          activeId: active?.getAttribute('data-surface-link') || null,
+          innerWidth,
+          scrollWidth: document.documentElement.scrollWidth,
+        };
+      }, spec);
+
+      if (!continuity.surfacePresent) throw new Error(label + ' ' + spec.path + ': Phase 15F surface marker missing');
+      if (!continuity.railPresent) throw new Error(label + ' ' + spec.path + ': Phase 15F continuity rail missing');
+      if (continuity.activeId !== spec.id) {
+        throw new Error(label + ' ' + spec.path + ': continuity active surface mismatch ' + continuity.activeId + ' !== ' + spec.id);
+      }
+      for (const required of ['command-center', 'market', 'intelligence', 'network', 'portfolio', 'security', 'wallet']) {
+        if (!continuity.linkIds.includes(required)) {
+          throw new Error(label + ' ' + spec.path + ': continuity rail missing ' + required);
+        }
+      }
+      if (continuity.scrollWidth > continuity.innerWidth + 1) {
+        throw new Error(label + ' ' + spec.path + ': horizontal overflow ' + continuity.scrollWidth + ' > ' + continuity.innerWidth);
+      }
+
+      const slug = spec.id.replaceAll('-', '_');
+      await page.screenshot({
+        path: 'phase11c3-evidence/' + label + '-phase15f-' + slug + '.png',
+        fullPage: true,
+      });
+      evidence.push({ surface: spec.path, continuity });
+    }
+  } finally {
+    await context.close();
+  }
+
+  return evidence;
+}
+
 try {
   const publicMobile = await publicMobileAcceptance();
   const authMobile = await authenticatedJourney({ width: 390, height: 844, label: 'auth-mobile' });
   const authDesktop = await authenticatedJourney({ width: 1440, height: 1000, label: 'auth-desktop' });
+  const phase15fMobile = await phase15fContinuityAcceptance({ width: 390, height: 844, label: 'phase15f-mobile' });
+  const phase15fDesktop = await phase15fContinuityAcceptance({ width: 1440, height: 1000, label: 'phase15f-desktop' });
 
   const report = {
     target: TARGET,
@@ -276,6 +345,8 @@ try {
     publicMobile,
     authMobile,
     authDesktop,
+    phase15fMobile,
+    phase15fDesktop,
   };
 
   await fs.writeFile('phase11c3-evidence/cross-surface-report.json', JSON.stringify(report, null, 2));
@@ -283,6 +354,8 @@ try {
   console.log('PHASE11C3_AUTH_MOBILE=PASS');
   console.log('PHASE11C3_AUTH_DESKTOP=PASS');
   console.log('PHASE11C3_CROSS_SURFACE_ACCEPTANCE=PASS');
+  console.log('PHASE15F_MOBILE_CONTINUITY=PASS');
+  console.log('PHASE15F_DESKTOP_CONTINUITY=PASS');
 } finally {
   await browser.close();
 }

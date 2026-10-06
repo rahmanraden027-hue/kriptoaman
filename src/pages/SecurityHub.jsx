@@ -12,6 +12,7 @@ import {
   CheckCircle2, Circle, MonitorSmartphone, LogOut, LockKeyhole, Radar,
   Activity, Server, Sparkles
 } from 'lucide-react';
+import CrossSurfaceRail from '@/components/command/CrossSurfaceRail';
 
 const K_ANTI = 'ka_antiphishing';
 const K_WPROT = 'ka_withdrawal_protection';
@@ -176,9 +177,10 @@ export default function SecurityHub() {
   if (setupPin) return <PinSetup onDone={() => { localStorage.setItem(PIN_ENABLED_KEY, 'true'); setPin(true); setSetupPin(false); }} onCancel={() => setSetupPin(false)} />;
 
   return (
-    <div className="ka-bg min-h-screen pb-28 text-white">
+    <div className="ka-bg min-h-screen pb-28 text-white" data-product-surface="security" data-product-release="phase15f">
       <div className="mx-auto max-w-6xl space-y-5 px-4 pt-5 sm:px-6 lg:px-8">
-        <section className="relative overflow-hidden rounded-[28px] border border-cyan-400/15 bg-[linear-gradient(135deg,rgba(8,20,36,.96),rgba(4,12,25,.96))] p-5 sm:p-7" aria-labelledby="security-center-title">
+        <CrossSurfaceRail current="security" />
+        <section className="ka-command-hero p-5 sm:p-7" aria-labelledby="security-center-title">
           <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-cyan-400/10 blur-3xl" />
           <div className="pointer-events-none absolute bottom-0 left-1/3 h-32 w-80 bg-blue-600/10 blur-3xl" />
           <div className="relative grid gap-5 lg:grid-cols-[1.45fr_.8fr] lg:items-center">
