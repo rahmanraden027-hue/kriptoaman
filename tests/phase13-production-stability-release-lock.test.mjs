@@ -92,6 +92,7 @@ test('Phase 13 workflow is scheduled, multi-sample, and read-only', async () => 
   assert.match(workflow, /market-snapshot\?health=1/);
   assert.match(workflow, /developer\/network\.json/);
   assert.match(workflow, /api\/v2\/blocks/);
+  assert.doesNotMatch(workflow, /api\/v2\/blocks\?phase13/);
   assert.match(workflow, /actions\/upload-artifact/);
 
   assert.doesNotMatch(workflow, /eth_sendRawTransaction|eth_sendTransaction|wallet_sendCalls/);
