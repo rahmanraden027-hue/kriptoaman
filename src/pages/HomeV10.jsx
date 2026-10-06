@@ -2,14 +2,15 @@ import React from 'react';
 import { Bell, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import CommandCenterHero from '@/components/home-v10/CommandCenterHero';
+import CommandShortcutRail from '@/components/home-v10/CommandShortcutRail';
+import CommandStats from '@/components/home-v10/CommandStats';
 import DataProvenanceBar from '@/components/home-v10/DataProvenanceBar';
-import FeaturedMarketAsset from '@/components/home-v10/FeaturedMarketAsset';
-import IntelligenceStream from '@/components/home-v10/IntelligenceStream';
+import EcosystemRail from '@/components/home-v10/EcosystemRail';
 import LiveMarketTicker from '@/components/home-v10/LiveMarketTicker';
-import MarketPulse from '@/components/home-v10/MarketPulse';
+import MarketCommandGrid from '@/components/home-v10/MarketCommandGrid';
+import NetworkPulse from '@/components/home-v10/NetworkPulse';
 import OnChainNow from '@/components/home-v10/OnChainNow';
 import ProductFlowRail from '@/components/home-v10/ProductFlowRail';
-import TopMovers from '@/components/home-v10/TopMovers';
 import VerifyAnything from '@/components/home-v10/VerifyAnything';
 import ZevaryqLiveStrip from '@/components/home-v10/ZevaryqLiveStrip';
 import useMarketSurface from '@/hooks/useMarketSurface';
@@ -18,6 +19,8 @@ import { useLanguage } from '@/lib/LanguageContext';
 import { PRODUCT_ARCHITECTURE_VERSION } from '@/lib/productArchitecture';
 import { PRIMARY_NAV_ITEMS, primaryNavLabels, primaryNavTo } from '@/lib/primaryNavigation';
 
+// Legacy Phase 10K surfaces intentionally superseded by the unified command grid:
+// FeaturedMarketAsset · MarketPulse · TopMovers · IntelligenceStream
 const HOME_NAV_ITEMS = PRIMARY_NAV_ITEMS.filter((item) => item.id !== 'home');
 
 export default function HomeV10() {
@@ -25,14 +28,16 @@ export default function HomeV10() {
   const zevaryq = useZevaryqSurface();
   const { language } = useLanguage();
   const navLabels = primaryNavLabels(language);
+  const english = language === 'en';
 
   return (
     <main
-      className="min-h-screen bg-[radial-gradient(circle_at_50%_-10%,rgba(14,165,233,.08),transparent_30%),linear-gradient(#020711,#01050c)] pb-24 text-white"
+      className="min-h-screen bg-[radial-gradient(circle_at_50%_-8%,rgba(14,165,233,.11),transparent_27%),radial-gradient(circle_at_92%_12%,rgba(245,158,11,.045),transparent_24%),linear-gradient(#020711,#01050c)] pb-24 text-white"
       data-product-architecture={'kriptoaman-final-' + PRODUCT_ARCHITECTURE_VERSION}
       data-command-release="phase15d"
       data-production-data-binding="phase16b-verified-live-state-v1"
       data-visual-integration="phase16c-final-command-center-v1"
+      data-home-composition="home-live-intelligence-command-center-v1"
       style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))' }}
     >
       <a
@@ -41,21 +46,66 @@ export default function HomeV10() {
       >
         Skip to live market data
       </a>
+
       <header
-        className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#020711]/92 backdrop-blur-xl"
+        className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#020711]/94 backdrop-blur-xl"
         style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
-        <div className="mx-auto flex min-h-14 max-w-[1480px] items-center gap-3 px-4 sm:px-6 lg:px-8">
-          <div className="inline-flex min-h-11 items-center">
-            <Link to="/" className="inline-flex min-h-11 items-center rounded-lg px-1 text-sm font-black tracking-[0.12em] text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"><span>KRIPTOAMAN</span></Link>
-            <span className="ml-2 hidden text-[8px] font-black tracking-[0.12em] text-cyan-300 lg:inline" aria-hidden="true">INTELLIGENCE</span>
-          </div>
-          <nav aria-label={language === 'en' ? 'Primary navigation' : 'Navigasi utama'} className="hidden items-center gap-1 md:flex">
-            {HOME_NAV_ITEMS.map((item) => <Link key={item.id} to={primaryNavTo(item, 'public')} className="inline-flex min-h-11 items-center rounded-lg px-3 text-[10px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">{navLabels[item.id]}</Link>)}
+        <div className="mx-auto flex min-h-16 max-w-[1580px] items-center gap-3 px-3 sm:px-6 lg:px-8">
+          <Link
+            to="/"
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"
+            aria-label="KriptoAman home"
+          >
+            <img src="/brand/kriptoaman-mark-premium.webp" alt="" width="36" height="36" className="h-9 w-9 object-contain" />
+            <span className="text-sm font-black tracking-[0.08em] text-white sm:text-base">KRIPTOAMAN</span>
+          </Link>
+          <span className="hidden text-[8px] font-black uppercase tracking-[0.14em] text-cyan-300 lg:inline">INTELLIGENCE</span>
+          <span className="hidden text-[7px] font-black uppercase tracking-[0.13em] text-slate-400 xl:inline">
+            Crypto Intelligence. Global Market Edge.
+          </span>
+
+          <nav aria-label={english ? 'Primary navigation' : 'Navigasi utama'} className="hidden items-center gap-1 md:flex">
+            {HOME_NAV_ITEMS.map((item) => (
+              <Link
+                key={item.id}
+                to={primaryNavTo(item, 'public')}
+                className="inline-flex min-h-11 items-center rounded-lg px-3 text-[10px] font-black text-slate-400 transition hover:bg-white/[0.04] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"
+              >
+                {navLabels[item.id]}
+              </Link>
+            ))}
           </nav>
+
           <div className="ml-auto flex items-center gap-2">
-            <Link to="/Market" aria-label={language === 'en' ? 'Search market' : 'Cari market'} className="grid h-11 w-11 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.02] text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"><Search className="h-4 w-4" aria-hidden="true" /></Link>
-            <Link to="/Alerts" aria-label={language === 'en' ? 'Alerts' : 'Peringatan'} className="grid h-11 w-11 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.02] text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"><Bell className="h-4 w-4" aria-hidden="true" /></Link>
+            <Link
+              to="/Market"
+              aria-label={language === 'en' ? 'Search market' : 'Cari market'}
+              className="grid h-11 w-11 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.02] text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 lg:hidden"
+            >
+              <Search className="h-4 w-4" aria-hidden="true" />
+            </Link>
+            <Link
+              to="/Market"
+              aria-label={language === 'en' ? 'Search market' : 'Cari market'}
+              className="hidden min-h-11 min-w-[220px] items-center gap-2 rounded-xl border border-cyan-300/[0.09] bg-[#06101d]/75 px-3 text-[9px] text-slate-400 transition hover:border-cyan-300/20 lg:flex"
+            >
+              <Search className="h-4 w-4 text-cyan-300" aria-hidden="true" />
+              {english ? 'Search assets, market, intelligence...' : 'Cari aset, market, intelligence...'}
+            </Link>
+            <Link
+              to="/Alerts"
+              aria-label={english ? 'Alerts' : 'Peringatan'}
+              className="grid h-11 w-11 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.02] text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"
+            >
+              <Bell className="h-4 w-4" aria-hidden="true" />
+            </Link>
+            <Link
+              to="/Login"
+              className="hidden min-h-11 items-center rounded-xl border border-amber-300/30 bg-amber-300 px-4 text-[9px] font-black uppercase tracking-[0.09em] text-[#07101c] shadow-[0_0_28px_rgba(251,191,36,.12)] transition hover:bg-amber-200 sm:inline-flex"
+            >
+              {english ? 'Open KriptoAman' : 'Masuk KriptoAman'} →
+            </Link>
           </div>
         </div>
       </header>
@@ -65,10 +115,14 @@ export default function HomeV10() {
         Market data status: {market.state}. ZEVARYQ data status: {zevaryq.overallState}.
       </span>
 
-      <div id="home-v10-content" tabIndex={-1} className="mx-auto max-w-[1480px] space-y-4 px-3 pt-4 outline-none sm:px-6 sm:pt-6 lg:px-8">
+      <div
+        id="home-v10-content"
+        tabIndex={-1}
+        className="mx-auto max-w-[1580px] space-y-3 px-3 pt-3 outline-none sm:space-y-4 sm:px-6 sm:pt-5 lg:px-8"
+      >
         <section data-command-layer="market" aria-label="Global market command layer" className="space-y-3">
           <CommandCenterHero market={market} zevaryq={zevaryq} />
-          <FeaturedMarketAsset assets={market.featured} state={market.state} />
+          <CommandStats market={market} zevaryq={zevaryq} />
           <DataProvenanceBar
             state={market.provenance?.state}
             source={market.provenance?.sourceLabel || 'Source unavailable'}
@@ -76,22 +130,11 @@ export default function HomeV10() {
             ageMs={market.provenance?.ageMs}
             label="MARKET FEED"
           />
-          <MarketPulse
-            gainers={market.gainers}
-            active={market.active}
-            direction={market.direction}
-            assetCount={market.rawAssetCount}
-          />
         </section>
 
-        <section data-command-layer="intelligence" aria-label="KriptoAman intelligence layer" className="grid gap-4 xl:grid-cols-[1.2fr_.8fr]">
-          <TopMovers
-            gainers={market.gainers}
-            losers={market.losers}
-            active={market.active}
-            newAssets={market.newAssets}
-          />
-          <IntelligenceStream events={market.events} state={market.state} />
+        <section data-command-layer="intelligence" aria-label="KriptoAman intelligence layer" className="space-y-3">
+          <CommandShortcutRail />
+          <MarketCommandGrid market={market} zevaryq={zevaryq} />
         </section>
 
         <section
@@ -101,14 +144,15 @@ export default function HomeV10() {
           className="space-y-3"
         >
           <ZevaryqLiveStrip surface={zevaryq} />
+          <NetworkPulse surface={zevaryq} />
           <OnChainNow surface={zevaryq} />
         </section>
 
-        <section data-command-layer="evidence" aria-label="Verification and evidence layer">
+        <section data-command-layer="evidence" aria-label="Verification and evidence layer" className="space-y-3">
           <VerifyAnything />
+          <EcosystemRail />
+          <ProductFlowRail />
         </section>
-
-        <ProductFlowRail />
       </div>
 
       <nav
@@ -117,9 +161,21 @@ export default function HomeV10() {
         style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom, 0px))' }}
       >
         <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
-          <Link to="/" aria-current="page" className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">{navLabels.home}</Link>
+          <Link
+            to="/"
+            aria-current="page"
+            className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"
+          >
+            {navLabels.home}
+          </Link>
           {HOME_NAV_ITEMS.map((item) => (
-            <Link key={item.id} to={primaryNavTo(item, 'public')} className="grid min-h-11 place-items-center rounded-xl text-center text-[9px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">{navLabels[item.id]}</Link>
+            <Link
+              key={item.id}
+              to={primaryNavTo(item, 'public')}
+              className="grid min-h-11 place-items-center rounded-xl text-center text-[9px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"
+            >
+              {navLabels[item.id]}
+            </Link>
           ))}
         </div>
       </nav>
