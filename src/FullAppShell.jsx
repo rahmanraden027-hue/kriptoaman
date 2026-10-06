@@ -130,14 +130,12 @@ function RoutedWorkspace() {
         <Route path="/Services" element={<AdaptivePrimarySurface Page={Services} currentPageName="Services" />} />
         <Route path="/preview/home-v10" element={<HomeV10 />} />
         <Route path="/wallet-app" element={WalletStandalonePage ? (
-          <Web3Provider>
-            <div className="min-h-screen bg-[#020711]" data-product-surface="wallet" data-product-release="phase15f">
-              <div className="mx-auto max-w-xl px-3 pt-3">
-                <CrossSurfaceRail current="wallet" compact />
-              </div>
-              <WalletStandalonePage />
+          <div className="min-h-screen bg-[#020711]" data-product-surface="wallet" data-product-release="phase15f">
+            <div className="mx-auto max-w-xl px-3 pt-3">
+              <CrossSurfaceRail current="wallet" compact />
             </div>
-          </Web3Provider>
+            <Web3Provider><WalletStandalonePage /></Web3Provider>
+          </div>
         ) : <PageNotFound />} />
 
         {Object.entries(Pages).map(([path, Page]) => {
