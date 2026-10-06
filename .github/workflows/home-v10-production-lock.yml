@@ -73,11 +73,11 @@ jobs:
           echo "HOME_V10_PRODUCTION_EVIDENCE_DIR=$RUNNER_TEMP/home-v10-production-evidence" >> "$GITHUB_ENV"
       - name: Verify production HomeV10 mobile and desktop
         run: node scripts/verify-home-v10-production.mjs
-      - name: Preserve Phase 15D production evidence
+      - name: Preserve Phase 16D post-merge production evidence
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: home-v10-production-lock-evidence
+          name: home-v10-phase16d-production-lock-evidence
           path: ${{ runner.temp }}/home-v10-production-evidence
           if-no-files-found: warn
           retention-days: 30
