@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "phase": "13",
+  "name": "Production Stability & Release Lock",
+  "status": "release-lock-active",
+  "phase12Final": {
+    "commit": "71cdc7923098ff488c9391995857f82ea79bae41",
+    "pullRequest": 1019,
+    "result": "FINAL_PASS",
+    "date": "2026-10-06"
+  },
+  "releaseLock": {
+    "enabled": true,
+    "automaticUnlock": false,
+    "unlockPolicy": "A separately reviewed release-unlock phase is required before protected production surfaces may change."
+  },
+  "protectedInvariants": {
+    "chainId": 22028,
+    "chainIdHex": "0x560c",
+    "networkName": "ZEVARYQ Network",
+    "mainnetName": "ZEVARYQ Mainnet",
+    "nativeSymbol": "ZVQ",
+    "commercialLaunchEnabled": false,
+    "genesisUnchanged": true,
+    "validatorKeysUnchanged": true,
+    "balancesUnchanged": true
+  },
+  "protectedPaths": [
+    "chain/kam-mainnet/network-profile.json",
+    "chain/kam-mainnet/zevaryq-rebrand.json",
+    "chain/kam-mainnet/public-rpc-gateway/worker.js",
+    "public/kam-mainnet.json",
+    "functions/api/kam/network-status.js",
+    "functions/api/network-health.js",
+    "explorer-dashboard/developer-network.json",
+    "src/components/web3/Web3Provider.jsx",
+    "src/services/zevaryqNetwork.js",
+    "src/pages/Wallet.jsx",
+    ".github/workflows/kam-chain-freeze-guard.yml",
+    ".github/workflows/kam-mainnet-24x7-monitor.yml",
+    ".github/workflows/zvq-explorer-browser-proof.yml",
+    ".github/workflows/zvq-wallet-production-gate.yml",
+    ".github/workflows/phase12-final-release-observation.yml",
+    "release/phase12-production-freeze.json",
+    ".github/workflows/kam-landing-live-smoke.yml",
+    ".github/workflows/security-audit.yml"
+  ],
+  "stabilityPolicy": {
+    "readOnly": true,
+    "sampleIntervalSeconds": 25,
+    "requiredRpcProgress": true,
+    "requiredNetworkStatusVerified": true,
+    "requiredExplorerIdentity": true,
+    "requiredMarketAssetFloor": 4500,
+    "requiredPublicNetworksOnlineFloor": 12,
+    "expectedPublicNetworkProbeCount": 21
+  },
+  "forbiddenPhase13Mutations": [
+    "genesis",
+    "validator-keys",
+    "private-keys",
+    "balances",
+    "transactions",
+    "dns",
+    "rpc-write-methods",
+    "wallet-signing",
+    "wallet-broadcasting",
+    "token-state"
+  ],
+  "phase13Gate": ".github/workflows/phase13-production-stability-release-lock.yml"
+}
