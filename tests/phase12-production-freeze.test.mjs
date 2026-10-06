@@ -38,7 +38,7 @@ test('Phase 12 observation remains read-only and evidence based', async () => {
   const workflow = await read('.github/workflows/phase12-final-release-observation.yml');
 
   assert.match(workflow, /schedule:/);
-  assert.match(workflow, /cron: '27 \\*\\/6 \\* \\* \\*'/);
+  assert.match(workflow, /cron: '27 \*\/6 \* \* \*'/);
   assert.match(workflow, /api\/kam\/network-status/);
   assert.match(workflow, /market-snapshot\?health=1/);
   assert.match(workflow, /developer\/network\.json/);
