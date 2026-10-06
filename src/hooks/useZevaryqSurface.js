@@ -33,7 +33,7 @@ const ageFrom = (value, fallback) => {
 };
 
 function useJsonPoll(endpointOrEndpoints, refreshMs) {
-  const endpoints = Array.isArray(endpointOrEndpoints) ? endpointOrEndpoints : [endpointOrEndpoints];
+  const endpointKey = (Array.isArray(endpointOrEndpoints) ? endpointOrEndpoints : [endpointOrEndpoints]).join('\n');
   const [result, setResult] = useState({
     payload: null,
     ok: false,
@@ -44,6 +44,7 @@ function useJsonPoll(endpointOrEndpoints, refreshMs) {
   useEffect(() => {
     let active = true;
     let timer;
+    const endpoints = endpointKey.split('\n').filter(Boolean);
 
     const load = async () => {
       try {
@@ -90,7 +91,7 @@ function useJsonPoll(endpointOrEndpoints, refreshMs) {
       active = false;
       window.clearTimeout(timer);
     };
-  }, [refreshMs, ...endpoints]);
+  }, [endpointKey, refreshMs]);
 
   return result;
 }
