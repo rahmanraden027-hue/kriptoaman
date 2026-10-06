@@ -36,7 +36,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          BASE="$(node -p "const m=require('./release/phase13-production-stability-lock.json'); process.stdout.write(m.releaseBaseline?.commit || m.phase12Final.commit)")"
+          BASE="$(node -e "const m=require('./release/phase13-production-stability-lock.json'); process.stdout.write(m.releaseBaseline?.commit || m.phase12Final.commit)")"
           HEAD_REF="${{ github.head_ref }}"
           export BASE HEAD_REF
           TRANSITION_ALLOWED="$(node - <<'NODE'
