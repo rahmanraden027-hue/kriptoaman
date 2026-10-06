@@ -134,7 +134,7 @@ try {
         return Boolean(
           ticker && /●\s*LIVE/.test(ticker.textContent || '') &&
           onChain && /#\s*[\d,]+/.test(onChain.textContent || '') &&
-          zvq && /●\s*LIVE/.test(zvq.textContent || '') && /#[\d,]+/.test(zvq.textContent || '')
+          zvq && /●\s*VERIFIED/.test(zvq.textContent || '') && /#[\d,]+/.test(zvq.textContent || '')
         );
       }, null, { timeout: 45_000, polling: 500 });
 
@@ -146,7 +146,7 @@ try {
         const ticker = document.querySelector('section[aria-label="Live market ticker"]');
         const sections = [...document.querySelectorAll('section')];
         const onChain = sections.find(node => node.textContent?.includes('ON-CHAIN NOW'));
-        const zvq = sections.find(node => node.querySelector(':scope > b')?.textContent?.trim() === 'ZEVARYQ');
+        const zvq = sections.find(node => node.querySelector(':scope > b')?.textContent?.trim() === 'ZEVARYQ MAINNET');
         const search = document.querySelector('a[aria-label="Search market"]');
         const searchRect = search?.getBoundingClientRect();
         const mobileNav = document.querySelector('nav[aria-label="Mobile primary navigation"]');
@@ -214,7 +214,7 @@ try {
       assert.equal(snapshot.oldPromoCopyPresent, false, config.name + ' old promo copy absent');
       assert.match(snapshot.tickerText, /●\s*LIVE/, config.name + ' market LIVE');
       assert.match(snapshot.onChainText, /#\s*[\d,]+/, config.name + ' on-chain block');
-      assert.match(snapshot.zvqText, /●\s*LIVE/, config.name + ' ZEVARYQ LIVE');
+      assert.match(snapshot.zvqText, /●\s*VERIFIED/, config.name + ' ZEVARYQ VERIFIED');
 
       const onChainBlock = Number(snapshot.onChainText.match(/#\s*([\d,]+)/)?.[1]?.replace(/,/g, ''));
       const networkBlock = Number(snapshot.zvqText.match(/#\s*([\d,]+)/)?.[1]?.replace(/,/g, ''));
