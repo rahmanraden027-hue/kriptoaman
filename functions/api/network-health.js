@@ -404,8 +404,6 @@ async function getSnapshot(forceRefresh = false, waitUntil, env) {
       ageMs: durable.ageMs,
     };
   }
-  scheduleBackground(waitUntil, durableRead.then(() => undefined).catch(() => undefined));
-
   if (cachedSnapshot && Number.isFinite(ageMs) && ageMs <= STALE_SNAPSHOT_MAX_AGE_MS) {
     scheduleBackground(
       waitUntil,
@@ -414,9 +412,25 @@ async function getSnapshot(forceRefresh = false, waitUntil, env) {
     return { snapshot: cachedSnapshot, deliveryMode: 'recent-verified-background-refresh', ageMs };
   }
 
+  // A D1 read that narrowly misses the fast-path budget can still be safer and much
+  // faster than waiting for every external provider. Race that already-running read
+  // against the fresh probe, and only accept a complete verified snapshot from either.
   const refresh = startRefresh();
-  const snapshot = await withDeadline(refresh, PUBLIC_RESPONSE_BUDGET_MS, null);
-  if (!snapshot) {
+  const lateDurableCandidate = durableRead.then((value) => {
+    if (!value) throw new Error('durable_snapshot_unavailable');
+    return { kind: 'durable', durable: value };
+  });
+  const freshCandidate = refresh.then((snapshot) => {
+    if (!snapshot) throw new Error('fresh_snapshot_unavailable');
+    return { kind: 'fresh', snapshot };
+  });
+  const candidate = await withDeadline(
+    Promise.any([lateDurableCandidate, freshCandidate]).catch(() => null),
+    PUBLIC_RESPONSE_BUDGET_MS,
+    null,
+  );
+
+  if (!candidate) {
     scheduleBackground(
       waitUntil,
       refresh.then((fresh) => persistDurableSnapshot(env, fresh)),
@@ -424,8 +438,20 @@ async function getSnapshot(forceRefresh = false, waitUntil, env) {
     return { snapshot: null, deliveryMode: 'warming-background-refresh', ageMs: null };
   }
 
-  scheduleBackground(waitUntil, persistDurableSnapshot(env, snapshot));
-  return { snapshot, deliveryMode: 'fresh-probe', ageMs: 0 };
+  if (candidate.kind === 'durable') {
+    scheduleBackground(
+      waitUntil,
+      refresh.then((fresh) => persistDurableSnapshot(env, fresh)),
+    );
+    return {
+      snapshot: candidate.durable.snapshot,
+      deliveryMode: 'd1-recent-verified-background-refresh',
+      ageMs: candidate.durable.ageMs,
+    };
+  }
+
+  scheduleBackground(waitUntil, persistDurableSnapshot(env, candidate.snapshot));
+  return { snapshot: candidate.snapshot, deliveryMode: 'fresh-probe', ageMs: 0 };
 }
 
 function warmingPayload(deliveryMode) {
