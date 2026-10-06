@@ -14,6 +14,17 @@ test('ordinary public network-health reads have a bounded cold path', () => {
   assert.match(source, /backgroundRefreshContinues: true/);
 });
 
+test('late verified durable evidence races the provider refresh instead of being discarded', () => {
+  assert.match(source, /const durableRead = readDurableSnapshot\(env\)/);
+  assert.match(source, /const durable = await withDeadline\(durableRead, DURABLE_READ_BUDGET_MS, null\)/);
+  assert.match(source, /const lateDurableCandidate = durableRead\.then/);
+  assert.match(source, /if \(!value\) throw new Error\('durable_snapshot_unavailable'\)/);
+  assert.match(source, /Promise\.any\(\[lateDurableCandidate, freshCandidate\]\)/);
+  assert.match(source, /candidate\.kind === 'durable'/);
+  assert.match(source, /deliveryMode: 'd1-recent-verified-background-refresh'/);
+  assert.doesNotMatch(source, /durableRead\.then\(\(\) => undefined\)/);
+});
+
 test('bounded fallback never fabricates network evidence', () => {
   assert.match(source, /summary: null/);
   assert.match(source, /networks: \[\]/);
