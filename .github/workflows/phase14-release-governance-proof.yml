@@ -1,0 +1,29 @@
+name: Phase 14 Release Governance Proof
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '31 */6 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  governance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify Phase 14 governance contract
+        run: node --test tests/phase14-release-governance.test.mjs
+      - name: Verify live GitHub hard-enforcement ruleset
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/verify-phase14-release-governance.mjs

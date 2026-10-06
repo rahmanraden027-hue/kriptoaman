@@ -36,14 +36,43 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          BASE="$(node -p "require('./release/phase13-production-stability-lock.json').phase12Final.commit")"
+          BASE="$(node -e "const m=require('./release/phase13-production-stability-lock.json'); process.stdout.write(m.releaseBaseline?.commit || m.phase12Final.commit)")"
+          HEAD_REF="${{ github.head_ref }}"
+          export BASE HEAD_REF
+          TRANSITION_ALLOWED="$(node - <<'NODE'
+          const fs = require('fs');
+          const p = 'release/phase14-release-governance.json';
+          if (!fs.existsSync(p)) { process.stdout.write('false'); process.exit(0); }
+          const g = JSON.parse(fs.readFileSync(p,'utf8'));
+          const ok = g.phase === '14'
+            && g.status === 'transition-active'
+            && g.transition?.active === true
+            && g.transition?.headBranch === process.env.HEAD_REF
+            && g.transition?.baseBranch === 'main'
+            && g.transition?.baselineCommit === process.env.BASE;
+          process.stdout.write(ok ? 'true' : 'false');
+          NODE
+          )"
           git cat-file -e "${BASE}^{commit}"
           node - <<'NODE' | while IFS= read -r path; do
           const manifest = require('./release/phase13-production-stability-lock.json');
           for (const path of manifest.protectedPaths) console.log(path);
           NODE
             if ! git diff --quiet "$BASE" HEAD -- "$path"; then
-              echo "::error::Phase 13 release lock detected drift in protected path: $path"
+              if [ "$TRANSITION_ALLOWED" = "true" ]; then
+                ALLOWED_PATH="$(node - "$path" <<'NODE'
+          const fs = require('fs');
+          const path = process.argv[2];
+          const g = JSON.parse(fs.readFileSync('release/phase14-release-governance.json','utf8'));
+          process.stdout.write((g.transition?.allowedProtectedPathChanges || []).includes(path) ? 'true' : 'false');
+          NODE
+                )"
+                if [ "$ALLOWED_PATH" = "true" ]; then
+                  echo "AUTHORIZED_PHASE14_TRANSITION: $path"
+                  continue
+                fi
+              fi
+              echo "::error::Phase 13 release lock detected unauthorized drift in protected path: $path"
               git diff "$BASE" HEAD -- "$path" || true
               exit 1
             fi
@@ -168,7 +197,7 @@ jobs:
             phase: 13,
             result: 'PASS',
             checkedAt: new Date().toISOString(),
-            baseline: manifest.phase12Final.commit,
+            baseline: manifest.releaseBaseline?.commit || manifest.phase12Final.commit,
             chainId: expectedChain,
             chainIdHex: expectedHex,
             symbol: expectedSymbol,
