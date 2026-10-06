@@ -49,7 +49,7 @@ test('Phase 10L.4 global acceptance is read-only and covers five production view
   assert.match(script, /searchWidth >= 44/);
   assert.match(script, /politeStatusCount >= 2/);
   assert.match(script, /Math\.abs\(onChainBlock - networkBlock\) <= 25/);
-  assert.match(script, /ZEVARYQ MAINNET/);
+  assert.match(script, /data-zvq-chain-id="22028"/);
   assert.match(script, /ZEVARYQ VERIFIED/);
   assert.doesNotMatch(script, /ZEVARYQ LIVE/);
   assert.doesNotMatch(script, /eth_sendTransaction|eth_sendRawTransaction|wallet_requestPermissions|personal_|private[_ -]?key/i);
