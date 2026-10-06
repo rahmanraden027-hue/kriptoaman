@@ -101,7 +101,7 @@ export default function CommandStats({ market, zevaryq }) {
   ];
 
   return (
-    <section aria-label="Live command statistics" className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
+    <section aria-label="Live command statistics" data-assets-tracked={metrics.tracked || ''} className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
       {cards.map((card) => <StatCard key={card.label} {...card} />)}
     </section>
   );
