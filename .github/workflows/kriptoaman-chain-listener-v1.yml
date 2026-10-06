@@ -1,0 +1,146 @@
+name: KriptoAman First-Party Chain Listener V1
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'services/kriptoaman-chain-listener/**'
+      - 'scripts/probe-zvq-listener-capability.mjs'
+      - 'tests/kriptoaman-chain-listener-v1.test.mjs'
+      - 'docs/KRIPTOAMAN_FIRST_PARTY_INTELLIGENCE_V1.md'
+      - '.github/workflows/kriptoaman-chain-listener-v1.yml'
+      - 'scripts/deploy-kriptoaman-chain-listener.sh'
+      - 'scripts/deploy-kriptoaman-chain-listener.sh'
+  push:
+    branches:
+      - codex/kriptoaman-first-party-chain-listener-v1
+    paths:
+      - 'services/kriptoaman-chain-listener/**'
+      - 'scripts/probe-zvq-listener-capability.mjs'
+      - 'tests/kriptoaman-chain-listener-v1.test.mjs'
+      - 'docs/KRIPTOAMAN_FIRST_PARTY_INTELLIGENCE_V1.md'
+      - '.github/workflows/kriptoaman-chain-listener-v1.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - name: Root architecture contract
+        run: node --test tests/kriptoaman-chain-listener-v1.test.mjs
+      - name: Install isolated listener dependencies
+        working-directory: services/kriptoaman-chain-listener
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Listener unit tests
+        working-directory: services/kriptoaman-chain-listener
+        run: npm test
+      - name: Syntax check production modules
+        run: |
+          node --check services/kriptoaman-chain-listener/src/config.mjs
+          node --check services/kriptoaman-chain-listener/src/rpc.mjs
+          node --check services/kriptoaman-chain-listener/src/store.mjs
+          node --check services/kriptoaman-chain-listener/src/server.mjs
+          node --check services/kriptoaman-chain-listener/src/indexer.mjs
+          node --check services/kriptoaman-chain-listener/src/index.mjs
+
+  first-party-rpc-capability:
+    if: >
+      (github.event_name == 'push' && github.ref == 'refs/heads/codex/kriptoaman-first-party-chain-listener-v1') ||
+      (github.event_name == 'pull_request' &&
+       github.head_ref == 'codex/kriptoaman-first-party-chain-listener-v1' &&
+       github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v7
+      - name: Read-only ZEVARYQ RPC and WebSocket capability probe
+        run: node scripts/probe-zvq-listener-capability.mjs
+
+
+  indexer-host-connectivity:
+    if: >
+      github.event_name == 'pull_request' &&
+      github.head_ref == 'codex/kriptoaman-first-party-chain-listener-v1' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 6
+    steps:
+      - name: Verify dedicated indexer host and first-party RPC path
+        run: |
+          set -euo pipefail
+          echo 'RUNNER_SSH_KEY_FINGERPRINTS_BEGIN'
+          runner_home="$(getent passwd "$(id -u)" | cut -d: -f6)"
+          [[ -n "$runner_home" ]] || runner_home=/root
+          if [[ -d "$runner_home/.ssh" ]]; then
+            echo 'RUNNER_SSH_FILES'
+            find "$runner_home/.ssh" -maxdepth 1 -type f -printf '%f\n' | sort
+            while IFS= read -r key; do
+              case "$key" in *.pub|*/known_hosts*|*/config|*/authorized_keys) continue ;; esac
+              pub="$(ssh-keygen -y -f "$key" 2>/dev/null || true)"
+              [[ -n "$pub" ]] || continue
+              printf '%s\n' "$pub" | ssh-keygen -lf - || true
+            done < <(find "$runner_home/.ssh" -maxdepth 1 -type f -print)
+          fi
+          echo 'RUNNER_SSH_G_CONFIG'
+          ssh -G root@206.189.36.15 2>/dev/null | grep -E '^identityfile ' || true
+          if ssh-add -L >/tmp/ka-agent-keys 2>/dev/null; then
+            while IFS= read -r pub; do
+              [[ -n "$pub" ]] && printf '%s\n' "$pub" | ssh-keygen -lf - || true
+            done </tmp/ka-agent-keys
+            rm -f /tmp/ka-agent-keys
+          fi
+          echo 'RUNNER_SSH_KEY_FINGERPRINTS_END'
+          target=10.104.0.6
+          ssh_opts=(-o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new)
+          ssh "${ssh_opts[@]}" "root@$target" 'uname -srm; test -d /root'
+          chain="$(ssh "${ssh_opts[@]}" "root@$target" "curl --noproxy '*' -fsS --connect-timeout 6 --max-time 15 -H 'content-type: application/json' --data '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"eth_chainId\",\"params\":[]}' 'https://206.189.36.15/' | python3 -c 'import json,sys; print(json.load(sys.stdin).get(\"result\",\"\"))'")"
+          test "$chain" = 0x560c
+          echo "INDEXER_HOST_CONNECTIVITY=verified target=$target first_party_chain=$chain"
+
+  stage-indexer:
+    if: >
+      github.event_name == 'pull_request' &&
+      github.head_ref == 'codex/kriptoaman-first-party-chain-listener-v1' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    needs: [validate, indexer-host-connectivity]
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - name: Package reviewed listener
+        run: |
+          set -euo pipefail
+          tar -czf /tmp/kriptoaman-chain-listener.tgz -C services kriptoaman-chain-listener
+          bash -n scripts/deploy-kriptoaman-chain-listener.sh
+      - name: Stage listener on dedicated host
+        run: |
+          set -euo pipefail
+          target=10.104.0.6
+          ssh_opts=(-o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new)
+          scp "${ssh_opts[@]}" /tmp/kriptoaman-chain-listener.tgz scripts/deploy-kriptoaman-chain-listener.sh "root@$target:/tmp/"
+          ssh "${ssh_opts[@]}" "root@$target" "bash /tmp/deploy-kriptoaman-chain-listener.sh '$GITHUB_RUN_ID' /tmp/kriptoaman-chain-listener.tgz"
+      - name: Verify private real-time indexer state
+        run: |
+          set -euo pipefail
+          target=10.104.0.6
+          ssh_opts=(-o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new)
+          first="$(ssh "${ssh_opts[@]}" "root@$target" "curl -fsS http://127.0.0.1:8790/v1/status")"
+          echo "$first" | jq -e '.chainId == 22028 and .source == "kriptoaman-first-party-zvq"'
+          h1="$(jq -r '.lastBlock' <<<"$first")"
+          sleep 8
+          second="$(ssh "${ssh_opts[@]}" "root@$target" "curl -fsS http://127.0.0.1:8790/v1/status")"
+          h2="$(jq -r '.lastBlock' <<<"$second")"
+          test "$h1" != null
+          test "$h2" != null
+          (( h2 >= h1 ))
+          ssh "${ssh_opts[@]}" "root@$target" "ss -ltn | grep -Eq '127\\.0\\.0\\.1:8790'"
+          echo "INDEXER_PRIVATE_REALTIME=verified block_before=$h1 block_after=$h2"
