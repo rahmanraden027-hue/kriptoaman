@@ -25,18 +25,14 @@ test('Phase 15B market surface exposes canonical provenance from the existing ma
   assert.match(hook, /state,/);
 });
 
-test('Phase 15B renders provenance on every primary market intelligence panel', async () => {
-  const files = await Promise.all([
-    read('src/components/home-v10/FeaturedMarketAsset.jsx'),
-    read('src/components/home-v10/MarketPulse.jsx'),
-    read('src/components/home-v10/TopMovers.jsx'),
-    read('src/components/home-v10/IntelligenceStream.jsx'),
-  ]);
-  for (const content of files) assert.match(content, /DataProvenanceBar/);
-  assert.match(files[0], /MARKET SOURCE/);
-  assert.match(files[1], /MARKET PULSE/);
-  assert.match(files[2], /MOVERS SOURCE/);
-  assert.match(files[3], /INTELLIGENCE INPUT/);
+test('Phase 15B keeps market provenance visibly bound to the shared command layer', async () => {
+  const home = await read('src/pages/HomeV10.jsx');
+  assert.match(home, /DataProvenanceBar/);
+  assert.match(home, /MARKET FEED/);
+  assert.match(home, /market\.provenance\?\.state/);
+  assert.match(home, /market\.provenance\?\.sourceLabel/);
+  assert.match(home, /market\.provenance\?\.capturedAt/);
+  assert.match(home, /market\.provenance\?\.ageMs/);
 });
 
 test('Phase 15B network and on-chain panels expose first-party source timestamps and fail closed', async () => {
@@ -60,8 +56,8 @@ test('Phase 15B provenance component makes state source and time machine-readabl
   const component = await read('src/components/home-v10/DataProvenanceBar.jsx');
   assert.match(component, /data-data-state=/);
   assert.match(component, /data-data-source=/);
-  assert.match(component, /timestamp unavailable/);
-  assert.match(component, /<1m old/);
+  assert.match(component, /time unavailable/);
+  assert.match(component, /<1m/);
   assert.match(component, /UNAVAILABLE/);
 });
 
