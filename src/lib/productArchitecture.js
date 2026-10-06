@@ -1,6 +1,6 @@
 import { DATA_STATE } from '@/lib/dataState';
 
-export const PRODUCT_ARCHITECTURE_VERSION = '2026.1';
+export const PRODUCT_ARCHITECTURE_VERSION = '2026.2';
 
 export const PRODUCT_ROLES = Object.freeze({
   kriptoaman: Object.freeze({
@@ -34,6 +34,8 @@ export const PRODUCT_ROLES = Object.freeze({
     statement: 'Native asset of ZEVARYQ Mainnet.',
   }),
 });
+
+export const CROSS_SURFACE_RELEASE = 'phase15f';
 
 export const DECISION_LOOP = Object.freeze([
   'OBSERVE',
@@ -102,7 +104,7 @@ export const FINAL_SCREEN_ARCHITECTURE = Object.freeze([
   Object.freeze({
     id: 'portfolio',
     title: 'Portfolio',
-    route: '/dashboard',
+    route: '/PortfolioOverview',
     owner: PRODUCT_ROLES.kriptoaman.id,
     intent: 'Authenticated portfolio intelligence without fabricating unavailable data.',
     sources: Object.freeze(['authenticated-wallet-state', 'market-surface']),
