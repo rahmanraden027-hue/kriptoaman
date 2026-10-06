@@ -39,6 +39,10 @@ export default function useMarketSurface() {
 
   return useMemo(() => {
     const assets = Array.isArray(raw.coins) ? raw.coins.filter(qualityAsset) : [];
+    const authoritativeTotal = validNumber(raw.totalAssets) && Number(raw.totalAssets) > 0
+      ? Math.min(Number(raw.totalAssets), Number(raw.assetLimit) || Number(raw.totalAssets))
+      : null;
+    const trackedAssetCount = authoritativeTotal || (Array.isArray(raw.coins) ? raw.coins.length : 0);
     const ageMs = validNumber(raw.cacheAgeMs)
       ? Math.max(0, Number(raw.cacheAgeMs))
       : validNumber(raw.lastUpdated)
@@ -153,14 +157,16 @@ export default function useMarketSurface() {
       breadth,
       events,
       assetCount: assets.length,
-      rawAssetCount: Array.isArray(raw.coins) ? raw.coins.length : 0,
+      rawAssetCount: trackedAssetCount,
     };
   }, [
+    raw.assetLimit,
     raw.cacheAgeMs,
     raw.coins,
     raw.isStale,
     raw.lastUpdated,
     raw.loading,
     raw.source,
+    raw.totalAssets,
   ]);
 }
