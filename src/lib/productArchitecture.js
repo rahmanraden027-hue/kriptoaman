@@ -1,6 +1,6 @@
 import { DATA_STATE } from '@/lib/dataState';
 
-export const PRODUCT_ARCHITECTURE_VERSION = '2026.2';
+export const PRODUCT_ARCHITECTURE_VERSION = '2026.1';
 
 export const PRODUCT_ROLES = Object.freeze({
   kriptoaman: Object.freeze({
