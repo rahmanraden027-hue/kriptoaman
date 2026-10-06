@@ -44,7 +44,10 @@ export default function HomeV10() {
         style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
         <div className="mx-auto flex min-h-14 max-w-[1480px] items-center gap-3 px-4 sm:px-6 lg:px-8">
-          <Link to="/" className="inline-flex min-h-11 items-center rounded-lg px-1 text-sm font-black tracking-[0.12em] text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"><span>KRIPTOAMAN</span><span className="ml-2 hidden text-[8px] font-black tracking-[0.12em] text-cyan-300 lg:inline">INTELLIGENCE</span></Link>
+          <div className="inline-flex min-h-11 items-center">
+            <Link to="/" className="inline-flex min-h-11 items-center rounded-lg px-1 text-sm font-black tracking-[0.12em] text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"><span>KRIPTOAMAN</span></Link>
+            <span className="ml-2 hidden text-[8px] font-black tracking-[0.12em] text-cyan-300 lg:inline" aria-hidden="true">INTELLIGENCE</span>
+          </div>
           <nav aria-label={language === 'en' ? 'Primary navigation' : 'Navigasi utama'} className="hidden items-center gap-1 md:flex">
             {HOME_NAV_ITEMS.map((item) => <Link key={item.id} to={primaryNavTo(item, 'public')} className="inline-flex min-h-11 items-center rounded-lg px-3 text-[10px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">{navLabels[item.id]}</Link>)}
           </nav>
