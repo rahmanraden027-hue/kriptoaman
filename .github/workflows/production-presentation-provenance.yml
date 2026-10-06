@@ -34,8 +34,8 @@ jobs:
           node <<'NODE'
           const base = 'https://kriptoaman.com';
           const origin = new URL(base).origin;
-          // Phase 10K production contract: prove the current HomeV10 data-first
-          // homepage instead of legacy Phase 6/9 presentation copy.
+          // Phase 16D production contract: prove the live Phase 16C data-first
+          // command center instead of legacy or pre-16C presentation copy.
           const required = [
             'MOVING NOW',
             'Top Gainer',
@@ -47,12 +47,14 @@ jobs:
             'VERIFY ANYTHING',
             'Token / Contract / Wallet / Transaction / Block',
             'ON-CHAIN NOW',
-            'ZEVARYQ discovery',
+            'Global Crypto Intelligence',
+            'Visual topology · verified core data only',
+            'ZEVARYQ evidence radar',
             'Open discovery'
           ];
 
           const headers = {
-            'User-Agent': 'KriptoAman-Presentation-Provenance/5.0',
+            'User-Agent': 'KriptoAman-Presentation-Provenance/6.0',
             'Cache-Control': 'no-cache'
           };
 
