@@ -81,17 +81,17 @@ export default function HomeV10() {
             <Link
               to="/Market"
               aria-label={language === 'en' ? 'Search market' : 'Cari market'}
-              className="hidden min-h-11 min-w-[220px] items-center gap-2 rounded-xl border border-cyan-300/[0.09] bg-[#06101d]/75 px-3 text-[9px] text-slate-400 transition hover:border-cyan-300/20 lg:flex"
+              className="grid h-11 w-11 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.02] text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 lg:hidden"
             >
-              <Search className="h-4 w-4 text-cyan-300" aria-hidden="true" />
-              {english ? 'Search assets, market, intelligence...' : 'Cari aset, market, intelligence...'}
+              <Search className="h-4 w-4" aria-hidden="true" />
             </Link>
             <Link
               to="/Market"
               aria-label={language === 'en' ? 'Search market' : 'Cari market'}
-              className="grid h-11 w-11 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.02] text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 lg:hidden"
+              className="hidden min-h-11 min-w-[220px] items-center gap-2 rounded-xl border border-cyan-300/[0.09] bg-[#06101d]/75 px-3 text-[9px] text-slate-400 transition hover:border-cyan-300/20 lg:flex"
             >
-              <Search className="h-4 w-4" aria-hidden="true" />
+              <Search className="h-4 w-4 text-cyan-300" aria-hidden="true" />
+              {english ? 'Search assets, market, intelligence...' : 'Cari aset, market, intelligence...'}
             </Link>
             <Link
               to="/Alerts"
