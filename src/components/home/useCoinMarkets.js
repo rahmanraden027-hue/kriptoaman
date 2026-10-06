@@ -53,6 +53,7 @@ export default function useCoinMarkets() {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [isStale, setIsStale] = useState(false);
   const [cacheAgeMs, setCacheAgeMs] = useState(null);
+  const [totalAssets, setTotalAssets] = useState(null);
   const timer = useRef(null);
 
   useEffect(() => {
@@ -111,11 +112,22 @@ export default function useCoinMarkets() {
       return true;
     };
 
-    const saveCache = (data, savedAt, provider) => {
+    const boundedTotalAssets = (value, fallback = 0) => {
+      const parsed = Number(value);
+      const count = Number.isFinite(parsed) && parsed > 0 ? parsed : Number(fallback) || 0;
+      return count > 0 ? Math.min(Math.trunc(count), MARKET_ASSET_LIMIT) : null;
+    };
+
+    const saveCache = (data, savedAt, provider, authoritativeTotal = null) => {
       try {
         localStorage.setItem(
           MARKET_CACHE_KEY,
-          JSON.stringify({ savedAt, source: provider, data: compactSnapshot(data) }),
+          JSON.stringify({
+            savedAt,
+            source: provider,
+            totalAssets: boundedTotalAssets(authoritativeTotal, data.length),
+            data: compactSnapshot(data),
+          }),
         );
       } catch {
         // Quota/privacy-mode failures must not invalidate fresh server data.
@@ -126,6 +138,7 @@ export default function useCoinMarkets() {
       const cached = JSON.parse(localStorage.getItem(MARKET_CACHE_KEY) || 'null');
       if (cached?.savedAt && Array.isArray(cached.data) && cached.data.length > 0) {
         applyData(cached.data, 'kriptoaman-cache', cached.savedAt);
+        setTotalAssets(boundedTotalAssets(cached.totalAssets, cached.data.length));
       }
     } catch {
       localStorage.removeItem(MARKET_CACHE_KEY);
@@ -146,6 +159,7 @@ export default function useCoinMarkets() {
 
     const hydrateServerPages = async (firstPayload, generation) => {
       const capturedAt = Number(firstPayload.capturedAt) || Date.now();
+      const authoritativeTotal = boundedTotalAssets(firstPayload.totalAssets, firstPayload.data.length);
       const maxPages = Math.min(
         Number(firstPayload.totalPages) || 1,
         Math.ceil(MARKET_ASSET_LIMIT / SERVER_PAGE_SIZE),
@@ -170,7 +184,7 @@ export default function useCoinMarkets() {
         combined = combined.slice(0, MARKET_ASSET_LIMIT);
         if (!alive || generation !== loadGeneration) return;
         applyData(combined, 'kriptoaman-market-db', capturedAt);
-        saveCache(combined, capturedAt, 'kriptoaman-market-db');
+        saveCache(combined, capturedAt, 'kriptoaman-market-db', authoritativeTotal);
       }
     };
 
@@ -180,8 +194,10 @@ export default function useCoinMarkets() {
         const firstPayload = await fetchServerPage(0);
         if (!alive || generation !== loadGeneration) return;
         const savedAt = Number(firstPayload.capturedAt) || Date.now();
+        const authoritativeTotal = boundedTotalAssets(firstPayload.totalAssets, firstPayload.data.length);
+        setTotalAssets(authoritativeTotal);
         applyData(firstPayload.data, 'kriptoaman-market-db', savedAt);
-        saveCache(firstPayload.data, savedAt, 'kriptoaman-market-db');
+        saveCache(firstPayload.data, savedAt, 'kriptoaman-market-db', authoritativeTotal);
         void hydrateServerPages(firstPayload, generation);
       } catch {
         if (alive && generation === loadGeneration) {
@@ -219,6 +235,7 @@ export default function useCoinMarkets() {
     isStale,
     cacheAgeMs,
     assetLimit: MARKET_ASSET_LIMIT,
+    totalAssets,
     dataAvailable: coins.length > 0,
   };
 }
