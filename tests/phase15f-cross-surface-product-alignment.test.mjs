@@ -91,6 +91,7 @@ test('Phase 15F browser acceptance covers all aligned surfaces on mobile and des
   assert.match(browser, /width: 390, height: 844/);
   assert.match(browser, /width: 1440, height: 1000/);
   assert.match(browser, /data-product-release="phase15f"/);
+  assert.match(browser, /ka_financial_intelligence_onboarding_v2/);
   assert.match(browser, /horizontal overflow/);
   assert.match(workflow, /phase15f-cross-surface-product-alignment\.test\.mjs/);
   assert.match(workflow, /src\/components\/command\/CrossSurfaceRail\.jsx/);
