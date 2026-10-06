@@ -12,6 +12,7 @@ import NativeConnectivityBanner from '@/components/mobile/NativeConnectivityBann
 import { LanguageProvider } from '@/lib/LanguageContext';
 import WorkspaceExperience from '@/components/workspace/WorkspaceExperience';
 import WorkspaceState from '@/components/workspace/WorkspaceState';
+import CrossSurfaceRail from '@/components/command/CrossSurfaceRail';
 
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
@@ -128,7 +129,16 @@ function RoutedWorkspace() {
         <Route path="/SystemStatus" element={<SystemStatus />} />
         <Route path="/Services" element={<AdaptivePrimarySurface Page={Services} currentPageName="Services" />} />
         <Route path="/preview/home-v10" element={<HomeV10 />} />
-        <Route path="/wallet-app" element={WalletStandalonePage ? <Web3Provider><WalletStandalonePage /></Web3Provider> : <PageNotFound />} />
+        <Route path="/wallet-app" element={WalletStandalonePage ? (
+          <Web3Provider>
+            <div className="min-h-screen bg-[#020711]" data-product-surface="wallet" data-product-release="phase15f">
+              <div className="mx-auto max-w-xl px-3 pt-3">
+                <CrossSurfaceRail current="wallet" compact />
+              </div>
+              <WalletStandalonePage />
+            </div>
+          </Web3Provider>
+        ) : <PageNotFound />} />
 
         {Object.entries(Pages).map(([path, Page]) => {
           if (!PUBLIC_PAGE_KEYS.has(path)) return null;
