@@ -147,7 +147,7 @@ try {
         const sections = [...document.querySelectorAll('section')];
         const onChain = sections.find(node => node.textContent?.includes('ON-CHAIN NOW'));
         const zvq = document.querySelector('section[data-zvq-chain-id="22028"]');
-        const search = document.querySelector('a[aria-label="Search market"]');
+        const search = document.querySelector('header a[href="/Market"][aria-label]');
         const searchRect = search?.getBoundingClientRect();
         const mobileNav = document.querySelector('nav[aria-label="Mobile primary navigation"]');
         const navStyle = mobileNav ? getComputedStyle(mobileNav) : null;
