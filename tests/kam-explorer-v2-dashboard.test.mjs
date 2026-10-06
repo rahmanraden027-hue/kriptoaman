@@ -244,6 +244,8 @@ test('deployment is exact-route, narrow, nginx-safe, rollback-safe and avoids cu
   assert.match(deploy, /block-detail\.html/);
   assert.match(deploy, /address-detail\.html/);
   assert.match(deploy, /\/token\/\$CANONICAL_WKAM/);
+  assert.match(deploy, /nativeCurrency'\]\['symbol'\]==='ZVQ'/);
+  assert.doesNotMatch(deploy, /nativeCurrency'\]\['symbol'\]==='KAM'/);
 });
 
 
