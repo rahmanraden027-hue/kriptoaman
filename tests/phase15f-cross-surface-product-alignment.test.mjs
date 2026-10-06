@@ -58,6 +58,7 @@ test('Phase 15F preserves the protected Wallet implementation and aligns it at t
   assert.match(shell, /path="\/wallet-app"/);
   assert.match(shell, /data-product-surface="wallet"/);
   assert.match(shell, /data-product-release="phase15f"/);
+  assert.match(shell, /WalletStandaloneCore = WalletStandalonePage \? <Web3Provider><WalletStandalonePage \/><\/Web3Provider> : <PageNotFound \/>/);
   assert.match(shell, /<CrossSurfaceRail current="wallet" compact \/>/);
   assert.match(wallet, /OFFICIAL WALLET/);
   assert.match(wallet, /ZEVARYQ Wallet/);
@@ -68,7 +69,7 @@ test('Phase 15F preserves the protected Wallet implementation and aligns it at t
 
 test('Phase 15F publishes the corrected architecture contract', async () => {
   const architecture = await read('src/lib/productArchitecture.js');
-  assert.match(architecture, /PRODUCT_ARCHITECTURE_VERSION = '2026\.2'/);
+  assert.match(architecture, /PRODUCT_ARCHITECTURE_VERSION = '2026\.1'/);
   assert.match(architecture, /CROSS_SURFACE_RELEASE = 'phase15f'/);
   assert.match(architecture, /id: 'portfolio',[\s\S]*route: '\/PortfolioOverview'/);
   assert.match(architecture, /id: 'network',[\s\S]*route: '\/ZEVARYQ'/);
