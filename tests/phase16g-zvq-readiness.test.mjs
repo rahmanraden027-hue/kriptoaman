@@ -86,3 +86,18 @@ test('Phase 16G supply attestation template is inert until real evidence is popu
   assert.equal(attestation.governanceApproval.historicalAllocationDriftResolved, false);
   assert.equal(attestation.assertions.externalSubmissionAuthorized, false);
 });
+
+
+test('Phase 16G governance template cannot approve tokenomics by itself', async () => {
+  const governance = JSON.parse(await read('chain/zevaryq-mainnet/registry/zvq-tokenomics-v2-governance.template.json'));
+  assert.equal(governance.status, 'TEMPLATE_NOT_APPROVAL');
+  assert.equal(governance.proposedPolicy.maximumSupplyProjectBaselineZVQ, '1000000000');
+  assert.equal(governance.proposedPolicy.initialCirculatingTargetZVQ, '70000000');
+  assert.equal(governance.decisionsRequired.approve50MTo70MTargetChange, false);
+  assert.equal(governance.decisionsRequired.resolveHistoricalAllocationDrift, false);
+  assert.equal(governance.decisionsRequired.selectedAllocationPolicyVersion, null);
+  assert.deepEqual(governance.decisionsRequired.approvedAllocationCategories, []);
+  assert.equal(governance.approval.approved, false);
+  assert.equal(governance.externalPublication.tokenomicsV2Canonical, false);
+  assert.equal(governance.externalPublication.exchangeSubmissionAuthorized, false);
+});
