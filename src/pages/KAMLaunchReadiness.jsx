@@ -19,7 +19,7 @@ export default function KAMLaunchReadiness() {
     <main className="ka-bg min-h-screen px-4 pb-24 pt-6 text-white">
       <div className="mx-auto max-w-5xl space-y-5">
         <section className="ka-command-hero p-6 sm:p-8">
-          <p className="ka-command-kicker">KAM MAINNET PROMOTION</p>
+          <p className="ka-command-kicker">ZEVARYQ MAINNET PROMOTION</p>
           <h1 className="mt-2 text-3xl font-black sm:text-4xl">Final Launch Readiness</h1>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">A transparent checklist for the final production-review phase. This page does not promote the network and does not replace Issue #115 evidence.</p>
           <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1.5 text-[11px] font-bold text-amber-200"><Clock3 className="h-4 w-4" /> Awaiting complete final evidence</div>
