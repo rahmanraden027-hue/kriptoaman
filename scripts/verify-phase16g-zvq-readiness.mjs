@@ -8,6 +8,7 @@ const liquidity = JSON.parse(await readFile('chain/zevaryq-mainnet/liquidity/liq
 const exchange = await readFile('docs/ZVQ_EXCHANGE_MARKET_SUBMISSION_PACKAGE.md', 'utf8');
 const reconciliation = JSON.parse(await readFile('chain/zevaryq-mainnet/registry/zvq-supply-reconciliation.draft.json', 'utf8'));
 const supplyAttestation = JSON.parse(await readFile('chain/zevaryq-mainnet/registry/zvq-supply-attestation.template.json', 'utf8'));
+const governance = JSON.parse(await readFile('chain/zevaryq-mainnet/registry/zvq-tokenomics-v2-governance.template.json', 'utf8'));
 const networkProfile = JSON.parse(await readFile('chain/kam-mainnet/network-profile.json', 'utf8'));
 const chainTokenomics = JSON.parse(await readFile('chain/kam-mainnet/tokenomics-v1.json', 'utf8'));
 const archiveTokenomics = await readFile('docs/KAM_TOKENOMICS_V1.md', 'utf8');
@@ -56,6 +57,17 @@ assert.equal(supplyAttestation.status, 'TEMPLATE_NOT_EVIDENCE');
 assert.equal(supplyAttestation.assertions.currentTotalSupplyVerified, false);
 assert.equal(supplyAttestation.assertions.currentCirculatingSupplyVerified, false);
 assert.equal(supplyAttestation.assertions.externalSubmissionAuthorized, false);
+
+assert.equal(governance.status, 'TEMPLATE_NOT_APPROVAL');
+assert.equal(governance.proposedPolicy.maximumSupplyProjectBaselineZVQ, '1000000000');
+assert.equal(governance.proposedPolicy.initialCirculatingTargetZVQ, '70000000');
+assert.equal(governance.decisionsRequired.approve50MTo70MTargetChange, false);
+assert.equal(governance.decisionsRequired.resolveHistoricalAllocationDrift, false);
+assert.equal(governance.decisionsRequired.selectedAllocationPolicyVersion, null);
+assert.deepEqual(governance.decisionsRequired.approvedAllocationCategories, []);
+assert.equal(governance.approval.approved, false);
+assert.equal(governance.externalPublication.tokenomicsV2Canonical, false);
+assert.equal(governance.externalPublication.exchangeSubmissionAuthorized, false);
 
 const executable = registry.assets.filter(asset => asset.executable);
 assert.deepEqual(executable.map(asset => asset.symbol), ['ZVQ'], 'Only native ZVQ may be executable in the draft registry');
