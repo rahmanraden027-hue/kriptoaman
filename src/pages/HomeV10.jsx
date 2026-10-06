@@ -1,6 +1,7 @@
 import React from 'react';
 import { Bell, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import CommandCenterHero from '@/components/home-v10/CommandCenterHero';
 import DataProvenanceBar from '@/components/home-v10/DataProvenanceBar';
 import FeaturedMarketAsset from '@/components/home-v10/FeaturedMarketAsset';
 import IntelligenceStream from '@/components/home-v10/IntelligenceStream';
@@ -27,10 +28,11 @@ export default function HomeV10() {
 
   return (
     <main
-      className="min-h-screen bg-[#020711] pb-24 text-white"
+      className="min-h-screen bg-[radial-gradient(circle_at_50%_-10%,rgba(14,165,233,.08),transparent_30%),linear-gradient(#020711,#01050c)] pb-24 text-white"
       data-product-architecture={'kriptoaman-final-' + PRODUCT_ARCHITECTURE_VERSION}
       data-command-release="phase15d"
       data-production-data-binding="phase16b-verified-live-state-v1"
+      data-visual-integration="phase16c-final-command-center-v1"
       style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))' }}
     >
       <a
@@ -65,6 +67,7 @@ export default function HomeV10() {
 
       <div id="home-v10-content" tabIndex={-1} className="mx-auto max-w-[1480px] space-y-4 px-3 pt-4 outline-none sm:px-6 sm:pt-6 lg:px-8">
         <section data-command-layer="market" aria-label="Global market command layer" className="space-y-3">
+          <CommandCenterHero market={market} zevaryq={zevaryq} />
           <FeaturedMarketAsset assets={market.featured} state={market.state} />
           <DataProvenanceBar
             state={market.provenance?.state}

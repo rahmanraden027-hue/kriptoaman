@@ -36,6 +36,7 @@ export const PRODUCT_ROLES = Object.freeze({
 });
 
 export const CROSS_SURFACE_RELEASE = 'phase15f';
+export const VISUAL_INTEGRATION_RELEASE = 'phase16c';
 
 export const DECISION_LOOP = Object.freeze([
   'OBSERVE',
@@ -62,6 +63,9 @@ export const TRUTH_STATES = Object.freeze([
   DATA_STATE.LIVE,
   DATA_STATE.VERIFIED,
   DATA_STATE.SYNCED,
+  DATA_STATE.INDEXED,
+  DATA_STATE.CALCULATED,
+  DATA_STATE.DELAYED,
   DATA_STATE.PARTIAL,
   DATA_STATE.SNAPSHOT,
   DATA_STATE.UNAVAILABLE,
