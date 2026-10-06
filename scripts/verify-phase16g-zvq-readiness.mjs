@@ -6,6 +6,11 @@ const ROOT = resolve('.');
 const registry = JSON.parse(await readFile('chain/zevaryq-mainnet/registry/zvq-production-registry.draft.json', 'utf8'));
 const liquidity = JSON.parse(await readFile('chain/zevaryq-mainnet/liquidity/liquidity-readiness.draft.json', 'utf8'));
 const exchange = await readFile('docs/ZVQ_EXCHANGE_MARKET_SUBMISSION_PACKAGE.md', 'utf8');
+const reconciliation = JSON.parse(await readFile('chain/zevaryq-mainnet/registry/zvq-supply-reconciliation.draft.json', 'utf8'));
+const supplyAttestation = JSON.parse(await readFile('chain/zevaryq-mainnet/registry/zvq-supply-attestation.template.json', 'utf8'));
+const networkProfile = JSON.parse(await readFile('chain/kam-mainnet/network-profile.json', 'utf8'));
+const chainTokenomics = JSON.parse(await readFile('chain/kam-mainnet/tokenomics-v1.json', 'utf8'));
+const archiveTokenomics = await readFile('docs/KAM_TOKENOMICS_V1.md', 'utf8');
 const tradingReadme = await readFile('chain/zevaryq-mainnet/trading/README.md', 'utf8');
 
 assert.equal(registry.phase, '16G');
@@ -24,6 +29,33 @@ assert.equal(registry.supplyPolicy.onChainMaximumSupplyVerified, false);
 assert.equal(registry.supplyPolicy.onChainTotalSupplyVerified, false);
 assert.equal(registry.supplyPolicy.circulatingSupplyVerified, false);
 assert.equal(registry.supplyPolicy.externalSubmissionAllowed, false);
+assert.equal(registry.supplyPolicy.reconciliationStatus, 'BLOCKED_PENDING_PRODUCTION_GENESIS_ATTESTATION_AND_ALLOCATION_WALLETS');
+assert.equal(registry.supplyPolicy.historicalAllocationDriftDetected, true);
+assert.equal(registry.supplyPolicy.circulatingTargetDistinctFromLiquidityAllocation, true);
+
+assert.equal(networkProfile.genesisSupplyKAM, '1000000000');
+assert.equal(chainTokenomics.asset.genesisSupplyKAM, '1000000000');
+assert.match(archiveTokenomics, /Maximum supply baseline: \*\*1,000,000,000 KAM\*\*/);
+assert.match(archiveTokenomics, /Target initial circulating supply: \*\*50,000,000 KAM \(5%\)\*\*/);
+
+assert.equal(reconciliation.status, 'BLOCKED_PENDING_PRODUCTION_GENESIS_ATTESTATION_AND_ALLOCATION_WALLETS');
+assert.equal(reconciliation.supplyReferences.networkProfileGenesisSupplyReference, '1000000000');
+assert.equal(reconciliation.supplyReferences.chainTokenomicsGenesisSupplyReference, '1000000000');
+assert.equal(reconciliation.supplyReferences.proposedZvqInitialCirculatingTarget, '70000000');
+assert.equal(reconciliation.historicalAllocationDrift.detected, true);
+assert.equal(reconciliation.historicalAllocationDrift.reconciled, false);
+assert.equal(reconciliation.historicalAllocationDrift.circulatingTargetDistinctFromLiquidityAllocation, true);
+assert.equal(reconciliation.evidenceAssessment.productionGenesisAggregateSupplyAttestationPresent, false);
+assert.equal(reconciliation.evidenceAssessment.canonicalAllocationWalletsPublished, false);
+assert.equal(reconciliation.evidenceAssessment.currentTotalSupplyVerified, false);
+assert.equal(reconciliation.evidenceAssessment.currentCirculatingSupplyVerified, false);
+assert.equal(reconciliation.publicationState.exchangeSupplySubmissionAuthorized, false);
+assert.equal(reconciliation.publicationState.marketDataSupplySubmissionAuthorized, false);
+
+assert.equal(supplyAttestation.status, 'TEMPLATE_NOT_EVIDENCE');
+assert.equal(supplyAttestation.assertions.currentTotalSupplyVerified, false);
+assert.equal(supplyAttestation.assertions.currentCirculatingSupplyVerified, false);
+assert.equal(supplyAttestation.assertions.externalSubmissionAuthorized, false);
 
 const executable = registry.assets.filter(asset => asset.executable);
 assert.deepEqual(executable.map(asset => asset.symbol), ['ZVQ'], 'Only native ZVQ may be executable in the draft registry');
@@ -91,6 +123,7 @@ console.log('PHASE16G_ZVQ_REGISTRY_READINESS=PASS');
 console.log(JSON.stringify({
   network: registry.network,
   proposedSupplyPolicy: registry.supplyPolicy,
+  supplyReconciliation: reconciliation.status,
   availableLogos: registry.assets.filter(asset => asset.logoStatus === 'AVAILABLE').map(asset => asset.symbol),
   pendingLogoIndexing: registry.assets.filter(asset => asset.logoStatus === 'PENDING_INDEXING').map(asset => asset.symbol),
   liquidityAuthorized: liquidity.liquidityAuthorized,
