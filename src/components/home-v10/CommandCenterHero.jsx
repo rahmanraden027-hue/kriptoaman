@@ -248,20 +248,13 @@ export default function CommandCenterHero({ market, zevaryq }) {
             ))}
           </div>
 
-          <a href="https://explorer.kriptoaman.com" target="_blank" rel="noreferrer" className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-cyan-300/20 bg-cyan-300/[0.055] px-4 text-[9px] font-black uppercase tracking-[0.11em] text-cyan-200 transition hover:bg-cyan-300/[0.09] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">
-            Buka ZEVARYQ Explorer <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-          </a>
+          <Link to="/ZEVARYQ" className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-cyan-300/20 bg-cyan-300/[0.055] px-4 text-[9px] font-black uppercase tracking-[0.11em] text-cyan-200 transition hover:bg-cyan-300/[0.09] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">
+            Buka Network Intelligence <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+          </Link>
         </div>
       </div>
 
-      <div className="relative mt-4 grid gap-2 lg:grid-cols-2">
-        <DataProvenanceBar
-          state={market?.provenance?.state}
-          source={market?.provenance?.sourceLabel || 'Source unavailable'}
-          timestamp={market?.provenance?.capturedAt}
-          ageMs={market?.provenance?.ageMs}
-          label="MARKET SOURCE"
-        />
+      <div className="relative mt-4">
         <DataProvenanceBar
           state={networkState}
           source={network ? 'ZEVARYQ Network Status · rpc.kriptoaman.com' : 'ZEVARYQ network source unavailable'}
