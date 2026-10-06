@@ -1,0 +1,121 @@
+{
+  "pack": "kriptoaman-zevaryq-device-acceptance",
+  "version": "2026-10-07-prep-1",
+  "status": "prepared-not-executed",
+  "executeAfter": "phase16f-24h-pass",
+  "productionMutationAllowed": false,
+  "products": {
+    "platform": "KriptoAman Platform",
+    "wallet": "ZEVARYQ Wallet"
+  },
+  "canonicalNetwork": {
+    "name": "ZEVARYQ Mainnet",
+    "chainId": 22028,
+    "chainIdHex": "0x560c",
+    "nativeSymbol": "ZVQ"
+  },
+  "deviceMatrix": [
+    {
+      "id": "android-compact",
+      "type": "browser-emulation",
+      "viewport": { "width": 360, "height": 800 },
+      "touch": true,
+      "required": true
+    },
+    {
+      "id": "android-standard",
+      "type": "browser-emulation",
+      "viewport": { "width": 390, "height": 844 },
+      "touch": true,
+      "required": true
+    },
+    {
+      "id": "android-large",
+      "type": "browser-emulation",
+      "viewport": { "width": 412, "height": 915 },
+      "touch": true,
+      "required": true
+    },
+    {
+      "id": "tablet",
+      "type": "browser-emulation",
+      "viewport": { "width": 768, "height": 1024 },
+      "touch": true,
+      "required": true
+    },
+    {
+      "id": "desktop",
+      "type": "browser-emulation",
+      "viewport": { "width": 1440, "height": 1000 },
+      "touch": false,
+      "required": true
+    },
+    {
+      "id": "physical-android",
+      "type": "manual-device",
+      "required": true,
+      "evidence": ["screenshots", "screen-recording", "device-model", "android-version"]
+    }
+  ],
+  "platformChecks": [
+    "KriptoAman brand visible",
+    "canonical navigation usable",
+    "no horizontal overflow",
+    "safe-area top and bottom respected",
+    "minimum touch target 44px",
+    "market state visibly fail-closed when unavailable",
+    "ZEVARYQ network state visible",
+    "Chain ID 22028 identity consistent",
+    "Explorer route reachable",
+    "Wallet route opens standalone ZEVARYQ Wallet"
+  ],
+  "walletChecks": [
+    "ZEVARYQ Wallet identity visible",
+    "Connect Wallet screen opens",
+    "connected address visible after user-approved connection",
+    "Chain 22028 identity visible",
+    "native ZVQ balance read path works",
+    "Assets shows only verified indexed holdings as holdings",
+    "planned ecosystem assets remain labeled PLANNED",
+    "Receive ZVQ shows connected address and QR",
+    "Send flow stops at Preview Send",
+    "Broadcast Locked remains visible in read-only release",
+    "Swap uses preview-only path",
+    "Explorer opens official public explorer",
+    "no private key, mnemonic or seed phrase requested",
+    "bottom navigation remains inside viewport",
+    "safe-area bottom padding protects navigation"
+  ],
+  "securityChecks": {
+    "walletBroadcastingExpected": false,
+    "rpcWritePolicyExpected": false,
+    "privateKeyCollectionAllowed": false,
+    "mnemonicCollectionAllowed": false,
+    "seedPhraseCollectionAllowed": false,
+    "realTransferRequired": false,
+    "swapBroadcastRequired": false
+  },
+  "passRules": {
+    "allRequiredBrowserProfilesPass": true,
+    "physicalAndroidEvidenceRequired": true,
+    "zeroCriticalJavascriptErrors": true,
+    "zeroHorizontalOverflow": true,
+    "zeroIdentityMismatch": true,
+    "broadcastMustRemainLocked": true,
+    "noFabricatedBalanceOrMarketValue": true
+  },
+  "frozenBoundary": {
+    "mergeBefore24hPass": false,
+    "deployBefore24hPass": false,
+    "genesis": false,
+    "validators": false,
+    "privateKeys": false,
+    "balances": false,
+    "tokenSupply": false,
+    "liquidity": false,
+    "custody": false,
+    "dns": false,
+    "consensus": false,
+    "rpcWritePolicy": false
+  }
+}
