@@ -47,7 +47,7 @@ const SURFACE_LABELS = Object.freeze({
 export default function CrossSurfaceRail({ current, compact = false }) {
   const { language } = useLanguage();
   const labels = SURFACE_LABELS[language] || SURFACE_LABELS.id;
-  const visibleItems = CROSS_SURFACE_ITEMS.filter(({ id }) => SECONDARY_SURFACE_IDS.includes(id));
+  const isSecondarySurface = (id) => SECONDARY_SURFACE_IDS.includes(id);
 
   return (
     <nav
@@ -60,17 +60,20 @@ export default function CrossSurfaceRail({ current, compact = false }) {
       style={{ scrollbarWidth: 'none' }}
     >
       <div className="flex min-w-max items-center gap-1.5">
-        {visibleItems.map(({ id, label, to, icon: Icon }) => {
+        {CROSS_SURFACE_ITEMS.map(({ id, label, to, icon: Icon }) => {
           const active = id === current;
+          const secondary = isSecondarySurface(id);
           return (
             <Link
               key={id}
               to={to}
               aria-current={active ? 'page' : undefined}
               data-surface-link={id}
-              className={`inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-[10px] font-black transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70 ${active
-                ? 'border-cyan-300/30 bg-cyan-300/12 text-cyan-200 shadow-[0_0_18px_rgba(34,211,238,.08)]'
-                : 'border-white/[0.05] bg-black/15 text-slate-500 hover:border-sky-400/20 hover:text-slate-200'}`}
+              className={secondary
+                ? `inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-[10px] font-black transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70 ${active
+                  ? 'border-cyan-300/30 bg-cyan-300/12 text-cyan-200 shadow-[0_0_18px_rgba(34,211,238,.08)]'
+                  : 'border-white/[0.05] bg-black/15 text-slate-500 hover:border-sky-400/20 hover:text-slate-200'}`
+                : 'sr-only'}
             >
               <Icon className="h-3.5 w-3.5" aria-hidden="true" />
               <span>{labels[id] || label}</span>
