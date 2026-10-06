@@ -256,3 +256,9 @@ test('Explorer static fallback is pending, not a false outage', () => {
   assert.doesNotMatch(html, /Connecting to ZVQ Network…/);
   assert.doesNotMatch(html, /Waiting for recent blocks…/);
 });
+
+
+test('deployment validates canonical ZVQ network identity', () => {
+  assert.equal(deploy.includes("d['nativeCurrency']['symbol']=='ZVQ'"), true);
+  assert.equal(deploy.includes("d['nativeCurrency']['symbol']=='KAM'"), false);
+});
