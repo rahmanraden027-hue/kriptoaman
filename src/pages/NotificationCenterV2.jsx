@@ -31,7 +31,7 @@ export default function NotificationCenterV2() {
   const categories = [
     { icon: Bell, label: language === 'en' ? 'Price' : 'Harga', status: language === 'en' ? 'Connected' : 'Terhubung', tone: 'text-sky-300' },
     { icon: ShieldCheck, label: language === 'en' ? 'Security' : 'Keamanan', status: language === 'en' ? 'Source pending' : 'Sumber belum terhubung', tone: 'text-emerald-300' },
-    { icon: Network, label: 'KAM Network', status: language === 'en' ? 'Source pending' : 'Sumber belum terhubung', tone: 'text-violet-300' },
+    { icon: Network, label: 'ZEVARYQ Network', status: language === 'en' ? 'Source pending' : 'Sumber belum terhubung', tone: 'text-violet-300' },
     { icon: WalletCards, label: language === 'en' ? 'Portfolio' : 'Portofolio', status: language === 'en' ? 'Source pending' : 'Sumber belum terhubung', tone: 'text-cyan-300' },
     { icon: Activity, label: language === 'en' ? 'System' : 'Sistem', status: language === 'en' ? 'Source pending' : 'Sumber belum terhubung', tone: 'text-amber-300' },
   ];
