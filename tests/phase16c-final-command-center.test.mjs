@@ -52,7 +52,8 @@ test('Phase 16C expands ZEVARYQ panels with attributable evidence only', async (
 
 test('Phase 16C architecture exposes the complete truth-state vocabulary', async () => {
   const architecture = await read('src/lib/productArchitecture.js');
-  assert.match(architecture, /CROSS_SURFACE_RELEASE = 'phase16c'/);
+  assert.match(architecture, /CROSS_SURFACE_RELEASE = 'phase15f'/);
+  assert.match(architecture, /VISUAL_INTEGRATION_RELEASE = 'phase16c'/);
   for (const state of ['LIVE', 'VERIFIED', 'SYNCED', 'INDEXED', 'CALCULATED', 'DELAYED', 'PARTIAL', 'SNAPSHOT', 'UNAVAILABLE', 'CHECKING']) {
     assert.match(architecture, new RegExp('DATA_STATE\\.' + state));
   }
