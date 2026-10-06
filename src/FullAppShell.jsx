@@ -44,8 +44,19 @@ const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
 const DashboardPage = Pages.Home ?? MainPage;
-const WalletStandalonePage = Pages.Wallet;
-const WalletStandaloneCore = WalletStandalonePage ? <Web3Provider><WalletStandalonePage /></Web3Provider> : <PageNotFound />;
+const WalletPage = Pages.Wallet;
+const WalletStandalonePage = WalletPage
+  ? function WalletStandaloneSurface() {
+      return (
+        <div className="min-h-screen bg-[#020711]" data-product-surface="wallet" data-product-release="phase15f">
+          <div className="mx-auto max-w-xl px-3 pt-3">
+            <CrossSurfaceRail current="wallet" compact />
+          </div>
+          <WalletPage />
+        </div>
+      );
+    }
+  : null;
 
 const ADMIN_PAGE_KEYS = new Set([
   'AdminKAMAnalytics', 'AdminKAMBulkRewards', 'AdminKAMRewards', 'AdminKAMSnapshotApproval', 'AdminKAMSnapshotReadiness', 'AdminSKAMLaunch', 'AdminKYCManagement', 'AdminPlatformAssets', 'AdminProfitAnalytics', 'AdminUserBalances',
@@ -130,14 +141,7 @@ function RoutedWorkspace() {
         <Route path="/SystemStatus" element={<SystemStatus />} />
         <Route path="/Services" element={<AdaptivePrimarySurface Page={Services} currentPageName="Services" />} />
         <Route path="/preview/home-v10" element={<HomeV10 />} />
-        <Route path="/wallet-app" element={
-          <div className="min-h-screen bg-[#020711]" data-product-surface="wallet" data-product-release="phase15f">
-            <div className="mx-auto max-w-xl px-3 pt-3">
-              <CrossSurfaceRail current="wallet" compact />
-            </div>
-            {WalletStandaloneCore}
-          </div>
-        } />
+        <Route path="/wallet-app" element={WalletStandalonePage ? <Web3Provider><WalletStandalonePage /></Web3Provider> : <PageNotFound />} />
 
         {Object.entries(Pages).map(([path, Page]) => {
           if (!PUBLIC_PAGE_KEYS.has(path)) return null;
