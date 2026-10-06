@@ -67,5 +67,10 @@
     "wallet-broadcasting",
     "token-state"
   ],
-  "phase13Gate": ".github/workflows/phase13-production-stability-release-lock.yml"
+  "phase13Gate": ".github/workflows/phase13-production-stability-release-lock.yml",
+  "releaseBaseline": {
+    "commit": "0b5be71b8386e7af8bc1969acbb85aa7ea23b7c5",
+    "phase": 13,
+    "result": "FINAL_PASS"
+  }
 }
