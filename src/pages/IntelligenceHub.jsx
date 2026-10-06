@@ -141,6 +141,15 @@ export default function IntelligenceHub() {
     [t.metricChecked, snapshot.checkedAt ? new Date(snapshot.checkedAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) : '—', snapshot.checkedAt ? 'verified' : 'unavailable', Boolean(snapshot.checkedAt)],
   ];
   const verifiedMetrics = metrics.filter(([, , , available]) => available);
+  const canonicalStates = [
+    normalizeDataState(snapshot.marketState, DATA_STATE.UNAVAILABLE),
+    normalizeDataState(snapshot.networkState, DATA_STATE.UNAVAILABLE),
+  ];
+  const waitingState = canonicalStates.includes(DATA_STATE.CHECKING)
+    ? DATA_STATE.CHECKING
+    : canonicalStates.includes(DATA_STATE.UNAVAILABLE)
+      ? DATA_STATE.UNAVAILABLE
+      : DATA_STATE.PARTIAL;
 
   return (
     <div className="ka-bg min-h-screen pb-28 text-white" data-product-surface="intelligence" data-product-release="phase15f">
@@ -171,8 +180,13 @@ export default function IntelligenceHub() {
                   })}
                 </div>
               ) : (
-                <div className="max-w-sm rounded-2xl border border-cyan-400/15 bg-cyan-500/[0.04] px-4 py-3 lg:min-w-[360px]" role="status">
-                  <p className="text-[10px] font-black uppercase tracking-[.12em] text-cyan-300">{t.waitingTitle}</p>
+                <div className="max-w-sm rounded-2xl border border-cyan-400/15 bg-cyan-500/[0.04] px-4 py-3 lg:min-w-[360px]" role="status" data-canonical-production-state={waitingState}>
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-[10px] font-black uppercase tracking-[.12em] text-cyan-300">{t.waitingTitle}</p>
+                    <span className="shrink-0 rounded-full border border-cyan-400/20 bg-cyan-400/[0.07] px-2 py-1 text-[8px] font-black uppercase tracking-[.1em] text-cyan-200">
+                      {waitingState}
+                    </span>
+                  </div>
                   <p className="mt-1.5 text-[11px] leading-5 text-slate-500">{t.waitingBody}</p>
                 </div>
               )}
