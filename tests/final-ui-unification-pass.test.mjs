@@ -35,8 +35,10 @@ test('Final UI Unification hides unverifiable intelligence metrics instead of re
   assert.match(intelligence, /Metrik belum ditampilkan sampai sumber produksi memberikan nilai yang dapat diverifikasi/);
   assert.match(intelligence, /Metrics remain hidden until production sources provide verifiable values/);
   assert.doesNotMatch(intelligence, /Market, jaringan, risiko, dan evidence live/);
-  assert.doesNotMatch(intelligence, /Risk & Security/);
-  assert.doesNotMatch(intelligence, /Network Intelligence/);
+  assert.match(intelligence, /security: 'Risiko & Keamanan'/);
+  assert.match(intelligence, /network: 'Intelijen Jaringan'/);
+  assert.match(intelligence, /security: 'Risk & Security'/);
+  assert.match(intelligence, /network: 'Network Intelligence'/);
 });
 
 test('Final UI Unification remains presentation-only', async () => {
