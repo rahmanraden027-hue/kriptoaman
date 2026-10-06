@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ArrowRight, Globe2, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { DATA_STATE } from '@/lib/dataState';
 import DataProvenanceBar from './DataProvenanceBar';
-import { formatChange, formatPrice } from './format';
+import { formatChange, formatCompactUsd, formatPrice } from './format';
 
 const ORBIT_POSITIONS = [
   'left-[7%] top-[17%]',
@@ -13,6 +13,11 @@ const ORBIT_POSITIONS = [
   'left-[13%] bottom-[12%]',
   'right-[12%] bottom-[10%]',
 ];
+
+const safeSum = (assets, key) => assets.reduce((sum, asset) => {
+  const value = Number(asset?.[key]);
+  return Number.isFinite(value) && value > 0 ? sum + value : sum;
+}, 0);
 
 const stateTone = (state) => {
   if ([DATA_STATE.LIVE, DATA_STATE.SYNCED, DATA_STATE.VERIFIED].includes(state)) {
@@ -71,7 +76,7 @@ function NetworkGlobe({ assets, zevaryq }) {
       <div className="absolute inset-[5%] rounded-full bg-[radial-gradient(circle_at_43%_32%,rgba(56,189,248,.28),rgba(3,10,22,.70)_43%,rgba(1,6,14,.98)_72%)] shadow-[0_0_95px_rgba(14,165,233,.17),inset_0_0_60px_rgba(56,189,248,.10)]" />
       <div className="absolute inset-[8%] rounded-full border border-cyan-300/25 shadow-[inset_0_0_42px_rgba(34,211,238,.10)]" />
 
-      <svg className="absolute inset-[8%] h-[84%] w-[84%] opacity-80" viewBox="0 0 400 400" role="img" aria-label="KriptoAman intelligence topology with ZEVARYQ verified network evidence">
+      <svg className="absolute inset-[8%] h-[84%] w-[84%] opacity-80" viewBox="0 0 400 400" role="img" aria-label="KriptoAman visual topology with verified ZEVARYQ core">
         <defs>
           <radialGradient id="cc-globe-v1" cx="45%" cy="34%" r="68%">
             <stop offset="0%" stopColor="rgba(14,165,233,.28)" />
@@ -119,28 +124,41 @@ function NetworkGlobe({ assets, zevaryq }) {
 
       <div className="absolute inset-x-[11%] bottom-[2%] z-20 flex items-center justify-center gap-2 rounded-full border border-white/[0.06] bg-[#030812]/78 px-3 py-1.5 text-center text-[7px] font-black uppercase tracking-[0.12em] text-slate-300 backdrop-blur">
         <Globe2 className="h-3 w-3 text-cyan-300" aria-hidden="true" />
-        Market · On-chain · ZEVARYQ evidence
+        Visual topology · verified core data only
       </div>
     </div>
   );
 }
 
 export default function CommandCenterHero({ market, zevaryq }) {
+  const metrics = useMemo(() => {
+    const assets = Array.isArray(market?.assets) ? market.assets : [];
+    const cap = safeSum(assets, 'marketCap');
+    const volume = safeSum(assets, 'volume');
+    const positive = Number(market?.breadth?.positive || 0);
+    const negative = Number(market?.breadth?.negative || 0);
+    const breadthTotal = positive + negative;
+    const breadth = breadthTotal > 0 ? (positive / breadthTotal) * 100 : null;
+    return { cap, volume, breadth };
+  }, [market]);
+
   const marketState = market?.state || DATA_STATE.UNAVAILABLE;
   const networkState = zevaryq?.networkState || DATA_STATE.CHECKING;
   const network = zevaryq?.network || null;
   const onChain = zevaryq?.onChain || null;
-  const block = Number(network?.blockNumber);
+  const block = Number(zevaryq?.network?.blockNumber);
   const onChainHead = Number(onChain?.head?.number);
 
   return (
     <section
       className="relative overflow-hidden rounded-[30px] border border-cyan-300/[0.13] bg-[radial-gradient(circle_at_53%_16%,rgba(14,165,233,.12),transparent_35%),radial-gradient(circle_at_91%_76%,rgba(245,158,11,.06),transparent_31%),linear-gradient(145deg,#06101d,#020711_64%)] p-4 shadow-[0_28px_100px_rgba(0,0,0,.38)] sm:p-5 lg:p-6"
-      aria-label="KriptoAman live intelligence command center"
+      aria-label="KriptoAman Global Crypto Intelligence command center"
+      data-phase16c-command-center="true"
       data-home-command-center="v1"
       data-market-state={marketState}
       data-network-state={networkState}
     >
+      <span className="sr-only">Global Crypto Intelligence</span>
       <div className="pointer-events-none absolute inset-0 opacity-55" aria-hidden="true">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/55 to-transparent" />
         <div className="absolute left-[8%] top-[11%] h-24 w-24 rounded-full bg-cyan-400/[0.05] blur-3xl" />
@@ -170,32 +188,27 @@ export default function CommandCenterHero({ market, zevaryq }) {
           </p>
 
           <div className="mt-5 flex flex-wrap gap-2">
-            <Link
-              to="/IntelligenceHub"
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-amber-300/25 bg-amber-300 px-4 text-[9px] font-black uppercase tracking-[0.1em] text-[#07101c] shadow-[0_0_28px_rgba(251,191,36,.13)] transition hover:bg-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-            >
+            <Link to="/IntelligenceHub" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-amber-300/25 bg-amber-300 px-4 text-[9px] font-black uppercase tracking-[0.1em] text-[#07101c] shadow-[0_0_28px_rgba(251,191,36,.13)] transition hover:bg-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
               Jelajahi Intelligence <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
-            <Link
-              to="/ZEVARYQ"
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-cyan-300/20 bg-cyan-300/[0.055] px-4 text-[9px] font-black uppercase tracking-[0.1em] text-cyan-200 transition hover:bg-cyan-300/[0.09] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"
-            >
+            <Link to="/ZEVARYQ" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-cyan-300/20 bg-cyan-300/[0.055] px-4 text-[9px] font-black uppercase tracking-[0.1em] text-cyan-200 transition hover:bg-cyan-300/[0.09] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">
               Live Network <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
           </div>
 
-          <div className="mt-5 grid grid-cols-2 gap-2 text-[8px] sm:grid-cols-4 xl:grid-cols-2">
-            {[
-              ['Market', marketState],
-              ['Network', networkState],
-              ['On-chain', zevaryq?.onChainState || DATA_STATE.CHECKING],
-              ['Sync', zevaryq?.syncState || DATA_STATE.CHECKING],
-            ].map(([label, state]) => (
-              <div key={label} className="rounded-xl border border-white/[0.05] bg-white/[0.025] px-2.5 py-2">
-                <span className="block font-black uppercase tracking-[0.09em] text-slate-400">{label}</span>
-                <b className={'mt-1 block uppercase ' + ([DATA_STATE.LIVE, DATA_STATE.SYNCED, DATA_STATE.VERIFIED].includes(state) ? 'text-emerald-300' : 'text-amber-300')}>● {state}</b>
-              </div>
-            ))}
+          <div className="mt-5 grid grid-cols-3 gap-2">
+            <div className="rounded-xl border border-white/[0.05] bg-white/[0.025] p-2.5">
+              <span className="block text-[7px] font-black uppercase tracking-[0.09em] text-slate-400">Tracked Cap</span>
+              <b className="mt-1 block truncate text-[11px] text-white">{metrics.cap > 0 ? formatCompactUsd(metrics.cap) : '—'}</b>
+            </div>
+            <div className="rounded-xl border border-white/[0.05] bg-white/[0.025] p-2.5">
+              <span className="block text-[7px] font-black uppercase tracking-[0.09em] text-slate-400">24H Volume</span>
+              <b className="mt-1 block truncate text-[11px] text-white">{metrics.volume > 0 ? formatCompactUsd(metrics.volume) : '—'}</b>
+            </div>
+            <div className="rounded-xl border border-white/[0.05] bg-white/[0.025] p-2.5">
+              <span className="block text-[7px] font-black uppercase tracking-[0.09em] text-slate-400">Breadth</span>
+              <b className="mt-1 block truncate text-[11px] text-white">{Number.isFinite(metrics.breadth) ? metrics.breadth.toFixed(1) + '%' : '—'}</b>
+            </div>
           </div>
         </div>
 
@@ -208,7 +221,7 @@ export default function CommandCenterHero({ market, zevaryq }) {
               <p className="mt-1 text-lg font-black text-white">Real blockchain state</p>
             </div>
             <span className="grid h-10 w-10 place-items-center rounded-2xl border border-amber-300/15 bg-amber-300/[0.05]">
-              <ShieldCheck className="h-5 w-5 text-amber-200" aria-hidden="true" />
+              <img src="/brand/zevaryq-mark.svg" alt="" className="h-6 w-6" />
             </span>
           </div>
 
@@ -219,7 +232,7 @@ export default function CommandCenterHero({ market, zevaryq }) {
               ['Sync', zevaryq?.syncState || DATA_STATE.CHECKING, zevaryq?.syncState || DATA_STATE.CHECKING],
               ['Evidence Head', Number.isSafeInteger(onChainHead) ? '#' + onChainHead.toLocaleString('en-US') : '—', zevaryq?.onChainState || DATA_STATE.CHECKING],
               ['Contracts', onChain?.radar?.contractCreationsObserved ?? '—', zevaryq?.onChainState || DATA_STATE.CHECKING],
-              ['RPC Probe', Number.isFinite(Number(network?.probeDurationMs)) ? Math.round(Number(network.probeDurationMs)) + ' ms' : '—', networkState],
+              ['Metadata', onChain?.radar?.tokenMetadataProven ?? '—', zevaryq?.onChainState || DATA_STATE.CHECKING],
             ].map(([label, value, state]) => (
               <div key={label} className="rounded-2xl border border-white/[0.055] bg-white/[0.022] p-3">
                 <p className="truncate text-sm font-black text-white">{value}</p>
@@ -235,12 +248,7 @@ export default function CommandCenterHero({ market, zevaryq }) {
             ))}
           </div>
 
-          <a
-            href="https://explorer.kriptoaman.com"
-            target="_blank"
-            rel="noreferrer"
-            className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-cyan-300/20 bg-cyan-300/[0.055] px-4 text-[9px] font-black uppercase tracking-[0.11em] text-cyan-200 transition hover:bg-cyan-300/[0.09] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"
-          >
+          <a href="https://explorer.kriptoaman.com" target="_blank" rel="noreferrer" className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-cyan-300/20 bg-cyan-300/[0.055] px-4 text-[9px] font-black uppercase tracking-[0.11em] text-cyan-200 transition hover:bg-cyan-300/[0.09] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">
             Buka ZEVARYQ Explorer <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </a>
         </div>
