@@ -4,12 +4,27 @@ import test from 'node:test';
 
 const read = path => readFile(new URL('../' + path, import.meta.url), 'utf8');
 
-test('Phase 16D production provenance tracks the Phase 16C visual contract', async () => {
+test('Phase 16D production provenance tracks the current command center while preserving Phase 16C proof markers', async () => {
   const workflow = await read('.github/workflows/production-presentation-provenance.yml');
   assert.match(workflow, /Phase 16D production contract/);
-  assert.match(workflow, /Global Crypto Intelligence/);
-  assert.match(workflow, /Visual topology · verified core data only/);
-  assert.match(workflow, /ZEVARYQ evidence radar/);
+  for (const marker of [
+    'home-live-intelligence-command-center-v1',
+    'Blockchain bergerak setiap detik.',
+    'Lihat. Pahami. Verifikasi.',
+    'Aset dipantau',
+    'Market Overview',
+    'Market Heatmap',
+    'LIVE NETWORK PULSE',
+    'Mempool source',
+    'Global Crypto Intelligence',
+    'Visual topology · verified core data only',
+    'ZEVARYQ NETWORK · LIVE EVIDENCE',
+    'ZEVARYQ evidence radar',
+  ]) assert.ok(workflow.includes(marker), marker);
+
+  for (const superseded of ['Top Gainer', 'Most Active', 'Market Direction', 'Top Movers', 'Live Intelligence']) {
+    assert.ok(!workflow.includes("'" + superseded + "'"), superseded + ' must not remain required');
+  }
   assert.doesNotMatch(workflow, /'ZEVARYQ discovery'/);
 });
 
