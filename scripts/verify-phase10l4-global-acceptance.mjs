@@ -130,7 +130,7 @@ try {
         const ticker = document.querySelector('section[aria-label="Live market ticker"]');
         const sections = [...document.querySelectorAll('section')];
         const onChain = sections.find(node => node.textContent?.includes('ON-CHAIN NOW'));
-        const zvq = sections.find(node => node.querySelector(':scope > b')?.textContent?.trim() === 'ZEVARYQ MAINNET');
+        const zvq = document.querySelector('section[data-zvq-chain-id="22028"]');
         return Boolean(
           ticker && /●\s*LIVE/.test(ticker.textContent || '') &&
           onChain && /#\s*[\d,]+/.test(onChain.textContent || '') &&
@@ -146,7 +146,7 @@ try {
         const ticker = document.querySelector('section[aria-label="Live market ticker"]');
         const sections = [...document.querySelectorAll('section')];
         const onChain = sections.find(node => node.textContent?.includes('ON-CHAIN NOW'));
-        const zvq = sections.find(node => node.querySelector(':scope > b')?.textContent?.trim() === 'ZEVARYQ MAINNET');
+        const zvq = document.querySelector('section[data-zvq-chain-id="22028"]');
         const search = document.querySelector('a[aria-label="Search market"]');
         const searchRect = search?.getBoundingClientRect();
         const mobileNav = document.querySelector('nav[aria-label="Mobile primary navigation"]');
