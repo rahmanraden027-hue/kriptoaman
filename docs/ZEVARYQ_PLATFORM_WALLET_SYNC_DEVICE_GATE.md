@@ -8,9 +8,10 @@ Keep KriptoAman Platform and ZEVARYQ Wallet on one verified ZEVARYQ network-stat
 
 ## Compatibility plan
 
-- Canonical preferred route: `/api/zvq/network-status`
-- Compatibility route retained: `/api/kam/network-status`
-- Both routes resolve to the same verified read-only handler.
+- Prepared canonical route: `/api/zvq/network-status`
+- Current production route remains: `/api/kam/network-status`
+- The new route delegates to the same verified read-only handler.
+- Platform/Wallet runtime migration to the prepared route is deferred until the Phase 16F 24H gate passes and transition governance authorizes the protected-file change.
 - No duplicated chain logic or independently generated values are allowed.
 - Chain identity remains ZEVARYQ Mainnet, Chain ID 22028 (`0x560c`), native symbol ZVQ.
 - The compatibility route is not removed during this gate.
