@@ -66,7 +66,7 @@ jobs:
           get_json "https://kriptoaman.com/api/market-snapshot?health=1&phase13=${GITHUB_RUN_ID}-s1" artifacts/market-health.json
           get_json "https://kriptoaman.com/api/network-health?phase13=${GITHUB_RUN_ID}-s1" artifacts/network-health.json
           get_json "https://explorer.kriptoaman.com/developer/network.json?phase13=${GITHUB_RUN_ID}-s1" artifacts/explorer-network.json
-          get_json "https://explorer.kriptoaman.com/api/v2/blocks?phase13=${GITHUB_RUN_ID}-s1" artifacts/explorer-blocks-1.json
+          get_json "https://explorer.kriptoaman.com/api/v2/blocks" artifacts/explorer-blocks-1.json
 
           curl --fail --silent --show-error             --retry 4 --retry-all-errors --retry-delay 2             --connect-timeout 8 --max-time 35             -H 'Content-Type: application/json'             --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}'             'https://rpc.kriptoaman.com' -o artifacts/rpc-chain-1.json
 
@@ -86,7 +86,7 @@ jobs:
           }
 
           get_json "https://kriptoaman.com/api/kam/network-status?phase13=${GITHUB_RUN_ID}-s2" artifacts/network-status-2.json
-          get_json "https://explorer.kriptoaman.com/api/v2/blocks?phase13=${GITHUB_RUN_ID}-s2" artifacts/explorer-blocks-2.json
+          get_json "https://explorer.kriptoaman.com/api/v2/blocks" artifacts/explorer-blocks-2.json
 
           curl --fail --silent --show-error             --retry 4 --retry-all-errors --retry-delay 2             --connect-timeout 8 --max-time 35             -H 'Content-Type: application/json'             --data '{"jsonrpc":"2.0","id":3,"method":"eth_chainId","params":[]}'             'https://rpc.kriptoaman.com' -o artifacts/rpc-chain-2.json
 
