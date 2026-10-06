@@ -15,7 +15,7 @@ const evidenceDir = resolve(process.env.HOME_V10_PRODUCTION_EVIDENCE_DIR || 'hom
 await mkdir(evidenceDir, { recursive: true });
 
 const runId = String(process.env.GITHUB_RUN_ID || 'manual').replace(/[^0-9a-z_-]/gi, '');
-const url = 'https://kriptoaman.com/?phase16d_live_lock=' + runId;
+const url = 'https://kriptoaman.com/?phase15d_production_lock=' + runId + '&phase16d_live_lock=' + runId;
 const cases = [
   { name: 'mobile-390', width: 390, height: 844 },
   { name: 'desktop-1440', width: 1440, height: 1000 },
