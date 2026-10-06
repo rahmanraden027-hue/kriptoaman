@@ -16,7 +16,9 @@ test('Final UI Unification keeps canonical primary navigation and makes the cros
 
   assert.match(rail, /SECONDARY_SURFACE_IDS/);
   assert.match(rail, /\['portfolio', 'security', 'wallet'\]/);
-  assert.match(rail, /visibleItems = CROSS_SURFACE_ITEMS\.filter/);
+  assert.match(rail, /CROSS_SURFACE_ITEMS\.map/);
+  assert.match(rail, /const secondary = isSecondarySurface\(id\)/);
+  assert.match(rail, /: 'sr-only'/);
   assert.match(rail, /data-primary-navigation-owner="canonical-shell"/);
   assert.match(rail, /data-secondary-tools-only="true"/);
   assert.match(rail, /useLanguage/);
