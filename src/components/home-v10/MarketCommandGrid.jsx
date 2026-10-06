@@ -61,7 +61,7 @@ export default function MarketCommandGrid({ market, zevaryq }) {
                 to={'/Market?search=' + encodeURIComponent(asset.sym)}
                 className="grid min-h-11 grid-cols-[24px_1fr_auto] items-center gap-2 rounded-xl px-2 py-1.5 transition hover:bg-white/[0.035] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"
               >
-                <span className="text-[8px] font-black text-slate-500">{index + 1}</span>
+                <span className="text-[8px] font-black text-slate-300">{index + 1}</span>
                 <span className="flex min-w-0 items-center gap-2">
                   {asset.image ? <img src={asset.image} alt="" width="22" height="22" className="h-[22px] w-[22px] rounded-full" loading="lazy" decoding="async" /> : null}
                   <span className="min-w-0">
