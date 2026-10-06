@@ -43,6 +43,19 @@ export const DECISION_LOOP = Object.freeze([
   'VERIFY',
 ]);
 
+export const DATA_CONTRACT_FIELDS = Object.freeze([
+  'state',
+  'source',
+  'timestamp',
+  'freshness',
+]);
+
+export const DATA_CONTRACT_POLICY = Object.freeze({
+  failClosed: true,
+  simulatedProductionValuesAllowed: false,
+  missingSourceState: DATA_STATE.UNAVAILABLE,
+});
+
 export const TRUTH_STATES = Object.freeze([
   DATA_STATE.LIVE,
   DATA_STATE.VERIFIED,
