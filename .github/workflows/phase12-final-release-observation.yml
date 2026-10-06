@@ -1,0 +1,156 @@
+name: Phase 12 Production Freeze & Final Release Observation
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'release/phase12-production-freeze.json'
+      - 'docs/PHASE12_PRODUCTION_FREEZE.md'
+      - 'tests/phase12-production-freeze.test.mjs'
+      - '.github/workflows/phase12-final-release-observation.yml'
+      - 'chain/kam-mainnet/network-profile.json'
+      - 'chain/kam-mainnet/zevaryq-rebrand.json'
+      - 'public/kam-mainnet.json'
+  push:
+    branches: [main]
+  schedule:
+    - cron: '27 */6 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase12-final-release-observation
+  cancel-in-progress: true
+
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify Phase 12 freeze contract
+        run: node --test tests/phase12-production-freeze.test.mjs
+
+      - name: Verify frozen local network identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const manifest = JSON.parse(fs.readFileSync('release/phase12-production-freeze.json','utf8'));
+          const profile = JSON.parse(fs.readFileSync('chain/kam-mainnet/network-profile.json','utf8'));
+          const rebrand = JSON.parse(fs.readFileSync('chain/kam-mainnet/zevaryq-rebrand.json','utf8'));
+          const publicMeta = JSON.parse(fs.readFileSync('public/kam-mainnet.json','utf8'));
+
+          const expected = manifest.protectedInvariants;
+
+          if (profile.status !== 'mainnet-candidate-not-public') throw new Error('network profile status changed');
+          if (Number(profile.candidateChainId) !== expected.chainId) throw new Error('network profile chainId changed');
+          if (String(profile.candidateChainIdHex).toLowerCase() !== expected.chainIdHex) throw new Error('network profile chainIdHex changed');
+          if (profile.consensus !== 'QBFT' || Number(profile.validatorCount) !== 4) throw new Error('consensus boundary changed');
+          if (profile.rebrand?.networkName !== expected.networkName) throw new Error('rebrand network name changed');
+          if (profile.rebrand?.nativeSymbol !== expected.nativeSymbol) throw new Error('rebrand symbol changed');
+          if (profile.rebrand?.genesisUnchanged !== true) throw new Error('genesis continuity changed');
+          if (profile.commercialLaunchEnabled !== false) throw new Error('commercial launch flag changed');
+
+          if (rebrand.newIdentity?.network !== expected.networkName) throw new Error('canonical rebrand network changed');
+          if (rebrand.newIdentity?.symbol !== expected.nativeSymbol) throw new Error('canonical rebrand symbol changed');
+          if (Number(rebrand.technicalContinuity?.chainId) !== expected.chainId) throw new Error('canonical chainId changed');
+          if (rebrand.technicalContinuity?.newGenesis !== false) throw new Error('new genesis unexpectedly enabled');
+          if (rebrand.technicalContinuity?.changeValidatorKeys !== false) throw new Error('validator-key continuity changed');
+
+          if (publicMeta.name !== 'ZEVARYQ Mainnet') throw new Error('public mainnet name changed');
+          if (Number(publicMeta.chainId) !== expected.chainId) throw new Error('public chainId changed');
+          if (String(publicMeta.chainIdHex).toLowerCase() !== expected.chainIdHex) throw new Error('public chainIdHex changed');
+          if (publicMeta.nativeCurrency?.symbol !== expected.nativeSymbol) throw new Error('public symbol changed');
+          if (publicMeta.commercialLaunchEnabled !== false) throw new Error('public commercial launch flag changed');
+
+          console.log('PHASE12_LOCAL_FREEZE=PASS');
+          NODE
+
+      - name: Collect read-only final-release evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          get() {
+            local url="$1"
+            local out="$2"
+            curl --fail --silent --show-error --location               --retry 3 --retry-all-errors --retry-delay 2               --connect-timeout 8 --max-time 30               -H 'Accept: application/json' -H 'Cache-Control: no-cache'               "$url" -o "$out"
+          }
+
+          get 'https://kriptoaman.com/api/kam/network-status' artifacts/network-status.json
+          get 'https://kriptoaman.com/api/market-snapshot?health=1' artifacts/market-health.json
+          get 'https://explorer.kriptoaman.com/developer/network.json' artifacts/explorer-network.json
+          get 'https://explorer.kriptoaman.com/api/v2/blocks' artifacts/explorer-blocks.json
+
+          curl --fail --silent --show-error             --retry 3 --retry-all-errors --retry-delay 2             --connect-timeout 8 --max-time 30             -H 'Content-Type: application/json'             --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}'             'https://rpc.kriptoaman.com' -o artifacts/rpc-chain-id.json
+
+          curl --fail --silent --show-error             --retry 3 --retry-all-errors --retry-delay 2             --connect-timeout 8 --max-time 30             -H 'Content-Type: application/json'             --data '{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}'             'https://rpc.kriptoaman.com' -o artifacts/rpc-block-number.json
+
+      - name: Validate final-release evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const read = (name) => JSON.parse(fs.readFileSync('artifacts/' + name, 'utf8'));
+
+          const network = read('network-status.json');
+          const market = read('market-health.json');
+          const explorerNetwork = read('explorer-network.json');
+          const blocks = read('explorer-blocks.json');
+          const rpcChain = read('rpc-chain-id.json');
+          const rpcBlock = read('rpc-block-number.json');
+
+          if (Number(network.chainId) !== 22028) throw new Error('live network Chain ID mismatch');
+          if (String(network.chainIdHex).toLowerCase() !== '0x560c') throw new Error('live network Chain ID hex mismatch');
+          if (network.live !== true || network.verified !== true) throw new Error('live network status not verified');
+          if (!Number.isInteger(Number(network.blockNumber)) || Number(network.blockNumber) <= 0) throw new Error('live network block unavailable');
+
+          if (market.healthy !== true) throw new Error('market health degraded');
+          if (!Number.isFinite(Number(market.assetCount)) || Number(market.assetCount) < 2001) throw new Error('market asset coverage below production floor');
+
+          if (Number(explorerNetwork.chainId) !== 22028) throw new Error('Explorer Chain ID mismatch');
+          if (String(explorerNetwork.chainIdHex).toLowerCase() !== '0x560c') throw new Error('Explorer Chain ID hex mismatch');
+          if (explorerNetwork.nativeCurrency?.symbol !== 'ZVQ') throw new Error('Explorer native symbol mismatch');
+
+          const latest = blocks?.items?.[0];
+          if (!latest || !Number.isFinite(Number(latest.height)) || Number(latest.height) <= 0) throw new Error('Explorer indexed blocks unavailable');
+
+          if (String(rpcChain.result).toLowerCase() !== '0x560c') throw new Error('RPC Chain ID mismatch');
+          if (!/^0x[0-9a-f]+$/i.test(String(rpcBlock.result))) throw new Error('RPC block height malformed');
+          const rpcHeight = Number.parseInt(rpcBlock.result, 16);
+          if (!Number.isFinite(rpcHeight) || rpcHeight <= 0) throw new Error('RPC block height unavailable');
+
+          const evidence = {
+            phase: 12,
+            result: 'PASS',
+            checkedAt: new Date().toISOString(),
+            networkBlock: Number(network.blockNumber),
+            rpcBlock: rpcHeight,
+            explorerBlock: Number(latest.height),
+            assetCount: Number(market.assetCount),
+            chainId: 22028,
+            chainIdHex: '0x560c',
+            symbol: 'ZVQ'
+          };
+          fs.writeFileSync('artifacts/phase12-observation-summary.json', JSON.stringify(evidence, null, 2) + '\n');
+          console.log(evidence);
+          NODE
+
+      - name: Preserve Phase 12 observation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase12-final-release-observation
+          path: artifacts/*.json
+          if-no-files-found: warn
+          retention-days: 30
