@@ -128,13 +128,16 @@ try {
 
       await page.waitForFunction(() => {
         const ticker = document.querySelector('section[aria-label="Live market ticker"]');
-        const sections = [...document.querySelectorAll('section')];
-        const onChain = sections.find(node => node.textContent?.includes('ON-CHAIN NOW'));
-        const zvq = sections.find(node => node.querySelector(':scope > b')?.textContent?.trim() === 'ZEVARYQ MAINNET');
+        const onChain = document.querySelector('[data-zvq-onchain-state]');
+        const zvq = document.querySelector('[data-zvq-network-state]');
         return Boolean(
           ticker && /●\s*LIVE/.test(ticker.textContent || '') &&
-          onChain && /#\s*[\d,]+/.test(onChain.textContent || '') &&
-          zvq && /●\s*LIVE/.test(zvq.textContent || '') && /#[\d,]+/.test(zvq.textContent || '')
+          onChain?.getAttribute('data-zvq-onchain-state') === 'LIVE' &&
+          /#\s*[\d,]+/.test(onChain.textContent || '') &&
+          zvq?.getAttribute('data-zvq-network-state') === 'LIVE' &&
+          /●\s*VERIFIED/.test(zvq.textContent || '') &&
+          /SYNCED/.test(zvq.textContent || '') &&
+          /#[\d,]+/.test(zvq.textContent || '')
         );
       }, null, { timeout: 45_000, polling: 500 });
 
@@ -144,18 +147,25 @@ try {
         const meta = (selector) => document.head.querySelector(selector)?.getAttribute('content') || '';
         const link = (selector) => document.head.querySelector(selector)?.getAttribute('href') || '';
         const ticker = document.querySelector('section[aria-label="Live market ticker"]');
-        const sections = [...document.querySelectorAll('section')];
-        const onChain = sections.find(node => node.textContent?.includes('ON-CHAIN NOW'));
-        const zvq = sections.find(node => node.querySelector(':scope > b')?.textContent?.trim() === 'ZEVARYQ');
-        const search = document.querySelector('a[aria-label="Search market"]');
+        const onChain = document.querySelector('[data-zvq-onchain-state]');
+        const zvq = document.querySelector('[data-zvq-network-state]');
+        const search = [...document.querySelectorAll('header a[href="/Market"][aria-label]')].find((node) => {
+          const rect = node.getBoundingClientRect();
+          const style = getComputedStyle(node);
+          return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+        }) || null;
         const searchRect = search?.getBoundingClientRect();
         const mobileNav = document.querySelector('nav[aria-label="Mobile primary navigation"]');
         const navStyle = mobileNav ? getComputedStyle(mobileNav) : null;
         const skip = document.querySelector('a[href="#home-v10-content"]');
         const nav = performance.getEntriesByType('navigation')[0];
-        const topMoverHeading = [...document.querySelectorAll('h2')].find(node => node.textContent?.trim() === 'Top Movers');
-        const topMoverButtons = topMoverHeading?.parentElement?.querySelectorAll('button') || [];
-        const minMoverTarget = [...topMoverButtons].reduce((min, button) => Math.min(min, button.getBoundingClientRect().height), Infinity);
+        const marketOverviewHeading = [...document.querySelectorAll('h2')].find(node => node.textContent?.trim() === 'Market Overview');
+        const marketOverviewSection = marketOverviewHeading?.closest('section') || null;
+        const marketRows = marketOverviewSection ? [...marketOverviewSection.querySelectorAll('a')] : [];
+        const minMarketRowTarget = marketRows.reduce(
+          (min, row) => Math.min(min, row.getBoundingClientRect().height),
+          Infinity,
+        );
         return {
           width: innerWidth,
           scrollWidth: document.documentElement.scrollWidth,
@@ -180,8 +190,11 @@ try {
           politeStatusCount: document.querySelectorAll('[role="status"][aria-live="polite"]').length,
           tickerText: ticker?.textContent?.replace(/\s+/g, ' ').trim() || '',
           onChainText: onChain?.textContent?.replace(/\s+/g, ' ').trim() || '',
+          onChainState: onChain?.getAttribute('data-zvq-onchain-state') || null,
           zvqText: zvq?.textContent?.replace(/\s+/g, ' ').trim() || '',
-          minMoverTarget: Number.isFinite(minMoverTarget) ? minMoverTarget : null,
+          zvqState: zvq?.getAttribute('data-zvq-network-state') || null,
+          marketOverviewPresent: Boolean(marketOverviewHeading),
+          minMarketRowTarget: Number.isFinite(minMarketRowTarget) ? minMarketRowTarget : null,
           cls: Number(window.__kaVitals?.cls || 0),
           lcp: Number(window.__kaVitals?.lcp || 0),
           domContentLoadedMs: Number(nav?.domContentLoadedEventEnd || 0),
@@ -209,12 +222,16 @@ try {
       assert.ok(snapshot.politeStatusCount >= 2, config.name + ' polite status surfaces');
       if (config.width < 768) assert.notEqual(snapshot.mobileNavDisplay, 'none', config.name + ' mobile nav visible');
       else assert.equal(snapshot.mobileNavDisplay, 'none', config.name + ' mobile nav hidden at tablet/desktop');
-      if (snapshot.minMoverTarget !== null) assert.ok(snapshot.minMoverTarget >= 44, config.name + ' mover tabs >=44px');
+      assert.equal(snapshot.marketOverviewPresent, true, config.name + ' Market Overview present');
+      assert.ok(snapshot.minMarketRowTarget !== null && snapshot.minMarketRowTarget >= 44, config.name + ' market rows >=44px');
       assert.ok(snapshot.cls <= 0.15, config.name + ' CLS must stay <= 0.15');
       assert.equal(snapshot.oldPromoCopyPresent, false, config.name + ' old promo copy absent');
       assert.match(snapshot.tickerText, /●\s*LIVE/, config.name + ' market LIVE');
+      assert.equal(snapshot.onChainState, 'LIVE', config.name + ' on-chain raw state LIVE');
       assert.match(snapshot.onChainText, /#\s*[\d,]+/, config.name + ' on-chain block');
-      assert.match(snapshot.zvqText, /●\s*LIVE/, config.name + ' ZEVARYQ LIVE');
+      assert.equal(snapshot.zvqState, 'LIVE', config.name + ' ZEVARYQ raw state LIVE');
+      assert.match(snapshot.zvqText, /●\s*VERIFIED/, config.name + ' ZEVARYQ verified presentation');
+      assert.match(snapshot.zvqText, /SYNCED/, config.name + ' ZEVARYQ sync presentation');
 
       const onChainBlock = Number(snapshot.onChainText.match(/#\s*([\d,]+)/)?.[1]?.replace(/,/g, ''));
       const networkBlock = Number(snapshot.zvqText.match(/#\s*([\d,]+)/)?.[1]?.replace(/,/g, ''));

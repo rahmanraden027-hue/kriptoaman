@@ -47,8 +47,17 @@ test('Phase 10L.4 global acceptance is read-only and covers five production view
   ]) assert.ok(script.includes(marker), marker);
   assert.match(script, /scrollWidth <= config\.width \+ 1/);
   assert.match(script, /searchWidth >= 44/);
+  assert.match(script, /header a\[href="\/Market"\]\[aria-label\]/);
+  assert.match(script, /data-zvq-network-state/);
+  assert.match(script, /data-zvq-onchain-state/);
+  assert.match(script, /●\\s\*VERIFIED/);
+  assert.match(script, /Market Overview/);
+  assert.match(script, /market rows >=44px/);
   assert.match(script, /politeStatusCount >= 2/);
   assert.match(script, /Math\.abs\(onChainBlock - networkBlock\) <= 25/);
+  assert.doesNotMatch(script, /:scope > b/);
+  assert.doesNotMatch(script, /textContent\?\.trim\(\) === 'ZEVARYQ'/);
+  assert.doesNotMatch(script, /Top Movers/);
   assert.doesNotMatch(script, /eth_sendTransaction|eth_sendRawTransaction|wallet_requestPermissions|personal_|private[_ -]?key/i);
 });
 
