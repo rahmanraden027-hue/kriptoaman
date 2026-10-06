@@ -40,7 +40,10 @@
     ".github/workflows/kam-mainnet-24x7-monitor.yml",
     ".github/workflows/zvq-explorer-browser-proof.yml",
     ".github/workflows/zvq-wallet-production-gate.yml",
-    ".github/workflows/phase12-final-release-observation.yml"
+    ".github/workflows/phase12-final-release-observation.yml",
+    "release/phase12-production-freeze.json",
+    ".github/workflows/kam-landing-live-smoke.yml",
+    ".github/workflows/security-audit.yml"
   ],
   "stabilityPolicy": {
     "readOnly": true,
