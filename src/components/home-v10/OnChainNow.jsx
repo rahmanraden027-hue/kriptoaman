@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowRight, Radio, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import DataProvenanceBar from './DataProvenanceBar';
+import { DATA_STATE } from '@/lib/dataState';
 
 const REFRESH_MS = 15000;
 
 export default function OnChainNow() {
   const [data, setData] = useState(null);
+  const [state, setState] = useState(DATA_STATE.CHECKING);
 
   useEffect(() => {
     let active = true;
@@ -17,9 +20,16 @@ export default function OnChainNow() {
           cache: 'no-store',
         });
         const payload = await response.json();
-        if (active) setData(response.ok && payload?.status === 'live' ? payload : null);
+        if (active) {
+          const live = response.ok && payload?.status === 'live';
+          setData(live ? payload : null);
+          setState(live ? DATA_STATE.LIVE : DATA_STATE.UNAVAILABLE);
+        }
       } catch {
-        if (active) setData(null);
+        if (active) {
+          setData(null);
+          setState(DATA_STATE.UNAVAILABLE);
+        }
       } finally {
         if (active) timer = window.setTimeout(load, REFRESH_MS);
       }
@@ -45,6 +55,16 @@ export default function OnChainNow() {
           <h2 className="mt-1 text-lg font-black text-white">ZEVARYQ discovery</h2>
         </div>
         <ShieldCheck className="h-5 w-5 text-emerald-300" />
+      </div>
+
+      <div className="mt-3">
+        <DataProvenanceBar
+          state={state}
+          source={data?.provenance?.endpoint ? 'ZEVARYQ first-party JSON-RPC' : 'ZEVARYQ evidence source unavailable'}
+          timestamp={data?.observedAt}
+          ageMs={data?.observedAt ? Math.max(0, Date.now() - Number(data.observedAt)) : null}
+          label="ON-CHAIN EVIDENCE"
+        />
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-2">
