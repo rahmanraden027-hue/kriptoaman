@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "documentType": "ZVQ_TOKENOMICS_V2_GOVERNANCE_DECISION_TEMPLATE",
+  "status": "TEMPLATE_NOT_APPROVAL",
+  "network": {
+    "name": "ZEVARYQ Mainnet",
+    "symbol": "ZVQ",
+    "chainId": 22028,
+    "chainIdHex": "0x560c"
+  },
+  "proposedPolicy": {
+    "maximumSupplyProjectBaselineZVQ": "1000000000",
+    "initialCirculatingTargetZVQ": "70000000",
+    "initialCirculatingTargetPercent": "7"
+  },
+  "legacyReference": {
+    "initialCirculatingTargetKAM": "50000000",
+    "initialCirculatingTargetPercent": "5",
+    "historicalAllocationDriftDetected": true
+  },
+  "decisionsRequired": {
+    "approve50MTo70MTargetChange": false,
+    "resolveHistoricalAllocationDrift": false,
+    "selectedAllocationPolicyVersion": null,
+    "approvedAllocationTotalZVQ": null,
+    "approvedAllocationCategories": []
+  },
+  "evidenceRequiredBeforeApproval": {
+    "productionGenesisAttestationComplete": false,
+    "allocationWalletAccountingComplete": false,
+    "vestingAndLockEvidenceComplete": false,
+    "circulatingSupplyMethodologyComplete": false,
+    "phase16FLongRunStable": false
+  },
+  "approval": {
+    "approved": false,
+    "approvalReference": null,
+    "approvedAt": null,
+    "effectiveAtBlock": null,
+    "reviewers": []
+  },
+  "externalPublication": {
+    "tokenomicsV2Canonical": false,
+    "supplySubmissionAuthorized": false,
+    "exchangeSubmissionAuthorized": false
+  }
+}
