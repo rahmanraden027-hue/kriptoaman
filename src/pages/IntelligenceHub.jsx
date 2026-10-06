@@ -17,21 +17,28 @@ import CrossSurfaceRail from '@/components/command/CrossSurfaceRail';
 
 const COPY = {
   id: {
-    eyebrow: 'KRIPTOAMAN · PRODUCTION INTELLIGENCE',
+    eyebrow: 'KRIPTOAMAN · INTELIJEN PRODUKSI',
     title: 'Intelijen Produksi',
-    body: 'Market, jaringan, risiko, dan evidence live. Nilai yang tidak terverifikasi tetap UNAVAILABLE.',
+    body: 'Market, jaringan, risiko, dan bukti live. Nilai yang belum terverifikasi tidak ditampilkan sebagai fakta.',
     market: 'Intelijen Pasar',
     marketBody: 'Harga, volume, kapitalisasi, pergerakan dan database aset.',
     alerts: 'Pemantauan',
     alertsBody: 'Perubahan penting tanpa eksekusi transaksi.',
-    security: 'Risk & Security',
+    security: 'Risiko & Keamanan',
     securityBody: 'Status keamanan akun, sesi dan kontrol perlindungan.',
-    network: 'Network Intelligence',
-    networkBody: 'RPC, block height, sinkronisasi dan evidence jaringan.',
+    network: 'Intelijen Jaringan',
+    networkBody: 'RPC, tinggi blok, sinkronisasi dan bukti jaringan.',
     research: 'Riset',
     researchBody: 'Konteks pasar dan analisis terstruktur berbasis sumber.',
-    principle: 'Evidence rule',
-    principleBody: 'Setiap insight harus memiliki sumber, freshness, atau status sistem yang dapat diperiksa.',
+    principle: 'Aturan bukti',
+    principleBody: 'Setiap insight harus memiliki sumber, waktu pembaruan, atau status sistem yang dapat diperiksa.',
+    sourceState: 'SUMBER · KESEGARAN · STATUS',
+    waitingTitle: 'Menunggu data terverifikasi',
+    waitingBody: 'Metrik belum ditampilkan sampai sumber produksi memberikan nilai yang dapat diverifikasi.',
+    metricAssets: 'ASET MARKET',
+    metricBlock: 'BLOK ZVQ',
+    metricNetworks: 'JARINGAN TERVERIFIKASI',
+    metricChecked: 'DIPERIKSA',
     open: 'Buka',
     unavailable: 'UNAVAILABLE',
   },
@@ -51,6 +58,13 @@ const COPY = {
     researchBody: 'Source-aware market context and structured analysis.',
     principle: 'Evidence rule',
     principleBody: 'Every insight must expose a source, freshness timestamp, or inspectable system state.',
+    sourceState: 'SOURCE · FRESHNESS · STATE',
+    waitingTitle: 'Awaiting verified data',
+    waitingBody: 'Metrics remain hidden until production sources provide verifiable values.',
+    metricAssets: 'MARKET ASSETS',
+    metricBlock: 'ZVQ BLOCK',
+    metricNetworks: 'VERIFIED NETWORKS',
+    metricChecked: 'CHECKED AT',
     open: 'Open',
     unavailable: 'UNAVAILABLE',
   },
@@ -121,11 +135,12 @@ export default function IntelligenceHub() {
   };
 
   const metrics = [
-    ['MARKET ASSETS', snapshot.assets != null ? snapshot.assets.toLocaleString(locale) : '—', snapshot.marketState],
-    ['ZVQ BLOCK', snapshot.block != null ? '#' + snapshot.block.toLocaleString(locale) : '—', snapshot.networkState],
-    ['VERIFIED NETWORKS', snapshot.networks != null ? snapshot.networks.toLocaleString(locale) : '—', snapshot.networks != null ? 'operational' : 'unavailable'],
-    ['CHECKED AT', snapshot.checkedAt ? new Date(snapshot.checkedAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) : '—', snapshot.checkedAt ? 'verified' : 'unavailable'],
+    [t.metricAssets, snapshot.assets != null ? snapshot.assets.toLocaleString(locale) : '—', snapshot.marketState, snapshot.assets != null],
+    [t.metricBlock, snapshot.block != null ? '#' + snapshot.block.toLocaleString(locale) : '—', snapshot.networkState, snapshot.block != null],
+    [t.metricNetworks, snapshot.networks != null ? snapshot.networks.toLocaleString(locale) : '—', snapshot.networks != null ? 'operational' : 'unavailable', snapshot.networks != null],
+    [t.metricChecked, snapshot.checkedAt ? new Date(snapshot.checkedAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) : '—', snapshot.checkedAt ? 'verified' : 'unavailable', Boolean(snapshot.checkedAt)],
   ];
+  const verifiedMetrics = metrics.filter(([, , , available]) => available);
 
   return (
     <div className="ka-bg min-h-screen pb-28 text-white" data-product-surface="intelligence" data-product-release="phase15f">
@@ -139,21 +154,28 @@ export default function IntelligenceHub() {
                 <h1 className="text-3xl font-black tracking-[-0.04em] sm:text-4xl">{t.title}</h1>
                 <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">{t.body}</p>
               </div>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:min-w-[560px]">
-                {metrics.map(([label, value, state]) => {
-                  const displayState = normalizeDataState(state, DATA_STATE.UNAVAILABLE);
-                  const positive = isPositiveDataState(displayState);
-                  return (
-                    <div key={label} className="rounded-2xl border border-white/[0.07] bg-black/20 px-3 py-3">
-                      <p className="text-[8px] font-black uppercase tracking-[.12em] text-slate-500">{label}</p>
-                      <p className="mt-1.5 truncate text-base font-black">{value}</p>
-                      <p className={'mt-1 text-[8px] font-black uppercase ' + (positive ? 'text-emerald-300' : displayState === DATA_STATE.UNAVAILABLE ? 'text-amber-300' : 'text-cyan-300')}>
-                        {displayState}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
+              {verifiedMetrics.length ? (
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:min-w-[560px]">
+                  {verifiedMetrics.map(([label, value, state]) => {
+                    const displayState = normalizeDataState(state, DATA_STATE.UNAVAILABLE);
+                    const positive = isPositiveDataState(displayState);
+                    return (
+                      <div key={label} className="rounded-2xl border border-white/[0.07] bg-black/20 px-3 py-3">
+                        <p className="text-[8px] font-black uppercase tracking-[.12em] text-slate-500">{label}</p>
+                        <p className="mt-1.5 truncate text-base font-black">{value}</p>
+                        <p className={'mt-1 text-[8px] font-black uppercase ' + (positive ? 'text-emerald-300' : displayState === DATA_STATE.UNAVAILABLE ? 'text-amber-300' : 'text-cyan-300')}>
+                          {displayState}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="max-w-sm rounded-2xl border border-cyan-400/15 bg-cyan-500/[0.04] px-4 py-3 lg:min-w-[360px]" role="status">
+                  <p className="text-[10px] font-black uppercase tracking-[.12em] text-cyan-300">{t.waitingTitle}</p>
+                  <p className="mt-1.5 text-[11px] leading-5 text-slate-500">{t.waitingBody}</p>
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -183,7 +205,7 @@ export default function IntelligenceHub() {
               <p className="mt-1 text-xs leading-5 text-slate-500">{t.principleBody}</p>
             </div>
             <div className="inline-flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] px-3 py-2 text-[9px] font-bold text-slate-400">
-              <Gauge className="h-3.5 w-3.5 text-cyan-300" /> SOURCE · FRESHNESS · STATE
+              <Gauge className="h-3.5 w-3.5 text-cyan-300" /> {t.sourceState}
             </div>
           </div>
         </section>
