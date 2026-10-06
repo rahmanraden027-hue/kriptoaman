@@ -41,7 +41,7 @@ test('command center hero uses KriptoAman identity and verified ZEVARYQ evidence
   assert.match(hero, /kriptoaman-mark-premium\.webp/);
   assert.match(hero, /zevaryq-mark\.svg/);
   assert.match(hero, /ZEVARYQ NETWORK · LIVE EVIDENCE/);
-  assert.match(hero, /explorer\.kriptoaman\.com/);
+  assert.match(hero, /Buka Network Intelligence/);
   assert.match(hero, /DataProvenanceBar/);
   assert.match(hero, /data-phase16c-command-center="true"/);
   assert.match(hero, /Visual topology · verified core data only/);
