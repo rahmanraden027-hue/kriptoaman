@@ -1,0 +1,156 @@
+{
+  "pack": "final-release-evidence",
+  "version": "2026-10-07-prep-1",
+  "status": "prepared-not-executed",
+  "productionBaselineCommit": "4b7bfb90ecf153fadf1f82c27c8a5eb0e8289be8",
+  "decisionPolicy": {
+    "allowedVerdicts": ["GO", "CONDITIONAL_GO", "HOLD"],
+    "defaultVerdict": "HOLD",
+    "greenPreparationPrsDoNotEqualProductionPass": true,
+    "workflowSuccessAloneDoesNotEqual24hOr72hPass": true
+  },
+  "requiredEvidence": {
+    "phase16f24h": {
+      "required": true,
+      "minimumSpanHours": 23,
+      "minimumHourlyBuckets": 20,
+      "failedRunsAllowed": 0,
+      "missingArtifactsAllowed": 0
+    },
+    "deviceAcceptance": {
+      "required": true,
+      "platform": "KriptoAman Platform",
+      "wallet": "ZEVARYQ Wallet",
+      "physicalAndroidRequired": true,
+      "realTransactionBroadcastRequired": false
+    },
+    "phase16f72h": {
+      "requiredForFinalGo": true,
+      "minimumSpanHours": 70,
+      "minimumHourlyBuckets": 60,
+      "failedRunsAllowed": 0,
+      "missingArtifactsAllowed": 0
+    },
+    "networkIdentity": {
+      "required": true,
+      "network": "ZEVARYQ Mainnet",
+      "chainId": 22028,
+      "chainIdHex": "0x560c",
+      "nativeSymbol": "ZVQ"
+    },
+    "explorer": {
+      "required": true,
+      "publicHttp200": true,
+      "browserLiveIndexed": true,
+      "zeroCriticalJavascriptErrors": true
+    },
+    "walletSafety": {
+      "required": true,
+      "broadcastLocked": true,
+      "rpcWritePolicy": false,
+      "privateKeyCollectionAllowed": false,
+      "seedPhraseCollectionAllowed": false,
+      "mnemonicCollectionAllowed": false
+    },
+    "security": {
+      "required": true,
+      "ciGreen": true,
+      "securityAuditGreen": true,
+      "codeqlGreen": true,
+      "noUnresolvedReachableCriticalOrHigh": true
+    },
+    "rollback": {
+      "required": true,
+      "preDeployShaRecorded": true,
+      "knownGoodBuildable": true,
+      "providerRedeployConfirmed": true,
+      "databaseResetNotRequired": true
+    },
+    "manualAccessibility": {
+      "requiredForFullGo": true,
+      "keyboardOnly": true,
+      "screenReaderSmoke": true,
+      "textZoom200Percent": true,
+      "focusVisibility": true
+    },
+    "iosSafariPhysical": {
+      "requiredForFullWebGo": true,
+      "note": "Existing final GO policy requires physical iOS Safari evidence for the web surface. If not available, use CONDITIONAL_GO rather than claiming full GO."
+    }
+  },
+  "preparedInputs": {
+    "1042": "ZVQ network-status compatibility preparation",
+    "1043": "Public Identity Cleanup Pack",
+    "1044": "Device Acceptance Pack",
+    "1045": "Controlled post-24H execution order"
+  },
+  "decisionRules": {
+    "GO": [
+      "24H PASS verified from artifacts",
+      "Device Acceptance PASS including physical Android",
+      "72H PASS verified from artifacts",
+      "Explorer/RPC/Wallet evidence current and green",
+      "Security gates green",
+      "Rollback confirmed",
+      "Manual accessibility checks complete",
+      "Physical iOS Safari evidence complete for full web GO"
+    ],
+    "CONDITIONAL_GO": [
+      "Core release/security/health gates green",
+      "24H and 72H stability gates green",
+      "Device Acceptance green for released Android/web targets",
+      "No critical safety blocker",
+      "One or more non-core manual scale/accessibility/device items still incomplete",
+      "No unsupported capacity or cross-platform completeness claims"
+    ],
+    "HOLD": [
+      "Any failed 24H/72H stability threshold",
+      "Any failed security or production health gate",
+      "Any identity mismatch between Platform, Wallet, RPC or Explorer",
+      "Any unexpected wallet broadcast or RPC write enablement",
+      "Any reproducible critical device/UI blocker",
+      "Rollback target unavailable or unbuildable"
+    ]
+  },
+  "evidenceRecordTemplate": {
+    "phase16f24hRunId": null,
+    "phase16f24hArtifactId": null,
+    "phase16f72hRunId": null,
+    "phase16f72hArtifactId": null,
+    "deviceEvidenceReference": null,
+    "explorerProofRunId": null,
+    "walletGateRunId": null,
+    "securityAuditRunId": null,
+    "codeqlRunId": null,
+    "rollbackEvidenceReference": null,
+    "manualAccessibilityReference": null,
+    "finalVerdict": "HOLD",
+    "decisionAt": null,
+    "decisionCommit": null,
+    "decisionNotes": []
+  },
+  "forbiddenClaimsWithoutEvidence": [
+    "verified circulating supply",
+    "verified treasury or custody",
+    "verified liquidity or backing",
+    "verified physical VPS count",
+    "verified satellite infrastructure",
+    "exchange listing approval",
+    "regulatory approval",
+    "one-million simultaneous user capacity"
+  ],
+  "forbiddenProductionMutations": [
+    "genesis",
+    "validator keys",
+    "private keys",
+    "balances",
+    "token supply",
+    "liquidity",
+    "custody",
+    "DNS",
+    "consensus",
+    "wallet signing",
+    "wallet broadcasting",
+    "RPC write methods"
+  ]
+}
