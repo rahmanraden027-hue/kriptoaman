@@ -1,6 +1,6 @@
-// Phase 15D read-only production browser acceptance for KriptoAman HomeV10.
-// Verifies the live production root without credentials, wallet signing, writes, deployments,
-// transactions, or chain mutations.
+// Phase 16D read-only post-merge production browser acceptance for KriptoAman HomeV10.
+// Verifies the live Phase 16C production root without credentials, wallet signing, writes,
+// transactions, or chain mutations. Deployment propagation is retried but truth checks remain fail-closed.
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
@@ -15,7 +15,7 @@ const evidenceDir = resolve(process.env.HOME_V10_PRODUCTION_EVIDENCE_DIR || 'hom
 await mkdir(evidenceDir, { recursive: true });
 
 const runId = String(process.env.GITHUB_RUN_ID || 'manual').replace(/[^0-9a-z_-]/gi, '');
-const url = 'https://kriptoaman.com/?phase15d_production_lock=' + runId;
+const url = 'https://kriptoaman.com/?phase16d_live_lock=' + runId;
 const cases = [
   { name: 'mobile-390', width: 390, height: 844 },
   { name: 'desktop-1440', width: 1440, height: 1000 },
@@ -28,6 +28,45 @@ const requiredApis = [
 
 let browser;
 const report = [];
+
+const PHASE16C_VISUAL_MARKER = 'phase16c-final-command-center-v1';
+
+async function waitForLiveDeployment(page, resetEvidence) {
+  let lastStatus = null;
+  let lastBody = '';
+
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    resetEvidence();
+    const attemptUrl = url + '&attempt=' + attempt;
+    const navigation = await page.goto(attemptUrl, { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => null);
+    lastStatus = navigation?.status() ?? null;
+
+    if (lastStatus === 200) {
+      try {
+        await page.waitForFunction(
+          marker => Boolean(
+            document.querySelector('main[data-visual-integration="' + marker + '"]')
+            && document.querySelector('[data-phase16c-command-center="true"]')
+            && /KRIPTOAMAN/i.test(document.body.innerText || '')
+          ),
+          PHASE16C_VISUAL_MARKER,
+          { timeout: 15000, polling: 500 },
+        );
+        return;
+      } catch {
+        lastBody = await page.evaluate(() => document.body.innerText.slice(0, 600)).catch(() => '');
+      }
+    }
+
+    if (attempt < 3) await page.waitForTimeout(15000);
+  }
+
+  throw new Error(
+    'Phase 16C production deployment not ready after 3 attempts; '
+    + 'last HTTP=' + String(lastStatus)
+    + '; body=' + JSON.stringify(lastBody),
+  );
+}
 
 try {
   browser = await chromium.launch({
@@ -63,8 +102,11 @@ try {
     });
 
     try {
-      const navigation = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-      assert.equal(navigation?.status(), 200, 'production root must return HTTP 200');
+      await waitForLiveDeployment(page, () => {
+        pageErrors.length = 0;
+        requestFailures.length = 0;
+        apiResponses.length = 0;
+      });
 
       await page.waitForFunction(() => {
         const ticker = document.querySelector('section[aria-label="Live market ticker"]');
@@ -85,6 +127,8 @@ try {
           && /SYNCED/.test(zvq.textContent || '')
           && /#[\d,]+/.test(zvq.textContent || '')
           && document.querySelector('main[data-command-release="phase15d"]')
+          && document.querySelector('main[data-visual-integration="phase16c-final-command-center-v1"]')
+          && document.querySelector('[data-phase16c-command-center="true"]')
         );
       }, null, { timeout: 45000, polling: 500 });
 
@@ -115,6 +159,8 @@ try {
           zvqText: zvq?.textContent?.replace(/\s+/g, ' ').trim() || '',
           oldPromoCopyPresent: /Production Command Center|Official Launch 2026/i.test(document.body.innerText),
           commandRelease: document.querySelector('main')?.getAttribute('data-command-release') || null,
+          visualIntegration: document.querySelector('main')?.getAttribute('data-visual-integration') || null,
+          commandCenterReady: Boolean(document.querySelector('[data-phase16c-command-center="true"]')),
           commandLayers,
           assetsTracked: Number(document.querySelector('[data-assets-tracked]')?.getAttribute('data-assets-tracked')) || null,
         };
@@ -131,7 +177,9 @@ try {
       assert.ok(Number.isSafeInteger(onChainBlock) && onChainBlock > 0, 'On-Chain block must be numeric');
       assert.ok(Number.isSafeInteger(networkBlock) && networkBlock > 0, 'ZEVARYQ network block must be numeric');
       assert.ok(Math.abs(onChainBlock - networkBlock) <= 25, 'first-party chain surfaces must remain within 25 blocks');
-      assert.equal(snapshot.commandRelease, 'phase15d', 'live production must expose the Phase 15D release marker');
+      assert.equal(snapshot.commandRelease, 'phase15d', 'live production must preserve the Phase 15D command release marker');
+      assert.equal(snapshot.visualIntegration, PHASE16C_VISUAL_MARKER, 'live production must expose the Phase 16C visual integration marker');
+      assert.equal(snapshot.commandCenterReady, true, 'Phase 16C command-center hero must be mounted');
       assert.deepEqual(
         snapshot.commandLayers,
         ['market', 'intelligence', 'network', 'evidence'],
@@ -183,6 +231,8 @@ try {
         onChain: snapshot.onChainText.match(/#\s*[\d,]+/)?.[0] || null,
         zvq: snapshot.zvqText.match(/#[\d,]+/)?.[0] || null,
         release: snapshot.commandRelease,
+        visualIntegration: snapshot.visualIntegration,
+        commandCenterReady: snapshot.commandCenterReady,
         hierarchy: snapshot.commandLayers,
         assetsTracked: snapshot.assetsTracked,
         jsErrors: pageErrors.length,
@@ -217,7 +267,7 @@ try {
     JSON.stringify({
       checkedAt: new Date().toISOString(),
       url,
-      scope: 'read-only KriptoAman HomeV10 production lock',
+      scope: 'read-only KriptoAman Phase 16D post-merge live domain lock',
       report,
     }, null, 2),
   );
