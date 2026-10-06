@@ -14,6 +14,9 @@ test('Phase 16G keeps the ZVQ supply migration target honest and non-final', asy
   assert.equal(registry.supplyPolicy.legacyKamInitialCirculatingTarget, '50000000');
   assert.equal(registry.supplyPolicy.circulatingSupplyVerified, false);
   assert.equal(registry.supplyPolicy.externalSubmissionAllowed, false);
+  assert.equal(registry.supplyPolicy.historicalAllocationDriftDetected, true);
+  assert.equal(registry.supplyPolicy.circulatingTargetDistinctFromLiquidityAllocation, true);
+  assert.equal(registry.supplyPolicy.reconciliationStatus, 'BLOCKED_PENDING_PRODUCTION_GENESIS_ATTESTATION_AND_ALLOCATION_WALLETS');
 });
 
 test('Phase 16G does not silently activate planned wrapped assets or zUSD', async () => {
@@ -57,4 +60,29 @@ test('Phase 16G exchange package blocks unsupported supply and market claims', a
   assert.match(doc, /NOT YET VERIFIED/);
   assert.match(doc, /FINAL_SUBMISSION_AUTHORIZED = false/);
   assert.match(doc, /candidate markets only/i);
+});
+
+
+test('Phase 16G records the historical allocation drift instead of silently choosing a version', async () => {
+  const reconciliation = JSON.parse(await read('chain/zevaryq-mainnet/registry/zvq-supply-reconciliation.draft.json'));
+  assert.equal(reconciliation.historicalAllocationDrift.detected, true);
+  assert.equal(reconciliation.historicalAllocationDrift.reconciled, false);
+  assert.equal(reconciliation.historicalAllocationDrift.archiveDocumentAllocation['Liquidity & Market Development'], '70000000');
+  assert.equal(reconciliation.historicalAllocationDrift.chainJsonAllocation['Liquidity & Market Infrastructure'], '150000000');
+  assert.equal(reconciliation.historicalAllocationDrift.circulatingTargetDistinctFromLiquidityAllocation, true);
+  assert.equal(reconciliation.publicationState.seventyMillionMayBeDescribedAsProposedInitialCirculatingTarget, true);
+  assert.equal(reconciliation.publicationState.seventyMillionMayBeDescribedAsCurrentCirculatingSupply, false);
+});
+
+test('Phase 16G supply attestation template is inert until real evidence is populated', async () => {
+  const attestation = JSON.parse(await read('chain/zevaryq-mainnet/registry/zvq-supply-attestation.template.json'));
+  assert.equal(attestation.status, 'TEMPLATE_NOT_EVIDENCE');
+  assert.equal(attestation.genesisEvidence.canonicalGenesisArtifactSha256, null);
+  assert.equal(attestation.genesisEvidence.aggregateAllocZVQ, null);
+  assert.equal(attestation.allocationAccounting.recordedAtBlock, null);
+  assert.equal(attestation.supplyAccounting.verifiedCurrentTotalSupplyZVQ, null);
+  assert.equal(attestation.supplyAccounting.verifiedCurrentCirculatingSupplyZVQ, null);
+  assert.equal(attestation.governanceApproval.legacy50MToProposed70MApproved, false);
+  assert.equal(attestation.governanceApproval.historicalAllocationDriftResolved, false);
+  assert.equal(attestation.assertions.externalSubmissionAuthorized, false);
 });
