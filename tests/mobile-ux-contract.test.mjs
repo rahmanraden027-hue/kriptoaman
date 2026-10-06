@@ -13,7 +13,8 @@ test('primary navigation is bilingual and meets mobile touch sizing', async () =
   assert.match(navigation, /Beranda/);
   assert.match(navigation, /Market/);
   assert.match(navigation, /Intelijen/);
-  assert.match(navigation, /On-Chain/);
+  assert.match(navigation, /Jaringan/);
+  assert.match(navigation, /Network/);
   assert.match(navigation, /Ekosistem/);
   assert.match(layout, /min-h-\[62px\]/);
 });
