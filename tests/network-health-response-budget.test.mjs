@@ -8,7 +8,8 @@ test('ordinary public network-health reads have a bounded cold path', () => {
   assert.match(source, /const DURABLE_READ_BUDGET_MS = 500/);
   assert.match(source, /const PUBLIC_RESPONSE_BUDGET_MS = 6500/);
   assert.match(source, /const EDGE_CACHE_WRITE_BUDGET_MS = 400/);
-  assert.match(source, /const snapshot = await withDeadline\(refresh, PUBLIC_RESPONSE_BUDGET_MS, null\)/);
+  assert.match(source, /const candidate = await withDeadline\(/);
+  assert.match(source, /Promise\.any\(\[lateDurableCandidate, freshCandidate\]\)/);
   assert.match(source, /deliveryMode: 'warming-background-refresh'/);
   assert.match(source, /verified_snapshot_unavailable_within_response_budget/);
   assert.match(source, /backgroundRefreshContinues: true/);
