@@ -19,7 +19,7 @@ export default function ProductFlowRail() {
       className="rounded-2xl border border-white/[0.045] bg-[#040a13] px-3 py-2"
     >
       <div className="flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <span className="mr-1 shrink-0 text-[7px] font-black uppercase tracking-[0.14em] text-slate-600">
+        <span className="mr-1 shrink-0 text-[7px] font-black uppercase tracking-[0.14em] text-slate-300">
           Intelligence Flow
         </span>
         {STEPS.map((step, index) => {
