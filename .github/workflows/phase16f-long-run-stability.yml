@@ -1,0 +1,159 @@
+name: Phase 16F 24H-72H Production Stability
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'release/phase16f-long-run-stability.json'
+      - 'scripts/aggregate-phase16f-stability.mjs'
+      - 'tests/phase16f-long-run-stability.test.mjs'
+      - 'docs/PHASE16F_LONG_RUN_PRODUCTION_STABILITY.md'
+      - '.github/workflows/phase16f-long-run-stability.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'release/phase16f-long-run-stability.json'
+      - 'scripts/aggregate-phase16f-stability.mjs'
+      - 'tests/phase16f-long-run-stability.test.mjs'
+      - 'docs/PHASE16F_LONG_RUN_PRODUCTION_STABILITY.md'
+      - '.github/workflows/phase16f-long-run-stability.yml'
+  schedule:
+    - cron: '41 */6 * * *'
+
+permissions:
+  contents: read
+  actions: read
+  statuses: write
+
+concurrency:
+  group: phase16f-long-run-production-stability
+  cancel-in-progress: false
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify Phase 16F long-run contract
+        run: node --test tests/phase16f-long-run-stability.test.mjs
+
+  aggregate:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Collect Phase 16E observation ledger and artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE_DIR="$RUNNER_TEMP/phase16f-source"
+          EVIDENCE_DIR="$RUNNER_TEMP/phase16f-evidence"
+          mkdir -p "$SOURCE_DIR" "$EVIDENCE_DIR"
+
+          START_AT="$(git log --diff-filter=A --follow --format=%cI -- release/phase16f-long-run-stability.json | tail -1)"
+          if [ -z "$START_AT" ]; then
+            echo 'Unable to resolve Phase 16F baseline start' >&2
+            exit 1
+          fi
+
+          echo "PHASE16F_SOURCE_DIR=$SOURCE_DIR" >> "$GITHUB_ENV"
+          echo "PHASE16F_EVIDENCE_DIR=$EVIDENCE_DIR" >> "$GITHUB_ENV"
+          echo "PHASE16F_START_AT=$START_AT" >> "$GITHUB_ENV"
+
+          gh run list \
+            --workflow phase16e-production-observation.yml \
+            --branch main \
+            --limit 100 \
+            --json databaseId,createdAt,updatedAt,conclusion,event,headSha,status \
+            > "$SOURCE_DIR/runs.json"
+
+          jq -r '.[] | select(.status == "completed" and .conclusion == "success") | .databaseId' "$SOURCE_DIR/runs.json" | while read -r run_id; do
+            [ -n "$run_id" ] || continue
+            mkdir -p "$SOURCE_DIR/$run_id"
+            downloaded=false
+            for attempt in 1 2 3; do
+              if gh run download "$run_id" --name phase16e-production-observation --dir "$SOURCE_DIR/$run_id"; then
+                downloaded=true
+                break
+              fi
+              sleep $((attempt * 2))
+            done
+            if [ "$downloaded" != true ]; then
+              echo "WARNING: evidence artifact unavailable for successful run $run_id" >&2
+            fi
+          done
+
+      - name: Aggregate 24H and 72H stability windows
+        run: node scripts/aggregate-phase16f-stability.mjs
+
+      - name: Preserve Phase 16F long-run evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase16f-long-run-production-stability
+          path: ${{ env.PHASE16F_EVIDENCE_DIR }}
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Publish Phase 16F long-run status
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          SUMMARY="$PHASE16F_EVIDENCE_DIR/phase16f-long-run-stability.json"
+          state=failure
+          description="Phase 16F long-run observation failed"
+          if [ -f "$SUMMARY" ]; then
+            overall="$(jq -r '.overallStatus // "FAILED"' "$SUMMARY")"
+            case "$overall" in
+              COLLECTING)
+                state=success
+                description="Phase 16F collecting 24H/72H evidence"
+                ;;
+              24H_STABLE|24H_STABLE_WITH_WARNINGS)
+                state=success
+                description="Phase 16F 24H baseline stable; 72H collecting"
+                ;;
+              LONG_RUN_STABLE|LONG_RUN_STABLE_WITH_WARNINGS)
+                state=success
+                description="Phase 16F 72H long-run production stable"
+                ;;
+              *)
+                state=failure
+                description="Phase 16F detected long-run instability"
+                ;;
+            esac
+          fi
+
+          payload="$(jq -nc \
+            --arg state "$state" \
+            --arg context "kriptoaman/phase16f-long-run-stability" \
+            --arg description "$description" \
+            --arg target_url "$RUN_URL" \
+            '{state:$state,context:$context,description:$description,target_url:$target_url}')"
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$REPO/statuses/$SHA" \
+            -d "$payload" >/dev/null
