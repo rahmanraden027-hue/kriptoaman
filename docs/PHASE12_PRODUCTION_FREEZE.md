@@ -12,7 +12,7 @@ Phase 12 starts from the accepted Phase 11 final production baseline:
 
 Phase 12 does not redesign the product and does not modify blockchain state. It freezes the accepted production contract and adds an independent read-only observation layer around the already healthy release.
 
-The release remains governed by the existing chain freeze guard, RPC/Explorer monitor, Explorer browser proof, Wallet production gate, Security Audit, CI, Production Health, Live Core Readiness, and Final GO Evidence.
+The release remains governed by the existing chain freeze guard, RPC/Explorer monitor, Explorer browser proof, Wallet production gate, landing live smoke, Security Audit, CI, Production Health, Live Core Readiness, and Final GO Evidence.
 
 ## Protected production boundary
 
