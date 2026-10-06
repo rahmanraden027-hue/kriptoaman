@@ -19,6 +19,10 @@ on:
       - 'scripts/collect-zvq-genesis-attestation.mjs'
       - 'tests/phase16g-zvq-readiness.test.mjs'
       - 'tests/zvq-genesis-attestation-collector.test.mjs'
+      - 'chain/zevaryq-mainnet/registry/zvq-asset-indexing-readiness.draft.json'
+      - 'scripts/verify-phase16g-asset-indexing.mjs'
+      - 'tests/phase16g-asset-indexing-readiness.test.mjs'
+      - 'docs/PHASE16G_C_ASSET_LOGO_INDEXING_READINESS.md'
       - '.github/workflows/phase16g-zvq-readiness.yml'
 
 permissions:
@@ -35,5 +39,7 @@ jobs:
           node-version: '22'
       - name: Run Phase 16G registry readiness verifier
         run: node scripts/verify-phase16g-zvq-readiness.mjs
+      - name: Run Phase 16G-C asset indexing verifier
+        run: node scripts/verify-phase16g-asset-indexing.mjs
       - name: Run Phase 16G regression contract
-        run: node --test tests/phase16g-zvq-readiness.test.mjs tests/zvq-genesis-attestation-collector.test.mjs
+        run: node --test tests/phase16g-zvq-readiness.test.mjs tests/zvq-genesis-attestation-collector.test.mjs tests/phase16g-asset-indexing-readiness.test.mjs
