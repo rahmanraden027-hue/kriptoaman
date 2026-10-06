@@ -15,6 +15,7 @@ test('Phase 16D production provenance tracks the Phase 16C visual contract', asy
 
 test('Phase 16D live browser gate tolerates rollout propagation without weakening truth checks', async () => {
   const script = await read('scripts/verify-home-v10-production.mjs');
+  assert.match(script, /phase15d_production_lock/);
   assert.match(script, /phase16d_live_lock/);
   assert.match(script, /PHASE16C_VISUAL_MARKER = 'phase16c-final-command-center-v1'/);
   assert.match(script, /attempt <= 3/);
@@ -33,6 +34,6 @@ test('Phase 16D live browser gate tolerates rollout propagation without weakenin
 test('Phase 16D evidence artifact is named for the post-merge live lock', async () => {
   const workflow = await read('.github/workflows/home-v10-production-lock.yml');
   assert.match(workflow, /Preserve Phase 16D post-merge production evidence/);
-  assert.match(workflow, /home-v10-phase16d-production-lock-evidence/);
+  assert.match(workflow, /home-v10-production-lock-evidence/);
   assert.match(workflow, /kriptoaman\/home-v10-production-visual-proof/);
 });
