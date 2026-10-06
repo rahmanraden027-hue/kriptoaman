@@ -39,7 +39,8 @@
     ".github/workflows/kam-mainnet-24x7-monitor.yml",
     ".github/workflows/zvq-explorer-browser-proof.yml",
     ".github/workflows/zvq-wallet-production-gate.yml",
-    ".github/workflows/security-audit.yml"
+    ".github/workflows/security-audit.yml",
+    ".github/workflows/kam-landing-live-smoke.yml"
   ],
   "phase12Gate": ".github/workflows/phase12-final-release-observation.yml"
 }
