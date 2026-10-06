@@ -1,0 +1,197 @@
+name: QoryVEx Streaming Production Cutover
+
+on:
+  pull_request:
+    paths:
+      - 'services/kriptoaman-indexer/**'
+      - 'scripts/deploy-kriptoaman-zvq-indexer.sh'
+      - 'scripts/zvq-rpc-allowlist-gateway.mjs'
+      - 'scripts/deploy-zvq-rpc-sentry-allowlist.sh'
+      - 'tests/qoryvex-discovery-model.test.mjs'
+      - 'tests/zvq-rpc-allowlist-gateway.test.mjs'
+      - '.github/workflows/qoryvex-streaming-cutover.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'services/kriptoaman-indexer/**'
+      - 'scripts/deploy-kriptoaman-zvq-indexer.sh'
+      - 'scripts/zvq-rpc-allowlist-gateway.mjs'
+      - 'scripts/deploy-zvq-rpc-sentry-allowlist.sh'
+      - '.github/workflows/qoryvex-streaming-cutover.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qoryvex-streaming-production-cutover
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Validate streaming layer and guarded deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check services/kriptoaman-indexer/discovery-model.mjs
+          node --check services/kriptoaman-indexer/zvq-listener.mjs
+          node --check scripts/zvq-rpc-allowlist-gateway.mjs
+          bash -n scripts/deploy-kriptoaman-zvq-indexer.sh
+          bash -n scripts/deploy-zvq-rpc-sentry-allowlist.sh
+          node --test tests/qoryvex-discovery-model.test.mjs tests/zvq-rpc-allowlist-gateway.test.mjs
+          ! grep -REn 'eth_sendRawTransaction|personal_|admin_|debug_' services/kriptoaman-indexer
+          ! grep -REn 'PRIVATE_KEY|MNEMONIC|SEED_PHRASE' services/kriptoaman-indexer scripts/deploy-kriptoaman-zvq-indexer.sh
+
+  runner-preflight:
+    if: github.event_name == 'pull_request'
+    needs: validate
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - name: Read-only first-party WSS and Explorer container-network preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(curl -sS --max-time 15 -o /dev/null -w '%{http_code}' https://explorer.kriptoaman.com/)" = 200
+          curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/blocks | jq -e '.items | type == "array"' >/dev/null
+          curl -fsS --max-time 15 https://explorer.kriptoaman.com/api/v2/transactions | jq -e '.items | type == "array"' >/dev/null
+
+          chain="$(curl -fsS --connect-timeout 5 --max-time 12 \
+            -H 'content-type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+            https://rpc.kriptoaman.com/ | jq -er '.result')"
+          test "$chain" = 0x560c
+
+          cd "$GITHUB_WORKSPACE"
+          scp -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new \
+            services/kriptoaman-indexer/zvq-listener.mjs \
+            services/kriptoaman-indexer/discovery-model.mjs \
+            scripts/deploy-kriptoaman-zvq-indexer.sh \
+            root@206.189.36.15:/tmp/
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new \
+            root@206.189.36.15 \
+            "GITHUB_RUN_ID=$GITHUB_RUN_ID SOURCE=/tmp/zvq-listener.mjs MODEL_SOURCE=/tmp/discovery-model.mjs bash /tmp/deploy-kriptoaman-zvq-indexer.sh preview"
+          echo "first_party_wss_subscription=pass scope=rpc-sentry-local"
+          echo "qoryvex_explorer_readonly_preflight=pass chain_id=0x560c"
+
+  deploy:
+    if: github.event_name == 'push' && startsWith(github.event.head_commit.message, 'QORYVEX STREAMING CUTOVER 20260930')
+    needs: validate
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v7
+      - name: Stage guarded streaming artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          scp -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new             services/kriptoaman-indexer/zvq-listener.mjs             services/kriptoaman-indexer/discovery-model.mjs             scripts/deploy-kriptoaman-zvq-indexer.sh             scripts/zvq-rpc-allowlist-gateway.mjs             scripts/deploy-zvq-rpc-sentry-allowlist.sh             root@206.189.36.15:/tmp/
+
+      - name: Preview first-party WebSocket indexer
+        shell: bash
+        run: |
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15             "GITHUB_RUN_ID=$GITHUB_RUN_ID SOURCE=/tmp/zvq-listener.mjs MODEL_SOURCE=/tmp/discovery-model.mjs bash /tmp/deploy-kriptoaman-zvq-indexer.sh preview"
+
+      - name: Apply loopback-only WebSocket indexer
+        id: indexer_apply
+        shell: bash
+        run: |
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15             "GITHUB_RUN_ID=$GITHUB_RUN_ID SOURCE=/tmp/zvq-listener.mjs MODEL_SOURCE=/tmp/discovery-model.mjs bash /tmp/deploy-kriptoaman-zvq-indexer.sh apply"
+
+      - name: Preview blue-green public gateway
+        shell: bash
+        run: |
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15             "ZVQ_RPC_CUTOVER_RUN_ID=$GITHUB_RUN_ID bash /tmp/deploy-zvq-rpc-sentry-allowlist.sh preview"
+
+      - name: Apply blue-green gateway
+        id: gateway_apply
+        shell: bash
+        run: |
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15             "ZVQ_RPC_CUTOVER_RUN_ID=$GITHUB_RUN_ID bash /tmp/deploy-zvq-rpc-sentry-allowlist.sh apply"
+
+      - name: Roll back indexer if staging fails
+        if: failure() && steps.indexer_apply.outcome == 'success'
+        shell: bash
+        run: |
+          ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15             "GITHUB_RUN_ID=$GITHUB_RUN_ID SOURCE=/tmp/zvq-listener.mjs MODEL_SOURCE=/tmp/discovery-model.mjs bash /tmp/deploy-kriptoaman-zvq-indexer.sh rollback"
+
+  external-verify:
+    if: github.event_name == 'push' && startsWith(github.event.head_commit.message, 'QORYVEX STREAMING CUTOVER 20260930')
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Verify public RPC and WebSocket-backed discovery
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          rpc() {
+            curl -fsS --retry 2 --retry-all-errors --connect-timeout 7 --max-time 18               -H 'Origin: https://explorer.kriptoaman.com'               -H 'Content-Type: application/json'               --data "$1" https://rpc.kriptoaman.com/
+          }
+          test "$(rpc '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' | jq -r '.result')" = 0x560c
+          a="$(rpc '{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}' | jq -r '.result')"
+          sleep 12
+          b="$(rpc '{"jsonrpc":"2.0","id":3,"method":"eth_blockNumber","params":[]}' | jq -r '.result')"
+          test $((16#${b#0x})) -gt $((16#${a#0x}))
+
+          for method in admin_peers debug_traceTransaction eth_sendRawTransaction; do
+            params='[]'; test "$method" = eth_sendRawTransaction && params='["0x00"]'
+            code="$(curl -sS -o /dev/null -w '%{http_code}'               -H 'Origin: https://explorer.kriptoaman.com' -H 'Content-Type: application/json'               --data "{\"jsonrpc\":\"2.0\",\"id\":9,\"method\":\"$method\",\"params\":$params}"               https://rpc.kriptoaman.com/)"
+            test "$code" = 403
+          done
+
+          code="$(curl -sS --retry 3 --retry-all-errors --connect-timeout 7 --max-time 18             -o /tmp/qoryvex.json -w '%{http_code}'             -H 'Origin: https://kriptoaman.com' -H 'Accept: application/json'             https://rpc.kriptoaman.com/qoryvex/v1/discovery)"
+          test "$code" = 200
+          jq -e '
+            .status=="live" and
+            .version>=2 and
+            .chainId==22028 and
+            .chainIdHex=="0x560c" and
+            .websocketSubscribed==true and
+            .streamFresh==true and
+            .source.ownership=="first-party" and
+            .source.transport=="WebSocket+JSON-RPC" and
+            (.latency.samples>=1) and
+            (.events|type=="array") and
+            (all(.events[]?;
+              (.discovery.kind!="NEW_TOKEN") or
+              (
+                .discovery.passport.classification=="verified-token" and
+                .discovery.passport.tokenStandard=="ERC-20" and
+                .discovery.launchDNA.fingerprint.metadataProven==true
+              )
+            ))
+          ' /tmp/qoryvex.json >/dev/null
+
+          health="$(curl -fsS --connect-timeout 7 --max-time 18 -H 'Origin: https://kriptoaman.com' https://rpc.kriptoaman.com/qoryvex/health)"
+          jq -e '.status=="live" and .version>=2 and .chainId==22028 and .websocketSubscribed==true and (.latency.samples>=1)' <<<"$health" >/dev/null
+
+          legacy="$(curl -fsS --connect-timeout 7 --max-time 25 https://kriptoaman.com/api/zvq-token-intelligence)"
+          jq -e '.status=="live" and .chainId==22028 and .provenance.ownership=="first-party" and .truthPolicy.contractCreationIsTokenListing==false' <<<"$legacy" >/dev/null
+          echo "qoryvex_streaming_external_gate=pass"
+
+  settle:
+    if: always() && needs.deploy.result == 'success'
+    needs: [deploy, external-verify]
+    runs-on: [self-hosted, linux, x64, kam-mainnet-evidence]
+    timeout-minutes: 8
+    steps:
+      - name: Finalize or roll back whole streaming cutover
+        shell: bash
+        run: |
+          set -euo pipefail
+          if test "${{ needs.external-verify.result }}" = success; then
+            ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15               "ZVQ_RPC_CUTOVER_RUN_ID=$GITHUB_RUN_ID bash /tmp/deploy-zvq-rpc-sentry-allowlist.sh finalize"
+            echo "qoryvex_streaming_cutover=committed"
+          else
+            ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15               "ZVQ_RPC_CUTOVER_RUN_ID=$GITHUB_RUN_ID bash /tmp/deploy-zvq-rpc-sentry-allowlist.sh rollback" || true
+            ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15               "GITHUB_RUN_ID=$GITHUB_RUN_ID SOURCE=/tmp/zvq-listener.mjs MODEL_SOURCE=/tmp/discovery-model.mjs bash /tmp/deploy-kriptoaman-zvq-indexer.sh rollback" || true
+            exit 1
+          fi
