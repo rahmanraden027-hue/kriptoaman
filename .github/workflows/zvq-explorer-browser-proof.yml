@@ -7,9 +7,6 @@ on:
       - .github/workflows/zvq-explorer-browser-proof.yml
   push:
     branches: [main]
-    paths:
-      - scripts/verify-zvq-public-browser.mjs
-      - .github/workflows/zvq-explorer-browser-proof.yml
   schedule:
     - cron: '11 2,14 * * *'
 permissions:
