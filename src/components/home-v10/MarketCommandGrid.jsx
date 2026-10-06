@@ -81,7 +81,7 @@ export default function MarketCommandGrid({ market, zevaryq }) {
         </div>
       </Panel>
 
-      <Panel title={featured ? featured.sym + ' Intelligence' : 'Featured Market Intelligence'} kicker="VERIFIED PRICE SERIES" className="xl:col-span-4">
+      <Panel title={featured ? featured.sym + ' Intelligence' : 'Featured Market Intelligence'} kicker={featured ? 'MOVING NOW' : 'VERIFIED PRICE SERIES'} className="xl:col-span-4">
         {featured ? (
           <>
             <div className="mt-3 flex flex-wrap items-end justify-between gap-2">
@@ -113,7 +113,7 @@ export default function MarketCommandGrid({ market, zevaryq }) {
               <div className="rounded-xl bg-white/[0.025] p-2"><span className="text-slate-400">State</span><b className="mt-1 block text-cyan-200">{market?.state || DATA_STATE.UNAVAILABLE}</b></div>
             </div>
           </>
-        ) : <p className="py-16 text-center text-[10px] text-slate-400">Verified price series unavailable.</p>}
+        ) : <p className="py-16 text-center text-[10px] text-slate-400">No verified featured asset available.</p>}
       </Panel>
 
       <Panel title="On-Chain Evidence" kicker="ZEVARYQ FIRST-PARTY" className="xl:col-span-2">
