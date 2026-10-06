@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { ArrowRight, Globe2, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Globe2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { DATA_STATE } from '@/lib/dataState';
 import DataProvenanceBar from './DataProvenanceBar';
