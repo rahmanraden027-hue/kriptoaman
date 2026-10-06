@@ -15,7 +15,7 @@ test('security posture score is evidence-based and unavailable on degraded check
 test('notification center exposes source-aware categories and preserves price alerts', async () => {
   const page = await read('src/pages/NotificationCenterV2.jsx');
   assert.match(page, /Security/);
-  assert.match(page, /KAM Network/);
+  assert.match(page, /ZEVARYQ Network/);
   assert.match(page, /Portfolio/);
   assert.match(page, /System/);
   assert.match(page, /Source pending/);
