@@ -99,10 +99,16 @@ jobs:
             state=success
             description="HomeV10 mobile + desktop production proof passed"
           fi
+          payload="$(jq -nc \
+            --arg state "$state" \
+            --arg context "kriptoaman/home-v10-production-visual-proof" \
+            --arg description "$description" \
+            --arg target_url "$RUN_URL" \
+            '{state:$state,context:$context,description:$description,target_url:$target_url}')"
           curl --fail-with-body --silent --show-error \
             -X POST \
             -H "Authorization: Bearer $GH_TOKEN" \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "https://api.github.com/repos/$REPO/statuses/$SHA" \
-            -d "{"state":"$state","context":"kriptoaman/home-v10-production-visual-proof","description":"$description","target_url":"$RUN_URL"}" >/dev/null
+            -d "$payload" >/dev/null
