@@ -35,7 +35,7 @@ export default function AdminKAMAnalytics() {
         <section className="rounded-[28px] border border-cyan-400/15 bg-[#071423]/90 p-6 shadow-[0_24px_80px_rgba(0,0,0,.3)]">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-[10px] font-extrabold tracking-[0.22em] text-cyan-300">KAM NETWORK INTELLIGENCE</p>
+              <p className="text-[10px] font-extrabold tracking-[0.22em] text-cyan-300">KRIPTOAMAN REWARDS INTELLIGENCE</p>
               <h1 className="mt-1 text-2xl font-extrabold">{en ? 'Campaign & Referral Analytics' : 'Analitik Campaign & Referral'}</h1>
               <p className="mt-2 text-sm text-slate-400">{en ? 'Live referral funnel, campaign budget usage and referral network visibility.' : 'Funnel referral, penggunaan budget campaign, dan jaringan referral dari data D1.'}</p>
             </div>
