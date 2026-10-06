@@ -14,8 +14,11 @@ on:
       - 'docs/PHASE16G_ZVQ_REGISTRY_LIQUIDITY_READINESS.md'
       - 'docs/PHASE16G_ZVQ_SUPPLY_RECONCILIATION.md'
       - 'docs/PHASE16G_ZVQ_GOVERNANCE_DECISION_REQUIRED.md'
+      - 'docs/PHASE16G_TERMUX_GENESIS_ATTESTATION.md'
       - 'scripts/verify-phase16g-zvq-readiness.mjs'
+      - 'scripts/collect-zvq-genesis-attestation.mjs'
       - 'tests/phase16g-zvq-readiness.test.mjs'
+      - 'tests/zvq-genesis-attestation-collector.test.mjs'
       - '.github/workflows/phase16g-zvq-readiness.yml'
 
 permissions:
@@ -33,4 +36,4 @@ jobs:
       - name: Run Phase 16G registry readiness verifier
         run: node scripts/verify-phase16g-zvq-readiness.mjs
       - name: Run Phase 16G regression contract
-        run: node --test tests/phase16g-zvq-readiness.test.mjs
+        run: node --test tests/phase16g-zvq-readiness.test.mjs tests/zvq-genesis-attestation-collector.test.mjs
