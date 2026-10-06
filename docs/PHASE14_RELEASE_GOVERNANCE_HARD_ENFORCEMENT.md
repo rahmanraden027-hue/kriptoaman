@@ -1,6 +1,6 @@
 # Phase 14 — Release Governance & Hard Enforcement
 
-Status: **TRANSITION ACTIVE — REVIEW REQUIRED**
+Status: **HARD ENFORCEMENT ACTIVE — TRANSITION SEALED**
 
 Phase 14 starts from the accepted Phase 13 production baseline:
 
@@ -46,7 +46,7 @@ Phase 13 already protects `security-audit.yml`. Phase 14 therefore uses one narr
 - exact protected path allowed to change: `.github/workflows/security-audit.yml`
 - every other protected path remains fail-closed
 
-The transition is temporary and must be sealed after the hard-enforcement PR is merged.
+The transition has been sealed after the hard-enforcement PR merged. Normal operation no longer permits protected-path drift through the transition.
 
 ## Runtime boundary
 
@@ -54,7 +54,7 @@ Phase 14 does not modify genesis, validator keys, private keys, balances, transa
 
 ## Completion sequence
 
-1. Merge the hard-enforcement transition PR only after all production/security gates pass.
-2. Disable the transition and advance the release baseline to the Phase 14 enforcement commit.
-3. Add Phase 14 governance files and the Phase 13 governance workflow to the locked governance surface.
-4. Re-run post-merge production/security evidence.
+1. Hard-enforcement transition merged after all production/security gates passed.
+2. Transition disabled and release baseline advanced to the Phase 14 enforcement commit.
+3. Governance files are ready to be added to the locked governance surface.
+4. Post-seal production/security evidence is required before Phase 14 closes.
