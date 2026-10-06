@@ -11,14 +11,14 @@ export const PRIMARY_NAV_LABELS = Object.freeze({
     home: 'Beranda',
     markets: 'Market',
     intelligence: 'Intelijen',
-    onchain: 'On-Chain',
+    onchain: 'Jaringan',
     ecosystem: 'Ekosistem',
   }),
   en: Object.freeze({
     home: 'Home',
     markets: 'Markets',
     intelligence: 'Intelligence',
-    onchain: 'On-Chain',
+    onchain: 'Network',
     ecosystem: 'Ecosystem',
   }),
 });
