@@ -58,8 +58,10 @@ test('Phase 15F preserves the protected Wallet implementation and aligns it at t
   assert.match(shell, /path="\/wallet-app"/);
   assert.match(shell, /data-product-surface="wallet"/);
   assert.match(shell, /data-product-release="phase15f"/);
-  assert.match(shell, /WalletStandaloneCore = WalletStandalonePage \? <Web3Provider><WalletStandalonePage \/><\/Web3Provider> : <PageNotFound \/>/);
+  assert.match(shell, /const WalletPage = Pages\.Wallet/);
+  assert.match(shell, /function WalletStandaloneSurface\(\)/);
   assert.match(shell, /<CrossSurfaceRail current="wallet" compact \/>/);
+  assert.match(shell, /WalletStandalonePage \? <Web3Provider><WalletStandalonePage \/><\/Web3Provider> : <PageNotFound \/>/);
   assert.match(wallet, /OFFICIAL WALLET/);
   assert.match(wallet, /ZEVARYQ Wallet/);
   assert.match(wallet, /No custody or transaction execution without explicit wallet confirmation/);
