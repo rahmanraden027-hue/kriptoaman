@@ -81,7 +81,7 @@ export default function HomeV10() {
             <Link
               to="/Market"
               aria-label={language === 'en' ? 'Search market' : 'Cari market'}
-              className="grid h-11 w-11 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.02] text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 lg:hidden"
+              className="grid h-11 min-h-11 w-11 min-w-11 shrink-0 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.02] text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 lg:hidden"
             >
               <Search className="h-4 w-4" aria-hidden="true" />
             </Link>
@@ -96,7 +96,7 @@ export default function HomeV10() {
             <Link
               to="/Alerts"
               aria-label={english ? 'Alerts' : 'Peringatan'}
-              className="grid h-11 w-11 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.02] text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"
+              className="grid h-11 min-h-11 w-11 min-w-11 shrink-0 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.02] text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"
             >
               <Bell className="h-4 w-4" aria-hidden="true" />
             </Link>
