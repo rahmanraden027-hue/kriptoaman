@@ -1,4 +1,34 @@
-name: Phase 16G ZVQ Registry & Liquidity Readiness\n\non:\n  workflow_dispatch:\n  pull_request:\n    branches: [main]\n    paths:\n      - 'chain/zevaryq-mainnet/registry/zvq-production-registry.draft.json'\n      - 'chain/zevaryq-mainnet/liquidity/liquidity-readiness.draft.json'
+name: Phase 16G ZVQ Registry & Liquidity Readiness
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'chain/zevaryq-mainnet/registry/zvq-production-registry.draft.json'
       - 'chain/zevaryq-mainnet/registry/zvq-supply-reconciliation.draft.json'
-      - 'chain/zevaryq-mainnet/registry/zvq-supply-attestation.template.json'\n      - 'docs/ZVQ_EXCHANGE_MARKET_SUBMISSION_PACKAGE.md'\n      - 'docs/PHASE16G_ZVQ_REGISTRY_LIQUIDITY_READINESS.md'
-      - 'docs/PHASE16G_ZVQ_SUPPLY_RECONCILIATION.md'\n      - 'scripts/verify-phase16g-zvq-readiness.mjs'\n      - 'tests/phase16g-zvq-readiness.test.mjs'\n      - '.github/workflows/phase16g-zvq-readiness.yml'\n\npermissions:\n  contents: read\n\njobs:\n  verify:\n    runs-on: ubuntu-latest\n    timeout-minutes: 8\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: '22'\n      - name: Run Phase 16G registry readiness verifier\n        run: node scripts/verify-phase16g-zvq-readiness.mjs\n      - name: Run Phase 16G regression contract\n        run: node --test tests/phase16g-zvq-readiness.test.mjs
+      - 'chain/zevaryq-mainnet/registry/zvq-supply-attestation.template.json'
+      - 'chain/zevaryq-mainnet/liquidity/liquidity-readiness.draft.json'
+      - 'docs/ZVQ_EXCHANGE_MARKET_SUBMISSION_PACKAGE.md'
+      - 'docs/PHASE16G_ZVQ_REGISTRY_LIQUIDITY_READINESS.md'
+      - 'docs/PHASE16G_ZVQ_SUPPLY_RECONCILIATION.md'
+      - 'scripts/verify-phase16g-zvq-readiness.mjs'
+      - 'tests/phase16g-zvq-readiness.test.mjs'
+      - '.github/workflows/phase16g-zvq-readiness.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run Phase 16G registry readiness verifier
+        run: node scripts/verify-phase16g-zvq-readiness.mjs
+      - name: Run Phase 16G regression contract
+        run: node --test tests/phase16g-zvq-readiness.test.mjs
