@@ -34,6 +34,8 @@ test('Final UI Unification hides unverifiable intelligence metrics instead of re
   assert.match(intelligence, /Awaiting verified data/);
   assert.match(intelligence, /Metrik belum ditampilkan sampai sumber produksi memberikan nilai yang dapat diverifikasi/);
   assert.match(intelligence, /Metrics remain hidden until production sources provide verifiable values/);
+  assert.match(intelligence, /data-canonical-production-state=\{waitingState\}/);
+  assert.match(intelligence, /\{waitingState\}/);
   assert.doesNotMatch(intelligence, /Market, jaringan, risiko, dan evidence live/);
   assert.match(intelligence, /security: 'Risiko & Keamanan'/);
   assert.match(intelligence, /network: 'Intelijen Jaringan'/);
