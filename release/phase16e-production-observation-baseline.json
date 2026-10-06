@@ -1,0 +1,45 @@
+{
+  "phase": "16E",
+  "status": "observation-baseline",
+  "architectureFrozen": true,
+  "visualBaseline": "phase16c-final-command-center-v1",
+  "postMergeLock": "phase16d",
+  "expectedChain": {
+    "name": "ZEVARYQ Mainnet",
+    "chainId": 22028,
+    "chainIdHex": "0x560c",
+    "symbol": "ZVQ"
+  },
+  "observationPolicy": {
+    "sampleIntervalMs": 25000,
+    "marketAssetFloor": 4500,
+    "marketFreshnessMs": 1800000,
+    "marketWarningAgeMs": 900000,
+    "maxNetworkProbeMs": 4000,
+    "networkWarningProbeMs": 2000,
+    "maxOnChainLatencyMs": 12000,
+    "onChainWarningLatencyMs": 5000,
+    "explorerWarningLagBlocks": 50,
+    "explorerMaximumLagBlocks": 250,
+    "maximumCrossSurfaceBlockDelta": 25,
+    "rpcProgressRequired": true,
+    "networkRegressionAllowed": false,
+    "explorerRegressionAllowed": false,
+    "onChainRegressionAllowed": false
+  },
+  "mutationPolicy": {
+    "readOnly": true,
+    "uiRedesignAllowed": false,
+    "genesis": false,
+    "validators": false,
+    "privateKeys": false,
+    "balances": false,
+    "tokenSupply": false,
+    "transactions": false,
+    "walletBroadcasting": false,
+    "custody": false,
+    "dns": false,
+    "rpcWritePolicy": false,
+    "consensus": false
+  }
+}
