@@ -5,6 +5,7 @@ import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
 import CommandCenterHero from '@/components/home-v10/CommandCenterHero';
 import CommandShortcutRail from '@/components/home-v10/CommandShortcutRail';
 import CommandStats from '@/components/home-v10/CommandStats';
+import DataProvenanceBar from '@/components/home-v10/DataProvenanceBar';
 import EcosystemRail from '@/components/home-v10/EcosystemRail';
 import LiveMarketTicker from '@/components/home-v10/LiveMarketTicker';
 import MarketCommandGrid from '@/components/home-v10/MarketCommandGrid';
@@ -44,7 +45,7 @@ export default function HomeV10() {
         href="#home-v10-content"
         className="sr-only fixed left-3 top-3 z-[100] rounded-xl bg-cyan-300 px-4 py-3 text-xs font-black text-[#021018] focus:not-sr-only focus:outline-none focus:ring-2 focus:ring-white"
       >
-        {english ? 'Skip to live intelligence' : 'Lewati ke intelligence live'}
+        Skip to live market data
       </a>
 
       <header
@@ -58,6 +59,7 @@ export default function HomeV10() {
             aria-label="KriptoAman home"
           >
             <KriptoAmanLogo size={36} textSize="text-base sm:text-lg" />
+            <span className="ml-2 hidden text-[8px] font-black uppercase tracking-[0.14em] text-cyan-300 lg:inline">INTELLIGENCE</span>
             <span className="ml-2 hidden text-[7px] font-black uppercase tracking-[0.13em] text-slate-400 xl:inline">
               Crypto Intelligence. Global Market Edge.
             </span>
@@ -78,7 +80,7 @@ export default function HomeV10() {
           <div className="ml-auto flex items-center gap-2">
             <Link
               to="/Market"
-              aria-label={english ? 'Search market' : 'Cari market'}
+              aria-label={language === 'en' ? 'Search market' : 'Cari market'}
               className="hidden min-h-11 min-w-[220px] items-center gap-2 rounded-xl border border-cyan-300/[0.09] bg-[#06101d]/75 px-3 text-[9px] text-slate-400 transition hover:border-cyan-300/20 lg:flex"
             >
               <Search className="h-4 w-4 text-cyan-300" aria-hidden="true" />
@@ -86,7 +88,7 @@ export default function HomeV10() {
             </Link>
             <Link
               to="/Market"
-              aria-label={english ? 'Search market' : 'Cari market'}
+              aria-label={language === 'en' ? 'Search market' : 'Cari market'}
               className="grid h-11 w-11 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.02] text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 lg:hidden"
             >
               <Search className="h-4 w-4" aria-hidden="true" />
@@ -121,6 +123,13 @@ export default function HomeV10() {
         <section data-command-layer="market" aria-label="Global market command layer" className="space-y-3">
           <CommandCenterHero market={market} zevaryq={zevaryq} />
           <CommandStats market={market} zevaryq={zevaryq} />
+          <DataProvenanceBar
+            state={market.provenance?.state}
+            source={market.provenance?.sourceLabel || 'Source unavailable'}
+            timestamp={market.provenance?.capturedAt}
+            ageMs={market.provenance?.ageMs}
+            label="MARKET FEED"
+          />
         </section>
 
         <section data-command-layer="intelligence" aria-label="KriptoAman intelligence layer" className="space-y-3">
