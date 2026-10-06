@@ -35,7 +35,8 @@ export const PRODUCT_ROLES = Object.freeze({
   }),
 });
 
-export const CROSS_SURFACE_RELEASE = 'phase16c';
+export const CROSS_SURFACE_RELEASE = 'phase15f';
+export const VISUAL_INTEGRATION_RELEASE = 'phase16c';
 
 export const DECISION_LOOP = Object.freeze([
   'OBSERVE',
