@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "phase": "16G",
+  "status": "BLOCKED_PENDING_PRODUCTION_GENESIS_ATTESTATION_AND_ALLOCATION_WALLETS",
+  "network": {
+    "name": "ZEVARYQ Mainnet",
+    "symbol": "ZVQ",
+    "chainId": 22028,
+    "chainIdHex": "0x560c",
+    "decimals": 18,
+    "migrationType": "in-place-rebrand"
+  },
+  "supplyReferences": {
+    "networkProfileGenesisSupplyReference": "1000000000",
+    "chainTokenomicsGenesisSupplyReference": "1000000000",
+    "publicArchiveMaximumSupplyBaseline": "1000000000",
+    "legacyKamInitialCirculatingTarget": "50000000",
+    "proposedZvqInitialCirculatingTarget": "70000000"
+  },
+  "historicalAllocationDrift": {
+    "detected": true,
+    "reconciled": false,
+    "archiveDocumentAllocation": {
+      "Ecosystem & Network Development": "300000000",
+      "Community & Adoption": "200000000",
+      "Validator / Network Incentives": "150000000",
+      "Treasury / Foundation": "150000000",
+      "Team & Contributors": "100000000",
+      "Liquidity & Market Development": "70000000",
+      "Strategic Partnerships": "30000000"
+    },
+    "chainJsonAllocation": {
+      "Ecosystem & Development": "350000000",
+      "Treasury & Strategic Reserve": "200000000",
+      "Liquidity & Market Infrastructure": "150000000",
+      "Team & Contributors": "150000000",
+      "Community & Adoption": "100000000",
+      "Strategic Partnerships": "50000000"
+    },
+    "rule": "Do not silently choose either historical allocation. A new versioned ZVQ allocation policy requires explicit governance approval and evidence.",
+    "circulatingTargetDistinctFromLiquidityAllocation": true,
+    "note": "The proposed 70M ZVQ circulating target is not equivalent to the historical 70M KAM Liquidity & Market Development allocation."
+  },
+  "evidenceAssessment": {
+    "productionGenesisFileCommittedToRepository": false,
+    "productionGenesisAggregateSupplyAttestationPresent": false,
+    "productionGenesisArtifactHashPublished": false,
+    "canonicalAllocationWalletsPublished": false,
+    "currentUnlockedBalancesVerified": false,
+    "vestingAndLockEvidencePublished": false,
+    "reproducibleCirculatingSupplyCalculationPublished": false,
+    "nativeCoinTotalSupplyProvableByErc20TotalSupply": false,
+    "publicRpcAloneSufficientToProveTotalNativeSupply": false,
+    "maximumSupplyTechnicallyEnforcedVerified": false,
+    "currentTotalSupplyVerified": false,
+    "currentCirculatingSupplyVerified": false
+  },
+  "whyPublicRpcIsInsufficient": "ZVQ is the native coin, not an ERC-20 token with a canonical totalSupply() method. Public JSON-RPC can verify chain identity, blocks and balances for known addresses, but it cannot by itself prove the complete native supply without the canonical production genesis/allocation state and any documented issuance rules.",
+  "requiredEvidenceBeforeCanonicalZvqSupply": [
+    "Aggregate production genesis allocation total for Chain ID 22028.",
+    "SHA-256 or equivalent immutable hash of the production genesis artifact or an independently reproducible canonical genesis reference.",
+    "Evidence that the running production chain is the chain created from that genesis reference.",
+    "Canonical allocation wallet list or a public allocation-accounting method.",
+    "Current balances for allocation wallets at a recorded block height.",
+    "Lock, vesting, governance or transfer-restriction evidence for non-circulating balances.",
+    "Documented issuance, validator reward, burn or supply-change behavior actually implemented by the network.",
+    "A reproducible circulating-supply calculation with timestamp and block height.",
+    "Explicit governance approval for changing the legacy 50M target to the proposed 70M ZVQ target.",
+    "Explicit governance approval resolving the two conflicting historical allocation baselines."
+  ],
+  "publicationState": {
+    "oneBillionMayBeDescribedAsProjectBaseline": true,
+    "oneBillionMayBeDescribedAsVerifiedCurrentTotalSupply": false,
+    "oneBillionMayBeDescribedAsTechnicallyEnforcedMaximumSupply": false,
+    "seventyMillionMayBeDescribedAsProposedInitialCirculatingTarget": true,
+    "seventyMillionMayBeDescribedAsCurrentCirculatingSupply": false,
+    "exchangeSupplySubmissionAuthorized": false,
+    "marketDataSupplySubmissionAuthorized": false
+  }
+}
