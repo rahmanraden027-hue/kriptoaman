@@ -21,7 +21,7 @@ export default function MarketPulse({ gainers = [], active = [], direction = 'UN
       : 'text-amber-300';
 
   return (
-    <section className="grid grid-cols-2 gap-2 lg:grid-cols-4" aria-label="Market pulse">
+    <section className="grid grid-cols-2 gap-2 lg:grid-cols-4" aria-label="Market pulse" data-assets-tracked={assetCount || undefined}>
       <PulseCell
         label="Top Gainer"
         value={top ? top.sym : '—'}

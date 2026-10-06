@@ -116,6 +116,7 @@ try {
           oldPromoCopyPresent: /Production Command Center|Official Launch 2026/i.test(document.body.innerText),
           commandRelease: document.querySelector('main')?.getAttribute('data-command-release') || null,
           commandLayers,
+          assetsTracked: Number(document.querySelector('[data-assets-tracked]')?.getAttribute('data-assets-tracked')) || null,
         };
       });
 
@@ -140,6 +141,18 @@ try {
       assert.match(snapshot.zvqText, /SYNCED/, 'ZEVARYQ strip must be SYNCED');
       assert.match(snapshot.zvqText, /#[\d,]+/, 'ZEVARYQ strip must display a real block number');
       assert.equal(snapshot.oldPromoCopyPresent, false, 'production root must stay data-first, not launch-promo copy');
+      const marketMeta = await page.evaluate(async () => {
+        const response = await fetch('/api/market-snapshot-page?page=0&limit=500', {
+          cache: 'no-store',
+          headers: { Accept: 'application/json' },
+        });
+        if (!response.ok) return null;
+        const payload = await response.json();
+        return Number(payload?.totalAssets) || null;
+      });
+      const expectedTracked = Number.isFinite(marketMeta) ? Math.min(marketMeta, 5000) : null;
+      assert.ok(Number.isFinite(expectedTracked) && expectedTracked > 0, 'authoritative market total must be available');
+      assert.equal(snapshot.assetsTracked, expectedTracked, 'Assets Tracked must match authoritative page metadata before background hydration completes');
       assert.deepEqual(pageErrors, [], 'no uncaught JavaScript errors');
       assert.deepEqual(requestFailures, [], 'required production APIs must not fail at network layer');
 
@@ -171,6 +184,7 @@ try {
         zvq: snapshot.zvqText.match(/#[\d,]+/)?.[0] || null,
         release: snapshot.commandRelease,
         hierarchy: snapshot.commandLayers,
+        assetsTracked: snapshot.assetsTracked,
         jsErrors: pageErrors.length,
       }));
     } catch (error) {
