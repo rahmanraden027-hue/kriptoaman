@@ -1,0 +1,197 @@
+name: Phase 13 Production Stability & Release Lock
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '13 */3 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase13-production-stability-release-lock
+  cancel-in-progress: true
+
+jobs:
+  stability-lock:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify Phase 13 release-lock contract
+        run: node --test tests/phase13-production-stability-release-lock.test.mjs
+
+      - name: Enforce Phase 12 protected-path baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="$(node -p "require('./release/phase13-production-stability-lock.json').phase12Final.commit")"
+          git cat-file -e "${BASE}^{commit}"
+          node - <<'NODE' | while IFS= read -r path; do
+          const manifest = require('./release/phase13-production-stability-lock.json');
+          for (const path of manifest.protectedPaths) console.log(path);
+          NODE
+            if ! git diff --quiet "$BASE" HEAD -- "$path"; then
+              echo "::error::Phase 13 release lock detected drift in protected path: $path"
+              git diff -- "$BASE" HEAD -- "$path" || true
+              exit 1
+            fi
+            echo "LOCKED: $path"
+          done
+          echo "PHASE13_RELEASE_LOCK=PASS"
+
+      - name: Collect stability sample 1
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          get_json() {
+            local url="$1"
+            local out="$2"
+            curl --fail --silent --show-error --location               --retry 4 --retry-all-errors --retry-delay 2               --connect-timeout 8 --max-time 35               -H 'Accept: application/json' -H 'Cache-Control: no-cache'               "$url" -o "$out"
+          }
+
+          get_json "https://kriptoaman.com/api/kam/network-status?phase13=${GITHUB_RUN_ID}-s1" artifacts/network-status-1.json
+          get_json "https://kriptoaman.com/api/market-snapshot?health=1&phase13=${GITHUB_RUN_ID}-s1" artifacts/market-health.json
+          get_json "https://kriptoaman.com/api/network-health?phase13=${GITHUB_RUN_ID}-s1" artifacts/network-health.json
+          get_json "https://explorer.kriptoaman.com/developer/network.json?phase13=${GITHUB_RUN_ID}-s1" artifacts/explorer-network.json
+          get_json "https://explorer.kriptoaman.com/api/v2/blocks?phase13=${GITHUB_RUN_ID}-s1" artifacts/explorer-blocks-1.json
+
+          curl --fail --silent --show-error             --retry 4 --retry-all-errors --retry-delay 2             --connect-timeout 8 --max-time 35             -H 'Content-Type: application/json'             --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}'             'https://rpc.kriptoaman.com' -o artifacts/rpc-chain-1.json
+
+          curl --fail --silent --show-error             --retry 4 --retry-all-errors --retry-delay 2             --connect-timeout 8 --max-time 35             -H 'Content-Type: application/json'             --data '{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}'             'https://rpc.kriptoaman.com' -o artifacts/rpc-block-1.json
+
+      - name: Stability observation interval
+        run: sleep 25
+
+      - name: Collect stability sample 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          get_json() {
+            local url="$1"
+            local out="$2"
+            curl --fail --silent --show-error --location               --retry 4 --retry-all-errors --retry-delay 2               --connect-timeout 8 --max-time 35               -H 'Accept: application/json' -H 'Cache-Control: no-cache'               "$url" -o "$out"
+          }
+
+          get_json "https://kriptoaman.com/api/kam/network-status?phase13=${GITHUB_RUN_ID}-s2" artifacts/network-status-2.json
+          get_json "https://explorer.kriptoaman.com/api/v2/blocks?phase13=${GITHUB_RUN_ID}-s2" artifacts/explorer-blocks-2.json
+
+          curl --fail --silent --show-error             --retry 4 --retry-all-errors --retry-delay 2             --connect-timeout 8 --max-time 35             -H 'Content-Type: application/json'             --data '{"jsonrpc":"2.0","id":3,"method":"eth_chainId","params":[]}'             'https://rpc.kriptoaman.com' -o artifacts/rpc-chain-2.json
+
+          curl --fail --silent --show-error             --retry 4 --retry-all-errors --retry-delay 2             --connect-timeout 8 --max-time 35             -H 'Content-Type: application/json'             --data '{"jsonrpc":"2.0","id":4,"method":"eth_blockNumber","params":[]}'             'https://rpc.kriptoaman.com' -o artifacts/rpc-block-2.json
+
+      - name: Validate production stability window
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const read = (name) => JSON.parse(fs.readFileSync('artifacts/' + name, 'utf8'));
+          const manifest = require('./release/phase13-production-stability-lock.json');
+          const policy = manifest.stabilityPolicy;
+
+          const n1 = read('network-status-1.json');
+          const n2 = read('network-status-2.json');
+          const market = read('market-health.json');
+          const networks = read('network-health.json');
+          const explorerNetwork = read('explorer-network.json');
+          const e1 = read('explorer-blocks-1.json');
+          const e2 = read('explorer-blocks-2.json');
+          const rc1 = read('rpc-chain-1.json');
+          const rc2 = read('rpc-chain-2.json');
+          const rb1 = read('rpc-block-1.json');
+          const rb2 = read('rpc-block-2.json');
+
+          const expectedChain = manifest.protectedInvariants.chainId;
+          const expectedHex = manifest.protectedInvariants.chainIdHex;
+          const expectedSymbol = manifest.protectedInvariants.nativeSymbol;
+
+          for (const [label, sample] of [['network-status-1', n1], ['network-status-2', n2]]) {
+            if (Number(sample.chainId) !== expectedChain) throw new Error(label + ': Chain ID mismatch');
+            if (String(sample.chainIdHex).toLowerCase() !== expectedHex) throw new Error(label + ': Chain ID hex mismatch');
+            if (sample.live !== true || sample.verified !== true) throw new Error(label + ': not live and verified');
+            if (!Number.isInteger(Number(sample.blockNumber)) || Number(sample.blockNumber) <= 0) throw new Error(label + ': invalid block');
+          }
+
+          const networkBlock1 = Number(n1.blockNumber);
+          const networkBlock2 = Number(n2.blockNumber);
+          if (networkBlock2 < networkBlock1) throw new Error('network-status block height moved backward');
+
+          if (market.healthy !== true) throw new Error('market health degraded');
+          if (Number(market.assetCount) < Number(policy.requiredMarketAssetFloor)) {
+            throw new Error('market asset coverage below Phase 13 floor');
+          }
+
+          const online = Number(networks?.summary?.online || 0);
+          const total = Number(networks?.summary?.total || 0);
+          if (total !== Number(policy.expectedPublicNetworkProbeCount)) throw new Error('public network probe count changed');
+          if (online < Number(policy.requiredPublicNetworksOnlineFloor)) throw new Error('public networks online below floor');
+
+          if (Number(explorerNetwork.chainId) !== expectedChain) throw new Error('Explorer Chain ID mismatch');
+          if (String(explorerNetwork.chainIdHex).toLowerCase() !== expectedHex) throw new Error('Explorer Chain ID hex mismatch');
+          if (explorerNetwork.nativeCurrency?.symbol !== expectedSymbol) throw new Error('Explorer symbol mismatch');
+
+          const explorerBlock1 = Number(e1?.items?.[0]?.height);
+          const explorerBlock2 = Number(e2?.items?.[0]?.height);
+          if (!Number.isFinite(explorerBlock1) || explorerBlock1 <= 0) throw new Error('Explorer sample 1 block unavailable');
+          if (!Number.isFinite(explorerBlock2) || explorerBlock2 <= 0) throw new Error('Explorer sample 2 block unavailable');
+          if (explorerBlock2 < explorerBlock1) throw new Error('Explorer indexed height moved backward');
+
+          if (String(rc1.result).toLowerCase() !== expectedHex || String(rc2.result).toLowerCase() !== expectedHex) {
+            throw new Error('RPC Chain ID mismatch');
+          }
+          if (!/^0x[0-9a-f]+$/i.test(String(rb1.result)) || !/^0x[0-9a-f]+$/i.test(String(rb2.result))) {
+            throw new Error('RPC block height malformed');
+          }
+          const rpcBlock1 = Number.parseInt(rb1.result, 16);
+          const rpcBlock2 = Number.parseInt(rb2.result, 16);
+          if (!Number.isFinite(rpcBlock1) || !Number.isFinite(rpcBlock2) || rpcBlock1 <= 0 || rpcBlock2 <= 0) {
+            throw new Error('RPC block height unavailable');
+          }
+          if (policy.requiredRpcProgress === true && rpcBlock2 <= rpcBlock1) {
+            throw new Error(`RPC block height did not advance: ${rpcBlock1} -> ${rpcBlock2}`);
+          }
+
+          const summary = {
+            phase: 13,
+            result: 'PASS',
+            checkedAt: new Date().toISOString(),
+            baseline: manifest.phase12Final.commit,
+            chainId: expectedChain,
+            chainIdHex: expectedHex,
+            symbol: expectedSymbol,
+            rpcBlock1,
+            rpcBlock2,
+            networkBlock1,
+            networkBlock2,
+            explorerBlock1,
+            explorerBlock2,
+            marketAssetCount: Number(market.assetCount),
+            publicNetworksOnline: online,
+            publicNetworksTotal: total,
+            releaseLock: true
+          };
+          fs.writeFileSync('artifacts/phase13-stability-summary.json', JSON.stringify(summary, null, 2) + '\n');
+          console.log(summary);
+          NODE
+
+      - name: Preserve Phase 13 stability evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase13-production-stability
+          path: artifacts/*.json
+          if-no-files-found: warn
+          retention-days: 30
