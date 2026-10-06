@@ -259,6 +259,6 @@ test('Explorer static fallback is pending, not a false outage', () => {
 
 
 test('deployment validates canonical ZVQ network identity', () => {
-  assert.match(deploy, /nativeCurrency'\]\['symbol'\]\]=='ZVQ'/);
-  assert.doesNotMatch(deploy, /nativeCurrency'\]\['symbol'\]\]=='KAM'/);
+  assert.equal(deploy.includes("d['nativeCurrency']['symbol']=='ZVQ'"), true);
+  assert.equal(deploy.includes("d['nativeCurrency']['symbol']=='KAM'"), false);
 });
