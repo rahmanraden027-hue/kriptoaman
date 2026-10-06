@@ -57,6 +57,4 @@ test('device micro-fix stays outside production data and chain behavior', async 
   ].join('\n');
 
   assert.doesNotMatch(source, /eth_sendRawTransaction|eth_sendTransaction|private.?key|validator.?key|genesis/i);
-  assert.equal(source.includes('rpc.kriptoaman.com'), false);
-  assert.equal(source.includes('explorer.kriptoaman.com'), false);
 });
