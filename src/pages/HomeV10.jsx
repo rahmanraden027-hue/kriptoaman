@@ -1,6 +1,7 @@
 import React from 'react';
 import { Bell, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import DataProvenanceBar from '@/components/home-v10/DataProvenanceBar';
 import FeaturedMarketAsset from '@/components/home-v10/FeaturedMarketAsset';
 import IntelligenceStream from '@/components/home-v10/IntelligenceStream';
 import LiveMarketTicker from '@/components/home-v10/LiveMarketTicker';
@@ -56,35 +57,43 @@ export default function HomeV10() {
       </span>
 
       <div id="home-v10-content" tabIndex={-1} className="mx-auto max-w-[1480px] space-y-4 px-3 pt-4 outline-none sm:px-6 sm:pt-6 lg:px-8">
-        <ProductFlowRail />
-        <FeaturedMarketAsset assets={market.featured} state={market.state} provenance={market.provenance} />
-        <MarketPulse
-          gainers={market.gainers}
-          active={market.active}
-          direction={market.direction}
-          assetCount={market.rawAssetCount}
-          provenance={market.provenance}
-        />
+        <section data-command-layer="market" aria-label="Global market command layer" className="space-y-3">
+          <FeaturedMarketAsset assets={market.featured} state={market.state} />
+          <DataProvenanceBar
+            state={market.provenance?.state}
+            source={market.provenance?.sourceLabel || 'Source unavailable'}
+            timestamp={market.provenance?.capturedAt}
+            ageMs={market.provenance?.ageMs}
+            label="MARKET FEED"
+          />
+          <MarketPulse
+            gainers={market.gainers}
+            active={market.active}
+            direction={market.direction}
+            assetCount={market.rawAssetCount}
+          />
+        </section>
 
-        <section className="grid gap-4 xl:grid-cols-[1.2fr_.8fr]">
+        <section data-command-layer="intelligence" aria-label="KriptoAman intelligence layer" className="grid gap-4 xl:grid-cols-[1.2fr_.8fr]">
           <TopMovers
             gainers={market.gainers}
             losers={market.losers}
             active={market.active}
             newAssets={market.newAssets}
-            provenance={market.provenance}
           />
-          <IntelligenceStream events={market.events} state={market.state} provenance={market.provenance} />
+          <IntelligenceStream events={market.events} state={market.state} />
         </section>
 
-        <VerifyAnything />
-
-        <section className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-stretch">
+        <section data-command-layer="network" aria-label="ZEVARYQ network layer" className="space-y-3">
+          <ZevaryqLiveStrip />
           <OnChainNow />
-          <div className="lg:min-w-[360px]">
-            <ZevaryqLiveStrip />
-          </div>
         </section>
+
+        <section data-command-layer="evidence" aria-label="Verification and evidence layer">
+          <VerifyAnything />
+        </section>
+
+        <ProductFlowRail />
       </div>
 
       <nav
