@@ -16,9 +16,9 @@ test('phase 16B centralizes verified ZEVARYQ live-state mapping', () => {
   assert.match(hook, /onChainMs: 15_000/);
   assert.match(hook, /networkMs: 90_000/);
   assert.match(hook, /onChainMs: 45_000/);
-  assert.match(hook, /payload\?\.live === true/);
-  assert.match(hook, /payload\?\.verified === true/);
-  assert.match(hook, /provenance\?\.ownership === 'first-party'/);
+  assert.match(hook, /networkPayload\?\.live === true/);
+  assert.match(hook, /networkPayload\?\.verified === true/);
+  assert.match(hook, /onChainPayload\?\.provenance\?\.ownership === 'first-party'/);
   assert.match(hook, /DATA_STATE\.DELAYED/);
 
   assert.match(home, /useZevaryqSurface/);
