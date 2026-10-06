@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "documentType": "ZVQ_SUPPLY_ATTESTATION_TEMPLATE",
+  "status": "TEMPLATE_NOT_EVIDENCE",
+  "network": {
+    "name": "ZEVARYQ Mainnet",
+    "symbol": "ZVQ",
+    "chainId": 22028,
+    "chainIdHex": "0x560c",
+    "decimals": 18
+  },
+  "genesisEvidence": {
+    "canonicalGenesisArtifactSha256": null,
+    "canonicalGenesisReference": null,
+    "aggregateAllocWei": null,
+    "aggregateAllocZVQ": null,
+    "genesisBlockHash": null,
+    "evidenceCollectedAt": null,
+    "reviewerReference": null
+  },
+  "allocationAccounting": {
+    "method": null,
+    "recordedAtBlock": null,
+    "recordedAtBlockHash": null,
+    "categories": [],
+    "canonicalWalletEvidenceReference": null
+  },
+  "supplyAccounting": {
+    "projectMaximumSupplyBaselineZVQ": "1000000000",
+    "verifiedCurrentTotalSupplyZVQ": null,
+    "proposedInitialCirculatingTargetZVQ": "70000000",
+    "verifiedCurrentCirculatingSupplyZVQ": null,
+    "lockedOrRestrictedSupplyZVQ": null,
+    "treasuryOrReserveSupplyZVQ": null,
+    "calculationMethodReference": null
+  },
+  "supplyChangeRules": {
+    "issuanceMechanism": null,
+    "validatorRewardIssuance": null,
+    "burnMechanism": null,
+    "otherSupplyChangeMechanisms": []
+  },
+  "governanceApproval": {
+    "legacy50MToProposed70MApproved": false,
+    "historicalAllocationDriftResolved": false,
+    "approvalReference": null,
+    "approvedAt": null
+  },
+  "assertions": {
+    "currentTotalSupplyVerified": false,
+    "currentCirculatingSupplyVerified": false,
+    "maximumSupplyTechnicallyEnforcedVerified": false,
+    "externalSubmissionAuthorized": false
+  }
+}
