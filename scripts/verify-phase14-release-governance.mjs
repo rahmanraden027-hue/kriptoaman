@@ -11,7 +11,8 @@ const fail = (message) => {
 };
 
 if (manifest.phase !== '14') fail('unexpected phase');
-if (!['transition-active', 'locked'].includes(manifest.status)) fail('governance status is not enforceable');
+if (manifest.status !== 'locked') fail('governance must be locked');
+if (manifest.transition?.active !== false) fail('governance transition must be disabled');
 if (manifest.repository !== REPOSITORY) fail('repository identity mismatch');
 if (Number(manifest.ruleset?.id) !== RULESET_ID) fail('ruleset id mismatch');
 if (manifest.governanceGate?.requiredContext !== 'kriptoaman/production-security') fail('required governance context changed');
