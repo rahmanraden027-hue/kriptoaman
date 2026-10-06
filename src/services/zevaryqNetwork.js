@@ -2,7 +2,8 @@ import { ZEVARYQ } from '@/theme/zevaryqWallet';
 
 const TIMEOUT_MS = 8_000;
 const AUX_TIMEOUT_MS = 6_000;
-const PUBLIC_STATUS_PATH = '/api/kam/network-status';
+const PUBLIC_STATUS_PATH = '/api/zvq/network-status';
+const LEGACY_PUBLIC_STATUS_PATH = '/api/kam/network-status';
 const FIRST_PARTY_DISCOVERY_PATH = '/api/zvq-first-party-discovery';
 const TOKEN_INTELLIGENCE_PATH = '/api/zvq-token-intelligence';
 const PLATFORM_STATUS_PATH = '/api/platform-status';
@@ -38,16 +39,29 @@ async function rpc(method, params = []) {
 }
 
 async function verifiedSameOriginStatus(address = null) {
-  const path = PUBLIC_STATUS_PATH + (address ? '?address=' + encodeURIComponent(address) : '');
-  const response = await timedFetch(path, { headers: { Accept: 'application/json' } });
-  if (!response.ok) throw new Error('Network status HTTP ' + response.status);
-  const data = await response.json();
-  if (data?.live !== true || data?.verified !== true ||
-      String(data.chainIdHex).toLowerCase() !== ZEVARYQ.chainIdHex ||
-      !Number.isSafeInteger(data.blockNumber) || data.blockNumber < 0) {
-    throw new Error('Public network status is not currently verified');
+  const suffix = address ? '?address=' + encodeURIComponent(address) : '';
+  let lastError = null;
+  for (const basePath of [PUBLIC_STATUS_PATH, LEGACY_PUBLIC_STATUS_PATH]) {
+    try {
+      const response = await timedFetch(basePath + suffix, { headers: { Accept: 'application/json' } });
+      if (!response.ok) {
+        lastError = new Error('Network status HTTP ' + response.status);
+        if (![404, 405].includes(response.status)) throw lastError;
+        continue;
+      }
+      const data = await response.json();
+      if (data?.live !== true || data?.verified !== true ||
+          String(data.chainIdHex).toLowerCase() !== ZEVARYQ.chainIdHex ||
+          !Number.isSafeInteger(data.blockNumber) || data.blockNumber < 0) {
+        throw new Error('Public network status is not currently verified');
+      }
+      return data;
+    } catch (error) {
+      lastError = error;
+      if (basePath !== PUBLIC_STATUS_PATH) throw error;
+    }
   }
-  return data;
+  throw lastError || new Error('Network status unavailable');
 }
 
 async function verifiedExplorerBlocks() {
