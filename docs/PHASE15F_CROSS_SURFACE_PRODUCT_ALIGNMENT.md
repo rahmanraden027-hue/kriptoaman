@@ -63,7 +63,7 @@ This preserves the architecture:
 
 Intelligence Network navigation now points to the canonical `/ZEVARYQ` production surface instead of the legacy `/KAMNetwork` route.
 
-The Portfolio architecture route is corrected from `/dashboard` to `/PortfolioOverview`.
+The Portfolio architecture route is corrected from `/dashboard` to `/PortfolioOverview`. The base product architecture contract remains version `2026.1`; Phase 15F is tracked separately through `CROSS_SURFACE_RELEASE`.
 
 ## Browser acceptance
 
@@ -84,4 +84,4 @@ The authenticated surfaces use the existing browser-only auth fixture. No real c
 
 ## Safety boundary
 
-Phase 15F does not alter the protected Wallet implementation, market data collection, authentication policy, KYC state, wallet signing, transaction broadcast, balances, token state, RPC write policy, genesis, validator configuration, DNS, or chain state.
+Phase 15F does not alter market data collection, authentication policy, KYC state, wallet signing, transaction broadcast, balances, token state, RPC write policy, genesis, validator configuration, DNS, or chain state. The protected Wallet implementation is also left unchanged.
