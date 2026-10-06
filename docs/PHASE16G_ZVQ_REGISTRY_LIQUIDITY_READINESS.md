@@ -33,6 +33,10 @@ The new ZVQ migration target prepared in Phase 16G is:
 
 This is a **policy proposal pending governance and on-chain reconciliation**. It is not yet a verified circulating-supply claim. Before the change becomes canonical externally, production genesis/on-chain state, allocation wallets, lock/vesting evidence, and unlocked balances must be reconciled.
 
+The supply audit also detected two incompatible historical KAM allocation baselines. Phase 16G does not silently select either one. The full evidence matrix is in `docs/PHASE16G_ZVQ_SUPPLY_RECONCILIATION.md` and `chain/zevaryq-mainnet/registry/zvq-supply-reconciliation.draft.json`.
+
+The proposed **70M ZVQ circulating target is explicitly distinct from the archived 70M KAM liquidity allocation**. Equal numbers do not make them the same economic category.
+
 ## Asset-indexing position
 
 Available production artwork:
