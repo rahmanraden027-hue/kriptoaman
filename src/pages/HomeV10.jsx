@@ -6,11 +6,13 @@ import IntelligenceStream from '@/components/home-v10/IntelligenceStream';
 import LiveMarketTicker from '@/components/home-v10/LiveMarketTicker';
 import MarketPulse from '@/components/home-v10/MarketPulse';
 import OnChainNow from '@/components/home-v10/OnChainNow';
+import ProductFlowRail from '@/components/home-v10/ProductFlowRail';
 import TopMovers from '@/components/home-v10/TopMovers';
 import VerifyAnything from '@/components/home-v10/VerifyAnything';
 import ZevaryqLiveStrip from '@/components/home-v10/ZevaryqLiveStrip';
 import useMarketSurface from '@/hooks/useMarketSurface';
 import { useLanguage } from '@/lib/LanguageContext';
+import { PRODUCT_ARCHITECTURE_VERSION } from '@/lib/productArchitecture';
 import { PRIMARY_NAV_ITEMS, primaryNavLabels, primaryNavTo } from '@/lib/primaryNavigation';
 
 const HOME_NAV_ITEMS = PRIMARY_NAV_ITEMS.filter((item) => item.id !== 'home');
@@ -23,6 +25,7 @@ export default function HomeV10() {
   return (
     <main
       className="min-h-screen bg-[#020711] pb-24 text-white"
+      data-product-architecture={'kriptoaman-final-' + PRODUCT_ARCHITECTURE_VERSION}
       style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))' }}
     >
       <a
@@ -36,7 +39,7 @@ export default function HomeV10() {
         style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
         <div className="mx-auto flex min-h-14 max-w-[1480px] items-center gap-3 px-4 sm:px-6 lg:px-8">
-          <Link to="/" className="inline-flex min-h-11 items-center rounded-lg px-1 text-sm font-black tracking-[0.12em] text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">KRIPTOAMAN</Link>
+          <Link to="/" className="inline-flex min-h-11 items-center rounded-lg px-1 text-sm font-black tracking-[0.12em] text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"><span>KRIPTOAMAN</span><span className="ml-2 hidden text-[8px] font-black tracking-[0.12em] text-cyan-300 lg:inline">INTELLIGENCE</span></Link>
           <nav aria-label={language === 'en' ? 'Primary navigation' : 'Navigasi utama'} className="hidden items-center gap-1 md:flex">
             {HOME_NAV_ITEMS.map((item) => <Link key={item.id} to={primaryNavTo(item, 'public')} className="inline-flex min-h-11 items-center rounded-lg px-3 text-[10px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">{navLabels[item.id]}</Link>)}
           </nav>
@@ -53,6 +56,7 @@ export default function HomeV10() {
       </span>
 
       <div id="home-v10-content" tabIndex={-1} className="mx-auto max-w-[1480px] space-y-4 px-3 pt-4 outline-none sm:px-6 sm:pt-6 lg:px-8">
+        <ProductFlowRail />
         <FeaturedMarketAsset assets={market.featured} state={market.state} />
         <MarketPulse
           gainers={market.gainers}

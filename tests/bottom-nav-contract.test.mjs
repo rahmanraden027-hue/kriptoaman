@@ -32,7 +32,8 @@ test('five primary surfaces are defined once in the canonical navigation contrac
   assert.match(contract, /home: 'Beranda'/);
   assert.match(contract, /markets: 'Market'/);
   assert.match(contract, /intelligence: 'Intelijen'/);
-  assert.match(contract, /onchain: 'On-Chain'/);
+  assert.match(contract, /onchain: 'Jaringan'/);
+  assert.match(contract, /onchain: 'Network'/);
   assert.match(contract, /ecosystem: 'Ekosistem'/);
 });
 
