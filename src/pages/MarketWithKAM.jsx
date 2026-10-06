@@ -4,6 +4,7 @@ import Market from './Market.jsx';
 import useLivePrices from '@/components/market/useLivePrices';
 import { useLanguage } from '@/lib/LanguageContext';
 import { DATA_STATE, marketDataState } from '@/lib/dataState';
+import CrossSurfaceRail from '@/components/command/CrossSurfaceRail';
 
 const COPY = {
   id: {
@@ -63,7 +64,7 @@ export default function MarketWithKAM() {
   const feedHealthy = feedState !== DATA_STATE.UNAVAILABLE;
 
   return (
-    <div className="ka-market-shell ka-bg text-white">
+    <div className="ka-market-shell ka-bg text-white" data-product-surface="market" data-product-release="phase15f">
       <style>{`
         .ka-market-shell > .ka-bg.min-h-screen {
           min-height: auto !important;
@@ -76,8 +77,9 @@ export default function MarketWithKAM() {
         }
       `}</style>
 
-      <div className="mx-auto max-w-7xl px-3 pt-3 sm:px-6 sm:pt-5 lg:px-8">
-        <section className="rounded-[22px] border border-white/[0.07] bg-[#07111d]/80 p-3 sm:p-4" aria-labelledby="market-intelligence-title">
+      <div className="mx-auto max-w-7xl space-y-3 px-3 pt-3 sm:px-6 sm:pt-5 lg:px-8">
+        <CrossSurfaceRail current="market" />
+        <section className="ka-command-hero p-3 sm:p-4" aria-labelledby="market-intelligence-title">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.18em] text-sky-300">
