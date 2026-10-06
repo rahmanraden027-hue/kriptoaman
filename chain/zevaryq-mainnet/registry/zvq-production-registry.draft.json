@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 1,
+  "phase": "16G",
+  "status": "DRAFT_PRE_PRODUCTION_REGISTRY",
+  "mergePolicy": "HOLD_UNTIL_PHASE16F_LONG_RUN_STABLE_AND_SUPPLY_RECONCILED",
+  "network": {
+    "name": "ZEVARYQ Mainnet",
+    "shortName": "ZEVARYQ",
+    "nativeAssetName": "ZEVARYQ",
+    "nativeSymbol": "ZVQ",
+    "chainId": 22028,
+    "chainIdHex": "0x560c",
+    "decimals": 18,
+    "evmCompatible": true,
+    "rpc": "https://rpc.kriptoaman.com",
+    "explorer": "https://explorer.kriptoaman.com",
+    "website": "https://kriptoaman.com",
+    "canonicalLogo": "/brand/zevaryq-mark.svg"
+  },
+  "identityMigration": {
+    "legacyNetworkIdentity": "KriptoAman Mainnet",
+    "legacyNativeSymbol": "KAM",
+    "productionNetworkIdentity": "ZEVARYQ Mainnet",
+    "productionNativeSymbol": "ZVQ",
+    "chainIdContinuity": true,
+    "changesGenesis": false,
+    "changesBalances": false,
+    "changesAddresses": false,
+    "changesValidatorKeys": false,
+    "changesBlockHistory": false
+  },
+  "supplyPolicy": {
+    "maximumSupplyProjectBaseline": "1000000000",
+    "proposedInitialCirculatingTarget": "70000000",
+    "proposedInitialCirculatingPercent": "7",
+    "legacyKamInitialCirculatingTarget": "50000000",
+    "legacyKamInitialCirculatingPercent": "5",
+    "zvqPolicyChangeStatus": "PROPOSED_PENDING_GOVERNANCE_AND_ON_CHAIN_RECONCILIATION",
+    "onChainMaximumSupplyVerified": false,
+    "onChainTotalSupplyVerified": false,
+    "circulatingSupplyVerified": false,
+    "allocationWalletsPublished": false,
+    "vestingAndLockEvidencePublished": false,
+    "externalSubmissionAllowed": false,
+    "publicClaimRule": "Do not publish 1B as technically enforced maximum supply or 70M as current circulating supply until production genesis/on-chain evidence and allocation methodology are reconciled."
+  },
+  "assets": [
+    {
+      "symbol": "ZVQ",
+      "name": "ZEVARYQ",
+      "role": "native",
+      "status": "ACTIVE",
+      "contractAddress": null,
+      "logo": "/brand/zevaryq-mark.svg",
+      "logoStatus": "AVAILABLE",
+      "executable": true
+    },
+    {
+      "symbol": "zBTC",
+      "name": "ZEVARYQ Bitcoin",
+      "role": "backed-representation-candidate",
+      "status": "PLANNED",
+      "contractAddress": null,
+      "logo": "/assets/zevaryq/tokens/zbtc-v2.svg",
+      "logoStatus": "AVAILABLE",
+      "executable": false,
+      "provenanceRequired": "BTC backing/bridge/custody authorization"
+    },
+    {
+      "symbol": "zETH",
+      "name": "ZEVARYQ Ethereum",
+      "role": "backed-representation-candidate",
+      "status": "PLANNED",
+      "contractAddress": null,
+      "logo": "/assets/zevaryq/tokens/zeth-v2.svg",
+      "logoStatus": "AVAILABLE",
+      "executable": false,
+      "provenanceRequired": "ETH backing/bridge/custody authorization"
+    },
+    {
+      "symbol": "zUSDT",
+      "name": "ZEVARYQ USDT representation candidate",
+      "role": "issuer-or-bridge-provenance-required",
+      "status": "PLANNED",
+      "contractAddress": null,
+      "logo": null,
+      "logoStatus": "PENDING_INDEXING",
+      "executable": false,
+      "provenanceRequired": "Exact issuer/bridge/custody provenance and backing"
+    },
+    {
+      "symbol": "zUSDC",
+      "name": "ZEVARYQ USDC representation candidate",
+      "role": "issuer-or-bridge-provenance-required",
+      "status": "PLANNED",
+      "contractAddress": null,
+      "logo": null,
+      "logoStatus": "PENDING_INDEXING",
+      "executable": false,
+      "provenanceRequired": "Exact issuer/bridge/custody provenance and backing"
+    },
+    {
+      "symbol": "zBNB",
+      "name": "ZEVARYQ BNB representation candidate",
+      "role": "backed-representation-candidate",
+      "status": "PLANNED",
+      "contractAddress": null,
+      "logo": null,
+      "logoStatus": "PENDING_INDEXING",
+      "executable": false
+    },
+    {
+      "symbol": "zSOL",
+      "name": "ZEVARYQ Solana representation candidate",
+      "role": "backed-representation-candidate",
+      "status": "PLANNED",
+      "contractAddress": null,
+      "logo": null,
+      "logoStatus": "PENDING_INDEXING",
+      "executable": false
+    },
+    {
+      "symbol": "zTRX",
+      "name": "ZEVARYQ TRON representation candidate",
+      "role": "backed-representation-candidate",
+      "status": "PLANNED",
+      "contractAddress": null,
+      "logo": null,
+      "logoStatus": "PENDING_INDEXING",
+      "executable": false
+    },
+    {
+      "symbol": "zXRP",
+      "name": "ZEVARYQ XRP representation candidate",
+      "role": "backed-representation-candidate",
+      "status": "PLANNED",
+      "contractAddress": null,
+      "logo": null,
+      "logoStatus": "PENDING_INDEXING",
+      "executable": false
+    },
+    {
+      "symbol": "zADA",
+      "name": "ZEVARYQ Cardano representation candidate",
+      "role": "backed-representation-candidate",
+      "status": "PLANNED",
+      "contractAddress": null,
+      "logo": null,
+      "logoStatus": "PENDING_INDEXING",
+      "executable": false
+    },
+    {
+      "symbol": "zDOGE",
+      "name": "ZEVARYQ Dogecoin representation candidate",
+      "role": "backed-representation-candidate",
+      "status": "PLANNED",
+      "contractAddress": null,
+      "logo": null,
+      "logoStatus": "PENDING_INDEXING",
+      "executable": false
+    }
+  ],
+  "deprecatedAssets": [
+    {
+      "symbol": "zUSD",
+      "status": "DEPRECATED_DO_NOT_INDEX",
+      "legacyArtworkPresent": true,
+      "reason": "Removed from current production asset plan; legacy artwork must not be treated as an approved production stablecoin."
+    }
+  ],
+  "externalRegistry": {
+    "chainEntryPrepared": true,
+    "httpsLogoAvailable": true,
+    "immutableIpfsLogoPublished": false,
+    "ethereumListsRebrandAccepted": false,
+    "chainlistRebrandAccepted": false,
+    "walletDirectoryAccepted": false,
+    "marketDataPlatformAccepted": false,
+    "exchangeListingAccepted": false
+  }
+}
