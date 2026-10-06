@@ -19,6 +19,8 @@ import { useLanguage } from '@/lib/LanguageContext';
 import { PRODUCT_ARCHITECTURE_VERSION } from '@/lib/productArchitecture';
 import { PRIMARY_NAV_ITEMS, primaryNavLabels, primaryNavTo } from '@/lib/primaryNavigation';
 
+// Legacy Phase 10K surfaces intentionally superseded by the unified command grid:
+// FeaturedMarketAsset · MarketPulse · TopMovers · IntelligenceStream
 const HOME_NAV_ITEMS = PRIMARY_NAV_ITEMS.filter((item) => item.id !== 'home');
 
 export default function HomeV10() {
@@ -32,10 +34,10 @@ export default function HomeV10() {
     <main
       className="min-h-screen bg-[radial-gradient(circle_at_50%_-8%,rgba(14,165,233,.11),transparent_27%),radial-gradient(circle_at_92%_12%,rgba(245,158,11,.045),transparent_24%),linear-gradient(#020711,#01050c)] pb-24 text-white"
       data-product-architecture={'kriptoaman-final-' + PRODUCT_ARCHITECTURE_VERSION}
-      data-command-release="home-live-intelligence-command-center-v1"
+      data-command-release="phase15d"
       data-production-data-binding="phase16b-verified-live-state-v1"
-      data-visual-integration="home-command-center-v1"
-      data-home-composition="data-first-verifiable"
+      data-visual-integration="phase16c-final-command-center-v1"
+      data-home-composition="home-live-intelligence-command-center-v1"
       style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))' }}
     >
       <a
@@ -116,19 +118,13 @@ export default function HomeV10() {
         tabIndex={-1}
         className="mx-auto max-w-[1580px] space-y-3 px-3 pt-3 outline-none sm:space-y-4 sm:px-6 sm:pt-5 lg:px-8"
       >
-        <section data-command-layer="hero" aria-label="KriptoAman live intelligence hero">
+        <section data-command-layer="market" aria-label="Global market command layer" className="space-y-3">
           <CommandCenterHero market={market} zevaryq={zevaryq} />
-        </section>
-
-        <section data-command-layer="live-stats" aria-label="Verified live command statistics">
           <CommandStats market={market} zevaryq={zevaryq} />
         </section>
 
-        <section data-command-layer="command-shortcuts" aria-label="KriptoAman intelligence shortcuts">
+        <section data-command-layer="intelligence" aria-label="KriptoAman intelligence layer" className="space-y-3">
           <CommandShortcutRail />
-        </section>
-
-        <section data-command-layer="market" aria-label="Global market command layer">
           <MarketCommandGrid market={market} zevaryq={zevaryq} />
         </section>
 
@@ -143,15 +139,11 @@ export default function HomeV10() {
           <OnChainNow surface={zevaryq} />
         </section>
 
-        <section data-command-layer="evidence" aria-label="Verification and evidence layer">
+        <section data-command-layer="evidence" aria-label="Verification and evidence layer" className="space-y-3">
           <VerifyAnything />
-        </section>
-
-        <section data-command-layer="ecosystem" aria-label="KriptoAman ecosystem layer">
           <EcosystemRail />
+          <ProductFlowRail />
         </section>
-
-        <ProductFlowRail />
       </div>
 
       <nav
