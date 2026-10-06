@@ -1,4 +1,4 @@
-// Phase 10K read-only production browser acceptance for KriptoAman HomeV10.
+// Phase 15D read-only production browser acceptance for KriptoAman HomeV10.
 // Verifies the live production root without credentials, wallet signing, writes, deployments,
 // transactions, or chain mutations.
 import assert from 'node:assert/strict';
@@ -15,7 +15,7 @@ const evidenceDir = resolve(process.env.HOME_V10_PRODUCTION_EVIDENCE_DIR || 'hom
 await mkdir(evidenceDir, { recursive: true });
 
 const runId = String(process.env.GITHUB_RUN_ID || 'manual').replace(/[^0-9a-z_-]/gi, '');
-const url = 'https://kriptoaman.com/?phase10k_production_lock=' + runId;
+const url = 'https://kriptoaman.com/?phase15d_production_lock=' + runId;
 const cases = [
   { name: 'mobile-390', width: 390, height: 844 },
   { name: 'desktop-1440', width: 1440, height: 1000 },
@@ -70,8 +70,10 @@ try {
         const ticker = document.querySelector('section[aria-label="Live market ticker"]');
         const verify = document.querySelector('#verify');
         const sections = [...document.querySelectorAll('section')];
-        const onChain = sections.find(node => node.querySelector(':scope > div > div > p')?.textContent?.trim() === 'ON-CHAIN NOW');
-        const zvq = sections.find(node => node.querySelector(':scope > b')?.textContent?.trim() === 'ZEVARYQ');
+        const onChain = sections.find(node => /ON-CHAIN NOW/.test(node.textContent || ''));
+        const networkLayer = document.querySelector('[data-command-layer="network"]');
+        const zvq = networkLayer && [...networkLayer.querySelectorAll('section')]
+          .find(node => /ZEVARYQ/.test(node.textContent || '') && /VERIFIED/.test(node.textContent || ''));
         return Boolean(
           ticker
           && /●\s*LIVE/.test(ticker.textContent || '')
@@ -79,8 +81,10 @@ try {
           && onChain
           && /#\s*[\d,]+/.test(onChain.textContent || '')
           && zvq
-          && /●\s*LIVE/.test(zvq.textContent || '')
+          && /●\s*VERIFIED/.test(zvq.textContent || '')
+          && /SYNCED/.test(zvq.textContent || '')
           && /#[\d,]+/.test(zvq.textContent || '')
+          && document.querySelector('main[data-command-release="phase15d"]')
         );
       }, null, { timeout: 45000, polling: 500 });
 
@@ -88,9 +92,13 @@ try {
         const root = document.documentElement;
         const ticker = document.querySelector('section[aria-label="Live market ticker"]');
         const sections = [...document.querySelectorAll('section')];
-        const onChain = sections.find(node => node.querySelector(':scope > div > div > p')?.textContent?.trim() === 'ON-CHAIN NOW');
-        const zvq = sections.find(node => node.querySelector(':scope > b')?.textContent?.trim() === 'ZEVARYQ');
+        const onChain = sections.find(node => /ON-CHAIN NOW/.test(node.textContent || ''));
+        const networkLayer = document.querySelector('[data-command-layer="network"]');
+        const zvq = networkLayer && [...networkLayer.querySelectorAll('section')]
+          .find(node => /ZEVARYQ/.test(node.textContent || '') && /VERIFIED/.test(node.textContent || ''));
         const verify = document.querySelector('#verify');
+        const commandLayers = [...document.querySelectorAll('[data-command-layer]')]
+          .map(node => node.getAttribute('data-command-layer'));
         const tickerSymbols = ticker
           ? [...ticker.querySelectorAll('b')].map(node => node.textContent?.trim()).filter(Boolean)
           : [];
@@ -104,6 +112,8 @@ try {
           onChainText: onChain?.textContent?.replace(/\s+/g, ' ').trim() || '',
           zvqText: zvq?.textContent?.replace(/\s+/g, ' ').trim() || '',
           oldPromoCopyPresent: /Production Command Center|Official Launch 2026/i.test(document.body.innerText),
+          commandRelease: document.querySelector('main')?.getAttribute('data-command-release') || null,
+          commandLayers,
         };
       });
 
@@ -118,7 +128,14 @@ try {
       assert.ok(Number.isSafeInteger(onChainBlock) && onChainBlock > 0, 'On-Chain block must be numeric');
       assert.ok(Number.isSafeInteger(networkBlock) && networkBlock > 0, 'ZEVARYQ network block must be numeric');
       assert.ok(Math.abs(onChainBlock - networkBlock) <= 25, 'first-party chain surfaces must remain within 25 blocks');
-      assert.match(snapshot.zvqText, /●\s*LIVE/, 'ZEVARYQ strip must be LIVE');
+      assert.equal(snapshot.commandRelease, 'phase15d', 'live production must expose the Phase 15D release marker');
+      assert.deepEqual(
+        snapshot.commandLayers,
+        ['market', 'intelligence', 'network', 'evidence'],
+        'command center hierarchy must remain Market → Intelligence → Network → Evidence',
+      );
+      assert.match(snapshot.zvqText, /●\s*VERIFIED/, 'ZEVARYQ strip must be VERIFIED');
+      assert.match(snapshot.zvqText, /SYNCED/, 'ZEVARYQ strip must be SYNCED');
       assert.match(snapshot.zvqText, /#[\d,]+/, 'ZEVARYQ strip must display a real block number');
       assert.equal(snapshot.oldPromoCopyPresent, false, 'production root must stay data-first, not launch-promo copy');
       assert.deepEqual(pageErrors, [], 'no uncaught JavaScript errors');
@@ -150,6 +167,8 @@ try {
         ticker: snapshot.tickerSymbols.slice(0, 8),
         onChain: snapshot.onChainText.match(/#\s*[\d,]+/)?.[0] || null,
         zvq: snapshot.zvqText.match(/#[\d,]+/)?.[0] || null,
+        release: snapshot.commandRelease,
+        hierarchy: snapshot.commandLayers,
         jsErrors: pageErrors.length,
       }));
     } catch (error) {

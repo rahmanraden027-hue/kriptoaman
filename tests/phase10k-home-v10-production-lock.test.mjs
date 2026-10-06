@@ -61,6 +61,10 @@ test('Phase 10K live browser proof is read-only and enforces production data acc
     'mobile-390',
     'desktop-1440',
     'HOME_V10_PRODUCTION_OK',
+    'phase15d',
+    'data-command-layer',
+    'VERIFIED',
+    'SYNCED',
     'no uncaught JavaScript errors',
   ]) assert.ok(script.includes(marker), marker);
   assert.match(script, /●\\s\*LIVE/);
@@ -70,4 +74,6 @@ test('Phase 10K live browser proof is read-only and enforces production data acc
   assert.match(workflow, /schedule:/);
   assert.match(workflow, /node scripts\/verify-home-v10-production\.mjs/);
   assert.match(workflow, /retention-days: 30/);
+  assert.match(workflow, /statuses: write/);
+  assert.match(workflow, /kriptoaman\/home-v10-production-visual-proof/);
 });

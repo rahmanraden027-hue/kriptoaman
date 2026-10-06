@@ -27,6 +27,7 @@ export default function HomeV10() {
     <main
       className="min-h-screen bg-[#020711] pb-24 text-white"
       data-product-architecture={'kriptoaman-final-' + PRODUCT_ARCHITECTURE_VERSION}
+      data-command-release="phase15d"
       style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))' }}
     >
       <a

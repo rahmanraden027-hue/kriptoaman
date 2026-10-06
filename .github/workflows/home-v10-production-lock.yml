@@ -29,6 +29,7 @@ on:
 
 permissions:
   contents: read
+  statuses: write
 
 concurrency:
   group: home-v10-production-lock
@@ -72,7 +73,7 @@ jobs:
           echo "HOME_V10_PRODUCTION_EVIDENCE_DIR=$RUNNER_TEMP/home-v10-production-evidence" >> "$GITHUB_ENV"
       - name: Verify production HomeV10 mobile and desktop
         run: node scripts/verify-home-v10-production.mjs
-      - name: Preserve Phase 10K production evidence
+      - name: Preserve Phase 15D production evidence
         uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -80,3 +81,34 @@ jobs:
           path: ${{ runner.temp }}/home-v10-production-evidence
           if-no-files-found: warn
           retention-days: 30
+
+      - name: Publish HomeV10 production visual proof status
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          JOB_STATUS: ${{ job.status }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          state=failure
+          description="HomeV10 production visual proof failed"
+          if [ "$JOB_STATUS" = "success" ]; then
+            state=success
+            description="HomeV10 mobile + desktop production proof passed"
+          fi
+          payload="$(jq -nc \
+            --arg state "$state" \
+            --arg context "kriptoaman/home-v10-production-visual-proof" \
+            --arg description "$description" \
+            --arg target_url "$RUN_URL" \
+            '{state:$state,context:$context,description:$description,target_url:$target_url}')"
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$REPO/statuses/$SHA" \
+            -d "$payload" >/dev/null
