@@ -30,6 +30,8 @@ Phase 16G prepares the ZEVARYQ migration policy with:
 
 The 70,000,000 ZVQ figure is a **new migration target**, not a claim that 70,000,000 ZVQ is currently circulating. It must not be entered into an exchange, CoinGecko, CoinMarketCap, wallet registry, or public market feed as current circulating supply until unlocked balances, allocation wallets, vesting/lock evidence, and final genesis/on-chain state are reconciled.
 
+The historical KAM sources also contain **two different allocation baselines**. This drift must be resolved by a versioned ZVQ governance decision before final supply/allocation submission. The archived 70M KAM liquidity allocation is not evidence that 70M ZVQ is circulating.
+
 ## Identity migration statement
 
 ZEVARYQ Mainnet is the production identity for the existing Chain ID 22028 network. The identity migration from KriptoAman/KAM to ZEVARYQ/ZVQ is designed as an in-place network identity continuation and does not by itself alter genesis, historical balances, addresses, validator keys, or block history.
