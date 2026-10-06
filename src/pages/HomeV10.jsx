@@ -1,7 +1,6 @@
 import React from 'react';
 import { Bell, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
 import CommandCenterHero from '@/components/home-v10/CommandCenterHero';
 import CommandShortcutRail from '@/components/home-v10/CommandShortcutRail';
 import CommandStats from '@/components/home-v10/CommandStats';
@@ -55,15 +54,16 @@ export default function HomeV10() {
         <div className="mx-auto flex min-h-16 max-w-[1580px] items-center gap-3 px-3 sm:px-6 lg:px-8">
           <Link
             to="/"
-            className="inline-flex min-h-11 items-center rounded-xl px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"
             aria-label="KriptoAman home"
           >
-            <KriptoAmanLogo size={36} textSize="text-base sm:text-lg" />
-            <span className="ml-2 hidden text-[8px] font-black uppercase tracking-[0.14em] text-cyan-300 lg:inline">INTELLIGENCE</span>
-            <span className="ml-2 hidden text-[7px] font-black uppercase tracking-[0.13em] text-slate-400 xl:inline">
-              Crypto Intelligence. Global Market Edge.
-            </span>
+            <img src="/brand/kriptoaman-mark-premium.webp" alt="" width="36" height="36" className="h-9 w-9 object-contain" />
+            <span className="text-sm font-black tracking-[0.08em] text-white sm:text-base">KRIPTOAMAN</span>
           </Link>
+          <span className="hidden text-[8px] font-black uppercase tracking-[0.14em] text-cyan-300 lg:inline">INTELLIGENCE</span>
+          <span className="hidden text-[7px] font-black uppercase tracking-[0.13em] text-slate-400 xl:inline">
+            Crypto Intelligence. Global Market Edge.
+          </span>
 
           <nav aria-label={english ? 'Primary navigation' : 'Navigasi utama'} className="hidden items-center gap-1 md:flex">
             {HOME_NAV_ITEMS.map((item) => (
