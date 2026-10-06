@@ -32,7 +32,7 @@ export default function ZevaryqLiveStrip({ surface }) {
         <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">
           ZEVARYQ network status: {state}. Sync status: {syncState}.
         </span>
-        <span className={stateTone(state)}>● {state}</span>
+        <span className={stateTone(state)}>● {state === DATA_STATE.LIVE ? DATA_STATE.VERIFIED : state}</span>
         <span className="text-slate-300">|</span>
         <span className="font-black text-white">{Number.isFinite(block) ? '#' + block.toLocaleString('en-US') : '—'}</span>
         <span className="text-slate-300">|</span>
