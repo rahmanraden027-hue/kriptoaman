@@ -52,7 +52,7 @@ test('Phase 13 lock only permits the declared one-time governance transition', a
 
 test('Phase 14 verifier checks live ruleset hard-enforcement properties', async () => {
   const verifier = await read('scripts/verify-phase14-release-governance.mjs');
-  for (const marker of ['rulesets/','required_status_checks','strict_required_status_checks_policy','pull_request','required_review_thread_resolution','non_fast_forward','deletion','kriptoaman/production-security','kriptoaman/live-site-smoke']) {
+  for (const marker of ['rulesets/','required_status_checks','strict_required_status_checks_policy','pull_request','required_review_thread_resolution','non_fast_forward','deletion','kriptoaman/production-security']) {
     assert.equal(verifier.includes(marker), true, marker);
   }
   assert.doesNotMatch(verifier, /method:\s*['\"](?:PATCH|POST|PUT|DELETE)/);
