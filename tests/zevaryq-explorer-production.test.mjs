@@ -252,12 +252,11 @@ test('QBFT threshold is not presented as observed voting or measured finality la
 
 
 test('static Explorer fallback is verification-pending rather than a false outage', () => {
-  assert.match(html, /data-static-observability="browser-verification-pending"/);
-  assert.match(html, /Browser verification pending · live RPC & indexer checks run after page load/);
-  assert.match(html, /Browser verification pending\. No values are estimated\./);
-  assert.match(html, /Live indexed blocks load after browser verification/);
-  assert.match(html, /Browser verification pending for transaction indexer/);
-  assert.match(html, /Browser probes pending/);
+  assert.match(html, /Verification pending · RPC & Indexer/);
+  assert.match(html, /Verification pending\. No values are estimated\./);
+  assert.match(html, /Verifying indexed blocks\. No values are estimated\./);
+  assert.match(html, /Verifying transaction indexer/);
+  assert.match(html, /Verifying live probes/);
   assert.doesNotMatch(html, /Connecting to verified RPC & Indexer…/);
   assert.doesNotMatch(html, />CONNECTING</);
   assert.doesNotMatch(html, />Data pending</);
