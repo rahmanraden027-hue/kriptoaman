@@ -1,6 +1,5 @@
 import React from 'react';
 import { Activity, ArrowDownRight, ArrowUpRight, Radio } from 'lucide-react';
-import DataProvenanceBar from './DataProvenanceBar';
 import { formatChange, formatCompactUsd } from './format';
 
 const iconFor = (event) => {
@@ -15,7 +14,7 @@ const valueFor = (event) => {
   return formatChange(event.value);
 };
 
-export default function IntelligenceStream({ events = [], state = 'UNAVAILABLE', provenance = null }) {
+export default function IntelligenceStream({ events = [], state = 'UNAVAILABLE' }) {
   return (
     <section className="rounded-[26px] border border-cyan-400/10 bg-[#050c16] p-4 sm:p-5">
       <div className="flex items-center justify-between">
@@ -48,15 +47,6 @@ export default function IntelligenceStream({ events = [], state = 'UNAVAILABLE',
         }) : <p className="py-8 text-center text-[10px] text-slate-400">No verified intelligence event available.</p>}
       </div>
 
-      <div className="mt-3">
-        <DataProvenanceBar
-          state={provenance?.state || state}
-          source={provenance?.sourceLabel || 'Source unavailable'}
-          timestamp={provenance?.capturedAt}
-          ageMs={provenance?.ageMs}
-          label="INTELLIGENCE INPUT"
-        />
-      </div>
     </section>
   );
 }
