@@ -43,7 +43,7 @@ jobs:
         run: npm ci --legacy-peer-deps
 
       - name: Install matching Capacitor iOS platform for preflight
-        run: npm install --no-save --legacy-peer-deps @capacitor/ios@8.5.0
+        run: npm install --no-save --legacy-peer-deps @capacitor/ios@8.5.1
 
       - name: Run release regression tests
         run: npm run test
