@@ -1,4 +1,4 @@
-// Phase 10K read-only production browser acceptance for KriptoAman HomeV10.
+// Phase 15D read-only production browser acceptance for KriptoAman HomeV10.
 // Verifies the live production root without credentials, wallet signing, writes, deployments,
 // transactions, or chain mutations.
 import assert from 'node:assert/strict';
@@ -15,7 +15,7 @@ const evidenceDir = resolve(process.env.HOME_V10_PRODUCTION_EVIDENCE_DIR || 'hom
 await mkdir(evidenceDir, { recursive: true });
 
 const runId = String(process.env.GITHUB_RUN_ID || 'manual').replace(/[^0-9a-z_-]/gi, '');
-const url = 'https://kriptoaman.com/?phase10k_production_lock=' + runId;
+const url = 'https://kriptoaman.com/?phase15d_production_lock=' + runId;
 const cases = [
   { name: 'mobile-390', width: 390, height: 844 },
   { name: 'desktop-1440', width: 1440, height: 1000 },
