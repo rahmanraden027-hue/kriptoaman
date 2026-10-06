@@ -47,11 +47,20 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
 
   if (!asset) {
     return (
-      <section className="grid min-h-[360px] place-items-center rounded-[30px] border border-white/[0.07] bg-[#050c16] p-6 text-center">
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">{state}</p>
-          <p className="mt-3 text-sm text-slate-400">No verified featured asset available.</p>
+      <section className="rounded-[30px] border border-white/[0.07] bg-[#050c16] p-6">
+        <div className="grid min-h-[280px] place-items-center text-center">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">{state}</p>
+            <p className="mt-3 text-sm text-slate-400">No verified featured asset available.</p>
+          </div>
         </div>
+        <DataProvenanceBar
+          state={provenance?.state || state}
+          source={provenance?.sourceLabel || 'Source unavailable'}
+          timestamp={provenance?.capturedAt}
+          ageMs={provenance?.ageMs}
+          label="MARKET SOURCE"
+        />
       </section>
     );
   }
