@@ -12,17 +12,18 @@ import {
 
 const COPY = {
   id: {
-    kicker: 'KRIPTOAMAN ECOSYSTEM',
+    kicker: 'EKOSISTEM KRIPTOAMAN',
     title: 'Ekosistem Produksi',
-    body: 'Surface inti KriptoAman diposisikan berdasarkan fungsi produksi: market, jaringan, wallet, discovery, dan status sistem.',
-    unified: 'PRODUCTION ROUTES',
-    core: 'CORE PRODUCTS',
-    main: 'Surface Produksi',
+    body: 'Permukaan inti KriptoAman disusun berdasarkan fungsi produksi: pasar, jaringan, dompet, penemuan, dan status sistem.',
+    unified: 'RUTE PRODUKSI',
+    core: 'PRODUK INTI',
+    main: 'Layanan Produksi',
     explore: 'OPERASIONAL & LAYANAN',
     open: 'BUKA',
     secureTitle: 'Workspace Aman',
     secureBody: 'Akses operasional menyesuaikan status akun dan peran pengguna.',
-    platformLayer: 'DATA LAYERS',
+    platformLayer: 'LAPISAN DATA',
+    dataLayers: ['Data Pasar', 'On-chain', 'Bukti Jaringan', 'Identitas'],
     adminTitle: 'Workspace Admin',
     adminBody: 'Tersedia hanya untuk sesi admin yang sah.',
   },
@@ -38,6 +39,7 @@ const COPY = {
     secureTitle: 'Secure Workspace',
     secureBody: 'Operational access adapts to account status and user role.',
     platformLayer: 'DATA LAYERS',
+    dataLayers: ['Market Data', 'On-chain', 'Network Evidence', 'Identity'],
     adminTitle: 'Admin Workspace',
     adminBody: 'Available only to an authenticated admin session.',
   },
@@ -46,11 +48,11 @@ const COPY = {
 const ITEMS = {
   id: {
     primary: [
-      { label: 'Market Intelligence', to: '/Market', icon: BarChart3, desc: 'Database pasar, movers, radar dan data aset' },
-      { label: 'ZEVARYQ Network', to: '/ZEVARYQ', icon: ShieldCheck, desc: 'Chain ID, RPC, block height dan evidence jaringan' },
-      { label: 'ZEVARYQ Wallet', to: '/wallet-app', icon: WalletCards, desc: 'Wallet ZVQ, assets, receive dan swap surface' },
-      { label: 'QoryVEx Discovery', to: '/qoryvex/discovery', icon: Radar, desc: 'Discovery kontrak dan token berbasis first-party evidence' },
-      { label: 'System Status', to: '/SystemStatus', icon: Server, desc: 'Status live aplikasi, market, network dan ZEVARYQ' },
+      { label: 'Intelijen Pasar', to: '/Market', icon: BarChart3, desc: 'Database pasar, pergerakan, radar, dan data aset' },
+      { label: 'Jaringan ZEVARYQ', to: '/ZEVARYQ', icon: ShieldCheck, desc: 'Chain ID, RPC, tinggi blok, dan bukti jaringan' },
+      { label: 'ZEVARYQ Wallet', to: '/wallet-app', icon: WalletCards, desc: 'Dompet ZVQ, aset, terima, dan fungsi swap' },
+      { label: 'QoryVEx Discovery', to: '/qoryvex/discovery', icon: Radar, desc: 'Penemuan kontrak dan token berbasis bukti pihak pertama' },
+      { label: 'Status Sistem', to: '/SystemStatus', icon: Server, desc: 'Status langsung aplikasi, pasar, jaringan, dan ZEVARYQ' },
     ],
     secondary: [
       { label: 'Verifikasi KYC', page: 'KYC', icon: ShieldCheck },
@@ -195,7 +197,7 @@ export default function Services() {
             <section className="ka-command-panel p-5" aria-label={text.platformLayer}>
               <p className="ka-command-kicker">{text.platformLayer}</p>
               <div className="mt-4 grid grid-cols-2 gap-2">
-                {['Market Data', 'On-chain', 'Network Evidence', 'Identity'].map((label) => (
+                {text.dataLayers.map((label) => (
                   <div key={label} className="rounded-xl border border-slate-700/50 bg-slate-950/35 px-3 py-3 text-[10px] font-bold text-slate-300">{label}</div>
                 ))}
               </div>
