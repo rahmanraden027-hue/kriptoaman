@@ -249,3 +249,16 @@ test('QBFT threshold is not presented as observed voting or measured finality la
   assert.match(html, /mini\('Block utilization',utilization,utilization!==unavailable/);
   assert.match(html, /mini\('Propagation time',unavailable/);
 });
+
+
+test('static Explorer fallback is verification-pending rather than a false outage', () => {
+  assert.match(html, /Verification pending · RPC & Indexer/);
+  assert.match(html, /Verification pending\. No values are estimated\./);
+  assert.match(html, /Verifying indexed blocks\. No values are estimated\./);
+  assert.match(html, /Verifying transaction indexer/);
+  assert.match(html, /Verifying live probes/);
+  assert.doesNotMatch(html, /Connecting to verified RPC & Indexer…/);
+  assert.doesNotMatch(html, />CONNECTING</);
+  assert.doesNotMatch(html, />Data pending</);
+  assert.doesNotMatch(html, />UNAVAILABLE<\/span><span id="v2-tx-note"/);
+});
