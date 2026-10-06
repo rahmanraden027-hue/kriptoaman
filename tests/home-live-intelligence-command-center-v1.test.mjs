@@ -57,6 +57,8 @@ test('market and network command surfaces fail closed instead of inventing unava
 
   assert.match(grid, /Tidak ada whale\/DEX event sintetis/);
   assert.match(grid, /Verified market data unavailable/);
+  assert.match(grid, /text-\[8px\] font-black text-slate-300/);
+  assert.doesNotMatch(grid, /text-\[8px\] font-black text-slate-500/);
   assert.match(pulse, /Mempool source/);
   assert.match(pulse, />UNAVAILABLE</);
   assert.match(pulse, /no synthetic transaction counts/);

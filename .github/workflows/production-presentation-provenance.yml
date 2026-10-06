@@ -34,27 +34,31 @@ jobs:
           node <<'NODE'
           const base = 'https://kriptoaman.com';
           const origin = new URL(base).origin;
-          // Phase 16D production contract: prove the live Phase 16C data-first
-          // command center instead of legacy or pre-16C presentation copy.
+          // Phase 16D production contract: prove the live Phase 16C release markers
+          // plus the Home Live Intelligence Command Center v1 composition. Do not
+          // require superseded Phase 10K/15C card copy that is no longer rendered.
           const required = [
+            'home-live-intelligence-command-center-v1',
+            'Blockchain bergerak setiap detik.',
+            'Lihat. Pahami. Verifikasi.',
             'MOVING NOW',
-            'Top Gainer',
-            'Most Active',
-            'Market Direction',
-            'Assets Tracked',
-            'Top Movers',
-            'Live Intelligence',
+            'Aset dipantau',
+            'Market Overview',
+            'Market Heatmap',
+            'LIVE NETWORK PULSE',
+            'Mempool source',
             'VERIFY ANYTHING',
             'Token / Contract / Wallet / Transaction / Block',
             'ON-CHAIN NOW',
             'Global Crypto Intelligence',
             'Visual topology · verified core data only',
+            'ZEVARYQ NETWORK · LIVE EVIDENCE',
             'ZEVARYQ evidence radar',
             'Open discovery'
           ];
 
           const headers = {
-            'User-Agent': 'KriptoAman-Presentation-Provenance/6.0',
+            'User-Agent': 'KriptoAman-Presentation-Provenance/7.0',
             'Cache-Control': 'no-cache'
           };
 
