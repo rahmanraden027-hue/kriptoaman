@@ -3,7 +3,7 @@ import { DATA_STATE } from '@/lib/dataState';
 
 const EXPECTED_CHAIN_ID = 22028;
 const EXPECTED_CHAIN_ID_HEX = '0x560c';
-const NETWORK_ENDPOINT = '/api/kam/network-status';
+const NETWORK_ENDPOINTS = Object.freeze(['/api/zvq/network-status', '/api/kam/network-status']);
 const ONCHAIN_ENDPOINT = '/api/zvq-token-intelligence';
 
 export const ZEVARYQ_REFRESH = Object.freeze({
@@ -32,7 +32,8 @@ const ageFrom = (value, fallback) => {
   return Math.max(0, Date.now() - observed);
 };
 
-function useJsonPoll(endpoint, refreshMs) {
+function useJsonPoll(endpointOrEndpoints, refreshMs) {
+  const endpoints = Array.isArray(endpointOrEndpoints) ? endpointOrEndpoints : [endpointOrEndpoints];
   const [result, setResult] = useState({
     payload: null,
     ok: false,
@@ -46,15 +47,25 @@ function useJsonPoll(endpoint, refreshMs) {
 
     const load = async () => {
       try {
-        const response = await fetch(endpoint, {
-          headers: { Accept: 'application/json' },
-          cache: 'no-store',
-        });
-        const payload = await response.json();
+        let payload = null;
+        let ok = false;
+        let selectedEndpoint = endpoints[0] || null;
+        for (const endpoint of endpoints) {
+          const response = await fetch(endpoint, {
+            headers: { Accept: 'application/json' },
+            cache: 'no-store',
+          });
+          selectedEndpoint = endpoint;
+          if (!response.ok && [404, 405].includes(response.status)) continue;
+          payload = await response.json();
+          ok = response.ok;
+          break;
+        }
         if (active) {
           setResult({
             payload,
-            ok: response.ok,
+            ok,
+            endpoint: selectedEndpoint,
             receivedAt: Date.now(),
             checking: false,
           });
@@ -64,6 +75,7 @@ function useJsonPoll(endpoint, refreshMs) {
           setResult({
             payload: null,
             ok: false,
+            endpoint: null,
             receivedAt: Date.now(),
             checking: false,
           });
@@ -78,13 +90,13 @@ function useJsonPoll(endpoint, refreshMs) {
       active = false;
       window.clearTimeout(timer);
     };
-  }, [endpoint, refreshMs]);
+  }, [refreshMs, ...endpoints]);
 
   return result;
 }
 
 export default function useZevaryqSurface() {
-  const networkResult = useJsonPoll(NETWORK_ENDPOINT, ZEVARYQ_REFRESH.networkMs);
+  const networkResult = useJsonPoll(NETWORK_ENDPOINTS, ZEVARYQ_REFRESH.networkMs);
   const onChainResult = useJsonPoll(ONCHAIN_ENDPOINT, ZEVARYQ_REFRESH.onChainMs);
 
   return useMemo(() => {
@@ -162,7 +174,9 @@ export default function useZevaryqSurface() {
       contract: Object.freeze({
         chainId: EXPECTED_CHAIN_ID,
         chainIdHex: EXPECTED_CHAIN_ID_HEX,
-        networkEndpoint: NETWORK_ENDPOINT,
+        networkEndpoint: NETWORK_ENDPOINTS[0],
+        networkEndpointFallback: NETWORK_ENDPOINTS[1],
+        networkEndpointSelected: networkResult.endpoint || null,
         onChainEndpoint: ONCHAIN_ENDPOINT,
       }),
     });
