@@ -22,7 +22,8 @@ test('phase 16B centralizes verified ZEVARYQ live-state mapping', () => {
   assert.match(hook, /DATA_STATE\.DELAYED/);
 
   assert.match(home, /useZevaryqSurface/);
-  assert.match(home, /data-command-release="phase16b"/);
+  assert.match(home, /data-command-release="phase15d"/);
+  assert.match(home, /data-production-data-binding="phase16b-verified-live-state-v1"/);
   assert.match(home, /<ZevaryqLiveStrip surface={zevaryq} \/>/);
   assert.match(home, /<OnChainNow surface={zevaryq} \/>/);
 
