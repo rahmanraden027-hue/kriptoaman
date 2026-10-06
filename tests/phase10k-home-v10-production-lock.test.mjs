@@ -27,25 +27,28 @@ test('Phase 10K locks HomeV10 to the production root and keeps rollback route av
 });
 
 test('Phase 10K preserves first-party market and ZEVARYQ evidence boundaries', async () => {
-  const [market, raw, onchain, network] = await Promise.all([
+  const [market, raw, onchain, network, zevaryqSurface] = await Promise.all([
     read('src/hooks/useMarketSurface.js'),
     read('src/components/home/useCoinMarkets.js'),
     read('src/components/home-v10/OnChainNow.jsx'),
     read('src/components/home-v10/ZevaryqLiveStrip.jsx'),
+    read('src/hooks/useZevaryqSurface.js'),
   ]);
   assert.match(market, /kriptoaman-market-db/);
   assert.match(market, /LIVE/);
   assert.match(market, /SNAPSHOT/);
-  assert.doesNotMatch(market, /state = ['\"]STALE['\"]/);
+  assert.doesNotMatch(market, /state = ['"]STALE['"]/);
   assert.match(raw, /\/api\/market-snapshot-page/);
   assert.match(raw, /MARKET_ASSET_LIMIT = 5000/);
   assert.match(raw, /fetchWithTimeout\(\s*`\/api\/market-snapshot-page/);
   assert.doesNotMatch(raw, /fetchWithTimeout\(\s*`https?:\/\//);
-  assert.match(onchain, /\/api\/zvq-token-intelligence/);
-  assert.match(onchain, /payload\?\.status === 'live'/);
-  assert.match(network, /\/api\/kam\/network-status/);
-  assert.match(network, /payload\?\.live === true/);
-  assert.match(network, /payload\?\.verified === true/);
+  assert.match(zevaryqSurface, /ONCHAIN_ENDPOINT = '\/api\/zvq-token-intelligence'/);
+  assert.match(zevaryqSurface, /onChainPayload\?\.status === 'live'/);
+  assert.match(zevaryqSurface, /NETWORK_ENDPOINT = '\/api\/kam\/network-status'/);
+  assert.match(zevaryqSurface, /networkPayload\?\.live === true/);
+  assert.match(zevaryqSurface, /networkPayload\?\.verified === true/);
+  assert.match(onchain, /ON-CHAIN EVIDENCE/);
+  assert.match(network, /NETWORK PROOF/);
 });
 
 test('Phase 10K live browser proof is read-only and enforces production data acceptance', async () => {
