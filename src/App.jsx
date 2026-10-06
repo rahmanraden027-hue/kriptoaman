@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt';
@@ -10,6 +10,16 @@ const NetworkGatePreview = lazy(() => import('./pages/NetworkGatePreview'));
 
 function AppRouteGate() {
   const { pathname } = useLocation();
+
+  useEffect(() => {
+    const resetScroll = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+    const frame = window.requestAnimationFrame(resetScroll);
+    return () => window.cancelAnimationFrame(frame);
+  }, [pathname]);
 
   if (pathname === '/preview/network-gate') {
     return (
