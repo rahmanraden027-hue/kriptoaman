@@ -44,7 +44,7 @@ jobs:
           NODE
             if ! git diff --quiet "$BASE" HEAD -- "$path"; then
               echo "::error::Phase 13 release lock detected drift in protected path: $path"
-              git diff -- "$BASE" HEAD -- "$path" || true
+              git diff "$BASE" HEAD -- "$path" || true
               exit 1
             fi
             echo "LOCKED: $path"
