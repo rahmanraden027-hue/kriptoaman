@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import {
   Activity,
-  Blocks,
   Database,
   Globe2,
   Radio,
