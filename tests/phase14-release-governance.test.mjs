@@ -7,7 +7,7 @@ const read = (path) => readFile(new URL('../' + path, import.meta.url), 'utf8');
 test('Phase 14 governance manifest binds to the active repository ruleset contract', async () => {
   const g = JSON.parse(await read('release/phase14-release-governance.json'));
   assert.equal(g.phase, '14');
-  assert.equal(g.status, 'transition-active');
+  assert.equal(g.status, 'locked');
   assert.equal(g.phase13Final.commit, '0b5be71b8386e7af8bc1969acbb85aa7ea23b7c5');
   assert.equal(g.ruleset.id, 21245066);
   assert.equal(g.ruleset.name, 'KriptoAman Production Main Protection');
@@ -21,9 +21,9 @@ test('Phase 14 governance manifest binds to the active repository ruleset contra
   assert.deepEqual([...g.ruleset.requiredStatusContexts].sort(), ['kriptoaman/live-site-smoke', 'kriptoaman/production-security']);
 });
 
-test('Phase 14 transition is exact, narrow, and one-branch only', async () => {
+test('Phase 14 transition is sealed and retains immutable transition provenance', async () => {
   const g = JSON.parse(await read('release/phase14-release-governance.json'));
-  assert.equal(g.transition.active, true);
+  assert.equal(g.transition.active, false);
   assert.equal(g.transition.headBranch, 'phase14a-hard-enforcement-transition');
   assert.equal(g.transition.baseBranch, 'main');
   assert.equal(g.transition.baselineCommit, '0b5be71b8386e7af8bc1969acbb85aa7ea23b7c5');
@@ -42,7 +42,7 @@ test('required production-security status executes the live Phase 14 governance 
 test('Phase 13 lock only permits the declared one-time governance transition', async () => {
   const workflow = await read('.github/workflows/phase13-production-stability-release-lock.yml');
   const manifest = JSON.parse(await read('release/phase13-production-stability-lock.json'));
-  assert.equal(manifest.releaseBaseline.commit, '0b5be71b8386e7af8bc1969acbb85aa7ea23b7c5');
+  assert.equal(manifest.releaseBaseline.commit, '546457f9362a761a33e19539d06dbc3821f282d5');
   assert.match(workflow, /releaseBaseline/);
   assert.match(workflow, /TRANSITION_ALLOWED/);
   assert.match(workflow, /AUTHORIZED_PHASE14_TRANSITION/);

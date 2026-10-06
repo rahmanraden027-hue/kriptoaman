@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "phase": "14",
   "name": "Release Governance & Hard Enforcement",
-  "status": "transition-active",
+  "status": "locked",
   "phase13Final": {
     "commit": "0b5be71b8386e7af8bc1969acbb85aa7ea23b7c5",
     "pullRequest": 1020,
@@ -28,13 +28,15 @@
     "bypassActors": 0
   },
   "transition": {
-    "active": true,
+    "active": false,
     "headBranch": "phase14a-hard-enforcement-transition",
     "baseBranch": "main",
     "baselineCommit": "0b5be71b8386e7af8bc1969acbb85aa7ea23b7c5",
     "allowedProtectedPathChanges": [
       ".github/workflows/security-audit.yml"
-    ]
+    ],
+    "sealedByCommit": "546457f9362a761a33e19539d06dbc3821f282d5",
+    "sealedAt": "2026-10-06"
   },
   "governanceGate": {
     "requiredContext": "kriptoaman/production-security",
