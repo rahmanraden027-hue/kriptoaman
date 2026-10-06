@@ -5,6 +5,7 @@ on:
     paths:
       - 'services/kriptoaman-indexer/**'
       - 'scripts/deploy-kriptoaman-zvq-indexer.sh'
+      - 'scripts/verify-zvq-indexer-live.sh'
       - 'tests/crypto-intelligence-first-party.test.mjs'
       - '.github/workflows/kriptoaman-first-party-indexer.yml'
   push:
@@ -12,6 +13,7 @@ on:
     paths:
       - 'services/kriptoaman-indexer/**'
       - 'scripts/deploy-kriptoaman-zvq-indexer.sh'
+      - 'scripts/verify-zvq-indexer-live.sh'
       - '.github/workflows/kriptoaman-first-party-indexer.yml'
 
 permissions:
@@ -35,6 +37,7 @@ jobs:
           set -euo pipefail
           node --check services/kriptoaman-indexer/zvq-listener.mjs
           bash -n scripts/deploy-kriptoaman-zvq-indexer.sh
+          bash -n scripts/verify-zvq-indexer-live.sh
           node --test tests/crypto-intelligence-first-party.test.mjs
           ! grep -REn 'eth_sendRawTransaction|personal_|admin_|debug_' services/kriptoaman-indexer
           ! grep -REn 'PRIVATE_KEY|MNEMONIC|SEED_PHRASE' services/kriptoaman-indexer scripts/deploy-kriptoaman-zvq-indexer.sh
@@ -70,6 +73,14 @@ jobs:
           test $((16#${b#0x})) -gt $((16#${a#0x}))
           code="$(curl -sS -o /dev/null -w '%{http_code}' -H 'content-type: application/json'             --data '{"jsonrpc":"2.0","id":4,"method":"eth_sendRawTransaction","params":["0x01"]}' "$endpoint")"
           test "$code" = 403
+      - name: Prove first-party WebSocket block-to-index latency
+        run: |
+          set -euo pipefail
+          scp -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new scripts/verify-zvq-indexer-live.sh root@206.189.36.15:/tmp/verify-zvq-indexer-live.sh
+          evidence="$(ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new root@206.189.36.15 'bash /tmp/verify-zvq-indexer-live.sh')"
+          echo "$evidence"
+          echo "### ZEVARYQ first-party WebSocket evidence" >> "$GITHUB_STEP_SUMMARY"
+          echo "$evidence" >> "$GITHUB_STEP_SUMMARY"
       - name: Roll back this run if deployment gate fails
         if: failure() && steps.apply.outcome != 'skipped'
         run: |
