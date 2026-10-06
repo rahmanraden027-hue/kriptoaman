@@ -82,7 +82,7 @@ async function sample(label, includeStatic = false) {
   const tasks = {
     network: fetchJson(BASE + '/api/kam/network-status?phase16e=' + cacheBust),
     onChain: fetchJson(BASE + '/api/zvq-token-intelligence?phase16e=' + cacheBust, {}, 20000),
-    explorerBlocks: fetchJson(EXPLORER + '/api/v2/blocks?phase16e=' + cacheBust),
+    explorerBlocks: fetchJson(EXPLORER + '/api/v2/blocks'),
     rpcChain: rpc('eth_chainId', label + '-chain'),
     rpcBlock: rpc('eth_blockNumber', label + '-block'),
   };
