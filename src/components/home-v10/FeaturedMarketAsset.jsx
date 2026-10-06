@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import DataProvenanceBar from './DataProvenanceBar';
 import { finite, formatCompactUsd, formatMagnitude, formatPrice, sparklinePoints } from './format';
 
 const ROTATION_MS = 10000;
@@ -10,7 +11,7 @@ const formatRangePrice = (value) => {
   return Number.isFinite(number) && number > 0 ? formatPrice(number) : '—';
 };
 
-export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE' }) {
+export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE', provenance = null }) {
   const candidates = useMemo(() => assets.slice(0, 8), [assets]);
   const [index, setIndex] = useState(0);
   const [pausedUntil, setPausedUntil] = useState(0);
@@ -155,6 +156,15 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
           ))}
         </div>
       )}
+      <div className="mt-5">
+        <DataProvenanceBar
+          state={provenance?.state || state}
+          source={provenance?.sourceLabel || 'Source unavailable'}
+          timestamp={provenance?.capturedAt}
+          ageMs={provenance?.ageMs}
+          label="MARKET SOURCE"
+        />
+      </div>
     </section>
   );
 }
