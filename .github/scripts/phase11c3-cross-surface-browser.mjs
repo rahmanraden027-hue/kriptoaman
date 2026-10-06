@@ -32,6 +32,7 @@ async function prepareContext({ width, height, authenticated }) {
   await context.addInitScript(() => {
     localStorage.setItem('ka_language', 'id');
     localStorage.setItem('_ka_disclaimer_accepted_v2', '1');
+    localStorage.setItem('ka_financial_intelligence_onboarding_v2', 'done');
     localStorage.removeItem('cv_pin_enabled');
   });
 
