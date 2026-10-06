@@ -1,4 +1,5 @@
 import React from 'react';
+import DataProvenanceBar from './DataProvenanceBar';
 import { formatChange, formatCompactUsd } from './format';
 
 function PulseCell({ label, value, detail, tone = 'text-white' }) {
@@ -11,7 +12,7 @@ function PulseCell({ label, value, detail, tone = 'text-white' }) {
   );
 }
 
-export default function MarketPulse({ gainers = [], active = [], direction = 'UNAVAILABLE', assetCount = 0 }) {
+export default function MarketPulse({ gainers = [], active = [], direction = 'UNAVAILABLE', assetCount = 0, provenance = null }) {
   const top = gainers[0];
   const mostActive = active[0];
   const directionTone = direction === 'POSITIVE'
@@ -22,6 +23,15 @@ export default function MarketPulse({ gainers = [], active = [], direction = 'UN
 
   return (
     <section className="grid grid-cols-2 gap-2 lg:grid-cols-4" aria-label="Market pulse">
+      <div className="col-span-2 lg:col-span-4">
+        <DataProvenanceBar
+          state={provenance?.state}
+          source={provenance?.sourceLabel || 'Source unavailable'}
+          timestamp={provenance?.capturedAt}
+          ageMs={provenance?.ageMs}
+          label="MARKET PULSE"
+        />
+      </div>
       <PulseCell
         label="Top Gainer"
         value={top ? top.sym : '—'}
