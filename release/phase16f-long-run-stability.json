@@ -1,0 +1,45 @@
+{
+  "phase": "16F",
+  "status": "long-run-observation",
+  "sourcePhase": "16E",
+  "sourceWorkflow": "phase16e-production-observation.yml",
+  "sourceArtifact": "phase16e-production-observation",
+  "sourceEvidenceFile": "phase16e-production-observation.json",
+  "architectureFrozen": true,
+  "visualBaseline": "phase16c-final-command-center-v1",
+  "postMergeLock": "phase16d",
+  "windows": {
+    "24h": {
+      "durationMs": 86400000,
+      "minimumSpanMs": 82800000,
+      "minimumHourlyBuckets": 20
+    },
+    "72h": {
+      "durationMs": 259200000,
+      "minimumSpanMs": 252000000,
+      "minimumHourlyBuckets": 60
+    }
+  },
+  "acceptance": {
+    "allowedObservationResults": ["STABLE", "STABLE_WITH_WARNINGS"],
+    "failedRunConclusions": ["failure", "timed_out", "cancelled", "action_required"],
+    "requireZeroIdentityFailures": true,
+    "requireMonotonicBlockEvidence": true,
+    "requireAuditableArtifacts": true
+  },
+  "mutationPolicy": {
+    "readOnly": true,
+    "uiRedesignAllowed": false,
+    "genesis": false,
+    "validators": false,
+    "privateKeys": false,
+    "balances": false,
+    "tokenSupply": false,
+    "transactions": false,
+    "walletBroadcasting": false,
+    "custody": false,
+    "dns": false,
+    "rpcWritePolicy": false,
+    "consensus": false
+  }
+}
