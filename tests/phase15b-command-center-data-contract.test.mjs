@@ -36,20 +36,21 @@ test('Phase 15B keeps market provenance visibly bound to the shared command laye
 });
 
 test('Phase 15B network and on-chain panels expose first-party source timestamps and fail closed', async () => {
-  const [network, onchain] = await Promise.all([
+  const [network, onchain, surface] = await Promise.all([
     read('src/components/home-v10/ZevaryqLiveStrip.jsx'),
     read('src/components/home-v10/OnChainNow.jsx'),
+    read('src/hooks/useZevaryqSurface.js'),
   ]);
   assert.match(network, /DATA_STATE\.CHECKING/);
-  assert.match(network, /DATA_STATE\.VERIFIED/);
-  assert.match(network, /DATA_STATE\.UNAVAILABLE/);
-  assert.match(network, /checkedAt/);
   assert.match(network, /NETWORK PROOF/);
   assert.match(onchain, /DATA_STATE\.CHECKING/);
   assert.match(onchain, /DATA_STATE\.LIVE/);
-  assert.match(onchain, /DATA_STATE\.UNAVAILABLE/);
-  assert.match(onchain, /observedAt/);
   assert.match(onchain, /ON-CHAIN EVIDENCE/);
+  assert.match(surface, /DATA_STATE\.UNAVAILABLE/);
+  assert.match(surface, /networkPayload\?\.checkedAt/);
+  assert.match(surface, /onChainPayload\?\.observedAt/);
+  assert.match(surface, /NETWORK_ENDPOINT = '\/api\/kam\/network-status'/);
+  assert.match(surface, /ONCHAIN_ENDPOINT = '\/api\/zvq-token-intelligence'/);
 });
 
 test('Phase 15B provenance component makes state source and time machine-readable', async () => {
