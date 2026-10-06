@@ -23,6 +23,9 @@ test('Phase 15D production browser proof matches the current canonical network t
   assert.match(script, /desktop-1440/);
   assert.match(script, /page\.screenshot/);
   assert.match(script, /scrollWidth <= config\.width \+ 1/);
+  assert.match(script, /:scope > section/);
+  assert.match(script, /ON-CHAIN EVIDENCE/);
+  assert.match(script, /waitForTimeout\(250\)/);
   assert.match(script, /pageErrors/);
 });
 

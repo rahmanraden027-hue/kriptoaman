@@ -69,16 +69,16 @@ try {
       await page.waitForFunction(() => {
         const ticker = document.querySelector('section[aria-label="Live market ticker"]');
         const verify = document.querySelector('#verify');
-        const sections = [...document.querySelectorAll('section')];
-        const onChain = sections.find(node => /ON-CHAIN NOW/.test(node.textContent || ''));
         const networkLayer = document.querySelector('[data-command-layer="network"]');
-        const zvq = networkLayer && [...networkLayer.querySelectorAll('section')]
-          .find(node => /ZEVARYQ/.test(node.textContent || '') && /VERIFIED/.test(node.textContent || ''));
+        const networkSections = networkLayer ? [...networkLayer.querySelectorAll(':scope > section')] : [];
+        const onChain = networkSections.find(node => /ON-CHAIN NOW/.test(node.textContent || ''));
+        const zvq = networkSections.find(node => /ZEVARYQ/.test(node.textContent || '') && /VERIFIED/.test(node.textContent || ''));
         return Boolean(
           ticker
           && /●\s*LIVE/.test(ticker.textContent || '')
           && verify
           && onChain
+          && /ON-CHAIN EVIDENCE/.test(onChain.textContent || '')
           && /#\s*[\d,]+/.test(onChain.textContent || '')
           && zvq
           && /●\s*VERIFIED/.test(zvq.textContent || '')
@@ -88,14 +88,16 @@ try {
         );
       }, null, { timeout: 45000, polling: 500 });
 
+      // Let response events flush after the exact On-Chain component becomes live.
+      await page.waitForTimeout(250);
+
       const snapshot = await page.evaluate(() => {
         const root = document.documentElement;
         const ticker = document.querySelector('section[aria-label="Live market ticker"]');
-        const sections = [...document.querySelectorAll('section')];
-        const onChain = sections.find(node => /ON-CHAIN NOW/.test(node.textContent || ''));
         const networkLayer = document.querySelector('[data-command-layer="network"]');
-        const zvq = networkLayer && [...networkLayer.querySelectorAll('section')]
-          .find(node => /ZEVARYQ/.test(node.textContent || '') && /VERIFIED/.test(node.textContent || ''));
+        const networkSections = networkLayer ? [...networkLayer.querySelectorAll(':scope > section')] : [];
+        const onChain = networkSections.find(node => /ON-CHAIN NOW/.test(node.textContent || ''));
+        const zvq = networkSections.find(node => /ZEVARYQ/.test(node.textContent || '') && /VERIFIED/.test(node.textContent || ''));
         const verify = document.querySelector('#verify');
         const commandLayers = [...document.querySelectorAll('[data-command-layer]')]
           .map(node => node.getAttribute('data-command-layer'));
