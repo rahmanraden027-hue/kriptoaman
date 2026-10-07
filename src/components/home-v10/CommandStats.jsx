@@ -9,7 +9,7 @@ const safeSum = (assets, key) => (Array.isArray(assets) ? assets : []).reduce((s
 }, 0);
 
 const toneFor = (state) => {
-  if ([DATA_STATE.LIVE, DATA_STATE.SYNCED, DATA_STATE.VERIFIED].includes(state)) return 'text-emerald-300';
+  if ([DATA_STATE.LIVE, DATA_STATE.SYNCED, DATA_STATE.VERIFIED, DATA_STATE.INDEXED].includes(state)) return 'text-emerald-300';
   if ([DATA_STATE.DELAYED, DATA_STATE.SNAPSHOT, DATA_STATE.CHECKING].includes(state)) return 'text-amber-300';
   return 'text-slate-300';
 };
