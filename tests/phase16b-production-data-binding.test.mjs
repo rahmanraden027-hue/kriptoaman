@@ -51,7 +51,9 @@ test('phase 16B data states and provenance remain machine-readable and fail-clos
   assert.match(provenance, /data-data-source=/);
   assert.match(provenance, /data-data-timestamp=/);
   assert.match(provenance, /data-data-age-ms=/);
-  assert.match(market, /state = DATA_STATE\.DELAYED/);
+  assert.match(market, /marketSnapshotState/);
+  assert.match(market, /isStale: Boolean/);
+  assert.match(market, /truthMode: 'snapshot'/);
   assert.doesNotMatch(market, /Math\.random/);
 });
 
