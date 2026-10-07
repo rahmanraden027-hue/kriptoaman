@@ -21,7 +21,7 @@ try {
     const page = await context.newPage();
 
     await page.goto(TARGET, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await page.locator('section[aria-label="Live market ticker"]').waitFor({ state: 'attached', timeout: 30000 });
+    await page.locator('section[aria-label="Market ticker"]').waitFor({ state: 'attached', timeout: 30000 });
     await page.locator('#home-v10-content').waitFor({ state: 'attached', timeout: 30000 });
     await page.waitForTimeout(1800);
 
@@ -31,7 +31,7 @@ try {
       const nav = document.querySelector('nav[aria-label="Mobile primary navigation"]');
       const verify = document.querySelector('#verify');
       const explorer = document.querySelector('a[href="https://explorer.kriptoaman.com"]');
-      const ticker = document.querySelector('section[aria-label="Live market ticker"]');
+      const ticker = document.querySelector('section[aria-label="Market ticker"]');
       const install = document.querySelector('[data-install-cta="true"]');
       const brandRect = brand?.getBoundingClientRect();
       const searchRect = search?.getBoundingClientRect();
