@@ -49,6 +49,8 @@ try {
         explorerPresent: Boolean(explorer),
         featuredTruthful:
           document.body.innerText.includes('MOVING NOW') ||
+          document.body.innerText.includes('MARKET SNAPSHOT') ||
+          document.body.innerText.includes('DELAYED MARKET VIEW') ||
           document.body.innerText.includes('No verified featured asset available.'),
         installVisible: Boolean(install),
       };
