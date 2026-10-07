@@ -17,7 +17,10 @@ await mkdir(evidenceDir, { recursive: true });
 const runId = String(process.env.GITHUB_RUN_ID || 'manual').replace(/[^0-9a-z_-]/gi, '');
 const url = 'https://kriptoaman.com/?phase15d_production_lock=' + runId + '&phase16d_live_lock=' + runId;
 const cases = [
+  { name: 'compact-mobile-360', width: 360, height: 800 },
   { name: 'mobile-390', width: 390, height: 844 },
+  { name: 'large-mobile-430', width: 430, height: 932 },
+  { name: 'tablet-768', width: 768, height: 1024 },
   { name: 'desktop-1440', width: 1440, height: 1000 },
 ];
 const requiredApis = [
@@ -30,6 +33,7 @@ let browser;
 const report = [];
 
 const PHASE16C_VISUAL_MARKER = 'phase16c-final-command-center-v1';
+const MASTER_FINAL_MARKER = 'clean-command-center-v1';
 
 async function waitForLiveDeployment(page, resetEvidence) {
   let lastStatus = null;
@@ -44,12 +48,13 @@ async function waitForLiveDeployment(page, resetEvidence) {
     if (lastStatus === 200) {
       try {
         await page.waitForFunction(
-          marker => Boolean(
-            document.querySelector('main[data-visual-integration="' + marker + '"]')
+          markers => Boolean(
+            document.querySelector('main[data-visual-integration="' + markers.visual + '"]')
+            && document.querySelector('main[data-master-final="' + markers.master + '"]')
             && document.querySelector('[data-phase16c-command-center="true"]')
             && /KRIPTOAMAN/i.test(document.body.innerText || '')
           ),
-          PHASE16C_VISUAL_MARKER,
+          { visual: PHASE16C_VISUAL_MARKER, master: MASTER_FINAL_MARKER },
           { timeout: 15000, polling: 500 },
         );
         return;
@@ -79,6 +84,9 @@ try {
     const context = await browser.newContext({
       viewport: { width: config.width, height: config.height },
       deviceScaleFactor: 1,
+      isMobile: config.width < 768,
+      hasTouch: config.width < 768,
+      reducedMotion: 'reduce',
       serviceWorkers: 'block',
     });
     const page = await context.newPage();
@@ -128,6 +136,8 @@ try {
           && /#[\d,]+/.test(zvq.textContent || '')
           && document.querySelector('main[data-command-release="phase15d"]')
           && document.querySelector('main[data-visual-integration="phase16c-final-command-center-v1"]')
+          && document.querySelector('main[data-master-final="clean-command-center-v1"]')
+          && document.querySelector('section[data-master-kpi-count="4"]')
           && document.querySelector('[data-phase16c-command-center="true"]')
         );
       }, null, { timeout: 45000, polling: 500 });
@@ -148,6 +158,17 @@ try {
         const tickerSymbols = ticker
           ? [...ticker.querySelectorAll('b')].map(node => node.textContent?.trim()).filter(Boolean)
           : [];
+        const search = [...document.querySelectorAll('header a[href="/Market"][aria-label]')].find(node => {
+          const rect = node.getBoundingClientRect();
+          return rect.width > 0 && rect.height > 0;
+        });
+        const searchRect = search?.getBoundingClientRect();
+        const mobileNav = document.querySelector('nav[aria-label="Mobile primary navigation"]');
+        const navStyle = mobileNav ? getComputedStyle(mobileNav) : null;
+        const kpiRail = document.querySelector('section[data-master-kpi-count="4"]');
+        const orbit = document.querySelector('[data-command-orbit="calm"]');
+        const orbitStyle = orbit ? getComputedStyle(orbit) : null;
+        const orivexRoadmap = document.querySelector('[data-ecosystem-product="ORIVEX"][data-product-status="roadmap"]');
         return {
           viewport: innerWidth,
           scrollWidth: root.scrollWidth,
@@ -160,14 +181,32 @@ try {
           oldPromoCopyPresent: /Production Command Center|Official Launch 2026/i.test(document.body.innerText),
           commandRelease: document.querySelector('main')?.getAttribute('data-command-release') || null,
           visualIntegration: document.querySelector('main')?.getAttribute('data-visual-integration') || null,
+          masterFinal: document.querySelector('main')?.getAttribute('data-master-final') || null,
+          animationPolish: document.querySelector('main')?.getAttribute('data-animation-polish') || null,
           commandCenterReady: Boolean(document.querySelector('[data-phase16c-command-center="true"]')),
           commandLayers,
           assetsTracked: Number(document.querySelector('[data-assets-tracked]')?.getAttribute('data-assets-tracked')) || null,
+          kpiCount: kpiRail?.children?.length || 0,
+          searchWidth: searchRect?.width || 0,
+          searchHeight: searchRect?.height || 0,
+          mobileNavDisplay: navStyle?.display || 'missing',
+          orbitAnimationName: orbitStyle?.animationName || 'missing',
+          orivexRoadmap: Boolean(orivexRoadmap),
+          orivexRoadmapIsLink: Boolean(orivexRoadmap?.closest('a')),
         };
       });
 
       assert.equal(snapshot.viewport, config.width, 'viewport width');
       assert.ok(snapshot.scrollWidth <= config.width + 1, 'no horizontal overflow at ' + config.width + 'px');
+      assert.equal(snapshot.masterFinal, MASTER_FINAL_MARKER, 'master final command-center marker');
+      assert.equal(snapshot.animationPolish, 'calm-reduced-motion-safe-v1', 'animation polish marker');
+      assert.equal(snapshot.kpiCount, 4, 'master KPI rail must contain exactly four verified metrics');
+      assert.ok(snapshot.searchWidth >= 44 && snapshot.searchHeight >= 44, 'visible search target must remain >=44px');
+      if (config.width < 768) assert.notEqual(snapshot.mobileNavDisplay, 'none', 'mobile navigation visible below 768px');
+      else assert.equal(snapshot.mobileNavDisplay, 'none', 'mobile navigation hidden at tablet/desktop');
+      assert.equal(snapshot.orbitAnimationName, 'none', 'reduced-motion proof must disable decorative orbit animation');
+      assert.equal(snapshot.orivexRoadmap, true, 'ORIVEX roadmap identity must be present');
+      assert.equal(snapshot.orivexRoadmapIsLink, false, 'ORIVEX roadmap must not pretend to be a live route');
       assert.match(snapshot.tickerText, /●\s*LIVE/, 'market ticker must be LIVE');
       assert.ok(snapshot.tickerSymbols.length >= 5, 'market ticker must display real assets');
       assert.equal(snapshot.verifyReady, true, 'Verify Anything input and submit must be available');
@@ -232,9 +271,12 @@ try {
         zvq: snapshot.zvqText.match(/#[\d,]+/)?.[0] || null,
         release: snapshot.commandRelease,
         visualIntegration: snapshot.visualIntegration,
+        masterFinal: snapshot.masterFinal,
         commandCenterReady: snapshot.commandCenterReady,
         hierarchy: snapshot.commandLayers,
         assetsTracked: snapshot.assetsTracked,
+        kpiCount: snapshot.kpiCount,
+        reducedMotionOrbit: snapshot.orbitAnimationName,
         jsErrors: pageErrors.length,
       }));
     } catch (error) {
@@ -267,7 +309,7 @@ try {
     JSON.stringify({
       checkedAt: new Date().toISOString(),
       url,
-      scope: 'read-only KriptoAman Phase 16D post-merge live domain lock',
+      scope: 'read-only KriptoAman master-final five-device production lock',
       report,
     }, null, 2),
   );
