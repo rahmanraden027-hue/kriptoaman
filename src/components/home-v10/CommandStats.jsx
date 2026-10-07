@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
-import { Activity, Blocks, Database, Gauge, Radio, TrendingUp } from 'lucide-react';
+import { Activity, Blocks, Database, Gauge } from 'lucide-react';
 import { DATA_STATE } from '@/lib/dataState';
-import { formatCompactUsd, formatPrice } from './format';
+import { formatCompactUsd } from './format';
 
 const safeSum = (assets, key) => (Array.isArray(assets) ? assets : []).reduce((sum, asset) => {
   const value = Number(asset?.[key]);
@@ -35,17 +35,9 @@ function StatCard({ icon: Icon, label, value, detail, state }) {
 export default function CommandStats({ market, zevaryq }) {
   const metrics = useMemo(() => {
     const assets = Array.isArray(market?.assets) ? market.assets : [];
-    const positive = Number(market?.breadth?.positive || 0);
-    const negative = Number(market?.breadth?.negative || 0);
-    const breadthTotal = positive + negative;
-    const breadth = breadthTotal > 0 ? (positive / breadthTotal) * 100 : null;
-    const zvq = assets.find((asset) => String(asset?.sym || '').toUpperCase() === 'ZVQ') || null;
-
     return {
       tracked: Number(market?.rawAssetCount || market?.assetCount || 0),
       volume: safeSum(assets, 'volume'),
-      breadth,
-      zvq,
     };
   }, [market]);
 
@@ -71,20 +63,6 @@ export default function CommandStats({ market, zevaryq }) {
       state: marketState,
     },
     {
-      icon: TrendingUp,
-      label: 'Market breadth',
-      value: Number.isFinite(metrics.breadth) ? metrics.breadth.toFixed(1) + '% naik' : '—',
-      detail: market?.breadth ? market.breadth.positive + ' up · ' + market.breadth.negative + ' down' : marketState,
-      state: marketState,
-    },
-    {
-      icon: Radio,
-      label: 'ZVQ market',
-      value: metrics.zvq ? formatPrice(metrics.zvq.price) : '—',
-      detail: metrics.zvq ? marketState : 'UNAVAILABLE',
-      state: metrics.zvq ? marketState : DATA_STATE.UNAVAILABLE,
-    },
-    {
       icon: Blocks,
       label: 'ZEVARYQ head',
       value: Number.isSafeInteger(block) ? '#' + block.toLocaleString('en-US') : '—',
@@ -101,7 +79,13 @@ export default function CommandStats({ market, zevaryq }) {
   ];
 
   return (
-    <section aria-label="Live command statistics" data-assets-tracked={metrics.tracked || ''} className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
+    <section
+      aria-label="Live command statistics"
+      data-assets-tracked={metrics.tracked || ''}
+      data-master-kpi-count="4"
+      data-kpi-source-mode="verified-live-only"
+      className="grid grid-cols-2 gap-2 lg:grid-cols-4"
+    >
       {cards.map((card) => <StatCard key={card.label} {...card} />)}
     </section>
   );
