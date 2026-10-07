@@ -100,21 +100,8 @@ export default function useZevaryqSurface() {
     );
     const networkAgeMs = ageFrom(networkPayload?.checkedAt, networkResult.receivedAt);
     const networkFresh = Number.isFinite(networkAgeMs) && networkAgeMs <= ZEVARYQ_FRESHNESS.networkMs;
+    const networkStatusUsable = networkIdentityVerified && networkFresh;
     const syncStatus = String(networkPayload?.syncStatus || '').toLowerCase();
-
-    let networkState = DATA_STATE.CHECKING;
-    if (!networkResult.checking) {
-      if (!networkIdentityVerified) networkState = DATA_STATE.UNAVAILABLE;
-      else if (!networkFresh) networkState = DATA_STATE.DELAYED;
-      else if (syncStatus === 'synced') networkState = DATA_STATE.LIVE;
-      else networkState = DATA_STATE.VERIFIED;
-    }
-
-    const syncState = !networkIdentityVerified
-      ? (networkResult.checking ? DATA_STATE.CHECKING : DATA_STATE.UNAVAILABLE)
-      : syncStatus === 'synced'
-        ? DATA_STATE.SYNCED
-        : DATA_STATE.CHECKING;
 
     const onChainPayload = onChainResult.payload;
     const onChainHead = Number(onChainPayload?.head?.number);
@@ -136,6 +123,60 @@ export default function useZevaryqSurface() {
       else onChainState = DATA_STATE.LIVE;
     }
 
+    // Runtime state unification: a fresh first-party JSON-RPC evidence head can
+    // corroborate network availability when the status endpoint is temporarily
+    // stale/unavailable. It never fabricates SYNCED: sync remains CHECKING
+    // until the canonical network-status endpoint proves it.
+    const networkCorroboratedByOnChain = Boolean(
+      !networkStatusUsable
+      && onChainVerified
+      && onChainFresh,
+    );
+    const networkSourceMode = networkStatusUsable
+      ? 'NETWORK_STATUS'
+      : networkCorroboratedByOnChain
+        ? 'FIRST_PARTY_CORROBORATED'
+        : 'UNAVAILABLE';
+
+    const effectiveNetwork = networkStatusUsable
+      ? networkPayload
+      : networkCorroboratedByOnChain
+        ? Object.freeze({
+            blockNumber: onChainHead,
+            probeDurationMs: Number.isFinite(Number(onChainPayload?.latencyMs))
+              ? Number(onChainPayload.latencyMs)
+              : null,
+            checkedAt: onChainPayload?.observedAt || onChainResult.receivedAt,
+            live: true,
+            verified: true,
+            chainId: EXPECTED_CHAIN_ID,
+            chainIdHex: EXPECTED_CHAIN_ID_HEX,
+            syncStatus: 'checking',
+            evidenceMode: 'FIRST_PARTY_CORROBORATED',
+          })
+        : null;
+
+    let networkState = DATA_STATE.CHECKING;
+    if (!networkResult.checking || !onChainResult.checking) {
+      if (networkStatusUsable) networkState = syncStatus === 'synced' ? DATA_STATE.LIVE : DATA_STATE.VERIFIED;
+      else if (networkCorroboratedByOnChain) networkState = DATA_STATE.VERIFIED;
+      else if (networkIdentityVerified && !networkFresh) networkState = DATA_STATE.DELAYED;
+      else networkState = DATA_STATE.UNAVAILABLE;
+    }
+
+    const syncState = networkStatusUsable
+      ? (syncStatus === 'synced' ? DATA_STATE.SYNCED : DATA_STATE.CHECKING)
+      : networkCorroboratedByOnChain
+        ? DATA_STATE.CHECKING
+        : (networkResult.checking ? DATA_STATE.CHECKING : DATA_STATE.UNAVAILABLE);
+
+    const effectiveNetworkAgeMs = networkSourceMode === 'NETWORK_STATUS' ? networkAgeMs : onChainAgeMs;
+    const effectiveNetworkObservedAt = networkSourceMode === 'NETWORK_STATUS'
+      ? (networkPayload?.checkedAt || networkResult.receivedAt)
+      : networkSourceMode === 'FIRST_PARTY_CORROBORATED'
+        ? (onChainPayload?.observedAt || onChainResult.receivedAt)
+        : (networkPayload?.checkedAt || networkResult.receivedAt);
+
     const overallState = networkState === DATA_STATE.LIVE && onChainState === DATA_STATE.LIVE
       ? DATA_STATE.LIVE
       : [networkState, onChainState].includes(DATA_STATE.UNAVAILABLE)
@@ -148,10 +189,12 @@ export default function useZevaryqSurface() {
 
     return Object.freeze({
       overallState,
-      network: networkIdentityVerified ? networkPayload : null,
+      network: effectiveNetwork,
       networkState,
-      networkAgeMs,
-      networkObservedAt: networkPayload?.checkedAt || networkResult.receivedAt,
+      networkAgeMs: effectiveNetworkAgeMs,
+      networkObservedAt: effectiveNetworkObservedAt,
+      networkSourceMode,
+      networkCorroboratedByOnChain,
       syncState,
       onChain: onChainVerified ? onChainPayload : null,
       onChainState,
