@@ -8,7 +8,7 @@ const script=html.match(/<script>([\s\S]*?)<\/script>/i)?.[1]||'';
 
 test('reference fidelity uses only the preserved, approved official logo in all three placements',()=>{
  assert.equal((html.match(/class="official-emblem"/g)||[]).length,3);
- assert.equal((html.match(/zevaryq-master-v2\.svg\?v=20261008-zevaryq-identity-v2/g)||[]).length,3);
+ assert.equal((html.match(/src="\/zevaryq-assets\/zevaryq-master-v2\.svg\?v=20261008-zevaryq-identity-v2"/g)||[]).length,3);
  assert.match(html,/data-zvq-reference-visual="blue-gold-orbital-20260924"/);
  assert.equal((html.match(/viewBox="0 0 140 80"/g)||[]).length,6,'three detailed satellites in each globe scene');
  assert.match(html,/class="reference-orbit-art"/);
