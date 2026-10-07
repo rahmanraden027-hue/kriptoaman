@@ -6,11 +6,8 @@ import {
   Blocks,
   ExternalLink,
   Gauge,
-  Globe2,
   Radio,
   ShieldCheck,
-  Timer,
-  Waypoints,
 } from 'lucide-react';
 import CrossSurfaceRail from '@/components/command/CrossSurfaceRail';
 import DataProvenanceBar from '@/components/home-v10/DataProvenanceBar';
@@ -156,7 +153,6 @@ export default function ZEVARYQ() {
   const surface = useZevaryqSurface();
   const inspection = useZevaryqNetworkInspection();
 
-  const network = surface?.network || null;
   const metrics = inspection?.metrics || null;
   const evidence = inspection?.evidence || null;
   const blocks = inspection?.blocks || [];
