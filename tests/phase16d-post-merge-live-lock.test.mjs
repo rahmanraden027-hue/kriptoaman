@@ -15,7 +15,7 @@ test('Phase 16D production provenance tracks the current command center while pr
     'Market Overview',
     'Market Heatmap',
     'LIVE NETWORK PULSE',
-    'Mempool source',
+    'Pending-pool telemetry',
     'Global Crypto Intelligence',
     'Visual topology · verified core data only',
     'ZEVARYQ NETWORK · LIVE EVIDENCE',
