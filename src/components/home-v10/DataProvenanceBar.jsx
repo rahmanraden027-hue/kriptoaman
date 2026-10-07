@@ -44,17 +44,18 @@ export default function DataProvenanceBar({
 
   return (
     <div
-      className="flex min-h-8 items-center gap-2 overflow-hidden rounded-lg border border-white/[0.06] bg-black/[0.12] px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.07em]"
+      className="flex min-h-10 flex-wrap items-center gap-x-2 gap-y-1 overflow-hidden rounded-xl border border-white/[0.06] bg-black/[0.12] px-3 py-2 text-[9px] font-black uppercase tracking-[0.06em] sm:min-h-9 sm:flex-nowrap sm:py-1.5 sm:text-[8px]"
+      data-trust-signal="readable-v1"
       data-data-state={state}
       data-data-source={source}
       data-data-timestamp={timestamp || ''}
       data-data-age-ms={Number.isFinite(machineAge) && machineAge >= 0 ? Math.round(machineAge) : ''}
       aria-label={label + ' ' + state + ' from ' + source}
     >
-      <span className="shrink-0 text-slate-300">{label}</span>
-      <span className={'shrink-0 rounded-full border px-1.5 py-0.5 ' + toneFor(state)}>● {state}</span>
-      <span className="min-w-0 truncate normal-case tracking-normal text-slate-300">{source}</span>
-      <span className="ml-auto shrink-0 text-slate-300">
+      <span className="shrink-0 text-slate-200">{label}</span>
+      <span className={'shrink-0 rounded-full border px-2 py-0.5 ' + toneFor(state)}>● {state}</span>
+      <span className="order-3 w-full min-w-0 truncate normal-case tracking-normal text-[10px] font-semibold text-slate-200 sm:order-none sm:w-auto sm:text-[8px]">{source}</span>
+      <span className="ml-auto shrink-0 text-slate-200">
         {formatTimestamp(timestamp)}{age ? ' · ' + age : ''}
       </span>
     </div>
