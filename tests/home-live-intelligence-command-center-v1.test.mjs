@@ -65,7 +65,8 @@ test('market and network command surfaces fail closed instead of inventing unava
   assert.match(pulse, /data-pending-pool-telemetry="not-exposed"/);
   assert.match(pulse, /no synthetic transaction counts/);
   assert.match(stats, /data-master-kpi-count="4"/);
-  assert.match(stats, /data-kpi-source-mode="verified-live-only"/);
+  assert.match(stats, /data-kpi-source-mode="truth-scoped-v2"/);
+  assert.match(stats, /CATALOG ·/);
   assert.match(stats, /ZEVARYQ head/);
   assert.match(stats, /RPC probe/);
   assert.doesNotMatch(stats, /ZVQ market/);
