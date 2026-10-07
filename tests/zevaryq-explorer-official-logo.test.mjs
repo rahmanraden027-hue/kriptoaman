@@ -7,7 +7,7 @@ const root = new URL('../explorer-dashboard/', import.meta.url);
 const html = await readFile(new URL('zevaryq-production.html', root), 'utf8');
 const deploy = await readFile(new URL('../scripts/deploy-zevaryq-explorer.sh', import.meta.url), 'utf8');
 const approved = [
-  ['assets/zevaryq-emblem.webp', '3fcabc6475d975b65b49c5d6a88c5d1c6e64630b11d5674bfc773a92dd2ec95f'],
+  ['assets/zevaryq-emblem.webp', '3aa0912176c3a9c18d0a4b983553e3b05cfeaf7b6d165f02ecc01ff97ff650a4'],
   ['assets/zevaryq-favicon.png', '7cc9708233c2624b7b4f95b5ae0902c5cf1233e1648b271a5a41ab02dc95fffe'],
 ];
 
@@ -19,13 +19,13 @@ test('official ZVQ logo assets match the approved gold-and-blue files', async ()
 });
 
 test('one official logo is consistently used in header, hero and satellite view', () => {
-  assert.match(html, /data-zvq-official-logo="20260924-goldblue-zvq"/);
-  assert.match(html, /data-zvq-logo-integrity="sha256-3fcabc6475d975b65b49c5d6a88c5d1c6e64630b11d5674bfc773a92dd2ec95f"/);
+  assert.match(html, /data-zvq-official-logo="20261008-premium-zvq-v1"/);
+  assert.match(html, /data-zvq-logo-integrity="sha256-3aa0912176c3a9c18d0a4b983553e3b05cfeaf7b6d165f02ecc01ff97ff650a4"/);
   assert.equal((html.match(/class="official-emblem"/g) || []).length, 3);
   assert.equal((html.match(/class="earth-brandmark"/g) || []).length, 2);
   assert.match(html, /class="logo logo-zvq" role="img" aria-label="ZEVARYQ ZVQ official/);
-  assert.equal((html.match(/src="\/zevaryq-assets\/zevaryq-emblem\.webp\?v=20260924-goldblue-zvq"/g) || []).length, 3);
-  assert.match(html, /zevaryq-favicon\.png\?v=20260924-goldblue-zvq/);
+  assert.equal((html.match(/src="\/zevaryq-assets\/zevaryq-emblem\.webp\?v=20261008-premium-zvq-v1"/g) || []).length, 3);
+  assert.match(html, /zevaryq-favicon\.png\?v=20261008-premium-zvq-v1/);
   assert.equal((html.match(/class="official-logo-fallback"/g) || []).length, 3);
 });
 
