@@ -59,8 +59,9 @@ test('market and network command surfaces fail closed instead of inventing unava
   assert.match(grid, /Verified market data unavailable/);
   assert.match(grid, /text-\[8px\] font-black text-slate-300/);
   assert.doesNotMatch(grid, /text-\[8px\] font-black text-slate-500/);
-  assert.match(pulse, /Mempool source/);
-  assert.match(pulse, />UNAVAILABLE</);
+  assert.match(pulse, /Pending-pool telemetry/);
+  assert.match(pulse, />NOT EXPOSED</);
+  assert.match(pulse, /data-pending-pool-telemetry="not-exposed"/);
   assert.match(pulse, /no synthetic transaction counts/);
   assert.match(stats, /data-master-kpi-count="4"/);
   assert.match(stats, /data-kpi-source-mode="verified-live-only"/);
