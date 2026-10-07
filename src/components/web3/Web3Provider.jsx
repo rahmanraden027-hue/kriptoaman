@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { Capacitor, registerPlugin } from '@capacitor/core';
+import { ZEVARYQ_APP_ICON_ABSOLUTE } from '@/lib/zevaryqBrandAssets';
 
 const Web3Context = createContext(null);
 const NativeUtility = registerPlugin('KriptoAmanNative');
@@ -15,7 +16,7 @@ export const SUPPORTED_CHAINS = {
   42161: { name: 'Arbitrum',  symbol: 'ETH',  rpc: 'https://arb1.arbitrum.io/rpc',       explorer: 'https://arbiscan.io',             color: '#28A0F0' },
   8453:  { name: 'Base',      symbol: 'ETH',  rpc: 'https://mainnet.base.org',            explorer: 'https://basescan.org',            color: '#0052FF' },
   10:    { name: 'Optimism',  symbol: 'ETH',  rpc: 'https://mainnet.optimism.io',         explorer: 'https://optimistic.etherscan.io', color: '#FF0420' },
-  22028: { name: 'ZEVARYQ Mainnet', symbol: 'ZVQ', rpc: 'https://rpc.kriptoaman.com', explorer: 'https://explorer.kriptoaman.com', color: '#D8AA45', icon: 'https://kriptoaman.com/brand/zevaryq-mark.svg' },
+  22028: { name: 'ZEVARYQ Mainnet', symbol: 'ZVQ', rpc: 'https://rpc.kriptoaman.com', explorer: 'https://explorer.kriptoaman.com', color: '#D8AA45', icon: ZEVARYQ_APP_ICON_ABSOLUTE },
 };
 
 // Lazy-load viem only when needed (reduces initial bundle ~600KB)
@@ -172,7 +173,7 @@ export function Web3Provider({ children }) {
         name: 'ZEVARYQ Wallet',
         description: 'ZEVARYQ Mainnet wallet connection for the KriptoAman ecosystem',
         url: 'https://kriptoaman.com/wallet-app',
-        icons: ['https://kriptoaman.com/brand/zevaryq-wallet-premium-icon.webp'],
+        icons: [ZEVARYQ_APP_ICON_ABSOLUTE],
         redirect: {
           native: walletConnectNativeRedirect(),
           universal: 'https://kriptoaman.com/wallet-app',
