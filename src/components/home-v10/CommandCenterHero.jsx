@@ -14,6 +14,26 @@ const ORBIT_POSITIONS = [
   'right-[12%] bottom-[10%]',
 ];
 
+const ANCHOR_ORBIT_SYMBOLS = Object.freeze(['BTC', 'ETH', 'SOL', 'BNB', 'XRP']);
+
+const selectOrbitAssets = (assets) => {
+  const verified = Array.isArray(assets) ? assets.filter(Boolean) : [];
+  const bySymbol = new Map();
+  for (const asset of verified) {
+    const symbol = String(asset?.sym || '').toUpperCase();
+    if (symbol && !bySymbol.has(symbol)) bySymbol.set(symbol, asset);
+  }
+
+  const anchors = ANCHOR_ORBIT_SYMBOLS.map((symbol) => bySymbol.get(symbol)).filter(Boolean);
+  const used = new Set(anchors.map((asset) => String(asset.sym || '').toUpperCase()));
+  const mover = [...verified]
+    .filter((asset) => !used.has(String(asset?.sym || '').toUpperCase()))
+    .filter((asset) => Number.isFinite(Number(asset?.change24h)))
+    .sort((a, b) => Math.abs(Number(b.change24h)) - Math.abs(Number(a.change24h)))[0];
+
+  return [...anchors, ...(mover ? [mover] : [])].slice(0, ORBIT_POSITIONS.length);
+};
+
 const safeSum = (assets, key) => assets.reduce((sum, asset) => {
   const value = Number(asset?.[key]);
   return Number.isFinite(value) && value > 0 ? sum + value : sum;
@@ -69,10 +89,10 @@ function NetworkGlobe({ assets, zevaryq }) {
   const block = Number(zevaryq?.network?.blockNumber);
   const networkState = zevaryq?.networkState || DATA_STATE.CHECKING;
   const active = [DATA_STATE.LIVE, DATA_STATE.VERIFIED].includes(networkState);
-  const nodes = assets.slice(0, ORBIT_POSITIONS.length);
+  const nodes = selectOrbitAssets(assets);
 
   return (
-    <div className="relative mx-auto aspect-square w-full max-w-[520px]" data-visual-topology="kriptoaman-nexus-with-zevaryq-evidence">
+    <div className="relative mx-auto aspect-square w-full max-w-[520px]" data-visual-topology="kriptoaman-nexus-with-zevaryq-evidence" data-orbit-mode="anchor-plus-live-mover-v1">
       <div className="absolute inset-[5%] rounded-full bg-[radial-gradient(circle_at_43%_32%,rgba(56,189,248,.28),rgba(3,10,22,.70)_43%,rgba(1,6,14,.98)_72%)] shadow-[0_0_95px_rgba(14,165,233,.17),inset_0_0_60px_rgba(56,189,248,.10)]" />
       <div className="absolute inset-[8%] rounded-full border border-cyan-300/25 shadow-[inset_0_0_42px_rgba(34,211,238,.10)]" />
 
@@ -167,8 +187,8 @@ export default function CommandCenterHero({ market, zevaryq }) {
 
       <div className="relative flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.055] pb-3">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[8px] font-black uppercase tracking-[0.2em] text-cyan-300">LIVE INTELLIGENCE COMMAND CENTER</span>
-          <span className="text-[8px] font-black uppercase tracking-[0.14em] text-slate-400">REAL DATA · FIRST-PARTY EVIDENCE</span>
+          <span className="text-[9px] font-black uppercase tracking-[0.18em] text-cyan-300">LIVE INTELLIGENCE COMMAND CENTER</span>
+          <span className="hidden text-[8px] font-black uppercase tracking-[0.14em] text-slate-400 sm:inline">REAL DATA · FIRST-PARTY EVIDENCE</span>
         </div>
         <div className="flex flex-wrap gap-2">
           <StateBadge state={marketState} />
@@ -176,14 +196,14 @@ export default function CommandCenterHero({ market, zevaryq }) {
         </div>
       </div>
 
-      <div className="relative mt-3 grid gap-4 xl:grid-cols-[.9fr_1.15fr_.82fr] xl:items-center">
+      <div className="relative mt-4 grid gap-5 sm:mt-3 sm:gap-4 xl:grid-cols-[.9fr_1.15fr_.82fr] xl:items-center">
         <div className="py-2 sm:py-4">
           <p className="text-[9px] font-black uppercase tracking-[0.17em] text-cyan-300">KRIPTOAMAN · GLOBAL CRYPTO INTELLIGENCE</p>
           <h1 className="mt-3 max-w-xl text-3xl font-black leading-[1.01] tracking-[-0.055em] text-white sm:text-4xl lg:text-[46px]">
             Blockchain bergerak setiap detik.
             <span className="mt-1 block text-amber-200">Lihat. Pahami. Verifikasi.</span>
           </h1>
-          <p className="mt-4 max-w-lg text-sm leading-6 text-slate-300">
+          <p className="mt-4 max-w-lg text-[13px] leading-5 text-slate-300 sm:text-sm sm:leading-6">
             Market intelligence real-time, bukti on-chain first-party, dan risk context dalam satu command surface yang dapat diverifikasi.
           </p>
 
@@ -196,23 +216,23 @@ export default function CommandCenterHero({ market, zevaryq }) {
             </Link>
           </div>
 
-          <div className="mt-5 grid grid-cols-3 gap-2">
+          <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
             <div className="rounded-xl border border-white/[0.05] bg-white/[0.025] p-2.5">
-              <span className="block text-[7px] font-black uppercase tracking-[0.09em] text-slate-400">Tracked Cap</span>
-              <b className="mt-1 block truncate text-[11px] text-white">{metrics.cap > 0 ? formatCompactUsd(metrics.cap) : '—'}</b>
+              <span className="block text-[8px] font-black uppercase tracking-[0.08em] text-slate-300">Tracked Cap</span>
+              <b className="mt-1 block truncate text-xs text-white">{metrics.cap > 0 ? formatCompactUsd(metrics.cap) : '—'}</b>
             </div>
             <div className="rounded-xl border border-white/[0.05] bg-white/[0.025] p-2.5">
-              <span className="block text-[7px] font-black uppercase tracking-[0.09em] text-slate-400">24H Volume</span>
-              <b className="mt-1 block truncate text-[11px] text-white">{metrics.volume > 0 ? formatCompactUsd(metrics.volume) : '—'}</b>
+              <span className="block text-[8px] font-black uppercase tracking-[0.08em] text-slate-300">24H Volume</span>
+              <b className="mt-1 block truncate text-xs text-white">{metrics.volume > 0 ? formatCompactUsd(metrics.volume) : '—'}</b>
             </div>
             <div className="rounded-xl border border-white/[0.05] bg-white/[0.025] p-2.5">
-              <span className="block text-[7px] font-black uppercase tracking-[0.09em] text-slate-400">Breadth</span>
-              <b className="mt-1 block truncate text-[11px] text-white">{Number.isFinite(metrics.breadth) ? metrics.breadth.toFixed(1) + '%' : '—'}</b>
+              <span className="block text-[8px] font-black uppercase tracking-[0.08em] text-slate-300">Breadth</span>
+              <b className="mt-1 block truncate text-xs text-white">{Number.isFinite(metrics.breadth) ? metrics.breadth.toFixed(1) + '%' : '—'}</b>
             </div>
           </div>
         </div>
 
-        <NetworkGlobe assets={market?.featured || []} zevaryq={zevaryq} />
+        <NetworkGlobe assets={market?.assets || []} zevaryq={zevaryq} />
 
         <div className="rounded-[24px] border border-amber-300/[0.14] bg-[#06101d]/86 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,.025)]">
           <div className="flex items-center justify-between gap-3">

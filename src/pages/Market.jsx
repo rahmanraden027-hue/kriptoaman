@@ -112,7 +112,7 @@ const COPY = {
     load: 'Muat 100 aset berikutnya', remaining: 'tersisa', empty: 'Tidak ada hasil',
     emptyWatch: 'Belum ada aset di watchlist. Tekan bintang untuk menambahkan.',
     stale: 'Menampilkan snapshot terakhir yang berhasil disimpan. Pembaruan otomatis akan dilanjutkan saat koneksi pulih.',
-    cachedSource: 'Snapshot tersimpan', chartUnavailable: 'Grafik belum tersedia',
+    cachedSource: 'Snapshot tersimpan', chartUnavailable: '—', chartUnavailableLabel: 'Grafik belum tersedia untuk aset ini',
     hero: 'Pusat intelijen khusus crypto untuk memahami pasar, aset, aktivitas on-chain, provenance, dan risiko sebelum mengambil keputusan.',
     breadth: 'Market breadth', feeds: 'Data feeds', universe: 'Asset universe', mode: 'Intelligence mode',
   },
@@ -129,7 +129,7 @@ const COPY = {
     load: 'Load next 100 assets', remaining: 'remaining', empty: 'No results',
     emptyWatch: 'Your watchlist is empty. Press the star to add an asset.',
     stale: 'Showing the last successfully saved snapshot. Automatic updates will resume when connectivity returns.',
-    cachedSource: 'Saved snapshot', chartUnavailable: 'Chart unavailable',
+    cachedSource: 'Saved snapshot', chartUnavailable: '—', chartUnavailableLabel: 'Chart unavailable for this asset',
     hero: 'A crypto-only intelligence center for understanding markets, assets, on-chain activity, provenance, and risk before making decisions.',
     breadth: 'Market breadth', feeds: 'Data feeds', universe: 'Asset universe', mode: 'Intelligence mode',
   },
@@ -386,7 +386,7 @@ export default function Market({ compact = false }) {
                     {chartData.length > 1 ? (
                       <InteractiveSparkline data={chartData} up={isUp} height={28} width={64} />
                     ) : (
-                      <span className="inline-flex w-16 justify-center text-[8px] font-semibold text-slate-600">{text.chartUnavailable}</span>
+                      <span className="inline-flex w-16 justify-center text-[11px] font-semibold text-slate-500" aria-label={text.chartUnavailableLabel} title={text.chartUnavailableLabel}>{text.chartUnavailable}</span>
                     )}
                   </div>
                   <div className="shrink-0 text-right">

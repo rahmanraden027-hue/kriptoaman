@@ -50,7 +50,8 @@ test('Phase 15C compacts provenance and decision flow without hiding their contr
     read('src/components/home-v10/DataProvenanceBar.jsx'),
     read('src/components/home-v10/ProductFlowRail.jsx'),
   ]);
-  assert.match(provenance, /min-h-8/);
+  assert.match(provenance, /min-h-10/);
+  assert.match(provenance, /data-trust-signal="readable-v1"/);
   assert.match(provenance, /data-data-state=/);
   assert.match(provenance, /data-data-source=/);
   assert.match(flow, /Intelligence Flow/);
