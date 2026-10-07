@@ -64,9 +64,10 @@ async function snapshot(page) {
       submitEnabled: Boolean(submit && !submit.disabled),
       visualText,
       chain22028: /Chain ID\s*22028/i.test(visualText),
-      stateVerified: /\bVERIFIED\b/.test(visualText),
-      stateIndexed: /\bINDEXED\b/.test(visualText),
-      stateUnavailable: /\bUNAVAILABLE\b/.test(visualText),
+      stateVerified: /RPC\s*VERIFIED/i.test(visualText),
+      stateLive: /RPC\s*LIVE/i.test(visualText),
+      stateIndexed: /Explorer\s*INDEXED/i.test(visualText),
+      stateUnavailable: /RPC\s*UNAVAILABLE|Explorer\s*UNAVAILABLE/i.test(visualText),
       latestBlock: latest,
       independenceCopy: /autentikasi tidak bergantung pada telemetri blockchain|authentication is independent from blockchain telemetry/i.test(visualText),
     };
@@ -88,7 +89,7 @@ function validateGeometry(report, label) {
   assert(report.emailEnabled && report.passwordEnabled && report.submitEnabled, label + ': login controls are not available');
   assert(report.independenceCopy, label + ': auth-independence copy missing');
   assert(report.chain22028 || report.stateUnavailable, label + ': network identity neither verified nor failed closed');
-  assert(report.stateVerified || report.stateUnavailable, label + ': RPC state is neither VERIFIED nor UNAVAILABLE');
+  assert(report.stateLive || report.stateVerified || report.stateUnavailable, label + ': RPC state is neither LIVE/VERIFIED nor UNAVAILABLE');
   assert(report.stateIndexed || report.stateUnavailable, label + ': Explorer state is neither INDEXED nor UNAVAILABLE');
   if (report.latestBlock) {
     const n = Number(report.latestBlock.replaceAll(',', ''));
@@ -145,6 +146,19 @@ try {
       contentType: 'application/json',
       body: JSON.stringify({ error: 'Phase 11G forced fail-closed probe' }),
     }));
+    await page.route('**/api/zvq-token-intelligence*', route => route.fulfill({
+      status: 503,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'Phase 11G forced fail-closed probe' }),
+    }));
+    await page.route('**/api/zvq-live-blocks*', route => route.fulfill({
+      status: 503,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'Phase 11G forced fail-closed probe' }),
+    }));
+    // Transitional guard: the currently deployed pre-unification bundle may still
+    // request Blockscout directly. Keep this route blocked until the unified bundle
+    // is the production baseline, so fail-closed evidence remains valid across rollout.
     await page.route('https://explorer.kriptoaman.com/api/v2/blocks*', route => route.fulfill({
       status: 503,
       contentType: 'application/json',
@@ -158,7 +172,7 @@ try {
     assert(report.stateUnavailable, device.name + ' fail-closed: UNAVAILABLE state missing');
     assert(report.emailEnabled && report.passwordEnabled && report.submitEnabled, device.name + ' fail-closed: login controls became unavailable');
     assert(report.scrollWidth <= report.width + 1, device.name + ' fail-closed: horizontal overflow');
-    assert(!report.stateVerified && !report.stateIndexed, device.name + ' fail-closed: unavailable telemetry was presented as live');
+    assert(!report.stateLive && !report.stateVerified && !report.stateIndexed, device.name + ' fail-closed: unavailable telemetry was presented as live');
 
     await page.screenshot({ path: 'phase11g-evidence/' + device.name + '-fail-closed.png', fullPage: true });
     await fs.writeFile(

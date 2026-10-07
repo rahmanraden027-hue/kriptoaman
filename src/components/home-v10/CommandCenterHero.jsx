@@ -168,6 +168,10 @@ export default function CommandCenterHero({ market, zevaryq }) {
   const onChain = zevaryq?.onChain || null;
   const block = Number(zevaryq?.network?.blockNumber);
   const onChainHead = Number(onChain?.head?.number);
+  const contractCountIsWindowFact = onChain?.truthPolicy?.contractCreationCountIsObservedWindowFact === true;
+  const metadataCountIsWindowFact = onChain?.truthPolicy?.tokenMetadataProvenCountIsObservedWindowFact === true;
+  const contractsObserved = contractCountIsWindowFact ? (onChain?.radar?.contractCreationsObserved ?? '—') : 'NOT EXPOSED';
+  const metadataProven = metadataCountIsWindowFact ? (onChain?.radar?.tokenMetadataProven ?? '—') : 'NOT EXPOSED';
 
   return (
     <section
@@ -245,14 +249,14 @@ export default function CommandCenterHero({ market, zevaryq }) {
             </span>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="mt-4 grid grid-cols-2 gap-2" data-zero-evidence-semantics="observed-window-fact">
             {[
               ['Chain ID', String(zevaryq?.contract?.chainId || 22028), networkState],
               ['Latest Block', Number.isSafeInteger(block) ? '#' + block.toLocaleString('en-US') : '—', networkState],
               ['Sync', zevaryq?.syncState || DATA_STATE.CHECKING, zevaryq?.syncState || DATA_STATE.CHECKING],
               ['Evidence Head', Number.isSafeInteger(onChainHead) ? '#' + onChainHead.toLocaleString('en-US') : '—', zevaryq?.onChainState || DATA_STATE.CHECKING],
-              ['Contracts', onChain?.radar?.contractCreationsObserved ?? '—', zevaryq?.onChainState || DATA_STATE.CHECKING],
-              ['Metadata', onChain?.radar?.tokenMetadataProven ?? '—', zevaryq?.onChainState || DATA_STATE.CHECKING],
+              ['Contracts observed', contractsObserved, zevaryq?.onChainState || DATA_STATE.CHECKING],
+              ['Metadata proven', metadataProven, zevaryq?.onChainState || DATA_STATE.CHECKING],
             ].map(([label, value, state]) => (
               <div key={label} className="rounded-2xl border border-white/[0.055] bg-white/[0.022] p-3">
                 <p className="truncate text-sm font-black text-white">{value}</p>

@@ -53,11 +53,13 @@ export default function MarketCommandGrid({ market, zevaryq }) {
   const onChain = zevaryq?.onChain || null;
   const onChainState = zevaryq?.onChainState || DATA_STATE.CHECKING;
 
+  const contractCountIsWindowFact = onChain?.truthPolicy?.contractCreationCountIsObservedWindowFact === true;
+  const metadataCountIsWindowFact = onChain?.truthPolicy?.tokenMetadataProvenCountIsObservedWindowFact === true;
   const evidence = [
     ['Evidence head', Number.isSafeInteger(Number(onChain?.head?.number)) ? '#' + Number(onChain.head.number).toLocaleString('en-US') : '—'],
     ['Scanned blocks', onChain?.radar?.scannedBlocks ?? '—'],
-    ['Contract creation', onChain?.radar?.contractCreationsObserved ?? '—'],
-    ['Metadata proven', onChain?.radar?.tokenMetadataProven ?? '—'],
+    ['Contracts observed', contractCountIsWindowFact ? (onChain?.radar?.contractCreationsObserved ?? '—') : 'NOT EXPOSED'],
+    ['Metadata proven', metadataCountIsWindowFact ? (onChain?.radar?.tokenMetadataProven ?? '—') : 'NOT EXPOSED'],
     ['Confirmation depth', onChain?.radar?.confirmationDepth ?? '—'],
     ['RPC latency', Number.isFinite(Number(onChain?.latencyMs)) ? Math.round(Number(onChain.latencyMs)) + ' ms' : '—'],
   ];

@@ -18,14 +18,16 @@ export default function NetworkPulse({ surface }) {
   const blockSequence = Number.isSafeInteger(head) && head >= 5
     ? Array.from({ length: 6 }, (_, index) => head - 5 + index)
     : [];
+  const contractCountIsWindowFact = onChain?.truthPolicy?.contractCreationCountIsObservedWindowFact === true;
+  const metadataCountIsWindowFact = onChain?.truthPolicy?.tokenMetadataProvenCountIsObservedWindowFact === true;
 
   const metrics = [
     ['Sync', surface?.syncState || DATA_STATE.CHECKING],
     ['Evidence head', Number.isSafeInteger(Number(onChain?.head?.number)) ? '#' + Number(onChain.head.number).toLocaleString('en-US') : '—'],
     ['Scanned blocks', onChain?.radar?.scannedBlocks ?? '—'],
     ['Confirmation', onChain?.radar?.confirmationDepth ?? '—'],
-    ['Contracts', onChain?.radar?.contractCreationsObserved ?? '—'],
-    ['Metadata proven', onChain?.radar?.tokenMetadataProven ?? '—'],
+    ['Contracts observed', contractCountIsWindowFact ? (onChain?.radar?.contractCreationsObserved ?? '—') : 'NOT EXPOSED'],
+    ['Metadata proven', metadataCountIsWindowFact ? (onChain?.radar?.tokenMetadataProven ?? '—') : 'NOT EXPOSED'],
   ];
 
   return (
@@ -88,7 +90,7 @@ export default function NetworkPulse({ surface }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2" data-zero-evidence-semantics="observed-window-fact">
           {metrics.map(([label, value]) => (
             <div key={label} className="rounded-2xl border border-white/[0.05] bg-white/[0.022] p-3">
               <b className="block truncate text-sm text-white">{value}</b>

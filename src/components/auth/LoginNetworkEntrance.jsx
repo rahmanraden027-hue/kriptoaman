@@ -1,23 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Radio, ShieldCheck } from 'lucide-react';
+import useZevaryqSurface from '@/hooks/useZevaryqSurface';
+import useZevaryqNetworkInspection from '@/hooks/useZevaryqNetworkInspection';
+import { DATA_STATE } from '@/lib/dataState';
 
-const REFRESH_MS = 15000;
-const EXPLORER_BLOCKS = 'https://explorer.kriptoaman.com/api/v2/blocks';
-const EXPECTED_CHAIN_ID = 22028;
-const EXPECTED_CHAIN_HEX = '0x560c';
-
-function readBlock(item) {
-  const height = Number(item?.height);
-  const hash = String(item?.hash || '');
-  if (!Number.isSafeInteger(height) || height < 0 || !/^0x[0-9a-fA-F]{64}$/.test(hash)) return null;
-  return {
-    height,
-    hash,
-    txCount: Number.isFinite(Number(item?.tx_count ?? item?.transaction_count))
-      ? Number(item.tx_count ?? item.transaction_count)
-      : null,
-  };
-}
+const positiveState = (state) => [DATA_STATE.LIVE, DATA_STATE.VERIFIED, DATA_STATE.SYNCED, DATA_STATE.INDEXED].includes(state);
 
 function shortHash(value) {
   return typeof value === 'string' && value.length > 14
@@ -25,95 +12,74 @@ function shortHash(value) {
     : '—';
 }
 
-function Metric({ label, value, live }) {
+function Metric({ label, value, state }) {
+  const live = positiveState(state);
+  const checking = state === DATA_STATE.CHECKING || state === DATA_STATE.DELAYED;
   return (
-    <div className="rounded-2xl border border-white/[0.07] bg-white/[0.035] px-3 py-2.5 backdrop-blur-md">
+    <div className="rounded-2xl border border-white/[0.07] bg-white/[0.035] px-3 py-2.5 backdrop-blur-md" data-truth-state={state}>
       <p className="text-[8px] font-black uppercase tracking-[0.14em] text-slate-500">{label}</p>
       <div className="mt-1 flex items-center gap-2">
-        <span className={live ? 'h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_14px_rgba(110,231,183,.85)]' : 'h-2 w-2 rounded-full bg-slate-600'} />
-        <span className={live ? 'text-[11px] font-black text-white' : 'text-[11px] font-black text-slate-400'}>{value}</span>
+        <span className={live
+          ? 'h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_14px_rgba(110,231,183,.85)]'
+          : checking
+            ? 'h-2 w-2 rounded-full bg-amber-300 shadow-[0_0_12px_rgba(252,211,77,.5)]'
+            : 'h-2 w-2 rounded-full bg-slate-600'} />
+        <span className={live
+          ? 'text-[11px] font-black text-white'
+          : checking
+            ? 'text-[11px] font-black text-amber-200'
+            : 'text-[11px] font-black text-slate-400'}>{value}</span>
       </div>
     </div>
   );
 }
 
 export default function LoginNetworkEntrance({ language = 'id' }) {
-  const [network, setNetwork] = useState(null);
-  const [blocks, setBlocks] = useState([]);
-  const [checkedAt, setCheckedAt] = useState(null);
-
-  useEffect(() => {
-    let active = true;
-    let timer;
-
-    const load = async () => {
-      const [networkResult, explorerResult] = await Promise.allSettled([
-        fetch('/api/kam/network-status', {
-          method: 'GET',
-          headers: { Accept: 'application/json' },
-          cache: 'no-store',
-        }).then(async response => {
-          if (!response.ok) throw new Error('network status unavailable');
-          const payload = await response.json();
-          const chainId = Number(payload?.chainId);
-          const chainHex = String(payload?.chainIdHex || '').toLowerCase();
-          const blockNumber = Number(payload?.blockNumber);
-          if (payload?.live !== true || payload?.verified !== true || chainId !== EXPECTED_CHAIN_ID || chainHex !== EXPECTED_CHAIN_HEX) {
-            throw new Error('network identity not verified');
-          }
-          if (!Number.isSafeInteger(blockNumber) || blockNumber < 0) throw new Error('invalid block height');
-          return payload;
-        }),
-        fetch(EXPLORER_BLOCKS, {
-          method: 'GET',
-          headers: { Accept: 'application/json' },
-          cache: 'no-store',
-        }).then(async response => {
-          if (!response.ok) throw new Error('explorer unavailable');
-          const payload = await response.json();
-          if (!Array.isArray(payload?.items)) throw new Error('invalid explorer payload');
-          return payload.items.map(readBlock).filter(Boolean).slice(0, 6);
-        }),
-      ]);
-
-      if (!active) return;
-      setNetwork(networkResult.status === 'fulfilled' ? networkResult.value : null);
-      setBlocks(explorerResult.status === 'fulfilled' ? explorerResult.value : []);
-      setCheckedAt(new Date());
-      timer = window.setTimeout(load, REFRESH_MS);
-    };
-
-    load();
-    return () => {
-      active = false;
-      window.clearTimeout(timer);
-    };
-  }, []);
+  const surface = useZevaryqSurface();
+  const inspection = useZevaryqNetworkInspection();
 
   const copy = language === 'en'
     ? {
         kicker: 'LIVE NETWORK EVIDENCE',
         title: 'See the network before you sign in.',
-        body: 'Read-only ZEVARYQ evidence is shown when verified sources respond. Account access remains available if network evidence is unavailable.',
+        body: 'The same verified ZEVARYQ truth surface used by KriptoAman is shown here in read-only mode. Account access remains independent from blockchain telemetry.',
         unavailable: 'UNAVAILABLE',
-        verified: 'VERIFIED',
+        checking: 'CHECKING',
         indexed: 'INDEXED',
         readOnly: 'Read-only evidence · authentication is independent from blockchain telemetry',
       }
     : {
         kicker: 'BUKTI JARINGAN LIVE',
         title: 'Lihat jaringan sebelum masuk.',
-        body: 'Bukti ZEVARYQ read-only ditampilkan hanya ketika sumber terverifikasi merespons. Akses akun tetap tersedia bila bukti jaringan tidak tersedia.',
+        body: 'Truth surface ZEVARYQ terverifikasi yang sama dengan KriptoAman ditampilkan di sini dalam mode read-only. Akses akun tetap independen dari telemetri blockchain.',
         unavailable: 'UNAVAILABLE',
-        verified: 'VERIFIED',
+        checking: 'CHECKING',
         indexed: 'INDEXED',
         readOnly: 'Bukti read-only · autentikasi tidak bergantung pada telemetri blockchain',
       };
 
-  const displayBlocks = useMemo(() => blocks.slice(0, 5), [blocks]);
-  const live = Boolean(network);
-  const explorerLive = displayBlocks.length > 0;
+  const network = surface?.network || null;
+  const networkState = surface?.networkState || DATA_STATE.CHECKING;
+  const displayBlocks = useMemo(() => (inspection?.blocks || []).slice(0, 5), [inspection?.blocks]);
   const blockNumber = Number(network?.blockNumber);
+
+  const indexedHead = Number(inspection?.metrics?.indexedHead);
+  const explorerIndexed = inspection?.verified && Number.isSafeInteger(indexedHead) && indexedHead >= 0;
+  const explorerState = explorerIndexed
+    ? DATA_STATE.INDEXED
+    : inspection?.state === DATA_STATE.CHECKING
+      ? DATA_STATE.CHECKING
+      : DATA_STATE.UNAVAILABLE;
+
+  const rpcValue = networkState === DATA_STATE.CHECKING
+    ? copy.checking
+    : positiveState(networkState)
+      ? networkState
+      : networkState || copy.unavailable;
+
+  const checkedAtRaw = inspection?.checkedAt || surface?.networkObservedAt || null;
+  const checkedAt = checkedAtRaw ? new Date(checkedAtRaw) : null;
+
   const positions = [
     { left: '18%', top: '28%', rotate: '-8deg' },
     { left: '55%', top: '18%', rotate: '9deg' },
@@ -123,7 +89,13 @@ export default function LoginNetworkEntrance({ language = 'id' }) {
   ];
 
   return (
-    <section className="relative min-h-[300px] overflow-hidden rounded-[30px] border border-cyan-300/15 bg-[#020914] p-5 text-white shadow-[0_30px_100px_-42px_rgba(14,165,233,.75)] sm:min-h-[360px] sm:p-6 lg:min-h-[650px] lg:p-8">
+    <section
+      className="relative min-h-[300px] overflow-hidden rounded-[30px] border border-cyan-300/15 bg-[#020914] p-5 text-white shadow-[0_30px_100px_-42px_rgba(14,165,233,.75)] sm:min-h-[360px] sm:p-6 lg:min-h-[650px] lg:p-8"
+      data-cross-surface-truth="zevaryq-surface-v1"
+      data-network-source={surface?.networkSourceMode || 'UNAVAILABLE'}
+      data-network-state={networkState}
+      data-explorer-state={explorerState}
+    >
       <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(circle_at_52%_45%,rgba(14,165,233,.24),transparent_28%),radial-gradient(circle_at_50%_60%,rgba(245,158,11,.10),transparent_42%),linear-gradient(180deg,#030b18_0%,#01050c_100%)]" />
       <div aria-hidden="true" className="absolute inset-0 opacity-[.13] [background-image:linear-gradient(rgba(56,189,248,.16)_1px,transparent_1px),linear-gradient(90deg,rgba(56,189,248,.16)_1px,transparent_1px)] [background-size:42px_42px] [mask-image:radial-gradient(circle_at_center,black,transparent_78%)]" />
 
@@ -135,10 +107,10 @@ export default function LoginNetworkEntrance({ language = 'id' }) {
         <p className="mt-3 max-w-xl text-xs leading-6 text-slate-400 sm:text-sm">{copy.body}</p>
 
         <div className="mt-5 grid grid-cols-2 gap-2">
-          <Metric label="Chain ID" live={live} value={live ? String(network.chainId) : '—'} />
-          <Metric label="RPC" live={live} value={live ? copy.verified : copy.unavailable} />
-          <Metric label="Latest block" live={live} value={Number.isSafeInteger(blockNumber) ? '#' + blockNumber.toLocaleString('en-US') : '—'} />
-          <Metric label="Explorer" live={explorerLive} value={explorerLive ? copy.indexed : copy.unavailable} />
+          <Metric label="Chain ID" state={positiveState(networkState) ? DATA_STATE.VERIFIED : networkState} value={network ? String(surface?.contract?.chainId || 22028) : '—'} />
+          <Metric label="RPC" state={networkState} value={rpcValue} />
+          <Metric label="Latest block" state={networkState} value={Number.isSafeInteger(blockNumber) ? '#' + blockNumber.toLocaleString('en-US') : '—'} />
+          <Metric label="Explorer" state={explorerState} value={explorerIndexed ? copy.indexed : explorerState === DATA_STATE.CHECKING ? copy.checking : copy.unavailable} />
         </div>
       </div>
 
@@ -154,25 +126,25 @@ export default function LoginNetworkEntrance({ language = 'id' }) {
               key={block.hash}
               className="absolute w-[92px] rounded-xl border border-cyan-300/20 bg-[#041221]/92 p-2.5 shadow-[0_18px_50px_-24px_rgba(14,165,233,.9)] backdrop-blur-md sm:w-[108px]"
               style={{ left: pos.left, top: pos.top, transform: 'translate(-50%, -50%) rotate(' + pos.rotate + ')' }}
-              aria-label={'Verified block ' + block.height}
+              aria-label={'Verified block ' + block.number}
             >
               <div className="flex items-center justify-between gap-2">
                 <ShieldCheck className="h-3.5 w-3.5 text-cyan-300" aria-hidden="true" />
                 <span className="text-[7px] font-black uppercase tracking-[0.12em] text-emerald-300">verified</span>
               </div>
-              <p className="mt-2 text-[11px] font-black text-white">#{block.height.toLocaleString('en-US')}</p>
+              <p className="mt-2 text-[11px] font-black text-white">#{Number(block.number).toLocaleString('en-US')}</p>
               <p className="mt-1 truncate text-[7px] font-bold text-slate-500">{shortHash(block.hash)}</p>
               <p className="mt-1.5 text-[7px] font-black uppercase tracking-[0.08em] text-amber-300">
-                {block.txCount === null ? 'indexed block' : block.txCount + ' tx'}
+                {Number.isFinite(Number(block.txCount)) ? Number(block.txCount) + ' tx' : 'verified block'}
               </p>
             </article>
           );
         })}
 
-        {!explorerLive && (
-          <div className="absolute left-1/2 top-1/2 w-[190px] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-white/[0.07] bg-[#020914]/86 px-4 py-3 text-center backdrop-blur-xl">
-            <p className="text-[8px] font-black uppercase tracking-[0.14em] text-slate-500">Explorer evidence</p>
-            <p className="mt-1 text-xs font-black text-slate-300">{copy.unavailable}</p>
+        {!displayBlocks.length && (
+          <div className="absolute left-1/2 top-1/2 w-[210px] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-white/[0.07] bg-[#020914]/86 px-4 py-3 text-center backdrop-blur-xl">
+            <p className="text-[8px] font-black uppercase tracking-[0.14em] text-slate-500">Verified block evidence</p>
+            <p className="mt-1 text-xs font-black text-slate-300">{inspection?.state === DATA_STATE.CHECKING ? copy.checking : copy.unavailable}</p>
           </div>
         )}
       </div>
@@ -180,12 +152,12 @@ export default function LoginNetworkEntrance({ language = 'id' }) {
       <div className="relative z-10 mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-4">
         <p className="max-w-md text-[9px] font-bold leading-4 text-slate-500">{copy.readOnly}</p>
         <p className="text-[8px] font-black uppercase tracking-[0.12em] text-slate-600">
-          {checkedAt ? checkedAt.toLocaleTimeString(language === 'en' ? 'en-US' : 'id-ID') : 'CHECKING'}
+          {checkedAt && Number.isFinite(checkedAt.getTime()) ? checkedAt.toLocaleTimeString(language === 'en' ? 'en-US' : 'id-ID') : 'CHECKING'}
         </p>
       </div>
 
       <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">
-        ZEVARYQ network evidence: {live ? 'verified' : 'unavailable'}; Explorer blocks: {explorerLive ? 'indexed' : 'unavailable'}.
+        ZEVARYQ network evidence: {networkState}; Explorer evidence: {explorerState}.
       </span>
     </section>
   );
