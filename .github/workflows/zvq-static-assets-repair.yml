@@ -64,7 +64,7 @@ jobs:
           set -Eeuo pipefail
           host=explorer.kriptoaman.com
           expected_ip=146.190.93.254
-          emblem=3fcabc6475d975b65b49c5d6a88c5d1c6e64630b11d5674bfc773a92dd2ec95f
+          emblem=3aa0912176c3a9c18d0a4b983553e3b05cfeaf7b6d165f02ecc01ff97ff650a4
           favicon=7cc9708233c2624b7b4f95b5ae0902c5cf1233e1648b271a5a41ab02dc95fffe
           scratch="$(mktemp -d)"
           trap 'rm -rf "$scratch"' EXIT
