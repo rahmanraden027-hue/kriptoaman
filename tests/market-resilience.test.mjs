@@ -97,7 +97,9 @@ test('market disaster recovery monitoring and UI fallbacks are release-gated', a
   assert.match(market, /chartUnavailable/);
   assert.match(market, /max-w-7xl/);
   assert.match(market, /xl:grid-cols-2/);
-  assert.match(install, /bottom-\\[calc\\(6\\.75rem\\+env\\(safe-area-inset-bottom,0px\\)\\)\\]/);
-  assert.match(install, /right-2/);\n  assert.match(install, /scrollActive/);\n  assert.match(install, /pointer-events-none translate-x-2 opacity-0/);
+  assert.match(install, /bottom-\[calc\(6\.75rem\+env\(safe-area-inset-bottom,0px\)\)\]/);
+  assert.match(install, /right-2/);
+  assert.match(install, /scrollActive/);
+  assert.match(install, /pointer-events-none translate-x-2 opacity-0/);
   assert.doesNotMatch(install, /left-1\/2[^\n]*-translate-x-1\/2/);
 });
