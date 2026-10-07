@@ -96,3 +96,8 @@ test('mobile header search and alert controls cannot shrink below 44px targets',
   assert.match(home, /h-11 min-h-11 w-11 min-w-11 shrink-0[^"]+lg:hidden/);
   assert.match(home, /h-11 min-h-11 w-11 min-w-11 shrink-0[^"]+text-slate-400/);
 });
+
+test('desktop search target is explicitly locked to 44px height', async () => {
+  const home = await read('src/pages/HomeV10.jsx');
+  assert.match(home, /hidden h-11 min-h-11 min-w-\[220px\] shrink-0[^"]+lg:flex/);
+});
