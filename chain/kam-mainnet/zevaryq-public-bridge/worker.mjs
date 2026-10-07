@@ -1,12 +1,13 @@
 import homepage from './homepage.html';
-import emblem from './zevaryq-emblem.webp';
-import favicon from './zevaryq-favicon.png';
+import master from './zevaryq-master-v2.svg';
 
 const PUBLIC_HOST = 'explorer.kriptoaman.com';
 const LEGACY_UPSTREAM = 'explorer-new.kriptoaman.com';
 const RELEASE = '1.1.2';
 const VISUAL = 'blue-gold-orbital-20260924';
 const TOKEN_DISCOVERY = 'indexed-v2';
+const IDENTITY = '20261008-zevaryq-identity-v2';
+const IDENTITY_SHA = 'a74790a590757e6f4425d384fdc0cdf40cb8030807eb7c0892ba8aaa4e6fc6cc';
 const EXPECTED_ID = '0x560c';
 const HTML_CSP = "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://rpc.kriptoaman.com; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; upgrade-insecure-requests";
 
@@ -17,6 +18,8 @@ function verifiedHomepage() {
     && homepage.includes('data-zevaryq-features="immune-token-v1"')
     && homepage.includes('data-zvq-reference-visual="' + VISUAL + '"')
     && homepage.includes('data-zvq-token-discovery="' + TOKEN_DISCOVERY + '"')
+    && homepage.includes('data-zvq-official-logo="' + IDENTITY + '"')
+    && homepage.includes('data-zvq-logo-integrity="sha256-' + IDENTITY_SHA + '"')
     && homepage.includes('id="immune-monitor"')
     && homepage.includes('id="token-discovery"')
     && homepage.includes("EXPECTED_CHAIN='" + EXPECTED_ID + "'");
@@ -30,6 +33,7 @@ function commonHeaders() {
     'x-zevaryq-explorer-features': 'immune-token-v1',
     'x-zevaryq-explorer-design': VISUAL,
     'x-zevaryq-explorer-token-discovery': TOKEN_DISCOVERY,
+    'x-zevaryq-identity': IDENTITY,
   };
 }
 
@@ -52,8 +56,7 @@ export default {
     }
 
     const binaryAssets = {
-      '/zevaryq-assets/zevaryq-emblem.webp': [emblem, 'image/webp'],
-      '/zevaryq-assets/zevaryq-favicon.png': [favicon, 'image/png'],
+      '/zevaryq-assets/zevaryq-master-v2.svg': [master, 'image/svg+xml'],
     };
     if ((method === 'GET' || method === 'HEAD') && Object.hasOwn(binaryAssets, url.pathname)) {
       const [body, type] = binaryAssets[url.pathname];
