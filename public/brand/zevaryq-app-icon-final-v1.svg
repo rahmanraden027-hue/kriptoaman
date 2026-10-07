@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">ZEVARYQ App Icon</title>
+  <desc id="desc">Gold Z with electric blue halo on midnight navy rounded square.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#030812"/>
+      <stop offset=".5" stop-color="#071525"/>
+      <stop offset="1" stop-color="#0a1630"/>
+    </linearGradient>
+    <linearGradient id="gold" x1=".15" y1=".05" x2=".85" y2=".95">
+      <stop offset="0" stop-color="#fff3a9"/>
+      <stop offset=".18" stop-color="#f6c85f"/>
+      <stop offset=".5" stop-color="#d79a2b"/>
+      <stop offset=".76" stop-color="#ffdc73"/>
+      <stop offset="1" stop-color="#9d6214"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8cecff"/>
+      <stop offset=".35" stop-color="#13a8ff"/>
+      <stop offset=".72" stop-color="#1b63ff"/>
+      <stop offset="1" stop-color="#55e6ff"/>
+    </linearGradient>
+    <filter id="blueGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="goldGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect x="18" y="18" width="476" height="476" rx="104" fill="url(#bg)"/>
+  <rect x="25" y="25" width="462" height="462" rx="96" fill="none" stroke="url(#gold)" stroke-width="11"/>
+  <circle cx="256" cy="256" r="190" fill="#081425" stroke="url(#gold)" stroke-width="11"/>
+  <circle cx="256" cy="256" r="164" fill="none" stroke="url(#blue)" stroke-width="8" opacity=".98" filter="url(#blueGlow)"/>
+  <circle cx="256" cy="256" r="145" fill="none" stroke="#238cff" stroke-width="2" opacity=".45"/>
+  <path d="M142 154H374L326 211H228L157 360H370L322 416H132L181 358L252 211H190Z"
+        fill="url(#gold)" stroke="#ffe392" stroke-width="4" stroke-linejoin="round" filter="url(#goldGlow)"/>
+  <path d="M172 351L244 210H332" fill="none" stroke="#2cb8ff" stroke-width="9" stroke-linecap="round" filter="url(#blueGlow)"/>
+  <path d="M317 214L367 154" fill="none" stroke="#ffe79c" stroke-width="5" stroke-linecap="round" opacity=".75"/>
+  <circle cx="256" cy="66" r="5" fill="#d9a441"/>
+  <circle cx="446" cy="256" r="5" fill="#2ecbff"/>
+  <circle cx="256" cy="446" r="5" fill="#d9a441"/>
+  <circle cx="66" cy="256" r="5" fill="#2ecbff"/>
+</svg>

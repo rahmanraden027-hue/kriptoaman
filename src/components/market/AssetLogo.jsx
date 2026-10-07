@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { COIN_META } from '@/components/home/coinMeta';
+import { ZVQ_TOKEN_ICON } from '@/lib/zevaryqBrandAssets';
 
-const ZVQ_OFFICIAL_LOGO = '/brand/zevaryq-wallet-premium-icon.webp';
+const ZVQ_OFFICIAL_LOGO = ZVQ_TOKEN_ICON;
 const PLANNED_ZEVARYQ_SYMBOLS = new Set(['ZBTC', 'ZETH']);
 
 const normalizeSymbol = (value) => {

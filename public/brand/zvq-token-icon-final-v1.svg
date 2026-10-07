@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">ZVQ Token Icon</title>
+  <desc id="desc">Official ZVQ native token icon with gold Z, electric blue halo, and ZVQ mark.</desc>
+  <defs>
+    <radialGradient id="coinBg" cx=".46" cy=".34" r=".74">
+      <stop offset="0" stop-color="#102b52"/>
+      <stop offset=".48" stop-color="#07192e"/>
+      <stop offset="1" stop-color="#030912"/>
+    </radialGradient>
+    <linearGradient id="gold" x1=".15" y1=".05" x2=".85" y2=".95">
+      <stop offset="0" stop-color="#fff5b5"/>
+      <stop offset=".2" stop-color="#f5ca62"/>
+      <stop offset=".5" stop-color="#d89b2c"/>
+      <stop offset=".78" stop-color="#ffe07c"/>
+      <stop offset="1" stop-color="#9b6113"/>
+    </linearGradient>
+    <linearGradient id="blue" x1=".1" y1=".1" x2=".9" y2=".9">
+      <stop offset="0" stop-color="#77e9ff"/>
+      <stop offset=".38" stop-color="#1aa8ff"/>
+      <stop offset=".72" stop-color="#315dff"/>
+      <stop offset="1" stop-color="#5ceaff"/>
+    </linearGradient>
+    <filter id="glow" x="-35%" y="-35%" width="170%" height="170%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <circle cx="256" cy="256" r="238" fill="#02070f" stroke="url(#gold)" stroke-width="15"/>
+  <circle cx="256" cy="256" r="214" fill="url(#coinBg)" stroke="#7b5013" stroke-width="4"/>
+  <circle cx="256" cy="256" r="191" fill="none" stroke="url(#blue)" stroke-width="8" filter="url(#glow)"/>
+  <path d="M139 127H381L332 183H231L162 320H365L316 376H128L177 320L246 183H188Z"
+        fill="url(#gold)" stroke="#ffe7a2" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M172 311L240 181H333" fill="none" stroke="#28b9ff" stroke-width="8" stroke-linecap="round" filter="url(#glow)"/>
+  <g transform="translate(0 5)">
+    <path d="M158 391h49v14h-24l25 28h-51v-14h25z" fill="url(#gold)"/>
+    <path d="M222 391h16l18 29 18-29h16l-34 47z" fill="url(#gold)"/>
+    <path d="M307 392c28 0 48 17 48 40 0 9-3 17-9 23l14 14-13 10-15-15c-7 4-15 6-25 6-28 0-48-16-48-39 0-23 20-39 48-39zm0 14c-17 0-29 10-29 25 0 15 12 25 29 25 4 0 8-1 12-2l-12-12 13-10 12 12c3-4 4-8 4-13 0-15-12-25-29-25z" fill="url(#gold)"/>
+  </g>
+</svg>
