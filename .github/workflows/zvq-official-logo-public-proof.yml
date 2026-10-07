@@ -36,7 +36,7 @@ jobs:
       - name: Verify approved assets, full ZVQ identity and fail-closed chain guards
         run: |
           node --test tests/zevaryq-explorer-official-logo.test.mjs tests/zevaryq-explorer-reference-theme.test.mjs tests/zevaryq-explorer-production.test.mjs
-          grep -Fq 'data-zvq-logo-integrity="sha256-3aa0912176c3a9c18d0a4b983553e3b05cfeaf7b6d165f02ecc01ff97ff650a4"' explorer-dashboard/zevaryq-production.html
+          grep -Fq 'data-zvq-logo-integrity="sha256-b5559143bf74d3d9e5074cd9edb93341018482338b01c57cadfc843702e40fc9"' explorer-dashboard/zevaryq-production.html
   public:
     if: github.event_name != 'pull_request'
     needs: validate
@@ -50,7 +50,7 @@ jobs:
           set -euo pipefail
           host='explorer.kriptoaman.com'
           origin='146.190.93.254'
-          logo_sha='3aa0912176c3a9c18d0a4b983553e3b05cfeaf7b6d165f02ecc01ff97ff650a4'
+          logo_sha='b5559143bf74d3d9e5074cd9edb93341018482338b01c57cadfc843702e40fc9'
           icon_sha='7cc9708233c2624b7b4f95b5ae0902c5cf1233e1648b271a5a41ab02dc95fffe'
           scratch="$(mktemp -d)"
           trap 'rm -rf "$scratch"' EXIT
@@ -62,13 +62,13 @@ jobs:
             curl -fLsS --connect-timeout 6 --max-time 18 -H 'Cache-Control: no-cache' "${options[@]}" "$url/" -o "$scratch/$label-default.html" || return 1
             curl -fLsS --connect-timeout 6 --max-time 18 -H 'Cache-Control: no-cache' "${options[@]}" "$url/?official_logo_proof=${GITHUB_RUN_ID}-$attempt-$label" -o "$scratch/$label-bypass.html" || return 1
             for page in default bypass; do
-              grep -Fq 'data-zvq-official-logo="20261008-premium-zvq-v1"' "$scratch/$label-$page.html" || return 1
-              grep -Fq 'data-zvq-logo-integrity="sha256-3aa0912176c3a9c18d0a4b983553e3b05cfeaf7b6d165f02ecc01ff97ff650a4"' "$scratch/$label-$page.html" || return 1
+              grep -Fq 'data-zvq-official-logo="20261008-premium-zvq-v2"' "$scratch/$label-$page.html" || return 1
+              grep -Fq 'data-zvq-logo-integrity="sha256-b5559143bf74d3d9e5074cd9edb93341018482338b01c57cadfc843702e40fc9"' "$scratch/$label-$page.html" || return 1
               [[ "$(grep -o 'class="official-emblem"' "$scratch/$label-$page.html" | wc -l)" -eq 3 ]] || return 1
               grep -Fq "EXPECTED_CHAIN='0x560c'" "$scratch/$label-$page.html" || return 1
             done
-            curl -fLsS --connect-timeout 6 --max-time 20 "${options[@]}" "$url/zevaryq-assets/zevaryq-emblem.webp?v=20261008-premium-zvq-v1" -o "$scratch/$label-emblem.webp" || return 1
-            curl -fLsS --connect-timeout 6 --max-time 20 "${options[@]}" "$url/zevaryq-assets/zevaryq-favicon.png?v=20261008-premium-zvq-v1" -o "$scratch/$label-favicon.png" || return 1
+            curl -fLsS --connect-timeout 6 --max-time 20 "${options[@]}" "$url/zevaryq-assets/zevaryq-emblem.webp?v=20261008-premium-zvq-v2" -o "$scratch/$label-emblem.webp" || return 1
+            curl -fLsS --connect-timeout 6 --max-time 20 "${options[@]}" "$url/zevaryq-assets/zevaryq-favicon.png?v=20261008-premium-zvq-v2" -o "$scratch/$label-favicon.png" || return 1
             [[ "$(sha256sum "$scratch/$label-emblem.webp" | cut -d' ' -f1)" == "$logo_sha" ]] || return 1
             [[ "$(sha256sum "$scratch/$label-favicon.png" | cut -d' ' -f1)" == "$icon_sha" ]] || return 1
             echo "official_logo_$label=verified; placements=3; emblem_sha256=$logo_sha; favicon_sha256=$icon_sha"
@@ -103,7 +103,7 @@ jobs:
             placements="$(grep -o 'class="official-emblem"' "$dir/index.html" 2>/dev/null | wc -l || true)"
             echo "logo_diagnosis route=$mode html_http=$code placements=$placements marker=$marker integrity=$integrity"
             for asset in zevaryq-emblem.webp zevaryq-favicon.png; do
-              code="$(curl -LsS --connect-timeout 6 --max-time 20 -H 'Cache-Control: no-cache' "${opts[@]}" -o "$dir/$asset" -w '%{http_code}' "https://$host/zevaryq-assets/$asset?v=20261008-premium-zvq-v1" || true)"
+              code="$(curl -LsS --connect-timeout 6 --max-time 20 -H 'Cache-Control: no-cache' "${opts[@]}" -o "$dir/$asset" -w '%{http_code}' "https://$host/zevaryq-assets/$asset?v=20261008-premium-zvq-v2" || true)"
               actual="$(sha256sum "$dir/$asset" 2>/dev/null | cut -d' ' -f1 || true)"
               echo "logo_diagnosis route=$mode asset=$asset http=$code sha256=$actual"
             done
