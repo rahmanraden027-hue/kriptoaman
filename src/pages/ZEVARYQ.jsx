@@ -183,7 +183,8 @@ export default function ZEVARYQ() {
   return (
     <main
       className="min-h-screen bg-[radial-gradient(circle_at_35%_-8%,rgba(14,165,233,.12),transparent_28%),radial-gradient(circle_at_82%_12%,rgba(245,158,11,.055),transparent_24%),linear-gradient(#020711,#01050c)] px-3 pb-28 pt-4 text-white sm:px-5"
-      data-product-surface="network-inspection"
+      data-product-surface="network"
+      data-product-release="phase15f"
       data-visual-architecture="inspect-network-v1"
       data-network-data-policy="verified-first-party-only"
     >
@@ -376,7 +377,7 @@ export default function ZEVARYQ() {
               />
             </div>
             <div className="mt-3 rounded-xl border border-cyan-300/10 bg-cyan-300/[0.03] p-3 text-[8px] leading-4 text-slate-400">
-              Node locations, exchange identities, pending-transaction counts, throughput MB/s, and validator names are intentionally not fabricated. Data appears only when first-party RPC or indexed explorer evidence proves it.
+              Node locations, exchange identities, pending-transaction counts, throughput MB/s, and validator names are intentionally not fabricated. Data appears only when first-party RPC or indexed explorer evidence proves it. Identitas RPC terverifikasi tidak dengan sendirinya menyatakan public-mainnet promotion; mainnet publik tetap mengikuti gerbang operasional produksi.
             </div>
           </Panel>
         </section>
