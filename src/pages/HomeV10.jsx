@@ -40,6 +40,7 @@ export default function HomeV10() {
       data-visual-integration="phase16c-final-command-center-v1"
       data-home-composition="home-live-intelligence-command-center-v1"
       data-master-final="clean-command-center-v1"
+      data-production-visual-master="v1"
       data-animation-polish="calm-reduced-motion-safe-v1"
       style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))' }}
     >
@@ -167,7 +168,7 @@ export default function HomeV10() {
           <Link
             to="/"
             aria-current="page"
-            className="grid min-h-11 place-items-center rounded-xl text-[9px] font-black text-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"
+            className="grid min-h-11 place-items-center rounded-xl text-[10px] font-black text-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"
           >
             {navLabels.home}
           </Link>
@@ -175,7 +176,7 @@ export default function HomeV10() {
             <Link
               key={item.id}
               to={primaryNavTo(item, 'public')}
-              className="grid min-h-11 place-items-center rounded-xl text-center text-[9px] font-black text-slate-400 hover:bg-white/[0.04] hover:text-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"
+              className="grid min-h-11 place-items-center rounded-xl text-center text-[10px] font-black text-slate-300 hover:bg-white/[0.04] hover:text-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"
             >
               {navLabels[item.id]}
             </Link>
