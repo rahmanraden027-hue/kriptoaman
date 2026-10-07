@@ -1,3 +1,5 @@
+import { ZVQ_TOKEN_ICON } from '@/lib/zevaryqBrandAssets';
+
 export const ZEVARYQ_ASSET_REGISTRY_VERSION = 3;
 
 export const ZEVARYQ_ASSET_STATUS = Object.freeze({
@@ -16,7 +18,7 @@ export const ZEVARYQ_FIRST_PARTY_ASSETS = Object.freeze([
     chainId: 22028,
     assetType: 'native',
     contractAddress: null,
-    icon: '/brand/zevaryq-wallet-premium-icon.webp',
+    icon: ZVQ_TOKEN_ICON,
     provenance: 'ZEVARYQ Mainnet native gas asset',
     executable: true,
   }),
