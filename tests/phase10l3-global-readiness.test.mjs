@@ -16,21 +16,19 @@ test('Phase 10L.3 aligns root share metadata with the actual official social ass
 });
 
 test('Phase 10L.3 adds stable dimensions and priority hints to HomeV10 market imagery', async () => {
-  const [featured, ticker, movers] = await Promise.all([
+  const [featured, ticker, movers, assetLogo] = await Promise.all([
     read('src/components/home-v10/FeaturedMarketAsset.jsx'),
     read('src/components/home-v10/LiveMarketTicker.jsx'),
     read('src/components/home-v10/TopMovers.jsx'),
+    read('src/components/market/AssetLogo.jsx'),
   ]);
-  assert.match(featured, /width="56"/);
-  assert.match(featured, /height="56"/);
-  assert.match(featured, /fetchPriority="high"/);
-  assert.match(featured, /decoding="async"/);
-  assert.match(ticker, /width="16"/);
-  assert.match(ticker, /height="16"/);
-  assert.match(ticker, /decoding="async"/);
-  assert.match(movers, /width="28"/);
-  assert.match(movers, /height="28"/);
-  assert.match(movers, /decoding="async"/);
+  assert.match(featured, /<AssetLogo asset=\{asset\} size=\{56\} priority/);
+  assert.match(ticker, /<AssetLogo asset=\{asset\} size=\{16\}/);
+  assert.match(movers, /<AssetLogo asset=\{asset\} size=\{28\}/);
+  assert.match(assetLogo, /width=\{size\}/);
+  assert.match(assetLogo, /height=\{size\}/);
+  assert.match(assetLogo, /fetchPriority=\{priority \? 'high' : 'auto'\}/);
+  assert.match(assetLogo, /decoding="async"/);
 });
 
 test('Phase 10L.3 locks a deterministic initial bundle budget into preview evidence', async () => {
