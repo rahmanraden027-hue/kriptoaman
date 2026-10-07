@@ -9,8 +9,8 @@ test('Phase 16D production provenance tracks the current command center while pr
   assert.match(workflow, /Phase 16D production contract/);
   for (const marker of [
     'home-live-intelligence-command-center-v1',
-    'Blockchain bergerak setiap detik.',
-    'Lihat. Pahami. Verifikasi.',
+    'Lihat Pasar. Pahami Jaringan.',
+    'Verifikasi On-Chain.',
     'Aset dipantau',
     'Market Overview',
     'Market Heatmap',
