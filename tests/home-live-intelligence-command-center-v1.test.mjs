@@ -36,8 +36,9 @@ test('homepage command center composes verified production surfaces without repl
 test('command center hero uses KriptoAman identity and verified ZEVARYQ evidence while preserving Phase 16C proof markers', async () => {
   const hero = await read('src/components/home-v10/CommandCenterHero.jsx');
 
-  assert.match(hero, /Blockchain bergerak setiap detik/);
-  assert.match(hero, /Lihat\. Pahami\. Verifikasi\./);
+  assert.match(hero, /Lihat Pasar\. Pahami Jaringan\./);
+  assert.match(hero, /Verifikasi On-Chain\./);
+  assert.match(hero, /data-product-message="market-network-onchain-v1"/);
   assert.match(hero, /kriptoaman-mark-premium\.webp/);
   assert.match(hero, /zevaryq-mark\.svg/);
   assert.match(hero, /ZEVARYQ NETWORK · LIVE EVIDENCE/);

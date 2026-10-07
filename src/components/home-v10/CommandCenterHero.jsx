@@ -199,9 +199,9 @@ export default function CommandCenterHero({ market, zevaryq }) {
       <div className="relative mt-4 grid gap-5 sm:mt-3 sm:gap-4 xl:grid-cols-[.72fr_1.48fr_.8fr] xl:items-center">
         <div className="py-2 sm:py-4">
           <p className="text-[9px] font-black uppercase tracking-[0.17em] text-cyan-300">KRIPTOAMAN · GLOBAL CRYPTO INTELLIGENCE</p>
-          <h1 className="mt-3 max-w-xl text-3xl font-black leading-[1.01] tracking-[-0.055em] text-white sm:text-4xl lg:text-[46px]">
-            Blockchain bergerak setiap detik.
-            <span className="mt-1 block text-amber-200">Lihat. Pahami. Verifikasi.</span>
+          <h1 className="mt-3 max-w-xl text-3xl font-black leading-[1.01] tracking-[-0.055em] text-white sm:text-4xl lg:text-[46px]" data-product-message="market-network-onchain-v1">
+            Lihat Pasar. Pahami Jaringan.
+            <span className="mt-1 block text-amber-200">Verifikasi On-Chain.</span>
           </h1>
           <p className="mt-4 max-w-lg text-[13px] leading-5 text-slate-300 sm:text-sm sm:leading-6">
             Market intelligence real-time, bukti on-chain first-party, dan risk context dalam satu command surface yang dapat diverifikasi.
