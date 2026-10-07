@@ -62,7 +62,7 @@ test('Android splash and adaptive icon follow the KriptoAman dark identity', () 
   assert.match(platformAlias, /kriptoaman_premium_launcher/);
   assert.match(walletAlias, /zevaryq_premium_launcher/);
   assert.match(platformLauncher, /kriptoaman_premium_art/);
-  assert.match(walletLauncher, /zevaryq_premium_art/);
+  assert.match(walletLauncher, /zevaryq_wallet_launcher/);
   assert.match(styles, /postSplashScreenTheme/);
   assert.match(iconBackground, /#071525/i);
   assert.match(manifest, /android:icon="@mipmap\/ic_launcher"/);
