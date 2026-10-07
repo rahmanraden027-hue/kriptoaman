@@ -50,6 +50,19 @@ export function marketDataState({ connected = false, dataAvailable = false, part
   return DATA_STATE.UNAVAILABLE;
 }
 
+export function marketSnapshotState({
+  dataAvailable = false,
+  partial = false,
+  isStale = false,
+  loading = false,
+} = {}) {
+  if (loading && !dataAvailable) return DATA_STATE.CHECKING;
+  if (partial) return DATA_STATE.PARTIAL;
+  if (!dataAvailable) return DATA_STATE.UNAVAILABLE;
+  if (isStale) return DATA_STATE.DELAYED;
+  return DATA_STATE.SNAPSHOT;
+}
+
 export function isPositiveDataState(state) {
   return [DATA_STATE.LIVE, DATA_STATE.VERIFIED, DATA_STATE.SYNCED, DATA_STATE.INDEXED].includes(state);
 }

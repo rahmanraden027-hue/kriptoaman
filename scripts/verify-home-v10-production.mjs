@@ -34,6 +34,8 @@ const report = [];
 
 const PHASE16C_VISUAL_MARKER = 'phase16c-final-command-center-v1';
 const MASTER_FINAL_MARKER = 'clean-command-center-v1';
+const MARKET_TRUTH_MARKER = 'snapshot-scoped-v1';
+const READABILITY_MARKER = 'micro-v2';
 
 async function waitForLiveDeployment(page, resetEvidence) {
   let lastStatus = null;
@@ -51,10 +53,12 @@ async function waitForLiveDeployment(page, resetEvidence) {
           markers => Boolean(
             document.querySelector('main[data-visual-integration="' + markers.visual + '"]')
             && document.querySelector('main[data-master-final="' + markers.master + '"]')
+            && document.querySelector('main[data-market-truth-unification="' + markers.marketTruth + '"]')
+            && document.querySelector('main[data-readability-polish="' + markers.readability + '"]')
             && document.querySelector('[data-phase16c-command-center="true"]')
             && /KRIPTOAMAN/i.test(document.body.innerText || '')
           ),
-          { visual: PHASE16C_VISUAL_MARKER, master: MASTER_FINAL_MARKER },
+          { visual: PHASE16C_VISUAL_MARKER, master: MASTER_FINAL_MARKER, marketTruth: MARKET_TRUTH_MARKER, readability: READABILITY_MARKER },
           { timeout: 15000, polling: 500 },
         );
         return;
@@ -117,7 +121,7 @@ try {
       });
 
       await page.waitForFunction(() => {
-        const ticker = document.querySelector('section[aria-label="Live market ticker"]');
+        const ticker = document.querySelector('section[aria-label="Market ticker"]');
         const verify = document.querySelector('#verify');
         const networkLayer = document.querySelector('[data-command-layer="network"]');
         const networkSections = networkLayer ? [...networkLayer.querySelectorAll(':scope > section')] : [];
@@ -125,7 +129,7 @@ try {
         const zvq = networkSections.find(node => /ZEVARYQ/.test(node.textContent || '') && /VERIFIED/.test(node.textContent || ''));
         return Boolean(
           ticker
-          && /●\s*LIVE/.test(ticker.textContent || '')
+          && /●\s*(SNAPSHOT|DELAYED)/.test(ticker.textContent || '')
           && verify
           && onChain
           && /ON-CHAIN EVIDENCE/.test(onChain.textContent || '')
@@ -147,7 +151,7 @@ try {
 
       const snapshot = await page.evaluate(() => {
         const root = document.documentElement;
-        const ticker = document.querySelector('section[aria-label="Live market ticker"]');
+        const ticker = document.querySelector('section[aria-label="Market ticker"]');
         const networkLayer = document.querySelector('[data-command-layer="network"]');
         const networkSections = networkLayer ? [...networkLayer.querySelectorAll(':scope > section')] : [];
         const onChain = networkSections.find(node => /ON-CHAIN NOW/.test(node.textContent || ''));
@@ -182,6 +186,8 @@ try {
           commandRelease: document.querySelector('main')?.getAttribute('data-command-release') || null,
           visualIntegration: document.querySelector('main')?.getAttribute('data-visual-integration') || null,
           masterFinal: document.querySelector('main')?.getAttribute('data-master-final') || null,
+          marketTruth: document.querySelector('main')?.getAttribute('data-market-truth-unification') || null,
+          readabilityPolish: document.querySelector('main')?.getAttribute('data-readability-polish') || null,
           animationPolish: document.querySelector('main')?.getAttribute('data-animation-polish') || null,
           commandCenterReady: Boolean(document.querySelector('[data-phase16c-command-center="true"]')),
           commandLayers,
@@ -199,6 +205,8 @@ try {
       assert.equal(snapshot.viewport, config.width, 'viewport width');
       assert.ok(snapshot.scrollWidth <= config.width + 1, 'no horizontal overflow at ' + config.width + 'px');
       assert.equal(snapshot.masterFinal, MASTER_FINAL_MARKER, 'master final command-center marker');
+      assert.equal(snapshot.marketTruth, MARKET_TRUTH_MARKER, 'market snapshot truth marker');
+      assert.equal(snapshot.readabilityPolish, READABILITY_MARKER, 'micro readability marker');
       assert.equal(snapshot.animationPolish, 'calm-reduced-motion-safe-v1', 'animation polish marker');
       assert.equal(snapshot.kpiCount, 4, 'master KPI rail must contain exactly four verified metrics');
       assert.ok(snapshot.searchWidth >= 44 && snapshot.searchHeight >= 44, 'visible search target must remain >=44px');
@@ -207,7 +215,8 @@ try {
       assert.equal(snapshot.orbitAnimationName, 'none', 'reduced-motion proof must disable decorative orbit animation');
       assert.equal(snapshot.orivexRoadmap, true, 'ORIVEX roadmap identity must be present');
       assert.equal(snapshot.orivexRoadmapIsLink, false, 'ORIVEX roadmap must not pretend to be a live route');
-      assert.match(snapshot.tickerText, /●\s*LIVE/, 'market ticker must be LIVE');
+      assert.match(snapshot.tickerText, /●\s*(SNAPSHOT|DELAYED)/, 'market ticker must truthfully show snapshot or delayed state');
+      assert.doesNotMatch(snapshot.tickerText, /●\s*LIVE/, 'snapshot-backed market ticker must not claim LIVE');
       assert.ok(snapshot.tickerSymbols.length >= 5, 'market ticker must display real assets');
       assert.equal(snapshot.verifyReady, true, 'Verify Anything input and submit must be available');
       assert.match(snapshot.onChainText, /#\s*[\d,]+/, 'On-Chain Now must display a real block');
@@ -272,6 +281,8 @@ try {
         release: snapshot.commandRelease,
         visualIntegration: snapshot.visualIntegration,
         masterFinal: snapshot.masterFinal,
+        marketTruth: snapshot.marketTruth,
+        readabilityPolish: snapshot.readabilityPolish,
         commandCenterReady: snapshot.commandCenterReady,
         hierarchy: snapshot.commandLayers,
         assetsTracked: snapshot.assetsTracked,
@@ -294,7 +305,7 @@ try {
         pageErrors,
         observed: await page.evaluate(() => ({
           body: document.body.innerText.slice(0, 1800),
-          ticker: document.querySelector('section[aria-label="Live market ticker"]')?.textContent,
+          ticker: document.querySelector('section[aria-label="Market ticker"]')?.textContent,
         })).catch(() => null),
       });
       console.error('HOME_V10_PRODUCTION_FAIL ' + JSON.stringify(report.at(-1)));

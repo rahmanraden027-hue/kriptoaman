@@ -35,8 +35,9 @@ test('Phase 10K preserves first-party market and ZEVARYQ evidence boundaries', a
     read('src/hooks/useZevaryqSurface.js'),
   ]);
   assert.match(market, /kriptoaman-market-db/);
-  assert.match(market, /LIVE/);
+  assert.match(market, /marketSnapshotState/);
   assert.match(market, /SNAPSHOT/);
+  assert.doesNotMatch(market, /raw\.source === 'kriptoaman-market-db'\) state = DATA_STATE\.LIVE/);
   assert.doesNotMatch(market, /state = ['"]STALE['"]/);
   assert.match(raw, /\/api\/market-snapshot-page/);
   assert.match(raw, /MARKET_ASSET_LIMIT = 5000/);
@@ -75,7 +76,8 @@ test('Phase 10K live browser proof is read-only and enforces production data acc
     'SYNCED',
     'no uncaught JavaScript errors',
   ]) assert.ok(script.includes(marker), marker);
-  assert.match(script, /●\\s\*LIVE/);
+  assert.match(script, /SNAPSHOT\|DELAYED/);
+  assert.match(script, /snapshot-backed market ticker must not claim LIVE/);
   assert.match(script, /scrollWidth <= config\.width \+ 1/);
   assert.doesNotMatch(script, /eth_sendTransaction|eth_sendRawTransaction|personal_|private[_ -]?key|wallet_requestPermissions/i);
   assert.match(workflow, /workflow_dispatch:/);
@@ -100,7 +102,9 @@ test('Master final keeps data binding truthful, motion calm, and ecosystem route
   assert.match(home, /data-animation-polish="calm-reduced-motion-safe-v1"/);
 
   assert.match(stats, /data-master-kpi-count="4"/);
-  assert.match(stats, /data-kpi-source-mode="verified-live-only"/);
+  assert.match(stats, /data-kpi-source-mode="truth-scoped-v2"/);
+  assert.match(stats, /data-market-catalog-state=\{catalogState\}/);
+  assert.match(stats, /data-market-price-state=\{marketState\}/);
   assert.match(stats, /lg:grid-cols-4/);
   assert.doesNotMatch(stats, /label: 'ZVQ market'/);
   assert.doesNotMatch(stats, /label: 'Market breadth'/);

@@ -72,7 +72,7 @@ function AssetSignal({ asset, position }) {
       <AssetLogo asset={asset} size={20} />
       <span className="min-w-0">
         <b className="block truncate text-[9px] text-white">{asset.sym}</b>
-        <span className={'block truncate text-[7px] font-black ' + (positive ? 'text-emerald-300' : 'text-rose-300')}>
+        <span className={'block truncate text-[8px] font-black ' + (positive ? 'text-emerald-300' : 'text-rose-300')}>
           {formatPrice(asset.price)} · {formatChange(change)}
         </span>
       </span>
@@ -191,7 +191,7 @@ export default function CommandCenterHero({ market, zevaryq }) {
 
       <div className="relative flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.055] pb-3">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[9px] font-black uppercase tracking-[0.18em] text-cyan-300">LIVE INTELLIGENCE COMMAND CENTER</span>
+          <span className="text-[9px] font-black uppercase tracking-[0.18em] text-cyan-300">INTELLIGENCE COMMAND CENTER</span>
           <span className="hidden text-[8px] font-black uppercase tracking-[0.14em] text-slate-400 sm:inline">REAL DATA · FIRST-PARTY EVIDENCE</span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -208,7 +208,7 @@ export default function CommandCenterHero({ market, zevaryq }) {
             <span className="mt-1 block text-amber-200">Verifikasi On-Chain.</span>
           </h1>
           <p className="mt-4 max-w-lg text-[13px] leading-5 text-slate-300 sm:text-sm sm:leading-6">
-            Market intelligence real-time, bukti on-chain first-party, dan risk context dalam satu command surface yang dapat diverifikasi.
+            Market intelligence dengan provenance dan freshness yang jelas, bukti on-chain first-party, dan risk context dalam satu command surface yang dapat diverifikasi.
           </p>
 
           <div className="mt-5 flex flex-wrap gap-2">
@@ -261,7 +261,7 @@ export default function CommandCenterHero({ market, zevaryq }) {
               <div key={label} className="rounded-2xl border border-white/[0.055] bg-white/[0.022] p-3">
                 <p className="truncate text-sm font-black text-white">{value}</p>
                 <p className="mt-1 text-[8px] font-black uppercase tracking-[0.12em] text-slate-300">{label}</p>
-                <span className={'mt-2 inline-block text-[7px] font-black uppercase ' + (
+                <span className={'mt-2 inline-block text-[8px] font-black uppercase ' + (
                   [DATA_STATE.LIVE, DATA_STATE.SYNCED, DATA_STATE.VERIFIED].includes(state)
                     ? 'text-emerald-300'
                     : [DATA_STATE.DELAYED, DATA_STATE.CHECKING].includes(state)

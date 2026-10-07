@@ -124,15 +124,15 @@ try {
       assert.equal(navigation?.status(), 200, config.name + ' root HTTP status');
 
       await page.locator('#home-v10-content').waitFor({ state: 'attached', timeout: 30_000 });
-      await page.locator('section[aria-label="Live market ticker"]').waitFor({ state: 'attached', timeout: 30_000 });
+      await page.locator('section[aria-label="Market ticker"]').waitFor({ state: 'attached', timeout: 30_000 });
 
       await page.waitForFunction(() => {
-        const ticker = document.querySelector('section[aria-label="Live market ticker"]');
+        const ticker = document.querySelector('section[aria-label="Market ticker"]');
         const sections = [...document.querySelectorAll('section')];
         const onChain = sections.find(node => node.textContent?.includes('ON-CHAIN NOW'));
         const zvq = document.querySelector('section[data-zvq-chain-id="22028"]');
         return Boolean(
-          ticker && /●\s*LIVE/.test(ticker.textContent || '') &&
+          ticker && /●\s*(SNAPSHOT|DELAYED)/.test(ticker.textContent || '') &&
           onChain && /#\s*[\d,]+/.test(onChain.textContent || '') &&
           zvq && /●\s*VERIFIED/.test(zvq.textContent || '') && /#[\d,]+/.test(zvq.textContent || '')
         );
@@ -143,7 +143,7 @@ try {
       const snapshot = await page.evaluate(() => {
         const meta = (selector) => document.head.querySelector(selector)?.getAttribute('content') || '';
         const link = (selector) => document.head.querySelector(selector)?.getAttribute('href') || '';
-        const ticker = document.querySelector('section[aria-label="Live market ticker"]');
+        const ticker = document.querySelector('section[aria-label="Market ticker"]');
         const sections = [...document.querySelectorAll('section')];
         const onChain = sections.find(node => node.textContent?.includes('ON-CHAIN NOW'));
         const zvq = document.querySelector('section[data-zvq-chain-id="22028"]');
@@ -215,7 +215,8 @@ try {
       if (snapshot.minMoverTarget !== null) assert.ok(snapshot.minMoverTarget >= 44, config.name + ' mover tabs >=44px');
       assert.ok(snapshot.cls <= 0.15, config.name + ' CLS must stay <= 0.15');
       assert.equal(snapshot.oldPromoCopyPresent, false, config.name + ' old promo copy absent');
-      assert.match(snapshot.tickerText, /●\s*LIVE/, config.name + ' market LIVE');
+      assert.match(snapshot.tickerText, /●\s*(SNAPSHOT|DELAYED)/, config.name + ' market snapshot truth');
+      assert.doesNotMatch(snapshot.tickerText, /●\s*LIVE/, config.name + ' snapshot-backed market must not claim LIVE');
       assert.match(snapshot.onChainText, /#\s*[\d,]+/, config.name + ' on-chain block');
       assert.match(snapshot.zvqText, /●\s*VERIFIED/, config.name + ' ZEVARYQ VERIFIED');
 

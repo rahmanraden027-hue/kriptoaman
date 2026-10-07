@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import useCoinMarkets from '@/components/home/useCoinMarkets';
-import { DATA_STATE } from '@/lib/dataState';
+import { DATA_STATE, marketSnapshotState } from '@/lib/dataState';
 
 const FRESH_MS = 30 * 60 * 1000;
 
@@ -49,14 +49,22 @@ export default function useMarketSurface() {
         ? Math.max(0, Date.now() - Number(raw.lastUpdated))
         : null;
 
-    let state = DATA_STATE.UNAVAILABLE;
-    if (assets.length > 0) {
-      if (raw.isStale || !Number.isFinite(ageMs) || ageMs > FRESH_MS) state = DATA_STATE.DELAYED;
-      else if (raw.source === 'kriptoaman-market-db') state = DATA_STATE.LIVE;
-      else state = DATA_STATE.SNAPSHOT;
-    } else if (!raw.loading && Array.isArray(raw.coins) && raw.coins.length > 0) {
-      state = DATA_STATE.PARTIAL;
-    }
+    const state = marketSnapshotState({
+      dataAvailable: assets.length > 0,
+      partial: !raw.loading && assets.length === 0 && Array.isArray(raw.coins) && raw.coins.length > 0,
+      isStale: Boolean(raw.isStale || (Number.isFinite(ageMs) && ageMs > FRESH_MS)),
+      loading: Boolean(raw.loading),
+    });
+
+    const catalogState = trackedAssetCount > 0
+      ? raw.source === 'kriptoaman-market-db' && authoritativeTotal
+        ? DATA_STATE.INDEXED
+        : state === DATA_STATE.DELAYED
+          ? DATA_STATE.DELAYED
+          : DATA_STATE.SNAPSHOT
+      : raw.loading
+        ? DATA_STATE.CHECKING
+        : DATA_STATE.UNAVAILABLE;
 
     const movers = assets.filter(asset => validNumber(asset.change24h));
     const gainers = [...movers]
@@ -132,13 +140,28 @@ export default function useMarketSurface() {
       state,
       sourceId: raw.source || null,
       sourceLabel: raw.source === 'kriptoaman-market-db'
-        ? 'KriptoAman Market DB'
-        : raw.source
-          ? 'KriptoAman Market Snapshot'
-          : 'Source unavailable',
+        ? 'KriptoAman Market DB · Snapshot'
+        : raw.source === 'kriptoaman-cache'
+          ? 'KriptoAman Saved Snapshot'
+          : raw.source
+            ? 'KriptoAman Market Snapshot'
+            : 'Source unavailable',
       capturedAt: raw.lastUpdated || null,
       ageMs,
       freshnessMs: FRESH_MS,
+      truthMode: 'snapshot',
+    });
+
+    const catalog = Object.freeze({
+      state: catalogState,
+      count: trackedAssetCount,
+      sourceLabel: raw.source === 'kriptoaman-market-db'
+        ? 'KriptoAman Market DB'
+        : raw.source === 'kriptoaman-cache'
+          ? 'KriptoAman Saved Catalog'
+          : 'Market catalog',
+      capturedAt: raw.lastUpdated || null,
+      ageMs,
     });
 
     return {
@@ -149,7 +172,10 @@ export default function useMarketSurface() {
       ageMs,
       freshnessMs: FRESH_MS,
       state,
+      priceState: state,
       provenance,
+      catalogState,
+      catalog,
       featured,
       gainers,
       losers,

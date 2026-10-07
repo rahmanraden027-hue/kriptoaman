@@ -41,6 +41,8 @@ export default function HomeV10() {
       data-home-composition="home-live-intelligence-command-center-v1"
       data-master-final="clean-command-center-v1"
       data-production-visual-master="v1"
+      data-market-truth-unification="snapshot-scoped-v1"
+      data-readability-polish="micro-v2"
       data-visual-architecture="understand-ecosystem-v1"
       data-network-inspection-route="/ZEVARYQ"
       data-animation-polish="calm-reduced-motion-safe-v1"
@@ -50,7 +52,7 @@ export default function HomeV10() {
         href="#home-v10-content"
         className="sr-only fixed left-3 top-3 z-[100] rounded-xl bg-cyan-300 px-4 py-3 text-xs font-black text-[#021018] focus:not-sr-only focus:outline-none focus:ring-2 focus:ring-white"
       >
-        Skip to live market data
+        Skip to market data
       </a>
 
       <header

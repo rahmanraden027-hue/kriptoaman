@@ -12,11 +12,20 @@ const tickerAssets = (assets) => {
 
 export default function LiveMarketTicker({ assets = [], state = 'UNAVAILABLE' }) {
   const items = tickerAssets(assets);
+  const stateTone = state === 'LIVE'
+    ? 'text-emerald-300'
+    : state === 'SNAPSHOT' || state === 'DELAYED' || state === 'PARTIAL'
+      ? 'text-amber-300'
+      : 'text-slate-400';
 
   return (
-    <section className="overflow-hidden border-y border-white/[0.06] bg-[#030812]/92" aria-label="Live market ticker">
+    <section
+      className="overflow-hidden border-y border-white/[0.06] bg-[#030812]/92"
+      aria-label="Market ticker"
+      data-market-truth-state={state}
+    >
       <div className="flex min-h-10 items-center gap-3 px-4">
-        <span className="shrink-0 text-[9px] font-black uppercase tracking-[0.16em] text-cyan-300">● {state}</span>
+        <span className={'shrink-0 text-[9px] font-black uppercase tracking-[0.16em] ' + stateTone}>● {state}</span>
         <div className="min-w-0 flex-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="flex w-max items-center gap-5 py-2 pr-5">
             {items.length ? items.map(asset => {

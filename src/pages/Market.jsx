@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 import useLivePrices from '../components/market/useLivePrices';
-import { DATA_STATE, marketDataState } from '@/lib/dataState';
+import { DATA_STATE, marketSnapshotState } from '@/lib/dataState';
 import useCoinMarkets from '../components/home/useCoinMarkets';
 import InteractiveSparkline from '../components/home/InteractiveSparkline';
 import TradingViewModal from '../components/market/TradingViewModal';
@@ -93,17 +93,24 @@ export default function Market({ compact = false }) {
   const [watchlist, setWatchlist] = useState(() => JSON.parse(localStorage.getItem('ka_watchlist') || '[]'));
 
   const { prices: liveData, connected, idrRate } = useLivePrices();
-  const { markets, coins: marketCoins, dataAvailable, source, lastUpdated, isStale, cacheAgeMs } = useCoinMarkets();
+  const { markets, coins: marketCoins, dataAvailable, source, lastUpdated, isStale, cacheAgeMs, loading } = useCoinMarkets();
   const coins = marketCoins.length > 0 ? marketCoins : COINS;
-  const marketState = marketDataState({ connected, dataAvailable });
+  const marketState = marketSnapshotState({
+    dataAvailable,
+    isStale,
+    loading,
+  });
+  const hotFeedState = connected ? DATA_STATE.LIVE : DATA_STATE.UNAVAILABLE;
   const marketAvailable = marketState !== DATA_STATE.UNAVAILABLE;
   const sourceLabel = {
-    coinlore: 'CoinLore',
-    coingecko: 'CoinGecko',
-    cryptocompare: 'CryptoCompare',
+    'kriptoaman-market-db': language === 'en' ? 'KriptoAman Market DB · Snapshot' : 'Database Pasar KriptoAman · Snapshot',
+    'kriptoaman-cache': text.cachedSource,
     cache: text.cachedSource,
-    server: language === 'en' ? 'KriptoAman Market Database' : 'Database Pasar KriptoAman',
-  }[source] || text.sourceUnavailable;
+    server: language === 'en' ? 'KriptoAman Market DB · Snapshot' : 'Database Pasar KriptoAman · Snapshot',
+  }[source] || (dataAvailable ? (language === 'en' ? 'KriptoAman Market Snapshot' : 'Snapshot Pasar KriptoAman') : text.sourceUnavailable);
+  const hotFeedLabel = connected
+    ? (language === 'en' ? 'Hot Feed · LIVE' : 'Hot Feed · LIVE')
+    : (language === 'en' ? 'Hot Feed · UNAVAILABLE' : 'Hot Feed · UNAVAILABLE');
   const ageLabel = cacheAgeMs == null ? null : cacheAgeMs < 60 * 60 * 1000
     ? `${Math.max(1, Math.round(cacheAgeMs / 60000))} ${language === 'en' ? 'min ago' : 'menit lalu'}`
     : `${Math.round(cacheAgeMs / 3600000)} ${language === 'en' ? 'hours ago' : 'jam lalu'}`;
@@ -149,7 +156,12 @@ export default function Market({ compact = false }) {
   };
 
   return (
-    <div className="min-h-screen ka-bg text-white pb-[calc(11rem+env(safe-area-inset-bottom))] sm:pb-28">
+    <div
+      className="min-h-screen ka-bg text-white pb-[calc(11rem+env(safe-area-inset-bottom))] sm:pb-28"
+      data-market-snapshot-state={marketState}
+      data-market-hot-feed-state={hotFeedState}
+      data-market-truth-mode="snapshot-plus-scoped-hot-feed-v1"
+    >
       {chartCoin && (
         <TradingViewModal
           coin={chartCoin}
@@ -176,13 +188,14 @@ export default function Market({ compact = false }) {
                 </div>
                 <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-400 sm:text-[15px]">{text.hero}</p>
                 <div className="mt-4 flex flex-wrap items-center gap-2">
-                  <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-bold ${marketAvailable ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300' : 'border-amber-400/25 bg-amber-400/10 text-amber-300'}`}>
-                    <span className={`h-1.5 w-1.5 rounded-full ${marketAvailable ? 'bg-emerald-400 ka-pulse-dot' : 'bg-amber-400'}`} />
+                  <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-bold ${marketState === DATA_STATE.SNAPSHOT || marketState === DATA_STATE.DELAYED ? 'border-amber-400/25 bg-amber-400/10 text-amber-300' : marketAvailable ? 'border-sky-400/25 bg-sky-400/10 text-sky-300' : 'border-slate-400/20 bg-white/[0.04] text-slate-400'}`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${marketState === DATA_STATE.SNAPSHOT || marketState === DATA_STATE.DELAYED ? 'bg-amber-400' : marketAvailable ? 'bg-sky-400' : 'bg-slate-500'}`} />
                     {marketState}
                   </span>
                   <span className="ka-chip px-3 py-1.5 text-[10px] font-bold text-slate-300">{sourceLabel}</span>
+                  <span className={'ka-chip px-3 py-1.5 text-[10px] font-bold ' + (connected ? 'text-emerald-300' : 'text-slate-400')}>{hotFeedLabel}</span>
                   {updatedLabel && <span className="ka-chip px-3 py-1.5 text-[10px] font-bold text-slate-400">{text.updated} {updatedLabel}</span>}
-                  {ageLabel && <span className={`ka-chip px-3 py-1.5 text-[10px] font-bold ${isStale ? 'text-amber-300' : 'text-emerald-300'}`}>{ageLabel}</span>}
+                  {ageLabel && <span className={`ka-chip px-3 py-1.5 text-[10px] font-bold ${marketState === DATA_STATE.DELAYED ? 'text-amber-300' : 'text-slate-300'}`}>{ageLabel}</span>}
                 </div>
               </div>
   
@@ -191,7 +204,7 @@ export default function Market({ compact = false }) {
                   [Activity, text.breadth, `${breadth}%`, breadth >= 50 ? 'text-emerald-300' : 'text-amber-300'],
                   [Radar, text.feeds, marketState, marketAvailable ? 'text-sky-300' : 'text-amber-300'],
                   [Layers3, text.universe, coins.length.toLocaleString(language === 'en' ? 'en-US' : 'id-ID'), 'text-white'],
-                  [Sparkles, text.mode, language === 'en' ? 'REAL-TIME' : 'REAL-TIME', 'text-cyan-300'],
+                  [Sparkles, text.mode, connected ? 'HYBRID' : marketState, connected ? 'text-cyan-300' : 'text-amber-300'],
                 ].map(([Icon, label, value, color]) => (
                   <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.035] p-3.5 backdrop-blur-xl">
                     <Icon className="h-4 w-4 text-sky-300" />
@@ -218,12 +231,13 @@ export default function Market({ compact = false }) {
                 <h2 className="mt-1 text-lg font-black">{coins.length.toLocaleString(language === 'en' ? 'en-US' : 'id-ID')} {text.assets}</h2>
               </div>
               <div className="flex flex-wrap items-center justify-end gap-1.5">
-                <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-bold ${marketAvailable ? 'border-emerald-400/20 bg-emerald-400/10 text-emerald-300' : 'border-amber-400/20 bg-amber-400/10 text-amber-300'}`}>
-                  <span className={`h-1.5 w-1.5 rounded-full ${marketAvailable ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-bold ${marketState === DATA_STATE.SNAPSHOT || marketState === DATA_STATE.DELAYED ? 'border-amber-400/20 bg-amber-400/10 text-amber-300' : marketAvailable ? 'border-sky-400/20 bg-sky-400/10 text-sky-300' : 'border-slate-400/20 bg-white/[0.04] text-slate-400'}`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${marketState === DATA_STATE.SNAPSHOT || marketState === DATA_STATE.DELAYED ? 'bg-amber-400' : marketAvailable ? 'bg-sky-400' : 'bg-slate-500'}`} />
                   {marketState}
                 </span>
                 <span className="ka-chip px-2.5 py-1 text-[9px] font-bold text-slate-300">{sourceLabel}</span>
-                {ageLabel && <span className={`ka-chip px-2.5 py-1 text-[9px] font-bold ${isStale ? 'text-amber-300' : 'text-emerald-300'}`}>{ageLabel}</span>}
+                <span className={'ka-chip px-2.5 py-1 text-[9px] font-bold ' + (connected ? 'text-emerald-300' : 'text-slate-400')}>{hotFeedLabel}</span>
+                {ageLabel && <span className={`ka-chip px-2.5 py-1 text-[9px] font-bold ${marketState === DATA_STATE.DELAYED ? 'text-amber-300' : 'text-slate-300'}`}>{ageLabel}</span>}
               </div>
             </div>
           )}
@@ -245,8 +259,15 @@ export default function Market({ compact = false }) {
               >
                 {currency === 'idr' ? 'IDR 🇮🇩' : 'USD 🇺🇸'}
               </button>
-              <div className={`shrink-0 rounded-xl border p-2 ${marketAvailable ? 'border-emerald-400/20 bg-emerald-400/10' : 'border-amber-400/20 bg-amber-400/10'}`}>
-                {marketAvailable ? <Wifi className="h-4 w-4 text-emerald-300" /> : <WifiOff className="h-4 w-4 text-amber-300" />}
+              <div
+                className={`shrink-0 rounded-xl border p-2 ${connected ? 'border-emerald-400/20 bg-emerald-400/10' : marketAvailable ? 'border-amber-400/20 bg-amber-400/10' : 'border-slate-400/15 bg-white/[0.03]'}`}
+                aria-label={connected ? 'Hot feed live' : marketAvailable ? 'Market snapshot available' : 'Market unavailable'}
+              >
+                {connected
+                  ? <Wifi className="h-4 w-4 text-emerald-300" />
+                  : marketAvailable
+                    ? <Wifi className="h-4 w-4 text-amber-300" />
+                    : <WifiOff className="h-4 w-4 text-slate-400" />}
               </div>
             </div>
           </div>
@@ -282,7 +303,7 @@ export default function Market({ compact = false }) {
           <summary className="cursor-pointer select-none text-[10px] font-bold text-sky-300">{text.methodology}</summary>
           <div className="pt-3 text-[10px] leading-relaxed text-slate-400">
             <div className="grid gap-3 sm:grid-cols-4">
-              <div><span className="font-bold text-sky-300">{text.source}: </span>{sourceLabel}</div>
+              <div><span className="font-bold text-sky-300">{text.source}: </span>{sourceLabel}{connected ? ' + Hot Feed' : ''}</div>
               <div><span className="font-bold text-sky-300">{text.cadence}: </span>{text.cadenceValue}</div>
               <div><span className="font-bold text-sky-300">{text.freshness}: </span>{isStale ? text.freshnessStale : text.freshnessFresh}{ageLabel ? ` · ${ageLabel}` : ''}</div>
               <div><span className="font-bold text-sky-300">{text.scope}: </span>{text.scopeValue}</div>
