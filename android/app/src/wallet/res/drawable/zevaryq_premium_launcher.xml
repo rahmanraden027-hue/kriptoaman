@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
-        <bitmap android:src="@drawable/zevaryq_premium_art" android:gravity="fill" />
+        <bitmap android:src="@drawable/zevaryq_wallet_launcher" android:gravity="fill" />
     </item>
 </layer-list>
