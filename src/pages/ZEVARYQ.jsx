@@ -49,7 +49,7 @@ function Panel({ title, kicker, children, className = '', action = null }) {
       <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/35 to-transparent" aria-hidden="true" />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          {kicker ? <p className="text-[8px] font-black uppercase tracking-[0.16em] text-cyan-300">{kicker}</p> : null}
+          {kicker ? <p className="text-[9px] font-black uppercase tracking-[0.14em] text-cyan-300">{kicker}</p> : null}
           <h2 className="mt-1 text-base font-black text-white sm:text-lg">{title}</h2>
         </div>
         {action}
@@ -67,11 +67,11 @@ function MetricCard({ icon: Icon, label, value, state, detail }) {
         <span className="grid h-9 w-9 place-items-center rounded-xl border border-cyan-300/10 bg-cyan-300/[0.05] text-cyan-200">
           <Icon className="h-4 w-4" aria-hidden="true" />
         </span>
-        <span className={'text-[8px] font-black uppercase tracking-[0.11em] ' + tone(state)}>{state}</span>
+        <span className={'text-[9px] font-black uppercase tracking-[0.10em] ' + tone(state)}>{state}</span>
       </div>
       <b className="mt-3 block truncate text-lg font-black tracking-[-0.03em] text-white">{value}</b>
       <span className="mt-1 block text-[8px] font-black uppercase tracking-[0.10em] text-slate-300">{label}</span>
-      {detail ? <span className="mt-1 block truncate text-[8px] text-slate-500">{detail}</span> : null}
+      {detail ? <span className="mt-1 block truncate text-[9px] leading-4 text-slate-400">{detail}</span> : null}
     </div>
   );
 }
@@ -118,11 +118,11 @@ function SignatureNetworkGlobe({ inspection }) {
       </div>
 
       <div className="absolute left-[3%] top-[17%] rounded-xl border border-white/[0.07] bg-[#020711]/90 px-2.5 py-2">
-        <span className="block text-[7px] font-black uppercase tracking-[0.10em] text-slate-400">Observed proposers</span>
+        <span className="block text-[8px] font-black uppercase tracking-[0.09em] text-slate-300">Observed proposers</span>
         <b className="mt-1 block text-[11px] text-white">{proposers.length || '—'}</b>
       </div>
       <div className="absolute right-[2%] top-[24%] rounded-xl border border-white/[0.07] bg-[#020711]/90 px-2.5 py-2">
-        <span className="block text-[7px] font-black uppercase tracking-[0.10em] text-slate-400">Source</span>
+        <span className="block text-[8px] font-black uppercase tracking-[0.09em] text-slate-300">Source</span>
         <b className="mt-1 block text-[9px] text-cyan-200">FIRST-PARTY RPC</b>
       </div>
     </div>
@@ -139,9 +139,9 @@ function MiniActivityChart({ rows, valueKey, suffix = '' }) {
         const height = Number.isFinite(value) ? Math.max(6, (value / max) * 100) : 6;
         return (
           <div key={row.number} className="flex min-w-0 flex-1 flex-col items-center justify-end gap-1.5">
-            <span className="text-[7px] font-black text-slate-500">{Number.isFinite(value) ? value.toFixed(valueKey === 'utilization' ? 1 : 0) + suffix : '—'}</span>
+            <span className="text-[8px] font-black text-slate-400">{Number.isFinite(value) ? value.toFixed(valueKey === 'utilization' ? 1 : 0) + suffix : '—'}</span>
             <span className="w-full rounded-t-md bg-gradient-to-t from-cyan-500/55 to-cyan-300/95" style={{ height: height + '%' }} />
-            <span className="truncate text-[7px] text-slate-500">#{String(row.number).slice(-4)}</span>
+            <span className="truncate text-[8px] text-slate-400">#{String(row.number).slice(-4)}</span>
           </div>
         );
       }) : <div className="m-auto text-[9px] text-slate-500">Verified block series unavailable.</div>}
@@ -183,6 +183,7 @@ export default function ZEVARYQ() {
       data-product-release="phase15f"
       data-visual-architecture="inspect-network-v1"
       data-network-data-policy="verified-first-party-only"
+      data-readability-polish="micro-v2"
     >
       <div className="mx-auto max-w-[1580px] space-y-3">
         <CrossSurfaceRail current="network" />
@@ -232,7 +233,7 @@ export default function ZEVARYQ() {
               ].map(([label, value]) => (
                 <div key={label} className="rounded-xl border border-white/[0.05] bg-white/[0.022] p-2.5">
                   <b className="block text-sm text-white">{value}</b>
-                  <span className="mt-1 block text-[8px] font-black uppercase tracking-[0.08em] text-slate-400">{label}</span>
+                  <span className="mt-1 block text-[9px] font-black uppercase tracking-[0.08em] text-slate-300">{label}</span>
                 </div>
               ))}
             </div>
@@ -265,9 +266,9 @@ export default function ZEVARYQ() {
               <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {proposerAddresses.length ? proposerAddresses.slice(0, 6).map((address, index) => (
                   <div key={address} className="rounded-2xl border border-white/[0.05] bg-white/[0.022] p-3">
-                    <span className="text-[8px] font-black uppercase tracking-[0.10em] text-slate-400">Proposer {index + 1}</span>
+                    <span className="text-[9px] font-black uppercase tracking-[0.09em] text-slate-300">Proposer {index + 1}</span>
                     <b className="mt-2 block font-mono text-[10px] text-cyan-200">{shortHash(address, 10, 8)}</b>
-                    <span className="mt-2 block text-[8px] text-slate-500">Recent block proposer; not equivalent to full validator-set evidence.</span>
+                    <span className="mt-2 block text-[9px] leading-4 text-slate-400">Recent block proposer; not equivalent to full validator-set evidence.</span>
                   </div>
                 )) : (
                   <div className="sm:col-span-2 lg:col-span-3 rounded-2xl border border-amber-300/10 bg-amber-300/[0.035] p-4 text-[9px] text-amber-100">
@@ -283,7 +284,7 @@ export default function ZEVARYQ() {
           <Panel title="Recent Verified Blocks" kicker="JSON-RPC · FIRST-PARTY" className="xl:col-span-8">
             <div className="mt-3 overflow-x-auto">
               <table className="w-full min-w-[760px] text-left text-[9px]">
-                <thead className="text-[8px] font-black uppercase tracking-[0.09em] text-slate-500">
+                <thead className="text-[9px] font-black uppercase tracking-[0.08em] text-slate-400">
                   <tr>
                     <th className="px-2 py-2">Block</th>
                     <th className="px-2 py-2">Time</th>
@@ -327,7 +328,7 @@ export default function ZEVARYQ() {
                 ['Peer count', evidence?.peerCount?.available ? formatNumber(evidence.peerCount.count) : 'NOT EXPOSED'],
               ].map(([label, value]) => (
                 <div key={label} className="flex items-start justify-between gap-3 border-b border-white/[0.045] py-2 last:border-b-0">
-                  <span className="text-[8px] font-black uppercase tracking-[0.08em] text-slate-500">{label}</span>
+                  <span className="text-[9px] font-black uppercase tracking-[0.08em] text-slate-400">{label}</span>
                   <b className="max-w-[58%] text-right text-[9px] text-white">{value}</b>
                 </div>
               ))}
@@ -343,7 +344,7 @@ export default function ZEVARYQ() {
                   <div key={address} className="rounded-xl border border-emerald-300/10 bg-emerald-300/[0.035] p-3">
                     <span className="text-[8px] font-black uppercase text-emerald-300">Validator {index + 1}</span>
                     <b className="mt-1 block font-mono text-[10px] text-white">{shortHash(address, 11, 8)}</b>
-                    <span className="mt-1 block text-[8px] text-slate-500">Public QBFT RPC evidence</span>
+                    <span className="mt-1 block text-[9px] leading-4 text-slate-400">Public QBFT RPC evidence</span>
                   </div>
                 ))}
               </div>
@@ -372,7 +373,7 @@ export default function ZEVARYQ() {
                 label="ON-CHAIN EVIDENCE SOURCE"
               />
             </div>
-            <div className="mt-3 rounded-xl border border-cyan-300/10 bg-cyan-300/[0.03] p-3 text-[8px] leading-4 text-slate-400">
+            <div className="mt-3 rounded-xl border border-cyan-300/10 bg-cyan-300/[0.03] p-3 text-[9px] leading-4 text-slate-300">
               Node locations, exchange identities, pending-transaction counts, throughput MB/s, and validator names are intentionally not fabricated. Data appears only when first-party RPC or indexed explorer evidence proves it. Identitas RPC terverifikasi tidak dengan sendirinya menyatakan public-mainnet promotion; mainnet publik tetap mengikuti gerbang operasional produksi.
             </div>
           </Panel>
