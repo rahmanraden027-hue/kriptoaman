@@ -101,7 +101,7 @@ actual="$(sha256sum "$CHECK_DIR/$entry" | cut -d' ' -f1)"
 [[ "$actual" == "$MASTER_SHA" ]] || { echo "static asset mismatch: $entry; got $actual; reverting" >&2; false; }
 echo "local_asset_verified=$entry sha256=$actual"
 curl --noproxy '*' -fLsS --retry 5 --retry-delay 1 --retry-all-errors --max-time 16 http://127.0.0.1/ -o "$CHECK_DIR/index.html"
-grep -Fq 'data-zvq-official-logo="20260924-goldblue-zvq"' "$CHECK_DIR/index.html"
+grep -Fq 'data-zvq-official-logo="20261008-zevaryq-identity-v2"' "$CHECK_DIR/index.html"
 grep -Fq "EXPECTED_CHAIN='0x560c'" "$CHECK_DIR/index.html"
 docker compose exec -T proxy nginx -t
 trap - ERR
