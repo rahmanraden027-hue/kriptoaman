@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { DATA_STATE } from '@/lib/dataState';
+import AssetLogo from '@/components/market/AssetLogo';
 import { formatChange, formatCompactUsd, formatPrice, sparklinePoints } from './format';
 
 const heatTone = (change) => {
@@ -63,7 +64,7 @@ export default function MarketCommandGrid({ market, zevaryq }) {
               >
                 <span className="text-[8px] font-black text-slate-300">{index + 1}</span>
                 <span className="flex min-w-0 items-center gap-2">
-                  {asset.image ? <img src={asset.image} alt="" width="22" height="22" className="h-[22px] w-[22px] rounded-full" loading="lazy" decoding="async" /> : null}
+                  <AssetLogo asset={asset} size={22} />
                   <span className="min-w-0">
                     <b className="block truncate text-[10px] text-white">{asset.sym}</b>
                     <span className="block truncate text-[8px] text-slate-400">{formatPrice(asset.price)}</span>
@@ -85,9 +86,12 @@ export default function MarketCommandGrid({ market, zevaryq }) {
         {featured ? (
           <>
             <div className="mt-3 flex flex-wrap items-end justify-between gap-2">
-              <div>
-                <p className="text-2xl font-black tracking-[-0.04em] text-white">{formatPrice(featured.price)}</p>
-                <p className={'mt-1 text-[10px] font-black ' + (featuredChange >= 0 ? 'text-emerald-300' : 'text-rose-300')}>{formatChange(featuredChange)} · 24H</p>
+              <div className="flex items-center gap-2.5">
+                <AssetLogo asset={featured} size={30} />
+                <div>
+                  <p className="text-2xl font-black tracking-[-0.04em] text-white">{formatPrice(featured.price)}</p>
+                  <p className={'mt-1 text-[10px] font-black ' + (featuredChange >= 0 ? 'text-emerald-300' : 'text-rose-300')}>{formatChange(featuredChange)} · 24H</p>
+                </div>
               </div>
               <div className="text-right text-[8px] text-slate-400">
                 <p>Volume {formatCompactUsd(featured.volume)}</p>
@@ -139,7 +143,10 @@ export default function MarketCommandGrid({ market, zevaryq }) {
               to={'/Market?search=' + encodeURIComponent(asset.sym)}
               className={'min-h-[72px] rounded-2xl border p-2.5 transition hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 ' + heatTone(asset.change24h) + (index < 3 ? ' col-span-1' : '')}
             >
-              <b className="block text-sm text-white">{asset.sym}</b>
+              <span className="flex items-center gap-1.5">
+                <AssetLogo asset={asset} size={18} />
+                <b className="block truncate text-sm text-white">{asset.sym}</b>
+              </span>
               <span className={'mt-1 block text-[10px] font-black ' + (Number(asset.change24h) >= 0 ? 'text-emerald-200' : 'text-rose-200')}>{formatChange(asset.change24h)}</span>
               <span className="mt-2 block truncate text-[8px] text-slate-300">{formatPrice(asset.price)}</span>
             </Link>
