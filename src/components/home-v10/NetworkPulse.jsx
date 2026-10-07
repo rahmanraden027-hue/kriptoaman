@@ -51,8 +51,8 @@ export default function NetworkPulse({ surface }) {
         <div className="rounded-2xl border border-white/[0.055] bg-[#030812]/72 p-3.5">
           <div className="flex items-center justify-between gap-2">
             <div>
-              <p className="text-[8px] font-black uppercase tracking-[0.12em] text-slate-400">Verified block height sequence</p>
-              <p className="mt-1 text-[9px] text-slate-500">Derived only from the verified current head; no synthetic transaction counts.</p>
+              <p className="text-[9px] font-black uppercase tracking-[0.12em] text-slate-300">Verified block height sequence</p>
+              <p className="mt-1 text-[10px] text-slate-400">Derived only from the verified current head; no synthetic transaction counts.</p>
             </div>
             <Blocks className="h-5 w-5 text-amber-200" aria-hidden="true" />
           </div>
@@ -61,7 +61,7 @@ export default function NetworkPulse({ surface }) {
             {blockSequence.length ? blockSequence.map((block, index) => (
               <React.Fragment key={block}>
                 <div className={'min-w-[110px] rounded-2xl border p-3 ' + (index === blockSequence.length - 1 ? 'border-amber-300/25 bg-amber-300/[0.06]' : 'border-cyan-300/10 bg-cyan-300/[0.035]')}>
-                  <span className="text-[7px] font-black uppercase tracking-[0.1em] text-slate-400">{index === blockSequence.length - 1 ? 'LATEST' : 'HEIGHT'}</span>
+                  <span className="text-[8px] font-black uppercase tracking-[0.1em] text-slate-300">{index === blockSequence.length - 1 ? 'LATEST' : 'HEIGHT'}</span>
                   <b className="mt-1 block text-sm text-white">#{block.toLocaleString('en-US')}</b>
                 </div>
                 {index < blockSequence.length - 1 ? <span className="shrink-0 text-cyan-300/60" aria-hidden="true">→</span> : null}
@@ -73,17 +73,17 @@ export default function NetworkPulse({ surface }) {
             <div className="rounded-xl bg-white/[0.025] p-2.5">
               <Gauge className="h-4 w-4 text-cyan-300" aria-hidden="true" />
               <b className="mt-2 block text-sm text-white">{Number.isFinite(Number(network?.probeDurationMs)) ? Math.round(Number(network.probeDurationMs)) + ' ms' : '—'}</b>
-              <span className="text-[7px] font-black uppercase tracking-[0.1em] text-slate-400">RPC probe</span>
+              <span className="text-[8px] font-black uppercase tracking-[0.1em] text-slate-300">RPC probe</span>
             </div>
             <div className="rounded-xl bg-white/[0.025] p-2.5">
               <ShieldCheck className="h-4 w-4 text-emerald-300" aria-hidden="true" />
               <b className="mt-2 block text-sm text-white">{surface?.contract?.chainId || 22028}</b>
-              <span className="text-[7px] font-black uppercase tracking-[0.1em] text-slate-400">Chain ID</span>
+              <span className="text-[8px] font-black uppercase tracking-[0.1em] text-slate-300">Chain ID</span>
             </div>
-            <div className="rounded-xl bg-white/[0.025] p-2.5">
+            <div className="rounded-xl bg-white/[0.025] p-2.5" data-pending-pool-telemetry="not-exposed">
               <Radio className="h-4 w-4 text-amber-300" aria-hidden="true" />
-              <b className="mt-2 block text-sm text-white">UNAVAILABLE</b>
-              <span className="text-[7px] font-black uppercase tracking-[0.1em] text-slate-400">Mempool source</span>
+              <b className="mt-2 block text-sm text-amber-200">NOT EXPOSED</b>
+              <span className="text-[8px] font-black uppercase tracking-[0.1em] text-slate-300">Pending-pool telemetry</span>
             </div>
           </div>
         </div>
@@ -92,7 +92,7 @@ export default function NetworkPulse({ surface }) {
           {metrics.map(([label, value]) => (
             <div key={label} className="rounded-2xl border border-white/[0.05] bg-white/[0.022] p-3">
               <b className="block truncate text-sm text-white">{value}</b>
-              <span className="mt-1 block text-[7px] font-black uppercase tracking-[0.09em] text-slate-400">{label}</span>
+              <span className="mt-1 block text-[8px] font-black uppercase tracking-[0.09em] text-slate-300">{label}</span>
             </div>
           ))}
         </div>

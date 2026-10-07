@@ -87,7 +87,12 @@ function NetworkGlobe({ assets, zevaryq }) {
   const nodes = selectOrbitAssets(assets);
 
   return (
-    <div className="relative mx-auto aspect-square w-full max-w-[520px]" data-visual-topology="kriptoaman-nexus-with-zevaryq-evidence" data-orbit-mode="anchor-plus-live-mover-v1">
+    <div
+      className="relative mx-auto aspect-square w-full max-w-[600px] xl:max-w-[680px]"
+      data-visual-topology="kriptoaman-nexus-with-zevaryq-evidence"
+      data-visual-master-globe="signature-v1"
+      data-orbit-mode="anchor-plus-live-mover-v1"
+    >
       <div className="absolute inset-[5%] rounded-full bg-[radial-gradient(circle_at_43%_32%,rgba(56,189,248,.28),rgba(3,10,22,.70)_43%,rgba(1,6,14,.98)_72%)] shadow-[0_0_95px_rgba(14,165,233,.17),inset_0_0_60px_rgba(56,189,248,.10)]" />
       <div className="absolute inset-[8%] rounded-full border border-cyan-300/25 shadow-[inset_0_0_42px_rgba(34,211,238,.10)]" />
 
@@ -126,18 +131,18 @@ function NetworkGlobe({ assets, zevaryq }) {
       <div className="absolute left-1/2 top-1/2 z-10 flex h-[32%] w-[32%] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-amber-300/25 bg-[#06111f]/95 shadow-[0_0_55px_rgba(245,158,11,.14),inset_0_0_30px_rgba(34,211,238,.10)] backdrop-blur">
         <img src="/brand/kriptoaman-mark-premium.webp" alt="" className="h-11 w-11 object-contain sm:h-14 sm:w-14" />
         <b className="mt-2 text-[9px] tracking-[0.15em] text-amber-200 sm:text-[11px]">KRIPTOAMAN</b>
-        <span className="text-[7px] font-black uppercase tracking-[0.1em] text-cyan-300">NEXUS</span>
-        <span className={'mt-1 text-[7px] font-black uppercase tracking-[0.08em] ' + (active ? 'text-emerald-300' : 'text-slate-300')}>
+        <span className="text-[8px] font-black uppercase tracking-[0.1em] text-cyan-300">NEXUS</span>
+        <span className={'mt-1 text-[8px] font-black uppercase tracking-[0.08em] ' + (active ? 'text-emerald-300' : 'text-slate-300')}>
           ZVQ {networkState}
         </span>
-        <span className="mt-1 text-[7px] text-slate-300">
+        <span className="mt-1 text-[8px] text-slate-300">
           {Number.isSafeInteger(block) ? '#' + block.toLocaleString('en-US') : 'Block —'}
         </span>
       </div>
 
       {nodes.map((asset, index) => <AssetSignal key={asset.id || asset.sym} asset={asset} position={ORBIT_POSITIONS[index]} />)}
 
-      <div className="absolute inset-x-[11%] bottom-[2%] z-20 flex items-center justify-center gap-2 rounded-full border border-white/[0.06] bg-[#030812]/78 px-3 py-1.5 text-center text-[7px] font-black uppercase tracking-[0.12em] text-slate-300 backdrop-blur">
+      <div className="absolute inset-x-[11%] bottom-[2%] z-20 flex items-center justify-center gap-2 rounded-full border border-white/[0.06] bg-[#030812]/78 px-3 py-1.5 text-center text-[8px] font-black uppercase tracking-[0.12em] text-slate-300 backdrop-blur">
         <Globe2 className="h-3 w-3 text-cyan-300" aria-hidden="true" />
         Visual topology · verified core data only
       </div>
@@ -191,7 +196,7 @@ export default function CommandCenterHero({ market, zevaryq }) {
         </div>
       </div>
 
-      <div className="relative mt-4 grid gap-5 sm:mt-3 sm:gap-4 xl:grid-cols-[.9fr_1.15fr_.82fr] xl:items-center">
+      <div className="relative mt-4 grid gap-5 sm:mt-3 sm:gap-4 xl:grid-cols-[.72fr_1.48fr_.8fr] xl:items-center">
         <div className="py-2 sm:py-4">
           <p className="text-[9px] font-black uppercase tracking-[0.17em] text-cyan-300">KRIPTOAMAN · GLOBAL CRYPTO INTELLIGENCE</p>
           <h1 className="mt-3 max-w-xl text-3xl font-black leading-[1.01] tracking-[-0.055em] text-white sm:text-4xl lg:text-[46px]">
@@ -251,7 +256,7 @@ export default function CommandCenterHero({ market, zevaryq }) {
             ].map(([label, value, state]) => (
               <div key={label} className="rounded-2xl border border-white/[0.055] bg-white/[0.022] p-3">
                 <p className="truncate text-sm font-black text-white">{value}</p>
-                <p className="mt-1 text-[7px] font-black uppercase tracking-[0.12em] text-slate-300">{label}</p>
+                <p className="mt-1 text-[8px] font-black uppercase tracking-[0.12em] text-slate-300">{label}</p>
                 <span className={'mt-2 inline-block text-[7px] font-black uppercase ' + (
                   [DATA_STATE.LIVE, DATA_STATE.SYNCED, DATA_STATE.VERIFIED].includes(state)
                     ? 'text-emerald-300'
@@ -272,7 +277,11 @@ export default function CommandCenterHero({ market, zevaryq }) {
       <div className="relative mt-4">
         <DataProvenanceBar
           state={networkState}
-          source={network ? 'ZEVARYQ Network Status · rpc.kriptoaman.com' : 'ZEVARYQ network source unavailable'}
+          source={zevaryq?.networkSourceMode === 'FIRST_PARTY_CORROBORATED'
+            ? 'ZEVARYQ first-party JSON-RPC · corroborated evidence'
+            : network
+              ? 'ZEVARYQ Network Status · rpc.kriptoaman.com'
+              : 'ZEVARYQ network source unavailable'}
           timestamp={zevaryq?.networkObservedAt}
           ageMs={zevaryq?.networkAgeMs}
           label="NETWORK SOURCE"

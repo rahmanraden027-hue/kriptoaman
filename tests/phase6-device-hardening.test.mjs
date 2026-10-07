@@ -7,7 +7,9 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 test('physical-device install prompt collapses instead of covering mobile content', async () => {
   const source = await read('src/components/pwa/PWAInstallPrompt.jsx');
   assert.match(source, /const isPublicRoot = pathname === '\/'/);
-  assert.match(source, /isPublicRoot \? 'bottom-\[calc\(5\.25rem\+env\(safe-area-inset-bottom,0px\)\)\] right-3 md:bottom-4'/);
+  assert.match(source, /isPublicRoot \? 'bottom-\[calc\(6\.75rem\+env\(safe-area-inset-bottom,0px\)\)\] right-2 md:bottom-4 md:right-4'/);
+  assert.match(source, /scrollActive/);
+  assert.match(source, /pointer-events-none translate-x-2 opacity-0/);
   assert.match(source, /Math\.max\(420, Math\.round\(window\.innerHeight \* 0\.58\)\)/);
   assert.match(source, /isPublicRoot && !rootCtaReady/);
   assert.match(source, /isServices && !scrolled/);

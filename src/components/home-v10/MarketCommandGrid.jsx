@@ -16,6 +16,11 @@ const heatTone = (change) => {
 const sortedByRank = (assets) => [...(Array.isArray(assets) ? assets : [])]
   .sort((a, b) => Number(a?.rank || 999999) - Number(b?.rank || 999999));
 
+const positiveFinite = (value) => Number.isFinite(Number(value)) && Number(value) > 0;
+const verifiedPriceSeries = (values) => Array.isArray(values)
+  ? values.map(Number).filter((value) => Number.isFinite(value) && value > 0)
+  : [];
+
 function Panel({ title, kicker, children, className = '' }) {
   return (
     <section className={'relative overflow-hidden rounded-[24px] border border-cyan-300/[0.09] bg-[#050c16] p-4 ' + className}>
@@ -35,8 +40,16 @@ export default function MarketCommandGrid({ market, zevaryq }) {
   const rows = useMemo(() => sortedByRank(market?.assets).slice(0, 7), [market?.assets]);
   const heat = useMemo(() => sortedByRank(market?.assets).slice(0, 12), [market?.assets]);
   const featured = market?.featured?.[0] || rows[0] || null;
-  const points = sparklinePoints(featured?.sparkline, 500, 150);
+  const featuredSeries = verifiedPriceSeries(featured?.sparkline);
+  const points = sparklinePoints(featuredSeries, 500, 150);
+  const featuredSeriesVerified = featuredSeries.length >= 2 && Boolean(points);
   const featuredChange = Number(featured?.change24h);
+  const featuredFacts = featured ? [
+    positiveFinite(featured.high24h) ? ['High 24H', formatPrice(featured.high24h)] : null,
+    positiveFinite(featured.low24h) ? ['Low 24H', formatPrice(featured.low24h)] : null,
+    Number.isFinite(Number(featured.rank)) && Number(featured.rank) > 0 ? ['Rank', '#' + featured.rank] : null,
+    ['State', market?.state || DATA_STATE.UNAVAILABLE],
+  ].filter(Boolean) : [];
   const onChain = zevaryq?.onChain || null;
   const onChainState = zevaryq?.onChainState || DATA_STATE.CHECKING;
 
@@ -98,23 +111,37 @@ export default function MarketCommandGrid({ market, zevaryq }) {
                 <p>Market Cap {formatCompactUsd(featured.marketCap)}</p>
               </div>
             </div>
-            <div className="mt-4 h-40 rounded-2xl border border-white/[0.055] bg-[linear-gradient(180deg,rgba(14,165,233,.055),transparent)] p-3">
-              <svg viewBox="0 0 500 150" className="h-full w-full" preserveAspectRatio="none" role="img" aria-label={featured.sym + ' verified seven day price path'}>
-                <defs>
-                  <linearGradient id="market-line" x1="0" x2="1">
-                    <stop offset="0%" stopColor="rgb(34 211 238)" />
-                    <stop offset="100%" stopColor="rgb(251 191 36)" />
-                  </linearGradient>
-                </defs>
-                <path d="M0 30 H500 M0 75 H500 M0 120 H500" stroke="rgba(148,163,184,.08)" strokeWidth="1" />
-                {points ? <polyline points={points} fill="none" stroke="url(#market-line)" strokeWidth="3" vectorEffect="non-scaling-stroke" /> : null}
-              </svg>
+            <div
+              className="mt-4 h-40 rounded-2xl border border-white/[0.055] bg-[linear-gradient(180deg,rgba(14,165,233,.055),transparent)] p-3"
+              data-price-path-state={featuredSeriesVerified ? 'VERIFIED' : 'UNAVAILABLE'}
+            >
+              {featuredSeriesVerified ? (
+                <svg viewBox="0 0 500 150" className="h-full w-full" preserveAspectRatio="none" role="img" aria-label={featured.sym + ' verified seven day price path'}>
+                  <defs>
+                    <linearGradient id="market-line" x1="0" x2="1">
+                      <stop offset="0%" stopColor="rgb(34 211 238)" />
+                      <stop offset="100%" stopColor="rgb(251 191 36)" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M0 30 H500 M0 75 H500 M0 120 H500" stroke="rgba(148,163,184,.08)" strokeWidth="1" />
+                  <polyline points={points} fill="none" stroke="url(#market-line)" strokeWidth="3" vectorEffect="non-scaling-stroke" />
+                </svg>
+              ) : (
+                <div className="flex h-full items-center justify-center text-center">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.11em] text-amber-200">Verified price path unavailable</p>
+                    <p className="mt-2 text-[9px] leading-4 text-slate-400">Chart disembunyikan sampai seri harga positif yang terverifikasi tersedia.</p>
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-2 text-[9px] sm:grid-cols-4">
-              <div className="rounded-xl bg-white/[0.025] p-2"><span className="text-slate-400">High 24H</span><b className="mt-1 block text-white">{formatPrice(featured.high24h)}</b></div>
-              <div className="rounded-xl bg-white/[0.025] p-2"><span className="text-slate-400">Low 24H</span><b className="mt-1 block text-white">{formatPrice(featured.low24h)}</b></div>
-              <div className="rounded-xl bg-white/[0.025] p-2"><span className="text-slate-400">Rank</span><b className="mt-1 block text-white">{Number.isFinite(Number(featured.rank)) ? '#' + featured.rank : '—'}</b></div>
-              <div className="rounded-xl bg-white/[0.025] p-2"><span className="text-slate-400">State</span><b className="mt-1 block text-cyan-200">{market?.state || DATA_STATE.UNAVAILABLE}</b></div>
+            <div className={'mt-3 grid grid-cols-2 gap-2 text-[10px] ' + (featuredFacts.length >= 4 ? 'sm:grid-cols-4' : featuredFacts.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2')}>
+              {featuredFacts.map(([label, value]) => (
+                <div key={label} className="rounded-xl bg-white/[0.025] p-2.5">
+                  <span className="text-slate-300">{label}</span>
+                  <b className={'mt-1 block ' + (label === 'State' ? 'text-cyan-200' : 'text-white')}>{value}</b>
+                </div>
+              ))}
             </div>
           </>
         ) : <p className="py-16 text-center text-[10px] text-slate-400">No verified featured asset available.</p>}
@@ -125,7 +152,7 @@ export default function MarketCommandGrid({ market, zevaryq }) {
           {evidence.map(([label, value]) => (
             <div key={label} className="rounded-xl border border-white/[0.05] bg-white/[0.025] p-2.5">
               <b className="block truncate text-[11px] text-white">{value}</b>
-              <span className="mt-1 block text-[7px] font-black uppercase tracking-[0.08em] text-slate-400">{label}</span>
+              <span className="mt-1 block text-[8px] font-black uppercase tracking-[0.08em] text-slate-300">{label}</span>
             </div>
           ))}
         </div>
