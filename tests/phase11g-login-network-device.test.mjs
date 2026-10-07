@@ -20,6 +20,9 @@ test('Phase 11G proves authentication survives telemetry failure', async () => {
   const script = await read('.github/scripts/phase11g-login-network-device.mjs');
   assert.match(script, /forced fail-closed probe/);
   assert.match(script, /stateUnavailable/);
+  assert.match(script, /stateLive/);
+  assert.match(script, /\/api\/zvq-token-intelligence/);
+  assert.match(script, /\/api\/zvq-live-blocks/);
   assert.match(script, /login controls became unavailable/);
   assert.match(script, /UNAVAILABLE state missing/);
   assert.doesNotMatch(script, /eth_sendRawTransaction|eth_sendTransaction|personal_|admin_|debug_|txpool_|private.?key|mnemonic|seed phrase/i);
