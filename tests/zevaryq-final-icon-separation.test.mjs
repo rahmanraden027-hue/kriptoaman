@@ -33,6 +33,7 @@ test('market, registry and WalletConnect no longer depend on legacy ZEVARYQ artw
     read('src/data/zevaryqVisualAssetCatalog.js'),
     read('src/components/landing/GLandingHeroConsole.jsx'),
     read('src/components/web3/Web3Provider.jsx'),
+    read('src/components/wallet/KAMTokenCard.jsx'),
   ]);
   for (const source of files) assert.doesNotMatch(source, new RegExp(LEGACY_ICON.replaceAll('.', '\\.')));
   assert.match(files[0], /ZVQ_TOKEN_ICON/);
@@ -40,6 +41,7 @@ test('market, registry and WalletConnect no longer depend on legacy ZEVARYQ artw
   assert.match(files[2], /icon: ZVQ_TOKEN_ICON/);
   assert.match(files[3], /logo: ZVQ_TOKEN_ICON/);
   assert.match(files[4], /icons: \[ZEVARYQ_APP_ICON_ABSOLUTE\]/);
+  assert.match(files[5], /variant="token"/);
 });
 
 test('Android launcher is text-free Gold Z + Blue Halo and wallet splash uses it', async () => {
