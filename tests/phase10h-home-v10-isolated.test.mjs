@@ -91,7 +91,7 @@ test('Phase 10L hardens HomeV10 for global mobile and accessibility readiness', 
     read('.github/workflows/phase7-device-class-visual.yml'),
   ]);
 
-  assert.match(home, /Skip to live market data/);
+  assert.match(home, /Skip to market data/);
   assert.match(home, /id="home-v10-content"/);
   assert.match(home, /safe-area-inset-top/);
   assert.match(home, /safe-area-inset-bottom/);
