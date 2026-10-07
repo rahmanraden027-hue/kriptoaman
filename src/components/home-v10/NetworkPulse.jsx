@@ -33,6 +33,7 @@ export default function NetworkPulse({ surface }) {
       aria-label="ZEVARYQ network pulse"
       className="relative overflow-hidden rounded-[26px] border border-cyan-300/[0.09] bg-[radial-gradient(circle_at_20%_0%,rgba(14,165,233,.07),transparent_30%),#050c16] p-4 sm:p-5"
       data-network-pulse-state={surface?.overallState || DATA_STATE.CHECKING}
+      data-network-source={surface?.networkSourceMode || 'UNAVAILABLE'}
     >
       <div className="absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/35 to-transparent" aria-hidden="true" />
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -100,7 +101,11 @@ export default function NetworkPulse({ surface }) {
       <div className="mt-3 grid gap-2 lg:grid-cols-2">
         <DataProvenanceBar
           state={networkState}
-          source={network ? 'ZEVARYQ Network Status · rpc.kriptoaman.com' : 'ZEVARYQ network source unavailable'}
+          source={surface?.networkSourceMode === 'FIRST_PARTY_CORROBORATED'
+            ? 'ZEVARYQ first-party JSON-RPC · corroborated evidence'
+            : network
+              ? 'ZEVARYQ Network Status · rpc.kriptoaman.com'
+              : 'ZEVARYQ network source unavailable'}
           timestamp={surface?.networkObservedAt}
           ageMs={surface?.networkAgeMs}
           label="NETWORK PULSE SOURCE"
