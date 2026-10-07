@@ -44,7 +44,8 @@ export default function CommandStats({ market, zevaryq }) {
   const network = zevaryq?.network || null;
   const block = Number(network?.blockNumber);
   const probeMs = Number(network?.probeDurationMs);
-  const marketState = market?.state || DATA_STATE.UNAVAILABLE;
+  const marketState = market?.priceState || market?.state || DATA_STATE.UNAVAILABLE;
+  const catalogState = market?.catalogState || DATA_STATE.UNAVAILABLE;
   const networkState = zevaryq?.networkState || DATA_STATE.CHECKING;
 
   const cards = [
@@ -52,14 +53,18 @@ export default function CommandStats({ market, zevaryq }) {
       icon: Database,
       label: 'Aset dipantau',
       value: metrics.tracked > 0 ? metrics.tracked.toLocaleString('en-US') : '—',
-      detail: marketState,
-      state: marketState,
+      detail: 'CATALOG · ' + catalogState,
+      state: catalogState,
     },
     {
       icon: Activity,
       label: 'Volume tracked 24H',
       value: metrics.volume > 0 ? formatCompactUsd(metrics.volume) : '—',
-      detail: marketState === DATA_STATE.LIVE ? DATA_STATE.CALCULATED : marketState,
+      detail: marketState === DATA_STATE.LIVE
+        ? 'CALCULATED · LIVE'
+        : marketState === DATA_STATE.SNAPSHOT
+          ? 'CALCULATED · SNAPSHOT'
+          : marketState,
       state: marketState,
     },
     {
@@ -83,7 +88,9 @@ export default function CommandStats({ market, zevaryq }) {
       aria-label="Live command statistics"
       data-assets-tracked={metrics.tracked || ''}
       data-master-kpi-count="4"
-      data-kpi-source-mode="verified-live-only"
+      data-kpi-source-mode="truth-scoped-v2"
+      data-market-catalog-state={catalogState}
+      data-market-price-state={marketState}
       className="grid grid-cols-2 gap-2 lg:grid-cols-4"
     >
       {cards.map((card) => <StatCard key={card.label} {...card} />)}
