@@ -27,3 +27,8 @@ It does not modify UI, production application files, RPC policy, genesis, valida
 ## Phase 16F impact
 
 The Phase 16F acceptance rules remain unchanged. Missing hourly buckets are not backfilled or invented. The long-run window can advance only from real retained Phase 16E observation artifacts.
+
+
+## 2026-10-08 continuity recovery trigger
+
+This documentation-only change intentionally re-triggers the guardian on `main` after the scheduled guardian stopped producing new runs. The guardian remains observation-only: if the latest Phase 16E observation is older than 90 minutes, it dispatches the existing read-only Phase 16E workflow; otherwise it records continuity as healthy. No production application, RPC, validator, chain, DNS, balance, treasury, or token state is changed by this trigger.
