@@ -3,12 +3,13 @@ import { Activity, Blocks, Database, Shield } from 'lucide-react';
 import KriptoAmanLogo from '@/components/brand/KriptoAmanLogo';
 import { COIN_META } from '@/components/home/coinMeta';
 import { getProductionFreshness } from './productionFreshness';
+import { ZVQ_TOKEN_ICON } from '@/lib/zevaryqBrandAssets';
 
 const COINS = [
   { sym: 'BTC', sub: 'Bitcoin', logo: COIN_META.BTC?.logo, color: '#F7931A', className: 'ka-coin-btc' },
   { sym: 'ETH', sub: 'Ethereum', logo: COIN_META.ETH?.logo, color: '#627EEA', className: 'ka-coin-eth' },
   { sym: 'SOL', sub: 'Solana', logo: COIN_META.SOL?.logo, color: '#14F195', className: 'ka-coin-sol' },
-  { sym: 'ZVQ', sub: 'ZEVARYQ', logo: '/brand/zevaryq-wallet-premium-icon.webp', color: '#F5B72E', className: 'ka-coin-trx' },
+  { sym: 'ZVQ', sub: 'ZEVARYQ', logo: ZVQ_TOKEN_ICON, color: '#F5B72E', className: 'ka-coin-trx' },
 ];
 
 function NetworkVisual() {
