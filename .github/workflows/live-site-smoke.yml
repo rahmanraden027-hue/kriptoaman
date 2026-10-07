@@ -36,7 +36,7 @@ jobs:
           unexpected=""
           while IFS= read -r path; do
             case "$path" in
-              .github/workflows/zevaryq-explorer-production.yml|.github/workflows/live-site-smoke.yml|explorer-dashboard/zevaryq-production.html|explorer-dashboard/assets/zevaryq-emblem.webp|explorer-dashboard/assets/zevaryq-favicon.png|scripts/deploy-zevaryq-explorer.sh|tests/zevaryq-explorer-production.test.mjs)
+              .github/workflows/zevaryq-explorer-production.yml|.github/workflows/live-site-smoke.yml|explorer-dashboard/zevaryq-production.html|explorer-dashboard/assets/zevaryq-master-v2.svg|scripts/deploy-zevaryq-explorer.sh|tests/zevaryq-explorer-production.test.mjs)
                 ;;
               *)
                 unexpected="${unexpected}${path}\n"

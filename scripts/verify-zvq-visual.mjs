@@ -14,6 +14,7 @@ const {chromium}=await import(pathToFileURL(modulePath).href);
 await mkdir(imageDir,{recursive:true});
 const served={
  '/':['zevaryq-production.html','text/html; charset=utf-8'],
+ '/zevaryq-assets/zevaryq-master-v2.svg':['assets/zevaryq-master-v2.svg','image/svg+xml'],
  '/zevaryq-assets/zevaryq-emblem.webp':['assets/zevaryq-emblem.webp','image/webp'],
  '/zevaryq-assets/zevaryq-favicon.png':['assets/zevaryq-favicon.png','image/png'],
  '/zevaryq-assets/zvq-v2.css':['assets/zvq-v2.css','text/css; charset=utf-8'],

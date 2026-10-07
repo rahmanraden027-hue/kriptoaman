@@ -18,7 +18,7 @@ test('scheduled public proof checks exact approved design on public default and 
   assert.match(workflow, /id="token-discovery"/);
 });
 
-test('production public proof checks RPC Chain ID, indexed blocks and both brand assets', () => {
+test('production public proof checks RPC Chain ID, indexed blocks and canonical brand asset', () => {
   assert.match(workflow, /eth_chainId/);
   assert.ok(workflow.includes("'https://rpc.kriptoaman.com/'"));
   assert.match(workflow, /explorer_domain_rpc=read-only/);
@@ -29,8 +29,9 @@ test('production public proof checks RPC Chain ID, indexed blocks and both brand
   assert.match(workflow, /test "\$\(jq -er '\.result' <<<"\$chain"\)" = '0x560c'/);
   assert.match(workflow, /\/api\/v2\/blocks/);
   assert.match(workflow, /length > 0/);
-  assert.match(workflow, /zevaryq-favicon.png/);
-  assert.match(workflow, /zevaryq-emblem.webp/);
+  assert.match(workflow, /zevaryq-master-v2\.svg/);
+  assert.match(workflow, /data-zvq-official-logo="20261008-zevaryq-identity-v2"/);
+  assert.match(workflow, /data-zvq-logo-integrity="sha256-a74790a590757e6f4425d384fdc0cdf40cb8030807eb7c0892ba8aaa4e6fc6cc"/);
   assert.doesNotMatch(workflow, /genesis|validator private key|redis.*wipe|postgres.*reset/i);
 });
 

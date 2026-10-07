@@ -19,10 +19,10 @@ jobs:
         run: |
           set -uo pipefail
           echo 'APPROVED_REPO_ASSETS'
-          sha256sum explorer-dashboard/assets/zevaryq-emblem.webp explorer-dashboard/assets/zevaryq-favicon.png
+          sha256sum explorer-dashboard/assets/zevaryq-master-v2.svg
           host_dir=/opt/blockscout/docker-compose/proxy/kam-dashboard/zevaryq-assets
           echo 'HOST_DISK_ASSETS'
-          for asset in zevaryq-emblem.webp zevaryq-favicon.png; do
+          for asset in zevaryq-master-v2.svg; do
             if [[ -r "$host_dir/$asset" ]]; then
               stat -c '%n bytes=%s' "$host_dir/$asset"
               sha256sum "$host_dir/$asset"
@@ -38,9 +38,9 @@ jobs:
           scratch="$(mktemp -d)"
           trap 'rm -rf "$scratch"' EXIT
           for route in local public; do
-            for asset in zevaryq-emblem.webp zevaryq-favicon.png; do
+            for asset in zevaryq-master-v2.svg; do
               if [[ "$route" == local ]]; then url="http://127.0.0.1/zevaryq-assets/$asset"; else url="https://explorer.kriptoaman.com/zevaryq-assets/$asset"; fi
-              code="$(curl --noproxy '*' -LsS --connect-timeout 5 --max-time 15 -D "$scratch/$route-$asset.headers" -o "$scratch/$route-$asset" -w '%{http_code}' "$url?v=20260924-goldblue-zvq" || true)"
+              code="$(curl --noproxy '*' -LsS --connect-timeout 5 --max-time 15 -D "$scratch/$route-$asset.headers" -o "$scratch/$route-$asset" -w '%{http_code}' "$url?v=20261008-zevaryq-identity-v2" || true)"
               echo "ASSET_HTTP_ROUTE=$route FILE=$asset HTTP=$code"
               grep -iE '^(content-type|content-length|cache-control):' "$scratch/$route-$asset.headers" || true
               sha256sum "$scratch/$route-$asset" 2>/dev/null || true

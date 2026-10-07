@@ -24,10 +24,12 @@ test('bundled homepage uses canonical production ZVQ evidence, not a fabricated 
  assert.doesNotMatch(source, /content:"ZV"|1\.0\.0/);
 });
 
-test('bridge serves only verified HTML and its two versioned binary assets locally', () => {
+test('bridge serves only verified HTML and the canonical versioned identity asset locally', () => {
  assert.match(source, /url\.pathname === '\/'/);
- assert.match(source, /'\/zevaryq-assets\/zevaryq-emblem\.webp'/);
- assert.match(source, /'\/zevaryq-assets\/zevaryq-favicon\.png'/);
+ assert.match(source, /'\/zevaryq-assets\/zevaryq-master-v2\.svg'/);
+ assert.match(source, /const IDENTITY = '20261008-zevaryq-identity-v2'/);
+ assert.match(source, /const IDENTITY_SHA = 'a74790a590757e6f4425d384fdc0cdf40cb8030807eb7c0892ba8aaa4e6fc6cc'/);
+ assert.match(source, /'x-zevaryq-identity': IDENTITY/);
  assert.match(config, /type = "Text"/);
  assert.match(config, /type = "Data"/);
  assert.match(config, /workers_dev = false/);
