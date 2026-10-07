@@ -36,6 +36,7 @@ export default function HomeV10() {
       data-product-architecture={'kriptoaman-final-' + PRODUCT_ARCHITECTURE_VERSION}
       data-command-release="phase15d"
       data-production-data-binding="phase16b-verified-live-state-v1"
+      data-runtime-state-unification="first-party-corroborated-v1"
       data-visual-integration="phase16c-final-command-center-v1"
       data-home-composition="home-live-intelligence-command-center-v1"
       data-master-final="clean-command-center-v1"
