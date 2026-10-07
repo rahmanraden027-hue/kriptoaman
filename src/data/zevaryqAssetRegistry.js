@@ -16,7 +16,7 @@ export const ZEVARYQ_FIRST_PARTY_ASSETS = Object.freeze([
     chainId: 22028,
     assetType: 'native',
     contractAddress: null,
-    icon: '/brand/zevaryq-wallet-premium-icon.webp',
+    icon: '/assets/zevaryq/tokens/zvq-coin-v2.svg',
     provenance: 'ZEVARYQ Mainnet native gas asset',
     executable: true,
   }),
