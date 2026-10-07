@@ -6,8 +6,7 @@ set -Eeuo pipefail
 BASE=/opt/blockscout/docker-compose
 PROXY_DIR="$BASE/proxy"
 TEMPLATE="$PROXY_DIR/default.conf.template"
-EMBLEM_SHA=3fcabc6475d975b65b49c5d6a88c5d1c6e64630b11d5674bfc773a92dd2ec95f
-FAVICON_SHA=7cc9708233c2624b7b4f95b5ae0902c5cf1233e1648b271a5a41ab02dc95fffe
+MASTER_SHA=a74790a590757e6f4425d384fdc0cdf40cb8030807eb7c0892ba8aaa4e6fc6cc
 
 render_template() {
   python3 - "$1" "$2" <<'PY'
@@ -28,7 +27,7 @@ block = '\n'.join([
     indent + 'location ^~ /zevaryq-assets/ {',
     indent + unit + 'limit_except GET { deny all; }',
     indent + unit + 'root /etc/nginx/templates/kam-dashboard;',
-    indent + unit + 'types { image/webp webp; image/png png; }',
+    indent + unit + 'types { image/webp webp; image/png png; image/svg+xml svg; }',
     indent + unit + 'default_type application/octet-stream;',
     indent + unit + 'add_header Cache-Control "public, max-age=300" always;',
     indent + unit + 'add_header X-Content-Type-Options "nosniff" always;',
@@ -54,22 +53,19 @@ fi
 [[ -f "$TEMPLATE" && -d "$PROXY_DIR/kam-dashboard/zevaryq-assets" ]] || { echo 'Dedicated Explorer origin missing' >&2; exit 1; }
 [[ -f "$PROXY_DIR/kam-dashboard/index.html" ]] || { echo 'Production homepage missing' >&2; exit 1; }
 grep -Fq "EXPECTED_CHAIN='0x560c'" "$PROXY_DIR/kam-dashboard/index.html" || { echo 'Wrong chain or page; refusing repair' >&2; exit 1; }
-grep -Fq 'data-zvq-official-logo="20260924-goldblue-zvq"' "$PROXY_DIR/kam-dashboard/index.html" || { echo 'Official logo release not deployed' >&2; exit 1; }
-[[ "$(sha256sum "$PROXY_DIR/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp" | cut -d' ' -f1)" == "$EMBLEM_SHA" ]] || { echo 'Approved emblem not present on host' >&2; exit 1; }
-[[ "$(sha256sum "$PROXY_DIR/kam-dashboard/zevaryq-assets/zevaryq-favicon.png" | cut -d' ' -f1)" == "$FAVICON_SHA" ]] || { echo 'Approved favicon not present on host' >&2; exit 1; }
+grep -Fq 'data-zvq-official-logo="20261008-zevaryq-identity-v2"' "$PROXY_DIR/kam-dashboard/index.html" || { echo 'Official logo release not deployed' >&2; exit 1; }
+[[ "$(sha256sum "$PROXY_DIR/kam-dashboard/zevaryq-assets/zevaryq-master-v2.svg" | cut -d' ' -f1)" == "$MASTER_SHA" ]] || { echo 'Approved Identity V2 master mark not present on host' >&2; exit 1; }
 cd "$BASE"
 [[ -n "$(docker compose ps -q proxy)" ]] || { echo 'Existing proxy unavailable; no changes' >&2; exit 1; }
 docker compose config -q
 
-# Idempotent success is permitted only when the live origin serves BOTH exact files.
+# Idempotent success is permitted only when the live origin serves the exact Identity V2 master asset.
 if grep -Fq 'location ^~ /zevaryq-assets/' "$TEMPLATE"; then
   tmp_check="$(mktemp -d)"
   trap 'rm -rf "$tmp_check"' EXIT
-  curl --noproxy '*' -fsS --max-time 10 http://127.0.0.1/zevaryq-assets/zevaryq-emblem.webp -o "$tmp_check/emblem.webp"
-  curl --noproxy '*' -fsS --max-time 10 http://127.0.0.1/zevaryq-assets/zevaryq-favicon.png -o "$tmp_check/favicon.png"
-  [[ "$(sha256sum "$tmp_check/emblem.webp" | cut -d' ' -f1)" == "$EMBLEM_SHA" ]] || { echo 'Existing route does not serve correct emblem; manual investigation required' >&2; exit 1; }
-  [[ "$(sha256sum "$tmp_check/favicon.png" | cut -d' ' -f1)" == "$FAVICON_SHA" ]] || { echo 'Existing route does not serve correct favicon; manual investigation required' >&2; exit 1; }
-  echo 'static_asset_route=already_healthy; both_approved_sha256=verified'
+  curl --noproxy '*' -fsS --max-time 10 http://127.0.0.1/zevaryq-assets/zevaryq-master-v2.svg -o "$tmp_check/zevaryq-master-v2.svg"
+  [[ "$(sha256sum "$tmp_check/zevaryq-master-v2.svg" | cut -d' ' -f1)" == "$MASTER_SHA" ]] || { echo 'Existing route does not serve correct Identity V2 master mark; manual investigation required' >&2; exit 1; }
+  echo 'static_asset_route=already_healthy; identity_v2_sha256=verified'
   exit 0
 fi
 
@@ -99,16 +95,11 @@ install -m 0644 "$CANDIDATE" "$TEMPLATE"
 # Only recreate the existing Explorer proxy. Other containers and chain state stay untouched.
 docker compose config -q
 docker compose up -d --no-deps --force-recreate proxy
-for entry in 'zevaryq-emblem.webp' 'zevaryq-favicon.png'; do
-  case "$entry" in
-    zevaryq-emblem.webp) expected="$EMBLEM_SHA" ;;
-    zevaryq-favicon.png) expected="$FAVICON_SHA" ;;
-  esac
-  curl --noproxy '*' -fLsS --retry 7 --retry-delay 1 --retry-all-errors --connect-timeout 3 --max-time 18 "http://127.0.0.1/zevaryq-assets/$entry?v=20260924-goldblue-zvq" -o "$CHECK_DIR/$entry"
-  actual="$(sha256sum "$CHECK_DIR/$entry" | cut -d' ' -f1)"
-  [[ "$actual" == "$expected" ]] || { echo "static asset mismatch: $entry; got $actual; reverting" >&2; false; }
-  echo "local_asset_verified=$entry sha256=$actual"
-done
+entry='zevaryq-master-v2.svg'
+curl --noproxy '*' -fLsS --retry 7 --retry-delay 1 --retry-all-errors --connect-timeout 3 --max-time 18 "http://127.0.0.1/zevaryq-assets/$entry?v=20261008-zevaryq-identity-v2" -o "$CHECK_DIR/$entry"
+actual="$(sha256sum "$CHECK_DIR/$entry" | cut -d' ' -f1)"
+[[ "$actual" == "$MASTER_SHA" ]] || { echo "static asset mismatch: $entry; got $actual; reverting" >&2; false; }
+echo "local_asset_verified=$entry sha256=$actual"
 curl --noproxy '*' -fLsS --retry 5 --retry-delay 1 --retry-all-errors --max-time 16 http://127.0.0.1/ -o "$CHECK_DIR/index.html"
 grep -Fq 'data-zvq-official-logo="20260924-goldblue-zvq"' "$CHECK_DIR/index.html"
 grep -Fq "EXPECTED_CHAIN='0x560c'" "$CHECK_DIR/index.html"
