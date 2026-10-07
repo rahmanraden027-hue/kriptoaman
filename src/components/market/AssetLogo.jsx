@@ -3,34 +3,10 @@ import { COIN_META } from '@/components/home/coinMeta';
 
 const ZVQ_OFFICIAL_LOGO = '/brand/zevaryq-wallet-premium-icon.webp';
 const PLANNED_ZEVARYQ_SYMBOLS = new Set(['ZBTC', 'ZETH']);
-const TRUSTED_REMOTE_LOGO_HOSTS = new Set([
-  'assets.coingecko.com',
-  'coin-images.coingecko.com',
-  'assets.coincap.io',
-  'www.coinlore.com',
-  'coinlore.com',
-  'cryptologos.cc',
-]);
 
 const normalizeSymbol = (value) => {
   const symbol = String(value || '').trim().toUpperCase();
   return /^[A-Z0-9._-]{1,16}$/.test(symbol) ? symbol : '';
-};
-
-export const safeAssetLogoUrl = (value) => {
-  const raw = String(value || '').trim();
-  if (!raw) return null;
-
-  if (/^\/(?!\/)/.test(raw)) return raw;
-
-  try {
-    const parsed = new URL(raw);
-    if (parsed.protocol !== 'https:') return null;
-    if (!TRUSTED_REMOTE_LOGO_HOSTS.has(parsed.hostname.toLowerCase())) return null;
-    return parsed.href;
-  } catch {
-    return null;
-  }
 };
 
 const coinCapImage = (symbol) =>
@@ -44,10 +20,9 @@ export const resolveAssetLogoCandidates = (asset = {}) => {
   // ZVQ is the only first-party market identity activated for public use here.
   if (symbol === 'ZVQ') candidates.push(ZVQ_OFFICIAL_LOGO);
 
-  const feedLogo = safeAssetLogoUrl(asset?.image);
-  if (feedLogo) candidates.push(feedLogo);
-
-  const known = safeAssetLogoUrl(COIN_META[symbol]?.logo);
+  // Do not trust arbitrary image URLs from market payloads. Known artwork is curated
+  // in source control; long-tail fallbacks are derived only from validated identifiers.
+  const known = COIN_META[symbol]?.logo;
   if (known) candidates.push(known);
 
   const coinLoreId = id.match(/^coinlore-(\d+)$/)?.[1];
@@ -73,9 +48,9 @@ export default function AssetLogo({
   const symbol = normalizeSymbol(asset?.sym || asset?.symbol) || '?';
   const candidates = useMemo(
     () => resolveAssetLogoCandidates(asset),
-    [asset?.id, asset?.image, asset?.sym, asset?.symbol],
+    [asset?.id, asset?.sym, asset?.symbol],
   );
-  const identityKey = `${asset?.id || ''}|${asset?.image || ''}|${symbol}`;
+  const identityKey = `${asset?.id || ''}|${symbol}`;
   const [candidateIndex, setCandidateIndex] = useState(0);
 
   useEffect(() => setCandidateIndex(0), [identityKey]);
