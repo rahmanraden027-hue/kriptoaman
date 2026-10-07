@@ -30,8 +30,10 @@ test('PWA install prompt continues to use the router location contract', async (
 test('PWA install prompt stays compact above the mobile navigation safe area', async () => {
   const source = await read('src/components/pwa/PWAInstallPrompt.jsx');
 
-  assert.match(source, /bottom-\\[calc\\(6\\.75rem\\+env\\(safe-area-inset-bottom,0px\\)\\)\\]/);
-  assert.match(source, /right-2/);\n  assert.match(source, /scrollActive/);\n  assert.match(source, /pointer-events-none translate-x-2 opacity-0/);
+  assert.match(source, /bottom-\[calc\(6\.75rem\+env\(safe-area-inset-bottom,0px\)\)\]/);
+  assert.match(source, /right-2/);
+  assert.match(source, /scrollActive/);
+  assert.match(source, /pointer-events-none translate-x-2 opacity-0/);
   assert.match(source, /data-install-cta="true"/);
   assert.match(source, /const y = window\.scrollY/);
   assert.match(source, /setScrolled\(y > 96\)/);
