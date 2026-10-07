@@ -65,6 +65,7 @@ async function snapshot(page) {
       visualText,
       chain22028: /Chain ID\s*22028/i.test(visualText),
       stateVerified: /\bVERIFIED\b/.test(visualText),
+      stateLive: /\bLIVE\b/.test(visualText),
       stateIndexed: /\bINDEXED\b/.test(visualText),
       stateUnavailable: /\bUNAVAILABLE\b/.test(visualText),
       latestBlock: latest,
@@ -88,7 +89,7 @@ function validateGeometry(report, label) {
   assert(report.emailEnabled && report.passwordEnabled && report.submitEnabled, label + ': login controls are not available');
   assert(report.independenceCopy, label + ': auth-independence copy missing');
   assert(report.chain22028 || report.stateUnavailable, label + ': network identity neither verified nor failed closed');
-  assert(report.stateVerified || report.stateUnavailable, label + ': RPC state is neither VERIFIED nor UNAVAILABLE');
+  assert(report.stateLive || report.stateVerified || report.stateUnavailable, label + ': RPC state is neither LIVE/VERIFIED nor UNAVAILABLE');
   assert(report.stateIndexed || report.stateUnavailable, label + ': Explorer state is neither INDEXED nor UNAVAILABLE');
   if (report.latestBlock) {
     const n = Number(report.latestBlock.replaceAll(',', ''));
@@ -145,7 +146,12 @@ try {
       contentType: 'application/json',
       body: JSON.stringify({ error: 'Phase 11G forced fail-closed probe' }),
     }));
-    await page.route('https://explorer.kriptoaman.com/api/v2/blocks*', route => route.fulfill({
+    await page.route('**/api/zvq-token-intelligence*', route => route.fulfill({
+      status: 503,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'Phase 11G forced fail-closed probe' }),
+    }));
+    await page.route('**/api/zvq-live-blocks*', route => route.fulfill({
       status: 503,
       contentType: 'application/json',
       body: JSON.stringify({ error: 'Phase 11G forced fail-closed probe' }),
@@ -158,7 +164,7 @@ try {
     assert(report.stateUnavailable, device.name + ' fail-closed: UNAVAILABLE state missing');
     assert(report.emailEnabled && report.passwordEnabled && report.submitEnabled, device.name + ' fail-closed: login controls became unavailable');
     assert(report.scrollWidth <= report.width + 1, device.name + ' fail-closed: horizontal overflow');
-    assert(!report.stateVerified && !report.stateIndexed, device.name + ' fail-closed: unavailable telemetry was presented as live');
+    assert(!report.stateLive && !report.stateVerified && !report.stateIndexed, device.name + ' fail-closed: unavailable telemetry was presented as live');
 
     await page.screenshot({ path: 'phase11g-evidence/' + device.name + '-fail-closed.png', fullPage: true });
     await fs.writeFile(
