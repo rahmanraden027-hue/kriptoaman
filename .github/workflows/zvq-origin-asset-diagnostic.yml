@@ -40,7 +40,7 @@ jobs:
           for route in local public; do
             for asset in zevaryq-emblem.webp zevaryq-favicon.png; do
               if [[ "$route" == local ]]; then url="http://127.0.0.1/zevaryq-assets/$asset"; else url="https://explorer.kriptoaman.com/zevaryq-assets/$asset"; fi
-              code="$(curl --noproxy '*' -LsS --connect-timeout 5 --max-time 15 -D "$scratch/$route-$asset.headers" -o "$scratch/$route-$asset" -w '%{http_code}' "$url?v=20260924-goldblue-zvq" || true)"
+              code="$(curl --noproxy '*' -LsS --connect-timeout 5 --max-time 15 -D "$scratch/$route-$asset.headers" -o "$scratch/$route-$asset" -w '%{http_code}' "$url?v=20261008-premium-zvq-v1" || true)"
               echo "ASSET_HTTP_ROUTE=$route FILE=$asset HTTP=$code"
               grep -iE '^(content-type|content-length|cache-control):' "$scratch/$route-$asset.headers" || true
               sha256sum "$scratch/$route-$asset" 2>/dev/null || true
