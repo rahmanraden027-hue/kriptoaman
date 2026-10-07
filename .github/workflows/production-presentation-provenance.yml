@@ -34,14 +34,18 @@ jobs:
           node <<'NODE'
           const base = 'https://kriptoaman.com';
           const origin = new URL(base).origin;
-          // Phase 16D production contract: prove the live Phase 16C release markers
-          // plus the Home Live Intelligence Command Center v1 composition. Do not
-          // require superseded Phase 10K/15C card copy that is no longer rendered.
+          // Production contract: PRs prove the stable live composition while the
+          // candidate source tests lock copy changes. Push/schedule runs verify the
+          // deployed product-message marker and current hero language after rollout.
+          const pullRequest = process.env.GITHUB_EVENT_NAME === 'pull_request';
           const required = [
             'home-live-intelligence-command-center-v1',
             'data-production-visual-master',
-            'Lihat Pasar. Pahami Jaringan.',
-            'Verifikasi On-Chain.',
+            ...(!pullRequest ? [
+              'data-product-message',
+              'Lihat Pasar. Pahami Jaringan.',
+              'Verifikasi On-Chain.',
+            ] : []),
             'MOVING NOW',
             'Aset dipantau',
             'Market Overview',
