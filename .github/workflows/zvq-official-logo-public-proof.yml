@@ -36,7 +36,7 @@ jobs:
       - name: Verify approved assets, full ZVQ identity and fail-closed chain guards
         run: |
           node --test tests/zevaryq-explorer-official-logo.test.mjs tests/zevaryq-explorer-reference-theme.test.mjs tests/zevaryq-explorer-production.test.mjs
-          grep -Fq 'data-zvq-logo-integrity="sha256-3fcabc6475d975b65b49c5d6a88c5d1c6e64630b11d5674bfc773a92dd2ec95f"' explorer-dashboard/zevaryq-production.html
+          grep -Fq 'data-zvq-logo-integrity="sha256-3aa0912176c3a9c18d0a4b983553e3b05cfeaf7b6d165f02ecc01ff97ff650a4"' explorer-dashboard/zevaryq-production.html
   public:
     if: github.event_name != 'pull_request'
     needs: validate
@@ -50,7 +50,7 @@ jobs:
           set -euo pipefail
           host='explorer.kriptoaman.com'
           origin='146.190.93.254'
-          logo_sha='3fcabc6475d975b65b49c5d6a88c5d1c6e64630b11d5674bfc773a92dd2ec95f'
+          logo_sha='3aa0912176c3a9c18d0a4b983553e3b05cfeaf7b6d165f02ecc01ff97ff650a4'
           icon_sha='7cc9708233c2624b7b4f95b5ae0902c5cf1233e1648b271a5a41ab02dc95fffe'
           scratch="$(mktemp -d)"
           trap 'rm -rf "$scratch"' EXIT
@@ -63,7 +63,7 @@ jobs:
             curl -fLsS --connect-timeout 6 --max-time 18 -H 'Cache-Control: no-cache' "${options[@]}" "$url/?official_logo_proof=${GITHUB_RUN_ID}-$attempt-$label" -o "$scratch/$label-bypass.html" || return 1
             for page in default bypass; do
               grep -Fq 'data-zvq-official-logo="20261008-premium-zvq-v1"' "$scratch/$label-$page.html" || return 1
-              grep -Fq 'data-zvq-logo-integrity="sha256-3fcabc6475d975b65b49c5d6a88c5d1c6e64630b11d5674bfc773a92dd2ec95f"' "$scratch/$label-$page.html" || return 1
+              grep -Fq 'data-zvq-logo-integrity="sha256-3aa0912176c3a9c18d0a4b983553e3b05cfeaf7b6d165f02ecc01ff97ff650a4"' "$scratch/$label-$page.html" || return 1
               [[ "$(grep -o 'class="official-emblem"' "$scratch/$label-$page.html" | wc -l)" -eq 3 ]] || return 1
               grep -Fq "EXPECTED_CHAIN='0x560c'" "$scratch/$label-$page.html" || return 1
             done
