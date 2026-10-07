@@ -208,10 +208,10 @@ export default function CommandCenterHero({ market, zevaryq }) {
           </p>
 
           <div className="mt-5 flex flex-wrap gap-2">
-            <Link to="/IntelligenceHub" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-amber-300/25 bg-amber-300 px-4 text-[9px] font-black uppercase tracking-[0.1em] text-[#07101c] shadow-[0_0_28px_rgba(251,191,36,.13)] transition hover:bg-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
-              Jelajahi Intelligence <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            <Link to="/Services" data-architecture-action="understand-ecosystem" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-amber-300/25 bg-amber-300 px-4 text-[9px] font-black uppercase tracking-[0.1em] text-[#07101c] shadow-[0_0_28px_rgba(251,191,36,.13)] transition hover:bg-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
+              Jelajahi Ekosistem <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
-            <Link to="/ZEVARYQ" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-cyan-300/20 bg-cyan-300/[0.055] px-4 text-[9px] font-black uppercase tracking-[0.1em] text-cyan-200 transition hover:bg-cyan-300/[0.09] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">
+            <Link to="/ZEVARYQ" data-architecture-action="inspect-network" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-cyan-300/20 bg-cyan-300/[0.055] px-4 text-[9px] font-black uppercase tracking-[0.1em] text-cyan-200 transition hover:bg-cyan-300/[0.09] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">
               Live Network <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
           </div>
@@ -268,7 +268,7 @@ export default function CommandCenterHero({ market, zevaryq }) {
             ))}
           </div>
 
-          <Link to="/ZEVARYQ" className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-cyan-300/20 bg-cyan-300/[0.055] px-4 text-[9px] font-black uppercase tracking-[0.11em] text-cyan-200 transition hover:bg-cyan-300/[0.09] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">
+          <Link to="/ZEVARYQ" data-architecture-action="inspect-network" className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-cyan-300/20 bg-cyan-300/[0.055] px-4 text-[9px] font-black uppercase tracking-[0.11em] text-cyan-200 transition hover:bg-cyan-300/[0.09] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80">
             Buka Network Intelligence <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
         </div>
