@@ -71,7 +71,7 @@ jobs:
           npm install --prefix "$RUNNER_TEMP/home-v10-playwright" --no-package-lock --ignore-scripts --no-audit --no-fund playwright-core@1.55.0
           echo "PLAYWRIGHT_CORE=$RUNNER_TEMP/home-v10-playwright/node_modules/playwright-core/index.mjs" >> "$GITHUB_ENV"
           echo "HOME_V10_PRODUCTION_EVIDENCE_DIR=$RUNNER_TEMP/home-v10-production-evidence" >> "$GITHUB_ENV"
-      - name: Verify production HomeV10 mobile and desktop
+      - name: Verify production HomeV10 five-device matrix
         run: node scripts/verify-home-v10-production.mjs
       - name: Preserve Phase 16D post-merge production evidence
         uses: actions/upload-artifact@v4
@@ -97,7 +97,7 @@ jobs:
           description="HomeV10 production visual proof failed"
           if [ "$JOB_STATUS" = "success" ]; then
             state=success
-            description="HomeV10 mobile + desktop production proof passed"
+            description="HomeV10 five-device master-final proof passed"
           fi
           payload="$(jq -nc \
             --arg state "$state" \

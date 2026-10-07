@@ -62,7 +62,11 @@ test('market and network command surfaces fail closed instead of inventing unava
   assert.match(pulse, /Mempool source/);
   assert.match(pulse, />UNAVAILABLE</);
   assert.match(pulse, /no synthetic transaction counts/);
-  assert.match(stats, /ZVQ market/);
+  assert.match(stats, /data-master-kpi-count="4"/);
+  assert.match(stats, /data-kpi-source-mode="verified-live-only"/);
+  assert.match(stats, /ZEVARYQ head/);
+  assert.match(stats, /RPC probe/);
+  assert.doesNotMatch(stats, /ZVQ market/);
   assert.match(stats, /data-assets-tracked=\{metrics\.tracked/);
 
   const source = [grid, pulse, stats].join('\n');

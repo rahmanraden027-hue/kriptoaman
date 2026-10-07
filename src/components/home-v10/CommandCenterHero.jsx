@@ -45,7 +45,7 @@ function AssetSignal({ asset, position }) {
   return (
     <Link
       to={'/Market?search=' + encodeURIComponent(asset.sym)}
-      className={'absolute z-20 flex min-h-10 max-w-[122px] items-center gap-2 rounded-xl border border-cyan-200/15 bg-[#06111f]/94 px-2.5 py-1.5 shadow-[0_0_24px_rgba(34,211,238,.08)] backdrop-blur-md transition hover:border-cyan-200/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 ' + position}
+      className={'absolute z-20 flex min-h-11 max-w-[122px] items-center gap-2 rounded-xl border border-cyan-200/15 bg-[#06111f]/94 px-2.5 py-1.5 shadow-[0_0_24px_rgba(34,211,238,.08)] backdrop-blur-md transition hover:border-cyan-200/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 motion-reduce:transition-none ' + position}
       aria-label={'Open ' + asset.sym + ' market data'}
     >
       {asset.image ? (
@@ -103,9 +103,9 @@ function NetworkGlobe({ assets, zevaryq }) {
         </g>
       </svg>
 
-      <div className="absolute inset-[20%] rounded-full border border-amber-300/24 motion-safe:animate-[spin_24s_linear_infinite]" aria-hidden="true">
-        <span className="absolute left-1/2 top-[-3px] h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-amber-300 shadow-[0_0_10px_rgba(252,211,77,.9)]" />
-        <span className="absolute bottom-[-3px] left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(103,232,249,.9)]" />
+      <div className="absolute inset-[20%] rounded-full border border-amber-300/24 motion-safe:animate-[spin_24s_linear_infinite] motion-reduce:animate-none" data-command-orbit="calm" aria-hidden="true">
+        <span className="absolute left-1/2 top-[-3px] h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-amber-300 shadow-[0_0_10px_rgba(252,211,77,.9)] motion-safe:animate-pulse motion-reduce:animate-none" />
+        <span className="absolute bottom-[-3px] left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(103,232,249,.9)] motion-safe:animate-pulse motion-reduce:animate-none" />
       </div>
 
       <div className="absolute left-1/2 top-1/2 z-10 flex h-[32%] w-[32%] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-amber-300/25 bg-[#06111f]/95 shadow-[0_0_55px_rgba(245,158,11,.14),inset_0_0_30px_rgba(34,211,238,.10)] backdrop-blur">
