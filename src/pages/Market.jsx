@@ -259,8 +259,15 @@ export default function Market({ compact = false }) {
               >
                 {currency === 'idr' ? 'IDR 🇮🇩' : 'USD 🇺🇸'}
               </button>
-              <div className={`shrink-0 rounded-xl border p-2 ${marketAvailable ? 'border-emerald-400/20 bg-emerald-400/10' : 'border-amber-400/20 bg-amber-400/10'}`}>
-                {marketAvailable ? <Wifi className="h-4 w-4 text-emerald-300" /> : <WifiOff className="h-4 w-4 text-amber-300" />}
+              <div
+                className={`shrink-0 rounded-xl border p-2 ${connected ? 'border-emerald-400/20 bg-emerald-400/10' : marketAvailable ? 'border-amber-400/20 bg-amber-400/10' : 'border-slate-400/15 bg-white/[0.03]'}`}
+                aria-label={connected ? 'Hot feed live' : marketAvailable ? 'Market snapshot available' : 'Market unavailable'}
+              >
+                {connected
+                  ? <Wifi className="h-4 w-4 text-emerald-300" />
+                  : marketAvailable
+                    ? <Wifi className="h-4 w-4 text-amber-300" />
+                    : <WifiOff className="h-4 w-4 text-slate-400" />}
               </div>
             </div>
           </div>
