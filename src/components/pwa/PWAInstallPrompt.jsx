@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Download, Share2, X } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
@@ -22,6 +22,8 @@ export default function PWAInstallPrompt() {
   const [scrolled, setScrolled] = useState(false);
   const [engaged, setEngaged] = useState(false);
   const [rootCtaReady, setRootCtaReady] = useState(false);
+  const [scrollActive, setScrollActive] = useState(false);
+  const scrollIdleTimer = useRef(null);
   const { pathname } = useLocation();
   let isIos = false;
   let isAndroid = false;
@@ -67,18 +69,27 @@ export default function PWAInstallPrompt() {
   }, [pathname]);
 
   useEffect(() => {
-    const onScroll = () => {
+    const updatePositionState = () => {
       const y = window.scrollY;
       setScrolled(y > 96);
       const rootRevealThreshold = Math.max(420, Math.round(window.innerHeight * 0.58));
       setRootCtaReady(y > rootRevealThreshold);
     };
-    onScroll();
+    const onScroll = () => {
+      updatePositionState();
+      setScrollActive(true);
+      if (scrollIdleTimer.current) window.clearTimeout(scrollIdleTimer.current);
+      scrollIdleTimer.current = window.setTimeout(() => setScrollActive(false), 650);
+    };
+    const onResize = () => updatePositionState();
+
+    updatePositionState();
     window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
+    window.addEventListener('resize', onResize);
     return () => {
       window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
+      window.removeEventListener('resize', onResize);
+      if (scrollIdleTimer.current) window.clearTimeout(scrollIdleTimer.current);
     };
   }, []);
 
@@ -110,7 +121,7 @@ export default function PWAInstallPrompt() {
     <>
       <div
         data-install-cta="true"
-        className={`fixed z-[70] max-w-[calc(100vw-1.5rem)] ${isPublicRoot ? 'bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] right-3 md:bottom-4' : 'bottom-[calc(6.5rem+env(safe-area-inset-bottom,0px))] right-3 sm:bottom-4 sm:right-4 lg:bottom-6 lg:right-6'}`}
+        className={`fixed z-[70] max-w-[calc(100vw-1.5rem)] transition-[opacity,transform] duration-200 motion-reduce:transition-none ${isPublicRoot ? 'bottom-[calc(6.75rem+env(safe-area-inset-bottom,0px))] right-2 md:bottom-4 md:right-4' : 'bottom-[calc(6.5rem+env(safe-area-inset-bottom,0px))] right-3 sm:bottom-4 sm:right-4 lg:bottom-6 lg:right-6'} ${isPublicRoot && scrollActive ? 'pointer-events-none translate-x-2 opacity-0' : 'opacity-100'}`}
       >
         <div className="flex items-center overflow-hidden rounded-full border border-sky-300/30 bg-[#08233a]/95 text-white shadow-lg shadow-sky-950/40 backdrop-blur-md sm:rounded-2xl">
           <button
