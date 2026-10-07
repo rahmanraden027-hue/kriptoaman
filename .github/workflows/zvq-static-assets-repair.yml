@@ -25,7 +25,7 @@ jobs:
         run: |
           bash tests/test-zvq-static-assets-route.sh
           grep -Fq 'EXPECTED_CHAIN=' explorer-dashboard/zevaryq-production.html
-          grep -Fq 'data-zvq-official-logo="20260924-goldblue-zvq"' explorer-dashboard/zevaryq-production.html
+          grep -Fq 'data-zvq-official-logo="20261008-premium-zvq-v1"' explorer-dashboard/zevaryq-production.html
   origin-preflight:
     if: github.event_name == 'pull_request' && github.head_ref == 'ops/zvq-assets-http-fallback-20260924' && github.event.pull_request.head.repo.full_name == github.repository
     needs: validate
@@ -76,10 +76,10 @@ jobs:
               opts=()
               if [[ "$mode" == origin ]]; then opts=(--resolve "$host:443:$expected_ip"); fi
               curl -fLsS --connect-timeout 5 --max-time 15 "${opts[@]}" "https://$host/?zvq_asset_repair=$GITHUB_RUN_ID-$attempt-$mode" -o "$scratch/$mode.html" || verified=no
-              grep -Fq 'data-zvq-official-logo="20260924-goldblue-zvq"' "$scratch/$mode.html" 2>/dev/null || verified=no
+              grep -Fq 'data-zvq-official-logo="20261008-premium-zvq-v1"' "$scratch/$mode.html" 2>/dev/null || verified=no
               [[ "$(grep -oc 'class="official-emblem"' "$scratch/$mode.html" 2>/dev/null || true)" -eq 3 ]] || verified=no
               for asset in zevaryq-emblem.webp zevaryq-favicon.png; do
-                curl -fLsS --connect-timeout 5 --max-time 15 "${opts[@]}" "https://$host/zevaryq-assets/$asset?v=20260924-goldblue-zvq" -o "$scratch/$mode-$asset" || verified=no
+                curl -fLsS --connect-timeout 5 --max-time 15 "${opts[@]}" "https://$host/zevaryq-assets/$asset?v=20261008-premium-zvq-v1" -o "$scratch/$mode-$asset" || verified=no
                 case "$asset" in zevaryq-emblem.webp) want="$emblem";; *) want="$favicon";; esac
                 actual="$(sha256sum "$scratch/$mode-$asset" 2>/dev/null | cut -d' ' -f1 || true)"
                 [[ "$actual" == "$want" ]] || verified=no
