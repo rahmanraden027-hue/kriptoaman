@@ -19,7 +19,7 @@ test('pre-login reuses the same canonical ZEVARYQ truth surfaces as production h
   assert.match(login, /data-explorer-state=\{explorerState\}/);
   assert.match(surface, /FIRST_PARTY_CORROBORATED/);
   assert.match(inspection, /\/api\/zvq-live-blocks/);
-  assert.doesNotMatch(login, /explorer\.kriptoaman\.com\/api\/v2\/blocks/);
+  assert.equal(login.includes('explorer.kriptoaman.com/api/v2/blocks'), false);
   assert.doesNotMatch(login, /fetch\(/);
 });
 
