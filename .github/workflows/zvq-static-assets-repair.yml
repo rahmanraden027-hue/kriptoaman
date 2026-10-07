@@ -25,7 +25,7 @@ jobs:
         run: |
           bash tests/test-zvq-static-assets-route.sh
           grep -Fq 'EXPECTED_CHAIN=' explorer-dashboard/zevaryq-production.html
-          grep -Fq 'data-zvq-official-logo="20260924-goldblue-zvq"' explorer-dashboard/zevaryq-production.html
+          grep -Fq 'data-zvq-official-logo="20261008-zevaryq-identity-v2"' explorer-dashboard/zevaryq-production.html
   origin-preflight:
     if: github.event_name == 'pull_request' && github.head_ref == 'ops/zvq-assets-http-fallback-20260924' && github.event.pull_request.head.repo.full_name == github.repository
     needs: validate
@@ -58,14 +58,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
-      - name: Verify exact emblem and favicon on public DNS-only origin
+      - name: Verify exact Identity V2 master mark on public DNS-only origin
         shell: bash
         run: |
           set -Eeuo pipefail
           host=explorer.kriptoaman.com
           expected_ip=146.190.93.254
-          emblem=3fcabc6475d975b65b49c5d6a88c5d1c6e64630b11d5674bfc773a92dd2ec95f
-          favicon=7cc9708233c2624b7b4f95b5ae0902c5cf1233e1648b271a5a41ab02dc95fffe
+          master=a74790a590757e6f4425d384fdc0cdf40cb8030807eb7c0892ba8aaa4e6fc6cc
           scratch="$(mktemp -d)"
           trap 'rm -rf "$scratch"' EXIT
           dns="$(getent ahostsv4 "$host" | awk '{print $1}' | sort -u)"
@@ -76,18 +75,16 @@ jobs:
               opts=()
               if [[ "$mode" == origin ]]; then opts=(--resolve "$host:443:$expected_ip"); fi
               curl -fLsS --connect-timeout 5 --max-time 15 "${opts[@]}" "https://$host/?zvq_asset_repair=$GITHUB_RUN_ID-$attempt-$mode" -o "$scratch/$mode.html" || verified=no
-              grep -Fq 'data-zvq-official-logo="20260924-goldblue-zvq"' "$scratch/$mode.html" 2>/dev/null || verified=no
+              grep -Fq 'data-zvq-official-logo="20261008-zevaryq-identity-v2"' "$scratch/$mode.html" 2>/dev/null || verified=no
               [[ "$(grep -oc 'class="official-emblem"' "$scratch/$mode.html" 2>/dev/null || true)" -eq 3 ]] || verified=no
-              for asset in zevaryq-emblem.webp zevaryq-favicon.png; do
-                curl -fLsS --connect-timeout 5 --max-time 15 "${opts[@]}" "https://$host/zevaryq-assets/$asset?v=20260924-goldblue-zvq" -o "$scratch/$mode-$asset" || verified=no
-                case "$asset" in zevaryq-emblem.webp) want="$emblem";; *) want="$favicon";; esac
-                actual="$(sha256sum "$scratch/$mode-$asset" 2>/dev/null | cut -d' ' -f1 || true)"
-                [[ "$actual" == "$want" ]] || verified=no
-                echo "asset_check attempt=$attempt mode=$mode asset=$asset sha256=$actual"
-              done
+              asset=zevaryq-master-v2.svg
+              curl -fLsS --connect-timeout 5 --max-time 15 "${opts[@]}" "https://$host/zevaryq-assets/$asset?v=20261008-zevaryq-identity-v2" -o "$scratch/$mode-$asset" || verified=no
+              actual="$(sha256sum "$scratch/$mode-$asset" 2>/dev/null | cut -d' ' -f1 || true)"
+              [[ "$actual" == "$master" ]] || verified=no
+              echo "asset_check attempt=$attempt mode=$mode asset=$asset sha256=$actual"
             done
             if [[ "$verified" == yes ]]; then
-              echo 'ZVQ_LOGO_PUBLIC_VERIFIED=YES; exactly three image placements; original image hashes match origin and public'
+              echo 'ZVQ_IDENTITY_V2_PUBLIC_VERIFIED=YES; exactly three master-mark placements; canonical hash matches origin and public'
               exit 0
             fi
             if [[ "$attempt" -lt 12 ]]; then sleep 5; fi
