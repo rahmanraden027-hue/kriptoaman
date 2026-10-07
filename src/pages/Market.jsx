@@ -93,12 +93,12 @@ export default function Market({ compact = false }) {
   const [watchlist, setWatchlist] = useState(() => JSON.parse(localStorage.getItem('ka_watchlist') || '[]'));
 
   const { prices: liveData, connected, idrRate } = useLivePrices();
-  const { markets, coins: marketCoins, dataAvailable, source, lastUpdated, isStale, cacheAgeMs } = useCoinMarkets();
+  const { markets, coins: marketCoins, dataAvailable, source, lastUpdated, isStale, cacheAgeMs, loading } = useCoinMarkets();
   const coins = marketCoins.length > 0 ? marketCoins : COINS;
   const marketState = marketSnapshotState({
     dataAvailable,
     isStale,
-    loading: !dataAvailable && marketCoins.length === 0,
+    loading,
   });
   const hotFeedState = connected ? DATA_STATE.LIVE : DATA_STATE.UNAVAILABLE;
   const marketAvailable = marketState !== DATA_STATE.UNAVAILABLE;
