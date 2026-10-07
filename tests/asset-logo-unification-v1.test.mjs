@@ -10,7 +10,12 @@ test('asset logo resolver provides one shared fallback chain and keeps planned Z
   assert.match(source, /COIN_META/);
   assert.match(source, /zevaryq-wallet-premium-icon\.webp/);
   assert.match(source, /PLANNED_ZEVARYQ_SYMBOLS = new Set\(\['ZBTC', 'ZETH'\]\)/);
-  assert.match(source, /asset\?\.image/);
+  assert.match(source, /safeAssetLogoUrl/);
+  assert.match(source, /TRUSTED_REMOTE_LOGO_HOSTS/);
+  assert.match(source, /parsed\.protocol !== 'https:'/);
+  assert.match(source, /TRUSTED_REMOTE_LOGO_HOSTS\.has\(parsed\.hostname\.toLowerCase\(\)\)/);
+  assert.match(source, /feedLogo = safeAssetLogoUrl\(asset\?\.image\)/);
+  assert.doesNotMatch(source, /candidates\.push\(String\(asset\.image\)\)/);
   assert.match(source, /coinlore/);
   assert.match(source, /assets\.coincap\.io/);
   assert.match(source, /data-asset-logo="unified-v1"/);
