@@ -2,6 +2,8 @@
 // backing, balances, liquidity, custody, issuer approval, or swap executability.
 // On-chain/runtime asset status remains authoritative in zevaryqAssetRegistry.js.
 
+import { ZVQ_TOKEN_ICON } from '@/lib/zevaryqBrandAssets';
+
 export const ZEVARYQ_VISUAL_ASSET_CATALOG_VERSION = 3;
 
 export const ZEVARYQ_VISUAL_IDENTITY_SLOT_STATUS = Object.freeze({
@@ -15,7 +17,7 @@ export const ZEVARYQ_VISUAL_ASSETS = Object.freeze([
     name: 'ZEVARYQ',
     visualStatus: 'OFFICIAL',
     assetStatusSource: 'verified-asset-registry-v3',
-    icon: '/brand/zevaryq-wallet-premium-icon.webp',
+    icon: ZVQ_TOKEN_ICON,
   }),
   Object.freeze({
     symbol: 'zBTC',
