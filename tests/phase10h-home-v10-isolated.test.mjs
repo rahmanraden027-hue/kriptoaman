@@ -111,7 +111,9 @@ test('Phase 10L hardens HomeV10 for global mobile and accessibility readiness', 
   assert.match(network, /aria-live="polite"/);
   assert.match(network, /Open ZEVARYQ Explorer in a new tab/);
   assert.match(network, /min-h-11/);
-  assert.match(installPrompt, /bottom-\\[calc\\(6\\.75rem\\+env\\(safe-area-inset-bottom,0px\\)\\)\\]/);\n  assert.match(installPrompt, /scrollActive/);\n  assert.match(installPrompt, /pointer-events-none translate-x-2 opacity-0/);
+  assert.match(installPrompt, /bottom-\[calc\(6\.75rem\+env\(safe-area-inset-bottom,0px\)\)\]/);
+  assert.match(installPrompt, /scrollActive/);
+  assert.match(installPrompt, /pointer-events-none translate-x-2 opacity-0/);
   assert.match(evidence, /360,800,compact-mobile/);
   assert.match(evidence, /430,932,large-mobile/);
   assert.match(evidence, /PWAInstallPrompt\.jsx/);
