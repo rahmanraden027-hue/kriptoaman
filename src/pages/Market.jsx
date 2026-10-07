@@ -188,8 +188,8 @@ export default function Market({ compact = false }) {
                 </div>
                 <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-400 sm:text-[15px]">{text.hero}</p>
                 <div className="mt-4 flex flex-wrap items-center gap-2">
-                  <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-bold ${marketAvailable ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300' : 'border-amber-400/25 bg-amber-400/10 text-amber-300'}`}>
-                    <span className={`h-1.5 w-1.5 rounded-full ${marketAvailable ? 'bg-emerald-400 ka-pulse-dot' : 'bg-amber-400'}`} />
+                  <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-bold ${marketState === DATA_STATE.SNAPSHOT || marketState === DATA_STATE.DELAYED ? 'border-amber-400/25 bg-amber-400/10 text-amber-300' : marketAvailable ? 'border-sky-400/25 bg-sky-400/10 text-sky-300' : 'border-slate-400/20 bg-white/[0.04] text-slate-400'}`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${marketState === DATA_STATE.SNAPSHOT || marketState === DATA_STATE.DELAYED ? 'bg-amber-400' : marketAvailable ? 'bg-sky-400' : 'bg-slate-500'}`} />
                     {marketState}
                   </span>
                   <span className="ka-chip px-3 py-1.5 text-[10px] font-bold text-slate-300">{sourceLabel}</span>
@@ -231,8 +231,8 @@ export default function Market({ compact = false }) {
                 <h2 className="mt-1 text-lg font-black">{coins.length.toLocaleString(language === 'en' ? 'en-US' : 'id-ID')} {text.assets}</h2>
               </div>
               <div className="flex flex-wrap items-center justify-end gap-1.5">
-                <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-bold ${marketAvailable ? 'border-emerald-400/20 bg-emerald-400/10 text-emerald-300' : 'border-amber-400/20 bg-amber-400/10 text-amber-300'}`}>
-                  <span className={`h-1.5 w-1.5 rounded-full ${marketAvailable ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-bold ${marketState === DATA_STATE.SNAPSHOT || marketState === DATA_STATE.DELAYED ? 'border-amber-400/20 bg-amber-400/10 text-amber-300' : marketAvailable ? 'border-sky-400/20 bg-sky-400/10 text-sky-300' : 'border-slate-400/20 bg-white/[0.04] text-slate-400'}`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${marketState === DATA_STATE.SNAPSHOT || marketState === DATA_STATE.DELAYED ? 'bg-amber-400' : marketAvailable ? 'bg-sky-400' : 'bg-slate-500'}`} />
                   {marketState}
                 </span>
                 <span className="ka-chip px-2.5 py-1 text-[9px] font-bold text-slate-300">{sourceLabel}</span>
