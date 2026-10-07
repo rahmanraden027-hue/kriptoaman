@@ -4,39 +4,27 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:fillColor="#071522" android:pathData="M0,0h108v108h-108z"/>
+    <path android:fillColor="#071525" android:pathData="M0,0h108v108h-108z"/>
     <path
-        android:fillColor="#102235"
-        android:strokeColor="#2D8CFF"
-        android:strokeWidth="1.5"
-        android:pathData="M54,12A42,42 0,1 1,54,96A42,42 0,1 1,54,12"/>
+        android:fillColor="#08192C"
+        android:strokeColor="#D9A441"
+        android:strokeWidth="3.2"
+        android:pathData="M54,10A44,44 0,1 1,54,98A44,44 0,1 1,54,10"/>
     <path
         android:fillColor="#00000000"
-        android:strokeColor="#D9A441"
-        android:strokeWidth="4"
-        android:strokeLineJoin="round"
-        android:pathData="M27,36L39,26H75C80.5,26 85,30.5 85,36V76C85,81.5 80.5,86 75,86H31C25.5,86 21,81.5 21,76V44C21,39.6 24.6,36 29,36H75"/>
-    <path
-        android:fillColor="#0B1E2F"
-        android:strokeColor="#F2C86B"
-        android:strokeWidth="2"
-        android:pathData="M67,49H88V68H67C61.8,68 58,64.2 58,59S61.8,49 67,49Z"/>
-    <path
-        android:fillColor="#53D8FB"
-        android:pathData="M69,56A3,3 0,1 1,69,62A3,3 0,1 1,69,56"/>
-    <!-- Main ZEVARYQ mark -->
+        android:strokeColor="#2D8CFF"
+        android:strokeWidth="2.6"
+        android:pathData="M54,16A38,38 0,1 1,54,92A38,38 0,1 1,54,16"/>
     <path
         android:fillColor="#F2C86B"
-        android:pathData="M36,38H69L47,59H66V67H34L56,46H36Z"/>
-    <!-- Explicit VQ monogram so the launcher reads visually as ZVQ -->
-    <path
-        android:fillColor="#53D8FB"
-        android:pathData="M37,71H41L45,79L49,71H53L47,83H43Z"/>
+        android:strokeColor="#FFF0A3"
+        android:strokeWidth="0.8"
+        android:strokeLineJoin="round"
+        android:pathData="M31,31H78L68,42H49L35,69H75L65,80H27L37,69L51,42H41Z"/>
     <path
         android:fillColor="#00000000"
-        android:strokeColor="#F2C86B"
-        android:strokeWidth="2.4"
+        android:strokeColor="#53D8FB"
+        android:strokeWidth="2"
         android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M63,72A5.5,5.5 0,1 1,63,83A5.5,5.5 0,1 1,63,72M66.5,79.5L71,84"/>
+        android:pathData="M38,67L51,41H68"/>
 </vector>
