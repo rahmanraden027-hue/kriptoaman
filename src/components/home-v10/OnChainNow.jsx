@@ -9,12 +9,17 @@ export default function OnChainNow({ surface }) {
   const state = surface?.onChainState || DATA_STATE.CHECKING;
   const verifiedLive = state === DATA_STATE.LIVE;
   const latency = Number(data?.latencyMs);
+  const contractCountIsWindowFact = data?.truthPolicy?.contractCreationCountIsObservedWindowFact === true;
+  const metadataCountIsWindowFact = data?.truthPolicy?.tokenMetadataProvenCountIsObservedWindowFact === true;
+  const contractsObserved = contractCountIsWindowFact ? (data?.radar?.contractCreationsObserved ?? '—') : 'NOT EXPOSED';
+  const metadataProven = metadataCountIsWindowFact ? (data?.radar?.tokenMetadataProven ?? '—') : 'NOT EXPOSED';
+  const observationWindow = Number(data?.radar?.observationWindowBlocks);
 
   const metrics = [
     ['Block', Number.isFinite(Number(data?.head?.number)) ? '#' + Number(data.head.number).toLocaleString('en-US') : '—'],
     ['Scanned', data?.radar?.scannedBlocks ?? '—'],
-    ['Contracts', data?.radar?.contractCreationsObserved ?? '—'],
-    ['Metadata', data?.radar?.tokenMetadataProven ?? '—'],
+    ['Contracts observed', contractsObserved],
+    ['Metadata proven', metadataProven],
     ['Confirm Depth', data?.radar?.confirmationDepth ?? '—'],
     ['RPC Latency', Number.isFinite(latency) ? Math.round(latency) + ' ms' : '—'],
   ];
@@ -52,7 +57,7 @@ export default function OnChainNow({ surface }) {
         />
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3" data-zero-evidence-semantics="observed-window-fact">
         {metrics.map(([label, value]) => (
           <div key={label} className="relative overflow-hidden rounded-2xl border border-white/[0.055] bg-white/[0.022] p-3">
             <div className="absolute left-0 top-0 h-full w-px bg-gradient-to-b from-cyan-300/35 via-cyan-300/5 to-transparent" aria-hidden="true" />
@@ -61,6 +66,12 @@ export default function OnChainNow({ surface }) {
           </div>
         ))}
       </div>
+
+      <p className="mt-3 text-[8px] leading-4 text-slate-500">
+        {Number.isSafeInteger(observationWindow)
+          ? 'Contracts/metadata counts are observations within the latest ' + observationWindow + ' verified blocks; zero means none observed in that window.'
+          : 'Contracts/metadata zero values are shown only when the verified observation-window policy is present.'}
+      </p>
 
       <Link to="/QoryVExDiscovery" className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-amber-300/10 bg-amber-300/[0.035] px-3 text-[9px] font-black uppercase tracking-[0.12em] text-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/80">
         Open discovery <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
