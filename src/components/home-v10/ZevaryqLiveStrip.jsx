@@ -30,14 +30,17 @@ export default function ZevaryqLiveStrip({ surface }) {
   const syncState = surface?.syncState || DATA_STATE.CHECKING;
   const block = Number(network?.blockNumber);
   const probeMs = Number(network?.probeDurationMs);
-  const source = network
-    ? 'ZEVARYQ Network Status · rpc.kriptoaman.com'
-    : 'ZEVARYQ network source unavailable';
+  const source = surface?.networkSourceMode === 'FIRST_PARTY_CORROBORATED'
+    ? 'ZEVARYQ first-party JSON-RPC · corroborated evidence'
+    : network
+      ? 'ZEVARYQ Network Status · rpc.kriptoaman.com'
+      : 'ZEVARYQ network source unavailable';
 
   return (
     <section
       className="relative overflow-hidden rounded-[24px] border border-amber-300/[0.12] bg-[radial-gradient(circle_at_85%_0%,rgba(245,158,11,.055),transparent_30%),#050c16] px-4 py-3 text-[10px]"
       data-zvq-network-state={state}
+      data-zvq-network-source={surface?.networkSourceMode || 'UNAVAILABLE'}
       data-zvq-chain-id={surface?.contract?.chainId || 22028}
       data-refresh-ms={surface?.refresh?.networkMs || ''}
       data-freshness-ms={surface?.freshness?.networkMs || ''}
