@@ -61,8 +61,13 @@ test('Phase 10K live browser proof is read-only and enforces production data acc
     '/api/market-snapshot-page',
     '/api/kam/network-status',
     '/api/zvq-token-intelligence',
+    'compact-mobile-360',
     'mobile-390',
+    'large-mobile-430',
+    'tablet-768',
     'desktop-1440',
+    'clean-command-center-v1',
+    "reducedMotion: 'reduce'",
     'HOME_V10_PRODUCTION_OK',
     'phase15d',
     'data-command-layer',
@@ -79,4 +84,41 @@ test('Phase 10K live browser proof is read-only and enforces production data acc
   assert.match(workflow, /retention-days: 30/);
   assert.match(workflow, /statuses: write/);
   assert.match(workflow, /kriptoaman\/home-v10-production-visual-proof/);
+});
+
+
+test('Master final keeps data binding truthful, motion calm, and ecosystem routes honest', async () => {
+  const [home, stats, hero, ecosystem, proof] = await Promise.all([
+    read('src/pages/HomeV10.jsx'),
+    read('src/components/home-v10/CommandStats.jsx'),
+    read('src/components/home-v10/CommandCenterHero.jsx'),
+    read('src/components/home-v10/EcosystemRail.jsx'),
+    read('scripts/verify-home-v10-production.mjs'),
+  ]);
+
+  assert.match(home, /data-master-final="clean-command-center-v1"/);
+  assert.match(home, /data-animation-polish="calm-reduced-motion-safe-v1"/);
+
+  assert.match(stats, /data-master-kpi-count="4"/);
+  assert.match(stats, /data-kpi-source-mode="verified-live-only"/);
+  assert.match(stats, /lg:grid-cols-4/);
+  assert.doesNotMatch(stats, /label: 'ZVQ market'/);
+  assert.doesNotMatch(stats, /label: 'Market breadth'/);
+
+  assert.match(hero, /data-command-orbit="calm"/);
+  assert.match(hero, /motion-reduce:animate-none/);
+  assert.match(hero, /min-h-11/);
+
+  assert.match(ecosystem, /name: 'ORIVEX'/);
+  assert.match(ecosystem, /RWA Platform · Roadmap/);
+  assert.match(ecosystem, /data-product-status=\{status \|\| 'unavailable'\}/);
+  assert.doesNotMatch(ecosystem, /to: '\/ORIVEX'/);
+
+  for (const marker of ['compact-mobile-360', 'mobile-390', 'large-mobile-430', 'tablet-768', 'desktop-1440']) {
+    assert.ok(proof.includes(marker), marker);
+  }
+  assert.match(proof, /reducedMotion: 'reduce'/);
+  assert.match(proof, /orbitAnimationName/);
+  assert.match(proof, /kpiCount, 4/);
+  assert.match(proof, /orivexRoadmapIsLink/);
 });
