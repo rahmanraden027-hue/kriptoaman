@@ -41,6 +41,8 @@ export default function HomeV10() {
       data-home-composition="home-live-intelligence-command-center-v1"
       data-master-final="clean-command-center-v1"
       data-production-visual-master="v1"
+      data-market-truth-unification="snapshot-scoped-v1"
+      data-readability-polish="micro-v2"
       data-visual-architecture="understand-ecosystem-v1"
       data-network-inspection-route="/ZEVARYQ"
       data-animation-polish="calm-reduced-motion-safe-v1"
