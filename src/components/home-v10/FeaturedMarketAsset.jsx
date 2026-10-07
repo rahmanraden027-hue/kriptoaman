@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import AssetLogo from '@/components/market/AssetLogo';
 import { finite, formatCompactUsd, formatMagnitude, formatPrice, sparklinePoints } from './format';
 
 const ROTATION_MS = 10000;
@@ -62,7 +63,7 @@ export default function FeaturedMarketAsset({ assets = [], state = 'UNAVAILABLE'
       <div className="grid gap-6 lg:grid-cols-[.8fr_1.2fr] lg:items-end">
         <div>
           <div className="flex items-center gap-3">
-            {asset.image && <img src={asset.image} alt="" width="56" height="56" fetchPriority="high" className="h-14 w-14 rounded-full shadow-[0_0_30px_rgba(34,211,238,.16)]" decoding="async" />}
+            <AssetLogo asset={asset} size={56} priority className="shadow-[0_0_30px_rgba(34,211,238,.16)]" />
             <div>
               <p className="text-[9px] font-black uppercase tracking-[0.2em] text-cyan-300">MOVING NOW · {state}</p>
               <h1 className="mt-1 text-3xl font-black tracking-[-0.04em] text-white sm:text-4xl">{asset.sym}</h1>
