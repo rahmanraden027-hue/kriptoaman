@@ -38,6 +38,8 @@ export default function HomeV10() {
       data-production-data-binding="phase16b-verified-live-state-v1"
       data-visual-integration="phase16c-final-command-center-v1"
       data-home-composition="home-live-intelligence-command-center-v1"
+      data-master-final="clean-command-center-v1"
+      data-animation-polish="calm-reduced-motion-safe-v1"
       style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))' }}
     >
       <a
