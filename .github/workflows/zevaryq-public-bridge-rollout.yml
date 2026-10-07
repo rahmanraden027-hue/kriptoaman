@@ -35,8 +35,7 @@ jobs:
           node --check chain/kam-mainnet/zevaryq-public-bridge/worker.mjs
           node --test tests/zevaryq-public-bridge.test.mjs
           node --test tests/zevaryq-explorer-production.test.mjs
-          test -s explorer-dashboard/assets/zevaryq-emblem.webp
-          test -s explorer-dashboard/assets/zevaryq-favicon.png
+          test -s explorer-dashboard/assets/zevaryq-master-v2.svg
 
   deploy-guarded:
     if: github.event_name == 'push'
@@ -95,18 +94,18 @@ jobs:
           set -euo pipefail
           d=chain/kam-mainnet/zevaryq-public-bridge
           cp explorer-dashboard/zevaryq-production.html "$d/homepage.html"
-          cp explorer-dashboard/assets/zevaryq-emblem.webp "$d/zevaryq-emblem.webp"
-          cp explorer-dashboard/assets/zevaryq-favicon.png "$d/zevaryq-favicon.png"
+          cp explorer-dashboard/assets/zevaryq-master-v2.svg "$d/zevaryq-master-v2.svg"
           grep -Fq 'data-zevaryq-explorer-version="1.1.2"' "$d/homepage.html"
           grep -Fq 'class="logo logo-zvq"' "$d/homepage.html"
           grep -Fq 'class="earth-brandmark"' "$d/homepage.html"
           grep -Fq 'data-zevaryq-features="immune-token-v1"' "$d/homepage.html"
           grep -Fq 'data-zvq-reference-visual="blue-gold-orbital-20260924"' "$d/homepage.html"
           grep -Fq 'data-zvq-token-discovery="indexed-v2"' "$d/homepage.html"
+          grep -Fq 'data-zvq-official-logo="20261008-zevaryq-identity-v2"' "$d/homepage.html"
+          grep -Fq 'data-zvq-logo-integrity="sha256-a74790a590757e6f4425d384fdc0cdf40cb8030807eb7c0892ba8aaa4e6fc6cc"' "$d/homepage.html"
           grep -Fq 'id="immune-monitor"' "$d/homepage.html"
           grep -Fq 'id="token-discovery"' "$d/homepage.html"
-          test -s "$d/zevaryq-emblem.webp"
-          test -s "$d/zevaryq-favicon.png"
+          test -s "$d/zevaryq-master-v2.svg"
 
       - name: Deploy unbound bridge Worker, leaving live route unchanged
         working-directory: chain/kam-mainnet/zevaryq-public-bridge
@@ -163,7 +162,8 @@ jobs:
               && grep -iq '^x-zevaryq-explorer-release: 1\.1\.2' "$headers" \
               && grep -iq '^x-zevaryq-explorer-features: immune-token-v1' "$headers" \
               && grep -iq '^x-zevaryq-explorer-design: blue-gold-orbital-20260924' "$headers" \
-               && grep -iq '^x-zevaryq-explorer-token-discovery: indexed-v2' "$headers"; then
+               && grep -iq '^x-zevaryq-explorer-token-discovery: indexed-v2' "$headers" \
+               && grep -iq '^x-zevaryq-identity: 20261008-zevaryq-identity-v2' "$headers"; then
               status=0
             fi
             rm -f "$headers" "$body"
@@ -192,7 +192,7 @@ jobs:
             -H "Authorization: Bearer ${CF_API_TOKEN}")"
           test "$(jq -r --arg p "${ROUTE_PATTERN}" '.result[] | select(.pattern == $p) | .script' <<<"$routes")" = "${NEW_WORKER}"
           test "$(jq -r '.result[] | select(.pattern == "explorer.kriptoaman.com/api/v2/*") | .script' <<<"$routes")" = "${EXPECTED_API_WORKER}"
-          for asset in zevaryq-emblem.webp zevaryq-favicon.png; do
+          for asset in zevaryq-master-v2.svg; do
             asset_code="$(curl -LsS --connect-timeout 8 --max-time 20 -o /dev/null -w '%{http_code}' \
               "https://explorer.kriptoaman.com/zevaryq-assets/$asset" || true)"
             echo "public_asset_${asset}=$asset_code"
@@ -203,7 +203,7 @@ jobs:
           blocks="$(curl -fsS --connect-timeout 8 --max-time 20 'https://explorer.kriptoaman.com/api/v2/blocks')"
           jq -e '(.items | type == "array") and (.items | length > 0)' <<<"$blocks" > /dev/null
           test "$(curl -LsS --connect-timeout 8 --max-time 20 -o /dev/null -w '%{http_code}' 'https://explorer.kriptoaman.com/blocks')" = '200'
-          echo "public_release=verified-v1.1.2-immune-token-v1-blue-gold-orbital-20260924-indexed-v2; rpc=0x560c; api_v2=healthy; legacy_route=preserved"
+          echo "public_release=verified-v1.1.2-immune-token-v1-blue-gold-orbital-20260924-indexed-v2-identity-v2; rpc=0x560c; api_v2=healthy; legacy_route=preserved"
 
       - name: Restore prior route on verification failure
         if: steps.switch.outputs.changed == 'true' && steps.verify.outcome == 'failure'
