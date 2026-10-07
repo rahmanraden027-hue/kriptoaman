@@ -49,7 +49,7 @@ export default function useMarketSurface() {
         ? Math.max(0, Date.now() - Number(raw.lastUpdated))
         : null;
 
-    let state = marketSnapshotState({
+    const state = marketSnapshotState({
       dataAvailable: assets.length > 0,
       partial: !raw.loading && assets.length === 0 && Array.isArray(raw.coins) && raw.coins.length > 0,
       isStale: Boolean(raw.isStale || (Number.isFinite(ageMs) && ageMs > FRESH_MS)),
