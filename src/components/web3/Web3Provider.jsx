@@ -172,7 +172,7 @@ export function Web3Provider({ children }) {
         name: 'ZEVARYQ Wallet',
         description: 'ZEVARYQ Mainnet wallet connection for the KriptoAman ecosystem',
         url: 'https://kriptoaman.com/wallet-app',
-        icons: ['https://kriptoaman.com/brand/zevaryq-wallet-premium-icon.webp'],
+        icons: ['https://kriptoaman.com/brand/zevaryq-master-v2.svg'],
         redirect: {
           native: walletConnectNativeRedirect(),
           universal: 'https://kriptoaman.com/wallet-app',
