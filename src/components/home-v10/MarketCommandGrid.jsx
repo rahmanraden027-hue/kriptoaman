@@ -73,7 +73,7 @@ export default function MarketCommandGrid({ market, zevaryq }) {
   ];
 
   return (
-    <section aria-label="KriptoAman live intelligence command grid" className="grid gap-3 xl:grid-cols-12">
+    <section aria-label="KriptoAman intelligence command grid" className="grid gap-3 xl:grid-cols-12">
       <Panel title="Market Overview" kicker="REAL MARKET DATA" className="xl:col-span-3">
         <div className="mt-3 space-y-1">
           {rows.length ? rows.map((asset, index) => {
