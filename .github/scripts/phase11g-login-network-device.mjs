@@ -64,10 +64,10 @@ async function snapshot(page) {
       submitEnabled: Boolean(submit && !submit.disabled),
       visualText,
       chain22028: /Chain ID\s*22028/i.test(visualText),
-      stateVerified: /\bVERIFIED\b/.test(visualText),
-      stateLive: /\bLIVE\b/.test(visualText),
-      stateIndexed: /\bINDEXED\b/.test(visualText),
-      stateUnavailable: /\bUNAVAILABLE\b/.test(visualText),
+      stateVerified: /RPC\s*VERIFIED/i.test(visualText),
+      stateLive: /RPC\s*LIVE/i.test(visualText),
+      stateIndexed: /Explorer\s*INDEXED/i.test(visualText),
+      stateUnavailable: /RPC\s*UNAVAILABLE|Explorer\s*UNAVAILABLE/i.test(visualText),
       latestBlock: latest,
       independenceCopy: /autentikasi tidak bergantung pada telemetri blockchain|authentication is independent from blockchain telemetry/i.test(visualText),
     };
@@ -152,6 +152,14 @@ try {
       body: JSON.stringify({ error: 'Phase 11G forced fail-closed probe' }),
     }));
     await page.route('**/api/zvq-live-blocks*', route => route.fulfill({
+      status: 503,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'Phase 11G forced fail-closed probe' }),
+    }));
+    // Transitional guard: the currently deployed pre-unification bundle may still
+    // request Blockscout directly. Keep this route blocked until the unified bundle
+    // is the production baseline, so fail-closed evidence remains valid across rollout.
+    await page.route('https://explorer.kriptoaman.com/api/v2/blocks*', route => route.fulfill({
       status: 503,
       contentType: 'application/json',
       body: JSON.stringify({ error: 'Phase 11G forced fail-closed probe' }),
