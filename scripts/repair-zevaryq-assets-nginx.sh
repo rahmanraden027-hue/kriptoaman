@@ -6,7 +6,7 @@ set -Eeuo pipefail
 BASE=/opt/blockscout/docker-compose
 PROXY_DIR="$BASE/proxy"
 TEMPLATE="$PROXY_DIR/default.conf.template"
-EMBLEM_SHA=3aa0912176c3a9c18d0a4b983553e3b05cfeaf7b6d165f02ecc01ff97ff650a4
+EMBLEM_SHA=b5559143bf74d3d9e5074cd9edb93341018482338b01c57cadfc843702e40fc9
 FAVICON_SHA=7cc9708233c2624b7b4f95b5ae0902c5cf1233e1648b271a5a41ab02dc95fffe
 
 render_template() {
@@ -54,7 +54,7 @@ fi
 [[ -f "$TEMPLATE" && -d "$PROXY_DIR/kam-dashboard/zevaryq-assets" ]] || { echo 'Dedicated Explorer origin missing' >&2; exit 1; }
 [[ -f "$PROXY_DIR/kam-dashboard/index.html" ]] || { echo 'Production homepage missing' >&2; exit 1; }
 grep -Fq "EXPECTED_CHAIN='0x560c'" "$PROXY_DIR/kam-dashboard/index.html" || { echo 'Wrong chain or page; refusing repair' >&2; exit 1; }
-grep -Fq 'data-zvq-official-logo="20261008-premium-zvq-v1"' "$PROXY_DIR/kam-dashboard/index.html" || { echo 'Official logo release not deployed' >&2; exit 1; }
+grep -Fq 'data-zvq-official-logo="20261008-premium-zvq-v2"' "$PROXY_DIR/kam-dashboard/index.html" || { echo 'Official logo release not deployed' >&2; exit 1; }
 [[ "$(sha256sum "$PROXY_DIR/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp" | cut -d' ' -f1)" == "$EMBLEM_SHA" ]] || { echo 'Approved emblem not present on host' >&2; exit 1; }
 [[ "$(sha256sum "$PROXY_DIR/kam-dashboard/zevaryq-assets/zevaryq-favicon.png" | cut -d' ' -f1)" == "$FAVICON_SHA" ]] || { echo 'Approved favicon not present on host' >&2; exit 1; }
 cd "$BASE"
@@ -104,13 +104,13 @@ for entry in 'zevaryq-emblem.webp' 'zevaryq-favicon.png'; do
     zevaryq-emblem.webp) expected="$EMBLEM_SHA" ;;
     zevaryq-favicon.png) expected="$FAVICON_SHA" ;;
   esac
-  curl --noproxy '*' -fLsS --retry 7 --retry-delay 1 --retry-all-errors --connect-timeout 3 --max-time 18 "http://127.0.0.1/zevaryq-assets/$entry?v=20261008-premium-zvq-v1" -o "$CHECK_DIR/$entry"
+  curl --noproxy '*' -fLsS --retry 7 --retry-delay 1 --retry-all-errors --connect-timeout 3 --max-time 18 "http://127.0.0.1/zevaryq-assets/$entry?v=20261008-premium-zvq-v2" -o "$CHECK_DIR/$entry"
   actual="$(sha256sum "$CHECK_DIR/$entry" | cut -d' ' -f1)"
   [[ "$actual" == "$expected" ]] || { echo "static asset mismatch: $entry; got $actual; reverting" >&2; false; }
   echo "local_asset_verified=$entry sha256=$actual"
 done
 curl --noproxy '*' -fLsS --retry 5 --retry-delay 1 --retry-all-errors --max-time 16 http://127.0.0.1/ -o "$CHECK_DIR/index.html"
-grep -Fq 'data-zvq-official-logo="20261008-premium-zvq-v1"' "$CHECK_DIR/index.html"
+grep -Fq 'data-zvq-official-logo="20261008-premium-zvq-v2"' "$CHECK_DIR/index.html"
 grep -Fq "EXPECTED_CHAIN='0x560c'" "$CHECK_DIR/index.html"
 docker compose exec -T proxy nginx -t
 trap - ERR
