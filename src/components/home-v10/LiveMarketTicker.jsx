@@ -14,7 +14,11 @@ export default function LiveMarketTicker({ assets = [], state = 'UNAVAILABLE' })
   const items = tickerAssets(assets);
 
   return (
-    <section className="overflow-hidden border-y border-white/[0.06] bg-[#030812]/92" aria-label="Live market ticker">
+    <section
+      className="overflow-hidden border-y border-white/[0.06] bg-[#030812]/92"
+      aria-label="Market ticker"
+      data-market-truth-state={state}
+    >
       <div className="flex min-h-10 items-center gap-3 px-4">
         <span className="shrink-0 text-[9px] font-black uppercase tracking-[0.16em] text-cyan-300">● {state}</span>
         <div className="min-w-0 flex-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
