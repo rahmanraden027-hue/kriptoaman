@@ -3,6 +3,7 @@ import { ArrowRight, Globe2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { DATA_STATE } from '@/lib/dataState';
 import DataProvenanceBar from './DataProvenanceBar';
+import AssetLogo from '@/components/market/AssetLogo';
 import { formatChange, formatCompactUsd, formatPrice } from './format';
 
 const ORBIT_POSITIONS = [
@@ -68,13 +69,7 @@ function AssetSignal({ asset, position }) {
       className={'absolute z-20 flex min-h-11 max-w-[122px] items-center gap-2 rounded-xl border border-cyan-200/15 bg-[#06111f]/94 px-2.5 py-1.5 shadow-[0_0_24px_rgba(34,211,238,.08)] backdrop-blur-md transition hover:border-cyan-200/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 motion-reduce:transition-none ' + position}
       aria-label={'Open ' + asset.sym + ' market data'}
     >
-      {asset.image ? (
-        <img src={asset.image} alt="" width="20" height="20" className="h-5 w-5 rounded-full" loading="lazy" decoding="async" />
-      ) : (
-        <span className="grid h-5 w-5 place-items-center rounded-full bg-cyan-300/10 text-[7px] font-black text-cyan-200">
-          {String(asset.sym || '?').slice(0, 2)}
-        </span>
-      )}
+      <AssetLogo asset={asset} size={20} />
       <span className="min-w-0">
         <b className="block truncate text-[9px] text-white">{asset.sym}</b>
         <span className={'block truncate text-[7px] font-black ' + (positive ? 'text-emerald-300' : 'text-rose-300')}>

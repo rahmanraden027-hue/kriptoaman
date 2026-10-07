@@ -22,60 +22,7 @@ import TradingViewModal from '../components/market/TradingViewModal';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useLanguage } from '../lib/LanguageContext';
 import KriptoAmanLogo from '../components/brand/KriptoAmanLogo';
-
-const SYMBOL_LOGOS = {
-  BTC: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
-  ETH: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
-  BNB: 'https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png',
-  SOL: 'https://assets.coingecko.com/coins/images/4128/large/solana.png',
-  XRP: 'https://cryptologos.cc/logos/xrp-xrp-logo.png?v=040',
-  ADA: 'https://assets.coingecko.com/coins/images/975/large/cardano.png',
-  DOGE: 'https://assets.coingecko.com/coins/images/5/large/dogecoin.png',
-  TRX: 'https://assets.coingecko.com/coins/images/1094/large/tron-logo.png',
-  AVAX: 'https://assets.coingecko.com/coins/images/12559/large/Avalanche_Circle_RedWhite_Trans.png',
-  DOT: 'https://assets.coingecko.com/coins/images/12171/large/polkadot.png',
-  LINK: 'https://assets.coingecko.com/coins/images/877/large/chainlink-new-logo.png',
-  MATIC: 'https://assets.coingecko.com/coins/images/4713/large/polygon.png',
-  LTC: 'https://assets.coingecko.com/coins/images/2/large/litecoin.png',
-  UNI: 'https://assets.coingecko.com/coins/images/12504/large/uniswap-uni.png',
-  USDT: 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
-  USDC: 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
-  SHIB: 'https://assets.coingecko.com/coins/images/11939/large/shiba.png',
-  PEPE: 'https://assets.coingecko.com/coins/images/29850/large/pepe-token.jpeg',
-};
-
-const coinCapImage = (symbol) =>
-  `https://assets.coincap.io/assets/icons/${String(symbol || '').toLowerCase()}@2x.png`;
-
-const coinImage = (id, remoteImage, symbol) => {
-  if (remoteImage) return remoteImage;
-  if (SYMBOL_LOGOS[symbol]) return SYMBOL_LOGOS[symbol];
-
-  const coinLoreId = String(id || '').match(/^coinlore-(\d+)$/)?.[1];
-  if (coinLoreId) return `https://www.coinlore.com/img/50x50/${coinLoreId}.png`;
-
-  return coinCapImage(symbol);
-};
-
-const handleCoinImageError = (event, symbol) => {
-  const image = event.currentTarget;
-  const fallbackStep = Number(image.dataset.fallbackStep || 0);
-
-  if (fallbackStep === 0) {
-    image.dataset.fallbackStep = '1';
-    image.src = coinCapImage(symbol);
-    return;
-  }
-
-  image.dataset.fallbackStep = '2';
-  image.onerror = null;
-  image.style.display = 'none';
-
-  const symbolBadge = image.nextElementSibling;
-  if (symbolBadge instanceof HTMLElement) {
-    symbolBadge.style.display = 'flex';
-  }
-};
+import AssetLogo from '../components/market/AssetLogo';
 
 const COINS = [
   { id: 'bitcoin', sym: 'BTC', name: 'Bitcoin', color: '#f7931a' },
@@ -358,22 +305,13 @@ export default function Market({ compact = false }) {
                 className="group flex items-center gap-3 ka-surface ka-surface-hover px-3.5 py-3.5 cursor-pointer"
                 onClick={() => setChartCoin(c)}
               >
-                <div className="relative shrink-0">
-                  <img
-                    src={coinImage(c.id, c.image, c.sym)}
-                    alt={c.name}
-                    className="h-10 w-10 rounded-2xl object-cover ring-1 ring-white/10"
-                    loading="lazy"
-                    onError={(e) => handleCoinImageError(e, c.sym)}
-                  />
-                  <span
-                    aria-hidden="true"
-                    className="h-10 w-10 rounded-2xl items-center justify-center border border-sky-400/30 bg-sky-400/10 text-[9px] font-extrabold text-sky-300"
-                    style={{ display: 'none' }}
-                  >
-                    {c.sym.slice(0, 4)}
-                  </span>
-                </div>
+                <AssetLogo
+                  asset={c}
+                  size={40}
+                  roundedClass="rounded-2xl"
+                  badgeClassName="text-sky-300"
+                  decorative={false}
+                />
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-extrabold text-white">{c.sym}</p>
