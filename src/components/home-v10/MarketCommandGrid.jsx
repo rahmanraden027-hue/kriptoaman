@@ -50,6 +50,14 @@ export default function MarketCommandGrid({ market, zevaryq }) {
     Number.isFinite(Number(featured.rank)) && Number(featured.rank) > 0 ? ['Rank', '#' + featured.rank] : null,
     ['State', market?.state || DATA_STATE.UNAVAILABLE],
   ].filter(Boolean) : [];
+  const marketState = market?.priceState || market?.state || DATA_STATE.UNAVAILABLE;
+  const featuredKicker = marketState === DATA_STATE.LIVE
+    ? 'MOVING NOW'
+    : marketState === DATA_STATE.SNAPSHOT
+      ? 'MARKET SNAPSHOT'
+      : marketState === DATA_STATE.DELAYED
+        ? 'DELAYED MARKET VIEW'
+        : 'VERIFIED PRICE SERIES';
   const onChain = zevaryq?.onChain || null;
   const onChainState = zevaryq?.onChainState || DATA_STATE.CHECKING;
 
@@ -97,7 +105,7 @@ export default function MarketCommandGrid({ market, zevaryq }) {
         </div>
       </Panel>
 
-      <Panel title={featured ? featured.sym + ' Intelligence' : 'Featured Market Intelligence'} kicker={featured ? 'MOVING NOW' : 'VERIFIED PRICE SERIES'} className="xl:col-span-4">
+      <Panel title={featured ? featured.sym + ' Intelligence' : 'Featured Market Intelligence'} kicker={featured ? featuredKicker : 'VERIFIED PRICE SERIES'} className="xl:col-span-4">
         {featured ? (
           <>
             <div className="mt-3 flex flex-wrap items-end justify-between gap-2">
@@ -108,7 +116,7 @@ export default function MarketCommandGrid({ market, zevaryq }) {
                   <p className={'mt-1 text-[10px] font-black ' + (featuredChange >= 0 ? 'text-emerald-300' : 'text-rose-300')}>{formatChange(featuredChange)} · 24H</p>
                 </div>
               </div>
-              <div className="text-right text-[8px] text-slate-400">
+              <div className="text-right text-[9px] leading-4 text-slate-300">
                 <p>Volume {formatCompactUsd(featured.volume)}</p>
                 <p>Market Cap {formatCompactUsd(featured.marketCap)}</p>
               </div>
@@ -158,7 +166,7 @@ export default function MarketCommandGrid({ market, zevaryq }) {
             </div>
           ))}
         </div>
-        <div className="mt-3 rounded-xl border border-emerald-300/10 bg-emerald-300/[0.035] p-2.5 text-[8px] leading-4 text-slate-300">
+        <div className="mt-3 rounded-xl border border-emerald-300/10 bg-emerald-300/[0.035] p-2.5 text-[9px] leading-4 text-slate-300">
           <b className={onChainState === DATA_STATE.LIVE ? 'text-emerald-300' : 'text-amber-300'}>● {onChainState}</b>
           <span className="ml-2">Tidak ada whale/DEX event sintetis. Event hanya ditampilkan bila sumber first-party membuktikannya.</span>
         </div>
