@@ -21,8 +21,9 @@ test('Phase 10H reuses the existing KriptoAman market data boundary', async () =
   const hook = await read('src/hooks/useMarketSurface.js');
   assert.match(hook, /useCoinMarkets/);
   assert.match(hook, /kriptoaman-market-db/);
-  assert.match(hook, /LIVE/);
+  assert.match(hook, /marketSnapshotState/);
   assert.match(hook, /SNAPSHOT/);
+  assert.doesNotMatch(hook, /kriptoaman-market-db[^\n]+DATA_STATE\.LIVE/);
   assert.doesNotMatch(hook, /state = ['"]STALE['"]/);
   assert.match(hook, /UNAVAILABLE/);
   assert.doesNotMatch(hook, /coingecko|coinmarketcap|cryptocompare/i);
