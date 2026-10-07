@@ -19,14 +19,21 @@ test('phase 16B centralizes verified ZEVARYQ live-state mapping', () => {
   assert.match(hook, /networkPayload\?\.live === true/);
   assert.match(hook, /networkPayload\?\.verified === true/);
   assert.match(hook, /onChainPayload\?\.provenance\?\.ownership === 'first-party'/);
+  assert.match(hook, /const networkStatusUsable = networkIdentityVerified && networkFresh/);
+  assert.match(hook, /FIRST_PARTY_CORROBORATED/);
+  assert.match(hook, /networkCorroboratedByOnChain/);
+  assert.match(hook, /sync remains CHECKING/);
   assert.match(hook, /DATA_STATE\.DELAYED/);
 
   assert.match(home, /useZevaryqSurface/);
   assert.match(home, /data-command-release="phase15d"/);
   assert.match(home, /data-production-data-binding="phase16b-verified-live-state-v1"/);
+  assert.match(home, /data-runtime-state-unification="first-party-corroborated-v1"/);
   assert.match(home, /<ZevaryqLiveStrip surface={zevaryq} \/>/);
   assert.match(home, /<OnChainNow surface={zevaryq} \/>/);
 
+  assert.match(strip, /data-zvq-network-source=/);
+  assert.match(strip, /corroborated evidence/);
   assert.doesNotMatch(strip, /fetch\(/);
   assert.doesNotMatch(onChain, /fetch\(/);
 });
