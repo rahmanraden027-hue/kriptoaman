@@ -20,7 +20,10 @@ test('final mobile polish anchors the hero orbit to recognizable verified market
 test('final mobile polish makes provenance trust signals readable without weakening machine-readable evidence', async () => {
   const provenance = await read('src/components/home-v10/DataProvenanceBar.jsx');
 
-  assert.match(provenance, /data-trust-signal="readable-v1"/);
+  assert.match(provenance, /data-trust-signal="readable-v2"/);
+  assert.match(provenance, /data-readability-polish="micro-v2"/);
+  assert.match(provenance, /text-\[10px\]/);
+  assert.match(provenance, /sm:text-\[9px\]/);
   assert.match(provenance, /min-h-10 flex-wrap/);
   assert.match(provenance, /order-3 w-full/);
   assert.match(provenance, /data-data-state=/);
