@@ -100,7 +100,7 @@ export default function KAMTokenCard() {
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/15 bg-[#06101d]/70">
-              <ZevaryqMark className="h-12 w-12" />
+              <ZevaryqMark variant="token" className="h-12 w-12" />
             </div>
             <div>
               <h2 id="kam-token-title" className="text-xl font-bold">ZEVARYQ (ZVQ)</h2>
