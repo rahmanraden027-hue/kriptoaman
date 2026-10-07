@@ -92,7 +92,7 @@ export default function HomeV10() {
             <Link
               to="/Market"
               aria-label={language === 'en' ? 'Search market' : 'Cari market'}
-              className="hidden min-h-11 min-w-[220px] items-center gap-2 rounded-xl border border-cyan-300/[0.09] bg-[#06101d]/75 px-3 text-[9px] text-slate-400 transition hover:border-cyan-300/20 lg:flex"
+              className="hidden h-11 min-h-11 min-w-[220px] shrink-0 items-center gap-2 rounded-xl border border-cyan-300/[0.09] bg-[#06101d]/75 px-3 text-[9px] text-slate-400 transition hover:border-cyan-300/20 lg:flex"
             >
               <Search className="h-4 w-4 text-cyan-300" aria-hidden="true" />
               {english ? 'Search assets, market, intelligence...' : 'Cari aset, market, intelligence...'}

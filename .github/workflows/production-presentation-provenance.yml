@@ -37,9 +37,9 @@ jobs:
           // Phase 16D production contract: prove the live Phase 16C release markers
           // plus the Home Live Intelligence Command Center v1 composition. Do not
           // require superseded Phase 10K/15C card copy that is no longer rendered.
-          const pullRequest = process.env.GITHUB_EVENT_NAME === 'pull_request';
           const required = [
             'home-live-intelligence-command-center-v1',
+            'data-production-visual-master',
             'Blockchain bergerak setiap detik.',
             'Lihat. Pahami. Verifikasi.',
             'MOVING NOW',
@@ -47,13 +47,13 @@ jobs:
             'Market Overview',
             'Market Heatmap',
             'LIVE NETWORK PULSE',
-            pullRequest ? 'Mempool source' : 'Pending-pool telemetry',
+            'Pending-pool telemetry',
             'VERIFY ANYTHING',
             'Token / Contract / Wallet / Transaction / Block',
             'ON-CHAIN NOW',
             'Global Crypto Intelligence',
             'Visual topology · verified core data only',
-            ...(pullRequest ? [] : ['Verified price path unavailable']),
+            'Verified price path unavailable',
             'ZEVARYQ NETWORK · LIVE EVIDENCE',
             'ZEVARYQ evidence radar',
             'Open discovery'
