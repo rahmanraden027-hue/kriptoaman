@@ -8,7 +8,7 @@ test('asset logo resolver provides one shared fallback chain and keeps planned Z
   const source = await read('src/components/market/AssetLogo.jsx');
 
   assert.match(source, /COIN_META/);
-  assert.match(source, /zevaryq-wallet-premium-icon\.webp/);
+  assert.match(source, /\/assets\/zevaryq\/tokens\/zvq-coin-v2\.svg/);
   assert.match(source, /PLANNED_ZEVARYQ_SYMBOLS = new Set\(\['ZBTC', 'ZETH'\]\)/);
   assert.doesNotMatch(source, /asset\?\.image|asset\.image|new URL\(/);
   assert.match(source, /COIN_META\[symbol\]\?\.logo/);
