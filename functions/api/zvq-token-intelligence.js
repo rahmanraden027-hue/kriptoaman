@@ -247,6 +247,7 @@ export async function onRequestGet() {
       },
       radar: {
         scannedBlocks: blocks.length,
+        observationWindowBlocks: blocks.length,
         confirmationDepth: CONFIRMATION_DEPTH,
         contractCreationsObserved: creations.length,
         contractsInspected: inspected.length,
@@ -260,6 +261,9 @@ export async function onRequestGet() {
         tokenMetadataIsAudit: false,
         tokenMetadataIsEndorsement: false,
         confirmationDepth: CONFIRMATION_DEPTH,
+        contractCreationCountIsObservedWindowFact: true,
+        tokenMetadataProvenCountIsObservedWindowFact: true,
+        zeroMeansNoObservationInVerifiedWindow: true,
         poolLiquidityAvailable: false,
         executionEnabled: false,
       },
