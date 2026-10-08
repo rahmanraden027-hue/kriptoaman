@@ -7,7 +7,7 @@ set -euo pipefail
 
 REPO_URL="https://github.com/rahmanraden027-hue/kriptoaman"
 RUNNER_LABEL="kam-mainnet-evidence"
-RPC_URL="${KAM_PRIVATE_RPC_URL:-http://127.0.0.1:8545}"
+RPC_URL="${KAM_PRIVATE_RPC_URL:-http://127.0.0.1:8648}"
 EVIDENCE_DIR="/var/lib/kam-evidence"
 RUNNER_HOME="/opt/kam-actions-runner"
 RUNNER_USER="kamrunner"
@@ -28,6 +28,16 @@ rpc() {
     "${RPC_URL}"
 }
 
+# Validate the intended constrained evidence endpoint BEFORE any host mutations.
+# Prevent URL user-info, DNS aliases, wrong ports or public RPC endpoints.
+case "${RPC_URL}" in
+  'http://127.0.0.1:8648'|'http://localhost:8648'|'http://[::1]:8648') ;;
+  *)
+    echo 'Refusing RPC endpoint: private evidence proxy must use loopback port 8648.' >&2
+    exit 1
+    ;;
+esac
+
 require_root
 
 apt-get update
@@ -40,15 +50,6 @@ fi
 
 install -d -m 0750 -o root -g "${RUNNER_USER}" "${EVIDENCE_DIR}"
 install -d -m 0750 -o "${RUNNER_USER}" -g "${RUNNER_USER}" "${RUNNER_HOME}"
-
-# RPC must be local-only. Refuse obvious public bindings/endpoints.
-case "${RPC_URL}" in
-  http://127.0.0.1:*|http://localhost:*|http://[::1]:*) ;;
-  *)
-    echo "Refusing non-loopback KAM_PRIVATE_RPC_URL: ${RPC_URL}" >&2
-    exit 1
-    ;;
-esac
 
 CHAIN_ID="$(rpc eth_chainId | jq -r '.result // empty')"
 BLOCK_1="$(rpc eth_blockNumber | jq -r '.result // empty')"
