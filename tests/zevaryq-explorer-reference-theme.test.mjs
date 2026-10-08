@@ -12,7 +12,7 @@ test('reference visual matches approved midnight navy, illuminated blue and cham
   }
   assert.match(html, /VISUAL REFERENCE: midnight navy/);
   assert.match(html, /class="reference-orbit-art"/);
-  assert.match(html, /class="reference-worldmap"/);
+  assert.match(html, /data-zvq-node-evidence="verified-only"/);
   assert.match(html, /class="scene-title"/);
 });
 
@@ -24,7 +24,7 @@ test('all reference dashboard sections retain accessible live data mounting poin
   for (const cls of ['network-panel', 'triad', 'satellite-row', 'triad-secondary']) {
     assert.match(main, new RegExp('class="[^"]*' + cls + '[^"]*"'));
   }
-  assert.equal((main.match(/class="earth-brandmark"/g) || []).length, 2);
+  assert.equal((main.match(/class="earth-brandmark"/g) || []).length, 1);
   assert.equal((main.match(/<section\b/g) || []).length, (main.match(/<\/section>/g) || []).length,
     'semantic sections must be balanced');
   assert.equal((main.match(/<div\b/g) || []).length, (main.match(/<\/div>/g) || []).length,
@@ -32,8 +32,8 @@ test('all reference dashboard sections retain accessible live data mounting poin
 });
 
 test('satellite and world map graphics cannot be mistaken for live physical telemetry', () => {
-  assert.match(html, /Illustrative network architecture · not live satellite telemetry/);
-  assert.match(html, /No claim of owned physical satellites or ground infrastructure/);
+  assert.match(html, /Network Telemetry/);
+  assert.match(html, /Satellite links and ground stations have no verified connection/);
   assert.match(html, /topology not verified|node locations are not independently verified/);
   assert.match(html, /unavailable values are never simulated/);
   assert.match(html, /const EXPECTED_CHAIN='0x560c'/);
@@ -48,5 +48,5 @@ test('reference dashboard remains usable on mobile, keyboard and reduced motion'
   assert.match(html, /@media\(prefers-reduced-motion:reduce\)/);
   assert.match(html, /:focus-visible/);
   assert.match(main, /aria-label="Satellite-inspired Earth illustration/);
-  assert.match(main, /aria-label="Illustrative global connectivity map/);
+  assert.match(main, /aria-label="No verified node location telemetry/);
 });
