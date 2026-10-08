@@ -97,3 +97,19 @@ test('Phase 16 mobile polish keeps compact stats readable without changing sourc
  assert.equal((html.match(/class="official-emblem"/g)||[]).length,3);
  assert.match(html,/const EXPECTED_CHAIN='0x560c'/);
 });
+
+test('mobile data-first polish retains primary ZVQ globe but condenses duplicate satellite artwork',()=>{
+ assert.match(css,/MOBILE-DATA-FIRST-20261008/);
+ assert.match(css,/@media\(max-width:560px\)/);
+ assert.match(css,/body \.hero \.space\{height:222px/);
+ assert.match(css,/body \.satellite-row \.satview\{height:104px;min-height:104px/);
+ assert.match(css,/body \.satellite-row \.satview \.reference-orbit-art/);
+ assert.match(css,/body \.satellite-row \.satview \.viznote\{position:relative/);
+ assert.match(css,/body \.network-panel \.grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(html,/class="hero glass"/);
+ assert.match(html,/class="space" aria-label="Satellite-inspired Earth illustration/);
+ assert.match(html,/id="satstats"/);
+ assert.match(html,/id="rainbowDataStatus"/);
+ assert.match(html,/zvq-v2\.css\?v=[^"]*globe21-datafirst/);
+ assert.ok(Buffer.byteLength(html)<100000);
+});
