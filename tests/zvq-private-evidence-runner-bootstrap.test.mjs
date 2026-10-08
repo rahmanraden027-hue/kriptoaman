@@ -14,6 +14,13 @@ test('private runner bootstrap agrees with protected workflow and rejects mutati
  const mutation=script.indexOf("apt-get update");
  const createAccount=script.indexOf('useradd --system');
  assert.ok(trust!==-1&&mutation!==-1&&trust<mutation&&trust<createAccount,'trust must precede host mutations');
+ for(const proof of ['CHAIN_ID="$(rpc eth_chainId','VALIDATORS="$(rpc qbft_getValidatorsByBlockNumber',
+   'BLOCK_2="$(rpc eth_blockNumber','Expected exactly 4 validators',
+   'Expected at least 3 private peers','Block height did not advance']){
+  const offset=script.indexOf(proof);
+  assert.ok(offset!==-1&&offset<mutation,'network preflight must precede package installation: '+proof);
+ }
+ assert.ok(script.indexOf('for tool in curl jq')<mutation,'missing tools must fail without installation');
  assert.equal(script.includes('http://127.0.0.1:8545'),false,'do not fallback to management RPC port');
  assert.ok(script.includes("'http://127.0.0.1:8648'|'http://localhost:8648'|'http://[::1]:8648'"));
 });
