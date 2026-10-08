@@ -262,3 +262,15 @@ test('static Explorer fallback is verification-pending rather than a false outag
   assert.doesNotMatch(html, />Data pending</);
   assert.doesNotMatch(html, />UNAVAILABLE<\/span><span id="v2-tx-note"/);
 });
+
+test('Explorer navigation avoids unserved 404 routes and preserves indexed evidence navigation',()=>{
+ const nav=html.match(/<nav class="nav" id="nav">([\s\S]*?)<\/nav>/)?.[1];
+ assert.ok(nav,'primary Explorer navigation exists');
+ assert.match(nav,/href="#metrics">Network Data<\/a>/);
+ assert.match(nav,/href="#infra">Infrastructure<\/a>/);
+ assert.doesNotMatch(nav,/href="\/(analytics|network)"/);
+ assert.match(html,/id="metrics"/);
+ assert.match(html,/id="infra"/);
+ assert.match(html,/href="\/tokens\?address='\+encodeURIComponent\(item.address\)\+'#selected-token"/);
+ assert.doesNotMatch(html,/href="\/token\/\s*'\+encodeURIComponent\(item.address\)/);
+});

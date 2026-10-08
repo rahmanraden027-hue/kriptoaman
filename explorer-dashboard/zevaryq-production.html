@@ -176,7 +176,7 @@ header.glass{background:rgba(3,13,30,.96);border-radius:14px;padding:8px 13px;bo
 <body><div class="shell">
 <header class="glass">
 <a class="brand" href="/"><span class="logo logo-zvq" role="img" aria-label="ZEVARYQ master Z network emblem"><img class="official-emblem" src="/zevaryq-assets/zevaryq-master-v2.svg?v=20261008-zevaryq-identity-v2" alt="" loading="eager" decoding="async" fetchpriority="high" onerror="this.hidden=true"><span class="official-logo-fallback" aria-hidden="true">ZVQ</span></span><span><b><span class="brand-gold">ZEVARYQ</span> <span class="brand-explorer">EXPLORER</span></b><small>Zevaryq Network</small></span></a>
-<nav class="nav" id="nav"><a href="/blocks">Blocks</a><a href="/txs">Transactions</a><a href="/validators">Validators</a><a href="/analytics">Analytics</a><a href="#token-discovery">Tokens</a><a href="/network">More</a><button class="walletConnect" id="walletConnect" type="button" aria-describedby="walletState">Connect Wallet</button><small class="walletFeedback" id="walletState" role="status" aria-live="polite"></small></nav>
+<nav class="nav" id="nav"><a href="/blocks">Blocks</a><a href="/txs">Transactions</a><a href="/validators">Validators</a><a href="#metrics">Network Data</a><a href="#token-discovery">Tokens</a><a href="#infra">Infrastructure</a><button class="walletConnect" id="walletConnect" type="button" aria-describedby="walletState">Connect Wallet</button><small class="walletFeedback" id="walletState" role="status" aria-live="polite"></small></nav>
 <span class="mainnet" title="ZVQ chain identity; operational health pending live verification"><i></i>MAINNET</span><button class="menu" id="menu" aria-label="Toggle navigation" aria-expanded="false" aria-controls="nav">☰</button>
 </header>
 <main>
@@ -423,7 +423,7 @@ function renderTokens(message){
   const name=item.metadata.name||'Unnamed ERC-20',symbol=item.metadata.symbol||'—';
   const source=item.origin==='creation'?'VERIFIED CREATION':'INDEXED DIRECTORY';
   const block=item.block!=null?'<small>Indexed creation block '+esc(item.block)+'</small>':'<small>Creation block not independently established</small>';
-  return '<a class="tokenRow" href="/token/'+encodeURIComponent(item.address)+'"><span style="min-width:0"><strong>'+esc(name)+' · '+esc(symbol)+'</strong><small>'+esc(short(item.address,12))+'</small>'+block+'</span><span class="tag">'+source+'</span></a>';
+  return '<a class="tokenRow" href="/tokens?address='+encodeURIComponent(item.address)+'#selected-token"><span style="min-width:0"><strong>'+esc(name)+' · '+esc(symbol)+'</strong><small>'+esc(short(item.address,12))+'</small>'+block+'</span><span class="tag">'+source+'</span></a>';
  }).join('');
 }
 async function probeTokens(){
