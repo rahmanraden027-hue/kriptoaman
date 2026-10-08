@@ -11,6 +11,11 @@ test('live browser proof checks real populated indexed blocks and preserves appr
  assert.ok(workflow.includes('playwright-core@1.55.0'));
 
  assert.match(script,/requestFailures/);
+ assert.ok(script.includes("snapshot.productionV3?2:3"),'live browser must support verified two-logo V3 and three-logo V2 during controlled release');
+ assert.ok(script.includes("snapshot.ribbonProvenance==='zero'||snapshot.ribbonProvenance==='stale-zero'"),'zero-indexed traffic needs a distinct trust state');
+ assert.ok(script.includes("assert.equal(snapshot.ribbons,0"),'zero indexed transactions must NOT draw decorative ribbons');
+ assert.ok(script.includes("assert.equal(snapshot.ribbons,8"),'measured nonzero or labelled preview retains eight ribbons');
+ assert.ok(script.includes("snapshot.activityNote||''"),'zero transaction sample needs explicit count evidence');
 });
 test('browser proof cannot mutate Explorer infrastructure or blockchain state',()=>{
  assert.match(workflow,/permissions:\s*\n\s*contents: read/);
