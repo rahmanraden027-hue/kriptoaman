@@ -12,6 +12,7 @@ const {chromium}=await import(pathToFileURL(modulePath).href);
 const evidenceDir=resolve(process.env.ZVQ_BROWSER_EVIDENCE_DIR||'zvq-public-browser-proof');
 await mkdir(evidenceDir,{recursive:true});
 const runId=String(process.env.GITHUB_RUN_ID||'manual').replace(/[^0-9a-z_-]/gi,'');
+const requireV3=process.env.ZVQ_REQUIRE_PRODUCTION_V3==='1';
 const url='https://explorer.kriptoaman.com/?zvq_browser_proof='+runId;
 const cases=[{name:'android-390',width:390,height:844},{name:'desktop-1440',width:1440,height:900}];
 let browser;
@@ -57,12 +58,19 @@ try{
      ribbonProvenance:wave?.dataset.provenance,
      activityNote:document.querySelector('#activityNote')?.textContent?.trim(),
      productionV3:!!document.querySelector('[data-zvq-network-telemetry="production-v3"]'),
+     nodeEvidence:!!document.querySelector('[data-zvq-node-evidence="verified-only"]'),
+     legacySatellitePanel:[...document.querySelectorAll('h2')].some(h=>h.textContent?.trim()==='Satellite Network View'),
      ribbons:wave?.querySelectorAll('.rainbowWave').length,
      logos:imgs.map(i=>({ready:i.complete,width:i.naturalWidth,height:i.naturalHeight})),
      heights,
      hero:document.querySelector('.earth-brandmark')!==null
     };
    });
+   if(requireV3){
+    assert.equal(snapshot.productionV3,true,'strict V3 release acceptance requires the public production-v3 marker');
+    assert.equal(snapshot.nodeEvidence,true,'strict V3 release acceptance requires verified-only node evidence');
+    assert.equal(snapshot.legacySatellitePanel,false,'strict V3 release acceptance forbids the duplicate legacy satellite panel');
+   }
    assert.equal(snapshot.visual,'blue-gold-orbital-20260924','approved visual identity unchanged');
    assert.equal(snapshot.chainLabel,true,'ZVQ Chain ID must remain visible');
    assert.equal(snapshot.viewport,config.width,'viewport');
@@ -86,7 +94,7 @@ try{
    await page.screenshot({path:join(evidenceDir,config.name+'.png'),fullPage:true,animations:'disabled'});
    const result={viewport:config.name,result:'PASS',snapshot,backendResponses,requestFailures,pageErrors};
    report.push(result);
-   console.log('PUBLIC_BROWSER_OK '+JSON.stringify({viewport:config.name,trust:snapshot.trust,blocks:snapshot.heights.length,tip:snapshot.heights[0],rainbow:snapshot.ribbonMode,logos:snapshot.logos.length,jsErrors:pageErrors.length}));
+   console.log('PUBLIC_BROWSER_OK '+JSON.stringify({viewport:config.name,trust:snapshot.trust,blocks:snapshot.heights.length,tip:snapshot.heights[0],rainbow:snapshot.ribbonMode,logos:snapshot.logos.length,productionV3:snapshot.productionV3,requireV3,jsErrors:pageErrors.length}));
   }catch(error){
    await page.screenshot({path:join(evidenceDir,config.name+'-failure.png'),fullPage:true,animations:'disabled'}).catch(()=>{});
    report.push({viewport:config.name,result:'FAIL',error:String(error),backendResponses,requestFailures,pageErrors,observed:await page.evaluate(()=>({trust:document.querySelector('#trust')?.textContent,probe:document.querySelector('#probeDetails')?.textContent,blockText:document.querySelector('#blocks')?.textContent?.slice(0,250)})).catch(()=>null)});
@@ -95,6 +103,6 @@ try{
   }finally{await context.close();}
  }
 }finally{
- await writeFile(join(evidenceDir,'proof.json'),JSON.stringify({checkedAt:new Date().toISOString(),url,scope:'read-only public Explorer browser hydration',report},null,2));
+ await writeFile(join(evidenceDir,'proof.json'),JSON.stringify({checkedAt:new Date().toISOString(),url,scope:'read-only public Explorer browser hydration',requireProductionV3:requireV3,report},null,2));
  if(browser)await browser.close();
 }
