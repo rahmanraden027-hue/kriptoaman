@@ -1,0 +1,147 @@
+name: ZVQ Developer Master V2 Isolated Asset Sync
+on:
+  pull_request:
+    paths:
+      - "scripts/refresh_zvq_developer_master_v2.py"
+      - "tests/test_zvq_developer_master_v2_refresh.py"
+      - ".github/workflows/zvq-developer-master-v2-assets.yml"
+      - "explorer-dashboard/developer*.html"
+      - "explorer-dashboard/developer-network.json"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/refresh_zvq_developer_master_v2.py"
+      - "tests/test_zvq_developer_master_v2_refresh.py"
+      - ".github/workflows/zvq-developer-master-v2-assets.yml"
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type SYNC-ZVQ-DEVELOPER-MASTER-V2 to replace six existing sidecar assets only"
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: zvq-developer-isolated-production
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Confirm approved Developer source, Python syntax and sandbox rollback
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/refresh_zvq_developer_master_v2.py
+          python3 -m unittest discover -s tests -p 'test_zvq_developer_master_v2_refresh.py' -v
+          python3 -m unittest discover -s tests -p 'test_zvq_developer_https.py' -v
+          node --test tests/zvq-developer-static-gateway.test.mjs
+  public_before:
+    if: github.event_name == 'workflow_dispatch' && inputs.confirmation == 'SYNC-ZVQ-DEVELOPER-MASTER-V2'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify installed sidecar URLs and read-only mainnet without mutation
+        run: |
+          set -euo pipefail
+          for route in developer developers developer/docs developer/examples developer/verify developer/starter developer/network.json; do
+            curl -L -fsS --connect-timeout 7 --max-time 20 \
+              "https://explorer.kriptoaman.com/$route" -o /dev/null
+          done
+          curl -fsS --connect-timeout 7 --max-time 17 -H 'Content-Type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+            https://explorer.kriptoaman.com/rpc | jq -e '.result == "0x560c"' >/dev/null
+          curl -fsS --connect-timeout 7 --max-time 17 https://explorer.kriptoaman.com/api/v2/blocks \
+            | jq -e '(.items | type == "array") and (.items | length > 0)' >/dev/null
+          echo 'developer_sidecar_public_before=verified'
+  deploy:
+    if: github.event_name == 'workflow_dispatch' && inputs.confirmation == 'SYNC-ZVQ-DEVELOPER-MASTER-V2'
+    needs: public_before
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 18
+    outputs:
+      stamp: ${{ steps.sync.outputs.stamp }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply only six existing Developer sidecar static files with exact rollback
+        id: sync
+        shell: bash
+        run: |
+          set -euo pipefail
+          output=$(sudo -n env ZVQ_DEV_ASSET_RUN_ID="$GITHUB_RUN_ID" \
+            python3 scripts/refresh_zvq_developer_master_v2.py --apply)
+          printf '%s\n' "$output"
+          stamp=$(printf '%s\n' "$output" | sed -n 's/^ZVQ_DEVELOPER_ASSETS_DEPLOY_RUN_ID=//p' | tail -1)
+          echo "stamp=$stamp" >> "$GITHUB_OUTPUT"
+  public_after:
+    if: github.event_name == 'workflow_dispatch' && inputs.confirmation == 'SYNC-ZVQ-DEVELOPER-MASTER-V2'
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify exact public Developer static bytes and chain protections
+        shell: bash
+        run: |
+          set -euo pipefail
+          for mapping in \
+            developer:developer.html \
+            developers:developer.html \
+            developer/docs:developer-docs.html \
+            developer/examples:developer-examples.html \
+            developer/verify:developer-verify.html \
+            developer/starter:developer-starter.html \
+            developer/network.json:developer-network.json; do
+            route=${mapping%%:*}
+            file=${mapping#*:}
+            tmp=$(mktemp)
+            curl -L -fsS --connect-timeout 8 --max-time 22 \
+              -H 'Cache-Control: no-cache' "https://explorer.kriptoaman.com/$route?proof=$GITHUB_RUN_ID" -o "$tmp"
+            cmp -s "$tmp" "explorer-dashboard/$file"
+            rm -f "$tmp"
+            echo "public_developer_master_v2=/$route verified"
+          done
+          curl -fsS --connect-timeout 8 --max-time 18 -H 'Content-Type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+            https://explorer.kriptoaman.com/rpc | jq -e '.result == "0x560c"' >/dev/null
+          curl -fsS --connect-timeout 8 --max-time 18 -o /dev/null https://explorer.kriptoaman.com/
+          for method in eth_sendRawTransaction admin_peers; do
+            code=$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 8 --max-time 18 \
+              -H 'Content-Type: application/json' --data "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"$method\",\"params\":[]}" \
+              https://explorer.kriptoaman.com/rpc)
+            test "$code" = 403
+          done
+          echo 'zvq_developer_master_v2=7/7 verified rpc_readonly=PASS'
+  rollback_on_failure:
+    if: always() && github.event_name == 'workflow_dispatch' && needs.deploy.result == 'success' && needs.public_after.result != 'success' && needs.deploy.outputs.stamp != ''
+    needs: [deploy, public_after]
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore only the six original static files
+        env:
+          STAMP: ${{ needs.deploy.outputs.stamp }}
+        run: sudo -n env ZVQ_DEV_ASSET_RUN_ID="$STAMP" python3 scripts/refresh_zvq_developer_master_v2.py --rollback
+  release_gate:
+    if: always() && github.event_name == 'workflow_dispatch'
+    needs: [validate, public_before, deploy, public_after, rollback_on_failure]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reject any failed or rolled-back release
+        env:
+          VALIDATE: ${{ needs.validate.result }}
+          BEFORE: ${{ needs.public_before.result }}
+          DEPLOY: ${{ needs.deploy.result }}
+          AFTER: ${{ needs.public_after.result }}
+          ROLLBACK: ${{ needs.rollback_on_failure.result }}
+        run: |
+          set -euo pipefail
+          test "$VALIDATE" = success
+          test "$BEFORE" = success
+          test "$DEPLOY" = success
+          test "$AFTER" = success
+          test "$ROLLBACK" = skipped
+          echo 'zvq_developer_master_v2_release_gate=PASS'
