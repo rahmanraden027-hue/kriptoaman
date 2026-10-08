@@ -141,7 +141,7 @@ test('Blocks and transactions display ZEVARYQ identity while retaining verified 
   assert.match(transactions, /data-kam-transactions-version="1\.0\.0"/);
   assert.match(apiDocs, /data-kam-api-version="1\.0\.0"/);
   for (const surface of [blocks, transactions, apiDocs]) {
-    assert.match(surface, /zevaryq-mark\.svg/);
+    assert.match(surface, /\/zevaryq-assets\/zevaryq-master-v2\.svg/);
     assert.equal(surface.includes('http://localhost'), false);
     assert.equal(surface.includes('127.0.0.1'), false);
   }
@@ -163,7 +163,7 @@ test('transaction, block and address details use branded verified API surfaces',
   assert.match(blockDetail, /data-kam-block-detail-version="1\.0\.0"/);
   assert.match(addressDetail, /data-kam-address-detail-version="1\.0\.0"/);
   for (const surface of [transactionDetail, blockDetail, addressDetail]) {
-    assert.match(surface, /kriptoaman-mark\.svg/);
+    assert.match(surface, /\/zevaryq-assets\/zevaryq-master-v2\.svg/);
     assert.match(surface, /ZEVARYQ Explorer/);
     assert.match(surface, /ZEVARYQ Mainnet/);
     assert.match(surface, /No values are estimated/);
