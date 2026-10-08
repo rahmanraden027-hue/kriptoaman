@@ -1,0 +1,137 @@
+name: ZVQ Master V2 Guarded Subpages Release
+on:
+  pull_request:
+    paths:
+      - "explorer-dashboard/**"
+      - "scripts/deploy-zvq-master-v2-subpages.sh"
+      - "tests/zvq-master-v2-subpages-guard.test.mjs"
+      - "tests/zvq-master-v2-subpages-simulation.py"
+      - ".github/workflows/zvq-master-v2-subpages-release.yml"
+  push:
+    branches: [main]
+    paths:
+      - "explorer-dashboard/**"
+      - "scripts/deploy-zvq-master-v2-subpages.sh"
+      - "tests/zvq-master-v2-subpages-guard.test.mjs"
+      - "tests/zvq-master-v2-subpages-simulation.py"
+      - ".github/workflows/zvq-master-v2-subpages-release.yml"
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type DEPLOY-ZVQ-MASTER-V2-ROUTES to update exactly 17 static subpages"
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: zevaryq-explorer-production-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Protected route allowlist and rollback safety
+        run: |
+          set -euo pipefail
+          bash -n scripts/deploy-zvq-master-v2-subpages.sh
+          node --test tests/zvq-master-v2-subpages-guard.test.mjs
+          python3 tests/zvq-master-v2-subpages-simulation.py
+  public_before:
+    if: github.event_name == 'workflow_dispatch' && inputs.confirmation == 'DEPLOY-ZVQ-MASTER-V2-ROUTES'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Public mainnet and protected homepage readiness
+        run: |
+          set -euo pipefail
+          base=https://explorer.kriptoaman.com
+          curl -fsS --connect-timeout 8 --max-time 22 "$base/" -o /tmp/zvq-home.html
+          grep -Fq 'data-zevaryq-explorer-version' /tmp/zvq-home.html
+          curl -fsS --connect-timeout 8 --max-time 18 -H 'content-type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' "$base/rpc" \
+            | jq -e '.result == "0x560c"' >/dev/null
+          curl -fsS --connect-timeout 8 --max-time 18 "$base/api/v2/blocks" \
+            | jq -e '(.items | type == "array") and (.items | length > 0)' >/dev/null
+          curl -fsS --connect-timeout 8 --max-time 18 -o /dev/null "$base/zevaryq-assets/zevaryq-master-v2.svg"
+          echo 'zvq_master_v2_preflight=verified'
+  deploy:
+    if: github.event_name == 'workflow_dispatch' && inputs.confirmation == 'DEPLOY-ZVQ-MASTER-V2-ROUTES'
+    needs: public_before
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 15
+    outputs:
+      stamp: ${{ steps.apply.outputs.stamp }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply exact 17 HTML files with retained rollback
+        id: apply
+        shell: bash
+        run: |
+          set -euo pipefail
+          result=$(sudo bash scripts/deploy-zvq-master-v2-subpages.sh)
+          printf '%s\n' "$result"
+          stamp=$(printf '%s\n' "$result" | sed -n 's/^ZVQ_MASTER_V2_SUBPAGES_DEPLOY_STAMP=//p' | tail -1)
+          echo "stamp=$stamp" >> "$GITHUB_OUTPUT"
+  public_after:
+    if: github.event_name == 'workflow_dispatch' && inputs.confirmation == 'DEPLOY-ZVQ-MASTER-V2-ROUTES'
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Independent canonical icon across public routes and unchanged chain
+        shell: bash
+        run: |
+          set -euo pipefail
+          base=https://explorer.kriptoaman.com
+          curl -fsS --connect-timeout 8 --max-time 22 "$base/" -o /tmp/root.html
+          grep -Fq 'data-zevaryq-explorer-version' /tmp/root.html
+          for route in blocks txs validators stats status tokens contracts addresses api-docs developer developer/docs developer/examples developer/verify developer/starter; do
+            curl -fsS --connect-timeout 8 --max-time 22 -H 'Cache-Control: no-cache' \
+              "$base/$route?identity_release=$GITHUB_RUN_ID" -o /tmp/route.html
+            grep -Fq '/zevaryq-assets/zevaryq-master-v2.svg?v=20261008-zevaryq-identity-v2' /tmp/route.html
+            ! grep -Eq '<div class="mark">K</div>|https://kriptoaman.com/brand/(zevaryq|kriptoaman)-mark.svg' /tmp/route.html
+            echo "identity_route=/$route verified"
+          done
+          curl -fsS --connect-timeout 8 --max-time 18 -H 'content-type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' "$base/rpc" \
+            | jq -e '.result == "0x560c"' >/dev/null
+          curl -fsS --connect-timeout 8 --max-time 18 "$base/api/v2/blocks" \
+            | jq -e '(.items | type == "array") and (.items | length > 0)' >/dev/null
+          for method in eth_sendRawTransaction admin_peers; do
+            status=$(curl -sS --connect-timeout 8 --max-time 18 -o /dev/null -w '%{http_code}' \
+              -H 'Content-Type: application/json' \
+              --data "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"$method\",\"params\":[]}" "$base/rpc")
+            test "$status" = 403
+          done
+          echo 'zvq_master_v2_public_routes_verified=14'
+  rollback_on_failure:
+    if: always() && github.event_name == 'workflow_dispatch' && needs.deploy.result == 'success' && needs.public_after.result != 'success' && needs.deploy.outputs.stamp != ''
+    needs: [deploy, public_after]
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore only original HTML files
+        env:
+          STAMP: ${{ needs.deploy.outputs.stamp }}
+        run: sudo bash scripts/deploy-zvq-master-v2-subpages.sh --rollback "$STAMP"
+  release_gate:
+    if: always() && github.event_name == 'workflow_dispatch'
+    needs: [public_before, deploy, public_after, rollback_on_failure]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reject partial deployment or rollback
+        env:
+          BEFORE: ${{ needs.public_before.result }}
+          DEPLOY: ${{ needs.deploy.result }}
+          AFTER: ${{ needs.public_after.result }}
+          ROLLBACK: ${{ needs.rollback_on_failure.result }}
+        run: |
+          set -euo pipefail
+          test "$BEFORE" = success
+          test "$DEPLOY" = success
+          test "$AFTER" = success
+          test "$ROLLBACK" = skipped
+          echo 'zvq_master_v2_release_gate=PASS'
