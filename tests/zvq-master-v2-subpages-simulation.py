@@ -33,7 +33,7 @@ def check_case(bad_rpc=False,roll_back=False):
         curl=bin_dir/'curl'
         curl.write_text("""#!/usr/bin/env bash
 url=""
-for arg in "$@"; do url="$arg"; done
+for arg in "$@"; do if [[ "$arg" == https://* ]]; then url="$arg"; fi; done
 case "$url" in
  */rpc)
   if [[ "$SIM_FAIL_RPC" == 1 ]]; then echo '{"jsonrpc":"2.0","result":"0x1"}'; else echo '{"jsonrpc":"2.0","result":"0x560c"}'; fi ;;
