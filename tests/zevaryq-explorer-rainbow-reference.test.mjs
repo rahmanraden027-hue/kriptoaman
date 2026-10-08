@@ -60,6 +60,8 @@ test('zero indexed transactions render a neutral empty state, not eight misleadi
  assert.match(zero.note.textContent,/0 transactions across 12 sampled blocks/);
  const stale=simulate(Array(12).fill(0),false);
  assert.equal(stale.wave.dataset.provenance,'stale-zero');
+ assert.equal(stale.wave.innerHTML,'');
+ assert.match(stale.note.textContent,/0 transactions across 12 sampled blocks/);
  assert.equal(stale.status.textContent,'STALE · ZERO');
  const nonzero=simulate([0,1,2,0],true);
  assert.equal((nonzero.wave.innerHTML.match(/<path/g)||[]).length,8);
