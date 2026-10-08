@@ -1,0 +1,44 @@
+name: ZEVARYQ Four-Scope Public Evidence Inventory
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/probe-zvq-four-scope-public.mjs'
+      - 'tests/zvq-four-scope-public-evidence.test.mjs'
+      - '.github/workflows/zvq-four-scope-public-evidence.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/probe-zvq-four-scope-public.mjs'
+      - 'tests/zvq-four-scope-public-evidence.test.mjs'
+      - '.github/workflows/zvq-four-scope-public-evidence.yml'
+  schedule:
+    - cron: '41 2 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: zvq-public-four-scope-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate fail-closed public evidence contract
+        run: node --test tests/zvq-four-scope-public-evidence.test.mjs
+      - name: Observe public chain, indexer, validator-proposers, token directory and pool evidence
+        run: node scripts/probe-zvq-four-scope-public.mjs
+        env:
+          ZVQ_EVIDENCE_DIR: ${{ runner.temp }}/zvq-public-four-scope
+      - name: Store timestamped evidence even if a network source is unavailable
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zvq-public-four-scope-evidence
+          path: ${{ runner.temp }}/zvq-public-four-scope
+          if-no-files-found: error
+          retention-days: 30
