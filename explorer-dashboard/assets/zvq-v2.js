@@ -110,8 +110,31 @@
    txState.failures++;txState.nextAttempt=Date.now()+Math.min(180000,30000*2**Math.min(txState.failures,3));
   }finally{clearTimeout(timeout);txState.fetching=false;renderTx();}
  }
+ function renderGlobeProof(state){
+  // Artwork stays illustrative; the evidence plate is exclusively derived from verified first-party probes.
+  const scene=document.querySelector('.hero .space');
+  if(!scene)return;
+  let plate=select('zvq-globe-proof');
+  if(!plate){
+   plate=makeElement('div','zvq-globe-proof');
+   plate.id='zvq-globe-proof';
+   plate.setAttribute('role','status');plate.setAttribute('aria-live','polite');
+   plate.append(makeElement('span','zvq-proof-label','CHAIN HEAD'),makeElement('strong','zvq-proof-height','Unavailable'),
+    makeElement('small','zvq-proof-source','Verifying RPC / Indexer'),
+    makeElement('small','zvq-proof-art','Orbit artwork illustrative · node locations unverified'));
+   scene.append(plate);
+  }
+  const rpc=state.rpc&&Number.isSafeInteger(state.head)&&state.head>=0?state.head:null;
+  const candidate=Array.isArray(state.blocks)&&state.blocks.length?Number(state.blocks[0].height):null;
+  const indexed=Number.isSafeInteger(candidate)&&candidate>=0?candidate:null;
+  const source=rpc!==null?'LIVE':state.api&&indexed!==null?'INDEXED':indexed!==null?'STALE':'UNAVAILABLE';
+  const value=rpc!==null?rpc:indexed;
+  plate.dataset.provenance=source.toLowerCase();
+  plate.querySelector('.zvq-proof-height').textContent=value===null?'Unavailable':'#'+value.toLocaleString('en-US');
+  plate.querySelector('.zvq-proof-source').textContent=source==='LIVE'?'VERIFIED RPC · CHAIN 22028':source==='INDEXED'?'BLOCKSCOUT · INDEXED':source==='STALE'?'LAST INDEXED SAMPLE · STALE':'RPC AND INDEXER · UNAVAILABLE';
+ }
  function render(state){
-  renderMetrics(state);renderSampleChart(state);
+  renderMetrics(state);renderSampleChart(state);renderGlobeProof(state);
   const proof=select('v2-telemetry-proof');if(proof){const live=state.rpcLatency!==null&&state.rpc;const badge=makeElement('span','v2-provenance '+(live?'indexed':'unavailable'),live?'LIVE':'UNAVAILABLE');proof.replaceChildren(badge,document.createTextNode(live?'Browser-to-RPC response time: '+state.rpcLatency+' ms. This does not measure satellite or inter-node latency.':'Browser RPC latency cannot currently be verified. Satellite telemetry requires a separately verified feed.'))}
   const map=select('v2-node-evidence');if(map)map.textContent='ILLUSTRATIVE · Geographic node coordinates and regional counts unavailable without independently verified node telemetry.';
   const sat=select('v2-satellite-evidence');if(sat)sat.textContent='ILLUSTRATIVE · Orbit and satellite artwork; no verified physical satellite feed connected.';
