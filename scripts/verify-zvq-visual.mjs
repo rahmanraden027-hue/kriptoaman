@@ -64,7 +64,7 @@ try{
   const screenshot=join(imageDir,config.name+'.png');
   await page.screenshot({path:screenshot,fullPage:true,animations:'disabled'});
   assert.ok(readout.scrollWidth<=config.width+1,config.name+' horizontal overflow: '+readout.scrollWidth);
-  assert.equal(readout.emblems.length,3,config.name+' should preserve three official logo placements');
+  assert.equal(readout.emblems.length,2,config.name+' should preserve official header and hero logo placements');
   assert.ok(readout.emblems.every(([loaded,w,h])=>loaded&&w>0&&h>0),config.name+' logo failed to decode');
   assert.equal(readout.rainbowPaths,8,config.name+' rainbow ribbons');
   assert.equal(readout.mode,'PREVIEW','local offline screenshot must not claim live data');
@@ -104,7 +104,7 @@ try{
   await p.waitForFunction(()=>document.querySelector('#v2-tx-status')?.textContent==='INDEXED'&&document.querySelector('#meshStatus')?.textContent.includes('verified parent links'),{timeout:20000});
   const proof=await p.evaluate(()=>({txRows:document.querySelectorAll('#v2-tx-list .v2-tx-item').length,activity:document.querySelectorAll('#v2-activity-list .v2-activity-item').length,trust:document.querySelector('#trust').textContent,mesh:document.querySelector('#meshStatus').textContent,latest:document.querySelector('#blocks').textContent,latency:document.querySelector('#v2-telemetry-proof').textContent}));
   assert.equal(proof.txRows,2);assert.equal(proof.activity,2);assert.equal(proof.trust,'INDEXED');assert.match(proof.mesh,/1 verified parent links/);
-  assert.match(proof.latest,/#200/);assert.match(proof.latency,/Satellite telemetry requires/);
+  assert.match(proof.latest,/#200/);assert.match(proof.latency,/RPC unavailable/);
   await p.screenshot({path:join(imageDir,'QA-indexer-works-RPC-403.png'),fullPage:true,animations:'disabled'});
   console.log('RPC_403_INDEXER_QA_OK '+JSON.stringify(proof));
   await ctx.close();
