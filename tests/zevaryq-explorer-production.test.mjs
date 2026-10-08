@@ -18,9 +18,9 @@ test('Zevaryq production identity and chain are explicit', () => {
 });
 
 test('complete ZVQ identity is visible in header, hero and satellite view', () => {
-  assert.equal((html.match(/class="earth-brandmark"/g) || []).length, 2);
+  assert.equal((html.match(/class="earth-brandmark"/g) || []).length, 1);
   assert.match(html, /class="logo logo-zvq"[^>]+><img class="official-emblem"[^>]+zevaryq-master-v2\.svg/);
-  assert.equal((html.match(/class="official-emblem"/g) || []).length, 3);
+  assert.equal((html.match(/class="official-emblem"/g) || []).length, 2);
   assert.doesNotMatch(html, /<img class="earth-logo"/);
   assert.doesNotMatch(html, /data:image\/(webp|png);base64/);
   assert.ok(Buffer.byteLength(html) < 100_000, 'Explorer HTML must not embed its 3 emblem images or favicon');
@@ -29,12 +29,12 @@ test('complete ZVQ identity is visible in header, hero and satellite view', () =
   assert.doesNotMatch(html, /<span class="logo">ZV<\/span>/);
   assert.match(html, /\.earth:after\{content:none\}/);
   assert.doesNotMatch(html, /content:"ZV"/);
-  assert.match(html, /not live satellite telemetry/);
+  assert.match(html, /no simulated satellite data/);
 });
 
 test('required production panels and search routes exist', () => {
   for (const marker of [
-    'Satellite Network View', 'Consensus & Finality', 'Global Node Topology',
+    'Network Telemetry', 'Consensus & Finality', 'Node Location Evidence',
     'Network Performance', 'Infrastructure Status', 'Security Intelligence',
     'Network Activity Flow', 'Mempool & Fee Intelligence',
     'Validator Intelligence', 'Realtime Block Stream', 'Latest Blocks',
@@ -56,7 +56,7 @@ test('unverified values fail closed', () => {
   for (const fake of ['21 / 21', '128+ nodes', '3.4 TPS', '1,236 pending transactions', '100% Secure']) {
     assert.equal(html.includes(fake), false, 'mockup-only value shipped: ' + fake);
   }
-  assert.match(html, /Topology data unavailable/);
+  assert.match(html, /No verified node coordinates/);
   assert.match(html, /Mempool telemetry unavailable/);
   assert.match(html, /No values are estimated/);
 });

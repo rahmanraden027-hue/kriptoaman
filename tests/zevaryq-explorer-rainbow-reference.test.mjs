@@ -6,11 +6,11 @@ import { Script, runInNewContext } from 'node:vm';
 const html=await readFile(new URL('../explorer-dashboard/zevaryq-production.html',import.meta.url),'utf8');
 const script=html.match(/<script>([\s\S]*?)<\/script>/i)?.[1]||'';
 
-test('reference fidelity uses only the preserved, approved official logo in all three placements',()=>{
- assert.equal((html.match(/class="official-emblem"/g)||[]).length,3);
- assert.equal((html.match(/src="\/zevaryq-assets\/zevaryq-master-v2\.svg\?v=20261008-zevaryq-identity-v2"/g)||[]).length,3);
+test('reference fidelity uses only the preserved, approved official logo in header and primary globe',()=>{
+ assert.equal((html.match(/class="official-emblem"/g)||[]).length,2);
+ assert.equal((html.match(/src="\/zevaryq-assets\/zevaryq-master-v2\.svg\?v=20261008-zevaryq-identity-v2"/g)||[]).length,2);
  assert.match(html,/data-zvq-reference-visual="blue-gold-orbital-20260924"/);
- assert.equal((html.match(/viewBox="0 0 140 80"/g)||[]).length,6,'three detailed satellites in each globe scene');
+ assert.equal((html.match(/viewBox="0 0 140 80"/g)||[]).length,3,'three ornamental satellites in the single branded primary globe');
  assert.match(html,/class="reference-orbit-art"/);
  assert.match(html,/id="rainbowWaves" data-provenance="illustrative"/);
 });
@@ -74,8 +74,8 @@ test('unavailable indexer preserves decorative layout but clearly labels preview
  assert.match(script,/Illustrative color preview · verified transaction series unavailable/);
  assert.match(script,/wave\.setAttribute\('opacity',state\.api\?'1':'.48'\)/);
  assert.match(script,/if\(state\.blocks\.length\)renderBlocks\(\)/);
- assert.match(html,/not live satellite telemetry/);
- assert.match(html,/Topology data unavailable/);
+ assert.match(html,/no simulated satellite data/);
+ assert.match(html,/No verified node coordinates/);
 });
 
 test('safe wallet connection is user-initiated, read-only and guards chain identity',()=>{

@@ -136,9 +136,17 @@
  }
  function render(state){
   renderMetrics(state);renderSampleChart(state);renderGlobeProof(state);
-  const proof=select('v2-telemetry-proof');if(proof){const live=state.rpcLatency!==null&&state.rpc;const badge=makeElement('span','v2-provenance '+(live?'indexed':'unavailable'),live?'LIVE':'UNAVAILABLE');proof.replaceChildren(badge,document.createTextNode(live?'Browser-to-RPC response time: '+state.rpcLatency+' ms. This does not measure satellite or inter-node latency.':'Browser RPC latency cannot currently be verified. Satellite telemetry requires a separately verified feed.'))}
-  const map=select('v2-node-evidence');if(map)map.textContent='ILLUSTRATIVE · Geographic node coordinates and regional counts unavailable without independently verified node telemetry.';
-  const sat=select('v2-satellite-evidence');if(sat)sat.textContent='ILLUSTRATIVE · Orbit and satellite artwork; no verified physical satellite feed connected.';
+  const proof=select('v2-telemetry-proof');if(proof){
+   const rpc=state.rpc&&Number.isSafeInteger(state.head);
+   const indexed=state.api&&Array.isArray(state.blocks)&&state.blocks.length>0&&Number.isSafeInteger(Number(state.blocks[0].height));
+   const status=rpc&&indexed?'VERIFIED':rpc||indexed?'PARTIAL':'UNAVAILABLE';
+   const badge=makeElement('span','v2-provenance '+(rpc&&indexed?'indexed':rpc||indexed?'stale':'unavailable'),status);
+   const facts=[rpc?'RPC Chain 22028 · head #'+state.head:'RPC unavailable',indexed?'Indexer height #'+Number(state.blocks[0].height).toLocaleString('en-US'):'Indexed height unavailable'];
+   if(rpc&&state.rpcLatency!==null)facts.push('Browser-to-RPC response time: '+state.rpcLatency+' ms; this does not measure satellite or inter-node latency.');
+   proof.replaceChildren(badge,document.createTextNode(facts.join(' · ')));
+  }
+  const map=select('v2-node-evidence');if(map)map.textContent='UNVERIFIED · Node coordinates and peer geography require independently verified node telemetry.';
+  const sat=select('v2-satellite-evidence');if(sat)sat.textContent='UNVERIFIED · No authenticated physical satellite feed or satellite-link telemetry is connected. Independent public orbit elements are reference only.';
   const marker=select('v2-head-proof');if(marker){const head=state.rpc&&Number.isSafeInteger(state.head)?state.head:null;const idx=state.api&&state.blocks.length?Number(state.blocks[0].height):null;marker.textContent=head!==null?'RPC verified head #'+head+(Number.isSafeInteger(idx)?' · indexed #'+idx:''):Number.isSafeInteger(idx)?'INDEXED block #'+idx+' · browser RPC unverified':'Latest verified head unavailable'}
  }
  // Public GP elements are NOT connected satellites or physical link telemetry.
@@ -171,7 +179,8 @@
  function publicOrbitPanel(){
   const marker=select('v2-satellite-evidence');if(!marker)return null;
   let area=select('zvq-public-orbits');if(area)return area;
-  area=makeElement('section','zvq-public-orbits');
+  area=makeElement('details','zvq-public-orbits');
+  const summary=makeElement('summary','zvq-orbit-summary','External orbital reference (CelesTrak) · not blockchain network telemetry');
   area.id='zvq-public-orbits';area.setAttribute('aria-label','Independent public orbital data');
   const title=makeElement('div','zvq-orbit-heading');
   title.append(makeElement('strong',null,'Public orbital elements · CelesTrak GP'),
@@ -184,7 +193,7 @@
   const link=makeElement('a','zvq-orbit-source','CelesTrak documentation ↗');
   link.href='https://celestrak.org/NORAD/documentation/gp-data-formats.php';
   link.rel='noopener noreferrer';link.target='_blank';
-  area.append(title,detail,grid,footer,link);
+  area.append(summary,title,detail,grid,footer,link);
   marker.insertAdjacentElement('afterend',area);
   return area;
  }

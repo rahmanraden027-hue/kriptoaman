@@ -13,8 +13,8 @@ const [html,css,js,deploy]=await Promise.all([
 
 test('v2 keeps the approved ZVQ logo and exposes all six accessible dashboard upgrades',()=>{
  assert.match(html,/data-zvq-dashboard-version="2\.0\.0"/);
- assert.equal((html.match(/class="official-emblem"/g)||[]).length,3);
- for(const panel of ['Network Health','Satellite Network View','Global Node Topology','Live Blockchain Mesh','Latest Transactions','Recent On-Chain Activity'])assert.ok(html.includes(panel),panel);
+ assert.equal((html.match(/class="official-emblem"/g)||[]).length,2);
+ for(const panel of ['Network Health','Network Telemetry','Node Location Evidence','Live Blockchain Mesh','Latest Transactions','Recent On-Chain Activity'])assert.ok(html.includes(panel),panel);
  for(const id of ['v2-tx-status','v2-tx-list','v2-activity-list','v2-block-flow','v2-telemetry-proof','v2-node-evidence','v2-satellite-evidence','v2-head-proof'])assert.ok(html.includes('id="'+id+'"'),id);
  assert.match(html,/zvq-v2\.css\?v=20260925/);
  assert.match(html,/zvq-v2\.js\?v=20260925/);
@@ -61,10 +61,10 @@ test('source integrity prevents invented network, satellite and geographic data'
  assert.match(inline,/function sampledBlocks/);
  assert.match(inline,/parent_hash\.toLowerCase\(\)===parent\.hash\.toLowerCase\(\)/);
  assert.match(inline,/verifiedFinalizedBlock/);
- assert.match(html,/ILLUSTRATIVE · Node coordinates not independently verified/);
- assert.match(html,/ILLUSTRATIVE · Physical satellite telemetry not connected/);
+ assert.match(html,/UNVERIFIED · Node coordinates not independently verified/);
+ assert.match(html,/UNVERIFIED · Satellite connectivity/);
  assert.match(js,/does not measure satellite or inter-node latency/);
- assert.match(js,/without independently verified node telemetry/);
+ assert.match(js,/require independently verified node telemetry/);
  assert.match(html,/no illustrative transactions/);
  assert.doesNotMatch(html,/\b42 \/ 42\b|\b2,232,413\b|\b99\.98%\b/);
 });
@@ -94,7 +94,7 @@ test('Phase 16 mobile polish keeps compact stats readable without changing sourc
  assert.match(css,/body \.search input\{font-size:16px/);
  assert.match(css,/body \.nav\.open\{top:calc\(100% \+ 6px\)/);
  assert.match(html,/zvq-v2\.css\?v=20260925-orbit1-mobile-polish-20261008/);
- assert.equal((html.match(/class="official-emblem"/g)||[]).length,3);
+ assert.equal((html.match(/class="official-emblem"/g)||[]).length,2);
  assert.match(html,/const EXPECTED_CHAIN='0x560c'/);
 });
 
@@ -102,9 +102,9 @@ test('mobile data-first polish retains primary ZVQ globe but condenses duplicate
  assert.match(css,/MOBILE-DATA-FIRST-20261008/);
  assert.match(css,/@media\(max-width:560px\)/);
  assert.match(css,/body \.hero \.space\{height:222px/);
- assert.match(css,/body \.satellite-row \.satview\{height:104px;min-height:104px/);
- assert.match(css,/body \.satellite-row \.satview \.reference-orbit-art/);
- assert.match(css,/body \.satellite-row \.satview \.viznote\{position:relative/);
+ assert.match(css,/body \.telemetry-intro/);
+ assert.doesNotMatch(html,/class="viz satview"/);
+ assert.match(html,/data-zvq-network-telemetry="production-v3"/);
  assert.match(css,/body \.network-panel \.grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
  assert.match(html,/class="hero glass"/);
  assert.match(html,/class="space" aria-label="Satellite-inspired Earth illustration/);
