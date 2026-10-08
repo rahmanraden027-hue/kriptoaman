@@ -52,9 +52,15 @@ test('KAM Statistics V2 uses verified public core data and no placeholder Stats 
 test('KAM Token Registry V2 identifies canonical WKAM without deleting indexed contracts', () => {
   assert.match(tokens, /data-kam-tokens-version="2\.0\.0"/);
   assert.match(tokens, /0x0d8848CE88BB09a81a4248Efdd574d50B98b544A/);
-  assert.match(tokens, /Canonical WKAM/);
+  assert.match(tokens, /Legacy WKAM reference/);
+  assert.match(tokens, /WKAM was associated with legacy KriptoAman DEX configuration/);
+  assert.match(tokens, /id="selected-token"/);
+  assert.match(tokens, /\/tokens\?address=0x0d8848CE88BB09a81a4248Efdd574d50B98b544A#selected-token/);
+  assert.doesNotMatch(tokens, /href="\/token\//);
+  assert.match(tokens, /fetch\('\/api\/v2\/tokens\/'\+encodeURIComponent\(selected\)/);
+  assert.match(tokens, /No token data is fabricated/);
   assert.match(tokens, /\/api\/v2\/tokens\?type=ERC-20/);
-  assert.match(tokens, /Other indexed contracts are retained for transparency and are not deleted or rewritten/);
+  assert.match(tokens, /Other indexed contracts remain visible and are not deleted or rewritten/);
 });
 
 test('Developer Center exposes canonical network onboarding and public APIs without secrets', () => {
