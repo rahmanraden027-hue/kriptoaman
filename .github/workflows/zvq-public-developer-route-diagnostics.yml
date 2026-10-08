@@ -1,0 +1,74 @@
+name: ZVQ Public Developer Route Diagnostics
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/zvq-public-developer-route-diagnostics.yml"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/zvq-public-developer-route-diagnostics.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  read-only-route-diagnosis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Inspect public route mapping, branding and cache without writes
+        shell: bash
+        run: |
+          set -euo pipefail
+          base=https://explorer.kriptoaman.com
+          for route in developer developers developer/docs developer/examples developer/verify api-docs; do
+            for mode in default bypass; do
+              url="$base/$route"
+              if [ "$mode" = bypass ]; then url="$url?diagnostic=$GITHUB_RUN_ID"; fi
+              body=$(mktemp)
+              headers=$(mktemp)
+              code=$(curl -L -sS --connect-timeout 7 --max-time 22 \
+                -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
+                -w '%{http_code}' -D "$headers" "$url" -o "$body") || code=connection_error
+              echo "route=/$route mode=$mode http=$code bytes=$(wc -c < "$body") sha256=$(sha256sum "$body" | cut -d ' ' -f1)"
+              for needle in 'ZEVARYQ Master V2 network emblem' 'zevaryq-master-v2.svg?v=20261008-zevaryq-identity-v2' 'data-kam-developer-version' 'data-kam-developer-docs-version' 'data-zevaryq-explorer-version'; do
+                if grep -Fq "$needle" "$body"; then echo "  present: $needle"; else echo "  absent: $needle"; fi
+              done
+              grep -Ei '^(content-type|location|x-kam-explorer-developer-version|x-kam-developer-docs-version|cf-cache-status|cache-control|server):' "$headers" | tail -12 || true
+              rm -f "$body" "$headers"
+            done
+          done
+
+  read-only-origin-route-compare:
+    # Never run arbitrary PR code on the production self-hosted Explorer runner.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, linux, x64, kam-explorer-host]
+    timeout-minutes: 8
+    steps:
+      - name: Compare protected mounted files, served URLs and active nginx route declarations
+        shell: bash
+        run: |
+          set -euo pipefail
+          D=/opt/blockscout/docker-compose/proxy/kam-dashboard
+          TEMPLATE=/opt/blockscout/docker-compose/proxy/default.conf.template
+          test -f "$D/index.html"
+          sudo grep -Fq 'data-zevaryq-explorer-version' "$D/index.html"
+          cd /opt/blockscout/docker-compose
+          proxy=$(sudo docker compose ps -q proxy)
+          test -n "$proxy"
+          echo 'diagnostic_scope=read_only'
+          for pair in 'blocks:blocks.html' 'txs:transactions.html' 'api-docs:api-docs.html' 'developer:developer.html' 'developers:developer.html' 'developer/docs:developer-docs.html' 'developer/examples:developer-examples.html' 'developer/verify:developer-verify.html'; do
+            route=${pair%%:*}
+            file=${pair#*:}
+            tmp=$(mktemp)
+            code=$(curl -L -sS --connect-timeout 8 --max-time 20 -H 'Cache-Control: no-cache' -w '%{http_code}' \
+              "https://explorer.kriptoaman.com/$route?origin_diag=$GITHUB_RUN_ID" -o "$tmp") || code=network_error
+            public=$(sha256sum "$tmp" | cut -d ' ' -f1)
+            mounted=$(sudo sha256sum "$D/$file" | cut -d ' ' -f1)
+            container=$(sudo docker exec "$proxy" sha256sum "/etc/nginx/templates/kam-dashboard/$file" | cut -d ' ' -f1)
+            exact_route=$(sudo grep -Fc "location = /$route {" "$TEMPLATE" || true)
+            mapping=$(sudo grep -Fc "try_files /kam-dashboard/$file =404" "$TEMPLATE" || true)
+            echo "route=/$route file=$file http=$code mounted=$mounted container=$container public=$public exact_location=$exact_route mapping_instances=$mapping"
+            if [ "$public" = "$mounted" ]; then echo "origin_route_hash=matching /$route"; else echo "origin_route_hash=MISMATCH /$route"; fi
+            rm -f "$tmp"
+          done
+          echo 'origin_diagnostic=completed_without_mutation'
