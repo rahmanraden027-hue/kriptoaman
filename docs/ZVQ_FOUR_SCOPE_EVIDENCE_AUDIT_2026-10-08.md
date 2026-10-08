@@ -33,3 +33,17 @@ Artifact: `zvq-public-four-scope-evidence`. Re-check current data before using t
 
 ## Guardrails
 This report verifies neither the 25-country roll-out nor satellite connectivity. Keep genesis, validator keys, balances, liquidity locks, DNS, RPC write restrictions, and wallet signing unchanged. Do not equate UI/browser tests with consensus or market authorization.
+
+## Follow-up root-cause observation — 2026-10-08 08:18 UTC (15:18 WIB)
+
+Read-only [CI run #37748912923](https://github.com/rahmanraden027-hue/kriptoaman/actions/runs/37748912923) confirmed these additional measurements:
+
+- RPC advanced from block **597413** to **597417**, and Blockscout indexed height was **597417** (delta **0**), in the sampled interval.
+- **4 unique block proposers among 50 sampled blocks**. This remains *proposer evidence*, not per-host process/peer or authoritative QBFT validator-set verification.
+- Explicit finalized-tag and canonical finality matching were **not proven**; finality remains **PARTIAL**.
+- ERC-20 directory returned **0 addresses**. The old WKAM reference `0x0d8848CE88BB09a81a4248Efdd574d50B98b544A` returned **empty bytecode at latest state** from `eth_getCode`, and the direct Blockscout token endpoint returned **HTTP 404**. This does **not** prove no token was ever deployed on the chain, nor that WKAM is a native/current ZVQ asset.
+- The first-party liquidity endpoint returned **HTTP 503** with safe machine code **`REGISTRY_NOT_CONFIGURED`**. There is no evidence for a configured, real backed pool or an authorized liquidity unlock.
+
+### Decision after root-cause probe
+
+**Keep commercial trading, pool funding and liquidity unlock on HOLD.** Registry creation or deployment would be a separate reviewed operation, not a diagnostic repair. First establish the current canonical ZVQ native/wrapped asset specification and audited code/deployment, reconcile historical token receipts with chain state and Blockscout, verify bridge backing and counter-asset legitimacy, then approve explicit router/pair/treasury custody/LP lock details before any on-chain action.
