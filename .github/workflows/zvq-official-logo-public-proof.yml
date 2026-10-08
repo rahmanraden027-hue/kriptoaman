@@ -7,6 +7,8 @@ on:
       - tests/zevaryq-explorer-official-logo.test.mjs
       - .github/workflows/zvq-official-logo-public-proof.yml
       - scripts/repair-zevaryq-assets-nginx.sh
+      - scripts/verify-zvq-logo-placement.mjs
+      - tests/zvq-logo-placement-contract.test.mjs
   push:
     branches: [main]
     paths:
@@ -15,6 +17,8 @@ on:
       - tests/zevaryq-explorer-official-logo.test.mjs
       - .github/workflows/zvq-official-logo-public-proof.yml
       - scripts/repair-zevaryq-assets-nginx.sh
+      - scripts/verify-zvq-logo-placement.mjs
+      - tests/zvq-logo-placement-contract.test.mjs
   workflow_dispatch:
   schedule:
     - cron: '23 */6 * * *'
@@ -35,7 +39,7 @@ jobs:
           node-version: '24'
       - name: Verify approved assets, full ZVQ identity and fail-closed chain guards
         run: |
-          node --test tests/zevaryq-explorer-official-logo.test.mjs tests/zevaryq-explorer-reference-theme.test.mjs tests/zevaryq-explorer-production.test.mjs
+          node --test tests/zevaryq-explorer-official-logo.test.mjs tests/zevaryq-explorer-reference-theme.test.mjs tests/zevaryq-explorer-production.test.mjs tests/zvq-logo-placement-contract.test.mjs
           grep -Fq 'data-zvq-logo-integrity="sha256-a74790a590757e6f4425d384fdc0cdf40cb8030807eb7c0892ba8aaa4e6fc6cc"' explorer-dashboard/zevaryq-production.html
   public:
     if: github.event_name != 'pull_request'
@@ -43,6 +47,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - name: Prove approved Identity V2 master mark on trusted origin and public domain
         id: probe
         shell: bash
@@ -63,12 +71,12 @@ jobs:
             for page in default bypass; do
               grep -Fq 'data-zvq-official-logo="20261008-zevaryq-identity-v2"' "$scratch/$label-$page.html" || return 1
               grep -Fq 'data-zvq-logo-integrity="sha256-a74790a590757e6f4425d384fdc0cdf40cb8030807eb7c0892ba8aaa4e6fc6cc"' "$scratch/$label-$page.html" || return 1
-              [[ "$(grep -o 'class="official-emblem"' "$scratch/$label-$page.html" | wc -l)" -eq 3 ]] || return 1
+              node scripts/verify-zvq-logo-placement.mjs "$scratch/$label-$page.html" || return 1
               grep -Fq "EXPECTED_CHAIN='0x560c'" "$scratch/$label-$page.html" || return 1
             done
             curl -fLsS --connect-timeout 6 --max-time 20 "${options[@]}" "$url/zevaryq-assets/zevaryq-master-v2.svg?v=20261008-zevaryq-identity-v2" -o "$scratch/$label-master.svg" || return 1
             [[ "$(sha256sum "$scratch/$label-master.svg" | cut -d' ' -f1)" == "$logo_sha" ]] || return 1
-            echo "official_logo_$label=verified; placements=3; identity_v2_sha256=$logo_sha"
+            echo "official_logo_$label=verified; placements=2; identity_v2_sha256=$logo_sha"
           }
           verified=false
           for attempt in $(seq 1 18); do
