@@ -81,7 +81,7 @@ try{
   }
   pageNumber++;
   next=d.next_page_params&&typeof d.next_page_params==='object'?d.next_page_params:null;
-  if(!next){exhausted=true;break}
+  if(!next){exhausted=true;break;}
  }
  capHit=!!next;
  report.scopes.tokens={status:'PARTIAL',scannedPages:pageNumber,uniqueAddresses:found.size,paginationExhausted:exhausted,
@@ -94,7 +94,7 @@ try{
  let proven=false;
  try{proven=d.chainId===22028&&d.chainIdHex==='0x560c'&&d.poolEvidence==='FIRST_PARTY_ON_CHAIN'
   &&d.liquidityEvidence==='RESERVES_PRESENT'&&address.test(d.pair||'')
-  &&BigInt(d.reserve0)>0n&&BigInt(d.reserve1)>0n}catch{}
+  &&BigInt(d.reserve0)>0n&&BigInt(d.reserve1)>0n;}catch{}
  report.scopes.liquidity={status:proven?'PARTIAL':'UNAVAILABLE',
   onChainPositiveReserves:proven,poolEvidence:d.poolEvidence||'UNAVAILABLE',liquidityEvidence:d.liquidityEvidence||'UNAVAILABLE',
   pair:proven?d.pair:null,reserve0Raw:proven?String(d.reserve0):null,reserve1Raw:proven?String(d.reserve1):null,
