@@ -50,3 +50,74 @@ jobs:
           curl --noproxy '*' -LsS --connect-timeout 5 --max-time 15 'http://127.0.0.1/' -o "$scratch/local-index.html" || true
           sha256sum "$scratch/local-index.html" 2>/dev/null || true
           echo 'READ_ONLY_PROBE_COMPLETE'
+
+      - name: Compare canonical V2 logo and V3 browser assets across origin and public edge
+        shell: bash
+        run: |
+          # Read-only verification. All requests are GET; no Docker mutation.
+          set -uo pipefail
+          repo_assets="explorer-dashboard/assets"
+          host_assets="/opt/blockscout/docker-compose/proxy/kam-dashboard/zevaryq-assets"
+          scratch="$(mktemp -d)"
+          trap 'rm -rf "$scratch"' EXIT
+          for asset in zevaryq-master-v2.svg zvq-v2.css zvq-v2.js; do
+            if [[ ! -s "$repo_assets/$asset" ]]; then
+              echo "::warning::Missing approved repository asset: $asset"
+              continue
+            fi
+            expected="$(sha256sum "$repo_assets/$asset" | awk '{print $1}')"
+            echo "APPROVED_ASSET=$asset SHA256=$expected"
+            if [[ -r "$host_assets/$asset" ]]; then
+              host_hash="$(sha256sum "$host_assets/$asset" | awk '{print $1}')"
+              echo "HOST_ASSET=$asset SHA256=$host_hash"
+              if [[ "$host_hash" != "$expected" ]]; then
+                echo "::warning::Origin disk asset differs from approved repo: $asset"
+              fi
+            else
+              echo "::warning::Origin disk asset missing or unreadable: $asset"
+            fi
+            for route in local public; do
+              if [[ "$route" == local ]]; then
+                url="http://127.0.0.1/zevaryq-assets/$asset"
+              else
+                url="https://explorer.kriptoaman.com/zevaryq-assets/$asset"
+              fi
+              : > "$scratch/headers"
+              : > "$scratch/body"
+              code="$(curl --noproxy '*' -LsS --connect-timeout 5 --max-time 20 -D "$scratch/headers" -o "$scratch/body" -w '%{http_code}' "$url?v=20261008-evidence-v3" || true)"
+              mime="$(grep -i '^content-type:' "$scratch/headers" | tail -1 | tr -d '\r' || true)"
+              echo "ASSET_ROUTE=$route FILE=$asset HTTP=$code MIME=$mime"
+              if [[ "$code" != 200 ]]; then
+                echo "::warning::Unverified $route response for $asset (HTTP $code); edge failures do not prove an origin failure."
+                continue
+              fi
+              if head -c 256 "$scratch/body" | grep -Eiq '<!doctype html|<html'; then
+                echo "::warning::HTML fallback served instead of $asset at $route route."
+                continue
+              fi
+              observed="$(sha256sum "$scratch/body" | awk '{print $1}')"
+              echo "ASSET_SHA256_ROUTE=$route FILE=$asset OBSERVED=$observed EXPECTED=$expected"
+              if [[ "$observed" != "$expected" ]]; then
+                echo "::warning::Asset drift on $route for $asset; verify proxy/cache before claiming release."
+              else
+                echo "ASSET_MATCH_ROUTE=$route FILE=$asset"
+              fi
+            done
+          done
+          for route in local public; do
+            if [[ "$route" == local ]]; then
+              url="http://127.0.0.1/"
+            else
+              url="https://explorer.kriptoaman.com/"
+            fi
+            : > "$scratch/home"
+            code="$(curl --noproxy '*' -LsS --connect-timeout 5 --max-time 20 -o "$scratch/home" -w '%{http_code}' "$url?v=20261008-evidence-v3" || true)"
+            if [[ "$code" != 200 ]]; then
+              echo "::warning::Homepage $route HTTP $code; no release assertion."
+            elif grep -Fq 'data-zvq-network-telemetry="production-v3"' "$scratch/home"; then
+              echo "V3_HTML_MARKER_ROUTE=$route PRESENT"
+            else
+              echo "::warning::V3 HTML marker not present on $route homepage."
+            fi
+          done
+          echo 'CANONICAL_V2_V3_READ_ONLY_DIAGNOSIS_COMPLETE'
