@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # Exact-file guarded ZEVARYQ V2 subpage rollout; never touches homepage or node.
+# developer-starter.html is not installed or routed by the current protected Explorer proxy;
+# publishing its source would create false readiness. This release covers 16 existing routes.
 set -Eeuo pipefail
 umask 077
 D=/opt/blockscout/docker-compose/proxy/kam-dashboard
@@ -7,7 +9,7 @@ TEMPLATE=/opt/blockscout/docker-compose/proxy/default.conf.template
 BACKUPS=/var/backups/kriptoaman/zvq-master-v2-routes
 DOMAIN=https://explorer.kriptoaman.com
 STAMP=$(date -u +%Y%m%dT%H%M%SZ)
-FILES=(address-detail.html addresses.html api-docs.html block-detail.html blocks.html contracts.html developer-docs.html developer-examples.html developer-starter.html developer-verify.html developer.html stats.html status.html tokens.html transaction-detail.html transactions.html validators.html)
+FILES=(address-detail.html addresses.html api-docs.html block-detail.html blocks.html contracts.html developer-docs.html developer-examples.html developer-verify.html developer.html stats.html status.html tokens.html transaction-detail.html transactions.html validators.html)
 BACKUP='' MODIFIED=0 SUCCESS=0
 fail(){ echo "ZVQ Master V2 routes: $*" >&2; exit 1; }
 sha(){ sha256sum "$1" | cut -d ' ' -f 1; }
@@ -55,7 +57,7 @@ jq -e '.result == "0x560c"' <<<"$chain" >/dev/null || fail 'Unexpected chain ID'
 curl -fsS --connect-timeout 7 --max-time 18 "$DOMAIN/api/v2/blocks" | jq -e '(.items | type == "array") and (.items | length > 0)' >/dev/null || fail 'Missing indexed blocks'
 current=0
 for f in "${FILES[@]}"; do if cmp -s "$D/$f" "$SOURCE_DIR/$f"; then current=$((current+1)); fi; done
-if [[ "$current" == "${#FILES[@]}" ]]; then echo 'ZVQ_MASTER_V2_ALREADY_CURRENT=17'; SUCCESS=1; exit 0; fi
+if [[ "$current" == "${#FILES[@]}" ]]; then echo 'ZVQ_MASTER_V2_ALREADY_CURRENT=16'; SUCCESS=1; exit 0; fi
 mkdir -p -m 0700 "$BACKUPS"; BACKUP="$BACKUPS/$STAMP"
 [[ ! -e "$BACKUP" ]] || fail 'Backup collision'
 mkdir -m 0700 "$BACKUP"
@@ -73,4 +75,4 @@ for f in "${FILES[@]}"; do
 done
 SUCCESS=1
 echo "ZVQ_MASTER_V2_SUBPAGES_DEPLOY_STAMP=$STAMP"
-echo 'ZVQ_MASTER_V2_SUBPAGES_FILES=17 root=unchanged hash=verified'
+echo 'ZVQ_MASTER_V2_SUBPAGES_FILES=16 root=unchanged hash=verified'
