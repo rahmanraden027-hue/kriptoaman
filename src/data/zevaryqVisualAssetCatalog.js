@@ -15,7 +15,7 @@ export const ZEVARYQ_VISUAL_ASSETS = Object.freeze([
     name: 'ZEVARYQ',
     visualStatus: 'OFFICIAL',
     assetStatusSource: 'verified-asset-registry-v3',
-    icon: '/brand/zevaryq-wallet-premium-icon.webp',
+    icon: '/assets/zevaryq/tokens/zvq-coin-v2.svg',
   }),
   Object.freeze({
     symbol: 'zBTC',
