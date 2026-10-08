@@ -12,7 +12,9 @@ test('final acceptance clicks all public menu routes on mobile and desktop',()=>
  assert.match(script,/assert\.equal\(status,200/);
  assert.match(script,/No horizontal overflow/);
  assert.match(script,/No uncaught errors across Explorer navigation/);
- assert.match(script,/indexed or fail closed/i);
+ assert.match(script,/Selected contract evidence must reach a verified or unavailable terminal state/);
+ assert.match(script,/value.startsWith\('INDEXED'\)\|\|value.includes\('not verifiable'\)/);
+ assert.doesNotMatch(script,/\|Checking\/\.test\(selected\)/);
  assert.match(script,/PUBLIC|ZVQ_NAVIGATION_PASS/);
 });
 test('read-only CI cannot bypass Phase 13 or touch blockchain',()=>{
