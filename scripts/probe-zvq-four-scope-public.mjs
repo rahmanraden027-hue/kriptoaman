@@ -3,6 +3,7 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
 const explorer='https://explorer.kriptoaman.com';
 const rpcUrl='https://rpc.kriptoaman.com/';
+const LEGACY_WKAM='0x0d8848ce88bb09a81a4248efdd574d50b98b544a';
 const reportDir=resolve(process.env.ZVQ_EVIDENCE_DIR||'zvq-four-scope-evidence');
 await mkdir(reportDir,{recursive:true});
 const report={schemaVersion:1,checkedAt:new Date().toISOString(),classification:'READ_ONLY_NOT_RELEASE_APPROVAL',
@@ -16,7 +17,8 @@ const get=async url=>{
  return r.json();
 };
 const rpc=async (method,params=[])=>{
- if(!['eth_chainId','eth_blockNumber','eth_getBlockByNumber'].includes(method))throw Error('METHOD_BLOCKED');
+ if(!['eth_chainId','eth_blockNumber','eth_getBlockByNumber','eth_getCode'].includes(method))throw Error('METHOD_BLOCKED');
+ if(method==='eth_getCode'&&(String(params[0]||'').toLowerCase()!==LEGACY_WKAM||params[1]!=='latest'))throw Error('NON_ALLOWLISTED_CODE_PROBE');
  const r=await fetch(rpcUrl,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:++rid,method,params}),signal:AbortSignal.timeout(12000)});
  if(!r.ok)throw Error('RPC HTTP '+r.status);
  const data=await r.json();if(data.error||!('result' in data))throw Error('RPC unavailable '+method);
@@ -89,8 +91,45 @@ try{
   completeHistoricalERC20Index:'UNVERIFIED',historicalReceiptsReconciled:false,
   warning:'Bounded directory scan does not establish full historical index completeness.'};
 }catch(e){report.scopes.tokens={status:'UNAVAILABLE',reason:String(e.message||e).slice(0,150),completeHistoricalERC20Index:'UNVERIFIED'};}
+// Distinguish missing historical ERC-20 bytecode from an empty Blockscout registry.
+// Legacy WKAM is a historical address, not a current ZVQ endorsement.
 try{
- const d=await get('https://kriptoaman.com/api/zvq-liquidity-evidence');
+ const chainId=await rpc('eth_chainId');
+ if(String(chainId).toLowerCase()!=='0x560c')throw Error('CHAIN_ID_MISMATCH');
+ const code=await rpc('eth_getCode',[LEGACY_WKAM,'latest']);
+ const codePresent=typeof code==='string'&&/^0x[0-9a-fA-F]*$/.test(code)&&code!=='0x'&&code.length>2;
+ const response=await fetch(explorer+'/api/v2/tokens/'+LEGACY_WKAM,{
+  headers:{Accept:'application/json'},signal:AbortSignal.timeout(12000),cache:'no-store'
+ });
+ let indexed=false;
+ if(response.ok){
+  const data=await response.json();
+  const returned=String(data?.address?.hash||data?.address_hash||data?.address||'').toLowerCase();
+  indexed=returned===LEGACY_WKAM;
+ }
+ report.scopes.tokenReconciliation={
+  status:'PARTIAL',historicalReference:'LEGACY_WKAM_NOT_VERIFIED_ZVQ',
+  chainIdVerified:true,contractBytecodeAtLatest:codePresent?'PRESENT':'ABSENT',
+  blockscoutTokenHttpStatus:response.status,blockscoutMetadataMatchesAddress:indexed,
+  onChainTokenStandard:'UNVERIFIED',expectedTokenRegistryCompleteness:'UNVERIFIED',
+  classification:codePresent&&!indexed?'INDEX_GAP_OR_METADATA_NOT_INDEXED':(!codePresent?'NO_CODE_AT_HISTORICAL_ADDRESS':'INDEXED_REFERENCE_ONLY'),
+  warning:'Bytecode or metadata alone does not prove ERC-20 authenticity, bridge backing, liquidity, or ZVQ equivalence.'
+ };
+}catch(e){
+ report.scopes.tokenReconciliation={status:'UNAVAILABLE',reason:String(e.message||e).slice(0,130),
+  historicalReference:'LEGACY_WKAM_NOT_VERIFIED_ZVQ'};
+}
+try{
+ const endpoint=await fetch('https://kriptoaman.com/api/zvq-liquidity-evidence',{
+  headers:{Accept:'application/json'},signal:AbortSignal.timeout(12000),cache:'no-store'
+ });
+ const d=await endpoint.json().catch(()=>({}));
+ if(!endpoint.ok){
+  const reasonCode=typeof d?.code==='string'&&/^[A-Z_]{3,64}$/.test(d.code)?d.code:'UNCLASSIFIED_HTTP_ERROR';
+  report.scopes.liquidity={status:'UNAVAILABLE',httpStatus:endpoint.status,reasonCode,
+   executionEnabled:false,onChainPositiveReserves:false,commercialTradingApproved:false,
+   warning:'Endpoint did not prove a pool or positive reserves. Never infer the cause from HTTP 503 alone.'};
+ }else{
  let proven=false;
  try{proven=d.chainId===22028&&d.chainIdHex==='0x560c'&&d.poolEvidence==='FIRST_PARTY_ON_CHAIN'
   &&d.liquidityEvidence==='RESERVES_PRESENT'&&address.test(d.pair||'')
@@ -101,6 +140,7 @@ try{
   counterAssetBacking:'UNVERIFIED',treasuryOwnership:'UNVERIFIED',lockVesting:'UNVERIFIED',commercialTradingApproved:false,
   warning:'Pool reserves alone are not verified market liquidity, price, backing, or approval.'};
  if(d.executionEnabled===true)report.safetyAlert='UNEXPECTED_EXECUTION_ENABLED';
+ }
 }catch(e){report.scopes.liquidity={status:'UNAVAILABLE',reason:String(e.message||e).slice(0,150),
   onChainPositiveReserves:false,commercialTradingApproved:false};}
 const assessed=['validators','finality','tokens','liquidity'].map(name=>({scope:name,status:report.scopes[name]?.status||'UNAVAILABLE'}));
@@ -125,6 +165,10 @@ console.log('ZVQ_SCOPE_DETAILS '+JSON.stringify({
  historicalTokenCompleteness:'UNVERIFIED',
  poolState:report.scopes.liquidity?.poolEvidence||'UNAVAILABLE',
  reserveEvidence:report.scopes.liquidity?.liquidityEvidence||'UNAVAILABLE',
- liquidityReason:report.scopes.liquidity?.reason||null
+ liquidityReason:report.scopes.liquidity?.reasonCode||report.scopes.liquidity?.reason||null,
+ liquidityHttpStatus:report.scopes.liquidity?.httpStatus??null,
+ historicalWKAMCode:report.scopes.tokenReconciliation?.contractBytecodeAtLatest||'UNAVAILABLE',
+ historicalWKAMIndexed:report.scopes.tokenReconciliation?.blockscoutMetadataMatchesAddress??false,
+ historicalWKAMIndexStatus:report.scopes.tokenReconciliation?.blockscoutTokenHttpStatus??null
 }));
 if(report.safetyAlert)process.exitCode=1;

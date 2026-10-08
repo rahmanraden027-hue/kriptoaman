@@ -23,5 +23,12 @@ test('No trading, privileged RPC, secrets, private mutation or schedule escalati
  assert.match(workflow,/workflow_dispatch:/);
  assert.match(workflow,/upload-artifact@v4/);
  assert.doesNotMatch(probe+workflow,/eth_sendRawTransaction|eth_sendTransaction|personal_listAccounts|admin_peers|debug_traceTransaction|qbft_getValidatorsByBlockNumber|private.?key|seed.?phrase|sudo|docker exec|deploy-zvq|self-hosted|wallet\.request/i);
- assert.ok(probe.includes("!['eth_chainId','eth_blockNumber','eth_getBlockByNumber'].includes(method)"));
+ assert.ok(probe.includes("!['eth_chainId','eth_blockNumber','eth_getBlockByNumber','eth_getCode'].includes(method)"));
+ assert.ok(probe.includes("NON_ALLOWLISTED_CODE_PROBE"),'eth_getCode must be restricted to the one historical public reference');
+ assert.ok(probe.includes("LEGACY_WKAM_NOT_VERIFIED_ZVQ"),'historical WKAM can never be mislabelled native ZVQ');
+ assert.ok(probe.includes("blockscoutMetadataMatchesAddress:indexed"),'must compare indexed metadata to the same address');
+ assert.ok(probe.includes("INDEX_GAP_OR_METADATA_NOT_INDEXED"),'code without metadata requires a partial/unverified classification');
+ assert.ok(probe.includes("REGISTRY_NOT_CONFIGURED")===false,'must read actual reason code, not invent a registry error');
+ assert.ok(probe.includes("endpoint.status"),'liquidity error must record HTTP status');
+ assert.ok(probe.includes("commercialTradingApproved:false"),'liquidity probe must not authorize trades');
 });
