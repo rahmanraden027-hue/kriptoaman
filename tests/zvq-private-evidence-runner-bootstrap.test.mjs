@@ -22,6 +22,8 @@ test('private runner bootstrap agrees with protected workflow and rejects mutati
  }
  assert.ok(script.indexOf('for tool in curl jq')<mutation,'missing tools must fail without installation');
  assert.equal(script.includes('http://127.0.0.1:8545'),false,'do not fallback to management RPC port');
+ assert.ok(script.includes("--noproxy '*'"),'local-only evidence must not traverse ambient HTTP proxy');
+ assert.ok(script.includes('--connect-timeout 3 --max-time 10'),'RPC probes must have bounded duration');
  assert.ok(script.includes("'http://127.0.0.1:8648'|'http://localhost:8648'|'http://[::1]:8648'"));
 });
 test('malicious and nonconforming RPC URLs reject before any root/package step',()=>{
