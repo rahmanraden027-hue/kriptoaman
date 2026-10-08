@@ -78,7 +78,7 @@ test('v2 deployment protects original assets and serves only exact CSS and JS fi
   assert.ok(deploy.includes('try_files /kam-dashboard/zevaryq-assets/'+a+' =404;'));
   assert.ok(deploy.includes('for name in zvq-v2.css zvq-v2.js; do'));
  }
- assert.match(deploy,/for asset in zevaryq-emblem\.webp zevaryq-favicon\.png zvq-v2\.css zvq-v2\.js; do/);
+ assert.match(deploy,/for asset in zevaryq-master-v2\.svg zevaryq-emblem\.webp zevaryq-favicon\.png zvq-v2\.css zvq-v2\.js; do/);
  assert.match(deploy,/public_dashboard_release=2\.0\.0-verified-html/);
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
  assert.match(css,/@media\(max-width:560px\)/);
