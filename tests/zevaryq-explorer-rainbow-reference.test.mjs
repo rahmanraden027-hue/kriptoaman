@@ -38,6 +38,34 @@ test('the smoothed, actual-sample curve handles flat and changing transaction co
  assert.doesNotMatch(wave,/NaN|Infinity/);
 });
 
+test('zero indexed transactions render a neutral empty state, not eight misleading ribbons',()=>{
+ const from=script.indexOf('function renderRainbowActivity('),to=script.indexOf('function renderBlocks(',from);
+ assert.ok(from>0&&to>from);
+ const render=script.slice(from,to);
+ const simulate=(values,api)=>{
+  const wave={dataset:{},innerHTML:'PREVIEW',replaceChildren(){this.innerHTML='';},setAttribute(){}};
+  const status={textContent:'PREVIEW'},note={textContent:'PREVIEW'};
+  const nodes={rainbowWaves:wave,rainbowDataStatus:status,activityNote:note};
+  runInNewContext(render+';renderRainbowActivity();',{
+   state:{api,blocks:values.map(tx_count=>({tx_count}))},$:id=>nodes[id],
+   RAINBOW_COLORS:['red','orange','yellow','green','blue','indigo','violet','cyan'],
+   smoothRainbowPath:()=> 'M0 80 L800 80'
+  });
+  return {wave,status,note};
+ };
+ const zero=simulate(Array(12).fill(0),true);
+ assert.equal(zero.wave.innerHTML,'');
+ assert.equal(zero.wave.dataset.provenance,'zero');
+ assert.equal(zero.status.textContent,'INDEXED · ZERO');
+ assert.match(zero.note.textContent,/0 transactions across 12 sampled blocks/);
+ const stale=simulate(Array(12).fill(0),false);
+ assert.equal(stale.wave.dataset.provenance,'stale-zero');
+ assert.equal(stale.status.textContent,'STALE · ZERO');
+ const nonzero=simulate([0,1,2,0],true);
+ assert.equal((nonzero.wave.innerHTML.match(/<path/g)||[]).length,8);
+ assert.equal(nonzero.status.textContent,'INDEXED');
+});
+
 test('unavailable indexer preserves decorative layout but clearly labels preview or stale sample',()=>{
  assert.match(script,/samples\.length<2\|\|samples\.some/);
  assert.match(html,/data-provenance="illustrative"/);
