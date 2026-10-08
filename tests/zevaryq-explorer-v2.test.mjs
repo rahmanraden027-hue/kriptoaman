@@ -84,3 +84,16 @@ test('v2 deployment protects original assets and serves only exact CSS and JS fi
  assert.match(css,/@media\(max-width:560px\)/);
  assert.match(css,/\.chainwire\.verified/);
 });
+
+
+test('Phase 16 mobile polish keeps compact stats readable without changing source truth',()=>{
+ assert.match(css,/PHASE16-MOBILE-POLISH-20261008/);
+ assert.match(css,/body \.network-panel \.grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(css,/body \.network-panel \.card:before\{display:none\}/);
+ assert.match(css,/body \.network-panel \.card \.value\{font-size:clamp\(18px,5\.2vw,25px\)/);
+ assert.match(css,/body \.search input\{font-size:16px/);
+ assert.match(css,/body \.nav\.open\{top:calc\(100% \+ 6px\)/);
+ assert.match(html,/zvq-v2\.css\?v=20260925-orbit1-mobile-polish-20261008/);
+ assert.equal((html.match(/class="official-emblem"/g)||[]).length,3);
+ assert.match(html,/const EXPECTED_CHAIN='0x560c'/);
+});
