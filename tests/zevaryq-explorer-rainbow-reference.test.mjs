@@ -47,7 +47,7 @@ test('zero indexed transactions render a neutral empty state, not eight misleadi
   const status={textContent:'PREVIEW'},note={textContent:'PREVIEW'};
   const nodes={rainbowWaves:wave,rainbowDataStatus:status,activityNote:note};
   runInNewContext(render+';renderRainbowActivity();',{
-   state:{api,blocks:values.map(tx_count=>({tx_count}))},$:id=>nodes[id],
+   state:{api,blocks:values.map(tx_count=>({tx_count}))},$:id=>nodes[id.replace(/^#/,'')],
    RAINBOW_COLORS:['red','orange','yellow','green','blue','indigo','violet','cyan'],
    smoothRainbowPath:()=> 'M0 80 L800 80'
   });
