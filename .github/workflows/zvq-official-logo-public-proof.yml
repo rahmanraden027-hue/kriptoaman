@@ -36,22 +36,21 @@ jobs:
       - name: Verify approved assets, full ZVQ identity and fail-closed chain guards
         run: |
           node --test tests/zevaryq-explorer-official-logo.test.mjs tests/zevaryq-explorer-reference-theme.test.mjs tests/zevaryq-explorer-production.test.mjs
-          grep -Fq 'data-zvq-logo-integrity="sha256-3fcabc6475d975b65b49c5d6a88c5d1c6e64630b11d5674bfc773a92dd2ec95f"' explorer-dashboard/zevaryq-production.html
+          grep -Fq 'data-zvq-logo-integrity="sha256-a74790a590757e6f4425d384fdc0cdf40cb8030807eb7c0892ba8aaa4e6fc6cc"' explorer-dashboard/zevaryq-production.html
   public:
     if: github.event_name != 'pull_request'
     needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
-      - name: Prove approved logo and favicon on trusted origin and public domain
+      - name: Prove approved Identity V2 master mark on trusted origin and public domain
         id: probe
         shell: bash
         run: |
           set -euo pipefail
           host='explorer.kriptoaman.com'
           origin='146.190.93.254'
-          logo_sha='3fcabc6475d975b65b49c5d6a88c5d1c6e64630b11d5674bfc773a92dd2ec95f'
-          icon_sha='7cc9708233c2624b7b4f95b5ae0902c5cf1233e1648b271a5a41ab02dc95fffe'
+          logo_sha='a74790a590757e6f4425d384fdc0cdf40cb8030807eb7c0892ba8aaa4e6fc6cc'
           scratch="$(mktemp -d)"
           trap 'rm -rf "$scratch"' EXIT
           verify() {
@@ -62,16 +61,14 @@ jobs:
             curl -fLsS --connect-timeout 6 --max-time 18 -H 'Cache-Control: no-cache' "${options[@]}" "$url/" -o "$scratch/$label-default.html" || return 1
             curl -fLsS --connect-timeout 6 --max-time 18 -H 'Cache-Control: no-cache' "${options[@]}" "$url/?official_logo_proof=${GITHUB_RUN_ID}-$attempt-$label" -o "$scratch/$label-bypass.html" || return 1
             for page in default bypass; do
-              grep -Fq 'data-zvq-official-logo="20260924-goldblue-zvq"' "$scratch/$label-$page.html" || return 1
-              grep -Fq 'data-zvq-logo-integrity="sha256-3fcabc6475d975b65b49c5d6a88c5d1c6e64630b11d5674bfc773a92dd2ec95f"' "$scratch/$label-$page.html" || return 1
+              grep -Fq 'data-zvq-official-logo="20261008-zevaryq-identity-v2"' "$scratch/$label-$page.html" || return 1
+              grep -Fq 'data-zvq-logo-integrity="sha256-a74790a590757e6f4425d384fdc0cdf40cb8030807eb7c0892ba8aaa4e6fc6cc"' "$scratch/$label-$page.html" || return 1
               [[ "$(grep -o 'class="official-emblem"' "$scratch/$label-$page.html" | wc -l)" -eq 3 ]] || return 1
               grep -Fq "EXPECTED_CHAIN='0x560c'" "$scratch/$label-$page.html" || return 1
             done
-            curl -fLsS --connect-timeout 6 --max-time 20 "${options[@]}" "$url/zevaryq-assets/zevaryq-emblem.webp?v=20260924-goldblue-zvq" -o "$scratch/$label-emblem.webp" || return 1
-            curl -fLsS --connect-timeout 6 --max-time 20 "${options[@]}" "$url/zevaryq-assets/zevaryq-favicon.png?v=20260924-goldblue-zvq" -o "$scratch/$label-favicon.png" || return 1
-            [[ "$(sha256sum "$scratch/$label-emblem.webp" | cut -d' ' -f1)" == "$logo_sha" ]] || return 1
-            [[ "$(sha256sum "$scratch/$label-favicon.png" | cut -d' ' -f1)" == "$icon_sha" ]] || return 1
-            echo "official_logo_$label=verified; placements=3; emblem_sha256=$logo_sha; favicon_sha256=$icon_sha"
+            curl -fLsS --connect-timeout 6 --max-time 20 "${options[@]}" "$url/zevaryq-assets/zevaryq-master-v2.svg?v=20261008-zevaryq-identity-v2" -o "$scratch/$label-master.svg" || return 1
+            [[ "$(sha256sum "$scratch/$label-master.svg" | cut -d' ' -f1)" == "$logo_sha" ]] || return 1
+            echo "official_logo_$label=verified; placements=3; identity_v2_sha256=$logo_sha"
           }
           verified=false
           for attempt in $(seq 1 18); do
@@ -84,7 +81,7 @@ jobs:
             if [[ "$attempt" -lt 18 ]]; then sleep 12; fi
           done
           if [[ "$verified" != true ]]; then
-            echo "::error::The approved logo or favicon is not yet proven on both trusted origin and public domain. No DNS, Worker, NGINX, RPC, validator or chain changes were made."
+            echo "::error::The approved Identity V2 master mark is not yet proven on both trusted origin and public domain. No DNS, Worker, NGINX, RPC, validator or chain changes were made."
             exit 1
           fi
       - name: Diagnose exact public and origin logo after proof failure
@@ -102,11 +99,10 @@ jobs:
             integrity="$(grep -o 'data-zvq-logo-integrity="[^"]*"' "$dir/index.html" 2>/dev/null | head -1 || true)"
             placements="$(grep -o 'class="official-emblem"' "$dir/index.html" 2>/dev/null | wc -l || true)"
             echo "logo_diagnosis route=$mode html_http=$code placements=$placements marker=$marker integrity=$integrity"
-            for asset in zevaryq-emblem.webp zevaryq-favicon.png; do
-              code="$(curl -LsS --connect-timeout 6 --max-time 20 -H 'Cache-Control: no-cache' "${opts[@]}" -o "$dir/$asset" -w '%{http_code}' "https://$host/zevaryq-assets/$asset?v=20260924-goldblue-zvq" || true)"
-              actual="$(sha256sum "$dir/$asset" 2>/dev/null | cut -d' ' -f1 || true)"
-              echo "logo_diagnosis route=$mode asset=$asset http=$code sha256=$actual"
-            done
+            asset=zevaryq-master-v2.svg
+            code="$(curl -LsS --connect-timeout 6 --max-time 20 -H 'Cache-Control: no-cache' "${opts[@]}" -o "$dir/$asset" -w '%{http_code}' "https://$host/zevaryq-assets/$asset?v=20261008-zevaryq-identity-v2" || true)"
+            actual="$(sha256sum "$dir/$asset" 2>/dev/null | cut -d' ' -f1 || true)"
+            echo "logo_diagnosis route=$mode asset=$asset http=$code sha256=$actual"
             rm -rf "$dir"
           done
       - name: Publish independent logo proof status
@@ -117,6 +113,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "$PROBE_OUTCOME" == success ]]; then state=success; message='Exact approved ZVQ logo verified on origin and public site'; else state=failure; message='ZVQ logo public/origin proof incomplete'; fi
+          if [[ "$PROBE_OUTCOME" == success ]]; then state=success; message='Exact ZEVARYQ Identity V2 master mark verified on origin and public site'; else state=failure; message='ZEVARYQ Identity V2 public/origin proof incomplete'; fi
           payload="$(jq -nc --arg state "$state" --arg description "$message" --arg target_url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" '{state:$state, context:"kriptoaman/zvq-official-logo-public", description:$description, target_url:$target_url}')"
           curl -fsS --retry 2 -X POST -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' -H 'Content-Type: application/json' --data "$payload" "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" > /dev/null
