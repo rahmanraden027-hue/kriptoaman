@@ -18,7 +18,7 @@ on:
   workflow_dispatch:
     inputs:
       confirmation:
-        description: "Type DEPLOY-ZVQ-MASTER-V2-ROUTES to update exactly 17 static subpages"
+        description: "Type DEPLOY-ZVQ-MASTER-V2-ROUTES to update exactly 16 existing static subpages"
         required: true
 permissions:
   contents: read
@@ -65,7 +65,7 @@ jobs:
       stamp: ${{ steps.apply.outputs.stamp }}
     steps:
       - uses: actions/checkout@v4
-      - name: Apply exact 17 HTML files with retained rollback
+      - name: Apply exact 16 HTML files with retained rollback
         id: apply
         shell: bash
         run: |
@@ -87,7 +87,7 @@ jobs:
           base=https://explorer.kriptoaman.com
           curl -fsS --connect-timeout 8 --max-time 22 "$base/" -o /tmp/root.html
           grep -Fq 'data-zevaryq-explorer-version' /tmp/root.html
-          for route in blocks txs validators stats status tokens contracts addresses api-docs developer developer/docs developer/examples developer/verify developer/starter; do
+          for route in blocks txs validators stats status tokens contracts addresses api-docs developer developer/docs developer/examples developer/verify; do
             curl -fsS --connect-timeout 8 --max-time 22 -H 'Cache-Control: no-cache' \
               "$base/$route?identity_release=$GITHUB_RUN_ID" -o /tmp/route.html
             grep -Fq '/zevaryq-assets/zevaryq-master-v2.svg?v=20261008-zevaryq-identity-v2' /tmp/route.html
@@ -105,7 +105,7 @@ jobs:
               --data "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"$method\",\"params\":[]}" "$base/rpc")
             test "$status" = 403
           done
-          echo 'zvq_master_v2_public_routes_verified=14'
+          echo 'zvq_master_v2_public_routes_verified=13'
   rollback_on_failure:
     if: always() && github.event_name == 'workflow_dispatch' && needs.deploy.result == 'success' && needs.public_after.result != 'success' && needs.deploy.outputs.stamp != ''
     needs: [deploy, public_after]
