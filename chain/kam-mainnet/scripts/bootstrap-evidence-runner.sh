@@ -7,7 +7,7 @@ set -euo pipefail
 
 REPO_URL="https://github.com/rahmanraden027-hue/kriptoaman"
 RUNNER_LABEL="kam-mainnet-evidence"
-RPC_URL="${KAM_PRIVATE_RPC_URL:-http://127.0.0.1:8545}"
+RPC_URL="${KAM_PRIVATE_RPC_URL:-http://127.0.0.1:8648}"
 EVIDENCE_DIR="/var/lib/kam-evidence"
 RUNNER_HOME="/opt/kam-actions-runner"
 RUNNER_USER="kamrunner"
@@ -22,33 +22,29 @@ require_root() {
 rpc() {
   local method="$1"
   local params="${2:-[] }"
-  curl --fail --silent --show-error \
+  curl --noproxy '*' --connect-timeout 3 --max-time 10 --fail --silent --show-error \
     -H 'content-type: application/json' \
     --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"${method}\",\"params\":${params}}" \
     "${RPC_URL}"
 }
 
-require_root
-
-apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-  ca-certificates curl jq git openssl tar gzip
-
-if ! id -u "${RUNNER_USER}" >/dev/null 2>&1; then
-  useradd --system --create-home --home-dir "${RUNNER_HOME}" --shell /bin/bash "${RUNNER_USER}"
-fi
-
-install -d -m 0750 -o root -g "${RUNNER_USER}" "${EVIDENCE_DIR}"
-install -d -m 0750 -o "${RUNNER_USER}" -g "${RUNNER_USER}" "${RUNNER_HOME}"
-
-# RPC must be local-only. Refuse obvious public bindings/endpoints.
+# Validate the intended constrained evidence endpoint BEFORE any host mutations.
+# Prevent URL user-info, DNS aliases, wrong ports or public RPC endpoints.
 case "${RPC_URL}" in
-  http://127.0.0.1:*|http://localhost:*|http://[::1]:*) ;;
+  'http://127.0.0.1:8648'|'http://localhost:8648'|'http://[::1]:8648') ;;
   *)
-    echo "Refusing non-loopback KAM_PRIVATE_RPC_URL: ${RPC_URL}" >&2
+    echo 'Refusing RPC endpoint: private evidence proxy must use loopback port 8648.' >&2
     exit 1
     ;;
 esac
+
+# Fail without touching the host if preflight tools are missing.
+for tool in curl jq; do
+  command -v "${tool}" >/dev/null 2>&1 || {
+    echo "Missing read-only preflight dependency: ${tool}. Obtain operator approval before installation." >&2
+    exit 1
+  }
+done
 
 CHAIN_ID="$(rpc eth_chainId | jq -r '.result // empty')"
 BLOCK_1="$(rpc eth_blockNumber | jq -r '.result // empty')"
@@ -66,6 +62,20 @@ P2=$((16#${BLOCK_2#0x}))
 PC=$((16#${PEERS#0x}))
 [[ "${P2}" -gt "${P1}" ]] || { echo "Block height did not advance" >&2; exit 1; }
 [[ "${PC}" -ge 3 ]] || { echo "Expected at least 3 private peers" >&2; exit 1; }
+
+# Only an eligible and explicitly approved host reaches this mutating section.
+require_root
+
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+  ca-certificates curl jq git openssl tar gzip
+
+if ! id -u "${RUNNER_USER}" >/dev/null 2>&1; then
+  useradd --system --create-home --home-dir "${RUNNER_HOME}" --shell /bin/bash "${RUNNER_USER}"
+fi
+
+install -d -m 0750 -o root -g "${RUNNER_USER}" "${EVIDENCE_DIR}"
+install -d -m 0750 -o "${RUNNER_USER}" -g "${RUNNER_USER}" "${RUNNER_HOME}"
 
 cat >"${EVIDENCE_DIR}/runner-bootstrap-check.json" <<JSON
 {
