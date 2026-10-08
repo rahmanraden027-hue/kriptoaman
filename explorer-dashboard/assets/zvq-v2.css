@@ -148,3 +148,7 @@ html[data-zvq-dashboard-version="2.0.0"]{--bg:#020915;--blue:#127BFA;--cyan:#42D
 
 /* Do not animate decorative orbits as live telemetry when verified observations are missing. */
 .hero .space[data-provenance="stale"] .reference-orbit-art,.hero .space[data-provenance="unavailable"] .reference-orbit-art{animation-play-state:paused;opacity:.72}
+
+/* Zero indexed transactions are an empty verified observation, never rainbow traffic. */
+.activityViz:has(#rainbowWaves[data-provenance="zero"]),.activityViz:has(#rainbowWaves[data-provenance="stale-zero"]){height:150px;min-height:150px;background:linear-gradient(180deg,#05142d,#020a1c);border-color:rgba(96,146,202,.5)}
+.activityViz:has(#rainbowWaves[data-provenance="zero"]) .activityNote,.activityViz:has(#rainbowWaves[data-provenance="stale-zero"]) .activityNote{left:50%;bottom:auto;top:50%;transform:translate(-50%,-50%);text-align:center;width:min(92%,420px);font-size:13px;font-weight:650;line-height:1.5;color:#dfebff;background:rgba(3,17,39,.94);padding:12px}
