@@ -41,7 +41,7 @@ try{
     const source=document.querySelector('#liveText')?.textContent||'';
     return (trust==='INDEXED'||trust==='LIVE')&&rows>=1&&/indexed|live/i.test(source);
    },null,{timeout:40000,polling:500});
-   await page.waitForFunction(()=>[...document.querySelectorAll('.official-emblem')].length===3&&[...document.querySelectorAll('.official-emblem')].every(img=>img.complete&&img.naturalWidth>0&&img.naturalHeight>0),null,{timeout:15000,polling:250});
+   await page.waitForFunction(()=>{const icons=[...document.querySelectorAll('.official-emblem')];const expected=document.querySelector('[data-zvq-network-telemetry="production-v3"]')?2:3;return icons.length===expected&&icons.every(img=>img.complete&&img.naturalWidth>0&&img.naturalHeight>0);},null,{timeout:15000,polling:250});
    snapshot=await page.evaluate(()=>{
     const root=document.documentElement;
     const imgs=[...document.querySelectorAll('.official-emblem')];
@@ -55,6 +55,8 @@ try{
      visual:root.getAttribute('data-zvq-reference-visual'),
      ribbonMode:document.querySelector('#rainbowDataStatus')?.textContent?.trim(),
      ribbonProvenance:wave?.dataset.provenance,
+     activityNote:document.querySelector('#activityNote')?.textContent?.trim(),
+     productionV3:!!document.querySelector('[data-zvq-network-telemetry="production-v3"]'),
      ribbons:wave?.querySelectorAll('.rainbowWave').length,
      logos:imgs.map(i=>({ready:i.complete,width:i.naturalWidth,height:i.naturalHeight})),
      heights,
@@ -65,14 +67,21 @@ try{
    assert.equal(snapshot.chainLabel,true,'ZVQ Chain ID must remain visible');
    assert.equal(snapshot.viewport,config.width,'viewport');
    assert.ok(snapshot.scrollWidth<=config.width+1,'horizontal overflow at '+config.width+'px');
-   assert.equal(snapshot.logos.length,3,'all three approved ZVQ logo placements');
+   assert.equal(snapshot.logos.length,snapshot.productionV3?2:3,'official logo count must match the installed Explorer visual release');
    assert.ok(snapshot.logos.every(i=>i.ready&&i.width>0&&i.height>0),'logo assets must decode');
    assert.equal(snapshot.hero,true,'approved globe/emblem element');
    assert.ok(snapshot.heights.length>=1,'indexed block anchors must be displayed');
    assert.match(snapshot.heights[0],/^#\d+$/,'real indexed height display');
-   assert.equal(snapshot.ribbons,8,'exactly eight approved rainbow ribbons');
-   assert.ok(['indexed','illustrative'].includes(snapshot.ribbonProvenance),
+   assert.ok(['indexed','stale','illustrative','zero','stale-zero'].includes(snapshot.ribbonProvenance),
     'rainbow provenance must never be fabricated');
+   if(snapshot.ribbonProvenance==='zero'||snapshot.ribbonProvenance==='stale-zero'){
+    assert.equal(snapshot.ribbons,0,'zero transactions must have zero animated transaction ribbons');
+    assert.match(snapshot.ribbonMode,/ZERO/,'zero-activity provenance must be visible');
+    assert.match(snapshot.activityNote||'',/^0 transactions across \d+ sampled blocks$/,'zero-sample evidence must be explicit');
+   }else{
+    assert.equal(snapshot.ribbons,8,'nonzero indexed sample or clearly marked preview retains eight visual ribbons');
+    if(snapshot.ribbonProvenance==='illustrative')assert.equal(snapshot.ribbonMode,'PREVIEW','illustrative ribbon must never claim live transactions');
+   }
    assert.deepEqual(pageErrors,[],'no uncaught JavaScript errors');
    await page.screenshot({path:join(evidenceDir,config.name+'.png'),fullPage:true,animations:'disabled'});
    const result={viewport:config.name,result:'PASS',snapshot,backendResponses,requestFailures,pageErrors};
