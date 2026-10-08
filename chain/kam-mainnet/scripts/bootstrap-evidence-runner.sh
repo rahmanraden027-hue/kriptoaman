@@ -38,18 +38,13 @@ case "${RPC_URL}" in
     ;;
 esac
 
-require_root
-
-apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-  ca-certificates curl jq git openssl tar gzip
-
-if ! id -u "${RUNNER_USER}" >/dev/null 2>&1; then
-  useradd --system --create-home --home-dir "${RUNNER_HOME}" --shell /bin/bash "${RUNNER_USER}"
-fi
-
-install -d -m 0750 -o root -g "${RUNNER_USER}" "${EVIDENCE_DIR}"
-install -d -m 0750 -o "${RUNNER_USER}" -g "${RUNNER_USER}" "${RUNNER_HOME}"
+# Fail without touching the host if preflight tools are missing.
+for tool in curl jq; do
+  command -v "${tool}" >/dev/null 2>&1 || {
+    echo "Missing read-only preflight dependency: ${tool}. Obtain operator approval before installation." >&2
+    exit 1
+  }
+done
 
 CHAIN_ID="$(rpc eth_chainId | jq -r '.result // empty')"
 BLOCK_1="$(rpc eth_blockNumber | jq -r '.result // empty')"
@@ -67,6 +62,20 @@ P2=$((16#${BLOCK_2#0x}))
 PC=$((16#${PEERS#0x}))
 [[ "${P2}" -gt "${P1}" ]] || { echo "Block height did not advance" >&2; exit 1; }
 [[ "${PC}" -ge 3 ]] || { echo "Expected at least 3 private peers" >&2; exit 1; }
+
+# Only an eligible and explicitly approved host reaches this mutating section.
+require_root
+
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+  ca-certificates curl jq git openssl tar gzip
+
+if ! id -u "${RUNNER_USER}" >/dev/null 2>&1; then
+  useradd --system --create-home --home-dir "${RUNNER_HOME}" --shell /bin/bash "${RUNNER_USER}"
+fi
+
+install -d -m 0750 -o root -g "${RUNNER_USER}" "${EVIDENCE_DIR}"
+install -d -m 0750 -o "${RUNNER_USER}" -g "${RUNNER_USER}" "${RUNNER_HOME}"
 
 cat >"${EVIDENCE_DIR}/runner-bootstrap-check.json" <<JSON
 {
