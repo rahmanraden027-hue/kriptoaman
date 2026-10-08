@@ -1,6 +1,12 @@
 name: ZEVARYQ Explorer Live Browser Proof
 on:
   workflow_dispatch:
+    inputs:
+      require_production_v3:
+        description: 'Require Explorer Visual Master V3 at the public site (strict release acceptance)'
+        type: boolean
+        required: false
+        default: false
   pull_request:
     paths:
       - scripts/verify-zvq-public-browser.mjs
@@ -17,6 +23,8 @@ concurrency:
 jobs:
   browser:
     runs-on: ubuntu-latest
+    env:
+      ZVQ_REQUIRE_PRODUCTION_V3: ${{ inputs.require_production_v3 && '1' || '0' }}
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
