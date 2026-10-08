@@ -1,0 +1,35 @@
+name: ZVQ Public Developer Route Diagnostics
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/zvq-public-developer-route-diagnostics.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  read-only-route-diagnosis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Inspect public route mapping, branding and cache without writes
+        shell: bash
+        run: |
+          set -euo pipefail
+          base=https://explorer.kriptoaman.com
+          for route in developer developers developer/docs developer/examples developer/verify api-docs; do
+            for mode in default bypass; do
+              url="$base/$route"
+              if [ "$mode" = bypass ]; then url="$url?diagnostic=$GITHUB_RUN_ID"; fi
+              body=$(mktemp)
+              headers=$(mktemp)
+              code=$(curl -L -sS --connect-timeout 7 --max-time 22 \
+                -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
+                -w '%{http_code}' -D "$headers" "$url" -o "$body") || code=connection_error
+              echo "route=/$route mode=$mode http=$code bytes=$(wc -c < "$body") sha256=$(sha256sum "$body" | cut -d ' ' -f1)"
+              for needle in 'ZEVARYQ Master V2 network emblem' 'zevaryq-master-v2.svg?v=20261008-zevaryq-identity-v2' 'data-kam-developer-version' 'data-kam-developer-docs-version' 'data-zevaryq-explorer-version'; do
+                if grep -Fq "$needle" "$body"; then echo "  present: $needle"; else echo "  absent: $needle"; fi
+              done
+              grep -Ei '^(content-type|location|x-kam-explorer-developer-version|x-kam-developer-docs-version|cf-cache-status|cache-control|server):' "$headers" | tail -12 || true
+              rm -f "$body" "$headers"
+            done
+          done
