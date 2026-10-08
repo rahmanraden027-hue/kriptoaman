@@ -10,6 +10,7 @@ esac
 ASSET_DIR="$(dirname "$SOURCE")/assets"
 EMBLEM="$ASSET_DIR/zevaryq-emblem.webp"
 FAVICON="$ASSET_DIR/zevaryq-favicon.png"
+MASTER="$ASSET_DIR/zevaryq-master-v2.svg"
 V2_CSS="$ASSET_DIR/zvq-v2.css"
 V2_JS="$ASSET_DIR/zvq-v2.js"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
@@ -17,7 +18,7 @@ BACKUP="index.html.zevaryq.$STAMP.bak"
 TEMPLATE_BACKUP="default.conf.template.zvq-logo.$STAMP.bak"
 fail(){ echo "Zevaryq Explorer deploy: $*" >&2; exit 1; }
 [[ -f "$SOURCE" ]] || fail "source missing"
-[[ -r "$EMBLEM" && -r "$FAVICON" ]] || fail "brand assets missing"
+[[ -r "$EMBLEM" && -r "$FAVICON" && -r "$MASTER" ]] || fail "brand assets missing"
 [[ -s "$V2_CSS" && -s "$V2_JS" ]] || fail "v2 presentation assets missing"
 grep -q 'data-zevaryq-explorer-version="1.1.2"' "$SOURCE" || fail "version marker missing"
 grep -q 'ZEVARYQ EXPLORER' "$SOURCE" || fail "brand marker missing"
@@ -37,8 +38,8 @@ proxy_fs(){ docker run --rm --network none -i -v "$PROXY_DIR:/target" "$PROXY_IM
 proxy_fs "test -r /target/default.conf.template && test -w /target/kam-dashboard"
 proxy_fs "cp -a /target/default.conf.template /target/$TEMPLATE_BACKUP"
 proxy_fs "cp -a /target/kam-dashboard/index.html /target/kam-dashboard/$BACKUP"
-proxy_fs "mkdir -p /target/kam-dashboard/zevaryq-assets; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp.$STAMP.bak; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png.$STAMP.bak"
-rollback(){ code=$?; proxy_fs "cp -a /target/$TEMPLATE_BACKUP /target/default.conf.template; cp -a /target/kam-dashboard/$BACKUP /target/kam-dashboard/index.html; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp.$STAMP.bak || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp.$STAMP.bak /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png.$STAMP.bak || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png.$STAMP.bak /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png" || true; proxy_fs "for name in zvq-v2.css zvq-v2.js; do if test -f /target/kam-dashboard/zevaryq-assets/\$name.$STAMP.bak; then cp -a /target/kam-dashboard/zevaryq-assets/\$name.$STAMP.bak /target/kam-dashboard/zevaryq-assets/\$name; else rm -f /target/kam-dashboard/zevaryq-assets/\$name; fi; done" || true; docker compose up -d --force-recreate --no-deps proxy >/dev/null 2>&1 || true; exit "$code"; }
+proxy_fs "mkdir -p /target/kam-dashboard/zevaryq-assets; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp.$STAMP.bak; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png.$STAMP.bak; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-master-v2.svg || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-master-v2.svg /target/kam-dashboard/zevaryq-assets/zevaryq-master-v2.svg.$STAMP.bak"
+rollback(){ code=$?; proxy_fs "if test -f /target/kam-dashboard/zevaryq-assets/zevaryq-master-v2.svg.$STAMP.bak; then cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-master-v2.svg.$STAMP.bak /target/kam-dashboard/zevaryq-assets/zevaryq-master-v2.svg; else rm -f /target/kam-dashboard/zevaryq-assets/zevaryq-master-v2.svg; fi" || true; proxy_fs "cp -a /target/$TEMPLATE_BACKUP /target/default.conf.template; cp -a /target/kam-dashboard/$BACKUP /target/kam-dashboard/index.html; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp.$STAMP.bak || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp.$STAMP.bak /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp; test ! -f /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png.$STAMP.bak || cp -a /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png.$STAMP.bak /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png" || true; proxy_fs "for name in zvq-v2.css zvq-v2.js; do if test -f /target/kam-dashboard/zevaryq-assets/\$name.$STAMP.bak; then cp -a /target/kam-dashboard/zevaryq-assets/\$name.$STAMP.bak /target/kam-dashboard/zevaryq-assets/\$name; else rm -f /target/kam-dashboard/zevaryq-assets/\$name; fi; done" || true; docker compose up -d --force-recreate --no-deps proxy >/dev/null 2>&1 || true; exit "$code"; }
 trap rollback ERR
 # Version-specific assets are backed up and restored with the homepage on origin failure.
 for name in zvq-v2.css zvq-v2.js; do
@@ -48,6 +49,7 @@ proxy_fs "cat > /target/kam-dashboard/zevaryq-assets/zvq-v2.css && chmod 0644 /t
 proxy_fs "cat > /target/kam-dashboard/zevaryq-assets/zvq-v2.js && chmod 0644 /target/kam-dashboard/zevaryq-assets/zvq-v2.js" < "$V2_JS"
 proxy_fs "cat > /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp && chmod 0644 /target/kam-dashboard/zevaryq-assets/zevaryq-emblem.webp" < "$EMBLEM"
 proxy_fs "cat > /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png && chmod 0644 /target/kam-dashboard/zevaryq-assets/zevaryq-favicon.png" < "$FAVICON"
+proxy_fs "cat > /target/kam-dashboard/zevaryq-assets/zevaryq-master-v2.svg && chmod 0644 /target/kam-dashboard/zevaryq-assets/zevaryq-master-v2.svg" < "$MASTER"
 proxy_fs "cat > /target/kam-dashboard/index.html && chmod 0644 /target/kam-dashboard/index.html" < "$SOURCE"
 # Serve only the two approved image files. The generic Explorer catch-all
 # previously returned HTTP 200 with HTML for both image URLs, which made
@@ -84,6 +86,37 @@ block='''    # ZVQ_OFFICIAL_ASSETS_V1 — exact verified binary assets; no SPA f
 
 '''
 temporary=path.with_name(path.name+'.zvq-logo-staged')
+temporary.write_text(source.replace(needle,block+needle,1))
+stat=path.stat()
+os.chmod(temporary,stat.st_mode)
+os.chown(temporary,stat.st_uid,stat.st_gid)
+temporary.replace(path)
+PY
+fi
+# Canonical ZEVARYQ Identity V2 — exact read-only SVG route; legacy routes remain rollback-only.
+if ! grep -Fq 'ZVQ_OFFICIAL_ASSETS_V2' "$PROXY_DIR/default.conf.template"; then
+  python3 - "$PROXY_DIR/default.conf.template" <<'PY'
+from pathlib import Path
+import os, sys
+path=Path(sys.argv[1])
+source=path.read_text()
+needle='    location = / {'
+if source.count(needle)!=1:
+    raise SystemExit('Unexpected Explorer NGINX root location; refusing identity-v2 route patch')
+if 'location = /zevaryq-assets/zevaryq-master-v2.svg' in source:
+    raise SystemExit('Existing V2 master route without release marker; inspect manually')
+block='''    # ZVQ_OFFICIAL_ASSETS_V2 — canonical ZEVARYQ master mark; exact verified static SVG.
+    location = /zevaryq-assets/zevaryq-master-v2.svg {
+        root /etc/nginx/templates;
+        try_files /kam-dashboard/zevaryq-assets/zevaryq-master-v2.svg =404;
+        default_type image/svg+xml;
+        add_header Cache-Control "public, max-age=300" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        limit_except GET { deny all; }
+    }
+
+'''
+temporary=path.with_name(path.name+'.zvq-identity-v2-staged')
 temporary.write_text(source.replace(needle,block+needle,1))
 stat=path.stat()
 os.chmod(temporary,stat.st_mode)
@@ -171,7 +204,7 @@ grep -q 'ZEVARYQ EXPLORER' "$body"
 grep -q 'class="logo logo-zvq"' "$body"
 grep -q 'class="earth-brandmark"' "$body"
 grep -q 'data-zvq-token-discovery="indexed-v2"' "$body"
-for asset in zevaryq-emblem.webp zevaryq-favicon.png zvq-v2.css zvq-v2.js; do
+for asset in zevaryq-master-v2.svg zevaryq-emblem.webp zevaryq-favicon.png zvq-v2.css zvq-v2.js; do
   curl -fsS --retry 4 --retry-all-errors --max-time 20 "http://127.0.0.1/zevaryq-assets/$asset" -o "$body"
   expected="$(sha256sum "$ASSET_DIR/$asset" | awk '{print $1}')"
   observed="$(sha256sum "$body" | awk '{print $1}')"
