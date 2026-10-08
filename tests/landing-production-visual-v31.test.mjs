@@ -35,6 +35,6 @@ test('public hero console uses recognizable asset imagery and official ZEVARYQ m
   assert.match(console, /COIN_META\.BTC/);
   assert.match(console, /COIN_META\.ETH/);
   assert.match(console, /COIN_META\.SOL/);
-  assert.match(console, /\/brand\/zevaryq-wallet-premium-icon\.webp/);
+  assert.match(console, /\/brand\/zevaryq-master-v2\.svg/);
   assert.match(console, /PRODUCTION DATA PATH/);
 });

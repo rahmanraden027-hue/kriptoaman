@@ -27,7 +27,7 @@ import sys
 before, after = (Path(p).read_text() for p in sys.argv[1:3])
 assert after.count('location ^~ /zevaryq-assets/') == 1
 assert 'root /etc/nginx/templates/kam-dashboard;' in after
-assert 'types { image/webp webp; image/png png; }' in after
+assert 'types { image/webp webp; image/png png; image/svg+xml svg; }' in after
 assert 'try_files $uri =404;' in after
 assert 'location ^~ /.well-known/acme-challenge/' in after
 assert before in after.replace(after[after.index('    location ^~ /zevaryq-assets/'):after.index('    location = / {')], '', 1)

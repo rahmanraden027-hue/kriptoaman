@@ -108,13 +108,15 @@ jobs:
             grep -Fq 'id="token-discovery"' "$body"
             grep -Fq "EXPECTED_CHAIN='0x560c'" "$body"
             grep -Fq 'data-zevaryq-explorer-version="1.1.2"' "$body"
+            grep -Fq 'data-zvq-official-logo="20261008-zevaryq-identity-v2"' "$body"
+            grep -Fq 'data-zvq-logo-integrity="sha256-a74790a590757e6f4425d384fdc0cdf40cb8030807eb7c0892ba8aaa4e6fc6cc"' "$body"
             # DNS-only deliberately bypasses Cloudflare Worker-injected release headers.
             # The direct NGINX origin must return the exact approved HTML identity instead.
             grep -iq '^server: nginx' "$headers"
             echo "verified_public_$label: http=200 design=$visual immune_token=present rpc_guard=0x560c"
             rm -f "$headers" "$body"
           done
-          for asset in zevaryq-emblem.webp zevaryq-favicon.png; do
+          for asset in zevaryq-master-v2.svg; do
             status="$(curl -LsS --retry 2 --connect-timeout 8 --max-time 20 -o /dev/null \
               -w '%{http_code}' "https://explorer.kriptoaman.com/zevaryq-assets/$asset")"
             test "$status" = 200
