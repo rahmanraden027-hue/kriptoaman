@@ -130,6 +130,7 @@
   const source=rpc!==null?'LIVE':state.api&&indexed!==null?'INDEXED':indexed!==null?'STALE':'UNAVAILABLE';
   const value=rpc!==null?rpc:indexed;
   plate.dataset.provenance=source.toLowerCase();
+  scene.dataset.provenance=source.toLowerCase();
   plate.querySelector('.zvq-proof-height').textContent=value===null?'Unavailable':'#'+value.toLocaleString('en-US');
   plate.querySelector('.zvq-proof-source').textContent=source==='LIVE'?'VERIFIED RPC · CHAIN 22028':source==='INDEXED'?'BLOCKSCOUT · INDEXED':source==='STALE'?'LAST INDEXED SAMPLE · STALE':'RPC AND INDEXER · UNAVAILABLE';
  }
