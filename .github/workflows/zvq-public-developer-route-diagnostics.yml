@@ -71,4 +71,19 @@ jobs:
             if [ "$public" = "$mounted" ]; then echo "origin_route_hash=matching /$route"; else echo "origin_route_hash=MISMATCH /$route"; fi
             rm -f "$tmp"
           done
+          active=$(mktemp)
+          trap 'rm -f "$active"' EXIT
+          sudo docker exec "$proxy" nginx -T > "$active" 2>/dev/null
+          echo 'active_nginx_config=read_only_validated'
+          for route in developer developers developer/docs developer/examples developer/verify; do
+            active_count=$(grep -Fc "location = /$route {" "$active" || true)
+            template_count=$(sudo grep -Fc "location = /$route {" "$TEMPLATE" || true)
+            echo "active_route=/$route active_location_count=$active_count template_location_count=$template_count"
+          done
+          for file in developer.html developer-docs.html developer-examples.html developer-verify.html; do
+            active_count=$(grep -Fc "try_files /kam-dashboard/$file =404;" "$active" || true)
+            template_count=$(sudo grep -Fc "try_files /kam-dashboard/$file =404;" "$TEMPLATE" || true)
+            echo "active_file_mapping=$file active_try_files_count=$active_count template_try_files_count=$template_count"
+          done
+          echo 'active_nginx_config_sha256='$(sha256sum "$active" | cut -d ' ' -f1)
           echo 'origin_diagnostic=completed_without_mutation'
