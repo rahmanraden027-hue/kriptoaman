@@ -22,7 +22,7 @@ require_root() {
 rpc() {
   local method="$1"
   local params="${2:-[] }"
-  curl --fail --silent --show-error \
+  curl --noproxy '*' --connect-timeout 3 --max-time 10 --fail --silent --show-error \
     -H 'content-type: application/json' \
     --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"${method}\",\"params\":${params}}" \
     "${RPC_URL}"
