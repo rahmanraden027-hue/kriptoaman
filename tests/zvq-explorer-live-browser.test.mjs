@@ -16,6 +16,14 @@ test('live browser proof checks real populated indexed blocks and preserves appr
  assert.ok(script.includes("assert.equal(snapshot.ribbons,0"),'zero indexed transactions must NOT draw decorative ribbons');
  assert.ok(script.includes("assert.equal(snapshot.ribbons,8"),'measured nonzero or labelled preview retains eight ribbons');
  assert.ok(script.includes("snapshot.activityNote||''"),'zero transaction sample needs explicit count evidence');
+ assert.ok(script.includes("const requireV3=process.env.ZVQ_REQUIRE_PRODUCTION_V3==='1'"),'strict acceptance must be explicitly opt-in');
+ assert.ok(script.includes("assert.equal(snapshot.productionV3,true"),'strict acceptance rejects legacy V2');
+ assert.ok(script.includes("assert.equal(snapshot.nodeEvidence,true"),'strict acceptance requires verified-only node evidence');
+ assert.ok(script.includes("assert.equal(snapshot.legacySatellitePanel,false"),'strict acceptance rejects duplicate satellite illustration');
+ assert.ok(script.includes("requireProductionV3:requireV3"),'saved proof must disclose its acceptance mode');
+ assert.match(workflow,/require_production_v3:\s*\n\s*description:/);
+ assert.ok(workflow.includes("ZVQ_REQUIRE_PRODUCTION_V3: ${{ inputs.require_production_v3 && '1' || '0' }}"),'manual flag must reach the browser proof');
+
 });
 test('browser proof cannot mutate Explorer infrastructure or blockchain state',()=>{
  assert.match(workflow,/permissions:\s*\n\s*contents: read/);
