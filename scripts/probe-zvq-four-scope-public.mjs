@@ -113,4 +113,18 @@ await writeFile(join(reportDir,'SUMMARY.md'),[
  ...assessed.map(x=>'- '+x.scope+': '+x.status),
  '- Full four-scope verified: NO', '- Safety alert: '+(report.safetyAlert||'none observed')].join('\n'));
 console.log('ZVQ_PUBLIC_EVIDENCE '+JSON.stringify({checkedAt:report.checkedAt,scopes:assessed,fullFourScopeVerified:false,safetyAlert:report.safetyAlert||null}));
+console.log('ZVQ_SCOPE_DETAILS '+JSON.stringify({
+ rpcHeadStart:report.scopes.finality?.headFirst??null,rpcHeadEnd:report.scopes.finality?.headSecond??null,
+ headProgress:report.scopes.finality?.progressing??false,explicitFinalizedTagVerified:report.scopes.finality?.verifiedFinality??false,
+ sampleBlocks:report.scopes.validators?.sampledIndexedBlocks??null,
+ uniqueProposers:report.scopes.validators?.observedUniqueProposers??null,
+ validatorSetVerified:report.scopes.validators?.allFourHostsHealthy==='VERIFIED',
+ indexerHeight:report.scopes.indexer?.tip??null,headMinusIndexer:report.scopes.indexer?.rpcMinusIndexer??null,
+ tokenPages:report.scopes.tokens?.scannedPages??null,indexedTokenAddresses:report.scopes.tokens?.uniqueAddresses??null,
+ directoryExhausted:report.scopes.tokens?.paginationExhausted??false,
+ historicalTokenCompleteness:'UNVERIFIED',
+ poolState:report.scopes.liquidity?.poolEvidence||'UNAVAILABLE',
+ reserveEvidence:report.scopes.liquidity?.liquidityEvidence||'UNAVAILABLE',
+ liquidityReason:report.scopes.liquidity?.reason||null
+}));
 if(report.safetyAlert)process.exitCode=1;
