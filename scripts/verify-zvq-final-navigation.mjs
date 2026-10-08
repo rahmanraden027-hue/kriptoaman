@@ -55,7 +55,7 @@ try{
    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
    assert.ok(overflow<=1,'No horizontal overflow at '+config.width);
    await page.screenshot({path:join(proofDir,config.name+'-home.png'),fullPage:true,animations:'disabled'});
-   for(const [href,expectedHeading] of [['/blocks','Blocks'],['/txs','Transactions'],['/validators','Validators']]){
+   for(const [href,expectedHeading] of [['/blocks','Blocks'],['/txs','Transactions'],['/validators','ZVQ Proposer Observatory']]){
     await home();
     if(config.width<=1050)await page.locator('#menu').click();
     const [response]=await Promise.all([page.waitForNavigation({waitUntil:'domcontentloaded',timeout:30000}),page.locator('#nav a[href="'+href+'"]').click()]);
