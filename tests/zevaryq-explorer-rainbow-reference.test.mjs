@@ -74,7 +74,7 @@ test('unavailable indexer preserves decorative layout but clearly labels preview
  assert.match(script,/Illustrative color preview · verified transaction series unavailable/);
  assert.match(script,/wave\.setAttribute\('opacity',state\.api\?'1':'.48'\)/);
  assert.match(script,/if\(state\.blocks\.length\)renderBlocks\(\)/);
- assert.match(html,/not live satellite telemetry/);
+ assert.match(html,/no simulated satellite data/);
  assert.match(html,/No verified node coordinates/);
 });
 
