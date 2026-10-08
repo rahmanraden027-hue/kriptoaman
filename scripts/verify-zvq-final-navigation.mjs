@@ -39,7 +39,7 @@ try{
   };
   try{
    await home();
-   assert.equal(await page.locator('.official-emblem').count(),2,'Master V2 must have two placements');
+   assert.equal(await page.locator('.official-emblem').count(),3,'Master V2 must have three placements');
    const logos=await page.locator('.official-emblem').evaluateAll(items=>items.map(i=>({loaded:i.complete,width:i.naturalWidth})));
    assert.ok(logos.every(i=>i.loaded&&i.width>0),'ZVQ Master V2 must decode');
    await page.locator('#metrics').waitFor({state:'attached'});
