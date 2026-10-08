@@ -64,7 +64,7 @@ try{
   const screenshot=join(imageDir,config.name+'.png');
   await page.screenshot({path:screenshot,fullPage:true,animations:'disabled'});
   assert.ok(readout.scrollWidth<=config.width+1,config.name+' horizontal overflow: '+readout.scrollWidth);
-  assert.equal(readout.emblems.length,2,config.name+' should preserve official header and hero logo placements');
+  assert.equal(readout.emblems.length,3,config.name+' should preserve official header, hero and telemetry logo placements');
   assert.ok(readout.emblems.every(([loaded,w,h])=>loaded&&w>0&&h>0),config.name+' logo failed to decode');
   assert.equal(readout.rainbowPaths,8,config.name+' rainbow ribbons');
   assert.equal(readout.mode,'PREVIEW','local offline screenshot must not claim live data');
