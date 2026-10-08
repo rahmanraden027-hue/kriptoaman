@@ -38,6 +38,8 @@ test('globe reads verified chain head only, distinguishing LIVE INDEXED STALE an
   assert.match(js, /state\.api&&indexed!==null\?'INDEXED'/);
   assert.match(js, /indexed!==null\?'STALE':'UNAVAILABLE'/);
   assert.match(js, /renderGlobeProof\(state\)/);
+  assert.match(js, /scene\.dataset\.provenance=source\.toLowerCase\(\)/);
+  assert.match(css, /animation-play-state:paused/);
   assert.match(js, /node locations unverified/);
   assert.match(css, /\.zvq-globe-proof\[data-provenance="stale"\]/);
   assert.doesNotThrow(() => new Script(js));
