@@ -17,15 +17,17 @@ test('official ZEVARYQ Identity V2 master asset matches the approved canonical f
   }
 });
 
-test('one official logo is consistently used in header and primary hero', () => {
+test('one approved Identity V2 asset is consistently used in header, primary hero and network telemetry', () => {
   assert.match(html, /data-zvq-official-logo="20261008-zevaryq-identity-v2"/);
   assert.match(html, /data-zvq-logo-integrity="sha256-a74790a590757e6f4425d384fdc0cdf40cb8030807eb7c0892ba8aaa4e6fc6cc"/);
-  assert.equal((html.match(/class="official-emblem"/g) || []).length, 2);
+  assert.equal((html.match(/class="official-emblem"/g) || []).length, 3);
   assert.equal((html.match(/class="earth-brandmark"/g) || []).length, 1);
   assert.match(html, /class="logo logo-zvq" role="img" aria-label="ZEVARYQ master Z network emblem/);
-  assert.equal((html.match(/src="\/zevaryq-assets\/zevaryq-master-v2\.svg\?v=20261008-zevaryq-identity-v2"/g) || []).length, 2);
+  assert.equal((html.match(/src="\/zevaryq-assets\/zevaryq-master-v2\.svg\?v=20261008-zevaryq-identity-v2"/g) || []).length, 3);
   assert.match(html, /zevaryq-master-v2\.svg\?v=20261008-zevaryq-identity-v2/);
-  assert.equal((html.match(/class="official-logo-fallback"/g) || []).length, 2);
+  assert.equal((html.match(/class="official-logo-fallback"/g) || []).length, 3);
+  assert.match(html, /class="telemetry-icon" role="img" aria-label="ZEVARYQ master Z network emblem"><img class="official-emblem"/);
+  assert.match(html, /Network health, not orbital animation/);
 });
 
 test('visual-only logo change preserves mainnet and verified-data safeguards', () => {
