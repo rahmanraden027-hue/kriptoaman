@@ -28,7 +28,7 @@ try{
  if(String(id).toLowerCase()!=='0x560c')throw Error('CHAIN_ID_MISMATCH');
  const h1=integer(await rpc('eth_blockNumber'));
  if(h1===null)throw Error('HEAD_INVALID');
- const latest=await rpc('eth_getBlockByNumber',['latest',false]);
+ const latest=await rpc('eth_getBlockByNumber',['0x'+h1.toString(16),false]);
  if(integer(latest?.number)!==h1||!hash.test(latest?.hash||''))throw Error('HEAD_HASH_MISMATCH');
  await new Promise(r=>setTimeout(r,12000));
  const h2=integer(await rpc('eth_blockNumber'));
