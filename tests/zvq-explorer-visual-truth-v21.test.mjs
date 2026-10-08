@@ -43,5 +43,5 @@ test('globe reads verified chain head only, distinguishing LIVE INDEXED STALE an
   assert.match(js, /node locations unverified/);
   assert.match(css, /\.zvq-globe-proof\[data-provenance="stale"\]/);
   assert.doesNotThrow(() => new Script(js));
-  assert.match(html, /Illustrative visualization; geography appears only with verified evidence/);
+  assert.match(html, /Geographic regions, peer paths and node locations are not independently verified/);
 });
