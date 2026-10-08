@@ -75,8 +75,8 @@ esac
             assert (d/'index.html').read_bytes()==root
 
 if __name__=='__main__':
-    assert len(FILES)==17
+    assert len(FILES)==16
     check_case(roll_back=True)
-    print('PASS: 17 HTML files deployed by hash then explicitly rolled back; homepage unchanged')
+    print('PASS: 16 HTML files deployed by hash then explicitly rolled back; homepage unchanged')
     check_case(bad_rpc=True)
     print('PASS: chain mismatch refuses every production write')

@@ -7,10 +7,10 @@ const script=await readFile(new URL('scripts/deploy-zvq-master-v2-subpages.sh',r
 const workflow=await readFile(new URL('.github/workflows/zvq-master-v2-subpages-release.yml',root),'utf8');
 const files=[
  'address-detail.html','addresses.html','api-docs.html','block-detail.html','blocks.html','contracts.html',
- 'developer-docs.html','developer-examples.html','developer-starter.html','developer-verify.html',
+ 'developer-docs.html','developer-examples.html','developer-verify.html',
  'developer.html','stats.html','status.html','tokens.html','transaction-detail.html','transactions.html','validators.html'
 ];
-test('release allowlist is exactly seventeen reviewed, non-homepage HTML documents',async()=>{
+test('release allowlist is exactly sixteen currently installed, non-homepage HTML documents',async()=>{
  const list=script.match(/^FILES=\(([^)]+)\)$/m)?.[1]?.split(' ');
  assert.deepEqual(list,files);
  for(const file of files){
@@ -20,6 +20,7 @@ test('release allowlist is exactly seventeen reviewed, non-homepage HTML documen
   assert.doesNotMatch(html,/<div class="mark">K<\/div>/,file);
   assert.doesNotMatch(html,/src="https:\/\/kriptoaman\.com\/brand\/(?:zevaryq|kriptoaman)-mark\.svg"/,file);
  }
+ assert.ok(!files.includes('developer-starter.html'));
  assert.ok(!files.includes('index.html'));
  assert.ok(!files.includes('zevaryq-production.html'));
 });
@@ -36,6 +37,7 @@ test('deploy script is fail-closed, exact-file, checksum and rollback guarded',(
  assert.match(script,/atomic_from/);
  assert.match(script,/--rollback/);
  assert.match(script,/0x560c/);
+ assert.match(script,/not installed or routed by the current protected Explorer proxy/);
  assert.match(script,/\$DOMAIN\/api\/v2\/blocks/);
  assert.doesNotMatch(script,/docker compose (?:up|down|restart)|nginx -s reload|systemctl restart|wrangler deploy/);
  assert.doesNotMatch(script,/genesis\.json|private.?key|eth_sendRawTransaction|dns-records/);
