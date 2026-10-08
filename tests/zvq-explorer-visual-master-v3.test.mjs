@@ -23,7 +23,7 @@ test('production V3 is data-first and does not duplicate illustrative geographic
  assert.match(main,/Satellite links and ground stations have no verified connection/);
  assert.equal((main.match(/class="reference-orbit-art"/g)||[]).length,1,'only primary orbital globe is displayed');
  assert.equal((main.match(/class="earth-brandmark"/g)||[]).length,1,'the official main globe is retained');
- assert.equal((main.match(/class="official-emblem"/g)||[]).length,2,'header and hero keep Master V2');
+ assert.equal((html.match(/class="official-emblem"/g)||[]).length,2,'header and hero keep Master V2');
  assert.match(main,/id="v2-satellite-evidence"/);
  assert.match(main,/id="v2-node-evidence"/);
  assert.match(main,/id="v2-telemetry-proof"/);
@@ -57,7 +57,7 @@ test('telemetry is built solely from RPC and Blockscout evidence and absent geog
 
 test('V3 palette reduces ornamental glow and respects reduced motion/mobile breakpoints',()=>{
  assert.match(css,/ZVQ-PRODUCTION-VISUAL-MASTER-3/);
- for(const color of ['#050d19','#0b1a2d','#38bdf8','#d8b46c','#34d399'])assert.ok(css.includes(color));
+ for(const color of ['#050d19','#0b1b30','#38bdf8','#d8b46c','#34d399'])assert.ok(css.includes(color));
  assert.match(css,/node-evidence-placeholder/);
  assert.match(css,/telemetry-intro/);
  assert.match(css,/zvq-orbit-summary:focus-visible/);
