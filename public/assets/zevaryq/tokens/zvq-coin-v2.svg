@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+<title id="title">ZVQ native coin mark</title>
+<desc id="desc">ZVQ native coin identity derived from the ZEVARYQ master emblem.</desc>
+<defs>
+  <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#fff2a8"/><stop offset=".28" stop-color="#ffd166"/><stop offset=".65" stop-color="#d69425"/><stop offset="1" stop-color="#fff0a0"/>
+  </linearGradient>
+  <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#00e5ff"/><stop offset=".55" stop-color="#008cff"/><stop offset="1" stop-color="#234dff"/>
+  </linearGradient>
+  <radialGradient id="bg"><stop offset="0" stop-color="#123c78"/><stop offset=".55" stop-color="#071b37"/><stop offset="1" stop-color="#020815"/></radialGradient>
+  <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<circle cx="256" cy="256" r="226" fill="url(#bg)" stroke="url(#gold)" stroke-width="18"/>
+<circle cx="256" cy="256" r="196" fill="none" stroke="url(#blue)" stroke-width="8" filter="url(#glow)"/>
+<circle cx="256" cy="256" r="176" fill="none" stroke="#dba63c" stroke-width="4" opacity=".8"/>
+<path d="M145 144 H371 L329 188 H226 L173 241 H315 L358 198 H387 L346 242 L343 245 L343 248 L237 354 H136 L177 312 H279 L332 259 H191 L150 300 H121 L164 255 L167 252 L167 249 L272 144 Z"
+      fill="url(#gold)" stroke="#fff1a5" stroke-width="4" stroke-linejoin="round"/>
+<path d="M173 241 H315 L358 198M177 312 H279 L332 259" fill="none" stroke="#008cff" stroke-width="9" filter="url(#glow)"/>
+<text x="256" y="414" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="46" font-weight="900" letter-spacing="12" fill="url(#gold)">ZVQ</text>
+</svg>
