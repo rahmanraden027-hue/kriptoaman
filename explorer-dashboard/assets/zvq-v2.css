@@ -145,3 +145,6 @@ html[data-zvq-dashboard-version="2.0.0"]{--bg:#020915;--blue:#127BFA;--cyan:#42D
 .hero .zvq-globe-proof[data-provenance="indexed"]{border-color:rgba(85,185,255,.73)}
 .hero .zvq-globe-proof[data-provenance="stale"]{border-color:rgba(245,188,75,.73)}
 @media(max-width:560px){.hero .space .zvq-globe-proof{top:3px;left:3px;width:min(205px,71%);gap:2px;padding:7px 9px}.hero .zvq-proof-height{font-size:18px}.hero .zvq-proof-art{font-size:8px}}
+
+/* Do not animate decorative orbits as live telemetry when verified observations are missing. */
+.hero .space[data-provenance="stale"] .reference-orbit-art,.hero .space[data-provenance="unavailable"] .reference-orbit-art{animation-play-state:paused;opacity:.72}
