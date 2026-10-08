@@ -76,8 +76,12 @@ try{
    await page.waitForURL('**/tokens?address=**');
    await page.locator('#selected-token-state').waitFor({state:'visible',timeout:10000});
    assert.ok(await page.locator('#selected-token').isVisible(),'Selected contract evidence panel must be visible');
+   await page.waitForFunction(()=>{
+    const value=document.querySelector('#selected-token-state')?.textContent||'';
+    return value.startsWith('INDEXED')||value.includes('not verifiable');
+   },null,{timeout:15000,polling:250});
    const selected=await page.locator('#selected-token-state').innerText();
-   assert.ok(/INDEXED|not verifiable|Checking/.test(selected),'Token metadata must be indexed or fail closed');
+   assert.ok(/INDEXED|not verifiable/.test(selected),'Selected contract evidence must reach a verified or unavailable terminal state');
    await visit('/api-docs','body');
    await page.screenshot({path:join(proofDir,config.name+'-final.png'),fullPage:true,animations:'disabled'});
    assert.deepEqual(jsErrors,[],'No uncaught errors across Explorer navigation');
