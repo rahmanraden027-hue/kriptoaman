@@ -50,7 +50,10 @@ test('telemetry is built solely from RPC and Blockscout evidence and absent geog
  assert.match(js,/does not measure satellite or inter-node latency/);
  assert.doesNotMatch(js,/\.innerHTML\s*=/);
  assert.doesNotThrow(()=>new Script(js));
- const inline=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+ const scriptStart=html.indexOf('<script>');
+ const scriptEnd=html.indexOf('</script>',scriptStart+8);
+ assert.ok(scriptStart>=0&&scriptEnd>scriptStart,'trusted inline production script must exist');
+ const inline=html.slice(scriptStart+8,scriptEnd);
  assert.ok(inline);
  assert.doesNotThrow(()=>new Script(inline));
 });
