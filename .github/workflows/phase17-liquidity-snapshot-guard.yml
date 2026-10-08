@@ -1,0 +1,33 @@
+name: Phase 17 Liquidity Snapshot Read-only Contract
+on:
+  pull_request:
+    paths:
+      - functions/api/zvq-liquidity-evidence.js
+      - tests/zvq-liquidity-same-block.test.mjs
+      - .github/workflows/phase17-liquidity-snapshot-guard.yml
+  push:
+    branches: [main]
+    paths:
+      - functions/api/zvq-liquidity-evidence.js
+      - tests/zvq-liquidity-same-block.test.mjs
+      - .github/workflows/phase17-liquidity-snapshot-guard.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  liquidity-snapshot-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify pinned block, reorganization handling and zero-write boundary
+        run: |
+          node --test tests/zvq-liquidity-same-block.test.mjs
+          if grep -Fq "'latest'" functions/api/zvq-liquidity-evidence.js; then
+            echo "::error::Liquidity evidence must not use floating latest state"
+            exit 1
+          fi
+          ! grep -Eq 'eth_sendTransaction|eth_sendRawTransaction|wallet_send|privateKey' functions/api/zvq-liquidity-evidence.js
