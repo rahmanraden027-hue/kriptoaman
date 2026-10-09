@@ -1,6 +1,8 @@
 import { primarySession, readSession } from '../_shared/d1-session.js';
 
 const STATUS_TTL_MS = 30_000;
+// Failed/degraded evidence must be re-checked promptly after background recovery.
+const DEGRADED_STATUS_TTL_MS = 2_000;
 const DURABLE_STATUS_TTL_MS = 45_000;
 const MIN_PUBLIC_MARKET_ASSETS = 4500;
 const MARKET_SNAPSHOT_FRESH_MS = 15 * 60 * 1000;
@@ -378,9 +380,27 @@ async function startLiveRefresh(request, env) {
   return statusInFlight;
 }
 
+function canReuseCachedStatus(atMs) {
+  if (!cachedStatus || atMs < cachedStatusAt) return false;
+  const ttl = cachedStatus.body?.overall === 'operational' ? STATUS_TTL_MS : DEGRADED_STATUS_TTL_MS;
+  if (atMs - cachedStatusAt >= ttl) return false;
+
+  // A previously healthy market snapshot must not remain "operational"
+  // beyond its underlying 15-minute capture freshness budget.
+  const market = cachedStatus.body?.components?.market;
+  if (market?.healthy === true) {
+    const capturedAt = Number(market.capturedAt);
+    return Number.isFinite(capturedAt)
+      && capturedAt > 0
+      && capturedAt <= atMs
+      && atMs - capturedAt <= MARKET_SNAPSHOT_FRESH_MS;
+  }
+  return true;
+}
+
 async function getFreshStatus(request, env) {
   const now = Date.now();
-  if (cachedStatus && now - cachedStatusAt < STATUS_TTL_MS) {
+  if (canReuseCachedStatus(now)) {
     return {
       ...cachedStatus,
       body: withDelivery(cachedStatus.body, 'memory-last-verified', now - cachedStatusAt, false),
@@ -400,14 +420,19 @@ export async function onRequestGet({ request, waitUntil, env }) {
   if (edgeCache) {
     const hit = await edgeCache.match(cacheKey);
     if (hit) {
-      const headers = new Headers(hit.headers);
-      headers.set('X-KriptoAman-Status-Cache', 'HIT');
-      return new Response(hit.body, { status: hit.status, headers });
+      // Old deployments may have cached HTTP 200 degraded results. Reject
+      // those as well as an operational result that aged past its market TTL.
+      const cachedBody = await hit.clone().json().catch(() => null);
+      if (cachedBody && isVerifiedOperationalBody(cachedBody)) {
+        const headers = new Headers(hit.headers);
+        headers.set('X-KriptoAman-Status-Cache', 'HIT');
+        return new Response(hit.body, { status: hit.status, headers });
+      }
     }
   }
 
   const memoryNow = Date.now();
-  let result = cachedStatus && memoryNow - cachedStatusAt < STATUS_TTL_MS
+  let result = canReuseCachedStatus(memoryNow)
     ? {
         ...cachedStatus,
         body: withDelivery(cachedStatus.body, 'memory-last-verified', memoryNow - cachedStatusAt, false),
@@ -436,6 +461,7 @@ export async function onRequestGet({ request, waitUntil, env }) {
     edgeCache
       && result.status === 200
       && result.body?.delivery?.aggregateRead === 'live-verified'
+      && isVerifiedOperationalBody(result.body)
   ) {
     scheduleBackground(waitUntil, edgeCache.put(cacheKey, response.clone()));
   }
