@@ -4,7 +4,7 @@ import { stat } from 'node:fs/promises';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
-const rpcUrl = process.env.KAM_PRIVATE_RPC_URL || 'http://127.0.0.1:8545';
+const rpcUrl = process.env.KAM_PRIVATE_RPC_URL || 'http://127.0.0.1:8648';
 const expectedChainId = '0x560c';
 const expectedValidatorCount = 4;
 const fourHostEvidencePath = '/var/lib/kam-evidence/four-host-topology-evidence.json';
