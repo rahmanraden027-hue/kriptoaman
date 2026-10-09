@@ -1,0 +1,47 @@
+name: ZVQ Genesis Continuity Read-only Evidence
+
+on:
+  pull_request:
+    paths:
+      - scripts/probe-zvq-genesis-continuity-readonly.mjs
+      - tests/probe-zvq-genesis-continuity-readonly.test.mjs
+      - .github/workflows/zvq-genesis-continuity-readonly.yml
+      - docs/ZVQ_GENESIS_CONTINUITY_P0_P1.md
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-history-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Static syntax and read-only fail-closed tests
+        run: |
+          set -euo pipefail
+          node --check scripts/probe-zvq-genesis-continuity-readonly.mjs
+          node --test tests/probe-zvq-genesis-continuity-readonly.test.mjs
+      - name: Observe public history without genesis wallet input
+        run: |
+          set -euo pipefail
+          node scripts/probe-zvq-genesis-continuity-readonly.mjs | tee /tmp/zvq-genesis-continuity-readonly.json
+          node --input-type=module -e '
+            import { readFileSync } from "node:fs";
+            const d=JSON.parse(readFileSync("/tmp/zvq-genesis-continuity-readonly.json", "utf8"));
+            if(d.chainId!==22028 || d.transactionBroadcasts!==0 || d.walletOwnershipVerified!==false ||
+               d.authoritativeContinuity!=="NOT_YET_PROVEN" || d.genesisWalletPublicAddress!==null)
+              process.exit(1);
+          '
+      - name: Preserve bounded public evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zvq-p0-p1-public-history-readonly
+          path: /tmp/zvq-genesis-continuity-readonly.json
+          if-no-files-found: ignore
+          retention-days: 14
