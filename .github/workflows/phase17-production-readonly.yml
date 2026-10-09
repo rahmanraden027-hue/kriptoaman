@@ -1,0 +1,92 @@
+name: Phase 17 Production Recovery Read-only Evidence
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase17-production-readonly.yml'
+      - '.github/workflows/zvq-official-logo-public-proof.yml'
+      - 'scripts/phase17-production-readonly.mjs'
+      - 'scripts/verify-zvq-logo-placement.mjs'
+      - 'tests/zvq-logo-placement-contract.test.mjs'
+      - 'tests/phase17-production-readonly.test.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: phase17-readonly-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  public-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --legacy-peer-deps
+      - name: RPC and Blockscout same-height hash proof
+        continue-on-error: true
+        run: |
+          mkdir -p evidence
+          node scripts/diagnose-blockscout.mjs > evidence/blockscout.json
+      - name: Public finality and historical reference inventory
+        continue-on-error: true
+        env:
+          ZVQ_EVIDENCE_DIR: evidence/four-scope
+        run: node scripts/probe-zvq-four-scope-public.mjs
+      - name: Chain progression, ERC-20 metadata, registry logos and pool reserves
+        continue-on-error: true
+        env:
+          ZVQ_EVIDENCE_DIR: evidence
+        run: node scripts/phase17-production-readonly.mjs > evidence/phase17.log
+      - name: Trusted origin and public logo contract and immutable bytes
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          host=explorer.kriptoaman.com
+          for mode in origin public; do
+            opts=()
+            if [[ "$mode" == origin ]]; then opts=(--resolve "$host:443:146.190.93.254"); fi
+            for page in default bypass; do
+              query=''
+              if [[ "$page" == bypass ]]; then query="?phase17=$GITHUB_RUN_ID-$mode"; fi
+              curl -fLsS --connect-timeout 6 --max-time 20 -H 'Cache-Control: no-cache' "${opts[@]}" "https://$host/$query" -o "evidence/$mode-$page.html"
+              node scripts/verify-zvq-logo-placement.mjs "evidence/$mode-$page.html" > "evidence/logo-$mode-$page.json"
+            done
+            curl -fLsS --connect-timeout 6 --max-time 20 "${opts[@]}" "https://$host/zevaryq-assets/zevaryq-master-v2.svg?v=20261008-zevaryq-identity-v2" -o "evidence/$mode-master.svg"
+            echo "a74790a590757e6f4425d384fdc0cdf40cb8030807eb7c0892ba8aaa4e6fc6cc  evidence/$mode-master.svg" | sha256sum --check
+          done
+      - name: Publish explicit scope statuses; private evidence remains required
+        if: always()
+        run: |
+          node --input-type=module <<'JS'
+          import { readFile, appendFile } from 'node:fs/promises';
+          import { createHash } from 'node:crypto';
+          let report;
+          try { report = JSON.parse(await readFile('evidence/phase17.json', 'utf8')); } catch {}
+          const lines = ['## Phase 17 — not production approval', '| Scope | Status |', '|---|---|'];
+          for (const name of ['chain', 'tokens', 'registryLogos', 'liquidity', 'privateValidators']) lines.push(`| ${name} | ${report?.checks?.[name]?.status || 'PARTIAL'} |`);
+          let failed = !report;
+          for (const c of Object.values(report?.checks || {})) if(c.status === 'FAIL') failed = true;
+          try { const b = JSON.parse(await readFile('evidence/blockscout.json', 'utf8')); const ok = b.classification === 'healthy'; lines.push(`| RPC/Blockscout identity | ${ok ? 'PASS' : 'PARTIAL'} |`); if(!ok) failed = true; } catch { failed = true; }
+          for (const mode of ['origin', 'public']) for (const page of ['default', 'bypass']) {
+            try { const p = JSON.parse(await readFile(`evidence/logo-${mode}-${page}.json`, 'utf8')); if(p.placements !== 2) throw Error(); lines.push(`| Logo ${mode}/${page} | PASS |`); }
+            catch { lines.push(`| Logo ${mode}/${page} | PARTIAL |`); failed = true; }
+          }
+          for (const mode of ['origin', 'public']) {
+            try { const bytes = await readFile(`evidence/${mode}-master.svg`); const sha = createHash('sha256').update(bytes).digest('hex'); if(sha !== 'a74790a590757e6f4425d384fdc0cdf40cb8030807eb7c0892ba8aaa4e6fc6cc') throw Error(); lines.push(`| Logo bytes ${mode} | PASS |`); }
+            catch { lines.push(`| Logo bytes ${mode} | FAIL |`); failed = true; }
+          }
+          lines.push('', 'Overall: PARTIAL until independent private validator/peer/finality and historical token/backing evidence is complete. Workflow success only means the available public checks have no detected contradiction.');
+          await appendFile(process.env.GITHUB_STEP_SUMMARY, lines.join('\n'));
+          if(failed) process.exitCode = 1;
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase17-readonly-evidence
+          path: evidence
+          retention-days: 30
+          if-no-files-found: error
