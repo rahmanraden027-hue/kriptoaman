@@ -34,7 +34,7 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@v6
         with:
           node-version: '24'
       - name: Validate Developer isolation, legacy-content protection and rollback
@@ -132,7 +132,7 @@ jobs:
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@v6
         with:
           node-version: '24'
       - name: Install isolated browser client and use runner Chrome

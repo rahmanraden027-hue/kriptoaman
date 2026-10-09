@@ -29,7 +29,7 @@ jobs:
       - name: Checkout reviewed source
         uses: actions/checkout@v7
       - name: Setup Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v6
         with:
           node-version: '24'
       - name: Validate refinement anchors
@@ -57,7 +57,7 @@ jobs:
       - name: Checkout reviewed source
         uses: actions/checkout@v7
       - name: Setup Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v6
         with:
           node-version: '24'
       - name: Capture public health before frontend change
@@ -84,7 +84,7 @@ jobs:
       - name: Checkout reviewed source
         uses: actions/checkout@v7
       - name: Setup Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v6
         with:
           node-version: '24'
       - name: Verify priority presentation is public
