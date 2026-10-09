@@ -60,38 +60,53 @@ export async function onRequestGet({ env }) {
   }
 
   try {
-    const [chainId, head, routerCode, tokenCode] = await Promise.all([
-      rpc('eth_chainId'), rpc('eth_blockNumber'), rpc('eth_getCode', [router, 'latest']), rpc('eth_getCode', [token, 'latest']),
-    ]);
+    const [chainId, head] = await Promise.all([rpc('eth_chainId'), rpc('eth_blockNumber')]);
     if (chainId !== EXPECTED_CHAIN) throw new Error('Chain ID mismatch');
+    if (typeof head !== 'string' || !/^0x[0-9a-f]+$/i.test(head)) throw new Error('Invalid snapshot block height');
+    const snapshotBlock = head.toLowerCase();
+    const anchor = await rpc('eth_getBlockByNumber', [snapshotBlock, false]);
+    if (!anchor || anchor.number?.toLowerCase() !== snapshotBlock || !/^0x[0-9a-f]{64}$/i.test(anchor.hash || '')) {
+      throw new Error('Canonical snapshot anchor unavailable');
+    }
+    const snapshotBlockHash = anchor.hash.toLowerCase();
+    const assertCanonicalSnapshot = async () => {
+      const later = await rpc('eth_getBlockByNumber', [snapshotBlock, false]);
+      if (!later || later.number?.toLowerCase() !== snapshotBlock || later.hash?.toLowerCase() !== snapshotBlockHash) {
+        throw new Error('Snapshot block changed during observation');
+      }
+    };
+    const [routerCode, tokenCode] = await Promise.all([
+      rpc('eth_getCode', [router, snapshotBlock]), rpc('eth_getCode', [token, snapshotBlock]),
+    ]);
     if (!routerCode || routerCode === '0x' || !tokenCode || tokenCode === '0x') throw new Error('Configured registry contract has no bytecode');
 
     const [factoryRaw, wrappedRaw] = await Promise.all([
-      rpc('eth_call', [{ to: router, data: selector.factory }, 'latest']),
-      rpc('eth_call', [{ to: router, data: selector.weth }, 'latest']),
+      rpc('eth_call', [{ to: router, data: selector.factory }, snapshotBlock]),
+      rpc('eth_call', [{ to: router, data: selector.weth }, snapshotBlock]),
     ]);
     const factory = wordAddress(factoryRaw);
     const wrapped = wordAddress(wrappedRaw);
     if (!validAddress(factory) || !validAddress(wrapped)) throw new Error('Router factory/wrapped-native evidence invalid');
 
     const [factoryCode, wrappedCode] = await Promise.all([
-      rpc('eth_getCode', [factory, 'latest']), rpc('eth_getCode', [wrapped, 'latest']),
+      rpc('eth_getCode', [factory, snapshotBlock]), rpc('eth_getCode', [wrapped, snapshotBlock]),
     ]);
     if (!factoryCode || factoryCode === '0x' || !wrappedCode || wrappedCode === '0x') throw new Error('Factory or wrapped-native has no bytecode');
 
-    const pairRaw = await rpc('eth_call', [{ to: factory, data: `${selector.getPair}${padAddress(wrapped)}${padAddress(token)}` }, 'latest']);
+    const pairRaw = await rpc('eth_call', [{ to: factory, data: `${selector.getPair}${padAddress(wrapped)}${padAddress(token)}` }, snapshotBlock]);
     const pair = wordAddress(pairRaw);
     if (!validAddress(pair) || /^0x0{40}$/.test(pair)) {
-      return json({ status: 'live', chainId: 22028, head, router, factory, wrappedNative: wrapped, token: token.toLowerCase(), pair: null, poolEvidence: 'NO_PAIR', liquidityEvidence: 'UNAVAILABLE', executionEnabled: false, observedAt: Date.now(), observationId });
+      await assertCanonicalSnapshot();
+      return json({ status: 'live', chainId: 22028, head, snapshotBlock, snapshotBlockHash, router, factory, wrappedNative: wrapped, token: token.toLowerCase(), pair: null, poolEvidence: 'NO_PAIR', liquidityEvidence: 'UNAVAILABLE', executionEnabled: false, observedAt: Date.now(), observationId });
     }
 
-    const pairCode = await rpc('eth_getCode', [pair, 'latest']);
+    const pairCode = await rpc('eth_getCode', [pair, snapshotBlock]);
     if (!pairCode || pairCode === '0x') throw new Error('Pair has no bytecode');
 
     const [token0Raw, token1Raw, reservesRaw] = await Promise.all([
-      rpc('eth_call', [{ to: pair, data: selector.token0 }, 'latest']),
-      rpc('eth_call', [{ to: pair, data: selector.token1 }, 'latest']),
-      rpc('eth_call', [{ to: pair, data: selector.getReserves }, 'latest']),
+      rpc('eth_call', [{ to: pair, data: selector.token0 }, snapshotBlock]),
+      rpc('eth_call', [{ to: pair, data: selector.token1 }, snapshotBlock]),
+      rpc('eth_call', [{ to: pair, data: selector.getReserves }, snapshotBlock]),
     ]);
     const token0 = wordAddress(token0Raw);
     const token1 = wordAddress(token1Raw);
@@ -102,9 +117,10 @@ export async function onRequestGet({ env }) {
     const reserve1 = uintWord(reservesRaw, 1);
     const blockTimestampLast = uintWord(reservesRaw, 2);
     if (reserve0 == null || reserve1 == null) throw new Error('Reserve evidence invalid');
+    await assertCanonicalSnapshot();
 
     return json({
-      status: 'live', schemaVersion: 1, chainId: 22028, chainIdHex: EXPECTED_CHAIN, head,
+      status: 'live', schemaVersion: 1, chainId: 22028, chainIdHex: EXPECTED_CHAIN, head, snapshotBlock, snapshotBlockHash,
       router: router.toLowerCase(), factory, wrappedNative: wrapped, token: token.toLowerCase(),
       pair, token0, token1, reserve0, reserve1, blockTimestampLast,
       poolEvidence: 'FIRST_PARTY_ON_CHAIN', liquidityEvidence: BigInt(reserve0) > 0n && BigInt(reserve1) > 0n ? 'RESERVES_PRESENT' : 'ZERO_RESERVES',
