@@ -102,7 +102,7 @@ jobs:
 
       - name: Preserve Phase 16F long-run evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: phase16f-long-run-production-stability
           path: ${{ env.PHASE16F_EVIDENCE_DIR }}

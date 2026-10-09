@@ -90,7 +90,7 @@ jobs:
         run: node scripts/verify-phase10l4-global-acceptance.mjs
       - name: Preserve Phase 10L.4 evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: phase10l4-global-acceptance-evidence
           path: ${{ runner.temp }}/phase10l4-global-evidence

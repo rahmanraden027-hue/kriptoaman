@@ -48,7 +48,7 @@ jobs:
           echo "ZVQ_WALLET_PROOF_DIR=$GITHUB_WORKSPACE/zvq-wallet-proof" >> "$GITHUB_ENV"
       - name: Prove public ZVQ network, Android and desktop wallet UI without live signing
         run: node scripts/verify-zvq-developer-wallet.mjs
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: zvq-developer-wallet-readonly-browser-proof

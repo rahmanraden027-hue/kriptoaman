@@ -72,7 +72,7 @@ jobs:
         run: node .github/scripts/phase7-device-class-browser.mjs
       - name: Upload device-class evidence
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: phase7-device-class-production-evidence
           path: device-class-evidence

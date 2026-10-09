@@ -64,7 +64,7 @@ jobs:
 
       - name: Upload Android device visual evidence
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: phase7-android-device-visual-evidence
           path: device-evidence

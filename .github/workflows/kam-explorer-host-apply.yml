@@ -50,7 +50,7 @@ jobs:
 
       - name: Upload preflight evidence
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: kam-explorer-preflight-${{ github.run_id }}
           path: artifacts/*
@@ -100,7 +100,7 @@ jobs:
 
       - name: Upload deployment evidence
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: kam-explorer-host-apply-${{ github.run_id }}
           path: artifacts/*
@@ -145,7 +145,7 @@ jobs:
 
       - name: Upload final public evidence
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: kam-explorer-public-final-${{ github.run_id }}
           path: artifacts/*

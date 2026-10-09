@@ -74,7 +74,7 @@ jobs:
       - name: Verify production HomeV10 five-device matrix
         run: node scripts/verify-home-v10-production.mjs
       - name: Preserve Phase 16D post-merge production evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: home-v10-production-lock-evidence

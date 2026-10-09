@@ -91,7 +91,7 @@ jobs:
 
       - name: Upload non-secret audit evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: skam-final-live-audit
           path: |

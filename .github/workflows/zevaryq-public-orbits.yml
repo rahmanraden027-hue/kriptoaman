@@ -54,7 +54,7 @@ jobs:
           if(!isRecentSnapshot(data))throw Error('Public-orbit snapshot invalid or outdated');
           console.log('VALIDATED_GP_RECORDS='+data.records.length+' checked_at='+data.checked_at);
           NODE
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: zvq-public-orbits-gp
           path: public-orbits.json
