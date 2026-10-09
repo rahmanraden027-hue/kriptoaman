@@ -309,7 +309,7 @@ jobs:
       contents: write
     steps:
       - name: Download verified signed KriptoAman APK
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v7
         with:
           name: kriptoaman-direct-apk
           path: dist
