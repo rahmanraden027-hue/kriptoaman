@@ -7,6 +7,8 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 test('private KAM evidence redacts endpoints and fingerprints four validators', async () => {
   const collector = await read('chain/kam-mainnet/scripts/collect-private-evidence.mjs');
   assert.match(collector, /expectedValidatorCount = 4/);
+  assert.match(collector, /const rpcUrl = process\.env\.KAM_PRIVATE_RPC_URL \|\| 'http:\/\/127\.0\.0\.1:8648';/);
+  assert.doesNotMatch(collector, /http:\/\/127\.0\.0\.1:8545/);
   assert.match(collector, /qbft_getValidatorsByBlockNumber/);
   assert.match(collector, /net_peerCount/);
   assert.match(collector, /fingerprintSha256/);
