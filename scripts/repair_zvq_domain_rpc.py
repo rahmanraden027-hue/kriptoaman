@@ -135,7 +135,27 @@ def main() -> None:
         raise RuntimeError("Explicit authorized GitHub run ID required for --apply")
     image = check_preconditions()
     before = CONFIG.read_bytes()
-    candidate_text = render(before.decode("utf-8"))
+    current_text = before.decode("utf-8")
+    # An earlier authorized run may already own the domain-only gateway.
+    # Never try to patch an installed route a second time. Verify it in place
+    # and treat a healthy existing installation as the desired end state.
+    if "# ZVQ_DOMAIN_RPC_V2_READONLY" in current_text:
+        gateway_state = subprocess.run(
+            ["docker", "inspect", "-f", "{{.State.Status}}", GATEWAY],
+            text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+        )
+        gateway_running = gateway_state.returncode == 0 and gateway_state.stdout.strip() == "running"
+        local_ok = gateway_running and verify_local()
+        public_ok = local_ok and rpc_probe(f"https://{DOMAIN}/rpc")
+        print(json.dumps({"existing_installation": True,
+                          "gateway_running": gateway_running,
+                          "local_verified": local_ok,
+                          "public_chain_22028": public_ok,
+                          "applied": False}), flush=True)
+        if not public_ok:
+            raise RuntimeError("Existing domain RPC installation is unhealthy; refuse blind re-patch")
+        return
+    candidate_text = render(current_text)
     suffix = run_id or "preview"
     candidate = BASE / f"candidate-domain-rpc-{suffix}.conf"
     backup = BASE / f"default.conf.domain-rpc-{suffix}.bak"
