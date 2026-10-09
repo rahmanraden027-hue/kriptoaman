@@ -24,7 +24,7 @@ jobs:
       - name: Run live read-only planner
         run: node chain/solana-liquidity/plan-skam-liquidity-readonly.mjs
       - name: Upload non-secret planning evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: skam-liquidity-readonly-plan
           path: artifacts/skam-liquidity-readonly-plan.json

@@ -131,7 +131,7 @@ jobs:
           echo "ZVQ_SCREENSHOT_DIR=$RUNNER_TEMP/zvq-visual-proof" >> "$GITHUB_ENV"
       - name: Responsive Chrome proof and reference screenshots
         run: node scripts/verify-zvq-visual.mjs
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: zvq-reference-responsive-screenshots

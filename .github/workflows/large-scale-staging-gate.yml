@@ -118,7 +118,7 @@ jobs:
           NODE
 
       - name: Upload redacted evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: large-scale-staging-${{ inputs.profile }}-${{ github.run_id }}
           path: |

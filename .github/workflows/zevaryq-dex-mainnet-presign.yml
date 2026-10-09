@@ -96,7 +96,7 @@ jobs:
           sha256sum ../../../artifacts/zevaryq-dex-unsigned/* |              tee ../../../artifacts/zevaryq-dex-unsigned/SHA256SUMS.txt
 
       - name: Upload pre-sign evidence
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: zevaryq-dex-presign-evidence
           path: artifacts/zevaryq-dex-unsigned/

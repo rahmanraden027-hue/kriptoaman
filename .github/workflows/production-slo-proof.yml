@@ -36,7 +36,7 @@ jobs:
         run: cat production-slo-proof.md >> "$GITHUB_STEP_SUMMARY" || true
       - name: Upload SLO evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: production-slo-${{ github.run_id }}
           path: |

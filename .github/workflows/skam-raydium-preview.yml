@@ -45,7 +45,7 @@ jobs:
           test ! -f artifacts/skam-liquidity-stage-result.json
           test -f artifacts/skam-liquidity-stage-preview.json
       - name: Upload non-secret preview evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: skam-raydium-preview
           path: |

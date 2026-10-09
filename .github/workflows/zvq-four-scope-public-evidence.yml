@@ -36,7 +36,7 @@ jobs:
           ZVQ_EVIDENCE_DIR: ${{ runner.temp }}/zvq-public-four-scope
       - name: Store timestamped evidence even if a network source is unavailable
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: zvq-public-four-scope-evidence
           path: ${{ runner.temp }}/zvq-public-four-scope

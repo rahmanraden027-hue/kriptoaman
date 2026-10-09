@@ -47,7 +47,7 @@ jobs:
         run: node scripts/audit-zvq-rpc-cors.mjs
       - name: Keep sanitized diagnostic evidence even if live probe fails
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: zvq-public-rpc-cors-evidence
           path: artifacts/zvq-cors-evidence/proof.json

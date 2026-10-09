@@ -46,7 +46,7 @@ jobs:
         run: node scripts/verify-zvq-final-navigation.mjs
       - name: Save read-only navigation screenshots and JSON proof
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: zvq-final-navigation-proof
           path: ${{ runner.temp }}/zvq-final-navigation-evidence

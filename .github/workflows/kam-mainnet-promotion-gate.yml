@@ -83,7 +83,7 @@ jobs:
 
       - name: Upload readiness evidence
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: kam-mainnet-public-readiness
           path: artifacts/kam-mainnet-public-readiness.json

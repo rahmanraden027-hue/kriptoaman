@@ -71,7 +71,7 @@ jobs:
 
       - name: Upload Phase 11G evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: phase11g-login-network-device-evidence
           path: phase11g-evidence

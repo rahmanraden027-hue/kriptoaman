@@ -147,7 +147,7 @@ jobs:
           echo "ZVQ_DEV_SCREENSHOT_DIR=$GITHUB_WORKSPACE/zvq-dev-screenshots" >> "$GITHUB_ENV"
       - name: Verify real Android 360/393 and desktop 1440 Developer experience
         run: node scripts/verify-zvq-developer-visual.mjs
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: zvq-developer-live-android-desktop

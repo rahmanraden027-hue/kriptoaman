@@ -117,7 +117,7 @@ jobs:
 
       - name: Upload KriptoAman Platform preflight AAB
         if: env.SIGNED_RELEASE != 'true'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: kriptoaman-preflight-aab
           path: android/app/build/outputs/bundle/platformRelease/*.aab
@@ -125,7 +125,7 @@ jobs:
 
       - name: Upload KriptoAman Platform preflight APK
         if: env.SIGNED_RELEASE != 'true'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: kriptoaman-preflight-apk
           path: android/app/build/outputs/apk/platform/release/*.apk
@@ -133,7 +133,7 @@ jobs:
 
       - name: Upload ZEVARYQ Wallet preflight AAB
         if: env.SIGNED_RELEASE != 'true'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: zevaryq-wallet-preflight-aab
           path: android/app/build/outputs/bundle/walletRelease/*.aab
@@ -141,7 +141,7 @@ jobs:
 
       - name: Upload ZEVARYQ Wallet preflight APK
         if: env.SIGNED_RELEASE != 'true'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: zevaryq-wallet-preflight-apk
           path: android/app/build/outputs/apk/wallet/release/*.apk
@@ -226,7 +226,7 @@ jobs:
 
       - name: Upload signed KriptoAman Platform Play AAB
         if: env.SIGNED_RELEASE == 'true'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: kriptoaman-play-aab
           path: android/app/build/outputs/bundle/platformRelease/*.aab
@@ -254,7 +254,7 @@ jobs:
 
       - name: Upload signed KriptoAman Platform direct APK
         if: env.SIGNED_RELEASE == 'true'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: kriptoaman-direct-apk
           path: |
@@ -264,7 +264,7 @@ jobs:
 
       - name: Upload signed ZEVARYQ Wallet Play AAB
         if: env.SIGNED_RELEASE == 'true'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: zevaryq-wallet-play-aab
           path: android/app/build/outputs/bundle/walletRelease/*.aab
@@ -272,7 +272,7 @@ jobs:
 
       - name: Upload signed ZEVARYQ Wallet direct APK
         if: env.SIGNED_RELEASE == 'true'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: zevaryq-wallet-direct-apk
           path: |

@@ -26,7 +26,7 @@ jobs:
         run: node chain/kam-mainnet/scripts/evaluate-eight-gates.mjs | tee kam-eight-gate-decision.json
       - name: Upload decision evidence
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: kam-eight-gate-decision
           path: kam-eight-gate-decision.json

@@ -199,7 +199,7 @@ jobs:
             curl --fail-with-body -sS               "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/workers/routes"               -H "Authorization: Bearer ${CF_API_TOKEN}"               -H 'Accept: application/json' | jq . > artifacts/routes-after.json
           fi
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: kam-blockscout-api-cutover-${{ github.run_id }}

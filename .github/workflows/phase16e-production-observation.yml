@@ -57,7 +57,7 @@ jobs:
 
       - name: Preserve Phase 16E observation evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: phase16e-production-observation
           path: ${{ runner.temp }}/phase16e-observation

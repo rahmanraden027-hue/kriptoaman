@@ -268,7 +268,7 @@ jobs:
 
       - name: Upload cutover evidence
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: kam-explorer-rpc-first-cutover-${{ github.run_id }}
           path: artifacts/*
