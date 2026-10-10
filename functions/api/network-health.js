@@ -316,22 +316,21 @@ function isCompleteVerifiedSnapshot(snapshot) {
 }
 
 async function readDurableSnapshot(env) {
-  if (!env?.AUTH_DB) return { snapshot: null, diagnostic: 'd1_binding_unavailable' };
+  if (!env?.AUTH_DB) return null;
   try {
     const db = readSession(env.AUTH_DB);
     const row = await db.prepare(
       'SELECT captured_at, payload FROM network_health_snapshots WHERE id = ?',
     ).bind('global').first();
-    if (!row) return { snapshot: null, diagnostic: 'd1_snapshot_missing' };
+    if (!row) return null;
     const capturedAt = Number(row.captured_at);
     const ageMs = Number.isFinite(capturedAt) ? Math.max(0, Date.now() - capturedAt) : Infinity;
-    if (ageMs > STALE_SNAPSHOT_MAX_AGE_MS) return { snapshot: null, diagnostic: 'd1_snapshot_expired' };
+    if (ageMs > STALE_SNAPSHOT_MAX_AGE_MS) return null;
     const snapshot = JSON.parse(row.payload);
-    if (!isCompleteVerifiedSnapshot(snapshot)) return { snapshot: null, diagnostic: 'd1_snapshot_invalid' };
-    return { snapshot, ageMs, fresh: ageMs < SNAPSHOT_TTL_MS, diagnostic: 'd1_recent_verified' };
+    if (!isCompleteVerifiedSnapshot(snapshot)) return null;
+    return { snapshot, ageMs, fresh: ageMs < SNAPSHOT_TTL_MS };
   } catch {
-    // Public diagnostics are finite reason codes; never expose SQL, bindings or private addresses.
-    return { snapshot: null, diagnostic: 'd1_read_error' };
+    return null;
   }
 }
 
@@ -394,7 +393,7 @@ async function getSnapshot(forceRefresh = false, waitUntil, env) {
 
   const durableRead = readDurableSnapshot(env);
   const durable = await withDeadline(durableRead, DURABLE_READ_BUDGET_MS, null);
-  if (durable?.snapshot) {
+  if (durable) {
     scheduleBackground(
       waitUntil,
       startRefresh().then((snapshot) => persistDurableSnapshot(env, snapshot)),
@@ -422,22 +421,14 @@ async function getSnapshot(forceRefresh = false, waitUntil, env) {
       waitUntil,
       refresh.then((fresh) => persistDurableSnapshot(env, fresh)),
     );
-    return {
-      snapshot: null,
-      deliveryMode: 'warming-background-refresh',
-      ageMs: null,
-      diagnostics: {
-        durableSnapshot: durable?.diagnostic ?? 'd1_read_budget_exceeded',
-        freshProbe: 'pending_beyond_public_response_budget',
-      },
-    };
+    return { snapshot: null, deliveryMode: 'warming-background-refresh', ageMs: null };
   }
 
   scheduleBackground(waitUntil, persistDurableSnapshot(env, snapshot));
   return { snapshot, deliveryMode: 'fresh-probe', ageMs: 0 };
 }
 
-function warmingPayload(deliveryMode, diagnostics) {
+function warmingPayload(deliveryMode) {
   return {
     summary: null,
     networks: [],
@@ -445,7 +436,6 @@ function warmingPayload(deliveryMode, diagnostics) {
     availability: {
       state: 'warming',
       reason: 'verified_snapshot_unavailable_within_response_budget',
-      diagnostics: diagnostics ?? null,
     },
     delivery: {
       mode: deliveryMode,
@@ -479,9 +469,9 @@ export async function onRequestGet({ request, waitUntil, env } = {}) {
     }
   }
 
-  const { snapshot, deliveryMode, ageMs, diagnostics } = await getSnapshot(forceRefresh, waitUntil, env);
+  const { snapshot, deliveryMode, ageMs } = await getSnapshot(forceRefresh, waitUntil, env);
   if (!snapshot) {
-    return json(warmingPayload(deliveryMode, diagnostics), { status: 503 }, {
+    return json(warmingPayload(deliveryMode), { status: 503 }, {
       'X-KriptoAman-Network-Cache': 'MISS',
       'X-KriptoAman-Network-Delivery': deliveryMode,
     });
