@@ -21,7 +21,7 @@ function verifiedNetworkSnapshot(at = NOW) {
   };
 }
 
-async function runFixture({ scenario, networkRow, httpNetwork }) {
+async function runFixture({ scenario, networkRow, httpNetwork, cachedResponse = null, slowNetworkD1 = false }) {
   const previousFetch = globalThis.fetch;
   const previousCaches = globalThis.caches;
   const calls = [];
@@ -34,7 +34,10 @@ async function runFixture({ scenario, networkRow, httpNetwork }) {
           return {
             async first() {
               if (query.includes('FROM platform_status_snapshots')) return null;
-              if (query.includes('FROM network_health_snapshots')) return networkRow;
+              if (query.includes('FROM network_health_snapshots')) {
+                if (slowNetworkD1) return new Promise(() => {});
+                return networkRow;
+              }
               if (query.includes('FROM market_snapshots')) {
                 return { source: 'verified-market', asset_count: 4900, captured_at: Date.now() - 1000 };
               }
@@ -46,7 +49,9 @@ async function runFixture({ scenario, networkRow, httpNetwork }) {
       };
     },
   };
-  globalThis.caches = undefined;
+  globalThis.caches = cachedResponse ? {
+    default: { match: async () => cachedResponse.clone(), put: async () => undefined },
+  } : undefined;
   globalThis.fetch = async (url) => {
     const pathName = new URL(String(url)).pathname;
     calls.push(pathName);
@@ -110,4 +115,44 @@ test('contradictory D1 network counts are rejected before HTTP fallback', async 
   assert.equal(result.body.components.networks.readMode, 'http-fallback');
   assert.equal(result.body.components.networks.healthy, false);
   assert.ok(result.calls.includes('/api/network-health'));
+});
+
+test('previously operational edge cache with expired network checkedAt cannot be reused', async () => {
+  const cached = {
+    overall: 'operational',
+    components: {
+      market: { healthy: true, assetCount: 4900, capturedAt: Date.now() - 1000 },
+      networks: {
+        healthy: true, online: 20, minimumActiveTarget: 12,
+        checkedAt: new Date(Date.now() - 90_000).toISOString(),
+      },
+      kam: { healthy: true, chainId: 22028 },
+    },
+  };
+  const result = await runFixture({
+    scenario: 'cache-expired',
+    networkRow: { captured_at: Date.now(), payload: JSON.stringify(verifiedNetworkSnapshot(Date.now())) },
+    cachedResponse: Response.json(cached),
+    httpNetwork: Response.json({ availability: { state: 'warming' } }, { status: 503 }),
+  });
+  assert.equal(result.response.headers.get('X-KriptoAman-Status-Cache'), 'MISS');
+  assert.equal(result.body.components.networks.readMode, 'd1-recent-verified');
+  assert.equal(result.body.overall, 'operational');
+  assert.ok(!result.calls.includes('/api/network-health'));
+});
+
+test('slow D1 session obeys bounded read budget and falls back without invented online status', async () => {
+  const started = performance.now();
+  const result = await runFixture({
+    scenario: 'slow-D1',
+    slowNetworkD1: true,
+    networkRow: null,
+    httpNetwork: Response.json({ availability: { state: 'warming' } }, { status: 503 }),
+  });
+  const elapsed = performance.now() - started;
+  assert.ok(elapsed < 1500, `D1 timeout/fallback exceeded expected budget: ${elapsed}ms`);
+  assert.ok(result.calls.includes('/api/network-health'));
+  assert.equal(result.body.components.networks.readMode, 'http-fallback');
+  assert.equal(result.body.components.networks.healthy, false);
+  assert.equal(result.body.components.networks.online, null);
 });
