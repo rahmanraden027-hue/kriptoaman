@@ -156,3 +156,27 @@ test('slow D1 session obeys bounded read budget and falls back without invented 
   assert.equal(result.body.components.networks.healthy, false);
   assert.equal(result.body.components.networks.online, null);
 });
+
+test('HTTP response with expired network proof is not promoted to healthy or operational', async () => {
+  const staleProof = verifiedNetworkSnapshot(Date.now() - 90_000);
+  const result = await runFixture({
+    scenario: 'http-expired',
+    networkRow: null,
+    httpNetwork: Response.json(staleProof),
+  });
+  assert.equal(result.body.components.networks.readMode, 'http-fallback');
+  assert.equal(result.body.components.networks.healthy, false);
+  assert.equal(result.body.components.networks.meetsMinimumActiveTarget, false);
+  assert.notEqual(result.body.overall, 'operational');
+  assert.ok(result.calls.includes('/api/network-health'));
+});
+
+test('network HTTP fallback is explicitly capped after a D1 miss', async () => {
+  const source = await import('node:fs/promises').then(({ readFile }) =>
+    readFile(new URL('../functions/api/platform-status.js', import.meta.url), 'utf8'));
+  assert.match(source, /const NETWORK_DURABLE_READ_BUDGET_MS = 200/);
+  assert.match(source, /const NETWORK_HTTP_FALLBACK_TIMEOUT_MS = 650/);
+  assert.match(source, /readJson\(`\$\{origin\}\/api\/network-health`, NETWORK_HTTP_FALLBACK_TIMEOUT_MS\)/);
+  assert.match(source, /hasFreshNetworkProof\(networks, now\)/);
+  assert.match(source, /!hasFreshNetworkProof\(networks, atMs\)/);
+});
