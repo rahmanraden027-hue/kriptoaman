@@ -25,6 +25,10 @@ function diagnosticBody(body) {
     healthy: body.healthy ?? null,
     summary: body.summary ?? null,
     delivery: body.delivery ?? null,
+    availability: body.availability ? {
+      state: body.availability?.state ?? null,
+      reason: body.availability?.reason ?? null,
+    } : null,
     checked_at: body.checked_at ?? body.checkedAt ?? null,
   };
 }
