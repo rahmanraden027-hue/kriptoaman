@@ -14,6 +14,11 @@ const DURABLE_STATUS_READ_BUDGET_MS = 150;
 const MARKET_METADATA_READ_BUDGET_MS = 650;
 const MARKET_HTTP_FALLBACK_TIMEOUT_MS = 1500;
 const MARKET_STALE_FAST_PATH_MS = 450;
+// Bound D1 reads of current verified multi-chain snapshots before an HTTP cold probe.
+const NETWORK_DURABLE_READ_BUDGET_MS = 200;
+const NETWORK_DURABLE_FRESH_MS = 45_000;
+const NETWORK_EXPECTED_PROBES = 21;
+const NETWORK_MINIMUM_TARGET = 12;
 
 const DURABLE_STATUS_SCHEMA = `
 CREATE TABLE IF NOT EXISTS platform_status_snapshots (
@@ -109,6 +114,57 @@ function marketDirectResult(row) {
       },
     },
   };
+}
+
+async function readNetworkMetadata(env, origin) {
+  if (env?.AUTH_DB) {
+    try {
+      const directRead = (async () => {
+        const db = readSession(env.AUTH_DB);
+        const row = await db.prepare(
+          'SELECT captured_at, payload FROM network_health_snapshots WHERE id = ?',
+        ).bind('global').first();
+        if (!row) return null;
+
+        const now = Date.now();
+        const capturedAt = Number(row.captured_at);
+        if (!Number.isFinite(capturedAt) || capturedAt <= 0 || capturedAt > now
+          || now - capturedAt >= NETWORK_DURABLE_FRESH_MS) return null;
+
+        const snapshot = JSON.parse(row.payload);
+        const summary = snapshot?.summary;
+        const networks = snapshot?.networks;
+        const checkedAt = Date.parse(snapshot?.checked_at);
+        if (!Array.isArray(networks) || networks.length !== NETWORK_EXPECTED_PROBES
+          || Number(summary?.total) !== NETWORK_EXPECTED_PROBES
+          || Number(summary?.minimum_active_target) !== NETWORK_MINIMUM_TARGET
+          || !Number.isFinite(checkedAt) || checkedAt > now
+          || now - checkedAt >= NETWORK_DURABLE_FRESH_MS) return null;
+
+        const counts = { online: 0, degraded: 0, offline: 0 };
+        for (const network of networks) {
+          if (!network || !Object.hasOwn(counts, network.status)) return null;
+          counts[network.status] += 1;
+          const probeAt = Date.parse(network.checked_at);
+          if (!Number.isFinite(probeAt) || probeAt > now
+            || now - probeAt >= NETWORK_DURABLE_FRESH_MS) return null;
+        }
+        if (counts.online !== summary.online || counts.degraded !== summary.degraded
+          || counts.offline !== summary.offline
+          || counts.online + counts.degraded + counts.offline !== NETWORK_EXPECTED_PROBES) return null;
+
+        return { ok: true, status: 200, payload: snapshot, readMode: 'd1-recent-verified' };
+      })();
+      const verified = await withDeadline(directRead, NETWORK_DURABLE_READ_BUDGET_MS, null);
+      if (verified) return verified;
+    } catch (error) {
+      console.error('Direct network health snapshot read failed; using HTTP fallback', {
+        error: error?.message || String(error),
+      });
+    }
+  }
+  const fallback = await readJson(`${origin}/api/network-health`);
+  return { ...fallback, readMode: 'http-fallback' };
 }
 
 async function readMarketMetadata(env, origin, waitUntil) {
@@ -267,7 +323,7 @@ async function buildStatus(request, env) {
   const waitUntil = waitUntilByRequest.get(request);
   const [market, networks, kam] = await Promise.all([
     readMarketMetadata(env, origin, waitUntil),
-    readJson(`${origin}/api/network-health`),
+    readNetworkMetadata(env, origin),
     readJson(`${origin}/api/kam/network-status`),
   ]);
 
@@ -306,6 +362,7 @@ async function buildStatus(request, env) {
       refreshError: market.refreshAttempted && !market.refreshRecovered ? market.refreshError ?? 'refresh_failed' : null,
     },
     networks: {
+      readMode: networks.readMode ?? null,
       status: networksHealthy ? (Number(networks.payload?.summary?.offline) > 0 ? 'degraded' : 'operational') : networks.ok ? 'degraded' : 'unavailable',
       healthy: networksHealthy,
       online: Number.isFinite(networkOnline) ? networkOnline : null,
@@ -348,6 +405,9 @@ async function buildStatus(request, env) {
         edgeCache: true,
         durableAggregateCache: true,
         componentStatusTimeoutMs: COMPONENT_STATUS_TIMEOUT_MS,
+        networkDurableReadBudgetMs: NETWORK_DURABLE_READ_BUDGET_MS,
+        networkDurableFreshMs: NETWORK_DURABLE_FRESH_MS,
+        networkDirectD1ReadsMustMatchAllProbeStatuses: true,
         componentTimeoutDegradesRatherThanFabricates: true,
         marketOperationalMinAssets: MIN_PUBLIC_MARKET_ASSETS,
         marketOperationalRequiresFreshSnapshot: true,
