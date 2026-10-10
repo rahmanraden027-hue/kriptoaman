@@ -354,7 +354,8 @@ async function buildStatus(request, env) {
   const networkDegraded = networks.ok ? Number(networks.payload?.summary?.degraded || 0) : null;
   const networkMinimumTarget = networks.ok ? Number(networks.payload?.summary?.minimum_active_target || 12) : null;
   const networksHealthy = Boolean(
-    Number.isFinite(networkOnline)
+    hasFreshNetworkProof({ checkedAt: networks.payload?.checked_at })
+      && Number.isFinite(networkOnline)
       && Number.isFinite(networkMinimumTarget)
       && networkOnline >= networkMinimumTarget,
   );
