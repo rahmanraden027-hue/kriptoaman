@@ -2,6 +2,7 @@ import { writeFile } from 'node:fs/promises';
 
 const ORIGIN = (process.env.KA_SLO_ORIGIN || 'https://kriptoaman.com').replace(/\/$/, '');
 const SAMPLES = Math.max(3, Math.min(12, Number(process.env.KA_SLO_SAMPLES || 6)));
+const MARKET_HOT_FRESHNESS_TARGET_MS = 60_000;
 const ENDPOINTS = [
   { name: 'homepage', path: '/', targetP95Ms: 1500, hardP95Ms: 3000, json: false },
   { name: 'market-hot', path: '/api/market-hot', targetP95Ms: 750, hardP95Ms: 2000, json: true },
@@ -105,10 +106,15 @@ const results = [];
 for (const endpoint of ENDPOINTS) results.push(await sampleEndpoint(endpoint));
 
 const market = results.find((r) => r.name === 'market-hot')?.latestBody;
+const marketHotAge = market?.ageMs;
+const marketHotAgeMs = Number.isFinite(marketHotAge) && marketHotAge >= 0 ? marketHotAge : null;
+const marketHotFreshnessMet = market?.healthy === true
+  && marketHotAgeMs !== null && marketHotAgeMs <= MARKET_HOT_FRESHNESS_TARGET_MS;
 const network = results.find((r) => r.name === 'network-health')?.latestBody;
 const scaling = results.find((r) => r.name === 'scaling-readiness')?.latestBody;
 const hardFailures = results.filter((r) => !r.hardGateMet);
-const targetMisses = results.filter((r) => !r.targetMet);
+const targetMisses = results.filter((r) => !r.targetMet).map((r) => r.name);
+if (!marketHotFreshnessMet) targetMisses.push('market-hot-freshness');
 
 const report = {
   checkedAt: new Date().toISOString(),
@@ -120,13 +126,14 @@ const report = {
     requestErrorTarget: '<1%',
     cachedPublicApiP95TargetMs: 500,
     endpointTargetsAreTransitional: true,
-    marketHotFreshnessTargetMs: 60_000,
+    marketHotFreshnessTargetMs: MARKET_HOT_FRESHNESS_TARGET_MS,
     networkMinimumLiveTarget: 12,
     networkFullCoverageTarget: 21,
   },
   current: {
     marketHotHealthy: market?.healthy === true,
-    marketHotAgeMs: Number(market?.ageMs ?? -1),
+    marketHotAgeMs,
+    marketHotFreshnessMet,
     // A missing/503 network-health response means unknown coverage, not zero live chains.
     networkOnline: Number.isFinite(network?.summary?.online) ? network.summary.online : null,
     networkTotal: Number.isFinite(network?.summary?.total) ? network.summary.total : null,
@@ -136,7 +143,7 @@ const report = {
     queueConfigured: scaling?.components?.asyncRefreshQueue?.configured === true,
   },
   endpointResults: results.map(({ latestBody, ...rest }) => rest),
-  targetMisses: targetMisses.map((r) => r.name),
+  targetMisses,
   hardFailures: hardFailures.map((r) => r.name),
 };
 
@@ -151,7 +158,8 @@ const md = [
   '',
   `- Checked: ${report.checkedAt}`,
   `- Status: **${report.status}**`,
-  `- Market hot age: ${report.current.marketHotAgeMs} ms`,
+  `- Market hot age: ${report.current.marketHotAgeMs ?? 'unknown'} ms`,
+  `- Market hot freshness target: ${report.slo.marketHotFreshnessTargetMs} ms — ${report.current.marketHotFreshnessMet ? 'PASS' : 'MISS'}`,
   `- Multi-chain: ${report.current.networkOnline ?? 'unknown'}/${report.current.networkTotal ?? 'unknown'} live; degraded ${report.current.networkDegraded ?? 'unknown'}`,
   `- D1 Sessions API: ${report.current.d1SessionsApiAvailable ? 'available' : 'not detected'}`,
   `- D1 read replication account state: ${report.current.d1ReadReplicationAccountState}`,
