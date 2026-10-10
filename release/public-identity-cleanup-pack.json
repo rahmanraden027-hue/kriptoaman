@@ -1,0 +1,79 @@
+{
+  "pack": "public-identity-cleanup",
+  "version": "2026-10-07-prep-1",
+  "status": "prepared-not-applied",
+  "applyAfter": "phase16f-24h-pass",
+  "canonicalIdentity": {
+    "platform": "KriptoAman",
+    "network": "ZEVARYQ Mainnet",
+    "nativeAsset": "ZVQ",
+    "chainId": 22028,
+    "chainIdHex": "0x560c"
+  },
+  "runtimePolicy": {
+    "productionFrozen": true,
+    "mergeBefore24hPass": false,
+    "deployBefore24hPass": false,
+    "renameInternalCompatibilityPaths": false,
+    "renameHistoricalArchives": false,
+    "convertKamPointsToZvq": false
+  },
+  "publicReplacementsAfter24hPass": [
+    {
+      "path": "src/pages/ReadinessCheck.jsx",
+      "from": "KAM RPC",
+      "to": "ZEVARYQ RPC",
+      "reason": "User-facing network identity should match ZEVARYQ Mainnet."
+    },
+    {
+      "path": "src/pages/ReadinessCheck.jsx",
+      "from": "RPC KAM belum terverifikasi pada pemeriksaan ini",
+      "to": "RPC ZEVARYQ belum terverifikasi pada pemeriksaan ini",
+      "reason": "Fail-closed status copy should use the current network identity."
+    },
+    {
+      "path": "src/pages/ReadinessCheck.jsx",
+      "from": "KAM publication state",
+      "to": "ZEVARYQ publication state",
+      "reason": "Admin readiness presentation should not expose the retired public network name."
+    },
+    {
+      "path": "src/pages/ReadinessCheck.jsx",
+      "from": "KAM tetap berstatus kandidat mainnet",
+      "to": "ZEVARYQ tetap berstatus kandidat mainnet",
+      "reason": "Readiness explanation should match the current network identity."
+    },
+    {
+      "path": "src/pages/Enterprise.jsx",
+      "from": "Dedicated KAM RPC",
+      "to": "Dedicated ZEVARYQ RPC",
+      "reason": "Enterprise-facing RPC product naming should match the live network identity."
+    }
+  ],
+  "retainAsCompatibility": [
+    "/api/kam/network-status",
+    "src/pages/KAMNetwork.jsx",
+    "src/pages/KAMNetworkDocs.jsx",
+    "chain/kam-mainnet/",
+    ".github/workflows/kam-mainnet-24x7-monitor.yml",
+    "X-KAM-* internal compatibility markers"
+  ],
+  "retainAsHistoricalArchive": [
+    "src/pages/KAMResearchPaper.jsx",
+    "src/pages/KAMCampaignNews.jsx",
+    "src/pages/KAMDEX.jsx"
+  ],
+  "retainAsSeparateOffchainProduct": [
+    {
+      "name": "KAM Points",
+      "reason": "Off-chain rewards/ledger system. It must not be relabeled as ZVQ because ZVQ is the native blockchain asset."
+    }
+  ],
+  "acceptance": {
+    "noVisibleRetiredNetworkBrandOnPrimaryProductionSurfaces": true,
+    "legacyCompatibilityStillWorks": true,
+    "historicalArchiveRemainsExplicitlyHistorical": true,
+    "kamPointsRemainClearlyOffchain": true,
+    "noGenesisValidatorKeyBalanceSupplyLiquidityDnsConsensusRpcWriteMutation": true
+  }
+}
