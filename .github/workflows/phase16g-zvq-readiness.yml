@@ -1,0 +1,49 @@
+name: Phase 16G ZVQ Registry & Liquidity Readiness
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'chain/zevaryq-mainnet/registry/zvq-production-registry.draft.json'
+      - 'chain/zevaryq-mainnet/registry/zvq-supply-reconciliation.draft.json'
+      - 'chain/zevaryq-mainnet/registry/zvq-supply-attestation.template.json'
+      - 'chain/zevaryq-mainnet/registry/zvq-tokenomics-v2-governance.template.json'
+      - 'chain/zevaryq-mainnet/liquidity/liquidity-readiness.draft.json'
+      - 'docs/ZVQ_EXCHANGE_MARKET_SUBMISSION_PACKAGE.md'
+      - 'docs/PHASE16G_ZVQ_REGISTRY_LIQUIDITY_READINESS.md'
+      - 'docs/PHASE16G_ZVQ_SUPPLY_RECONCILIATION.md'
+      - 'docs/PHASE16G_ZVQ_GOVERNANCE_DECISION_REQUIRED.md'
+      - 'docs/PHASE16G_TERMUX_GENESIS_ATTESTATION.md'
+      - 'scripts/verify-phase16g-zvq-readiness.mjs'
+      - 'scripts/collect-zvq-genesis-attestation.mjs'
+      - 'tests/phase16g-zvq-readiness.test.mjs'
+      - 'tests/zvq-genesis-attestation-collector.test.mjs'
+      - 'chain/zevaryq-mainnet/registry/zvq-asset-indexing-readiness.draft.json'
+      - 'src/data/zevaryqAssetRegistry.js'
+      - 'src/data/zevaryqVisualAssetCatalog.js'
+      - 'public/assets/zevaryq/tokens/**'
+      - 'public/brand/zevaryq-*'
+      - 'scripts/verify-phase16g-asset-indexing.mjs'
+      - 'tests/phase16g-asset-indexing-readiness.test.mjs'
+      - 'docs/PHASE16G_C_ASSET_LOGO_INDEXING_READINESS.md'
+      - '.github/workflows/phase16g-zvq-readiness.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run Phase 16G registry readiness verifier
+        run: node scripts/verify-phase16g-zvq-readiness.mjs
+      - name: Run Phase 16G-C asset indexing verifier
+        run: node scripts/verify-phase16g-asset-indexing.mjs
+      - name: Run Phase 16G regression contract
+        run: node --test tests/phase16g-zvq-readiness.test.mjs tests/zvq-genesis-attestation-collector.test.mjs tests/phase16g-asset-indexing-readiness.test.mjs

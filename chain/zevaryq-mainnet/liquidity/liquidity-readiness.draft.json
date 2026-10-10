@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "phase": "16G",
+  "status": "PRE_EXECUTION_READINESS_ONLY",
+  "liquidityAuthorized": false,
+  "publicSwapAuthorized": false,
+  "mainnetContractDeploymentAuthorized": false,
+  "requiresPhase16FLongRunStable": true,
+  "requiredNetwork": {
+    "chainId": 22028,
+    "chainIdHex": "0x560c",
+    "nativeSymbol": "ZVQ"
+  },
+  "preconditions": {
+    "phase16FLongRunStable": false,
+    "supplyReconciled": false,
+    "circulatingSupplyMethodologyPublished": false,
+    "allocationWalletsPublished": false,
+    "zvqLogoIndexed": false,
+    "allApprovedQuoteAssetLogosIndexed": false,
+    "quoteAssetContractsVerified": false,
+    "quoteAssetBackingAndBridgeProvenanceVerified": false,
+    "wzvqContractDeployedAndExplorerVerified": false,
+    "factoryContractDeployedAndExplorerVerified": false,
+    "routerContractDeployedAndExplorerVerified": false,
+    "independentSmartContractReviewClear": false,
+    "treasurySourceWalletApproved": false,
+    "treasuryCustodyEvidenceComplete": false,
+    "maximumPilotLiquidityApproved": false,
+    "gasEstimateVerified": false,
+    "smallWrapUnwrapSmokePassed": false,
+    "smallAddRemoveLiquiditySmokePassed": false,
+    "smallBuySellSmokePassed": false,
+    "poolAddressesPublished": false,
+    "walletProductionAddressesUpdated": false
+  },
+  "candidatePairs": [
+    {
+      "pair": "ZVQ/USDT",
+      "status": "PLANNED",
+      "quoteAssetProvenance": "PENDING",
+      "poolAddress": null,
+      "liquidityAmountZVQ": null,
+      "liquidityAmountQuote": null
+    },
+    {
+      "pair": "ZVQ/USDC",
+      "status": "PLANNED",
+      "quoteAssetProvenance": "PENDING",
+      "poolAddress": null,
+      "liquidityAmountZVQ": null,
+      "liquidityAmountQuote": null
+    },
+    {
+      "pair": "ZVQ/BTC",
+      "status": "PLANNED",
+      "quoteAssetProvenance": "PENDING",
+      "poolAddress": null,
+      "liquidityAmountZVQ": null,
+      "liquidityAmountQuote": null
+    },
+    {
+      "pair": "ZVQ/ETH",
+      "status": "PLANNED",
+      "quoteAssetProvenance": "PENDING",
+      "poolAddress": null,
+      "liquidityAmountZVQ": null,
+      "liquidityAmountQuote": null
+    }
+  ],
+  "executionEvidenceRequired": {
+    "sourceWallet": null,
+    "custodyReference": null,
+    "treasuryApprovalReference": null,
+    "contractAddresses": [],
+    "poolAddresses": [],
+    "transactionHashes": [],
+    "blockNumbers": [],
+    "gasUsed": null,
+    "gasCostNative": null,
+    "postExecutionReserveSnapshot": null
+  },
+  "marketIntegrityPolicy": {
+    "washTradingAllowed": false,
+    "fabricatedVolumeAllowed": false,
+    "artificialPriceSupportAllowed": false,
+    "projectDeclaredPriceAllowed": false,
+    "priceMustComeFromRealMarketActivity": true,
+    "volumeMustComeFromRealMarketActivity": true
+  }
+}
