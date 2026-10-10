@@ -153,7 +153,9 @@ async function readNetworkMetadata(env, origin) {
           || counts.offline !== summary.offline
           || counts.online + counts.degraded + counts.offline !== NETWORK_EXPECTED_PROBES) return null;
 
-        return { ok: true, status: 200, payload: snapshot, readMode: 'd1-recent-verified' };
+        // Preserve the network-health endpoint's HTTP semantics for zero live probes.
+        const status = counts.online > 0 ? 200 : 503;
+        return { ok: status === 200, status, payload: snapshot, readMode: 'd1-recent-verified' };
       })();
       const verified = await withDeadline(directRead, NETWORK_DURABLE_READ_BUDGET_MS, null);
       if (verified) return verified;
