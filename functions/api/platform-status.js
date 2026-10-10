@@ -16,6 +16,8 @@ const MARKET_HTTP_FALLBACK_TIMEOUT_MS = 1500;
 const MARKET_STALE_FAST_PATH_MS = 450;
 // Bound D1 reads of current verified multi-chain snapshots before an HTTP cold probe.
 const NETWORK_DURABLE_READ_BUDGET_MS = 200;
+// A bounded fallback prevents a slow D1 miss from consuming the entire SLO budget.
+const NETWORK_HTTP_FALLBACK_TIMEOUT_MS = 650;
 const NETWORK_DURABLE_FRESH_MS = 45_000;
 const NETWORK_EXPECTED_PROBES = 21;
 const NETWORK_MINIMUM_TARGET = 12;
@@ -165,7 +167,7 @@ async function readNetworkMetadata(env, origin) {
       });
     }
   }
-  const fallback = await readJson(`${origin}/api/network-health`);
+  const fallback = await readJson(`${origin}/api/network-health`, NETWORK_HTTP_FALLBACK_TIMEOUT_MS);
   return { ...fallback, readMode: 'http-fallback' };
 }
 
@@ -229,6 +231,14 @@ async function readMarketMetadata(env, origin, waitUntil) {
   return { ...fallback, readMode: 'http-fallback' };
 }
 
+function hasFreshNetworkProof(networks, now = Date.now()) {
+  const checkedAt = Date.parse(networks?.checkedAt);
+  return Number.isFinite(checkedAt)
+    && checkedAt > 0
+    && checkedAt <= now
+    && now - checkedAt < NETWORK_DURABLE_FRESH_MS;
+}
+
 function isVerifiedOperationalBody(body, now = Date.now()) {
   const market = body?.components?.market;
   const networks = body?.components?.networks;
@@ -244,6 +254,7 @@ function isVerifiedOperationalBody(body, now = Date.now()) {
       && Number(market?.assetCount) >= MIN_PUBLIC_MARKET_ASSETS
       && marketAgeMs <= MARKET_SNAPSHOT_FRESH_MS
       && networks?.healthy === true
+      && hasFreshNetworkProof(networks, now)
       && Number.isFinite(networkOnline)
       && Number.isFinite(networkMinimumTarget)
       && networkOnline >= networkMinimumTarget
@@ -408,6 +419,8 @@ async function buildStatus(request, env) {
         durableAggregateCache: true,
         componentStatusTimeoutMs: COMPONENT_STATUS_TIMEOUT_MS,
         networkDurableReadBudgetMs: NETWORK_DURABLE_READ_BUDGET_MS,
+        networkHttpFallbackTimeoutMs: NETWORK_HTTP_FALLBACK_TIMEOUT_MS,
+        cachedOperationalNetworkRequiresFreshProof: true,
         networkDurableFreshMs: NETWORK_DURABLE_FRESH_MS,
         networkDirectD1ReadsMustMatchAllProbeStatuses: true,
         componentTimeoutDegradesRatherThanFabricates: true,
@@ -449,6 +462,8 @@ function canReuseCachedStatus(atMs) {
 
   // A previously healthy market snapshot must not remain "operational"
   // beyond its underlying 15-minute capture freshness budget.
+  const networks = cachedStatus.body?.components?.networks;
+  if (networks?.healthy === true && !hasFreshNetworkProof(networks, atMs)) return false;
   const market = cachedStatus.body?.components?.market;
   if (market?.healthy === true) {
     const capturedAt = Number(market.capturedAt);
