@@ -20,7 +20,7 @@ test('bounded fallback never fabricates network evidence', () => {
   assert.match(source, /checked_at: null/);
   assert.match(source, /unavailableMetricsUseNull: true/);
   assert.match(source, /fabricatedMetrics: false/);
-  assert.match(source, /return json\(warmingPayload\(deliveryMode\), \{ status: 503 \}/);
+  assert.match(source, /return json\(warmingPayload\(deliveryMode(?:, diagnostics)?\), \{ status: 503 \}/);
 });
 
 test('background refresh can finish and persist after response budget expires', () => {

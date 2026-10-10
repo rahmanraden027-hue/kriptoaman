@@ -50,7 +50,7 @@ test('platform status self-heals stale market metadata only through a bounded ve
 test('platform status bounds component reads below the public aggregate SLO instead of waiting on slow cold subrequests', async () => {
   const source = await read('functions/api/platform-status.js');
   assert.match(source, /const COMPONENT_STATUS_TIMEOUT_MS = 1800/);
-  assert.match(source, /readJson\(`\$\{origin\}\/api\/network-health`\)/);
+  assert.match(source, /readJson\(`\$\{origin\}\/api\/network-health`, NETWORK_HTTP_FALLBACK_TIMEOUT_MS\)/);
   assert.match(source, /readJson\(`\$\{origin\}\/api\/kam\/network-status`\)/);
   assert.match(source, /componentStatusTimeoutMs: COMPONENT_STATUS_TIMEOUT_MS/);
   assert.match(source, /componentTimeoutDegradesRatherThanFabricates: true/);
