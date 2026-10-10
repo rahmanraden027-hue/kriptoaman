@@ -8,8 +8,12 @@ on:
       - 'functions/api/network-health.js'
       - '.github/workflows/network-health-warm.yml'
   schedule:
-    # Stagger from the access-resilience checks to avoid request bursts.
-    - cron: '6,21,36,51 * * * *'
+    # Refresh at the shortest ordinary GitHub Actions cadence (five minutes)
+    # to reduce gaps versus the endpoint's five-minute durable snapshot horizon.
+    # GitHub scheduler jitter and D1/Worker issues can still leave cold-POP 503s;
+    # never promote stale or unverified provider results as live evidence.
+    # Offset from access-resilience at :07/:22/:37/:52 to avoid bursts.
+    - cron: '1-59/5 * * * *'
 
 permissions:
   contents: read
