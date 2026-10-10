@@ -123,9 +123,10 @@ const report = {
   current: {
     marketHotHealthy: market?.healthy === true,
     marketHotAgeMs: Number(market?.ageMs ?? -1),
-    networkOnline: Number(network?.summary?.online || 0),
-    networkTotal: Number(network?.summary?.total || 0),
-    networkDegraded: Number(network?.summary?.degraded || 0),
+    // A missing/503 network-health response means unknown coverage, not zero live chains.
+    networkOnline: Number.isFinite(network?.summary?.online) ? network.summary.online : null,
+    networkTotal: Number.isFinite(network?.summary?.total) ? network.summary.total : null,
+    networkDegraded: Number.isFinite(network?.summary?.degraded) ? network.summary.degraded : null,
     d1SessionsApiAvailable: scaling?.components?.d1?.sessionsApiAvailable === true,
     d1ReadReplicationAccountState: scaling?.components?.d1?.readReplicationAccountState || 'unknown',
     queueConfigured: scaling?.components?.asyncRefreshQueue?.configured === true,
@@ -147,7 +148,7 @@ const md = [
   `- Checked: ${report.checkedAt}`,
   `- Status: **${report.status}**`,
   `- Market hot age: ${report.current.marketHotAgeMs} ms`,
-  `- Multi-chain: ${report.current.networkOnline}/${report.current.networkTotal} live; degraded ${report.current.networkDegraded}`,
+  `- Multi-chain: ${report.current.networkOnline ?? 'unknown'}/${report.current.networkTotal ?? 'unknown'} live; degraded ${report.current.networkDegraded ?? 'unknown'}`,
   `- D1 Sessions API: ${report.current.d1SessionsApiAvailable ? 'available' : 'not detected'}`,
   `- D1 read replication account state: ${report.current.d1ReadReplicationAccountState}`,
   `- Async refresh queue binding: ${report.current.queueConfigured ? 'configured' : 'not configured'}`,
