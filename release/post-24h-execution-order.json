@@ -1,0 +1,127 @@
+{
+  "plan": "post-24h-execution-order",
+  "version": "2026-10-07-prep-1",
+  "status": "prepared-not-executed",
+  "productionBaselineCommit": "4b7bfb90ecf153fadf1f82c27c8a5eb0e8289be8",
+  "principle": "preserve one unchanged production baseline through the 72H stability window",
+  "prerequisites": {
+    "phase16f24hStatus": "PASS",
+    "minimum24hSpanHours": 23,
+    "minimum24hHourlyBuckets": 20,
+    "failedRunsAllowed": 0,
+    "missingArtifactsAllowed": 0
+  },
+  "sequence": [
+    {
+      "order": 1,
+      "id": "verify-24h-pass",
+      "action": "Verify Phase 16F 24H PASS from actual evidence artifacts and workflow logs.",
+      "productionMutation": false
+    },
+    {
+      "order": 2,
+      "id": "device-gate-on-frozen-baseline",
+      "action": "Execute the Device Acceptance Pack against the unchanged production baseline, including required physical Android evidence.",
+      "sourcePreparationPr": 1044,
+      "productionMutation": false
+    },
+    {
+      "order": 3,
+      "id": "continue-72h-same-baseline",
+      "action": "Continue Phase 16E observations and Phase 16F aggregation until the 72H gate passes on the same production baseline.",
+      "required72hSpanHours": 70,
+      "required72hHourlyBuckets": 60,
+      "productionMutation": false
+    },
+    {
+      "order": 4,
+      "id": "verify-72h-pass",
+      "action": "Verify Phase 16F 72H PASS before any prepared identity/runtime migration is allowed.",
+      "productionMutation": false
+    },
+    {
+      "order": 5,
+      "id": "refresh-preparation-prs",
+      "action": "Rebase or refresh PRs 1042, 1043 and 1044 onto the then-current main branch and require green CI again.",
+      "productionMutation": false
+    },
+    {
+      "order": 6,
+      "id": "canonical-zvq-alias",
+      "action": "Review and merge the canonical /api/zvq/network-status compatibility alias preparation from PR 1042, preserving /api/kam/network-status.",
+      "sourcePreparationPr": 1042,
+      "productionMutation": true,
+      "verification": [
+        "new and legacy endpoints resolve to the same verified read-only handler",
+        "Chain ID remains 22028 / 0x560c",
+        "native symbol remains ZVQ",
+        "block/head semantics remain consistent",
+        "RPC write policy remains disabled"
+      ]
+    },
+    {
+      "order": 7,
+      "id": "governed-runtime-transition",
+      "action": "Create a separate transition-governance PR before changing any Phase 13 protected runtime file. Authorize only the exact protected paths required for the ZVQ endpoint preference with legacy fallback.",
+      "productionMutation": true,
+      "governanceRequired": true,
+      "forbidden": [
+        "genesis",
+        "validator keys",
+        "private keys",
+        "balances",
+        "token supply",
+        "liquidity",
+        "custody",
+        "DNS",
+        "consensus",
+        "wallet signing",
+        "wallet broadcasting",
+        "RPC write methods"
+      ]
+    },
+    {
+      "order": 8,
+      "id": "public-identity-cleanup",
+      "action": "Apply only the user-visible identity replacements defined by PR 1043 while retaining compatibility identifiers, historical archives and KAM Points separation.",
+      "sourcePreparationPr": 1043,
+      "productionMutation": true
+    },
+    {
+      "order": 9,
+      "id": "post-change-device-regression",
+      "action": "Repeat critical Platform and Wallet device acceptance after the transition and identity cleanup.",
+      "sourcePreparationPr": 1044,
+      "productionMutation": false
+    },
+    {
+      "order": 10,
+      "id": "release-decision",
+      "action": "Issue the final release decision only after post-change browser, wallet, Explorer, RPC and device evidence are green.",
+      "productionMutation": false
+    }
+  ],
+  "preparedPullRequests": {
+    "1042": {
+      "purpose": "ZVQ network-status compatibility preparation",
+      "mustRemainDraftUntil24hPass": true,
+      "head": "9e98740c16f638ebc23da4ba7aced92f8ba347e0"
+    },
+    "1043": {
+      "purpose": "Public Identity Cleanup Pack",
+      "mustRemainDraftUntil24hPass": true,
+      "head": "009b727155851cb3f035fa4cf909aee9cb3e1a02"
+    },
+    "1044": {
+      "purpose": "Device Acceptance Pack",
+      "mustRemainDraftUntil24hPass": true,
+      "head": "47768509400d432b9d1ab3fabd165e55f5f558d4"
+    }
+  },
+  "releaseRule": {
+    "doNotMixProductionChangesIntoActive72hWindow": true,
+    "deviceGateAfter24hDoesNotRequireRuntimeMutation": true,
+    "protectedRuntimeChangesRequireTransitionGovernance": true,
+    "legacyEndpointDeprecationIsOutOfScope": true
+  }
+}
